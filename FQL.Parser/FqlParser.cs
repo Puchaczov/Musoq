@@ -568,7 +568,8 @@ namespace FQL.Parser
                    currentToken.TokenType == TokenType.LessEqual ||
                    currentToken.TokenType == TokenType.Equality ||
                    currentToken.TokenType == TokenType.Not ||
-                   currentToken.TokenType == TokenType.Diff;
+                   currentToken.TokenType == TokenType.Diff ||
+                   currentToken.TokenType == TokenType.Like;
         }
 
         private static bool IsQueryOperator(Token currentToken)

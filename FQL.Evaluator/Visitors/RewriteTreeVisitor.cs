@@ -144,9 +144,15 @@ namespace FQL.Evaluator.Visitors
 
         public void Visit(LikeNode node)
         {
+            const string methodName = "Like";
+
             var right = Nodes.Pop();
             var left = Nodes.Pop();
-            Nodes.Push(new LikeNode(left, right));
+            var method = _schema.ResolveMethod(methodName, new [] {left.ReturnType, right.ReturnType});
+            var fToken = new FunctionToken(methodName, TextSpan.Empty);
+            var argList = new ArgsListNode(new []{ left, right });
+
+            Nodes.Push(new AccessMethodNode(fToken, argList, null, method));
         }
 
         public virtual void Visit(FieldNode node)

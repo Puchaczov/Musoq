@@ -560,6 +560,12 @@ namespace FQL.Plugins
             return obj.ToString();
         }
 
+        [BindableMethod]
+        public bool Like(string content, string searchFor)
+        {
+            return new Regex(@"\A" + new Regex(@"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\").Replace(searchFor, ch => @"\" + ch).Replace('_', '.').Replace("%", ".*") + @"\z", RegexOptions.Singleline).IsMatch(content);
+        }
+
         private static string CalculateHash<THashProvider>(string content)
             where THashProvider : HashAlgorithm, new()
         {

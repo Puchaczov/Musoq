@@ -18,6 +18,28 @@ namespace FQL.Evaluator.Tests
     public class BasicEvaluatorTests
     {
         [TestMethod]
+        public void LikeOperator()
+        {
+            var query = "select Name from #A.Entities() where Name like '%AA%'";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"), new BasicEntity("dadsqqAA")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual("ABCAACBA", table[0].Values[0]);
+            Assert.AreEqual("AAeqwgQEW", table[1].Values[0]);
+            Assert.AreEqual("dadsqqAA", table[2].Values[0]);
+        }
+
+        [TestMethod]
         public void CanPassComplexArgumentToFunction()
         {
             var query = "select NothingToDo(Self) from #A.Entities()";
