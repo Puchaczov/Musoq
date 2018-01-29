@@ -1,0 +1,19 @@
+﻿AND PATTERN: a and b (if(a) then b else false)
+
+	ld a
+	jmpf loadfalse
+	ld b
+	jmp endofexp
+loadfalse:
+	ld false
+endofexp:
+
+OR PATTERN: a or b (if(a) then true else b)
+	
+	ld a
+	jmpt loadtrue
+	ld b
+	jmp endofexp
+loadtrue:
+	ld true;
+endofexp:

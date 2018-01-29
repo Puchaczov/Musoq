@@ -1,0 +1,50 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using FQL.Parser;
+using FQL.Parser.Nodes;
+using FQL.Schema;
+
+namespace FQL.Evaluator.Visitors
+{
+    public class RewriteFieldWithGroupMethodCall : RewriteTreeVisitor
+    {
+        public RewriteFieldWithGroupMethodCall(ISchemaProvider schemaProvider, int fieldOrder, FieldNode[] fields) 
+            : base(schemaProvider)
+        {
+            _fieldOrder = fieldOrder;
+            _fields = fields;
+        }
+
+        public FieldNode Expression { get; private set; }
+
+        private int _fieldOrder;
+        private readonly FieldNode[] _fields;
+
+        public override void Visit(FieldNode node)
+        {
+            base.Visit(node);
+            Expression = Nodes.Pop() as FieldNode;
+        }
+
+        public override void Visit(AccessMethodNode node)
+        {
+            if (node.IsAggregateMethod)
+            {
+                Nodes.Pop();
+
+                var wordNode = node.Arguments.Args[0] as WordNode;
+                Nodes.Push(new DetailedAccessColumnNode(wordNode.Value, _fieldOrder++, node.ReturnType));
+            }
+            else if (_fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))
+            {
+                Nodes.Push(new DetailedAccessColumnNode(node.ToString(), _fieldOrder++, node.ReturnType));
+            }
+            else
+            {
+                base.Visit(node);
+            }
+        }
+    }
+}

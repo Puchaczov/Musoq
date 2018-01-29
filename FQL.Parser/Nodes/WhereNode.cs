@@ -1,0 +1,29 @@
+﻿using System;
+
+namespace FQL.Parser.Nodes
+{
+    public class WhereNode : Node
+    {
+        public WhereNode(Node expression)
+        {
+            Expression = expression;
+            Id = $"{nameof(WhereNode)}{expression.Id}";
+        }
+
+        public Node Expression { get; }
+
+        public override Type ReturnType => Expression.ReturnType;
+
+        public override void Accept(IExpressionVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
+        public override string Id { get; }
+
+        public override string ToString()
+        {
+            return $"where {Expression.ToString()}";
+        }
+    }
+}

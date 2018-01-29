@@ -1,0 +1,25 @@
+﻿
+select a from #A where a > b group by a having count(a) > 0;
+
+CREATE THREAD #1
+CREATE THREAD #2
+
+from #A				|			from #A				|			from #A
+where a > b			|			where a > b			|			where a > b
+group by a			|			group by a			|			group by a
+select a			|			select a			|			select a
+
+MERGE GROUP TABLES
+EVALUATE HAVING
+
+
+select a, b from #A where a > b;
+
+CREATE THREAD #1
+CREATE THREAD #2
+
+from #A				|			from #A				|			from #A
+where a > b			|			where a > b			|			where a > b
+select a, b			|			select a, b			|			select a, b
+
+MERGE TABLES

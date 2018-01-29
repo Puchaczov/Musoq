@@ -1,0 +1,70 @@
+﻿a except b => crt b; fill b by b:source; fill a by a:source that is not present in b
+a union b => crt a; fill a by a:source; fill a by b:source that is not present in a
+a union all b => crt a; fill a by a:source; fill a by b:source;
+a intersect b => crt b; fill b by b:source; fill a by a:source that is present in b
+
+              (e)      [(from,where,select)b,b:source] [(from,where,select)ab,a:source,b]
+a except b => crt ab, crt b; fill b by b:source;fill ab by a:source that is not present in b
+
+				 (i)    [(from,where,select)b,b:source)] [(from,where,select)ab,a:source,b]
+a intersect b => crt ab, crt b; fill b by b:source; fill ab by a:source that is present in b
+
+		     (u) [(from,where,select)ab,a:source]   [(from,where,select)ab,b:source,ab]
+a union b => crt ab; fill ab by a:source; fill ab by b:source that is not present in ab
+
+                 (ua) [(from,where,select)ab,a:source) [(from,where,select)ab,b:source]
+a union all b => crt ab; fill ab by a:source; fill ab by b:source;
+
+ab union c => crt abc; fill abc by ab:source; fill abc by c:source that is not present in abc
+       ab        abc      abcd
+(((a except b) union c) intersect d)
+
+select name from #a where CountOfLines <> 0;
+except (name)
+select name from #b where CountOfLines <> 0;
+except (name)
+select name from #c where CountOfLines <> 0;
+
+crt #ab(name), #b(name);
+select name from b:source where CountOfLines <> 0 into #b;
+select name from a:source where CountOfLines <> 0 into #ab that is not present in #b;
+turn #ab into source
+crt #abc(name), #c(name);
+select name from c:source where CountOfLines <> 0 into #c;
+select name from ab:source where CountOfLines <> 0 into #abc that is not present in #c;
+-----------------------------------------------------------------------------------------------------
+
+select name from #a where CountOfLines <> 0;
+except (name)
+select name from #b where CountOfLines <> 0;
+union (name)
+select name from #c where CountOfLines <> 0;
+
+crt #ab(name), crt #b(name);
+evaluate select name from b:source where CountOfLines <> 0 into #b;
+evaluate select name from a:source where CountOfLines <> 0 into #ab not present in #b;
+turn #ab into source
+crt #abc(name);
+evaluate select name from ab:source where CountOfLines <> 0 into #abc;
+evaluate select name from c:source where CountOfLines <> 0 into #abc not present in #abc;
+-----------------------------------------------------------------------------------------------------
+
+select name from #a where CountOfLines <> 0;
+except (name)
+select name from #b where CountOfLines <> 0;
+union all (name)
+select name from #c where CountOfLines <> 0;
+
+crt #ab(name), crt #b(name);
+evaluate select name from b:source where CountOfLines <> 0 into #b;
+evaluate select name from a:source where CountOfLines <> 0 into #ab not present in #b;
+turn #ab into source
+crt #abc(name);
+evaluate select name from ab:source where CountOfLines <> 0 into #abc;
+evaluate select name from c:source where CountOfLines <> 0 into #abc not present in #abc;
+
+
+select a.a, count(a.a), sum(a.b) from a where a.a > 0 group by a.a, a.b having count(a.a) > 5 and sum(a.b) > 4
+=>
+select * from (select a.a, count(a.a), sum(a.b) from ga where g.a > 0 group by a.a, a.b having count(a.a) > 5 and sum(a.b) > 4)
+

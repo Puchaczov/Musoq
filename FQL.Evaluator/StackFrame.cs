@@ -1,0 +1,21 @@
+﻿using System.Collections.Generic;
+using FQL.Evaluator.Tables;
+using FQL.Plugins;
+using FQL.Schema.DataSources;
+
+namespace FQL.Evaluator
+{
+    public class StackFrame
+    {
+        public Stack<bool> BooleanStack { get; } = new Stack<bool>();
+        public Stack<long> LongsStack { get; } = new Stack<long>();
+        public Stack<decimal> NumericsStack { get; } = new Stack<decimal>();
+        public Stack<string> StringsStack { get; } = new Stack<string>();
+        public Stack<object> ObjectsStack { get; } = new Stack<object>();
+        public Stack<IEnumerator<IObjectResolver>> SourceStack { get; } = new Stack<IEnumerator<IObjectResolver>>();
+        public IDictionary<string, Table> Tables { get; } = new Dictionary<string, Table>();
+        public long[] Registers { get; } = new long[4];
+        public IDictionary<string, Group> Groups { get; } = new Dictionary<string, Group>();
+        public Group CurrentGroup { get; set; } = new Group(null, new string[0], new object[0]);
+    }
+}
