@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -14,10 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FQL.Parser\FQL.Parser.csproj" />
-    <ProjectReference Include="..\FQL.Schema.Tcp.Core\FQL.Schema.Tcp.Core.csproj" />
-    <ProjectReference Include="..\FQL.Service.Client\FQL.Service.Client.csproj" />
-    <ProjectReference Include="..\FQL.Table\FQL.Schema.csproj" />
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+    <ProjectReference Include="..\Musoq.Schema.Tcp.Core\Musoq.Schema.Tcp.Core.csproj" />
+    <ProjectReference Include="..\Musoq.Service.Client\Musoq.Service.Client.csproj" />
+    <ProjectReference Include="..\Musoq.Table\Musoq.Schema.csproj" />
   </ItemGroup>
 
 </Project>
