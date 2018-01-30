@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Web.Http;
 using FQL.Plugins;
 using FQL.Plugins.Attributes;
-using FQL.Service.Client;
+using Musoq.Service.Client;
 
 namespace Musoq.Service.Controllers
 {

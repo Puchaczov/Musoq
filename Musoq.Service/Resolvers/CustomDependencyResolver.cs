@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Web.Http.Dependencies;
-using FQL.Service.Client;
+using Musoq.Service.Client;
 using Musoq.Service.Controllers;
 using Musoq.Service.Models;
 

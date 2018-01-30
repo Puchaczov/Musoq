@@ -2,8 +2,8 @@
 using System.IO;
 using System.Linq;
 using CommandLine;
-using FQL.Service.Client;
-using FQL.Service.Client.Helpers;
+using Musoq.Service.Client;
+using Musoq.Service.Client.Helpers;
 using Musoq.Console.Helpers;
 
 namespace Musoq.Console

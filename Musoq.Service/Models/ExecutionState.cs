@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using FQL.Evaluator.Tables;
-using FQL.Service.Client;
+using Musoq.Service.Client;
 
 namespace Musoq.Service.Models
 {

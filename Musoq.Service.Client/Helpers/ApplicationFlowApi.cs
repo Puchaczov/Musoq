@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace FQL.Service.Client.Helpers
+namespace Musoq.Service.Client.Helpers
 {
     public class ApplicationFlowApi
     {

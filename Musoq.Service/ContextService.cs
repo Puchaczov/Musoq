@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ServiceProcess;
-using FQL.Service.Client.Helpers;
 using Microsoft.Owin.Hosting;
+using Musoq.Service.Client.Helpers;
 
 namespace Musoq.Service
 {

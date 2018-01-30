@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
 using FQL.Converter;
-using FQL.Service.Client;
+using Musoq.Service.Client;
 using Musoq.Service.Models;
 
 namespace Musoq.Service.Controllers

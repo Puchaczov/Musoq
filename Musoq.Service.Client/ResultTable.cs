@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FQL.Service.Client
+namespace Musoq.Service.Client
 {
     public class ResultTable
     {

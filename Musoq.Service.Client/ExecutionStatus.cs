@@ -1,4 +1,4 @@
-﻿namespace FQL.Service.Client
+﻿namespace Musoq.Service.Client
 {
     public enum ExecutionStatus
     {

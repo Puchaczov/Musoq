@@ -7,8 +7,8 @@
     <ProjectGuid>{3B0093A7-344B-44F4-ABBD-0474231E8578}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FQL.Service.Client</RootNamespace>
-    <AssemblyName>FQL.Service.Client</AssemblyName>
+    <RootNamespace>Musoq.Service.Client</RootNamespace>
+    <AssemblyName>Musoq.Service.Client</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

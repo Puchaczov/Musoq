@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace FQL.Service.Client.Helpers
+namespace Musoq.Service.Client.Helpers
 {
     public class RuntimeApi
     {
