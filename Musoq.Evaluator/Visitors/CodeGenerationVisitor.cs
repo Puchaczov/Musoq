@@ -211,6 +211,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(EqualityNode node)
         {
+            GenerateConvertingInstructions(node);
             switch (node.ReturnType.Name)
             {
                 case nameof(String):
@@ -232,6 +233,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(GreaterOrEqualNode node)
         {
+            GenerateConvertingInstructions(node);
             switch (node.ReturnType.Name)
             {
                 case nameof(String):
@@ -252,6 +254,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(LessOrEqualNode node)
         {
+            GenerateConvertingInstructions(node);
             switch (node.ReturnType.Name)
             {
                 case nameof(String):
@@ -272,6 +275,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(GreaterNode node)
         {
+            GenerateConvertingInstructions(node);
             switch (node.ReturnType.Name)
             {
                 case nameof(String):
@@ -292,6 +296,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(LessNode node)
         {
+            GenerateConvertingInstructions(node);
             switch (node.ReturnType.Name)
             {
                 case nameof(String):
@@ -312,6 +317,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DiffNode node)
         {
+            GenerateConvertingInstructions(node);
             switch (node.ReturnType.Name)
             {
                 case nameof(String):

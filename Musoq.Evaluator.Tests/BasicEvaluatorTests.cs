@@ -1137,6 +1137,157 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
             Assert.AreEqual(Convert.ToDecimal(1750), table[0].Values[1]);
         }
 
+        [TestMethod]
+        public void ArithmeticOpsGreater()
+        {
+            var query = "select City from #A.entities() where Population > 400d";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+
+            Assert.AreEqual(1, table.Count());
+            Assert.AreEqual("WARSAW", table[0].Values[0]);
+        }
+
+        [TestMethod]
+        public void ArithmeticOpsGreaterEqual()
+        {
+            var query = "select City from #A.entities() where Population >= 400d";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+
+            Assert.AreEqual(2, table.Count());
+            Assert.AreEqual("WARSAW", table[0].Values[0]);
+            Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void ArithmeticOpsEquals()
+        {
+            var query = "select City from #A.entities() where Population = 250d";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+
+            Assert.AreEqual(2, table.Count());
+            Assert.AreEqual("KATOWICE", table[0].Values[0]);
+            Assert.AreEqual("BERLIN", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void ArithmeticOpsLess()
+        {
+            var query = "select City from #A.entities() where Population < 350d";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+
+            Assert.AreEqual(2, table.Count());
+            Assert.AreEqual("KATOWICE", table[0].Values[0]);
+            Assert.AreEqual("BERLIN", table[1].Values[0]);
+        }
+
+
+        [TestMethod]
+        public void ArithmeticOpsLessEqual()
+        {
+            var query = "select City from #A.entities() where Population <= 350d";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+
+            Assert.AreEqual(3, table.Count());
+            Assert.AreEqual("KATOWICE", table[0].Values[0]);
+            Assert.AreEqual("BERLIN", table[1].Values[0]);
+            Assert.AreEqual("MUNICH", table[2].Values[0]);
+        }
+
         private IVirtualMachine CreateAndRunVirtualMachine<T>(string script,
             IDictionary<string, IEnumerable<T>> sources)
             where T : BasicEntity
