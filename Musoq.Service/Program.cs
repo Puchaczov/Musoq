@@ -1,6 +1,4 @@
-﻿using System.ServiceProcess;
-
-namespace FQL.Service
+﻿namespace Musoq.Service
 {
     internal static class Program
     {

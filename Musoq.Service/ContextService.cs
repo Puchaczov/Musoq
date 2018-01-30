@@ -1,10 +1,9 @@
 ﻿using System;
 using System.ServiceProcess;
-using FQL.Service.Client;
 using FQL.Service.Client.Helpers;
 using Microsoft.Owin.Hosting;
 
-namespace FQL.Service
+namespace Musoq.Service
 {
     public partial class ContextService : ServiceBase
     {
@@ -29,7 +28,7 @@ namespace FQL.Service
         public void Start(string[] args)
         {
             OnStart(args);
-            Console.WriteLine("FQL.Server started at {0}.", ApplicationConfiguration.ServerAddress);
+            Console.WriteLine("{1} started at {0}.", ApplicationConfiguration.ServerAddress, nameof(Musoq));
             var api = new ApplicationFlowApi(ApplicationConfiguration.ServerAddress);
 
             Console.WriteLine("Press any key to exit.");

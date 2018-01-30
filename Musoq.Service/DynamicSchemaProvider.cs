@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using FQL.Schema;
-using FQL.Service.Helpers;
+using Musoq.Service.Helpers;
 
-namespace FQL.Service
+namespace Musoq.Service
 {
     public class DynamicSchemaProvider : ISchemaProvider
     {

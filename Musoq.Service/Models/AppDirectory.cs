@@ -1,6 +1,6 @@
 ﻿using FQL.Parser;
 
-namespace FQL.Service.Models
+namespace Musoq.Service.Models
 {
     public class AppDirectory : INamedSource
     {

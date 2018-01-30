@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using CommandLine;
-using FQL.Console.Helpers;
 using FQL.Service.Client;
 using FQL.Service.Client.Helpers;
+using Musoq.Console.Helpers;
 
-namespace FQL.Console
+namespace Musoq.Console
 {
     public class ApplicationArguments
     {

@@ -3,10 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Web.Http.Dependencies;
 using FQL.Service.Client;
-using FQL.Service.Controllers;
-using FQL.Service.Models;
+using Musoq.Service.Controllers;
+using Musoq.Service.Models;
 
-namespace FQL.Service.Resolvers
+namespace Musoq.Service.Resolvers
 {
     public class CustomDependencyResolver : IDependencyResolver
     {

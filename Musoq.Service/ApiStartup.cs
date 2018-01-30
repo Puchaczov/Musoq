@@ -1,9 +1,9 @@
 ﻿using System.Net.Http.Formatting;
 using System.Web.Http;
-using FQL.Service.Resolvers;
+using Musoq.Service.Resolvers;
 using Owin;
 
-namespace FQL.Service
+namespace Musoq.Service
 {
     public class ApiStartup
     {

@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using FQL.Plugins;
 using FQL.Schema;
-using FQL.Schema.DataSources;
 
-namespace FQL.Service.Helpers
+namespace Musoq.Service.Helpers
 {
     public static class PluginsLoader
     {

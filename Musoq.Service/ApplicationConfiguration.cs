@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace FQL.Service
+namespace Musoq.Service
 {
     public static class ApplicationConfiguration
     {

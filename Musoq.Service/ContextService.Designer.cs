@@ -1,4 +1,4 @@
-﻿namespace FQL.Service
+﻿namespace Musoq.Service
 {
     partial class ContextService
     {

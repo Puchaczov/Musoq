@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using FQL.Converter;
 using FQL.Service.Client;
-using FQL.Service.Models;
+using Musoq.Service.Models;
 
-namespace FQL.Service.Controllers
+namespace Musoq.Service.Controllers
 {
     public class RuntimeController : ApiController
     {

@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B085AC53-D9CE-451E-B971-903A1B91B625}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>FQL.Service</RootNamespace>
-    <AssemblyName>FQL.Service</AssemblyName>
+    <RootNamespace>Musoq.Service</RootNamespace>
+    <AssemblyName>Musoq.Service</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -102,29 +102,29 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FQL.Converter\Musoq.Converter.csproj">
+    <ProjectReference Include="..\FQL.Converter\FQL.Converter.csproj">
       <Project>{f6710f80-75df-4141-9c36-9e981d680665}</Project>
-      <Name>Musoq.Converter</Name>
+      <Name>FQL.Converter</Name>
     </ProjectReference>
-    <ProjectReference Include="..\FQL.Evaluator\Musoq.Evaluator.csproj">
+    <ProjectReference Include="..\FQL.Evaluator\FQL.Evaluator.csproj">
       <Project>{b50cc668-94c3-429a-9d1f-45f4bb40cb0b}</Project>
-      <Name>Musoq.Evaluator</Name>
+      <Name>FQL.Evaluator</Name>
     </ProjectReference>
-    <ProjectReference Include="..\FQL.Parser\Musoq.Parser.csproj">
+    <ProjectReference Include="..\FQL.Parser\FQL.Parser.csproj">
       <Project>{38b5f6db-2dcb-46bf-a250-219d97b1c973}</Project>
-      <Name>Musoq.Parser</Name>
+      <Name>FQL.Parser</Name>
     </ProjectReference>
-    <ProjectReference Include="..\FQL.Plugins\Musoq.Plugins.csproj">
+    <ProjectReference Include="..\FQL.Plugins\FQL.Plugins.csproj">
       <Project>{10775a77-bc60-47fd-a6ff-f02c3ea41944}</Project>
-      <Name>Musoq.Plugins</Name>
+      <Name>FQL.Plugins</Name>
     </ProjectReference>
-    <ProjectReference Include="..\FQL.Service.Client\Musoq.Service.Client.csproj">
+    <ProjectReference Include="..\FQL.Service.Client\FQL.Service.Client.csproj">
       <Project>{3b0093a7-344b-44f4-abbd-0474231e8578}</Project>
-      <Name>Musoq.Service.Client</Name>
+      <Name>FQL.Service.Client</Name>
     </ProjectReference>
-    <ProjectReference Include="..\FQL.Table\Musoq.Schema.csproj">
+    <ProjectReference Include="..\FQL.Table\FQL.Schema.csproj">
       <Project>{1b7d2e6c-05a9-42e1-be32-9a6821e390ca}</Project>
-      <Name>Musoq.Schema</Name>
+      <Name>FQL.Schema</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

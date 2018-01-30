@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using FQL.Evaluator.Tables;
 using FQL.Service.Client;
 
-namespace FQL.Service.Models
+namespace Musoq.Service.Models
 {
     public class ExecutionState
     {

@@ -7,7 +7,7 @@ using FQL.Plugins;
 using FQL.Plugins.Attributes;
 using FQL.Service.Client;
 
-namespace FQL.Service.Controllers
+namespace Musoq.Service.Controllers
 {
     public class ContextController : ApiController
     {
