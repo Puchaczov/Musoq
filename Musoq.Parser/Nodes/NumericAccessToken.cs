@@ -15,29 +15,4 @@ namespace Musoq.Parser.Nodes
 
         public string Name { get; }
     }
-
-    public class KeyAccessToken : Token
-    {
-        public KeyAccessToken(string name, string value, TextSpan span) 
-            : base(value, TokenType.KeyAccess, span)
-        {
-            Key = value;
-            Name = name;
-        }
-
-        public string Key { get; }
-
-        public string Name { get; }
-    }
-
-    public class AccessPropertyToken : Token
-    {
-        public AccessPropertyToken(string value, TextSpan span) 
-            : base(value, TokenType.Property, span)
-        {
-            Name = value;
-        }
-
-        public string Name { get; }
-    }
 }

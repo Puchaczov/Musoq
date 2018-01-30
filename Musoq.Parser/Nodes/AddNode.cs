@@ -1,8 +1,8 @@
 ﻿namespace Musoq.Parser.Nodes
 {
-    public class StarNode : BinaryNode
+    public class AddNode : BinaryNode
     {
-        public StarNode(Node left, Node right) : base(left, right)
+        public AddNode(Node left, Node right) : base(left, right)
         {
             Id = CalculateId(this);
         }
@@ -15,7 +15,7 @@
 
         public override string ToString()
         {
-            return $"{Left.ToString()} * {Right.ToString()}";
+            return $"{Left.ToString()} + {Right.ToString()}";
         }
     }
 }

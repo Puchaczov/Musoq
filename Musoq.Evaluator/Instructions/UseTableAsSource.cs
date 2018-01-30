@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Musoq.Evaluator.Tables;
+﻿using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Instructions
 {
@@ -26,26 +25,5 @@ namespace Musoq.Evaluator.Instructions
         {
             return $"USE TABLE {_name} AS SOURCE";
         }
-    }
-
-    public class UseTableWithStandardColumns : UseTableAsSource
-    {
-        public UseTableWithStandardColumns(string name) 
-            : base(name)
-        { }
-
-        protected override TableRowSource CreateSource(Table table) => new TableRowSource(table);
-    }
-
-    public class UseTableWithRemappedColumns : UseTableAsSource
-    {
-        private readonly IDictionary<string, int> _remappedColumns;
-        public UseTableWithRemappedColumns(string name, IDictionary<string, int> remappedColumns) 
-            : base(name)
-        {
-            _remappedColumns = remappedColumns;
-        }
-
-        protected override TableRowSource CreateSource(Table table) => new TableRowSource(table, _remappedColumns);
     }
 }

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using Musoq.Converter;
 using Musoq.Schema;
-using Musoq.Schema.Csv;
 
 namespace Musoq.Performance
 {
@@ -42,14 +41,6 @@ namespace Musoq.Performance
         private static ISchemaProvider CreateSchema()
         {
             return new CsvSchemaProvider();
-        }
-    }
-
-    internal class CsvSchemaProvider : ISchemaProvider
-    {
-        public ISchema GetSchema(string schema)
-        {
-            return new CsvSchema();
         }
     }
 }
