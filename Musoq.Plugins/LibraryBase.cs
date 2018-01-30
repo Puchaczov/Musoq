@@ -518,7 +518,13 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public string Sha1(string content)
+        public string Sha512(string content)
+        {
+            return CalculateHash<SHA512Managed>(content);
+        }
+
+        [BindableMethod]
+        public string Sha256(string content)
         {
             return CalculateHash<SHA256Managed>(content);
         }
@@ -562,7 +568,10 @@ namespace Musoq.Plugins
         [BindableMethod]
         public bool Like(string content, string searchFor)
         {
-            return new Regex(@"\A" + new Regex(@"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\").Replace(searchFor, ch => @"\" + ch).Replace('_', '.').Replace("%", ".*") + @"\z", RegexOptions.Singleline).IsMatch(content);
+            return 
+                new Regex(@"\A" + new Regex(@"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\")
+                              .Replace(searchFor, ch => @"\" + ch).Replace('_', '.')
+                              .Replace("%", ".*") + @"\z", RegexOptions.Singleline).IsMatch(content);
         }
 
         private static string CalculateHash<THashProvider>(string content)
