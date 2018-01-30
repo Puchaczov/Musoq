@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using FQL.Parser.Lexing;
-using FQL.Parser.Nodes;
-using FQL.Parser.Tokens;
+using Musoq.Parser.Lexing;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
 
-namespace FQL.Parser
+namespace Musoq.Parser
 {
     public class FqlParser
     {

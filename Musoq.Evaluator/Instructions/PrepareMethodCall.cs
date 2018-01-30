@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using FQL.Plugins.Attributes;
-using FQL.Schema.Helpers;
+using Musoq.Plugins.Attributes;
+using Musoq.Schema.Helpers;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     public class PrepareMethodCall : ByteCodeInstruction
     {

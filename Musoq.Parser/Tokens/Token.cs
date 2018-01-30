@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace FQL.Parser.Tokens
+namespace Musoq.Parser.Tokens
 {
     [DebuggerDisplay("{Value} of type {TokenType},nq")]
     public class Token : GenericToken<TokenType>, IEquatable<Token>

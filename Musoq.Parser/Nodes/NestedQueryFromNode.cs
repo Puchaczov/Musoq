@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace FQL.Parser.Nodes
+namespace Musoq.Parser.Nodes
 {
     public class NestedQueryFromNode : FromNode
     {

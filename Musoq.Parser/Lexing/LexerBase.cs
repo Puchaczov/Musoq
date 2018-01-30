@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace FQL.Parser.Lexing
+namespace Musoq.Parser.Lexing
 {
     /// <summary>
     ///     Idea how to implement this piece of code where founded here:

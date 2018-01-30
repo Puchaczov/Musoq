@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using FQL.Plugins;
+using Musoq.Plugins;
 
-namespace FQL.Schema.Managers
+namespace Musoq.Schema.Managers
 {
     public class MethodsAggregator
     {

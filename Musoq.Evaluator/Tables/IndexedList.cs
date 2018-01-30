@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FQL.Evaluator.Tables
+namespace Musoq.Evaluator.Tables
 {
     public abstract class IndexedList<TKey, TValue>
         where TValue : IValue<TKey>

@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 
-namespace FQL.Parser.Nodes
+namespace Musoq.Parser.Nodes
 {
     public class TranslatedSetOperatorNode : Node
     {

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using FQL.Evaluator.Instructions;
-using FQL.Evaluator.Instructions.Converts;
+using Musoq.Evaluator.Instructions;
+using Musoq.Evaluator.Instructions.Converts;
 
-namespace FQL.Evaluator.Helpers
+namespace Musoq.Evaluator.Helpers
 {
     public static class EvaluationHelper
     {

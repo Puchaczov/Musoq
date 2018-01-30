@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using FQL.Schema.DataSources;
+using Musoq.Schema.DataSources;
 
-namespace FQL.Schema.Disk.Console
+namespace Musoq.Schema.Disk.Console
 {
     public static class SchemaConsoleHelper
     {

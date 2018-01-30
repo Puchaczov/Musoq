@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FQL.Converter;
-using FQL.Schema;
-using FQL.Schema.Csv;
+using Musoq.Converter;
+using Musoq.Schema;
+using Musoq.Schema.Csv;
 
-namespace FQL.Performance
+namespace Musoq.Performance
 {
     class Program
     {

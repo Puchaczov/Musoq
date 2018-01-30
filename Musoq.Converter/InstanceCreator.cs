@@ -1,10 +1,10 @@
-﻿using FQL.Evaluator;
-using FQL.Evaluator.Visitors;
-using FQL.Parser;
-using FQL.Parser.Lexing;
-using FQL.Schema;
+﻿using Musoq.Evaluator;
+using Musoq.Evaluator.Visitors;
+using Musoq.Parser;
+using Musoq.Parser.Lexing;
+using Musoq.Schema;
 
-namespace FQL.Converter
+namespace Musoq.Converter
 {
     public static class InstanceCreator
     {

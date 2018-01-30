@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using FQL.Plugins.Attributes;
-using FQL.Schema.Helpers;
+using Musoq.Plugins.Attributes;
+using Musoq.Schema.Helpers;
 
-namespace FQL.Schema.Managers
+namespace Musoq.Schema.Managers
 {
     public class MethodsMetadatas
     {

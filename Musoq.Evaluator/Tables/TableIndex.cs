@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FQL.Evaluator.Tables
+namespace Musoq.Evaluator.Tables
 {
     public class TableIndex : IEquatable<TableIndex>
     {

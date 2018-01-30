@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace FQL.Parser
+namespace Musoq.Parser
 {
     /// <summary>
     ///     This class allows to store association between source text and parsed tree.

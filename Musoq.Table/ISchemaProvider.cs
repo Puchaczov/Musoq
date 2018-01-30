@@ -1,4 +1,4 @@
-﻿namespace FQL.Schema
+﻿namespace Musoq.Schema
 {
     public interface ISchemaProvider
     {

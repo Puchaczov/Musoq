@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     public class LikeInstruction : ByteCodeInstruction
     {

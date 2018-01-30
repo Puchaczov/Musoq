@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FQL.Evaluator.Tables
+namespace Musoq.Evaluator.Tables
 {
     public class Table : IndexedList<Key, Row>, IEnumerable<Row>
     {

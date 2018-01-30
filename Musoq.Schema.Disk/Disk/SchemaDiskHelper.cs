@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using FQL.Schema.DataSources;
+using Musoq.Schema.DataSources;
 
-namespace FQL.Schema.Disk.Disk
+namespace Musoq.Schema.Disk.Disk
 {
     public static class SchemaDiskHelper
     {

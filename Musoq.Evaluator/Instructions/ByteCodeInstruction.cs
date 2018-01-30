@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     [DebuggerDisplay("{DebugInfo()}")]
     public abstract class ByteCodeInstruction

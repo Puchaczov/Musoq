@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using FQL.Converter;
-using FQL.Evaluator.Instructions;
-using FQL.Parser;
-using FQL.Plugins;
-using FQL.Plugins.Attributes;
-using FQL.Schema;
-using FQL.Schema.DataSources;
-using FQL.Schema.Managers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter;
+using Musoq.Evaluator.Instructions;
+using Musoq.Parser;
+using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
+using Musoq.Schema;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Managers;
 
 namespace FQL.Evaluator.Tests
 {

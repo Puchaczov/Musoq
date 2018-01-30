@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     public class CreateGroupIdentifier : ByteCodeInstruction
     {

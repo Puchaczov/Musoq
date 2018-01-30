@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
-using FQL.Schema.DataSources;
-using FQL.Schema.Tcp.Core;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Tcp.Core;
 using Newtonsoft.Json;
 
-namespace FQL.Schema.Tcp
+namespace Musoq.Schema.Tcp
 {
     public class NetworkTable : ISchemaTable
     {

@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace FQL.Evaluator.Tables
+namespace Musoq.Evaluator.Tables
 {
     [DebuggerDisplay("{ToString()}")]
     public class Key : IEquatable<Key>

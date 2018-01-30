@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FQL.Parser.Lexing
+namespace Musoq.Parser.Lexing
 {
     public class UnknownTokenException : Exception
     {

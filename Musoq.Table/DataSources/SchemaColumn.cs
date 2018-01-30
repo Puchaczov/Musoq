@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FQL.Schema.DataSources
+namespace Musoq.Schema.DataSources
 {
     public class SchemaColumn : ISchemaColumn
     {

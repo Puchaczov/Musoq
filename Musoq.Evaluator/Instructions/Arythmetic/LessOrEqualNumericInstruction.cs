@@ -1,4 +1,4 @@
-﻿namespace FQL.Evaluator.Instructions.Arythmetic
+﻿namespace Musoq.Evaluator.Instructions.Arythmetic
 {
     public class LessOrEqualNumericInstruction : ByteCodeInstruction
     {

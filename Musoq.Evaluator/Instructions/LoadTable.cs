@@ -1,7 +1,7 @@
 ﻿using System.Linq;
-using FQL.Evaluator.Tables;
+using Musoq.Evaluator.Tables;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     public class LoadTable : ByteCodeInstruction
     {

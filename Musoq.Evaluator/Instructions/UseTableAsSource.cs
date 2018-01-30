@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using FQL.Evaluator.Tables;
+using Musoq.Evaluator.Tables;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     public abstract class UseTableAsSource : ByteCodeInstruction
     {

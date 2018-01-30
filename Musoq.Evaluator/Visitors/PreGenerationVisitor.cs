@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using FQL.Evaluator.Tables;
-using FQL.Parser;
-using FQL.Parser.Nodes;
-using FQL.Plugins.Attributes;
+using Musoq.Evaluator.Tables;
+using Musoq.Parser;
+using Musoq.Parser.Nodes;
 
-namespace FQL.Evaluator.Visitors
+namespace Musoq.Evaluator.Visitors
 {
     public class PreGenerationVisitor : IExpressionVisitor
     {

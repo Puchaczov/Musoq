@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FQL.Parser;
-using FQL.Parser.Nodes;
-using FQL.Schema;
+﻿using System.Linq;
+using Musoq.Parser.Nodes;
+using Musoq.Schema;
 
-namespace FQL.Evaluator.Visitors
+namespace Musoq.Evaluator.Visitors
 {
     public class RewriteFieldWithGroupMethodCall : RewriteTreeVisitor
     {

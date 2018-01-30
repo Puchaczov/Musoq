@@ -1,4 +1,4 @@
-﻿namespace FQL.Parser.Nodes
+﻿namespace Musoq.Parser.Nodes
 {
     public abstract class UnaryNode : Node
     {

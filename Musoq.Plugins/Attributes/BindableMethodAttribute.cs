@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FQL.Plugins.Attributes
+namespace Musoq.Plugins.Attributes
 {
     public class BindableMethodAttribute : Attribute
     {

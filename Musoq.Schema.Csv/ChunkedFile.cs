@@ -2,9 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using FQL.Schema.DataSources;
+using Musoq.Schema.DataSources;
 
-namespace FQL.Schema.Csv
+namespace Musoq.Schema.Csv
 {
     public class ChunkedFile : IEnumerable<IObjectResolver>
     {

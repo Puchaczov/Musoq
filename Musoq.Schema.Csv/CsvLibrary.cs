@@ -1,6 +1,6 @@
-﻿using FQL.Plugins;
+﻿using Musoq.Plugins;
 
-namespace FQL.Schema.Csv
+namespace Musoq.Schema.Csv
 {
     public class CsvLibrary : LibraryBase
     {

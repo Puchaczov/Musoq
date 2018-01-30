@@ -1,4 +1,4 @@
-﻿using FQL.Parser;
+﻿using Musoq.Parser;
 
 namespace Musoq.Service.Models
 {

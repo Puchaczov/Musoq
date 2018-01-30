@@ -1,4 +1,4 @@
-﻿namespace FQL.Schema.Tcp.Core
+﻿namespace Musoq.Schema.Tcp.Core
 {
     public enum Commands : byte
     {

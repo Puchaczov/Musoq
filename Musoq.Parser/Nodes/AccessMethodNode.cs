@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Reflection;
-using FQL.Parser.Tokens;
-using FQL.Plugins.Attributes;
+using Musoq.Parser.Tokens;
+using Musoq.Plugins.Attributes;
 
-namespace FQL.Parser.Nodes
+namespace Musoq.Parser.Nodes
 {
     public class AccessMethodNode : Node
     {

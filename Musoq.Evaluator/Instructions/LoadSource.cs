@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using FQL.Schema.DataSources;
+using Musoq.Schema.DataSources;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     public class LoadSource : ByteCodeInstruction
     {

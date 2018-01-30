@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using FQL.Plugins.Attributes;
+using Musoq.Plugins.Attributes;
 
-namespace FQL.Plugins
+namespace Musoq.Plugins
 {
     [BindableClass]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]

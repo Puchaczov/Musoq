@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace FQL.Evaluator.Tables
+namespace Musoq.Evaluator.Tables
 {
     [DebuggerDisplay("{ColumnOrder}. {Name}: {ColumnType.Name}")]
     public class Column : IEquatable<Column>

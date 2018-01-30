@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace FQL.Evaluator.Tables
+namespace Musoq.Evaluator.Tables
 {
     [DebuggerDisplay("{DebugInfo()}")]
     public abstract class Row : IEquatable<Row>, IValue<Key>

@@ -1,7 +1,7 @@
 ﻿using System;
-using FQL.Parser.Tokens;
+using Musoq.Parser.Tokens;
 
-namespace FQL.Parser
+namespace Musoq.Parser
 {
     internal class UnexpectedTokenException<T> : Exception
     {

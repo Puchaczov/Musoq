@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using FQL.Schema.DataSources;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using Musoq.Schema.DataSources;
 
-namespace FQL.Schema.Solution
+namespace Musoq.Schema.Solution
 {
     public class SolutionSource : RowSource
     {

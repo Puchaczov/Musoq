@@ -1,4 +1,4 @@
-﻿namespace FQL.Parser
+﻿namespace Musoq.Parser
 {
     public interface ISchemaAwareExpressionVisitor : IExpressionVisitor
     {

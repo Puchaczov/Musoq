@@ -1,8 +1,8 @@
 ﻿using System;
-using FQL.Schema.DataSources;
-using FQL.Schema.Managers;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Managers;
 
-namespace FQL.Schema.Csv
+namespace Musoq.Schema.Csv
 {
     public class CsvSchema : SchemaBase
     {

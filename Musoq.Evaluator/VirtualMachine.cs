@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using FQL.Evaluator.Instructions;
-using FQL.Evaluator.Tables;
+using Musoq.Evaluator.Instructions;
+using Musoq.Evaluator.Tables;
 
-namespace FQL.Evaluator
+namespace Musoq.Evaluator
 {
     public class VirtualMachine : IVirtualMachine
     {

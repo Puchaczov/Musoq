@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace FQL.Parser.Nodes
+namespace Musoq.Parser.Nodes
 {
     public class AllColumnsNode : Node
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FQL.Schema
+namespace Musoq.Schema
 {
     public interface ISchemaColumn
     {

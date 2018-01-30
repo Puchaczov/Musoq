@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using FQL.Schema;
+using Musoq.Schema;
 using Musoq.Service.Helpers;
 
 namespace Musoq.Service

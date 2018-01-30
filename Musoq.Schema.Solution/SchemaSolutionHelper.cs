@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace FQL.Schema.Solution
+namespace Musoq.Schema.Solution
 {
     public static class SchemaSolutionHelper
     {

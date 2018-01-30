@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace FQL.Parser.Nodes
+namespace Musoq.Parser.Nodes
 {
     public class AccessPropertyNode : UnaryNode
     {

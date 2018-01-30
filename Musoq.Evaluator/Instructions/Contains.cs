@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     public class Contains<TCompareType> : ByteCodeInstruction
         where TCompareType : IEquatable<TCompareType>

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Reflection;
-using FQL.Plugins.Attributes;
-using FQL.Schema.Managers;
+using Musoq.Plugins.Attributes;
+using Musoq.Schema.Managers;
 
-namespace FQL.Schema.DataSources
+namespace Musoq.Schema.DataSources
 {
     public abstract class SchemaBase : ISchema
     {

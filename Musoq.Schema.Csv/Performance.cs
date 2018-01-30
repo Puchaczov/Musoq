@@ -1,4 +1,4 @@
-﻿namespace FQL.Schema.Helpers
+﻿namespace Musoq.Schema.Csv
 {
     public static class Performance
     {

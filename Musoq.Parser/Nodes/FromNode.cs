@@ -1,7 +1,7 @@
 ﻿using System;
-using FQL.Schema.DataSources;
+using Musoq.Schema.DataSources;
 
-namespace FQL.Parser.Nodes
+namespace Musoq.Parser.Nodes
 {
     public abstract class FromNode : Node
     {

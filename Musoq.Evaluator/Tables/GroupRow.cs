@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using FQL.Plugins;
+using Musoq.Plugins;
 
-namespace FQL.Evaluator.Tables
+namespace Musoq.Evaluator.Tables
 {
     public class GroupRow : Row
     {

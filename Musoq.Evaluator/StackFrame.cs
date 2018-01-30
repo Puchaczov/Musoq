@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using FQL.Evaluator.Tables;
-using FQL.Plugins;
-using FQL.Schema.DataSources;
+using Musoq.Evaluator.Tables;
+using Musoq.Plugins;
+using Musoq.Schema.DataSources;
 
-namespace FQL.Evaluator
+namespace Musoq.Evaluator
 {
     public class StackFrame
     {

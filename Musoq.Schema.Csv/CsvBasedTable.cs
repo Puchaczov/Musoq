@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using FQL.Schema.DataSources;
+using Musoq.Schema.DataSources;
 
-namespace FQL.Schema.Csv
+namespace Musoq.Schema.Csv
 {
     public class CsvBasedTable : ISchemaTable
     {

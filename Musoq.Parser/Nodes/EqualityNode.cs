@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FQL.Parser.Nodes
+﻿namespace Musoq.Parser.Nodes
 {
     public class EqualityNode : BinaryNode
     {

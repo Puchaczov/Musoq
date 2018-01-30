@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FQL.Evaluator.Instructions.Arythmetic
+namespace Musoq.Evaluator.Instructions.Arythmetic
 {
     public class GreaterOrEqualStringInstruction : ByteCodeInstruction
     {

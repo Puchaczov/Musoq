@@ -1,6 +1,6 @@
-﻿using FQL.Parser.Tokens;
+﻿using Musoq.Parser.Tokens;
 
-namespace FQL.Parser.Nodes
+namespace Musoq.Parser.Nodes
 {
     public class IntersectNode : SetOperatorNode
     {

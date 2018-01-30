@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FQL.Schema.DataSources
+namespace Musoq.Schema.DataSources
 {
     public class EntityResolver<T> : IObjectResolver
     {

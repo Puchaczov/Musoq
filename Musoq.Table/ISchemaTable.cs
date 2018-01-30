@@ -1,6 +1,4 @@
-﻿using FQL.Schema.DataSources;
-
-namespace FQL.Schema
+﻿namespace Musoq.Schema
 {
     public interface ISchemaTable
     {

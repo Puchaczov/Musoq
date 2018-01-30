@@ -1,8 +1,8 @@
 ﻿using System;
-using FQL.Parser.Nodes;
-using FQL.Plugins;
+using Musoq.Parser.Nodes;
+using Musoq.Plugins;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     public class AccessGroup : ByteCodeInstruction
     {

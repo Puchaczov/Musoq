@@ -1,6 +1,4 @@
-﻿using FQL.Schema.DataSources;
-
-namespace FQL.Schema.Disk.Console
+﻿namespace Musoq.Schema.Disk.Console
 {
     internal class TextBasedTable : ISchemaTable
     {

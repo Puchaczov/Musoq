@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace FQL.Evaluator
+namespace Musoq.Evaluator
 {
     [Serializable]
     internal class MethodNotFoundedException : Exception

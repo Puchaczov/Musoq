@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using FQL.Parser;
-using FQL.Parser.Nodes;
+using Musoq.Parser;
+using Musoq.Parser.Nodes;
 
-namespace FQL.Evaluator.Visitors
+namespace Musoq.Evaluator.Visitors
 {
     public class RewriteTreeTraverseVisitor : IExpressionVisitor
     {

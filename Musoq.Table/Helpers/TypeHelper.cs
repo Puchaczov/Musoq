@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
-namespace FQL.Schema.Helpers
+namespace Musoq.Schema.Helpers
 {
     public static class TypeHelper
     {

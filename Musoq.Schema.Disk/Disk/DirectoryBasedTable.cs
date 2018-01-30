@@ -1,6 +1,4 @@
-﻿using FQL.Schema.DataSources;
-
-namespace FQL.Schema.Disk.Disk
+﻿namespace Musoq.Schema.Disk.Disk
 {
     public class DirectoryBasedTable : ISchemaTable
     {

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
-using FQL.Schema.DataSources;
-using FQL.Schema.Tcp.Core;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Tcp.Core;
 
-namespace FQL.Schema.Tcp
+namespace Musoq.Schema.Tcp
 {
     public class NetworkSource : RowSource
     {

@@ -1,4 +1,4 @@
-﻿namespace FQL.Schema.Csv
+﻿namespace Musoq.Schema.Csv
 {
     public static class SizeConverter
     {

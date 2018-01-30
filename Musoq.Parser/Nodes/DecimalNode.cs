@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace FQL.Parser.Nodes
+namespace Musoq.Parser.Nodes
 {
     public class DecimalNode : Node
     {

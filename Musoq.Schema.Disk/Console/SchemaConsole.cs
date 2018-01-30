@@ -1,7 +1,7 @@
-﻿using FQL.Schema.DataSources;
-using FQL.Schema.Managers;
+﻿using Musoq.Schema.DataSources;
+using Musoq.Schema.Managers;
 
-namespace FQL.Schema.Disk.Console
+namespace Musoq.Schema.Disk.Console
 {
     public class SchemaConsole : SchemaBase
     {

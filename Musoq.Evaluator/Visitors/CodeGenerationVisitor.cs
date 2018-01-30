@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using FQL.Evaluator.Helpers;
-using FQL.Evaluator.Instructions;
-using FQL.Evaluator.Instructions.Arythmetic;
-using FQL.Parser;
-using FQL.Parser.Nodes;
-using FQL.Parser.Tokens;
-using FQL.Schema;
+using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Instructions;
+using Musoq.Evaluator.Instructions.Arythmetic;
+using Musoq.Parser;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
+using Musoq.Schema;
 
-namespace FQL.Evaluator.Visitors
+namespace Musoq.Evaluator.Visitors
 {
     public class CodeGenerationVisitor : IExpressionVisitor
     {

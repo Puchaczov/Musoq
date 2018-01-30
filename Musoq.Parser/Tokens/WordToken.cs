@@ -1,4 +1,4 @@
-﻿namespace FQL.Parser.Tokens
+﻿namespace Musoq.Parser.Tokens
 {
     public class WordToken : Token
     {

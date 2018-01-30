@@ -1,4 +1,4 @@
-﻿namespace FQL.Parser.Lexing
+﻿namespace Musoq.Parser.Lexing
 {
     public interface ILexer<out TToken>
     {

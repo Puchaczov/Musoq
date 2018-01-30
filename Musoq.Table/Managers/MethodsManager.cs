@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using System.Reflection;
-using FQL.Plugins;
-using FQL.Plugins.Attributes;
+using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
 
-namespace FQL.Schema.Managers
+namespace Musoq.Schema.Managers
 {
     public class MethodsManager : MethodsMetadatas
     {

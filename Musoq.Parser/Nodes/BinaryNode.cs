@@ -1,7 +1,7 @@
 ﻿using System;
-using FQL.Parser.Helpers;
+using Musoq.Parser.Helpers;
 
-namespace FQL.Parser.Nodes
+namespace Musoq.Parser.Nodes
 {
     public abstract class BinaryNode : Node
     {

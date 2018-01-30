@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using FQL.Evaluator.Tables;
-using FQL.Parser.Nodes;
+using Musoq.Evaluator.Tables;
 
-namespace FQL.Evaluator
+namespace Musoq.Evaluator
 {
     public class TableMetadata
     {

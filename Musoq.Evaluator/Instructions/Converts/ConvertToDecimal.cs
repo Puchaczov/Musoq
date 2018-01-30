@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FQL.Evaluator.Instructions.Converts
+﻿namespace Musoq.Evaluator.Instructions.Converts
 {
     public class ConvertToDecimal : ByteCodeInstruction
     {

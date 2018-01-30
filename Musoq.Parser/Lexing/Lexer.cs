@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
-using FQL.Parser.Nodes;
-using FQL.Parser.Tokens;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
 
-namespace FQL.Parser.Lexing
+namespace Musoq.Parser.Lexing
 {
     public class Lexer : LexerBase<Token>
     {

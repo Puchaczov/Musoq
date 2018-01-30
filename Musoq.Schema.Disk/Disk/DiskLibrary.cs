@@ -5,10 +5,10 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using FQL.Plugins;
-using FQL.Plugins.Attributes;
+using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
 
-namespace FQL.Schema.Disk.Disk
+namespace Musoq.Schema.Disk.Disk
 {
     [BindableClass]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]

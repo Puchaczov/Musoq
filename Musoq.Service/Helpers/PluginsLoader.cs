@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using FQL.Schema;
+using Musoq.Schema;
 
 namespace Musoq.Service.Helpers
 {

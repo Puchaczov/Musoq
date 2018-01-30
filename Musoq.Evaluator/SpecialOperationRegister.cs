@@ -1,4 +1,4 @@
-﻿namespace FQL.Evaluator
+﻿namespace Musoq.Evaluator
 {
     public enum SpecialOperationRegister
     {

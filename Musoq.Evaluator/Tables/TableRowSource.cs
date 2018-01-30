@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using FQL.Schema.DataSources;
+using Musoq.Schema.DataSources;
 
-namespace FQL.Evaluator.Tables
+namespace Musoq.Evaluator.Tables
 {
     public class TableRowSource : RowSource
     {

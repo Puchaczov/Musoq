@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace FQL.Evaluator.Instructions
+namespace Musoq.Evaluator.Instructions
 {
     public class AccessMethod : ByteCodeInstruction
     {

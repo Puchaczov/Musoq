@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using FQL.Parser.Nodes;
+using Musoq.Parser.Nodes;
 
-namespace FQL.Parser.Helpers
+namespace Musoq.Parser.Helpers
 {
     public static class NodeHelper
     {

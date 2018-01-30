@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FQL.Parser.Tokens
+namespace Musoq.Parser.Tokens
 {
     public abstract class GenericToken<TTokenType>
         where TTokenType : struct, IComparable, IFormattable

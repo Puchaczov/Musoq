@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using FQL.Plugins.Attributes;
+using Musoq.Plugins.Attributes;
 
-namespace FQL.Schema.Managers
+namespace Musoq.Schema.Managers
 {
     public abstract class ManagerBase<TReflectedType>
     {

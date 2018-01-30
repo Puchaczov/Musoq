@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
-namespace FQL.Evaluator
+namespace Musoq.Evaluator
 {
     public class MethodDeclaration
     {

@@ -1,6 +1,6 @@
-﻿using FQL.Parser.Nodes;
+﻿using Musoq.Parser.Nodes;
 
-namespace FQL.Parser
+namespace Musoq.Parser
 {
     public interface IExpressionVisitor
     {

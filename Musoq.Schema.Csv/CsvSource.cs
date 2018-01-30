@@ -6,10 +6,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CsvHelper;
-using FQL.Schema.DataSources;
-using IObjectResolver = FQL.Schema.DataSources.IObjectResolver;
+using Musoq.Schema.DataSources;
+using IObjectResolver = Musoq.Schema.DataSources.IObjectResolver;
 
-namespace FQL.Schema.Csv
+namespace Musoq.Schema.Csv
 {
     public class CsvSource : RowSource
     {
@@ -30,7 +30,7 @@ namespace FQL.Schema.Csv
                 var indexToMethodAccess = new Dictionary<int, Func<string[], object>>();
 
                 Stream stream;
-                if (SizeConverter.ToMegabytes(file.Length) > Helpers.Performance.FreeMemoryInMegabytes())
+                if (SizeConverter.ToMegabytes(file.Length) > Performance.FreeMemoryInMegabytes())
                 {
                     stream = file.OpenRead();
                 }

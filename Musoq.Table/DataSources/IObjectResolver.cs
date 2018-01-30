@@ -1,4 +1,4 @@
-namespace FQL.Schema.DataSources
+namespace Musoq.Schema.DataSources
 {
     public interface IObjectResolver
     {
