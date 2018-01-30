@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <StartupObject>FQL.Console.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="1.9.71" />
+    <PackageReference Include="ConsoleTableExt" Version="1.1.0" />
+    <PackageReference Include="CsvHelper" Version="6.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FQL.Parser\Musoq.Parser.csproj" />
+    <ProjectReference Include="..\FQL.Schema.Tcp.Core\Musoq.Schema.Tcp.Core.csproj" />
+    <ProjectReference Include="..\FQL.Service.Client\Musoq.Service.Client.csproj" />
+    <ProjectReference Include="..\FQL.Table\Musoq.Schema.csproj" />
+  </ItemGroup>
+
+</Project>

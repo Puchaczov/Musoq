@@ -62,7 +62,7 @@ namespace FQL.Evaluator.Instructions
 
                 var groups = virtualMachine.Current.Groups;
 
-                var parent = groups.ContainsKey(parentId) ? groups[parentId] : null;
+                var parent = groups.ContainsKey(parentId) ? groups[parentId] : virtualMachine.Current.CurrentGroup;
 
                 var id = ids[i];
                 if (!groups.ContainsKey(id))
