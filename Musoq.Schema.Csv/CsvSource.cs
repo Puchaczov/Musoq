@@ -43,7 +43,7 @@ namespace Musoq.Schema.Csv
                 var readedRows = new BlockingCollection<List<EntityResolver<string[]>>>();
                 var tokenSource = new CancellationTokenSource();
 
-                Task.Factory.StartNew(() =>
+                Thread thread = new Thread(() =>
                 {
                     try
                     {
@@ -75,6 +75,8 @@ namespace Musoq.Schema.Csv
                                 readedRows.Add(list);
                                 list = new List<EntityResolver<string[]>>(rowsToRead);
                             }
+
+                            readedRows.Add(list);
                         }
                     }
                     catch (Exception exc)
@@ -87,6 +89,8 @@ namespace Musoq.Schema.Csv
                         tokenSource.Cancel();
                     }
                 });
+
+                thread.Start();
 
                 using (var reader = new CsvReader(file.OpenText()))
                 {

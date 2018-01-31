@@ -3,7 +3,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Schema.Disk.Console
 {
-    public class SchemaConsole : SchemaBase
+    internal class SchemaConsole : SchemaBase
     {
         public SchemaConsole(string name, MethodsAggregator methodsAggregator) 
             : base(name, methodsAggregator)
