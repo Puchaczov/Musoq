@@ -496,7 +496,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var scope = new GeneratorSelectScope
             {
-                Name = node.Schema,
+                Name = node.Id,
                 Alias = node.Schema
             };
             _selectScope.Push(scope);
@@ -510,7 +510,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var scope = new GeneratorSelectScope
             {
-                Name = node.Schema,
+                Name = node.Id,
                 Alias = node.Alias
             };
             _selectScope.Push(scope);
@@ -527,7 +527,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var scope = new GeneratorSelectScope
             {
-                Name = node.Schema,
+                Name = node.Id,
                 Alias = node.Schema
             };
             _selectScope.Push(scope);
