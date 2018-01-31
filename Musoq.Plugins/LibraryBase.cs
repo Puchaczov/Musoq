@@ -491,6 +491,18 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public string ToString(DateTimeOffset date)
+        {
+            return date.ToString();
+        }
+
+        [BindableMethod]
+        public string ToString(DateTime date)
+        {
+            return date.ToString(CultureInfo.InvariantCulture);
+        }
+
+        [BindableMethod]
         public string ToString(decimal value)
         {
             return value.ToString(CultureInfo.InvariantCulture);

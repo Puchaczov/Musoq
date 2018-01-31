@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -44,37 +45,47 @@ namespace Musoq.Schema.Csv
 
                 Task.Factory.StartNew(() =>
                 {
-                    using (var reader = new CsvReader(new StreamReader(stream)))
+                    try
                     {
-                        reader.Configuration.BadDataFound = context => { };
-
-                        int i = 1, j = 11;
-                        var list = new List<EntityResolver<string[]>>(100);
-                        var rowsToRead = 1000;
-                        const int rowsToReadBase = 100;
-
-                        reader.Read(); //skip header.
-
-                        while (reader.Read())
+                        using (var reader = new CsvReader(new StreamReader(stream)))
                         {
-                            var rawRow = reader.Context.Record;
-                            list.Add(new EntityResolver<string[]>(rawRow, nameToIndexMap, indexToMethodAccess));
+                            reader.Configuration.BadDataFound = context => { };
 
-                            if (i++ < rowsToRead) continue;
+                            int i = 1, j = 11;
+                            var list = new List<EntityResolver<string[]>>(100);
+                            var rowsToRead = 1000;
+                            const int rowsToReadBase = 100;
 
-                            i = 1;
+                            reader.Read(); //skip header.
 
-                            if (j > 1)
-                                j -= 1;
+                            while (reader.Read())
+                            {
+                                var rawRow = reader.Context.Record;
+                                list.Add(new EntityResolver<string[]>(rawRow, nameToIndexMap, indexToMethodAccess));
 
-                            rowsToRead = rowsToReadBase * j;
+                                if (i++ < rowsToRead) continue;
 
-                            readedRows.Add(list);
-                            list = new List<EntityResolver<string[]>>(rowsToRead);
+                                i = 1;
+
+                                if (j > 1)
+                                    j -= 1;
+
+                                rowsToRead = rowsToReadBase * j;
+
+                                readedRows.Add(list);
+                                list = new List<EntityResolver<string[]>>(rowsToRead);
+                            }
                         }
                     }
-
-                    tokenSource.Cancel();
+                    catch (Exception exc)
+                    {
+                        if (Debugger.IsAttached)
+                            Debug.WriteLine(exc);
+                    }
+                    finally
+                    {
+                        tokenSource.Cancel();
+                    }
                 });
 
                 using (var reader = new CsvReader(file.OpenText()))

@@ -236,23 +236,8 @@ namespace Musoq.Evaluator.Visitors
             for (int i = 0; i < _table.Columns.Length; i++)
             {
                 var column = _table.Columns[i];
-                switch (column.ColumnType.Name)
-                {
-                    case nameof(Int16):
-                    case nameof(Int32):
-                    case nameof(Int64):
-                    case nameof(String):
-                    case nameof(Decimal):
-                        _generatedColumns[i] = new FieldNode(new DetailedAccessColumnNode(column.ColumnName, i, column.ColumnType), i, string.Empty);
-                        break;
-                    default:
-                        var func = new FunctionToken("ToString", TextSpan.Empty);
-                        var args = new ArgsListNode(new []{ new DetailedAccessColumnNode(column.ColumnName, i, column.ColumnType) });
-                        var method = _schema.ResolveMethod(func.Value, new[] {column.ColumnType});
 
-                        _generatedColumns[i] = new FieldNode(new AccessMethodNode(func, args, null, method), i, String.Empty);
-                        break;
-                }
+                _generatedColumns[i] = new FieldNode(new DetailedAccessColumnNode(column.ColumnName, i, column.ColumnType), i, string.Empty);
             }
 
             Nodes.Push(node);

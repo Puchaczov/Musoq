@@ -82,10 +82,20 @@ namespace FQL.Evaluator.Tests
         [TestMethod]
         public void SimpleShowAllColumns()
         {
-            var query = "select 1, *, Name as Name2, ToString(Self) as Self from #A.Entities()";
+            var entity = new BasicEntity("001")
+            {
+                Name = "ABBA",
+                Country = "POLAND",
+                City = "CRACOV",
+                Money = 1.23m,
+                Month = "JANUARY",
+                Population = 250,
+                Time = DateTime.MaxValue
+            };
+            var query = "select 1, *, Name as Name2, ToString(Self) as SelfString from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"){ Name = "ABBA", Country = "POLAND", City = "CRACOV", Money = 1.23m, Month = "JANUARY", Population = 250}}}
+                {"#A", new[] {entity}}
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -105,8 +115,8 @@ namespace FQL.Evaluator.Tests
             Assert.AreEqual("Population", table.Columns.ElementAt(4).Name);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
 
-            Assert.AreEqual("ToString(Self)", table.Columns.ElementAt(5).Name);
-            Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
+            Assert.AreEqual("Self", table.Columns.ElementAt(5).Name);
+            Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(5).ColumnType);
 
             Assert.AreEqual("Money", table.Columns.ElementAt(6).Name);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(6).ColumnType);
@@ -114,11 +124,14 @@ namespace FQL.Evaluator.Tests
             Assert.AreEqual("Month", table.Columns.ElementAt(7).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(7).ColumnType);
 
-            Assert.AreEqual("Name2", table.Columns.ElementAt(8).Name);
-            Assert.AreEqual(typeof(string), table.Columns.ElementAt(8).ColumnType);
+            Assert.AreEqual("Time", table.Columns.ElementAt(8).Name);
+            Assert.AreEqual(typeof(DateTime), table.Columns.ElementAt(8).ColumnType);
 
-            Assert.AreEqual("Self", table.Columns.ElementAt(9).Name);
+            Assert.AreEqual("Name2", table.Columns.ElementAt(9).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(9).ColumnType);
+
+            Assert.AreEqual("SelfString", table.Columns.ElementAt(10).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(10).ColumnType);
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual(Convert.ToInt64(1), table[0].Values[0]);
@@ -126,11 +139,12 @@ namespace FQL.Evaluator.Tests
             Assert.AreEqual("CRACOV", table[0].Values[2]);
             Assert.AreEqual("POLAND", table[0].Values[3]);
             Assert.AreEqual(250m, table[0].Values[4]);
-            Assert.AreEqual("TEST STRING", table[0].Values[5]);
+            Assert.AreEqual(entity, table[0].Values[5]);
             Assert.AreEqual(1.23m, table[0].Values[6]);
             Assert.AreEqual("JANUARY", table[0].Values[7]);
-            Assert.AreEqual("ABBA", table[0].Values[8]);
-            Assert.AreEqual("TEST STRING", table[0].Values[9]);
+            Assert.AreEqual(DateTime.MaxValue, table[0].Values[8]);
+            Assert.AreEqual("ABBA", table[0].Values[9]);
+            Assert.AreEqual("TEST STRING", table[0].Values[10]);
         }
 
         [TestMethod]
@@ -1288,6 +1302,31 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
             Assert.AreEqual("MUNICH", table[2].Values[0]);
         }
 
+        [TestMethod]
+        public void ColumnTypeDateTime()
+        {
+            var query = "select Time from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity(DateTime.MinValue)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Time", table.Columns.ElementAt(0).Name);
+
+            Assert.AreEqual(1, table.Count());
+            Assert.AreEqual(DateTime.MinValue, table[0].Values[0]);
+        }
+
         private IVirtualMachine CreateAndRunVirtualMachine<T>(string script,
             IDictionary<string, IEnumerable<T>> sources)
             where T : BasicEntity
@@ -1334,6 +1373,11 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
                 Money = money;
             }
 
+            public BasicEntity(DateTime time)
+            {
+                Time = time;
+            }
+
             public string Month { get; set; }
             public string Name { get; set; }
             public string Country { get; set; }
@@ -1341,6 +1385,7 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
             public string City { get; set; }
             public decimal Population { get; set; }
             public decimal Money { get; set; }
+            public DateTime Time { get; set; }
 
             public BasicEntity Self => this;
 
@@ -1474,7 +1519,8 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
                         {nameof(BasicEntity.Population), 13},
                         {nameof(BasicEntity.Self), 14},
                         {nameof(BasicEntity.Money), 15},
-                        {nameof(BasicEntity.Month), 16}
+                        {nameof(BasicEntity.Month), 16},
+                        {nameof(BasicEntity.Time), 17}
                     },
                     new Dictionary<int, Func<T, object>>
                     {
@@ -1484,7 +1530,8 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
                         {13, arg => arg.Population},
                         {14, arg => arg.Self},
                         {15, arg => arg.Money},
-                        {16, arg => arg.Month}
+                        {16, arg => arg.Month},
+                        {17, arg => arg.Time}
                     });
             }
 
@@ -1531,7 +1578,9 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
                         new SchemaColumn(nameof(BasicEntity.Money), 15,
                             typeof(BasicEntity).GetProperty(nameof(BasicEntity.Money)).PropertyType),
                         new SchemaColumn(nameof(BasicEntity.Month), 16,
-                            typeof(BasicEntity).GetProperty(nameof(BasicEntity.Month)).PropertyType)
+                            typeof(BasicEntity).GetProperty(nameof(BasicEntity.Month)).PropertyType),
+                        new SchemaColumn(nameof(BasicEntity.Time), 17,
+                            typeof(BasicEntity).GetProperty(nameof(BasicEntity.Time)).PropertyType)
                     };
                 }
 

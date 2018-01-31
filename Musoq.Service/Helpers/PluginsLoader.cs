@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,12 +17,21 @@ namespace Musoq.Service.Helpers
                 assembly.GetTypes());
 
             var interfaceType = typeof(ISchema);
+
             assemblyTypes = assemblyTypes.Where(type => interfaceType.IsAssignableFrom(type));
 
             var plugins = new List<ISchema>();
 
             foreach (var assemblyType in assemblyTypes)
-                plugins.Add((ISchema)Activator.CreateInstance(assemblyType));
+            {
+                try
+                {
+                    plugins.Add((ISchema)Activator.CreateInstance(assemblyType));
+                }
+                catch (Exception e)
+                {
+                }
+            }
 
             return plugins.ToArray();
         }
@@ -35,7 +45,7 @@ namespace Musoq.Service.Helpers
                 return new List<Assembly>();
 
             var thisDir = fileInfo.Directory.FullName;
-            var pluginsDir = new DirectoryInfo(Path.Combine(thisDir, ApplicationConfiguration.PluginsFolder, ApplicationConfiguration.SchemasFolder));
+            var pluginsDir = new DirectoryInfo(Path.Combine(thisDir, ApplicationConfiguration.PluginsFolder));
 
             return pluginsDir
                 .GetDirectories()

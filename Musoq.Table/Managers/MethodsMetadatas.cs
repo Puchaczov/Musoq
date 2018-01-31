@@ -21,6 +21,7 @@ namespace Musoq.Schema.Managers
                 {typeof(int), new[] {typeof(int), typeof(short), typeof(bool)}},
                 {typeof(long), new[] {typeof(long), typeof(int), typeof(short), typeof(bool)}},
                 {typeof(DateTimeOffset), new[] {typeof(DateTimeOffset)}},
+                {typeof(DateTime), new[] {typeof(DateTime) }},
                 {typeof(string), new[] {typeof(string)}},
                 {typeof(decimal), new[] {typeof(decimal)}}
             };
