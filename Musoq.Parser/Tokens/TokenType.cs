@@ -33,6 +33,7 @@
         Select,
         From,
         Like,
+        NotLike,
         As,
         Union,
         UnionAll,

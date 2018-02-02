@@ -152,7 +152,9 @@ namespace Musoq.Evaluator.Visitors
             var fToken = new FunctionToken(methodName, TextSpan.Empty);
             var argList = new ArgsListNode(new []{ left, right });
 
-            Nodes.Push(new AccessMethodNode(fToken, argList, null, method));
+            var accessMethod = new AccessMethodNode(fToken, argList, null, method);
+
+            Nodes.Push(accessMethod);
         }
 
         public virtual void Visit(FieldNode node)

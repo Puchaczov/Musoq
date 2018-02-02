@@ -40,6 +40,26 @@ namespace FQL.Evaluator.Tests
         }
 
         [TestMethod]
+        public void NotLikeOperator()
+        {
+            var query = "select Name from #A.Entities() where Name not like '%AA%'";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"), new BasicEntity("dadsqqAA")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("XXX", table[0].Values[0]);
+        }
+
+        [TestMethod]
         public void CanPassComplexArgumentToFunction()
         {
             var query = "select NothingToDo(Self) from #A.Entities()";

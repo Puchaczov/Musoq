@@ -57,14 +57,6 @@ namespace Musoq.Schema.Disk.Disk
         }
 
         [BindableMethod]
-        public bool Like(string content, string expression)
-        {
-            return new Regex(
-                @"\A" + new Regex(@"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\").Replace(expression, ch => @"\" + ch)
-                    .Replace('_', '.').Replace("%", ".*") + @"\z", RegexOptions.Singleline).IsMatch(content);
-        }
-
-        [BindableMethod]
         public bool NotLike(string content, string expression)
         {
             return !Like(content, expression);

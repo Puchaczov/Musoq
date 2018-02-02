@@ -473,6 +473,12 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public decimal Round(decimal value, int precision)
+        {
+            return Math.Round(value, precision);
+        }
+
+        [BindableMethod]
         public decimal ToDecimal(string value)
         {
             return Convert.ToDecimal(value.Replace(" ", string.Empty));
@@ -512,6 +518,12 @@ namespace Musoq.Plugins
         public string ToString(long value)
         {
             return value.ToString(CultureInfo.InvariantCulture);
+        }
+
+        [BindableMethod]
+        public TimeSpan DateDiff(DateTimeOffset first, DateTimeOffset second)
+        {
+            return second - first;
         }
 
         [BindableMethod]
@@ -596,6 +608,7 @@ namespace Musoq.Plugins
                 return BitConverter.ToString(hash).Replace("-", string.Empty);
             }
         }
+
         private static Group GetParentGroup(Group group, long number)
         {
             var i = 0;

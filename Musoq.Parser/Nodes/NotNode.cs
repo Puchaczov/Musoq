@@ -10,7 +10,7 @@ namespace Musoq.Parser.Nodes
             Id = CalculateId(this);
         }
 
-        public override Type ReturnType => typeof(bool);
+        public override Type ReturnType => Expression.ReturnType;
 
         public override void Accept(IExpressionVisitor visitor)
         {

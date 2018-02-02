@@ -10,7 +10,7 @@ namespace Musoq.Schema.Tcp
     public class NetworkTable : ISchemaTable
     {
         private readonly TcpClient _client;
-        private ISchemaColumn[] _columns;
+        private SchemaColumn[] _columns;
 
         public NetworkTable(TcpClient client)
         {
@@ -21,23 +21,19 @@ namespace Musoq.Schema.Tcp
         {
             get
             {
-                if (_columns == null)
-                {
-                    using (var stream = _client.GetStream())
-                    {
-                        var reader = new BinaryReader(stream);
-                        var writer = new BinaryWriter(stream);
+                if (_columns != null) return _columns;
 
-                        writer.Write(BitConverter.GetBytes((byte)Commands.GetHeaders));
-                        var json = reader.ReadString();
-                        _columns = JsonConvert.DeserializeObject<SchemaColumn[]>(json);
-                        return _columns;
-                    }
-                }
-                else
+                using (var stream = _client.GetStream())
                 {
+                    var reader = new BinaryReader(stream);
+                    var writer = new BinaryWriter(stream);
+
+                    writer.Write(BitConverter.GetBytes((byte)Commands.GetHeaders));
+                    var json = reader.ReadString();
+                    _columns = JsonConvert.DeserializeObject<SchemaColumn[]>(json);
                     return _columns;
                 }
+
             }
         }
     }

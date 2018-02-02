@@ -71,6 +71,8 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Equality;
                 case LikeToken.TokenText:
                     return TokenType.Like;
+                case NotLikeToken.TokenText:
+                    return TokenType.NotLike;
                 case AsToken.TokenText:
                     return TokenType.As;
                 case SetOperatorToken.ExceptOperatorText:
@@ -146,6 +148,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KColumn = @"[\w*?_]{1,}";
             public static readonly string KHFrom = @"#[\w*?_]{1,}";
             public static readonly string KLike = string.Format(Keyword, LikeToken.TokenText);
+            public static readonly string KNotLike = string.Format(Keyword, NotLikeToken.TokenText);
             public static readonly string KAs = string.Format(Keyword, AsToken.TokenText);
             public static readonly string KUnion = string.Format(Keyword, SetOperatorToken.UnionOperatorText);
             public static readonly string KDot = "\\.";
@@ -170,9 +173,11 @@ namespace Musoq.Parser.Lexing
             /// </summary>
             public static TokenDefinition[] General => new[]
             {
+                new TokenDefinition(TokenRegexDefinition.KLike, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KNotLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KDecimal),
-                new TokenDefinition(TokenRegexDefinition.KAs),
-                new TokenDefinition(TokenRegexDefinition.KAnd),
+                new TokenDefinition(TokenRegexDefinition.KAs, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KAnd, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KComma),
                 new TokenDefinition(TokenRegexDefinition.KDiff),
                 new TokenDefinition(TokenRegexDefinition.KfSlashToken),
@@ -189,23 +194,22 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KOr),
                 new TokenDefinition(TokenRegexDefinition.KPlus),
                 new TokenDefinition(TokenRegexDefinition.KStar),
-                new TokenDefinition(TokenRegexDefinition.KWhere),
+                new TokenDefinition(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KWhiteSpace),
-                new TokenDefinition(TokenRegexDefinition.KUnionAll),
+                new TokenDefinition(TokenRegexDefinition.KUnionAll, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.Function),
                 new TokenDefinition(TokenRegexDefinition.KWordBracketed, RegexOptions.ECMAScript),
-                new TokenDefinition(TokenRegexDefinition.KSelect),
-                new TokenDefinition(TokenRegexDefinition.KFrom),
-                new TokenDefinition(TokenRegexDefinition.KUnion),
-                new TokenDefinition(TokenRegexDefinition.KExcept),
-                new TokenDefinition(TokenRegexDefinition.KIntersect),
-                new TokenDefinition(TokenRegexDefinition.KGroupBy),
-                new TokenDefinition(TokenRegexDefinition.KHaving),
+                new TokenDefinition(TokenRegexDefinition.KSelect, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KFrom, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KUnion, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KExcept, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KIntersect, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KGroupBy, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KHaving, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNumericArrayAccess),
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccess),
                 new TokenDefinition(TokenRegexDefinition.KColumn),
                 new TokenDefinition(TokenRegexDefinition.KHFrom),
-                new TokenDefinition(TokenRegexDefinition.KLike),
                 new TokenDefinition(TokenRegexDefinition.KDot)
             };
         }
@@ -300,6 +304,8 @@ namespace Musoq.Parser.Lexing
                     return new AccessPropertyToken(tokenText, new TextSpan(Position, tokenText.Length));
                 case TokenType.Like:
                     return new LikeToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.NotLike:
+                    return new NotLikeToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.As:
                     return new AsToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Except:
