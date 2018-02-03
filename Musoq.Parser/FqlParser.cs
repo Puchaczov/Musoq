@@ -248,6 +248,10 @@ namespace Musoq.Parser
                         Consume(TokenType.NotLike);
                         node = new NotNode(new LikeNode(node, ComposeBaseTypes()));
                         break;
+                    case TokenType.Contains:
+                        Consume(TokenType.Contains);
+                        node = new ContainsNode(node, ComposeArgs());
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
@@ -574,7 +578,8 @@ namespace Musoq.Parser
                    currentToken.TokenType == TokenType.Not ||
                    currentToken.TokenType == TokenType.Diff ||
                    currentToken.TokenType == TokenType.Like ||
-                   currentToken.TokenType == TokenType.NotLike;
+                   currentToken.TokenType == TokenType.NotLike ||
+                   currentToken.TokenType == TokenType.Contains;
         }
 
         private static bool IsQueryOperator(Token currentToken)

@@ -45,6 +45,7 @@
         Integer,
         KeyAccess,
         NumericAccess,
-        AllColumns
+        AllColumns,
+        Contains
     }
 }

@@ -17,18 +17,19 @@ namespace Musoq.Evaluator.Instructions
         public override void Execute(IVirtualMachine virtualMachine)
         {
             var argsCount = virtualMachine[_register];
-            var args = new TCompareType[argsCount];
 
             var leftValue = _pop(virtualMachine.Current);
 
             var containsValue = false;
             var i = 0;
             for (; i < argsCount; ++i)
-                if (_pop(virtualMachine.Current).Equals(leftValue))
-                {
-                    containsValue = true;
-                    break;
-                }
+            {
+                if (!_pop(virtualMachine.Current).Equals(leftValue)) continue;
+
+                containsValue = true;
+                i += 1;
+                break;
+            }
 
             for (; i < argsCount; ++i)
                 _pop(virtualMachine.Current);

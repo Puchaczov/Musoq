@@ -395,6 +395,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ContainsNode node)
         {
+            _instructions.Add(new LoadLong(node.ToCompareExpression.Args.Length));
             _instructions.Add(new PopToRegister(Register.A));
 
             switch (node.ReturnType.Name)

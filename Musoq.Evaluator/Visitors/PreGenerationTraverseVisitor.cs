@@ -37,8 +37,8 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ContainsNode node)
         {
-            node.Right.Accept(this);
             node.Left.Accept(this);
+            node.Right.Accept(this);
             node.Accept(_visitor);
         }
 

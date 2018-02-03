@@ -73,6 +73,8 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Like;
                 case NotLikeToken.TokenText:
                     return TokenType.NotLike;
+                case ContainsToken.TokenText:
+                    return TokenType.Contains;
                 case AsToken.TokenText:
                     return TokenType.As;
                 case SetOperatorToken.ExceptOperatorText:
@@ -158,6 +160,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KUnionAll = @"(?<=[\s]{1,}|^)union[\s]{1,}all(?=[\s]{1,}|$)";
             public static readonly string KGroupBy = @"(?<=[\s]{1,}|^)group[\s]{1,}by(?=[\s]{1,}|$)";
             public static readonly string KHaving = string.Format(Keyword, HavingToken.TokenText);
+            public static readonly string KContains = string.Format(Keyword, ContainsToken.TokenText);
             public static readonly string KDecimal = @"([0-9]+(\.[0-9]{1,})?)d";
             public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
             public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
@@ -195,6 +198,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KPlus),
                 new TokenDefinition(TokenRegexDefinition.KStar),
                 new TokenDefinition(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KContains, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KWhiteSpace),
                 new TokenDefinition(TokenRegexDefinition.KUnionAll, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.Function),
@@ -328,6 +332,8 @@ namespace Musoq.Parser.Lexing
                 case TokenType.KeyAccess:
                     match = matchedDefinition.Regex.Match(tokenText);
                     return new KeyAccessToken(match.Groups[1].Value, match.Groups[2].Value, new TextSpan(Position, tokenText.Length));
+                case TokenType.Contains:
+                    return new ContainsToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

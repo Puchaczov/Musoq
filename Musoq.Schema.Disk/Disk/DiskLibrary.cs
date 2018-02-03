@@ -15,7 +15,7 @@ namespace Musoq.Schema.Disk.Disk
     public class DiskLibrary : LibraryBase
     {
         [BindableMethod]
-        public string Sha1File([InjectSource] FileInfo file)
+        public string Sha256File([InjectSource] FileInfo file)
         {
             using (var stream = file.Open(FileMode.Open))
             {

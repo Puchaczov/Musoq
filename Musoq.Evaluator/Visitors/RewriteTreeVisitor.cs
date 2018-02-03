@@ -61,7 +61,19 @@ namespace Musoq.Evaluator.Visitors
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
-            Nodes.Push(new AddNode(left, right));
+            if (left.ReturnType == typeof(string) && right.ReturnType == typeof(string))
+            {
+                var methodName = "Concat";
+                var token = new FunctionToken(methodName, TextSpan.Empty);
+                var args = new ArgsListNode(new []{ left, right });
+                var method = _schema.ResolveMethod(methodName, new[] { left.ReturnType, right.ReturnType });
+
+                Nodes.Push(new AccessMethodNode(token, args, null, method));
+            }
+            else
+            {
+                Nodes.Push(new AddNode(left, right));
+            }
         }
 
         public void Visit(HyphenNode node)

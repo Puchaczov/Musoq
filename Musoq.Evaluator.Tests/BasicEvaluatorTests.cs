@@ -60,6 +60,47 @@ namespace FQL.Evaluator.Tests
         }
 
         [TestMethod]
+        public void AddOperatorWithStringsTurnsIntoConcat()
+        {
+            var query = "select 'abc' + 'cda' from #A.Entities()";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("ABCAACBA")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("'abc' + 'cda'", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("abccda", table[0].Values[0]);
+        }
+
+        [TestMethod]
+        public void ContainsStrings()
+        {
+            var query = "select Name from #A.Entities() where Name contains ('ABC', 'CdA', 'CDA')";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("ABC"), new BasicEntity("XXX"), new BasicEntity("CDA")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("ABC", table[0].Values[0]);
+            Assert.AreEqual("CDA", table[1].Values[0]);
+        }
+
+        [TestMethod]
         public void CanPassComplexArgumentToFunction()
         {
             var query = "select NothingToDo(Self) from #A.Entities()";

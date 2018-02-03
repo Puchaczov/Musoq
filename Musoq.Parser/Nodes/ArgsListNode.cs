@@ -26,7 +26,10 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return Args.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
+            var str = Args.Length == 0
+                ? string.Empty
+                : Args.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
+            return str;
         }
     }
 }
