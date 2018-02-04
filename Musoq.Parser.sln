@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Evaluator", "Musoq.Ev
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Converter", "Musoq.Converter\Musoq.Converter.csproj", "{F6710F80-75DF-4141-9C36-9E981D680665}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema", "Musoq.Table\Musoq.Schema.csproj", "{1B7D2E6C-05A9-42E1-BE32-9A6821E390CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema", "Musoq.Schema\Musoq.Schema.csproj", "{1B7D2E6C-05A9-42E1-BE32-9A6821E390CA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Plugins", "Musoq.Plugins\Musoq.Plugins.csproj", "{10775A77-BC60-47FD-A6FF-F02C3EA41944}"
 EndProject

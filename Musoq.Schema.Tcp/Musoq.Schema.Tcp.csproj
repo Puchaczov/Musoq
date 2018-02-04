@@ -57,7 +57,7 @@
       <Project>{049CCC01-8A6D-4BAE-86CD-655384204551}</Project>
       <Name>Musoq.Schema.Tcp.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Musoq.Table\Musoq.Schema.csproj">
+    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj">
       <Project>{1B7D2E6C-05A9-42E1-BE32-9A6821E390CA}</Project>
       <Name>Musoq.Schema</Name>
     </ProjectReference>

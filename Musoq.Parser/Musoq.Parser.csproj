@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Musoq.Table\Musoq.Schema.csproj" />
+    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
   </ItemGroup>
 
 </Project>

@@ -122,7 +122,7 @@
       <Project>{3b0093a7-344b-44f4-abbd-0474231e8578}</Project>
       <Name>Musoq.Service.Client</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Musoq.Table\Musoq.Schema.csproj">
+    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj">
       <Project>{1b7d2e6c-05a9-42e1-be32-9a6821e390ca}</Project>
       <Name>Musoq.Schema</Name>
     </ProjectReference>

@@ -5,14 +5,13 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Instructions;
-using Musoq.Parser;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
-namespace FQL.Evaluator.Tests
+namespace Musoq.Evaluator.Tests
 {
     [TestClass]
     public class BasicEvaluatorTests
@@ -1470,16 +1469,6 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
             public string ColumnName { get; }
             public int ColumnIndex { get; }
             public Type ColumnType { get; }
-        }
-
-        private class SourceName : INamedSource
-        {
-            public SourceName(string name)
-            {
-                Name = name;
-            }
-
-            public string Name { get; }
         }
 
         private class TestLibrary : LibraryBase

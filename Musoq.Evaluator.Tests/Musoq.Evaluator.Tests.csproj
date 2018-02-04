@@ -7,7 +7,7 @@
     <ProjectGuid>{A1DEA649-48AE-4C31-80AF-3AA95F1D2109}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FQL.Evaluator.Tests</RootNamespace>
+    <RootNamespace>Musoq.Evaluator.Tests</RootNamespace>
     <AssemblyName>Musoq.Evaluator.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -68,7 +68,7 @@
       <Project>{10775a77-bc60-47fd-a6ff-f02c3ea41944}</Project>
       <Name>Musoq.Plugins</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Musoq.Table\Musoq.Schema.csproj">
+    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj">
       <Project>{1B7D2E6C-05A9-42E1-BE32-9A6821E390CA}</Project>
       <Name>Musoq.Schema</Name>
     </ProjectReference>
