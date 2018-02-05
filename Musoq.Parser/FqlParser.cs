@@ -179,7 +179,7 @@ namespace Musoq.Parser
             do
             {
                 fields.Add(ConsumeField(i++));
-            } while (Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having &&
+            } while (Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having && Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
                      ConsumeAndGetToken().TokenType == TokenType.Comma);
 
             return fields.ToArray();

@@ -38,7 +38,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"{Select.ToString()} {From.ToString()} {Where.ToString()} {GroupBy.ToString()}";
+            return $"{Select.ToString()} {From.ToString()} {Where.ToString()} {GroupBy.ToString()} {Skip?.ToString()} {Take?.ToString()}";
         }
     }
 }

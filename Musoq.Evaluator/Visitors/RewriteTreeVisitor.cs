@@ -418,9 +418,9 @@ namespace Musoq.Evaluator.Visitors
             var where = Nodes.Pop() as WhereNode;
             var from = Nodes.Pop() as FromNode;
 
+            var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
             var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
             var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
-            var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
 
             QueryNode query;
 

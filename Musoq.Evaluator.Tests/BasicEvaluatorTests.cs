@@ -896,6 +896,110 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
         }
 
         [TestMethod]
+        public void SimpleGroupByWithSkipTest()
+        {
+            var query = @"select Name, Count(Name) from #A.Entities() group by Name skip 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("BABBA"),
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("BABBA"),
+                        new BasicEntity("CECCA"),
+                        new BasicEntity("ABBA")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("CECCA", table[0].Values[0]);
+            Assert.AreEqual(Convert.ToInt32(1), table[0].Values[1]);
+        }
+
+        [TestMethod]
+        public void SimpleGroupByWithTakeTest()
+        {
+            var query = @"select Name, Count(Name) from #A.Entities() group by Name take 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("BABBA"),
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("BABBA"),
+                        new BasicEntity("CECCA"),
+                        new BasicEntity("ABBA")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("ABBA", table[0].Values[0]);
+            Assert.AreEqual(Convert.ToInt32(4), table[0].Values[1]);
+            Assert.AreEqual("BABBA", table[1].Values[0]);
+            Assert.AreEqual(Convert.ToInt32(2), table[1].Values[1]);
+        }
+
+        [TestMethod]
+        public void SimpleGroupByWithSkipTakeTest()
+        {
+            var query = @"select Name, Count(Name) from #A.Entities() group by Name skip 2 take 1";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("BABBA"),
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("BABBA"),
+                        new BasicEntity("CECCA"),
+                        new BasicEntity("ABBA")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("CECCA", table[0].Values[0]);
+            Assert.AreEqual(Convert.ToInt32(1), table[0].Values[1]);
+        }
+
+        [TestMethod]
         public void GroupByWithValueTest()
         {
             var query = @"select Country, Sum(Population) from #A.Entities() group by Country";
