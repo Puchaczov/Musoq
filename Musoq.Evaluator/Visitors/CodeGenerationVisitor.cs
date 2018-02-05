@@ -15,7 +15,7 @@ namespace Musoq.Evaluator.Visitors
     {
         private readonly IList<ByteCodeInstruction> _instructions;
 
-        private readonly Dictionary<string, int> _labels;
+        private readonly Dictionary<string, Label> _labels;
         private readonly Stack<int> _orders = new Stack<int>();
         private readonly ISchemaProvider _schemaProvider;
         private readonly Stack<GeneratorSelectScope> _selectScope = new Stack<GeneratorSelectScope>();
@@ -31,7 +31,7 @@ namespace Musoq.Evaluator.Visitors
             _instructions = new List<ByteCodeInstruction>();
             _schemaProvider = schemaProvider;
             _tableMetadatas = tableMetadatas;
-            _labels = new Dictionary<string, int>();
+            _labels = new Dictionary<string, Label>();
         }
 
         public VirtualMachine VirtualMachine { get; private set; }
@@ -42,6 +42,9 @@ namespace Musoq.Evaluator.Visitors
 
         private string WhereClauseBeginsLabelName
             => $"{SelectScope.Name}.WhereClauseBegins";
+
+        private string EndOfQueryProcessing
+            => $"{SelectScope.Name}.EndOfQueryProcessing";
 
         public void Visit(Node node)
         {
@@ -196,17 +199,17 @@ namespace Musoq.Evaluator.Visitors
             {
                 case TokenType.And:
                     _instructions.Add(new LoadBoolean(false));
-                    _labels.Add($"loadfalse{order}", _instructions.Count - 1);
+                    _labels.Add($"loadfalse{order}", new Label(_instructions.Count - 1));
                     break;
                 case TokenType.Or:
                     _instructions.Add(new LoadBoolean(true));
-                    _labels.Add($"loadtrue{order}", _instructions.Count - 1);
+                    _labels.Add($"loadtrue{order}", new Label(_instructions.Count - 1));
                     break;
                 default:
                     throw new NotSupportedException();
             }
 
-            _labels.Add($"endofexp{order}", _instructions.Count);
+            _labels.Add($"endofexp{order}", new Label(_instructions.Count));
         }
 
         public void Visit(EqualityNode node)
@@ -493,6 +496,17 @@ namespace Musoq.Evaluator.Visitors
             _instructions.Add(new JmpState(_labels, AnotherValueFromSourceLabelName, false));
         }
 
+        public void Visit(SkipNode node)
+        {
+            _instructions.Add(new SkipRows(node.Value, _labels, EndOfQueryProcessing));
+            _labels[WhereClauseBeginsLabelName].StartIndex += 1;
+        }
+
+        public void Visit(TakeNode node)
+        {
+            _instructions.Add(new CheckTableRowsAmount(node.Value, _labels, EndOfQueryProcessing));
+        }
+
         public void Visit(ExistingTableFromNode node)
         {
             var scope = new GeneratorSelectScope
@@ -504,7 +518,7 @@ namespace Musoq.Evaluator.Visitors
 
             _instructions.Add(new UseTableWithStandardColumns(node.Schema));
             _instructions.Add(new GrabFirstValueFromSource(_labels, AnotherValueFromSourceLabelName));
-            _labels.Add(WhereClauseBeginsLabelName, _instructions.Count);
+            _labels.Add(WhereClauseBeginsLabelName, new Label(_instructions.Count));
         }
 
         public void Visit(SchemaFromNode node)
@@ -521,7 +535,7 @@ namespace Musoq.Evaluator.Visitors
             var enumarble = source.Rows;
             _instructions.Add(new LoadSource(enumarble));
             _instructions.Add(new GrabFirstValueFromSource(_labels, AnotherValueFromSourceLabelName));
-            _labels.Add(WhereClauseBeginsLabelName, _instructions.Count);
+            _labels.Add(WhereClauseBeginsLabelName, new Label(_instructions.Count));
         }
 
         public void Visit(NestedQueryFromNode node)
@@ -535,7 +549,7 @@ namespace Musoq.Evaluator.Visitors
 
             _instructions.Add(new UseTableWithRemappedColumns(node.Schema, node.ColumnToIndexMap));
             _instructions.Add(new GrabFirstValueFromSource(_labels, AnotherValueFromSourceLabelName));
-            _labels.Add(WhereClauseBeginsLabelName, _instructions.Count);
+            _labels.Add(WhereClauseBeginsLabelName, new Label(_instructions.Count));
         }
 
         public void Visit(CreateTableNode node)
@@ -588,13 +602,14 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(QueryNode node)
         {
             _instructions.Add(new MoveToAnotherValueFromSource());
-            _labels.Add(AnotherValueFromSourceLabelName, _instructions.Count - 1);
+            _labels.Add(AnotherValueFromSourceLabelName, new Label(_instructions.Count - 1));
             _instructions.Add(new JmpState(_labels, WhereClauseBeginsLabelName, true));
         }
 
         public void Visit(InternalQueryNode node)
         {
             Visit((QueryNode) node);
+            _labels.Add(EndOfQueryProcessing, new Label(_instructions.Count));
             if (node.ShouldLoadResultTableAsResult && isSingleQueryMode)
                 _instructions.Add(new LoadString(node.ResultTable));
         }

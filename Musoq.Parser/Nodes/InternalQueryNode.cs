@@ -5,9 +5,9 @@ namespace Musoq.Parser.Nodes
     public class InternalQueryNode : QueryNode
     {
         public InternalQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, IntoNode into,
-            ShouldBePresentInTheTable shouldBePresent, bool shouldLoadResultTableAsResult, string resultTable,
+            ShouldBePresentInTheTable shouldBePresent, SkipNode skip, TakeNode take,  bool shouldLoadResultTableAsResult, string resultTable,
             bool useColumnAccessInstead, RefreshNode refresh)
-            : base(select, from, where, groupBy)
+            : base(select, from, where, groupBy, skip, take)
         {
             UseColumnAccessInstead = useColumnAccessInstead;
             Refresh = refresh;
@@ -35,7 +35,7 @@ namespace Musoq.Parser.Nodes
         public override string ToString()
         {
             return
-                $"{Select.ToString()} {From.ToString()} {Where.ToString()} {GroupBy?.ToString()} {Into?.ToString()} {ShouldBePresent?.ToString()}";
+                $"{Select.ToString()} {From.ToString()} {Where.ToString()} {GroupBy?.ToString()} {Into?.ToString()} {ShouldBePresent?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
         }
     }
 }

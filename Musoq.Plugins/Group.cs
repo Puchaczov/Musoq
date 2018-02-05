@@ -1,16 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Musoq.Plugins
 {
+#if DEBUG
+    [DebuggerDisplay("{Name}")]
+#endif
     public class Group
     {
         public Group(Group parent, string[] fieldNames, object[] values)
         {
             Parent = parent;
-
+#if DEBUG
+            Name = fieldNames.Length == 0 ? "root" : fieldNames.Aggregate((a, b) => a + ',' + b);
+#endif
             for (var i = 0; i < fieldNames.Length; i++) Values.Add(fieldNames[i], values[i]);
         }
+
+#if DEBUG
+        private string Name { get; }
+#endif
 
         public Group Parent { get; }
         public int Count { get; private set; }

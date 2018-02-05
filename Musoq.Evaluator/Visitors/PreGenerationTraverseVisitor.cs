@@ -104,6 +104,11 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(TakeNode node)
+        {
+            node.Accept(_visitor);
+        }
+
         public void Visit(ExistingTableFromNode node)
         {
             node.Accept(_visitor);
@@ -388,6 +393,11 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(HavingNode node)
         {
             node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(SkipNode node)
+        {
             node.Accept(_visitor);
         }
     }

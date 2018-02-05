@@ -122,6 +122,16 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(SkipNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(TakeNode node)
+        {
+            node.Accept(_visitor);
+        }
+
         public void Visit(ExistingTableFromNode node)
         {
             node.Accept(_visitor);
@@ -197,6 +207,8 @@ namespace Musoq.Evaluator.Visitors
             _visitor.CurrentSchema = node.From.Schema;
             _visitor.SetCurrentTable(node.From.Method, node.From.Parameters);
 
+            node.Take?.Accept(this);
+            node.Skip?.Accept(this);
             node.GroupBy?.Accept(this);
             node.From.Accept(this);
             node.Where.Accept(this);
@@ -355,6 +367,8 @@ namespace Musoq.Evaluator.Visitors
             _visitor.CurrentSchema = node.From.Schema;
             _visitor.SetCurrentTable(node.From.Method, node.From.Parameters);
 
+            node.Take?.Accept(this);
+            node.Skip?.Accept(this);
             node.GroupBy?.Accept(this);
             node.Refresh?.Accept(this);
             node.From.Accept(this);

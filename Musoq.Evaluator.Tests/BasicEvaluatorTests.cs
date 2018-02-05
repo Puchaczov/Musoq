@@ -326,6 +326,110 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
+        public void SimpleSkipTest()
+        {
+            var query = @"select Name from #A.Entities() skip 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(4, table.Count);
+            Assert.AreEqual("003", table[0].Values[0]);
+            Assert.AreEqual("004", table[1].Values[0]);
+            Assert.AreEqual("005", table[2].Values[0]);
+            Assert.AreEqual("006", table[3].Values[0]);
+        }
+
+        [TestMethod]
+        public void SimpleTakeTest()
+        {
+            var query = @"select Name from #A.Entities() take 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual("002", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void SimpleSkipTakeTest()
+        {
+            var query = @"select Name from #A.Entities() skip 1 take 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("002", table[0].Values[0]);
+            Assert.AreEqual("003", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void SimpleSkipAboveTableAmountTest()
+        {
+            var query = @"select Name from #A.Entities() skip 100";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(0, table.Count);
+        }
+
+        [TestMethod]
+        public void SimpleTakeAboveTableAmountTest()
+        {
+            var query = @"select Name from #A.Entities() take 100";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(6, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual("002", table[1].Values[0]);
+            Assert.AreEqual("003", table[2].Values[0]);
+            Assert.AreEqual("004", table[3].Values[0]);
+            Assert.AreEqual("005", table[4].Values[0]);
+            Assert.AreEqual("006", table[5].Values[0]);
+        }
+
+        [TestMethod]
+        public void SimpleSkipTakeAboveTableAmountTest()
+        {
+            var query = @"select Name from #A.Entities() skip 100 take 100";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(0, table.Count);
+        }
+
+        [TestMethod]
         public void UnionWithDifferentColumnsAsAKey()
         {
             var query = @"select Name from #A.Entities() union (Name) select MyName as Name from #B.Entities()";

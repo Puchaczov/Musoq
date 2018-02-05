@@ -46,6 +46,8 @@
         KeyAccess,
         NumericAccess,
         AllColumns,
-        Contains
+        Contains,
+        Skip,
+        Take
     }
 }

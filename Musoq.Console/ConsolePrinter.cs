@@ -16,10 +16,13 @@ namespace Musoq.Console
 
         public override void Print()
         {
-            ConsoleTableBuilder
-                .From(Table)
-                .WithFormat(ConsoleTableBuilderFormat.Minimal)
-                .ExportAndWrite();
+            if (Table.Rows.Count > 0)
+            {
+                ConsoleTableBuilder
+                    .From(Table)
+                    .WithFormat(ConsoleTableBuilderFormat.Minimal)
+                    .ExportAndWrite();
+            }
 
             System.Console.WriteLine();
             System.Console.WriteLine("SUMMARY:");

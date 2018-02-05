@@ -7,6 +7,12 @@ namespace Musoq.Evaluator
 {
     public class StackFrame
     {
+        public StackFrame()
+        {
+            CurrentGroup = new Group(null, new string[0], new object[0]);
+            Groups.Add("root", CurrentGroup);
+        }
+
         public Stack<bool> BooleanStack { get; } = new Stack<bool>();
         public Stack<long> LongsStack { get; } = new Stack<long>();
         public Stack<decimal> NumericsStack { get; } = new Stack<decimal>();
@@ -16,6 +22,6 @@ namespace Musoq.Evaluator
         public IDictionary<string, Table> Tables { get; } = new Dictionary<string, Table>();
         public long[] Registers { get; } = new long[4];
         public IDictionary<string, Group> Groups { get; } = new Dictionary<string, Group>();
-        public Group CurrentGroup { get; set; } = new Group(null, new string[0], new object[0]);
+        public Group CurrentGroup { get; set; }
     }
 }

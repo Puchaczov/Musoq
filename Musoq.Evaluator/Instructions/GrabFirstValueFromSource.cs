@@ -5,9 +5,9 @@ namespace Musoq.Evaluator.Instructions
     public class GrabFirstValueFromSource : ByteCodeInstruction
     {
         private readonly string _label;
-        private readonly IDictionary<string, int> _labels;
+        private readonly IDictionary<string, Label> _labels;
 
-        public GrabFirstValueFromSource(IDictionary<string, int> labels, string label)
+        public GrabFirstValueFromSource(IDictionary<string, Label> labels, string label)
         {
             _labels = labels;
             _label = label;
@@ -18,7 +18,7 @@ namespace Musoq.Evaluator.Instructions
             var source = virtualMachine.Current.SourceStack.Peek();
 
             if (!source.MoveNext())
-                virtualMachine[Register.Ip] = _labels[_label];
+                virtualMachine[Register.Ip] = _labels[_label].StartIndex;
             else
                 virtualMachine[Register.Ip] += 1;
         }

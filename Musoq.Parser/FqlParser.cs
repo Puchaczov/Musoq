@@ -112,7 +112,31 @@ namespace Musoq.Parser
             var fromNode = ComposeFrom();
             var whereNode = ComposeWhereNode();
             var groupBy = ComposeGrouByNode();
-            return new QueryNode(selectNode, fromNode, whereNode, groupBy);
+            var skip = ComposeSkip();
+            var take = ComposeTake();
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, skip, take);
+        }
+
+        private TakeNode ComposeTake()
+        {
+            if (Current.TokenType == TokenType.Take)
+            {
+                Consume(TokenType.Take);
+                return new TakeNode(ComposeInteger());
+            }
+
+            return null;
+        }
+
+        private SkipNode ComposeSkip()
+        {
+            if (Current.TokenType == TokenType.Skip)
+            {
+                Consume(TokenType.Skip);
+                return new SkipNode(ComposeInteger());
+            }
+
+            return null;
         }
 
         private GroupByNode ComposeGrouByNode()
@@ -465,8 +489,7 @@ namespace Musoq.Parser
                     var token = ConsumeAndGetToken(TokenType.Decimal);
                     return new DecimalNode(token.Value);
                 case TokenType.Integer:
-                    token = ConsumeAndGetToken(TokenType.Integer);
-                    return new IntegerNode(token.Value);
+                    return ComposeInteger();
                 case TokenType.Word:
                     return ComposeWord();
                 case TokenType.Function:
@@ -498,6 +521,12 @@ namespace Musoq.Parser
             }
 
             throw new NotSupportedException();
+        }
+
+        private IntegerNode ComposeInteger()
+        {
+            var token = ConsumeAndGetToken(TokenType.Integer);
+            return new IntegerNode(token.Value);
         }
 
         private WordNode ComposeWord()

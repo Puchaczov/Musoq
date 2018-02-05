@@ -5,9 +5,9 @@ namespace Musoq.Evaluator.Instructions
     public class Jmp : ByteCodeInstruction
     {
         private readonly string _label;
-        private readonly IDictionary<string, int> _labels;
+        private readonly IDictionary<string, Label> _labels;
 
-        public Jmp(IDictionary<string, int> labels, string label)
+        public Jmp(IDictionary<string, Label> labels, string label)
         {
             _labels = labels;
             _label = label;
@@ -15,7 +15,7 @@ namespace Musoq.Evaluator.Instructions
 
         public override void Execute(IVirtualMachine virtualMachine)
         {
-            virtualMachine[Register.Ip] = _labels[_label];
+            virtualMachine[Register.Ip] = _labels[_label].StartIndex;
         }
 
         public override string DebugInfo()

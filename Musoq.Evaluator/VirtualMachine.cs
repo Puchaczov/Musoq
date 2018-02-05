@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Tables;
 
@@ -19,11 +21,23 @@ namespace Musoq.Evaluator
 
         public Table Execute()
         {
-            while (this[Register.Sop] != (int) SpecialOperationRegister.Exit)
+            // ReSharper disable once TooWideLocalVariableScope
+            long ip;
+
+            try
             {
-                var ip = this[Register.Ip];
-                var instruction = _instructions[ip];
-                instruction.Execute(this);
+                while (this[Register.Sop] != (int) SpecialOperationRegister.Exit)
+                {
+                    ip = this[Register.Ip];
+                    var instruction = _instructions[ip];
+                     instruction.Execute(this);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                if(Debugger.IsAttached)
+                    Debugger.Break();
             }
 
             return Current.Tables[Current.StringsStack.Pop()];

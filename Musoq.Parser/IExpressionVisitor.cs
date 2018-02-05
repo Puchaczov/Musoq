@@ -43,6 +43,8 @@ namespace Musoq.Parser
         void Visit(WhereNode node);
         void Visit(GroupByNode node);
         void Visit(HavingNode node);
+        void Visit(SkipNode node);
+        void Visit(TakeNode node);
         void Visit(ExistingTableFromNode node);
         void Visit(SchemaFromNode node);
         void Visit(NestedQueryFromNode node);

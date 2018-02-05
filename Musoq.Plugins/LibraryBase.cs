@@ -111,7 +111,21 @@ namespace Musoq.Plugins
             var values = group.GetOrCreateValue(name, 1);
             group.SetValue(name, values + 1);
         }
-        
+
+        [AggregationGetMethod]
+        public int ParentCount([InjectGroup] Group group, string name)
+        {
+            var parentGroup = group.GetRawValue<Group>(name);
+            return parentGroup.Count;
+        }
+
+        [AggregationSetMethod]
+        public void SetParentCount([InjectGroup] Group group, string name, long number)
+        {
+            var parent = GetParentGroup(group, number);
+            group.GetOrCreateValueWithConverter<Group, int>(name, parent, o => ((Group)o).Count);
+        }
+
         [AggregationGetMethod]
         public decimal Sum([InjectGroup] Group group, string name)
         {
@@ -264,20 +278,6 @@ namespace Musoq.Plugins
             SetSumOutcome(parent, name, value);
             group.GetOrCreateValueWithConverter<Group, decimal>(name, parent,
                 o => ((Group)o).GetRawValue<decimal>(name));
-        }
-
-        [AggregationGetMethod]
-        public int ParentCount([InjectGroup] Group group, string name)
-        {
-            var parentGroup = group.GetRawValue<Group>(name);
-            return parentGroup.Count;
-        }
-
-        [AggregationSetMethod]
-        public void SetParentCount([InjectGroup] Group group, string name, long number)
-        {
-            var parent = GetParentGroup(group, number);
-            group.GetOrCreateValueWithConverter<Group, int>(name, parent, o => ((Group)o).Count);
         }
 
         [BindableMethod]

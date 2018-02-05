@@ -87,6 +87,10 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Dot;
                 case HavingToken.TokenText:
                     return TokenType.Having;
+                case TakeToken.TokenText:
+                    return TokenType.Take;
+                case SkipToken.TokenText:
+                    return TokenType.Skip;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -164,6 +168,8 @@ namespace Musoq.Parser.Lexing
             public static readonly string KDecimal = @"([0-9]+(\.[0-9]{1,})?)d";
             public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
             public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
+            public static readonly string KSkip = string.Format(Keyword, SkipToken.TokenText);
+            public static readonly string KTake = string.Format(Keyword, TakeToken.TokenText);
         }
 
         /// <summary>
@@ -210,6 +216,8 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KIntersect, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KGroupBy, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KHaving, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KSkip, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNumericArrayAccess),
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccess),
                 new TokenDefinition(TokenRegexDefinition.KColumn),
@@ -334,6 +342,10 @@ namespace Musoq.Parser.Lexing
                     return new KeyAccessToken(match.Groups[1].Value, match.Groups[2].Value, new TextSpan(Position, tokenText.Length));
                 case TokenType.Contains:
                     return new ContainsToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Skip:
+                    return new SkipToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Take:
+                    return new TakeToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

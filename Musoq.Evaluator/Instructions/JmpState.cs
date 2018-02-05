@@ -6,9 +6,9 @@ namespace Musoq.Evaluator.Instructions
     {
         private readonly bool _expectedState;
         private readonly string _label;
-        private readonly IDictionary<string, int> _labels;
+        private readonly IDictionary<string, Label> _labels;
 
-        public JmpState(IDictionary<string, int> labels, string label, bool expectedState)
+        public JmpState(IDictionary<string, Label> labels, string label, bool expectedState)
         {
             _labels = labels;
             _label = label;
@@ -18,7 +18,7 @@ namespace Musoq.Evaluator.Instructions
         public override void Execute(IVirtualMachine virtualMachine)
         {
             if (virtualMachine.Current.BooleanStack.Pop() == _expectedState)
-                virtualMachine[Register.Ip] = _labels[_label];
+                virtualMachine[Register.Ip] = _labels[_label].StartIndex;
             else
                 virtualMachine[Register.Ip] += 1;
         }

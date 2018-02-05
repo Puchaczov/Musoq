@@ -165,6 +165,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(TakeNode node)
+        {
+        }
+
         public void Visit(ExistingTableFromNode node)
         {
             _names.Push(node.Schema);
@@ -267,6 +271,10 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(HavingNode node)
+        {
+        }
+
+        public void Visit(SkipNode node)
         {
         }
 
