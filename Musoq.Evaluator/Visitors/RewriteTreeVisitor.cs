@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Parser;
@@ -274,18 +275,23 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessPropertyNode node)
         {
-            if(node.IsOuter == false)
-                return;
-
             var propsChain = new Stack<Node>();
             var properties = new List<(PropertyInfo Prop, object Arg)>();
 
-            var columnNode = node.Root as AccessColumnNode;
+            var root = node;
+            while (root != null && !root.IsOuter)
+            {
+                propsChain.Push(root.Expression);
+                root = root.Root as AccessPropertyNode;
+            }
+
+            var columnNode = root.Root as AccessColumnNode;
+
             var column = _table.Columns.Single(f => f.ColumnName == columnNode.Name);
 
             Type currentType = column.ColumnType;
 
-            propsChain.Push(node.Expression);
+            propsChain.Push(root.Expression);
 
             while (propsChain.Count > 0)
             {
@@ -305,9 +311,17 @@ namespace Musoq.Evaluator.Visitors
                 }
                 else if (prop is PropertyValueNode propNode)
                 {
-                    var p = currentType.GetProperty(propNode.Name);
-                    currentType = p.PropertyType;
-                    properties.Add((p, null));
+                    if (typeof(DynamicObject).IsAssignableFrom(currentType))
+                    {
+                        var p = currentType.GetProperty("Item", typeof(object), new [] { typeof(string) });
+                        properties.Add((p, propNode.Name));
+                    }
+                    else
+                    {
+                        var p = currentType.GetProperty(propNode.Name);
+                        currentType = p.PropertyType;
+                        properties.Add((p, null));
+                    }
                 }
                 else if (prop is AccessPropertyNode accesPropNode)
                 {

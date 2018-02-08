@@ -1,34 +1,34 @@
 ﻿using System;
-using System.Collections;
 using System.Reflection;
 
 namespace Musoq.Evaluator.Instructions
 {
     public class AccessCallChain : ByteCodeInstruction
     {
-        private (PropertyInfo Property, object Arg)[] props;
+        private readonly (PropertyInfo Property, object Arg)[] _props;
 
         public AccessCallChain((PropertyInfo Property, object Arg)[] props)
         {
-            this.props = props;
+            _props = props;
         }
 
         public override void Execute(IVirtualMachine virtualMachine)
         {
             var obj = virtualMachine.Current.ObjectsStack.Pop();
 
-            for (int i = 0; i < props.Length; i++)
+            for (int i = 0; i < _props.Length; i++)
             {
-                obj = props[i].Property.GetValue(obj);
+                var arg = _props[i].Arg;
 
-                var arg = props[i].Arg;
-                if (arg is int index)
+                switch (arg)
                 {
-                    obj = ((Array)obj).GetValue(index);
-                }
-                else if (arg is string key)
-                {
-                    obj = ((IDictionary) obj)[key];
+                    case int index:
+                        obj = _props[i].Property.GetValue(obj);
+                        obj = ((Array) obj).GetValue(index);
+                        break;
+                    case string key:
+                        obj = _props[i].Property.GetValue(obj, new object[] { key });
+                        break;
                 }
             }
 

@@ -84,16 +84,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessPropertyNode node)
         {
-            Node current = node;
-            AccessPropertyNode mostOuter = node;
-
-            while (current is AccessPropertyNode prop)
-            {
-                mostOuter = prop;
-                current = prop.Root;
-            }
-
-            mostOuter.Accept(_visitor);
+            node.Accept(_visitor);
         }
 
         public void Visit(AccessCallChainNode node)

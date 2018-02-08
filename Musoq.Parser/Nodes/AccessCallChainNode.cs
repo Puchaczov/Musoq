@@ -17,7 +17,7 @@ namespace Musoq.Parser.Nodes
             ColumnType = columnType;
             Props = props;
         }
-
+        
         public override Type ReturnType
         {
             get

@@ -497,6 +497,12 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public long ToLong(string value)
+        {
+            return long.Parse(value);
+        }
+
+        [BindableMethod]
         public string ToString(DateTimeOffset date)
         {
             return date.ToString();

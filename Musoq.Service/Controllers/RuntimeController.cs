@@ -59,6 +59,7 @@ namespace Musoq.Service.Controllers
                 }
                 catch (Exception exc)
                 {
+
                     state.Status = ExecutionStatus.Failure;
                     state.FailureMessage = exc.ToString();
                 }
