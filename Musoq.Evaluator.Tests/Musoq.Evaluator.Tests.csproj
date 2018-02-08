@@ -55,6 +55,8 @@
     <Compile Include="Schema\SchemaProvider.cs" />
     <Compile Include="Schema\TestLibrary.cs" />
     <Compile Include="Schema\TestSchema.cs" />
+    <Compile Include="SetsOperatorsTests.cs" />
+    <Compile Include="TestBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj">

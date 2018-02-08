@@ -30,7 +30,7 @@ namespace Musoq.Evaluator
                 {
                     ip = this[Register.Ip];
                     var instruction = _instructions[ip];
-                     instruction.Execute(this);
+                    instruction.Execute(this);
                 }
             }
             catch (Exception e)
