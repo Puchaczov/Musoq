@@ -45,10 +45,12 @@ namespace Musoq.Schema.Json
                         case JTokenType.None:
                             break;
                         case JTokenType.Object:
+                            columns.Add(new SchemaColumn(prop.Name, columnIndex++, typeof(JObject)));
                             foreach (var mprop in ((JObject)prop.Value).Properties().Reverse())
                                 props.Push(mprop);
                             break;
                         case JTokenType.Array:
+                            columns.Add(new SchemaColumn(prop.Name, columnIndex++, typeof(JArray)));
                             break;
                         case JTokenType.Constructor:
                             break;

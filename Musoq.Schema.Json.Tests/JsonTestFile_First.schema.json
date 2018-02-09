@@ -1,4 +1,5 @@
 ﻿{
   "Age": "int",
-  "Name": "string"
+  "Name": "string",
+  "Books": [] 
 }

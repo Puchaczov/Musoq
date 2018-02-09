@@ -50,6 +50,7 @@ namespace Musoq.Schema.Json
                                         props.Push(mprop);
                                     break;
                                 case JTokenType.Array:
+                                    row.Add(prop.Name, (JArray)prop.Value);
                                     break;
                                 case JTokenType.Constructor:
                                     break;
