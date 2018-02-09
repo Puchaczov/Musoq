@@ -1,11 +1,11 @@
 # Musoq
 Musoq is handy tool that decouples queries from the database. You can query whatever you want.
 
-Would you like to query multiple folders that fits some sophisticated conditions? No problem! Perform data analysis on CSV from your bank account? That's why Musoq was created for. It can do things that databases can't do easily like adding/extending your own grouping operators, taking calculations on parent groups, works on objects and access their properties. You also don't need schema to query your datas.
+Would you like to query multiple folders that fits some sophisticated conditions? No problem! Perform data analysis on CSV from your bank account? That's why Musoq was created for. It can do things that databases can't do easily like adding/extending your own grouping operators, taking calculations on parent groups, works on objects and access their properties.
 
 ## Pluggable architecture
 
-You can easily write your own data source which can be virtually anything that is queryable (currently implemented plugins are: CSV querying, directories querying)
+You can easily write your own data source which can be virtually anything that is queryable (currently implemented plugins are: CSV querying, directories querying, JSON querying)
 
 ## Currently implemented features
 
@@ -94,7 +94,9 @@ As the language looks like sql, it doesn't mean it is SQL compliant. It uses SQL
 Hopefully, I will list all of this incompatibilities here
 
 - `Currently, there is no support for NULL values (it implies grouping operators behave slightly different in some aspects than in DB-engines)`
+- `Parent group aggregations`
+- `Non standard set operators based on keys rather than rows.`
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
