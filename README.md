@@ -15,12 +15,13 @@ You can easily write your own data source which can be virtually anything that i
 - Set operators (non sql-like usage) (union, union all, except, intersect)
 - Complex object arrays and properties accessing.
 - Like / not like operator
+- Contains operator (Doesn't support nested queries yet)
 
 ## Features considered to be explored / implemented
 
 - Query parallelization
 - CTE expressions
-- Contains operator
+- Nested queries
 
 ## Supported types
 
@@ -85,6 +86,14 @@ You can easily write your own data source which can be virtually anything that i
 - `Format`
 - `CountOfLines`
 - `CountOfNotEmptyLines`
+
+## Please, be aware of
+
+As the language looks like sql, it doesn't mean it is SQL compliant. It uses SQL syntax and repeats it's behaviour hoverwer, some differences may appear. I will also implement some experimental syntax and behaviours that are not used by database engines.
+
+Hopefully, I will list all of this incompatibilities here
+
+- `Currently, there is no support for NULL values (it implies grouping operators behave slightly different in some aspects than in DB-engines)`
 
 ## License
 
