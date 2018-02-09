@@ -562,7 +562,7 @@ namespace Musoq.Evaluator.Visitors
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
                         string.Empty);
                 trLQuery = new InternalQueryNode(columns, exTable, new WhereNode(new PutTrueNode()), null,
-                    new IntoNode(fTable.Schema), null, leftQuery.Skip, leftQuery.Take, false, string.Empty, true, null);
+                    new IntoNode(fTable.Schema), null, null, null, false, string.Empty, true, null);
             }
             else
             {
@@ -613,7 +613,7 @@ namespace Musoq.Evaluator.Visitors
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
                         string.Empty);
                 trLQuery = new InternalQueryNode(columns, exTable, new WhereNode(new PutTrueNode()), null,
-                    new IntoNode(fTable.Schema), null, leftQuery.Skip, leftQuery.Take, false, string.Empty, true, null);
+                    new IntoNode(fTable.Schema), null, null, null, false, string.Empty, true, null);
             }
             else
             {
@@ -666,7 +666,7 @@ namespace Musoq.Evaluator.Visitors
                 trQuery = new InternalQueryNode(ChangeMethodCallsForColumnAccess(leftQuery.Select),
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
                         string.Empty), new WhereNode(new PutTrueNode()), null, new IntoNode($"{fTable.Schema}"),
-                    new ShouldBePresentInTheTable(rightQuery.From.Schema, true, node.Keys), rightQuery.Skip, rightQuery.Take, node.IsTheLastOne,
+                    new ShouldBePresentInTheTable(rightQuery.From.Schema, true, node.Keys), null, null, node.IsTheLastOne,
                     fTable.Schema, true, null);
             else
                 trQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy,
@@ -716,7 +716,7 @@ namespace Musoq.Evaluator.Visitors
                 trQuery = new InternalQueryNode(ChangeMethodCallsForColumnAccess(leftQuery.Select),
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
                         string.Empty), new WhereNode(new PutTrueNode()), null, new IntoNode(fTable.Schema),
-                    new ShouldBePresentInTheTable(rightQuery.From.Schema, false, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
+                    new ShouldBePresentInTheTable(rightQuery.From.Schema, false, node.Keys), null, null, node.IsTheLastOne,
                     fTable.Schema, true, null);
             else
                 trQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy,

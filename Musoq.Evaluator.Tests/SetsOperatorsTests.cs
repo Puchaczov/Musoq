@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Tests
     public class SetsOperatorsTests : TestBase
     {
         [TestMethod]
-        public void UnionWithDifferentColumnsAsAKey()
+        public void UnionWithDifferentColumnsAsAKeyTest()
         {
             var query = @"select Name from #A.Entities() union (Name) select MyName as Name from #B.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -29,6 +29,67 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("002", table[1].Values[0]);
             Assert.AreEqual("003", table[2].Values[0]);
             Assert.AreEqual("004", table[3].Values[0]);
+        }
+
+        [TestMethod]
+        public void UnionWithSkipTest()
+        {
+            var query = @"select Name from #A.Entities() skip 1 union (Name) select Name from #B.Entities() skip 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}},
+                {"#B", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("002", table[0].Values[0]);
+            Assert.AreEqual("005", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void UnionAllWithSkipTest()
+        {
+            var query = @"select Name from #A.Entities() skip 1 union all (Name) select Name from #B.Entities() skip 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("005")}},
+                {"#B", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("005", table[0].Values[0]);
+            Assert.AreEqual("005", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void MultipleUnionAllWithSkipTest()
+        {
+            var query = @"
+select Name from #A.Entities() skip 1 
+union all (Name) 
+select Name from #B.Entities() skip 2
+union all (Name)
+select Name from #C.Entities() skip 3";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("005")}},
+                {"#B", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}},
+                {"#C", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("004"), new BasicEntity("005")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual("005", table[0].Values[0]);
+            Assert.AreEqual("005", table[1].Values[0]);
+            Assert.AreEqual("005", table[2].Values[0]);
         }
 
         [TestMethod]
