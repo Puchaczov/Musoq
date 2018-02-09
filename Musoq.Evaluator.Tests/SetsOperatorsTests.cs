@@ -323,6 +323,23 @@ select Name from #C.Entities() skip 3";
         }
 
         [TestMethod]
+        public void ExceptWithSkipDoubleSourceTest()
+        {
+            var query = @"select Name from #A.Entities() skip 1 except (Name) select Name from #B.Entities() skip 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("010")}},
+                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("002")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("010", table[0].Values[0]);
+        }
+
+        [TestMethod]
         public void ExceptTripleSourcesTest()
         {
             var query =
@@ -338,6 +355,27 @@ select Name from #C.Entities() skip 3";
             var table = vm.Execute();
 
             Assert.AreEqual(0, table.Count);
+        }
+
+        [TestMethod]
+        public void ExceptWithSkipTripleSourcesTest()
+        {
+            var query =
+@"select Name from #A.Entities() skip 1 except (Name) 
+select Name from #B.Entities() skip 2 except (Name) 
+select Name from #C.Entities() skip 3";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}},
+                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")}},
+                {"#C", new[] {new BasicEntity("005")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("002", table[0].Values[0]);
         }
 
         [TestMethod]
@@ -358,6 +396,23 @@ select Name from #C.Entities() skip 3";
         }
 
         [TestMethod]
+        public void IntersectWithSkipDoubleSourceTest()
+        {
+            var query = @"select Name from #A.Entities() skip 1 intersect (Name) select Name from #B.Entities() skip 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}},
+                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005") }}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("005", table[0].Values[0]);
+        }
+
+        [TestMethod]
         public void IntersectTripleSourcesTest()
         {
             var query =
@@ -374,6 +429,29 @@ select Name from #C.Entities() skip 3";
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
+        }
+
+        [TestMethod]
+        public void IntersectWithSkipTripleSourcesTest()
+        {
+            var query =
+                @"
+select Name from #A.Entities() skip 1 intersect (Name) 
+select Name from #B.Entities() skip 2 intersect (Name) 
+select Name from #C.Entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}},
+                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005")}},
+                {"#C", new[] {new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("005")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("005", table[0].Values[0]);
         }
 
         [TestMethod]
@@ -424,6 +502,55 @@ select Name from #C.Entities() where Extension = '.txt'";
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
             Assert.AreEqual("001", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void MixedSourcesWithSkipExceptUnionWithConditionsScenarioTest()
+        {
+            var query =
+                @"select Name from #A.Entities() skip 1 where Extension = '.txt'
+except (Name)
+select Name from #B.Entities() skip 2 where Extension = '.txt'
+union (Name)
+select Name from #C.Entities() skip 3 where Extension = '.txt'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}},
+                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")}},
+                {"#C", new[] {new BasicEntity("002"), new BasicEntity("001")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("002", table[0].Values[0]);
+        }
+
+        [TestMethod]
+        public void MixedSourcesWithSkipIntersectUnionWithConditionsScenarioTest()
+        {
+            var query =
+                @"select Name from #A.Entities() where Extension = '.txt' skip 1
+intersect (Name)
+select Name from #B.Entities() where Extension = '.txt' skip 2
+union (Name)
+select Name from #C.Entities() where Extension = '.txt' skip 3";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("002"), new BasicEntity("001")}},
+                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")}},
+                {"#C", new[] {new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("003"), new BasicEntity("006")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual("006", table[1].Values[0]);
         }
 
         [TestMethod]
