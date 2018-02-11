@@ -91,7 +91,9 @@ namespace Musoq.Evaluator.Tables
 
             for (int i = 0; i < value.Count; i++)
             {
-                if(value[i].GetType() != _columnsByIndex[i].ColumnType)
+                var t1 = value[i].GetType();
+                var t2 = _columnsByIndex[i].ColumnType;
+                if (!t2.IsAssignableFrom(t1))
                     throw new NotSupportedException("AddRow");
             }
 

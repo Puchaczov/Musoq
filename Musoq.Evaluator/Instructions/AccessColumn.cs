@@ -19,7 +19,7 @@ namespace Musoq.Evaluator.Instructions
             var source = virtualMachine.Current.SourceStack.Peek();
             var value = source.Current[_name];
 
-            if(value.GetType() != _columnType)
+            if(!_columnType.IsAssignableFrom(value.GetType()))
                 Debugger.Break();
 
             switch (_columnType.Name)

@@ -793,7 +793,8 @@ namespace Musoq.Evaluator.Visitors
 
                 var newArgs = new List<Node> {new WordNode(identifier)};
                 newArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1));
-                var newExtraArgs = new ArgsListNode(new []{ accessMethod.Arguments.Args.Last() });
+                var shouldHaveExtraArgs = accessMethod.ArgsCount > 0;
+                var newExtraArgs = new ArgsListNode(shouldHaveExtraArgs ? new []{ accessMethod.Arguments.Args.Last() } : new Node[0]);
                 
                 accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), newExtraArgs, method);
             }

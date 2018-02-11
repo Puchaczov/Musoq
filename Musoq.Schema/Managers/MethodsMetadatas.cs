@@ -272,7 +272,7 @@ namespace Musoq.Schema.Managers
         {
             if (TypeCompatibilityTable.ContainsKey(to))
                 return TypeCompatibilityTable[to].Any(f => f == from);
-            return from.IsClass;
+            return to == from || to.IsAssignableFrom(from);
         }
     }
 }

@@ -3,7 +3,6 @@
 namespace Musoq.Evaluator.Instructions
 {
     public class Contains<TCompareType> : ByteCodeInstruction
-        where TCompareType : IEquatable<TCompareType>
     {
         private readonly Func<StackFrame, TCompareType> _pop;
         private readonly Register _register;

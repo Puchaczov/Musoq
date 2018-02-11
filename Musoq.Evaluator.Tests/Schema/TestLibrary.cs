@@ -61,5 +61,10 @@ namespace Musoq.Evaluator.Tests.Schema
         {
             return entity;
         }
+
+        public new string ToString(object obj)
+        {
+            return obj.ToString();
+        }
     }
 }

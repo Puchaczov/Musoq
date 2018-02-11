@@ -415,7 +415,8 @@ namespace Musoq.Evaluator.Visitors
                     _instructions.Add(new Contains<string>(Register.A, frame => frame.StringsStack.Pop()));
                     break;
                 default:
-                    throw new NotSupportedException();
+                    _instructions.Add(new Contains<object>(Register.A, frame => frame.ObjectsStack.Pop()));
+                    break;
             }
         }
 

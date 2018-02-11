@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
+using Group = Musoq.Plugins.Group;
 
 namespace Musoq.Schema.Disk.Disk
 {
@@ -117,6 +119,7 @@ namespace Musoq.Schema.Disk.Disk
             }
         }
 
+        [BindableMethod]
         public long CountOfLines([InjectSource] FileInfo context)
         {
             using (var stream = new StreamReader(context.Open(FileMode.Open)))
@@ -132,6 +135,7 @@ namespace Musoq.Schema.Disk.Disk
             }
         }
 
+        [BindableMethod]
         public long CountOfNotEmptyLines([InjectSource] FileInfo context)
         {
             using (var stream = new StreamReader(context.Open(FileMode.Open)))
@@ -149,6 +153,64 @@ namespace Musoq.Schema.Disk.Disk
 
                 return lines;
             }
+        }
+
+        [AggregationSetMethod]
+        public void SetAggregateFiles([InjectGroup] Group group, [InjectSource] FileInfo file, string name)
+        {
+            var list = group.GetOrCreateValue(name, new List<FileInfo>());
+
+            list.Add(file);
+        }
+
+        [AggregationGetMethod]
+        public IReadOnlyList<FileInfo> AggregateFiles([InjectGroup] Group group, string name)
+        {
+            return group.GetValue<IReadOnlyList<FileInfo>>(name);
+        }
+
+        [BindableMethod]
+        public string Compress(IReadOnlyList<FileInfo> files, string path, string method)
+        {
+            if (files.Count == 0)
+                return string.Empty;
+
+            CompressionLevel level;
+            switch (method.ToLowerInvariant())
+            {
+                case "fastest":
+                    level = CompressionLevel.Fastest;
+                    break;
+                case "optimal":
+                    level = CompressionLevel.Optimal;
+                    break;
+                case "max":
+                    level = CompressionLevel.NoCompression;
+                    break;
+                default:
+                    throw new NotSupportedException(method);
+            }
+
+            var operationSucessfull = true;
+            using (var zipArchiveFile = File.Open(path, FileMode.OpenOrCreate))
+            {
+                try
+                {
+                    using (var zip = new ZipArchive(zipArchiveFile, ZipArchiveMode.Create))
+                    {
+                        foreach (var file in files)
+                        {
+                            zip.CreateEntryFromFile(file.FullName, file.Name, level);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    operationSucessfull = false;
+                }
+            }
+
+            return operationSucessfull ? path : string.Empty;
         }
     }
 }
