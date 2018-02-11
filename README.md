@@ -1,5 +1,5 @@
 # Musoq
-Musoq is handy tool that decouples queries from the database. You can query whatever you want.
+Musoq is handy tool that allows to quering whatever you want.
 
 Would you like to query multiple folders that fits some sophisticated conditions? No problem! Perform data analysis on CSV from your bank account? That's why Musoq was created for. It can do things that databases can't do easily like adding/extending your own grouping operators, taking calculations on parent groups, works on objects and access their properties.
 
@@ -48,6 +48,49 @@ You can easily write your own data source which can be virtually anything that i
 
       select Inc(Self.Array[2]) from #A.Entities()
       
+- Compressing files from folder (uses `AggregateFiles` group method)
+
+      select Compress(AggregateFiles(), './Results/some_out_name.zip', 'fastest') from #disk.directory('./Files', 'false')
+     
+- Querying `.json` file.
+
+      select Name, Age from #json.file('./JsonTestFile_First.json', './JsonTestFile_First.schema.json', ' ')
+     
+where schema is defined as: 
+
+    { 
+       "Age": "int",
+       "Name": "string",
+       "Books": [] 
+    }
+    
+and file to be queried is:
+
+    [
+      {
+        "Name": "Aleksander",
+        "Age": 24,
+        "Books": [
+          {
+            "Name": "A"
+          },
+          {
+            "Name" : "B" 
+          }
+        ]
+      },
+      {
+        "Name": "Mikolaj",
+        "Age": 11,
+        "Books": []
+      },
+      {
+        "Name": "Marek",
+        "Age": 45,
+        "Books": []
+      }
+    ]
+      
 ## Implemented aggregation functions
 
 - `Count`
@@ -86,10 +129,11 @@ You can easily write your own data source which can be virtually anything that i
 - `Format`
 - `CountOfLines`
 - `CountOfNotEmptyLines`
+- `Compress`
 
 ## Please, be aware of
 
-As the language looks like sql, it doesn't mean it is SQL compliant. It uses SQL syntax and repeats it's behaviour hoverwer, some differences may appear. I will also implement some experimental syntax and behaviours that are not used by database engines.
+As the language looks like sql, it doesn't mean it is SQL compliant. It uses SQL syntax and repeats some of it's behaviour hoverwer, some differences may appear. It will also implement some experimental syntax and behaviours that are not used by database engines.
 
 Hopefully, I will list all of this incompatibilities here
 
