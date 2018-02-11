@@ -3,6 +3,8 @@ Musoq is handy tool that allows to quering whatever you want.
 
 Would you like to query multiple folders that fits some sophisticated conditions? No problem! Perform data analysis on CSV from your bank account? That's why Musoq was created for. It can do things that databases can't do easily like adding/extending your own grouping operators, taking calculations on parent groups, works on objects and access their properties.
 
+![alt text](https://raw.githubusercontent.com/Puchaczov/Musoq/master/query_res.png)
+
 ## Pluggable architecture
 
 You can easily write your own data source which can be virtually anything that is queryable (currently implemented plugins are: CSV querying, directories querying, JSON querying)
@@ -31,14 +33,14 @@ You can easily write your own data source which can be virtually anything that i
 
 - Shows `.cs` files from folders `some_path_to_dir_1`, `some_path_to_dir_2`, `some_path_to_dir` and their subfolders (uses disk plugin).
 
-      select Name, CreationTime, Length from #disk.directory('some_path_to_dir_1', 'true')
-      where Extension = '.cs'    
+      select Name, Sha256File(), CreationTime, Length from #disk.directory('some_path_to_dir_1', 'true')
+      where Extension = '.cs' take 3
       union all (Name)
-      select Name, CreationTime, Length from #disk.directory('some_path_to_dir_2', 'true')
-      where Extension = '.cs'
+      select Name, Sha256File(), CreationTime, Length from #disk.directory('some_path_to_dir_2', 'true')
+      where Extension = '.cs' take 4
       union all (Name)
-      select Name, CreationTime, Length from #disk.directory('some_path_to_dir_3', 'true')
-      where Extension = '.cs'
+      select Name, Sha256File(), CreationTime, Length from #disk.directory('some_path_to_dir', 'true')
+      where Extension = '.cs' take 5
 
 - Groups by `Country` and `City` and calculates. `ParentCount` returns count of rows that has specific country.
 
