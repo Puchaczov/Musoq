@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiStartup.cs" />
+    <Compile Include="Controllers\SelfController.cs" />
     <Compile Include="DynamicSchemaProvider.cs" />
     <Compile Include="Models\AppDirectory.cs" />
     <Compile Include="ApplicationConfiguration.cs" />

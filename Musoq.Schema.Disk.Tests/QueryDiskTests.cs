@@ -31,11 +31,11 @@ namespace Musoq.Schema.Disk.Tests
 
         private IVirtualMachine CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.Create(script, new JsonSchemaProvider());
+            return InstanceCreator.Create(script, new DiskSchemaProvider());
         }
     }
 
-    internal class JsonSchemaProvider : ISchemaProvider
+    internal class DiskSchemaProvider : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {

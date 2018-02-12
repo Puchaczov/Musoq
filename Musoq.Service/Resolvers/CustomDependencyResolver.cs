@@ -32,6 +32,8 @@ namespace Musoq.Service.Resolvers
                     return new ContextController(_contexts);
                 case nameof(RuntimeController):
                     return new RuntimeController(_contexts, _states);
+                case nameof(SelfController):
+                    return new SelfController();
             }
 
             return null;

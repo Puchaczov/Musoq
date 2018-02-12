@@ -37,6 +37,7 @@ namespace Musoq.Service.Controllers
                     .Where(f => f.GetCustomAttribute<BindableMethodAttribute>() != null);
 
                 foreach (var method in bindableMethods)
+                {
                     methods.Add(new Method
                     {
                         Name = method.Name,
@@ -44,6 +45,7 @@ namespace Musoq.Service.Controllers
                         Args = method.GetParameters().Where(f => f.GetCustomAttribute<InjectTypeAttribute>() == null)
                             .Select(f => f.ParameterType.Name).ToArray()
                     });
+                }
             }
 
             return methods.ToArray();

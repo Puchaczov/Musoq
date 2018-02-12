@@ -30,6 +30,7 @@ namespace Musoq.Service
             OnStart(args);
             Console.WriteLine("{1} started at {0}.", ApplicationConfiguration.ServerAddress, nameof(Musoq));
             var api = new ApplicationFlowApi(ApplicationConfiguration.ServerAddress);
+            var files = api.GetSelfFiles().Result;
 
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();

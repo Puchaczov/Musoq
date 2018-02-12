@@ -19,7 +19,7 @@ namespace Musoq.Schema.Disk.Disk
         [BindableMethod]
         public string Sha256File([InjectSource] FileInfo file)
         {
-            using (var stream = file.Open(FileMode.Open))
+            using (var stream = file.OpenRead())
             {
                 var sha = new SHA256Managed();
                 var hash = sha.ComputeHash(stream);
@@ -30,7 +30,7 @@ namespace Musoq.Schema.Disk.Disk
         [BindableMethod]
         public string Md5File([InjectSource] FileInfo file)
         {
-            using (var stream = file.Open(FileMode.Open))
+            using (var stream = file.OpenRead())
             {
                 var sha = new MD5CryptoServiceProvider();
                 var hash = sha.ComputeHash(stream);
@@ -41,7 +41,7 @@ namespace Musoq.Schema.Disk.Disk
         [BindableMethod]
         public bool HasContent([InjectSource] FileInfo file, string pattern)
         {
-            using (var stream = new StreamReader(file.Open(FileMode.Open)))
+            using (var stream = new StreamReader(file.OpenRead()))
             {
                 var content = stream.ReadToEnd();
                 return Regex.IsMatch(content, pattern);
@@ -51,7 +51,7 @@ namespace Musoq.Schema.Disk.Disk
         [BindableMethod]
         public bool Like([InjectSource] FileInfo file, string expression)
         {
-            using (var stream = new StreamReader(file.Open(FileMode.Open)))
+            using (var stream = new StreamReader(file.OpenRead()))
             {
                 var content = stream.ReadToEnd();
                 return Like(content, expression);
@@ -73,7 +73,7 @@ namespace Musoq.Schema.Disk.Disk
         [BindableMethod]
         public string GetLinesContainingWord([InjectSource] FileInfo file, string word)
         {
-            using (var stream = new StreamReader(file.Open(FileMode.Open)))
+            using (var stream = new StreamReader(file.OpenRead()))
             {
                 var lines = new List<string>();
                 var line = 1;
@@ -122,7 +122,7 @@ namespace Musoq.Schema.Disk.Disk
         [BindableMethod]
         public long CountOfLines([InjectSource] FileInfo context)
         {
-            using (var stream = new StreamReader(context.Open(FileMode.Open)))
+            using (var stream = new StreamReader(context.OpenRead()))
             {
                 var lines = 0;
                 while (!stream.EndOfStream)
@@ -138,7 +138,7 @@ namespace Musoq.Schema.Disk.Disk
         [BindableMethod]
         public long CountOfNotEmptyLines([InjectSource] FileInfo context)
         {
-            using (var stream = new StreamReader(context.Open(FileMode.Open)))
+            using (var stream = new StreamReader(context.OpenRead()))
             {
                 var lines = 0;
                 while (!stream.EndOfStream)
@@ -184,7 +184,7 @@ namespace Musoq.Schema.Disk.Disk
                 case "optimal":
                     level = CompressionLevel.Optimal;
                     break;
-                case "max":
+                case "nocompression":
                     level = CompressionLevel.NoCompression;
                     break;
                 default:
@@ -204,7 +204,7 @@ namespace Musoq.Schema.Disk.Disk
                         }
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     operationSucessfull = false;
                 }
