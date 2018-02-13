@@ -9,6 +9,32 @@ namespace Musoq.Schema.Csv.Tests
     public class CsvTests
     {
         [TestMethod]
+        public void SimpleSelectTest()
+        {
+            var query = "SELECT Name FROM #csv.file('./Files/BankingTransactions.csv')";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(11, table.Count);
+            Assert.AreEqual("Salary", table[0].Values[0]);
+            Assert.AreEqual("Restaurant A", table[1].Values[0]);
+            Assert.AreEqual("Bus ticket", table[2].Values[0]);
+            Assert.AreEqual("Tesco", table[3].Values[0]);
+            Assert.AreEqual("Restaurant B", table[4].Values[0]);
+            Assert.AreEqual("Service", table[5].Values[0]);
+            Assert.AreEqual("Salary", table[6].Values[0]);
+            Assert.AreEqual("Restaurant A", table[7].Values[0]);
+            Assert.AreEqual("Bus ticket", table[8].Values[0]);
+            Assert.AreEqual("Tesco", table[9].Values[0]);
+            Assert.AreEqual("Restaurant B", table[10].Values[0]);
+        }
+
+        [TestMethod]
         public void SimpleCountTest()
         {
             var query = "SELECT Count(OperationDate) FROM #csv.file('./Files/BankingTransactions.csv')";
@@ -52,8 +78,15 @@ namespace Musoq.Schema.Csv.Tests
             Assert.AreEqual(1, table[0].Values[1]);
             Assert.AreEqual(6, table[0].Values[2]);
             Assert.AreEqual(4199m, table[0].Values[3]);
-            Assert.AreEqual(197.15m, table[0].Values[4]);
-            Assert.AreEqual(4001.85m, table[0].Values[5]);
+            Assert.AreEqual(-157.15m, table[0].Values[4]);
+            Assert.AreEqual(4041.85m, table[0].Values[5]);
+
+            Assert.AreEqual(11, table[1].Values[0]);
+            Assert.AreEqual(2, table[1].Values[1]);
+            Assert.AreEqual(5, table[1].Values[2]);
+            Assert.AreEqual(4000m, table[1].Values[3]);
+            Assert.AreEqual(-157.15m, table[1].Values[4]);
+            Assert.AreEqual(3842.85m, table[1].Values[5]);
         }
 
         private IVirtualMachine CreateAndRunVirtualMachine(string script)
