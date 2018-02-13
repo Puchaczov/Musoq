@@ -87,14 +87,14 @@ namespace Musoq.Evaluator.Tables
             var newIndex = Rows.Count;
 
             if (value.Count != _columnsByIndex.Count)
-                throw new NotSupportedException("AddRow");
+                throw new NotSupportedException($"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
 
             for (int i = 0; i < value.Count; i++)
             {
                 var t1 = value[i].GetType();
                 var t2 = _columnsByIndex[i].ColumnType;
                 if (!t2.IsAssignableFrom(t1))
-                    throw new NotSupportedException("AddRow");
+                    throw new NotSupportedException($"({nameof(Add)}) Mismatched types. {t2.Name} is not assignable from {t1.Name}");
             }
 
             Rows.Add(value);

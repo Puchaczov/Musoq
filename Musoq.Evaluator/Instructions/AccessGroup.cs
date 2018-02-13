@@ -28,7 +28,11 @@ namespace Musoq.Evaluator.Instructions
                 switch (_fields[i].ReturnType.Name)
                 {
                     case nameof(Int16):
+                        allValues[i] = (short)virtualMachine.Current.LongsStack.Pop();
+                        break;
                     case nameof(Int32):
+                        allValues[i] = (int)virtualMachine.Current.LongsStack.Pop();
+                        break;
                     case nameof(Int64):
                         allValues[i] = virtualMachine.Current.LongsStack.Pop();
                         break;

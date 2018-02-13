@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Json.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Disk.Tests", "Musoq.Schema.Disk.Tests\Musoq.Schema.Disk.Tests.csproj", "{11C34D38-8610-4528-9FB3-222475F29E83}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Csv.Tests", "Musoq.Schema.Csv.Tests\Musoq.Schema.Csv.Tests.csproj", "{C8269A6A-60B8-47D0-AB3F-7D1CCACABC88}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,10 @@ Global
 		{11C34D38-8610-4528-9FB3-222475F29E83}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11C34D38-8610-4528-9FB3-222475F29E83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11C34D38-8610-4528-9FB3-222475F29E83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8269A6A-60B8-47D0-AB3F-7D1CCACABC88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8269A6A-60B8-47D0-AB3F-7D1CCACABC88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8269A6A-60B8-47D0-AB3F-7D1CCACABC88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8269A6A-60B8-47D0-AB3F-7D1CCACABC88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

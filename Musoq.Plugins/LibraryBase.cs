@@ -115,15 +115,18 @@ namespace Musoq.Plugins
         [AggregationGetMethod]
         public int ParentCount([InjectGroup] Group group, string name)
         {
-            var parentGroup = group.GetRawValue<Group>(name);
-            return parentGroup.Count;
+            var parentGroup = group.GetValue<int>(name);
+            return parentGroup;
         }
 
         [AggregationSetMethod]
         public void SetParentCount([InjectGroup] Group group, string name, long number)
         {
             var parent = GetParentGroup(group, number);
-            group.GetOrCreateValueWithConverter<Group, int>(name, parent, o => ((Group)o).Count);
+
+            var value = parent.GetOrCreateValue<int>(name);
+            parent.SetValue(name, value + 1);
+            group.GetOrCreateValueWithConverter<Group, int>(name, parent, o => ((Group) o).GetValue<int>(name));
         }
 
         [AggregationGetMethod]
@@ -287,7 +290,7 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public long ExtractFromDate(string date, string partOfDate)
+        public int ExtractFromDate(string date, string partOfDate)
         {
             var value = DateTime.Parse(date);
             switch (partOfDate)
