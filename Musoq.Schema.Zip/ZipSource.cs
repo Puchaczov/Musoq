@@ -23,7 +23,8 @@ namespace Musoq.Schema.Zip
                     using (var zip = new ZipArchive(file))
                     {
                         foreach(var entry in zip.Entries)
-                            yield return new EntityResolver<ZipArchiveEntry>(entry, SchemaZipHelper.NameToIndexMap, SchemaZipHelper.IndexToMethodAccessMap);
+                            if(entry.Name != string.Empty)
+                                yield return new EntityResolver<ZipArchiveEntry>(entry, SchemaZipHelper.NameToIndexMap, SchemaZipHelper.IndexToMethodAccessMap);
                     }
                 }
             }

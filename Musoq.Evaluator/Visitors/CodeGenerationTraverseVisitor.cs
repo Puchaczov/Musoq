@@ -53,9 +53,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessMethodNode node)
         {
-            foreach (var item in node.Arguments.Args)
-                item.Accept(this);
-
+            node.Arguments.Accept(this);
             node.Accept(_visitor);
         }
 

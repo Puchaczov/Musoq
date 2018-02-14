@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Plugins.Attributes;
@@ -26,19 +27,20 @@ namespace Musoq.Evaluator.Instructions
 
         public override void Execute(IVirtualMachine virtualMachine)
         {
+            var methodStack = new Stack<object>();
             var stack = virtualMachine.Current.ObjectsStack;
             var source = virtualMachine.Current.SourceStack.Peek();
             foreach (var attribute in _toInjectAttributes)
                 switch (attribute.GetType().Name)
                 {
                     case nameof(InjectSourceAttribute):
-                        stack.Push(source.Current.Context);
+                        methodStack.Push(source.Current.Context);
                         break;
                     case nameof(InjectGroupAttribute):
-                        stack.Push(virtualMachine.Current.CurrentGroup);
+                        methodStack.Push(virtualMachine.Current.CurrentGroup);
                         break;
                     case nameof(InjectGroupAccessName):
-                        stack.Push(virtualMachine.Current.StringsStack.Pop());
+                        methodStack.Push(virtualMachine.Current.StringsStack.Pop());
                         break;
                 }
 
@@ -67,9 +69,10 @@ namespace Musoq.Evaluator.Instructions
                 }
             }
 
-            for (var i = 0; i < parameters.Length; i++) stack.Push(parameters[i]);
+            for (var i = 0; i < parameters.Length; i++) methodStack.Push(parameters[i]);
 
-            stack.Push(_methodsAggregator);
+            methodStack.Push(_methodsAggregator);
+            stack.Push(methodStack);
 
             virtualMachine[Register.Ip] += 1;
         }

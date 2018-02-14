@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
@@ -10,7 +13,7 @@ namespace Musoq.Schema.Zip
     public class ZipLibrary : LibraryBase
     {
         [AggregationSetMethod]
-        public void SetAggregateFiles([InjectGroup] Group group, [InjectSource] FileInfo file, string name)
+        public void SetAggregateFiles([InjectGroup] Group group, string name, FileInfo file)
         {
             var list = group.GetOrCreateValue(name, new List<FileInfo>());
 
@@ -33,21 +36,56 @@ namespace Musoq.Schema.Zip
 
             try
             {
-                foreach (var zipFile in files)
+                var tempPath = Path.GetTempPath();
+                var groupedByDir = files.GroupBy(f => f.DirectoryName.Substring(tempPath.Length)).ToArray();
+                tempPath = tempPath.TrimEnd('\\');
+
+                var di = new DirectoryInfo(tempPath);
+                var rootDirs = di.GetDirectories();
+                foreach (var dir in groupedByDir)
                 {
-                    using (var zipStream = zipFile.OpenRead())
+                    if(rootDirs.All(f => dir.Key.Contains('\\') || !f.FullName.Substring(tempPath.Length).EndsWith(dir.Key)))
+                        continue;
+
+                    if (!Directory.Exists(path))
+                        Directory.CreateDirectory(path);
+
+                    Stack<DirectoryInfo> extractedDirs = new Stack<DirectoryInfo>();
+                    extractedDirs.Push(new DirectoryInfo(Path.Combine(tempPath, dir.Key)));
+
+                    while (extractedDirs.Count > 0)
                     {
-                        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Read))
+                        var extractedDir = extractedDirs.Pop();
+
+                        foreach (var file in extractedDir.GetFiles())
                         {
-                            foreach (var entry in archive.Entries)
-                            {
-                                entry.ExtractToFile(Path.Combine(path, entry.FullName), true);
-                            }
+                            var subDir = string.Empty;
+                            Uri pUri = new Uri(extractedDir.Parent.FullName);
+                            Uri tUri = new Uri(tempPath);
+                            if (pUri != tUri)
+                                subDir = extractedDir.FullName.Substring(tempPath.Length).Replace(dir.Key, string.Empty).TrimStart('\\');
+
+                            var destDir = Path.Combine(path, subDir);
+                            var destPath = Path.Combine(destDir, file.Name);
+
+                            if (!Directory.Exists(destDir))
+                                Directory.CreateDirectory(destDir);
+
+                            if(File.Exists(destPath))
+                                File.Delete(destPath);
+
+                            File.Move(file.FullName, destPath);
+                        }
+
+                        foreach (var subDir in extractedDir.GetDirectories())
+                        {
+                            extractedDirs.Push(subDir);
                         }
                     }
                 }
+
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 operationSucessfull = false;
             }

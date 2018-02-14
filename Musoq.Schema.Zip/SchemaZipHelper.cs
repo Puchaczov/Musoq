@@ -22,7 +22,7 @@ namespace Musoq.Schema.Zip
                 {nameof(ZipArchiveEntry.LastWriteTime), 3},
                 {nameof(ZipArchiveEntry.Length), 4},
                 {nameof(ZipArchiveEntry), 5},
-                {nameof(FileInfo), 6},
+                {"File", 6},
                 {"IsDirectory", 7}
             };
 
@@ -42,7 +42,12 @@ namespace Musoq.Schema.Zip
                         //{
 
                         //}
-                        var extractPath = Path.Combine(Path.GetTempPath(), info.Name);
+                        var extractPath = Path.Combine(Path.GetTempPath(), info.FullName);
+                        var extractDir = Path.GetDirectoryName(extractPath);
+
+                        if (!Directory.Exists(extractDir))
+                            Directory.CreateDirectory(extractDir);
+
                         info.ExtractToFile(extractPath, true);
 
                         return new FileInfo(extractPath);
@@ -59,8 +64,8 @@ namespace Musoq.Schema.Zip
                 new SchemaColumn(nameof(ZipArchiveEntry.LastWriteTime), 3, typeof(DateTimeOffset)),
                 new SchemaColumn(nameof(ZipArchiveEntry.Length), 4, typeof(long)),
                 new SchemaColumn(nameof(ZipArchiveEntry), 5, typeof(ZipArchiveEntry)),
-                new SchemaColumn(nameof(FileInfo), 6, typeof(FileInfo)),
-                new SchemaColumn(nameof(Boolean), 7, typeof(bool)) 
+                new SchemaColumn("File", 6, typeof(FileInfo)),
+                new SchemaColumn("IsDirectory", 7, typeof(bool)) 
             };
         }
     }

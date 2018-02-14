@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Musoq.Evaluator.Instructions
@@ -19,7 +20,7 @@ namespace Musoq.Evaluator.Instructions
 
         public override void Execute(IVirtualMachine virtualMachine)
         {
-            var stack = virtualMachine.Current.ObjectsStack;
+            var stack = (Stack<object>)virtualMachine.Current.ObjectsStack.Pop();
             var obj = stack.Pop();
             var args = new object[_argsCount];
 
