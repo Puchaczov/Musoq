@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.ServiceProcess;
 using Microsoft.Owin.Hosting;
 using Musoq.Service.Client.Helpers;
@@ -16,7 +17,7 @@ namespace Musoq.Service
 
         protected override void OnStart(string[] args)
         {
-            _server = WebApp.Start<ApiStartup>($"http://{ApplicationConfiguration.ServerAddress}/");
+            _server = WebApp.Start<ApiStartup>(ApplicationConfiguration.HttpServerAdress);
         }
 
         protected override void OnStop()
