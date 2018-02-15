@@ -23,7 +23,8 @@ namespace Musoq.Schema.Zip
                 {nameof(ZipArchiveEntry.Length), 4},
                 {nameof(ZipArchiveEntry), 5},
                 {"File", 6},
-                {"IsDirectory", 7}
+                {"IsDirectory", 7},
+                {"Level", 8}
             };
 
             IndexToMethodAccessMap = new Dictionary<int, Func<ZipArchiveEntry, object>>
@@ -37,11 +38,7 @@ namespace Musoq.Schema.Zip
                 {6,
                     info =>
                     {
-                        //using (var mmf = MemoryMappedFile.CreateNew(null, info.CompressedLength,
-                        //    MemoryMappedFileAccess.Write))
-                        //{
-
-                        //}
+                        //CONSIDER USING MEMORY MAPPED FILES!
                         var extractPath = Path.Combine(Path.GetTempPath(), info.FullName);
                         var extractDir = Path.GetDirectoryName(extractPath);
 
@@ -53,7 +50,8 @@ namespace Musoq.Schema.Zip
                         return new FileInfo(extractPath);
                     }
                 },
-                {7, info => info.Name == string.Empty}
+                {7, info => info.Name == string.Empty},
+                {8, info => info.FullName.Trim('/').Split('/').Length - 1}
             };
 
             SchemaColumns = new ISchemaColumn[]
@@ -65,7 +63,8 @@ namespace Musoq.Schema.Zip
                 new SchemaColumn(nameof(ZipArchiveEntry.Length), 4, typeof(long)),
                 new SchemaColumn(nameof(ZipArchiveEntry), 5, typeof(ZipArchiveEntry)),
                 new SchemaColumn("File", 6, typeof(FileInfo)),
-                new SchemaColumn("IsDirectory", 7, typeof(bool)) 
+                new SchemaColumn("IsDirectory", 7, typeof(bool)),
+                new SchemaColumn("Level", 8, typeof(int))
             };
         }
     }

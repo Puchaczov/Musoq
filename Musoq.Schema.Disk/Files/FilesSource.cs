@@ -2,7 +2,7 @@
 using System.IO;
 using Musoq.Schema.DataSources;
 
-namespace Musoq.Schema.Disk.Disk
+namespace Musoq.Schema.Disk.Files
 {
     public class FilesSource : RowSource
     {
@@ -30,23 +30,10 @@ namespace Musoq.Schema.Disk.Disk
                             sources.Push(new DirectorySourceSearchOptions(subDir.FullName, source.WithSubDirectories));
 
                     foreach (var file in dir.GetFiles())
-                        yield return new EntityResolver<FileInfo>(file, SchemaDiskHelper.NameToIndexMap,
-                            SchemaDiskHelper.IndexToMethodAccessMap);
+                        yield return new EntityResolver<FileInfo>(file, SchemaDiskHelper.FilesNameToIndexMap,
+                            SchemaDiskHelper.FilesIndexToMethodAccessMap);
                 }
             }
-        }
-
-        private class DirectorySourceSearchOptions
-        {
-            public DirectorySourceSearchOptions(string path, bool useSubDirectories)
-            {
-                Path = path;
-                WithSubDirectories = useSubDirectories;
-            }
-
-            public string Path { get; }
-
-            public bool WithSubDirectories { get; }
         }
     }
 }

@@ -1,25 +1,29 @@
 ﻿using System;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Disk.Directories;
+using Musoq.Schema.Disk.Files;
 using Musoq.Schema.Managers;
 
-namespace Musoq.Schema.Disk.Disk
+namespace Musoq.Schema.Disk
 {
     public class DiskSchema : SchemaBase
     {
-        private const string DirectoryTable = "directory";
+        private const string DirectoriesTable = "directories";
+        private const string FilesTable = "files";
         private const string SchemaName = "disk";
 
         public DiskSchema()
             : base(SchemaName, CreateLibrary())
-        {
-        }
+        { }
 
         public override ISchemaTable GetTableByName(string name, string[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
-                case DirectoryTable:
-                    return new DirectoryBasedTable();
+                case FilesTable:
+                    return new FilesBasedTable();
+                case DirectoriesTable:
+                    return new DirectoriesBasedTable();
             }
 
             throw new NotSupportedException();
@@ -29,8 +33,10 @@ namespace Musoq.Schema.Disk.Disk
         {
             switch (name.ToLowerInvariant())
             {
-                case DirectoryTable:
+                case FilesTable:
                     return new FilesSource(parameters[0], TryRecognizeBoolean(parameters[1]));
+                case DirectoriesTable:
+                    return new DirectoriesSource(parameters[0], TryRecognizeBoolean(parameters[1]));
             }
 
             throw new NotSupportedException();

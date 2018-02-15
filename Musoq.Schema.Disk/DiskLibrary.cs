@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -10,7 +11,7 @@ using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Group = Musoq.Plugins.Group;
 
-namespace Musoq.Schema.Disk.Disk
+namespace Musoq.Schema.Disk
 {
     [BindableClass]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
@@ -167,6 +168,95 @@ namespace Musoq.Schema.Disk.Disk
         public IReadOnlyList<FileInfo> AggregateFiles([InjectGroup] Group group, string name)
         {
             return group.GetValue<IReadOnlyList<FileInfo>>(name);
+        }
+
+        [AggregationSetMethod]
+        public void SetAggregateDirectories([InjectGroup] Group group, [InjectSource] DirectoryInfo directory, string name)
+        {
+            var list = group.GetOrCreateValue(name, new List<DirectoryInfo>());
+
+            list.Add(directory);
+        }
+
+        [AggregationGetMethod]
+        public IReadOnlyList<DirectoryInfo> AggregateDirectories([InjectGroup] Group group, string name)
+        {
+            return group.GetValue<IReadOnlyList<DirectoryInfo>>(name);
+        }
+
+        private class DirectoryinfoPosition
+        {
+            public DirectoryinfoPosition(DirectoryInfo dir, bool isRoot)
+            {
+                Directory = dir;
+                IsRoot = isRoot;
+            }
+
+            public DirectoryInfo Directory { get; }
+            public bool IsRoot { get; }
+        }
+
+        [BindableMethod]
+        public string Compress(IReadOnlyList<DirectoryInfo> directories, string path, string method)
+        {
+            if (directories.Count == 0)
+                return string.Empty;
+
+            CompressionLevel level;
+            switch (method.ToLowerInvariant())
+            {
+                case "fastest":
+                    level = CompressionLevel.Fastest;
+                    break;
+                case "optimal":
+                    level = CompressionLevel.Optimal;
+                    break;
+                case "nocompression":
+                    level = CompressionLevel.NoCompression;
+                    break;
+                default:
+                    throw new NotSupportedException(method);
+            }
+
+            var operationSucessfull = true;
+            using (var zipArchiveFile = File.Open(path, FileMode.OpenOrCreate))
+            {
+                try
+                {
+                    using (var zip = new ZipArchive(zipArchiveFile, ZipArchiveMode.Create))
+                    {
+                        var dirs = new Stack<DirectoryinfoPosition>();
+
+                        foreach (var dir in directories)
+                            dirs.Push(new DirectoryinfoPosition(dir, true));
+
+                        while (dirs.Count > 0)
+                        {
+                            var dir = dirs.Pop();
+
+                            DirectoryInfo root = null;
+
+                            if (dir.IsRoot)
+                                root = dir.Directory.Parent;
+
+                            foreach (var file in dir.Directory.GetFiles())
+                            {
+                                var entryName = file.FullName.Substring(root.FullName.Length);
+                                zip.CreateEntryFromFile(file.FullName, entryName.Trim('\\'), level);
+                            }
+
+                            foreach(var subDir in dir.Directory.GetDirectories())
+                                dirs.Push(new DirectoryinfoPosition(subDir, false));
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    operationSucessfull = false;
+                }
+            }
+
+            return operationSucessfull ? path : string.Empty;
         }
 
         [BindableMethod]

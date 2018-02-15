@@ -50,7 +50,7 @@ namespace Musoq.Schema.Zip
                     if (!Directory.Exists(path))
                         Directory.CreateDirectory(path);
 
-                    Stack<DirectoryInfo> extractedDirs = new Stack<DirectoryInfo>();
+                    var extractedDirs = new Stack<DirectoryInfo>();
                     extractedDirs.Push(new DirectoryInfo(Path.Combine(tempPath, dir.Key)));
 
                     while (extractedDirs.Count > 0)
@@ -60,8 +60,8 @@ namespace Musoq.Schema.Zip
                         foreach (var file in extractedDir.GetFiles())
                         {
                             var subDir = string.Empty;
-                            Uri pUri = new Uri(extractedDir.Parent.FullName);
-                            Uri tUri = new Uri(tempPath);
+                            var pUri = new Uri(extractedDir.Parent.FullName);
+                            var tUri = new Uri(tempPath);
                             if (pUri != tUri)
                                 subDir = extractedDir.FullName.Substring(tempPath.Length).Replace(dir.Key, string.Empty).TrimStart('\\');
 
