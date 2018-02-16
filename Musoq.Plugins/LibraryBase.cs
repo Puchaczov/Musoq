@@ -484,7 +484,13 @@ namespace Musoq.Plugins
         [BindableMethod]
         public decimal ToDecimal(string value)
         {
-            return Convert.ToDecimal(value.Replace(" ", string.Empty));
+            return Convert.ToDecimal(value, CultureInfo.CurrentCulture);
+        }
+
+        [BindableMethod]
+        public decimal ToDecimal(string value, string culture)
+        {
+            return Convert.ToDecimal(value, new CultureInfo(culture));
         }
 
         [BindableMethod]

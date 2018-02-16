@@ -11,7 +11,7 @@ namespace Musoq.Schema.Csv.Tests
         [TestMethod]
         public void SimpleSelectTest()
         {
-            var query = "SELECT Name FROM #csv.file('./Files/BankingTransactions.csv')";
+            var query = "SELECT Name FROM #csv.file('./Files/BankingTransactions.csv', ',')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Execute();
@@ -37,7 +37,7 @@ namespace Musoq.Schema.Csv.Tests
         [TestMethod]
         public void SimpleCountTest()
         {
-            var query = "SELECT Count(OperationDate) FROM #csv.file('./Files/BankingTransactions.csv')";
+            var query = "SELECT Count(OperationDate) FROM #csv.file('./Files/BankingTransactions.csv', ',')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Execute();
@@ -53,7 +53,7 @@ namespace Musoq.Schema.Csv.Tests
         [TestMethod]
         public void SimpleGroupByWithSum()
         {
-            var query = "SELECT ParentCount(1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv') group by ExtractFromDate(OperationDate, 'month')";
+            var query = "SELECT ParentCount(1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv', ',') group by ExtractFromDate(OperationDate, 'month')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Execute();

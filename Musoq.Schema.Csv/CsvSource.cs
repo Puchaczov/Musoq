@@ -14,10 +14,12 @@ namespace Musoq.Schema.Csv
     public class CsvSource : RowSource
     {
         private readonly string _filePath;
+        private readonly string _separator;
 
-        public CsvSource(string filePath)
+        public CsvSource(string filePath, string separator)
         {
             _filePath = filePath;
+            _separator = separator;
         }
 
         public override IEnumerable<IObjectResolver> Rows
@@ -49,6 +51,7 @@ namespace Musoq.Schema.Csv
                         using (var reader = new CsvReader(new StreamReader(stream)))
                         {
                             reader.Configuration.BadDataFound = context => { };
+                            reader.Configuration.Delimiter = _separator;
 
                             int i = 1, j = 11;
                             var list = new List<EntityResolver<string[]>>(100);
@@ -93,6 +96,7 @@ namespace Musoq.Schema.Csv
 
                 using (var reader = new CsvReader(file.OpenText()))
                 {
+                    reader.Configuration.Delimiter = _separator;
                     reader.Read();
 
                     var header = reader.Context.Record;

@@ -7,7 +7,7 @@ namespace Musoq.Schema.Csv
 {
     public class CsvBasedTable : ISchemaTable
     {
-        public CsvBasedTable(string fileName)
+        public CsvBasedTable(string fileName, string separator)
         {
             var file = new FileInfo(fileName);
             using (var stream = new StreamReader(file.OpenRead()))
@@ -17,7 +17,7 @@ namespace Musoq.Schema.Csv
                 {
                 }
 
-                var columns = line.Split(new[] {',', ';'}, StringSplitOptions.None);
+                var columns = line.Split(new[] {separator}, StringSplitOptions.None);
 
                 Columns = columns.Select((f, i) => (ISchemaColumn) new SchemaColumn(f, i, typeof(string))).ToArray();
             }

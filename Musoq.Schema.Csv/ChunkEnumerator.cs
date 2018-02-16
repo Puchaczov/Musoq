@@ -60,7 +60,7 @@ namespace Musoq.Schema.Csv
                     List<EntityResolver<string[]>> newChunk = null;
                     while (newChunk == null || newChunk.Count == 0)
                     {
-                        newChunk = _readedRows.Take(_token);
+                        newChunk = _readedRows.Count > 0 ? _readedRows.Take() : _readedRows.Take(_token);
                     }
                     _currentChunk = newChunk;
 #if DEBUG

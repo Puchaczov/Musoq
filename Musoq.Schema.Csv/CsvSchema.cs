@@ -16,7 +16,7 @@ namespace Musoq.Schema.Csv
         public override ISchemaTable GetTableByName(string name, string[] parameters)
         {
             if (name.ToLowerInvariant() == FileTable)
-                return new CsvBasedTable(parameters[0]);
+                return new CsvBasedTable(parameters[0], parameters[1]);
 
             throw new NotSupportedException();
         }
@@ -26,7 +26,7 @@ namespace Musoq.Schema.Csv
             switch (name.ToLowerInvariant())
             {
                 case FileTable:
-                    return new CsvSource(parameters[0]);
+                    return new CsvSource(parameters[0], parameters[1]);
             }
 
             throw new NotSupportedException();

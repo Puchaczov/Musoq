@@ -1,4 +1,6 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes
 {
     public class AndNode : BinaryNode
     {
@@ -12,6 +14,8 @@
         {
             visitor.Visit(this);
         }
+
+        public override Type ReturnType => typeof(Boolean);
 
         public override string Id { get; }
 
