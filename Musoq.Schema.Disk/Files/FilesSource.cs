@@ -30,8 +30,8 @@ namespace Musoq.Schema.Disk.Files
                             sources.Push(new DirectorySourceSearchOptions(subDir.FullName, source.WithSubDirectories));
 
                     foreach (var file in dir.GetFiles())
-                        yield return new EntityResolver<FileInfo>(file, SchemaDiskHelper.FilesNameToIndexMap,
-                            SchemaDiskHelper.FilesIndexToMethodAccessMap);
+                        yield return new EntityResolver<FileInfo>(file, SchemaFilesHelper.FilesNameToIndexMap,
+                            SchemaFilesHelper.FilesIndexToMethodAccessMap);
                 }
             }
         }

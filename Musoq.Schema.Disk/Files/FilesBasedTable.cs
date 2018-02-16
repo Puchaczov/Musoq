@@ -4,7 +4,7 @@
     {
         public FilesBasedTable()
         {
-            Columns = SchemaDiskHelper.FilesColumns;
+            Columns = SchemaFilesHelper.FilesColumns;
         }
 
         public ISchemaColumn[] Columns { get; }

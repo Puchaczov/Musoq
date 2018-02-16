@@ -26,7 +26,7 @@ namespace Musoq.Schema.Disk.Directories
                     var dir = new DirectoryInfo(source.Path);
 
                     foreach (var file in dir.GetDirectories())
-                        yield return new EntityResolver<DirectoryInfo>(file, SchemaDiskHelper.DirectoriesNameToIndexMap, SchemaDiskHelper.DirectoriesIndexToMethodAccessMap);
+                        yield return new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap, SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap);
 
                     if (!source.WithSubDirectories) continue;
 

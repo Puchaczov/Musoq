@@ -82,12 +82,4 @@ namespace Musoq.Schema.Disk.Tests
             return InstanceCreator.Create(script, new DiskSchemaProvider());
         }
     }
-
-    internal class DiskSchemaProvider : ISchemaProvider
-    {
-        public ISchema GetSchema(string schema)
-        {
-            return new DiskSchema();
-        }
-    }
 }

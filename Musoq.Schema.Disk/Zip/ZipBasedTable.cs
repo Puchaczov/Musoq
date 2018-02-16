@@ -1,6 +1,4 @@
-﻿using System.IO.MemoryMappedFiles;
-
-namespace Musoq.Schema.Zip
+﻿namespace Musoq.Schema.Disk.Zip
 {
     public class ZipBasedTable : ISchemaTable
     {

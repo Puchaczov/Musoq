@@ -48,10 +48,15 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DiskSchemaProvider.cs" />
     <Compile Include="QueryDiskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ZipTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Files.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema;
 
 namespace Musoq.Evaluator.Tests
 {
-    public class ArythemticTests : TestBase
+    public class ComparsionsTests : TestBase
     {
 
         [TestMethod]

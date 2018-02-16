@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Instructions;
 
-namespace Musoq.Schema.Zip.Tests
+namespace Musoq.Schema.Disk.Tests
 {
     [TestClass]
     public class ZipTests
@@ -12,7 +12,7 @@ namespace Musoq.Schema.Zip.Tests
         [TestMethod]
         public void SimpleZipSelectTest()
         {
-            var query = @"select FullName from #zip.file('./Files.zip')";
+            var query = @"select FullName from #disk.zip('./Files.zip')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Execute();
@@ -30,7 +30,7 @@ namespace Musoq.Schema.Zip.Tests
         [TestMethod]
         public void DecompressTest()
         {
-            var query = "select Decompress(AggregateFiles(File), './Results/DecompressTest') from #zip.file('./Files.zip')";
+            var query = "select Decompress(AggregateFiles(File), './Results/DecompressTest') from #disk.zip('./Files.zip')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Execute();
@@ -52,7 +52,7 @@ namespace Musoq.Schema.Zip.Tests
         [TestMethod]
         public void DecompressWithFilterTest()
         {
-            var query = "select Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest') from #zip.file('./Files.zip') where Level = 1";
+            var query = "select Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest') from #disk.zip('./Files.zip') where Level = 1";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Execute();
@@ -72,15 +72,7 @@ namespace Musoq.Schema.Zip.Tests
 
         private IVirtualMachine CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.Create(script, new ZipSchemaProvider());
-        }
-    }
-
-    internal class ZipSchemaProvider : ISchemaProvider
-    {
-        public ISchema GetSchema(string schema)
-        {
-            return new ZipSchema(schema);
+            return InstanceCreator.Create(script, new DiskSchemaProvider());
         }
     }
 }
