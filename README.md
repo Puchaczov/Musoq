@@ -24,10 +24,7 @@ You can easily write your own data source which can be virtually anything that i
 - Query parallelization
 - CTE expressions
 - Nested queries
-
-## Supported types
-
-`Long`, `Int`, `Short`, `Bool`, `DateTimeOffset`, `String`, `Decimal`
+- Case when sytax
 
 ## Query examples
 
@@ -42,7 +39,7 @@ You can easily write your own data source which can be virtually anything that i
       select Name, Sha256File(), CreationTime, Length from #disk.directory('some_path_to_dir', 'true')
       where Extension = '.cs' take 5
 
-- Groups by `Country` and `City` and calculates. `ParentCount` returns count of rows that has specific country.
+- Groups by `Country` and `City` and calculates. `ParentCount` returns count of rows that specific country has.
 
       select Country, City, Count(City), ParentCount(1) from #A.Entities() group by Country, City
       
@@ -50,9 +47,14 @@ You can easily write your own data source which can be virtually anything that i
 
       select Inc(Self.Array[2]) from #A.Entities()
       
-- Compressing files from folder (uses `AggregateFiles` group method)
+- Compressing files from folder (uses `AggregateFiles` grouping method)
 
       select Compress(AggregateFiles(), './Results/some_out_name.zip', 'fastest') from #disk.directory('./Files', 'false')
+      
+- Decompresses only those files that fits the condition. Files are extracted to directory `./Results/DecompressWithFilterTest` 
+
+      select Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest') from #zip.file('./Files.zip') 
+      where Level = 1
      
 - Querying `.json` file.
 
@@ -92,46 +94,17 @@ and file to be queried is:
         "Books": []
       }
     ]
-      
-## Implemented aggregation functions
 
-- `Count`
-- `AggregateValue`
-- `Sum`
-- `SumIncome`
-- `SumOutcome`
-- `Max`
-- `Min`
-- `Avg`
-- `Dominant`
-- `ParentCount`
+## Plugins
 
-## Some functions
-
-- `Abs`
-- `Md5`
-- `Sha256`
-- `Sha512`
-- `Substr`
-- `ToDecimal`
-- `IndexOf`
-- `Contains`
-- `Concat`
-- `ExtractFromDate`
-- `PercentOf`
-
-## Some functions from disk plugin
-
-- `Sha256File`
-- `Md5File`
-- `HasContent`
-- `HasAttribute`
-- `GetLinesContainingWord`
-- `Substring`
-- `Format`
-- `CountOfLines`
-- `CountOfNotEmptyLines`
-- `Compress`
+<table>
+      <thead>
+            <tr><td>#disk</td><td>Exposes files and directories from the hard disk as queryable source.</td></tr>
+            <tr><td>#zip</td><td>Exposes compressed (.zip) files from the hard disk so that you can decompress files that fits sophisticated conditions.</td></tr>
+            <tr><td>#json</td><td>Exposes json file as queryable source.</td></tr>
+            <tr><td>#csv</td><td>Exposes csv file as queryable source.</td></tr>
+      </thead>
+</table>
 
 ## Please, be aware of
 
