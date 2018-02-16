@@ -311,17 +311,9 @@ namespace Musoq.Evaluator.Visitors
                 }
                 else if (prop is PropertyValueNode propNode)
                 {
-                    if (typeof(DynamicObject).IsAssignableFrom(currentType))
-                    {
-                        var p = currentType.GetProperty("Item", typeof(object), new [] { typeof(string) });
-                        properties.Add((p, propNode.Name));
-                    }
-                    else
-                    {
-                        var p = currentType.GetProperty(propNode.Name);
-                        currentType = p.PropertyType;
-                        properties.Add((p, null));
-                    }
+                    var p = currentType.GetProperty(propNode.Name);
+                    currentType = p.PropertyType;
+                    properties.Add((p, null));
                 }
                 else if (prop is AccessPropertyNode accesPropNode)
                 {

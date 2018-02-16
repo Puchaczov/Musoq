@@ -57,6 +57,12 @@ namespace Musoq.Evaluator.Tests.Schema
         }
 
         [BindableMethod]
+        public int IndexOf(string value, string character)
+        {
+            return value.IndexOf(character[0]);
+        }
+
+        [BindableMethod]
         public BasicEntity NothingToDo(BasicEntity entity)
         {
             return entity;

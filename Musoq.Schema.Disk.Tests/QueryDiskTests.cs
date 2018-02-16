@@ -60,6 +60,23 @@ namespace Musoq.Schema.Disk.Tests
             File.Delete(resultName);
         }
 
+        [TestMethod]
+        public void ComplexObjectPropertyTest()
+        {
+            var query = "select Parent.Name from #disk.directories('./Directories', 'false')";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Parent.Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("Directories", table[0].Values[0]);
+            Assert.AreEqual("Directories", table[1].Values[0]);
+        }
+
         private IVirtualMachine CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.Create(script, new DiskSchemaProvider());

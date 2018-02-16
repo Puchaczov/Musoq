@@ -29,6 +29,9 @@ namespace Musoq.Evaluator.Instructions
                     case string key:
                         obj = _props[i].Property.GetValue(obj, new object[] { key });
                         break;
+                    default:
+                        obj = _props[i].Property.GetValue(obj);
+                        break;
                 }
             }
 

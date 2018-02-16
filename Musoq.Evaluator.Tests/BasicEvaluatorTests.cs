@@ -55,6 +55,49 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
+        public void MultipleAndOperatorTest()
+        {
+            var query = "select Name from #A.Entities() where IndexOf(Name, 'A') = 0 and IndexOf(Name, 'B') = 1 and IndexOf(Name, 'C') = 2";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("ABC", table[0].Values[0]);
+            Assert.AreEqual("ABCD", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void MultipleOrOperatorTest()
+        {
+            var query = "select Name from #A.Entities() where Name = 'ABC' or Name = 'ABCD' or Name = 'A'";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual("A", table[0].Values[0]);
+            Assert.AreEqual("ABC", table[1].Values[0]);
+            Assert.AreEqual("ABCD", table[2].Values[0]);
+        }
+
+        [TestMethod]
         public void AddOperatorWithStringsTurnsIntoConcatTest()
         {
             var query = "select 'abc' + 'cda' from #A.Entities()";
