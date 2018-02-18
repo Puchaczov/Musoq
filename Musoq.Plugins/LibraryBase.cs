@@ -142,6 +142,13 @@ namespace Musoq.Plugins
             group.SetValue(name, value + number);
         }
 
+        [AggregationSetMethod]
+        public void SetSum([InjectGroup] Group group, string name, long number)
+        {
+            var value = group.GetOrCreateValue<decimal>(name);
+            group.SetValue(name, value + number);
+        }
+
         [AggregationGetMethod]
         public decimal SumIncome([InjectGroup] Group group, string name)
         {

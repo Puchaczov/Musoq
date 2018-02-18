@@ -18,6 +18,17 @@ namespace Musoq.Schema.Disk
     public class DiskLibrary : LibraryBase
     {
         [BindableMethod]
+        public string Sha1File([InjectSource] FileInfo file)
+        {
+            using (var stream = file.OpenRead())
+            {
+                var sha = new SHA1CryptoServiceProvider();
+                var hash = sha.ComputeHash(stream);
+                return BitConverter.ToString(hash).Replace("-", string.Empty);
+            }
+        }
+
+        [BindableMethod]
         public string Sha256File([InjectSource] FileInfo file)
         {
             using (var stream = file.OpenRead())

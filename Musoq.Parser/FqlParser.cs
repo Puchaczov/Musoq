@@ -230,9 +230,64 @@ namespace Musoq.Parser
             return node;
         }
 
+        enum Associativity
+        {
+            Left,
+            Right
+        }
+
+        private Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precDict =
+            new Dictionary<TokenType, (short Precendence, Associativity Associativity)>()
+            {
+                {TokenType.Plus, (1, Associativity.Left)},
+                {TokenType.Hyphen, (1, Associativity.Left)},
+                {TokenType.Star, (2, Associativity.Left)},
+                {TokenType.FSlash, (2, Associativity.Left)},
+                {TokenType.Mod, (2, Associativity.Left)}
+            };
+
+        private Node ComposeArithmeticExpression(int minPrec)
+        {
+            Node left = ComposeBaseTypes();
+
+            while (IsArithmeticBinaryOperator(Current) && _precDict[Current.TokenType].Precendence >= minPrec)
+            {
+                var curr = Current;
+                var op = _precDict[Current.TokenType];
+                var nextMinPrec = op.Associativity == Associativity.Left ? op.Precendence + 1 : op.Precendence;
+                Consume(Current.TokenType);
+                var right = ComposeArithmeticExpression(nextMinPrec);
+
+                switch (curr.TokenType)
+                {
+                    case TokenType.Plus:
+                        left = new AddNode(left, right);
+                        break;
+                    case TokenType.Hyphen:
+                        left = new HyphenNode(left, right);
+                        break;
+                    case TokenType.Star:
+                        left = new StarNode(left, right);
+                        break;
+                    case TokenType.FSlash:
+                        left = new FSlashNode(left, right);
+                        break;
+                    case TokenType.Mod:
+                        left = new ModuloNode(left, right);
+                        break;
+                    default:
+                        throw new NotSupportedException($"{curr.TokenType} is not supported while parsing expression.");
+                }
+            }
+
+            return left;
+        }
+
         private Node ComposeEqualityOperators()
         {
-            var node = ComposeArithmeticOperators(Precendence.Level1);
+            var node = ComposeArithmeticExpression(0);
+            node = ComposeComplexAccess(node);
+
             while (IsEqualityOperator(Current))
                 switch (Current.TokenType)
                 {
@@ -283,112 +338,47 @@ namespace Musoq.Parser
             return node;
         }
 
-        private Node ComposeArithmeticOperators(Precendence precendence)
+        private Node ComposeComplexAccess(Node node)
         {
-            Node node = null;
-            switch (precendence)
+            if (node is AccessColumnNode columnNode)
             {
-                case Precendence.Level1:
+                var isComplexObjectAccessor = IsComplexObjectAccessor(Current);
+
+                if (isComplexObjectAccessor)
                 {
-                    node = ComposeArithmeticOperators(Precendence.Level2);
-                    while (IsArithmeticOperator(Current, Precendence.Level1))
-                        switch (Current.TokenType)
-                        {
-                            case TokenType.Star:
-                                Consume(TokenType.Star);
-                                node = new StarNode(node, ComposeArithmeticOperators(Precendence.Level1));
-                                break;
-                            case TokenType.FSlash:
-                                Consume(TokenType.FSlash);
-                                node = new FSlashNode(node, ComposeArithmeticOperators(Precendence.Level1));
-                                break;
-                            case TokenType.Mod:
-                                Consume(TokenType.Mod);
-                                node = new ModuloNode(node, ComposeArithmeticOperators(Precendence.Level1));
-                                break;
-                        }
-                    break;
+                    Consume(TokenType.Dot);
+                    var ct = Current;
+
+                    switch (Current.TokenType)
+                    {
+                        case TokenType.Column:
+                        case TokenType.KeyAccess:
+                        case TokenType.NumericAccess:
+                        case TokenType.Property:
+                            node = new AccessPropertyNode(node, ComposeBaseTypes(), true, ct.Value);
+                            break;
+                    }
+
+                    isComplexObjectAccessor = IsComplexObjectAccessor(Current);
                 }
-                case Precendence.Level2:
+
+                while (isComplexObjectAccessor)
                 {
-                    node = ComposeArithmeticOperators(Precendence.Level3);
-                    while (IsArithmeticOperator(Current, Precendence.Level2))
-                        switch (Current.TokenType)
-                        {
-                            case TokenType.Plus:
-                                Consume(TokenType.Plus);
-                                node = new AddNode(node, ComposeArithmeticOperators(Precendence.Level1));
-                                break;
-                            case TokenType.Hyphen:
-                                Consume(TokenType.Hyphen);
-                                node = new HyphenNode(node, ComposeArithmeticOperators(Precendence.Level1));
-                                break;
-                        }
-                    break;
+                    Consume(TokenType.Dot);
+                    var ct = Current;
+
+                    switch (Current.TokenType)
+                    {
+                        case TokenType.Column:
+                        case TokenType.KeyAccess:
+                        case TokenType.NumericAccess:
+                        case TokenType.Property:
+                            node = new AccessPropertyNode(node, ComposeBaseTypes(), false, ct.Value);
+                            break;
+                    }
+
+                    isComplexObjectAccessor = IsComplexObjectAccessor(Current);
                 }
-                case Precendence.Level3:
-                    if (IsArithmeticOperator(Current, Precendence.Level3))
-                    {
-                        while (IsArithmeticOperator(Current, Precendence.Level3))
-                        {
-                            switch (Current.TokenType)
-                            {
-                                case TokenType.Hyphen:
-                                    Consume(TokenType.Hyphen);
-                                    node = new StarNode(new IntegerNode("-1"), ComposeArithmeticOperators(Precendence.Level1));
-                                    break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        node = ComposeArithmeticOperators(Precendence.Level4);
-                    }
-                    break;
-                case Precendence.Level4:
-                    node = ComposeBaseTypes();
-
-                    if (node is AccessColumnNode columnNode)
-                    {
-                        var isComplexObjectAccessor = IsComplexObjectAccessor(Current);
-
-                        if (isComplexObjectAccessor)
-                        {
-                            Consume(TokenType.Dot);
-                            var ct = Current;
-
-                            switch (Current.TokenType)
-                            {
-                                case TokenType.Column:
-                                case TokenType.KeyAccess:
-                                case TokenType.NumericAccess:
-                                case TokenType.Property:
-                                    node = new AccessPropertyNode(node, ComposeBaseTypes(), true, ct.Value);
-                                    break;
-                            }
-
-                            isComplexObjectAccessor = IsComplexObjectAccessor(Current);
-                        }
-
-                        while (isComplexObjectAccessor)
-                        {
-                            Consume(TokenType.Dot);
-                            var ct = Current;
-
-                            switch (Current.TokenType)
-                            {
-                                case TokenType.Column:
-                                case TokenType.KeyAccess:
-                                case TokenType.NumericAccess:
-                                case TokenType.Property:
-                                    node = new AccessPropertyNode(node, ComposeBaseTypes(), false, ct.Value);
-                                    break;
-                            }
-
-                            isComplexObjectAccessor = IsComplexObjectAccessor(Current);
-                        }
-                    }
-                    break;
             }
 
             return node;
@@ -517,7 +507,10 @@ namespace Musoq.Parser
                     Consume(TokenType.Star);
                     return new AllColumnsNode();
                 case TokenType.LeftParenthesis:
-                    return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeOperations(), TokenType.RightParenthesis);
+                    return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeArithmeticExpression(0), TokenType.RightParenthesis);
+                case TokenType.Hyphen:
+                    Consume(TokenType.Hyphen);
+                    return new StarNode(new IntegerNode("-1"), Compose(f => f.ComposeArithmeticExpression(0)));
             }
 
             throw new NotSupportedException();
@@ -569,32 +562,27 @@ namespace Musoq.Parser
 
         private TNode ComposeAndSkip<TNode>(Func<FqlParser, TNode> parserAction, TokenType statement)
         {
-            if (parserAction == null)
-                throw new ArgumentNullException(nameof(parserAction));
-
-            var node = parserAction(this);
+            var node = Compose(parserAction);
             Consume(statement);
             return node;
         }
 
-        private static bool IsArithmeticOperator(Token currentToken, Precendence precendence)
+        private TNode Compose<TNode>(Func<FqlParser, TNode> parserAction)
         {
-            switch (precendence)
-            {
-                case Precendence.Level1:
-                    return currentToken.TokenType == TokenType.Star ||
-                           currentToken.TokenType == TokenType.FSlash ||
-                           currentToken.TokenType == TokenType.Mod;
-                case Precendence.Level2:
-                    return currentToken.TokenType == TokenType.Plus ||
-                           currentToken.TokenType == TokenType.Hyphen;
-                case Precendence.Level3:
-                    return currentToken.TokenType == TokenType.Hyphen;
-                case Precendence.Level4:
-                    return true;
-            }
+            if (parserAction == null)
+                throw new ArgumentNullException(nameof(parserAction));
 
-            return false;
+            var node = parserAction(this);
+            return node;
+        }
+
+        private static bool IsArithmeticBinaryOperator(Token currentToken)
+        {
+            return currentToken.TokenType == TokenType.Star ||
+                   currentToken.TokenType == TokenType.FSlash ||
+                   currentToken.TokenType == TokenType.Mod ||
+                   currentToken.TokenType == TokenType.Plus ||
+                   currentToken.TokenType == TokenType.Hyphen;
         }
 
         private static bool IsEqualityOperator(Token currentToken)
@@ -625,14 +613,6 @@ namespace Musoq.Parser
                 return typeof(short);
 
             return typeof(long);
-        }
-
-        private enum Precendence : short
-        {
-            Level1,
-            Level2,
-            Level3,
-            Level4
         }
     }
 }

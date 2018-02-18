@@ -57,6 +57,8 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Or;
                 case PlusToken.TokenText:
                     return TokenType.Plus;
+                case FSlashToken.TokenText:
+                    return TokenType.FSlash;
                 case StarToken.TokenText:
                     return TokenType.Star;
                 case WhereToken.TokenText:

@@ -48,6 +48,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArithmeticTests.cs" />
     <Compile Include="ComparsionsTests.cs" />
     <Compile Include="GroupByTests.cs" />
     <Compile Include="Schema\BasicEntity.cs" />

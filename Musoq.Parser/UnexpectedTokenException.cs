@@ -6,8 +6,7 @@ namespace Musoq.Parser
     internal class UnexpectedTokenException<T> : Exception
     {
         public UnexpectedTokenException(int position, Token current)
-        {
-            throw new NotImplementedException();
-        }
+        : base($"Token {current.TokenType} at position {position} is unexpected.")
+        { }
     }
 }

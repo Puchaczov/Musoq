@@ -78,7 +78,7 @@ namespace Musoq.Evaluator.Visitors
                     {
                         var b = f.Current.LongsStack.Pop();
                         var a = f.Current.LongsStack.Pop();
-                        f.Current.NumericsStack.Push(a % b);
+                        f.Current.LongsStack.Push(a / b);
                     }, "DIV LNGS"));
                     break;
                 case nameof(Decimal):
@@ -104,7 +104,7 @@ namespace Musoq.Evaluator.Visitors
                     {
                         var b = f.Current.LongsStack.Pop();
                         var a = f.Current.LongsStack.Pop();
-                        f.Current.NumericsStack.Push(a % b);
+                        f.Current.LongsStack.Push(a % b);
                     }, "MOD LNGS"));
                     break;
                 case nameof(Decimal):
@@ -146,7 +146,7 @@ namespace Musoq.Evaluator.Visitors
                     {
                         var b = f.Current.LongsStack.Pop();
                         var a = f.Current.LongsStack.Pop();
-                        f.Current.NumericsStack.Push(a - b);
+                        f.Current.LongsStack.Push(a - b);
                     }, "SUB LNGS"));
                     break;
                 case nameof(Decimal):
