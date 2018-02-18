@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Disk.Files
 {
-    public class FilesSource : RowSource
+    public class FilesSource : RowSourceBase<FileInfo>
     {
         private readonly DirectorySourceSearchOptions _source;
 
@@ -13,26 +14,27 @@ namespace Musoq.Schema.Disk.Files
             _source = new DirectorySourceSearchOptions(path, useSubDirectories);
         }
 
-        public override IEnumerable<IObjectResolver> Rows
+        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<FileInfo>>> chunkedSource)
         {
-            get
+            var sources = new Stack<DirectorySourceSearchOptions>();
+            sources.Push(_source);
+
+            while (sources.Count > 0)
             {
-                var sources = new Stack<DirectorySourceSearchOptions>();
-                sources.Push(_source);
+                var source = sources.Pop();
+                var dir = new DirectoryInfo(source.Path);
 
-                while (sources.Count > 0)
-                {
-                    var source = sources.Pop();
-                    var dir = new DirectoryInfo(source.Path);
+                var dirFiles = new List<EntityResolver<FileInfo>>();
 
-                    if (source.WithSubDirectories)
-                        foreach (var subDir in dir.GetDirectories())
-                            sources.Push(new DirectorySourceSearchOptions(subDir.FullName, source.WithSubDirectories));
+                foreach(var file in dir.GetFiles())
+                    dirFiles.Add(new EntityResolver<FileInfo>(file, SchemaFilesHelper.FilesNameToIndexMap,
+                        SchemaFilesHelper.FilesIndexToMethodAccessMap));
 
-                    foreach (var file in dir.GetFiles())
-                        yield return new EntityResolver<FileInfo>(file, SchemaFilesHelper.FilesNameToIndexMap,
-                            SchemaFilesHelper.FilesIndexToMethodAccessMap);
-                }
+                chunkedSource.Add(dirFiles);
+
+                if (source.WithSubDirectories)
+                    foreach (var subDir in dir.GetDirectories())
+                        sources.Push(new DirectorySourceSearchOptions(subDir.FullName, source.WithSubDirectories));
             }
         }
     }
