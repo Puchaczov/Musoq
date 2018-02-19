@@ -353,7 +353,7 @@ namespace Musoq.Plugins
                             .ToLowerInvariant()
                             .Trim();
 
-                        if(line == Environment.NewLine || line == string.Empty)
+                        if(line == System.Environment.NewLine || line == string.Empty)
                             continue;
 
                         if (line.EndsWith(":"))

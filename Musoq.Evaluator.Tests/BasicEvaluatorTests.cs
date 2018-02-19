@@ -120,10 +120,10 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void ContainsStringsTest()
         {
-            var query = "select Name from #A.Entities() where Name contains ('ABC', 'CdA', 'CDA')";
+            var query = "select Name from #A.Entities() where Name contains ('ABC', 'CdA', 'CDA', 'DDABC')";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("ABC"), new BasicEntity("XXX"), new BasicEntity("CDA")}}
+                {"#A", new[] {new BasicEntity("ABC"), new BasicEntity("XXX"), new BasicEntity("CDA"), new BasicEntity("DDABC")}}
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -133,9 +133,10 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(3, table.Count);
             Assert.AreEqual("ABC", table[0].Values[0]);
             Assert.AreEqual("CDA", table[1].Values[0]);
+            Assert.AreEqual("DDABC", table[2].Values[0]);
         }
 
         [TestMethod]

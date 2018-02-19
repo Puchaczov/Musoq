@@ -52,6 +52,18 @@ namespace Musoq.Evaluator.Tests
         public void SubtractionWithUnaryMinusAndAdditionTest()
             => TestMethodTemplate<long>("1 - -1 + 2", 4);
 
+        [TestMethod]
+        public void ModuloExpressionWithMultiplicationTest()
+            => TestMethodTemplate<long>("8 % 3 * 2", 4);
+
+        [TestMethod]
+        public void ModuloExpressionWithSubtractionTest()
+            => TestMethodTemplate<long>("8 % 3 - 2", 0);
+
+        [TestMethod]
+        public void ModuloExpressionWithAdditionTest()
+            => TestMethodTemplate<long>("8 % 3 + 2", 4);
+
         private void TestMethodTemplate<TResult>(string operation, TResult score)
         {
             var query = $"select {operation} from #A.Entities()";

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Disk.Directories
 {
-    public class DirectoriesSource : RowSource
+    public class DirectoriesSource : RowSourceBase<DirectoryInfo>
     {
         private readonly DirectorySourceSearchOptions _source;
 
@@ -13,26 +14,27 @@ namespace Musoq.Schema.Disk.Directories
             _source = new DirectorySourceSearchOptions(path, recursive);
         }
 
-        public override IEnumerable<IObjectResolver> Rows
+        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<DirectoryInfo>>> chunkedSource)
         {
-            get
+            var sources = new Stack<DirectorySourceSearchOptions>();
+            sources.Push(_source);
+
+            while (sources.Count > 0)
             {
-                var sources = new Stack<DirectorySourceSearchOptions>();
-                sources.Push(_source);
+                var source = sources.Pop();
+                var dir = new DirectoryInfo(source.Path);
 
-                while (sources.Count > 0)
-                {
-                    var source = sources.Pop();
-                    var dir = new DirectoryInfo(source.Path);
+                var chunk = new List<EntityResolver<DirectoryInfo>>();
 
-                    foreach (var file in dir.GetDirectories())
-                        yield return new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap, SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap);
+                foreach (var file in dir.GetDirectories())
+                    chunk.Add(new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap, SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap));
 
-                    if (!source.WithSubDirectories) continue;
+                chunkedSource.Add(chunk);
 
-                    foreach (var subDir in dir.GetDirectories())
-                        sources.Push(new DirectorySourceSearchOptions(subDir.FullName, source.WithSubDirectories));
-                }
+                if (!source.WithSubDirectories) continue;
+
+                foreach (var subDir in dir.GetDirectories())
+                    sources.Push(new DirectorySourceSearchOptions(subDir.FullName, source.WithSubDirectories));
             }
         }
     }
