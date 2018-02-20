@@ -614,5 +614,52 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(5, table[0].Values[0]);
             Assert.AreEqual(Convert.ToDecimal(1750), table[0].Values[1]);
         }
+
+        [Ignore("Not implemented feature - requires join grouping table with source.")]
+        [TestMethod]
+        public void SumWithoutGroupByAndWithNotGroupingField()
+        {
+            var query = "select City, Sum(Population) from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual(5, table.Count);
+
+            Assert.AreEqual("WARSAW", table[0].Values[0]);
+            Assert.AreEqual(1750m, table[0].Values[1]);
+
+            Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
+            Assert.AreEqual(1750m, table[1].Values[1]);
+
+            Assert.AreEqual("KATOWICE", table[2].Values[0]);
+            Assert.AreEqual(1750m, table[2].Values[1]);
+
+            Assert.AreEqual("BERLIN", table[3].Values[0]);
+            Assert.AreEqual(1750m, table[3].Values[1]);
+
+            Assert.AreEqual("MUNICH", table[4].Values[0]);
+            Assert.AreEqual(1750m, table[4].Values[1]);
+        }
     }
 }

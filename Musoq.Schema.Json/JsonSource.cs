@@ -20,76 +20,79 @@ namespace Musoq.Schema.Json
         {
             get
             {
-                using (JsonReader reader = new JsonTextReader(new StreamReader(File.OpenRead(_filePath))))
+                using (var file = File.OpenRead(_filePath))
                 {
-                    reader.SupportMultipleContent = true;
-
-                    var serializer = new JsonSerializer();
-                    while (reader.Read())
+                    using (JsonReader reader = new JsonTextReader(new StreamReader(file)))
                     {
-                        if (reader.TokenType != JsonToken.StartObject) continue;
+                        reader.SupportMultipleContent = true;
 
-                        var obj = (JObject)serializer.Deserialize(reader);
-                        var props = new Stack<JProperty>();
-
-                        foreach (var prop in obj.Properties().Reverse())
-                            props.Push(prop);
-
-                        var row = new Dictionary<string, object>();
-
-                        while (props.Count > 0)
+                        var serializer = new JsonSerializer();
+                        while (reader.Read())
                         {
-                            var prop = props.Pop();
+                            if (reader.TokenType != JsonToken.StartObject) continue;
 
-                            switch (prop.Value.Type)
+                            var obj = (JObject)serializer.Deserialize(reader);
+                            var props = new Stack<JProperty>();
+
+                            foreach (var prop in obj.Properties().Reverse())
+                                props.Push(prop);
+
+                            var row = new Dictionary<string, object>();
+
+                            while (props.Count > 0)
                             {
-                                case JTokenType.None:
-                                    break;
-                                case JTokenType.Object:
-                                    foreach (var mprop in ((JObject)prop.Value).Properties().Reverse())
-                                        props.Push(mprop);
-                                    break;
-                                case JTokenType.Array:
-                                    row.Add(prop.Name, (JArray)prop.Value);
-                                    break;
-                                case JTokenType.Constructor:
-                                    break;
-                                case JTokenType.Property:
-                                    break;
-                                case JTokenType.Comment:
-                                    break;
-                                case JTokenType.Integer:
-                                    row.Add(prop.Name, JsonBasedTable.GetValue(prop.Value));
-                                    break;
-                                case JTokenType.Float:
-                                    row.Add(prop.Name, JsonBasedTable.GetValue(prop.Value));
-                                    break;
-                                case JTokenType.String:
-                                    row.Add(prop.Name, JsonBasedTable.GetValue(prop.Value));
-                                    break;
-                                case JTokenType.Boolean:
-                                    row.Add(prop.Name, JsonBasedTable.GetValue(prop.Value));
-                                    break;
-                                case JTokenType.Null:
-                                    break;
-                                case JTokenType.Undefined:
-                                    break;
-                                case JTokenType.Date:
-                                    break;
-                                case JTokenType.Raw:
-                                    break;
-                                case JTokenType.Bytes:
-                                    break;
-                                case JTokenType.Guid:
-                                    break;
-                                case JTokenType.Uri:
-                                    break;
-                                case JTokenType.TimeSpan:
-                                    break;
-                            }
-                        }
+                                var prop = props.Pop();
 
-                        yield return new DictionaryResolver(row);
+                                switch (prop.Value.Type)
+                                {
+                                    case JTokenType.None:
+                                        break;
+                                    case JTokenType.Object:
+                                        foreach (var mprop in ((JObject)prop.Value).Properties().Reverse())
+                                            props.Push(mprop);
+                                        break;
+                                    case JTokenType.Array:
+                                        row.Add(prop.Name, (JArray)prop.Value);
+                                        break;
+                                    case JTokenType.Constructor:
+                                        break;
+                                    case JTokenType.Property:
+                                        break;
+                                    case JTokenType.Comment:
+                                        break;
+                                    case JTokenType.Integer:
+                                        row.Add(prop.Name, JsonBasedTable.GetValue(prop.Value));
+                                        break;
+                                    case JTokenType.Float:
+                                        row.Add(prop.Name, JsonBasedTable.GetValue(prop.Value));
+                                        break;
+                                    case JTokenType.String:
+                                        row.Add(prop.Name, JsonBasedTable.GetValue(prop.Value));
+                                        break;
+                                    case JTokenType.Boolean:
+                                        row.Add(prop.Name, JsonBasedTable.GetValue(prop.Value));
+                                        break;
+                                    case JTokenType.Null:
+                                        break;
+                                    case JTokenType.Undefined:
+                                        break;
+                                    case JTokenType.Date:
+                                        break;
+                                    case JTokenType.Raw:
+                                        break;
+                                    case JTokenType.Bytes:
+                                        break;
+                                    case JTokenType.Guid:
+                                        break;
+                                    case JTokenType.Uri:
+                                        break;
+                                    case JTokenType.TimeSpan:
+                                        break;
+                                }
+                            }
+
+                            yield return new DictionaryResolver(row);
+                        }
                     }
                 }
             }
