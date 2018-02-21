@@ -458,7 +458,7 @@ namespace Musoq.Evaluator.Visitors
             {
                 var splitted = SplitBetweenAggreateAndNonAggreagate(select.Fields, new FieldNode[0], true);
 
-                if (splitted[0].Length > 0)
+                if (IsQueryWithOnlyAggregateMethods(splitted))
                 {
                     var fakeField = new FieldNode(new IntegerNode("1"), 0, String.Empty);
                     var fakeGroupBy = new GroupByNode(new []{ fakeField }, null);
@@ -469,6 +469,11 @@ namespace Musoq.Evaluator.Visitors
                     Visit(new QueryNode(node.Select, node.From, node.Where, fakeGroupBy, node.Skip, node.Take));
                     query = Nodes.Pop() as QueryNode;
                 }
+                else if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
+                {
+                    query = new InternalQueryNode(select, from, where, null, new IntoNode(from.Schema), null, skip, take, true,
+                        from.Schema, false, CreateRefreshMethods());
+                }
                 else
                 {
                     query = new InternalQueryNode(select, from, where, null, new IntoNode(from.Schema), null, skip, take, true,
@@ -477,6 +482,16 @@ namespace Musoq.Evaluator.Visitors
             }
 
             Nodes.Push(query);
+        }
+
+        private bool IsQueryWithOnlyAggregateMethods(FieldNode[][] splitted)
+        {
+            return splitted[0].Length > 0 && splitted[0].Length == splitted[1].Length;
+        }
+
+        private bool IsQueryWithMixedAggregateAndNonAggregateMethods(FieldNode[][] splitted)
+        {
+            return splitted[0].Length > 0 && splitted[0].Length != splitted[1].Length;
         }
 
         private FieldNode[] ConcatAggregateFieldsWithGroupByFields(FieldNode[] selectFields, FieldNode[] groupByFields)
