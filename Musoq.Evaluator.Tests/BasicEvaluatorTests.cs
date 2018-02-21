@@ -502,5 +502,26 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(1, table.Count());
             Assert.AreEqual(DateTime.MinValue, table[0].Values[0]);
         }
+
+        [TestMethod]
+        public void SimpleRowNumberStatTest()
+        {
+            var query = @"select RowNumber() from #A.Entities()";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(6, table.Count);
+            Assert.AreEqual(1, table[0].Values[0]);
+            Assert.AreEqual(2, table[1].Values[0]);
+            Assert.AreEqual(3, table[2].Values[0]);
+            Assert.AreEqual(4, table[3].Values[0]);
+            Assert.AreEqual(5, table[4].Values[0]);
+            Assert.AreEqual(6, table[5].Values[0]);
+        }
     }
 }

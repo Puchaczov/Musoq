@@ -23,5 +23,6 @@ namespace Musoq.Evaluator
         public long[] Registers { get; } = new long[4];
         public IDictionary<string, Group> Groups { get; } = new Dictionary<string, Group>();
         public Group CurrentGroup { get; set; }
+        public AmendableQueryStats Stats { get; set; } = new AmendableQueryStats();
     }
 }

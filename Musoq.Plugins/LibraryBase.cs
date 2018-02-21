@@ -291,6 +291,12 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public int RowNumber([InjectQueryStats] QueryStats info)
+        {
+            return info.RowNumber;
+        }
+
+        [BindableMethod]
         public decimal PercentOf(decimal value, decimal max)
         {
             return value * 100 / max;

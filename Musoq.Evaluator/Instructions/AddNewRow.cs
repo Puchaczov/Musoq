@@ -15,6 +15,7 @@ namespace Musoq.Evaluator.Instructions
         {
             var table = virtualMachine.Current.Tables[_name];
             var columnValues = (object[]) virtualMachine.Current.ObjectsStack.Pop();
+            virtualMachine.Current.Stats.RowNumber += 1;
             table.Add(new ObjectsRow(columnValues));
             virtualMachine[Register.Ip] += 1;
         }

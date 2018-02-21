@@ -610,6 +610,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(InternalQueryNode node)
         {
             Visit((QueryNode) node);
+            _instructions.Add(new ClearStats());
             _labels.Add(EndOfQueryProcessing, new Label(_instructions.Count));
             if (node.ShouldLoadResultTableAsResult && isSingleQueryMode)
                 _instructions.Add(new LoadString(node.ResultTable));

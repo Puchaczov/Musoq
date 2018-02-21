@@ -91,6 +91,52 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(Convert.ToInt32(2), table[1].Values[1]);
         }
 
+
+        [TestMethod]
+        public void SimpleRowNumberForGroupByTest()
+        {
+            var query = @"select Name, Count(Name), RowNumber() from #A.Entities() group by Name";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("BABBA"),
+                        new BasicEntity("ABBA"),
+                        new BasicEntity("BABBA"),
+                        new BasicEntity("CECCA"),
+                        new BasicEntity("ABBA")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(3, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+            Assert.AreEqual("RowNumber()", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual("ABBA", table[0].Values[0]);
+            Assert.AreEqual(4, table[0].Values[1]);
+            Assert.AreEqual(1, table[0].Values[2]);
+
+            Assert.AreEqual("BABBA", table[1].Values[0]);
+            Assert.AreEqual(2, table[1].Values[1]);
+            Assert.AreEqual(2, table[1].Values[2]);
+
+            Assert.AreEqual("CECCA", table[2].Values[0]);
+            Assert.AreEqual(1, table[2].Values[1]);
+            Assert.AreEqual(3, table[2].Values[2]);
+        }
+
         [TestMethod]
         public void SimpleGroupByWithSkipTest()
         {
@@ -613,6 +659,53 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual(5, table[0].Values[0]);
             Assert.AreEqual(Convert.ToDecimal(1750), table[0].Values[1]);
+        }
+
+        [Ignore("Not implemented feature - requires join grouping table with source.")]
+        [TestMethod]
+        public void CountWithRowNumberAndWithoutGroupByTest()
+        {
+            var query = "select Count(Country), RowNumber() from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("RowNumber()", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual(5, table.Count);
+
+            Assert.AreEqual(5, table[0].Values[0]);
+            Assert.AreEqual(1, table[0].Values[2]);
+
+            Assert.AreEqual(5, table[0].Values[0]);
+            Assert.AreEqual(2, table[0].Values[2]);
+
+            Assert.AreEqual(5, table[0].Values[0]);
+            Assert.AreEqual(3, table[0].Values[2]);
+
+            Assert.AreEqual(5, table[0].Values[0]);
+            Assert.AreEqual(4, table[0].Values[2]);
+
+            Assert.AreEqual(5, table[0].Values[0]);
+            Assert.AreEqual(5, table[0].Values[2]);
         }
 
         [Ignore("Not implemented feature - requires join grouping table with source.")]

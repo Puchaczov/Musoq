@@ -31,7 +31,9 @@ namespace Musoq.Evaluator.Instructions
             var stack = virtualMachine.Current.ObjectsStack;
             var source = virtualMachine.Current.SourceStack.Peek();
             foreach (var attribute in _toInjectAttributes)
-                switch (attribute.GetType().Name)
+            {
+                var name = attribute.GetType().Name;
+                switch (name)
                 {
                     case nameof(InjectSourceAttribute):
                         methodStack.Push(source.Current.Context);
@@ -42,7 +44,13 @@ namespace Musoq.Evaluator.Instructions
                     case nameof(InjectGroupAccessName):
                         methodStack.Push(virtualMachine.Current.StringsStack.Pop());
                         break;
+                    case nameof(InjectQueryStats):
+                        methodStack.Push(virtualMachine.Current.Stats);
+                        break;
+                    default:
+                        throw new NotSupportedException($"Cannot acccess attribute '{name}'");
                 }
+            }
 
             var parameters = new object[_parametersToLoad.Length];
 
