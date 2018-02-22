@@ -56,6 +56,23 @@ namespace Musoq.Schema.Json.Tests
             Assert.AreEqual(0, table[2].Values[1]);
         }
 
+        [TestMethod]
+        public void MakeFlatArrayTest()
+        {
+            var query = @"select MakeFlat(Array) from #json.file('./JsonTestFile_MakeFlatArray.json', './JsonTestFile_MakeFlatArray.schema.json', ' ')";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("MakeFlat(Array)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("1, 2, 3", table[0].Values[0]);
+            Assert.AreEqual(string.Empty, table[1].Values[0]);
+        }
+
         private IVirtualMachine CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.Create(script, new JsonSchemaProvider());

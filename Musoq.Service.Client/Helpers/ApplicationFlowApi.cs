@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 
 namespace Musoq.Service.Client.Helpers
 {
@@ -59,6 +63,12 @@ namespace Musoq.Service.Client.Helpers
             }
 
             return new ResultTable(string.Empty, new String[0], new object[0][], TimeSpan.Zero);
+        }
+
+        public async Task<IReadOnlyList<T>> RunQueryAsync<T>(QueryContext context)
+            where T : new()
+        {
+            return MapHelper.MapToType<T>(await RunQueryAsync(context));
         }
 
         public async Task<ResultTable> GetSelfFiles()

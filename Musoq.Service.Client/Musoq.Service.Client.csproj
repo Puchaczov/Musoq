@@ -35,6 +35,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,6 +47,7 @@
     <Compile Include="ExecutionStatus.cs" />
     <Compile Include="Helpers\ApplicationFlowApi.cs" />
     <Compile Include="Helpers\ContextApi.cs" />
+    <Compile Include="Helpers\MapHelper.cs" />
     <Compile Include="Helpers\RuntimeApi.cs" />
     <Compile Include="Helpers\SelfApi.cs" />
     <Compile Include="Method.cs" />
