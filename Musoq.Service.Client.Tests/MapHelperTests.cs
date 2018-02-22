@@ -31,8 +31,9 @@ namespace Musoq.Service.Client.Tests
         [TestMethod]
         public void TryMapBasicTypesTest()
         {
-            var columns = new string[] { "TestInt", "TestBool", "TestString" };
-            _table = new ResultTable(string.Empty, columns, new object[][] {
+            var columns = new[] { "TestInt", "TestBool", "TestString" };
+            _table = new ResultTable(string.Empty, columns, new[]
+            {
                 new object[]{
                     1, true, "abc"
                 },
@@ -60,8 +61,9 @@ namespace Musoq.Service.Client.Tests
         [TestMethod]
         public void TryMapTypeWithConverterTest()
         {
-            var columns = new string[] { "TestInt", "TestBool", "TestArrayOfStrings" };
-            _table = new ResultTable(string.Empty, columns, new object[][] {
+            var columns = new[] { "TestInt", "TestBool", "TestArrayOfStrings" };
+            _table = new ResultTable(string.Empty, columns, new[]
+            {
                 new object[]{
                     1, true, "abc,ff"
                 }

@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Instructions;
+using Newtonsoft.Json.Linq;
 
 namespace Musoq.Schema.Json.Tests
 {
@@ -31,6 +32,23 @@ namespace Musoq.Schema.Json.Tests
             Assert.AreEqual(11, table[1].Values[1]);
             Assert.AreEqual("Marek", table[2].Values[0]);
             Assert.AreEqual(45, table[2].Values[1]);
+        }
+
+        [TestMethod]
+        public void SelectArrayTest()
+        {
+            var query = @"select Array from #json.file('./JsonTestFile_MakeFlatArray_Arr.json', './JsonTestFile_MakeFlatArray_Arr.schema.json', ' ')";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Array", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(JArray), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(3, ((JArray)table[0].Values[0]).Count);
+            Assert.AreEqual(0, ((JArray)table[1].Values[0]).Count);
         }
 
         [TestMethod]

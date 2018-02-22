@@ -30,6 +30,8 @@ namespace Musoq.Service.Helpers
                 }
                 catch (Exception e)
                 {
+                    if (Debugger.IsAttached)
+                        Debug.Write(e);
                 }
             }
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 
 namespace Musoq.Service.Client.Helpers
 {
@@ -57,9 +57,10 @@ namespace Musoq.Service.Client.Helpers
 
                 return WaitForQuery(registeredId).Result;
             }
-            catch (Exception exc)
+            catch (Exception e)
             {
-
+                if(Debugger.IsAttached)
+                    Debug.Write(e);
             }
 
             return new ResultTable(string.Empty, new String[0], new object[0][], TimeSpan.Zero);
