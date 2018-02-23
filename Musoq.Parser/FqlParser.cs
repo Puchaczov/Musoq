@@ -248,7 +248,7 @@ namespace Musoq.Parser
 
         private Node ComposeArithmeticExpression(int minPrec)
         {
-            Node left = ComposeBaseTypes();
+            Node left = ComposeBaseTypes(minPrec);
 
             while (IsArithmeticBinaryOperator(Current) && _precDict[Current.TokenType].Precendence >= minPrec)
             {
@@ -471,7 +471,7 @@ namespace Musoq.Parser
             return new ArgsListNode(args.ToArray());
         }
 
-        private Node ComposeBaseTypes()
+        private Node ComposeBaseTypes(int minPrec = 0)
         {
             switch (Current.TokenType)
             {
@@ -510,7 +510,7 @@ namespace Musoq.Parser
                     return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeArithmeticExpression(0), TokenType.RightParenthesis);
                 case TokenType.Hyphen:
                     Consume(TokenType.Hyphen);
-                    return new StarNode(new IntegerNode("-1"), Compose(f => f.ComposeArithmeticExpression(0)));
+                    return new StarNode(new IntegerNode("-1"), Compose(f => f.ComposeArithmeticExpression(minPrec)));
             }
 
             throw new NotSupportedException();

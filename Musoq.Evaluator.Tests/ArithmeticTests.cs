@@ -53,6 +53,14 @@ namespace Musoq.Evaluator.Tests
             => TestMethodTemplate<long>("1 - -1 + 2", 4);
 
         [TestMethod]
+        public void SubtractionWithUnaryMinusAndSubtractionTest()
+            => TestMethodTemplate<long>("1 - (-1) - 2", 0);
+
+        [TestMethod]
+        public void AdditionWithUnaryMinusAndAdditionTest()
+            => TestMethodTemplate<long>("1 + -1 + 2", 2);
+
+        [TestMethod]
         public void ModuloExpressionWithMultiplicationTest()
             => TestMethodTemplate<long>("8 % 3 * 2", 4);
 
@@ -63,6 +71,14 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void ModuloExpressionWithAdditionTest()
             => TestMethodTemplate<long>("8 % 3 + 2", 4);
+
+        [TestMethod]
+        public void MultiModuloExpressionTest()
+            => TestMethodTemplate<long>("5 % 4 % 6", 1);
+
+        [TestMethod]
+        public void ComplexArithmeticExpression1Test()
+            => TestMethodTemplate<long>("1 + 2 * 3 * ( 7 * 8 ) - ( 45 - 10 )", 302);
 
         private void TestMethodTemplate<TResult>(string operation, TResult score)
         {
