@@ -13,7 +13,9 @@ namespace Musoq.Parser.Nodes
         }
 
         public string Schema { get; }
+
         public string Method { get; }
+
         public string[] Parameters { get; }
 
         public override Type ReturnType => typeof(RowSource);

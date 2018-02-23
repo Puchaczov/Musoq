@@ -48,6 +48,7 @@
         AllColumns,
         Contains,
         Skip,
-        Take
+        Take,
+        With
     }
 }

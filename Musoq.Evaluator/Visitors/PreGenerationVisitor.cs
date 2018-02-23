@@ -234,6 +234,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(SingleSetNode node)
+        {
+        }
+
         public void Visit(UnionNode node)
         {
             Visit((SetOperatorNode) node);

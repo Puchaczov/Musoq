@@ -377,6 +377,12 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(SingleSetNode node)
+        {
+            node.Query.Accept(this);
+            node.Accept(_visitor);
+        }
+
         public void Visit(UnionNode node)
         {
             TraverseSetOperator(node);

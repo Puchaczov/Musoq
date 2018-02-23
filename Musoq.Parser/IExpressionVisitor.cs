@@ -57,6 +57,7 @@ namespace Musoq.Parser
         void Visit(QueryNode node);
         void Visit(InternalQueryNode node);
         void Visit(RootNode node);
+        void Visit(SingleSetNode node);
         void Visit(UnionNode node);
         void Visit(UnionAllNode node);
         void Visit(ExceptNode node);

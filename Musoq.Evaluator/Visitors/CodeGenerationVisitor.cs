@@ -516,7 +516,7 @@ namespace Musoq.Evaluator.Visitors
                 Alias = node.Schema
             };
             _selectScope.Push(scope);
-
+            
             _instructions.Add(new UseTableWithStandardColumns(node.Schema));
             _instructions.Add(new GrabFirstValueFromSource(_labels, AnotherValueFromSourceLabelName));
             _labels.Add(WhereClauseBeginsLabelName, new Label(_instructions.Count));
@@ -620,6 +620,10 @@ namespace Musoq.Evaluator.Visitors
         {
             _instructions.Add(new Exit());
             VirtualMachine = new VirtualMachine(_instructions.ToArray());
+        }
+
+        public void Visit(SingleSetNode node)
+        {
         }
 
         public void Visit(UnionNode node)

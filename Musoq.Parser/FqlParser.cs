@@ -30,10 +30,25 @@ namespace Musoq.Parser
                 {
                     case TokenType.Select:
                         return new RootNode(ComposeSetOps(0));
+                    case TokenType.With:
+                        return new RootNode(ComposeCteExpression());
                 }
             }
 
             return new RootNode(null);
+        }
+
+        private Node ComposeCteExpression()
+        {
+            Consume(TokenType.With);
+            var name = ComposeBaseTypes() as AccessColumnNode;
+            Consume(TokenType.As);
+
+            Consume(TokenType.LeftParenthesis);
+            var innerSets = ComposeSetOps(0);
+            Consume(TokenType.RightParenthesis);
+            var outerSets = ComposeSetOps(0);
+            return new CteExpressionNode(name, innerSets, outerSets);
         }
 
         private Node ComposeSetOps(int nestingLevel)
@@ -69,14 +84,7 @@ namespace Musoq.Parser
                 }
             }
 
-            return isSet || nestingLevel > 0 ? node : CreateSingleSet(query);
-        }
-
-        private MultiStatementNode CreateSingleSet(QueryNode node)
-        {
-            var createTableNode = new CreateTableNode(node.From.Schema, node.From.Method, node.From.Parameters,
-                new string[0], node.Select.Fields, string.Empty);
-            return new MultiStatementNode(new Node[] {createTableNode, node}, node.ReturnType);
+            return isSet || nestingLevel > 0 ? node : new SingleSetNode(query);
         }
 
         private string[] ComposeSetOperatorKeys()
@@ -392,18 +400,24 @@ namespace Musoq.Parser
         private FromNode ComposeFrom()
         {
             Consume(TokenType.From);
-            var schemaName = ComposeWord();
-            Consume(TokenType.Dot);
-            var accessMethod = ComposeAccessMethod();
-            var alias = ComposeAlias();
+            if (Current.TokenType == TokenType.Word)
+            {
+                var name = ComposeWord();
+                Consume(TokenType.Dot);
+                var accessMethod = ComposeAccessMethod();
+                var alias = ComposeAlias();
 
-            if (string.IsNullOrEmpty(alias))
-                alias =
-                    $"{schemaName.ToString()}.{accessMethod.ToString()}";
+                if (string.IsNullOrEmpty(alias))
+                    alias =
+                        $"{name.ToString()}.{accessMethod.ToString()}";
 
-            var fromNode = new SchemaFromNode(schemaName.Value, accessMethod.Name,
-                accessMethod.Arguments.Args.Select(GetValueOfBasicType).ToArray(), alias);
-            return fromNode;
+                var fromNode = new SchemaFromNode(name.Value, accessMethod.Name,
+                    accessMethod.Arguments.Args.Select(GetValueOfBasicType).ToArray(), alias);
+                return fromNode;
+            }
+
+            var column = (AccessColumnNode)ComposeBaseTypes();
+            return new VariableFromNode(column.Name);
         }
 
         private static string GetValueOfBasicType(Node node)

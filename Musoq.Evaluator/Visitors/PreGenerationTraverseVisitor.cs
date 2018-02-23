@@ -335,6 +335,12 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(SingleSetNode node)
+        {
+            node.Accept(_visitor);
+            node.Query.Accept(this);
+        }
+
         public void Visit(UnionNode node)
         {
             node.Left.Accept(this);

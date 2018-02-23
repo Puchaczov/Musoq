@@ -93,6 +93,8 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Take;
                 case SkipToken.TokenText:
                     return TokenType.Skip;
+                case WithToken.TokenText:
+                    return TokenType.With;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -172,6 +174,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
             public static readonly string KSkip = string.Format(Keyword, SkipToken.TokenText);
             public static readonly string KTake = string.Format(Keyword, TakeToken.TokenText);
+            public static readonly string KWith = string.Format(Keyword, WithToken.TokenText);
         }
 
         /// <summary>
@@ -205,6 +208,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KOr),
                 new TokenDefinition(TokenRegexDefinition.KPlus),
                 new TokenDefinition(TokenRegexDefinition.KStar),
+                new TokenDefinition(TokenRegexDefinition.KWith, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KContains, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KWhiteSpace),
@@ -348,6 +352,8 @@ namespace Musoq.Parser.Lexing
                     return new SkipToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Take:
                     return new TakeToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.With:
+                    return new WithToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)
