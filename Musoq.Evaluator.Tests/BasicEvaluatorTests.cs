@@ -288,7 +288,7 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
-        public void WhereWithAndTest()
+        public void WhereWithOrTest()
         {
             var query = @"select Name from #A.Entities() where Name = '001' or Name = '005'";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>

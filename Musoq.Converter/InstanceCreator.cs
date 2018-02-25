@@ -10,12 +10,14 @@ namespace Musoq.Converter
     {
         public static VirtualMachine Create(string script, ISchemaProvider schemaProvider)
         {
+            schemaProvider = new TransitionSchemaProvider(schemaProvider);
+
             var lexer = new Lexer(script, true);
             var parser = new FqlParser(lexer);
 
             var query = parser.ComposeAll();
 
-            var rewriter = new RewriteTreeVisitor(schemaProvider);
+            var rewriter = new RewriteTreeVisitor((TransitionSchemaProvider)schemaProvider);
             var rewriteTraverser = new RewriteTreeTraverseVisitor(rewriter);
 
             query.Accept(rewriteTraverser);

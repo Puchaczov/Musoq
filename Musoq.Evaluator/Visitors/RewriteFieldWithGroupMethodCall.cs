@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
@@ -6,7 +7,7 @@ namespace Musoq.Evaluator.Visitors
 {
     public class RewriteFieldWithGroupMethodCall : RewriteTreeVisitor
     {
-        public RewriteFieldWithGroupMethodCall(ISchemaProvider schemaProvider, int fieldOrder, FieldNode[] fields) 
+        public RewriteFieldWithGroupMethodCall(TransitionSchemaProvider schemaProvider, int fieldOrder, FieldNode[] fields) 
             : base(schemaProvider)
         {
             _fieldOrder = fieldOrder;

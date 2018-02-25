@@ -155,7 +155,17 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(CteFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
         public void Visit(CreateTableNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(RenameTableNode node)
         {
             node.Accept(_visitor);
         }
@@ -435,6 +445,13 @@ namespace Musoq.Evaluator.Visitors
             foreach (var cNode in node.Nodes)
                 cNode.Accept(this);
             node.Accept(_visitor);
+        }
+
+        public void Visit(CteExpressionNode node)
+        {
+            node.InnerExpression.Accept(this);
+            node.Accept(_visitor);
+            node.OuterExpression.Accept(this);
         }
 
         public void Visit(FromNode node)

@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Tables;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -16,8 +19,10 @@ namespace Musoq.Evaluator.Visitors
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
         private readonly List<CreateTableNode> _preCreatedTables = new List<CreateTableNode>();
         private readonly Stack<AccessMethodNode> _queryMethods = new Stack<AccessMethodNode>();
-        private readonly Stack<PropertyInfo> _properties = new Stack<PropertyInfo>();
-        private readonly ISchemaProvider _schemaProvider;
+        private readonly TransitionSchemaProvider _schemaProvider;
+        private readonly Stack<InternalQueryNode> _cteInnerQuery = new Stack<InternalQueryNode>();
+        private readonly Dictionary<string, int> _tmpVariableNames = new Dictionary<string, int>();
+        private CteExpressionNode _currentCteExpression;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
 
@@ -26,12 +31,26 @@ namespace Musoq.Evaluator.Visitors
         private ISchema _schema;
         private ISchemaTable _table;
 
-        public RewriteTreeVisitor(ISchemaProvider schemaProvider)
+        private CtePart _ctePart = CtePart.None;
+
+        public RewriteTreeVisitor(TransitionSchemaProvider schemaProvider)
         {
             _schemaProvider = schemaProvider;
         }
 
         public RootNode RootScript { get; private set; }
+
+        public void BeginCteQueryPart(CteExpressionNode node, CtePart part)
+        {
+            _ctePart = part;
+            _currentCteExpression = node;
+        }
+
+        public void EndCteQuery()
+        {
+            _ctePart = CtePart.None;
+            _cteInnerQuery.Pop();
+        }
 
         public void Visit(Node node)
         {
@@ -387,11 +406,21 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new NestedQueryFromNode(query, node.Schema, node.Method, node.ColumnToIndexMap));
         }
 
+        public void Visit(CteFromNode node)
+        {
+            Nodes.Push(new CteFromNode(node.VariableName));
+        }
+
         public void Visit(CreateTableNode node)
         {
             var fields = CreateFields(node.Fields);
 
-            Nodes.Push(new CreateTableNode(node.Schema, node.Method, node.Parameters, node.Keys, fields));
+            Nodes.Push(new CreateTableNode(node.Name, node.Keys, fields));
+        }
+
+        public void Visit(RenameTableNode node)
+        {
+            Nodes.Push(new RenameTableNode(node.TableSourceName, node.TableDestinationName));
         }
 
         public void Visit(TranslatedSetTreeNode node)
@@ -427,6 +456,22 @@ namespace Musoq.Evaluator.Visitors
             var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
             var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
 
+            IntoNode outerInto;
+            if (from is CteFromNode variableFrom)
+            {
+                if (!_tmpVariableNames.ContainsKey(variableFrom.VariableName))
+                    _tmpVariableNames.Add(variableFrom.VariableName, 1);
+
+                var newTableName = $"{variableFrom.VariableName}{_tmpVariableNames[variableFrom.VariableName]++}";
+
+                from = new CteFromNode(variableFrom.VariableName);
+                outerInto = new IntoNode(newTableName);
+            }
+            else
+            {
+                outerInto = new IntoNode(from.Schema);
+            }
+
             QueryNode query;
 
             if (groupBy != null)
@@ -436,7 +481,7 @@ namespace Musoq.Evaluator.Visitors
                     : from.Parameters.Aggregate((a, b) => $"{a.ToString()},{b.ToString()}");
                 
                 var alias = $"nested.{from.Schema}.{from.Method}.{parameters}";
-                var nestedFrom = new SchemaFromNode(from.Schema, from.Method, from.Parameters, alias);
+                var nestedFrom = from;
                 var splitted = SplitBetweenAggreateAndNonAggreagate(select.Fields, groupBy.Fields, true);
                 var refreshMethods = CreateRefreshMethods();
                 var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(splitted[0], groupBy.Fields));
@@ -448,9 +493,9 @@ namespace Musoq.Evaluator.Visitors
                 var nestedQuery = new InternalQueryNode(aggSelect, nestedFrom, where, groupBy,
                     new IntoGroupNode(alias, CreateIndexToColumnMap(rawAggSelect.Fields)),
                     new ShouldBePresentInTheTable(alias, true, groupKeys), null, null, false, alias, false, refreshMethods);
-                _preCreatedTables.Add(new CreateTableNode(alias, string.Empty, new string[0], groupKeys, aggSelect.Fields));
+                _preCreatedTables.Add(new CreateTableNode(alias, groupKeys, aggSelect.Fields));
                 query = new InternalQueryNode(outSelect, new NestedQueryFromNode(nestedQuery, alias, string.Empty, CreateColumnToIndexMap(rawAggRenamedSelect.Fields)),
-                    new WhereNode(new PutTrueNode()), null, new IntoNode(from.Schema), null, skip, take, true, from.Schema, false, null);
+                    new WhereNode(new PutTrueNode()), null, outerInto, null, skip, take, true, from.Schema, false, null);
             }
             else
             {
@@ -469,12 +514,12 @@ namespace Musoq.Evaluator.Visitors
                 }
                 else if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
                 {
-                    query = new InternalQueryNode(select, from, where, null, new IntoNode(from.Schema), null, skip, take, true,
+                    query = new InternalQueryNode(select, from, where, null, outerInto, null, skip, take, true,
                         from.Schema, false, CreateRefreshMethods());
                 }
                 else
                 {
-                    query = new InternalQueryNode(select, from, where, null, new IntoNode(from.Schema), null, skip, take, true,
+                    query = new InternalQueryNode(select, from, where, null, outerInto, null, skip, take, true,
                         from.Schema, false, null);
                 }
             }
@@ -533,8 +578,31 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(SingleSetNode node)
         {
             var query = (InternalQueryNode) Nodes.Pop();
-            var createTableNode =  new CreateTableNode(node.Query.From.Schema, node.Query.From.Method, node.Query.From.Parameters, new string[0], query.Select.Fields);
-            Nodes.Push(new MultiStatementNode(new Node[]{ createTableNode, query}, query.ReturnType));
+
+            var nodes = new List<Node>();
+            
+            switch (_ctePart)
+            {
+                case CtePart.Outer:
+                    var innerQuery = _cteInnerQuery.Peek();
+                    nodes.Add(new RenameTableNode(innerQuery.Into.Name, _currentCteExpression.Name));
+                    var keys = query.GroupBy == null
+                        ? new string[0]
+                        : query.GroupBy?.Fields.Select(f => f.FieldName).ToArray();
+                    nodes.Add(new CreateTableNode(query.Into.Name, keys, query.Select.Fields));
+                    break;
+                case CtePart.Inner:
+                    _cteInnerQuery.Push(query);
+                    goto default;
+                default:
+                    nodes.Add(new CreateTableNode(node.Query.From.Schema, new string[0], query.Select.Fields));
+                    break;
+
+            }
+
+            nodes.Add(query);
+
+            Nodes.Push(new MultiStatementNode(nodes.ToArray(), query.ReturnType));
         }
 
         public void Visit(RefreshNode node)
@@ -557,12 +625,10 @@ namespace Musoq.Evaluator.Visitors
 
             CreateTableNode fTable;
             if (!node.IsNested)
-                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", string.Empty,
-                    new string[0], node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
+                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
             else
                 fTable = new CreateTableNode(
-                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}",
-                    string.Empty, new string[0], node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
+                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
 
             InternalQueryNode trLQuery;
             if (node.IsNested)
@@ -572,20 +638,20 @@ namespace Musoq.Evaluator.Visitors
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
                         string.Empty);
                 trLQuery = new InternalQueryNode(columns, exTable, new WhereNode(new PutTrueNode()), null,
-                    new IntoNode(fTable.Schema), null, null, null, false, string.Empty, true, null);
+                    new IntoNode(fTable.Name), null, null, null, false, string.Empty, true, null);
             }
             else
             {
                 trLQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy,
-                    new IntoNode(fTable.Schema), null, leftQuery.Skip, leftQuery.Take, false, string.Empty, false, null);
+                    new IntoNode(fTable.Name), null, leftQuery.Skip, leftQuery.Take, false, string.Empty, false, null);
             }
 
             var trQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
-                rightQuery.GroupBy, new IntoNode(fTable.Schema),
-                new ShouldBePresentInTheTable(fTable.Schema, true, node.Keys), rightQuery.Skip, rightQuery.Take, node.IsTheLastOne, fTable.Schema, false,
+                rightQuery.GroupBy, new IntoNode(fTable.Name),
+                new ShouldBePresentInTheTable(fTable.Name, true, node.Keys), rightQuery.Skip, rightQuery.Take, node.IsTheLastOne, fTable.Name, false,
                 null);
 
-            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable}, trLQuery, trQuery, fTable.Schema,
+            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable}, trLQuery, trQuery, fTable.Name,
                 node.Keys));
         }
 
@@ -606,12 +672,10 @@ namespace Musoq.Evaluator.Visitors
 
             CreateTableNode fTable;
             if (!node.IsNested)
-                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", string.Empty,
-                    new string[0], node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
+                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
             else
                 fTable = new CreateTableNode(
-                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}",
-                    string.Empty, new string[0], node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
+                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
 
             InternalQueryNode trLQuery;
             if (node.IsNested)
@@ -621,18 +685,18 @@ namespace Musoq.Evaluator.Visitors
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
                         string.Empty);
                 trLQuery = new InternalQueryNode(columns, exTable, new WhereNode(new PutTrueNode()), null,
-                    new IntoNode(fTable.Schema), null, null, null, false, string.Empty, true, null);
+                    new IntoNode(fTable.Name), null, null, null, false, string.Empty, true, null);
             }
             else
             {
                 trLQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy,
-                    new IntoNode(fTable.Schema), null, leftQuery.Skip, leftQuery.Take, false, string.Empty, false, null);
+                    new IntoNode(fTable.Name), null, leftQuery.Skip, leftQuery.Take, false, string.Empty, false, null);
             }
 
             var trQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
-                rightQuery.GroupBy, new IntoNode(fTable.Schema), null, rightQuery.Skip, rightQuery.Take, node.IsTheLastOne, fTable.Schema, false, null);
+                rightQuery.GroupBy, new IntoNode(fTable.Name), null, rightQuery.Skip, rightQuery.Take, node.IsTheLastOne, fTable.Name, false, null);
 
-            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable}, trLQuery, trQuery, fTable.Schema,
+            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable}, trLQuery, trQuery, fTable.Name,
                 node.Keys));
         }
 
@@ -654,14 +718,12 @@ namespace Musoq.Evaluator.Visitors
 
             CreateTableNode fTable;
             if (!node.IsNested)
-                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", string.Empty,
-                    new string[0], node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
+                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
             else
                 fTable = new CreateTableNode(
-                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}",
-                    string.Empty, new string[0], node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
+                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
 
-            var sTable = new CreateTableNode($"{rightQuery.From.Schema}", string.Empty, new string[0], node.Keys,
+            var sTable = new CreateTableNode($"{rightQuery.From.Schema}", node.Keys,
                 rightQuery.Select.Fields);
 
             var trLQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
@@ -671,17 +733,17 @@ namespace Musoq.Evaluator.Visitors
             if (node.IsNested)
                 trQuery = new InternalQueryNode(ChangeMethodCallsForColumnAccess(leftQuery.Select),
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
-                        string.Empty), new WhereNode(new PutTrueNode()), null, new IntoNode($"{fTable.Schema}"),
+                        string.Empty), new WhereNode(new PutTrueNode()), null, new IntoNode($"{fTable.Name}"),
                     new ShouldBePresentInTheTable(rightQuery.From.Schema, true, node.Keys), null, null, node.IsTheLastOne,
-                    fTable.Schema, true, null);
+                    fTable.Name, true, null);
             else
                 trQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy,
-                    new IntoNode($"{fTable.Schema}"),
+                    new IntoNode($"{fTable.Name}"),
                     new ShouldBePresentInTheTable(rightQuery.From.Schema, true, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
-                    fTable.Schema, false, null);
+                    fTable.Name, false, null);
 
             translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable, sTable}, trLQuery, trQuery,
-                fTable.Schema, node.Keys));
+                fTable.Name, node.Keys));
         }
 
         public void Visit(IntersectNode node)
@@ -702,15 +764,12 @@ namespace Musoq.Evaluator.Visitors
 
             CreateTableNode fTable;
             if (!node.IsNested)
-                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", string.Empty,
-                    new string[0], node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
+                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
             else
                 fTable = new CreateTableNode(
-                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}",
-                    string.Empty, new string[0], node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
+                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
 
-            var sTable = new CreateTableNode($"{rightQuery.From.Schema}", string.Empty, new string[0], node.Keys,
-                rightQuery.Select.Fields);
+            var sTable = new CreateTableNode($"{rightQuery.From.Schema}", node.Keys, rightQuery.Select.Fields);
 
             var trLQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
                 rightQuery.GroupBy, new IntoNode(rightQuery.From.Schema), null, rightQuery.Skip, rightQuery.Take, false, string.Empty, false, null);
@@ -719,17 +778,17 @@ namespace Musoq.Evaluator.Visitors
             if (node.IsNested)
                 trQuery = new InternalQueryNode(ChangeMethodCallsForColumnAccess(leftQuery.Select),
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
-                        string.Empty), new WhereNode(new PutTrueNode()), null, new IntoNode(fTable.Schema),
+                        string.Empty), new WhereNode(new PutTrueNode()), null, new IntoNode(fTable.Name),
                     new ShouldBePresentInTheTable(rightQuery.From.Schema, false, node.Keys), null, null, node.IsTheLastOne,
-                    fTable.Schema, true, null);
+                    fTable.Name, true, null);
             else
                 trQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy,
-                    new IntoNode($"{fTable.Schema}"),
+                    new IntoNode($"{fTable.Name}"),
                     new ShouldBePresentInTheTable(rightQuery.From.Schema, false, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
-                    fTable.Schema, false, null);
+                    fTable.Name, false, null);
 
             translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable, sTable}, trLQuery, trQuery,
-                fTable.Schema, node.Keys));
+                fTable.Name, node.Keys));
         }
 
         public void Visit(PutTrueNode node)
@@ -745,6 +804,14 @@ namespace Musoq.Evaluator.Visitors
                 items[i] = Nodes.Pop();
 
             Nodes.Push(new MultiStatementNode(items, node.ReturnType));
+        }
+
+        public void Visit(CteExpressionNode node)
+        {
+            var outerQuery = Nodes.Pop();
+            var innerQuery = Nodes.Pop();
+
+            Nodes.Push(new CteExpressionNode(node.Name, innerQuery, outerQuery));
         }
 
         public string[] CurrentParameters { get; private set; }
@@ -774,6 +841,18 @@ namespace Musoq.Evaluator.Visitors
                 return;
 
             _table = _schema.GetTableByName(table, parameters);
+        }
+
+        public void AddSchema(string name)
+        {
+            var query = _cteInnerQuery.Peek();
+
+            _schemaProvider.AddTransitionSchema(new TransitionSchema(name, CreateSchemaTable(query)));
+        }
+
+        private ISchemaTable CreateSchemaTable(InternalQueryNode query)
+        {
+            return new VariableTable(query.Select.Fields.Select(field => new SchemaColumn(field.FieldName, field.FieldOrder, field.ReturnType)).Cast<ISchemaColumn>().ToArray());
         }
 
         private void VisitAccessMethod(AccessMethodNode node,

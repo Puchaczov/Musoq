@@ -38,17 +38,17 @@ namespace Musoq.Parser
             return new RootNode(null);
         }
 
-        private Node ComposeCteExpression()
+        private CteExpressionNode ComposeCteExpression()
         {
             Consume(TokenType.With);
-            var name = ComposeBaseTypes() as AccessColumnNode;
+            var col = ComposeBaseTypes() as AccessColumnNode;
             Consume(TokenType.As);
 
             Consume(TokenType.LeftParenthesis);
             var innerSets = ComposeSetOps(0);
             Consume(TokenType.RightParenthesis);
             var outerSets = ComposeSetOps(0);
-            return new CteExpressionNode(name, innerSets, outerSets);
+            return new CteExpressionNode(col.Name, innerSets, outerSets);
         }
 
         private Node ComposeSetOps(int nestingLevel)
@@ -187,7 +187,7 @@ namespace Musoq.Parser
             do
             {
                 fields.Add(ConsumeField(i++));
-            } while (Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having && Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
+            } while (Current.TokenType != TokenType.RightParenthesis && Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having && Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
                      ConsumeAndGetToken().TokenType == TokenType.Comma);
 
             return fields.ToArray();
@@ -417,7 +417,7 @@ namespace Musoq.Parser
             }
 
             var column = (AccessColumnNode)ComposeBaseTypes();
-            return new VariableFromNode(column.Name);
+            return new CteFromNode(column.Name);
         }
 
         private static string GetValueOfBasicType(Node node)

@@ -184,22 +184,32 @@ namespace Musoq.Evaluator.Visitors
             _names.Push(node.Schema);
         }
 
+        public void Visit(CteFromNode node)
+        {
+            _names.Push(node.VariableName);
+        }
+
         public void Visit(CreateTableNode node)
         {
             TableMetadata table;
 
-            if (!TableMetadata.ContainsKey(node.Schema))
+            if (!TableMetadata.ContainsKey(node.Name))
             {
                 table = new TableMetadata(null);
-                TableMetadata.Add(node.Schema, table);
+                TableMetadata.Add(node.Name, table);
                 foreach (var field in node.Fields)
                     table.Columns.Add(new Column(field.FieldName, field.ReturnType, field.FieldOrder));
             }
 
-            table = TableMetadata[node.Schema];
+            table = TableMetadata[node.Name];
 
             foreach (var key in node.Keys)
                 table.Indexes.Add(key);
+        }
+
+        public void Visit(RenameTableNode node)
+        {
+            TableMetadata.Add(node.TableDestinationName, TableMetadata[node.TableSourceName]);
         }
 
         public void Visit(TranslatedSetTreeNode node)
@@ -267,6 +277,10 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(MultiStatementNode node)
+        {
+        }
+
+        public void Visit(CteExpressionNode node)
         {
         }
 

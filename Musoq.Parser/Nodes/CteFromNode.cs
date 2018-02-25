@@ -1,9 +1,10 @@
 ﻿namespace Musoq.Parser.Nodes
 {
-    public class VariableFromNode : FromNode
+    public class CteFromNode : FromNode
     {
 
-        public VariableFromNode(string variableName) : base(string.Empty, string.Empty, new string[0])
+        public CteFromNode(string variableName) 
+            : base(variableName, string.Empty, new string[0])
         {
             VariableName = variableName;
         }
@@ -15,7 +16,7 @@
             visitor.Visit(this);
         }
 
-        public override string Id => $"{nameof(VariableFromNode)}{VariableName}";
+        public override string Id => $"{nameof(CteFromNode)}{VariableName}";
 
         public override string ToString()
         {

@@ -139,14 +139,19 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(CteFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
         public void Visit(CreateTableNode node)
         {
             var oldSchema = _visitor.CurrentSchema;
             var oldMethod = _visitor.CurrentTable;
             var oldParameters = _visitor.CurrentParameters;
 
-            _visitor.CurrentSchema = node.Schema;
-            _visitor.SetCurrentTable(node.Method, node.Parameters);
+            _visitor.CurrentSchema = node.Name;
+            //_visitor.SetCurrentTable(node.Method, node.Parameters);
 
             foreach (var item in node.Fields)
                 item.Accept(this);
@@ -154,7 +159,12 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
 
             _visitor.CurrentSchema = oldSchema;
-            _visitor.SetCurrentTable(oldMethod, oldParameters);
+            //_visitor.SetCurrentTable(oldMethod, oldParameters);
+        }
+
+        public void Visit(RenameTableNode node)
+        {
+            node.Accept(_visitor);
         }
 
         public void Visit(TranslatedSetTreeNode node)
@@ -421,6 +431,17 @@ namespace Musoq.Evaluator.Visitors
             foreach (var cNode in node.Nodes)
                 cNode.Accept(this);
             node.Accept(_visitor);
+        }
+
+        public void Visit(CteExpressionNode node)
+        {
+            _visitor.BeginCteQueryPart(node, CtePart.Inner);
+            node.InnerExpression.Accept(this);
+            _visitor.AddSchema(node.Name);
+            _visitor.BeginCteQueryPart(node, CtePart.Outer);
+            node.OuterExpression.Accept(this);
+            node.Accept(_visitor);
+            _visitor.EndCteQuery();
         }
 
         public void Visit(FromNode node)

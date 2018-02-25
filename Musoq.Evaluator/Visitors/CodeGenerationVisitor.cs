@@ -4,6 +4,7 @@ using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Instructions.Arythmetic;
+using Musoq.Evaluator.Tables;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -23,7 +24,7 @@ namespace Musoq.Evaluator.Visitors
         private readonly Dictionary<string, TableMetadata> _tableMetadatas;
 
         private int _order;
-        private readonly bool isSingleQueryMode = true;
+        private InternalQueryNode _lastQuery;
 
         public CodeGenerationVisitor(ISchemaProvider schemaProvider,
             Dictionary<string, TableMetadata> tableMetadatas)
@@ -553,9 +554,37 @@ namespace Musoq.Evaluator.Visitors
             _labels.Add(WhereClauseBeginsLabelName, new Label(_instructions.Count));
         }
 
+        public void Visit(CteFromNode node)
+        {
+            var scope = new GeneratorSelectScope
+            {
+                Name = node.Id,
+                Alias = node.VariableName
+            };
+            _selectScope.Push(scope);
+
+            var schema = _schemaProvider.GetSchema(node.VariableName);
+
+            var columnToIndexMap = new Dictionary<string, int>();
+
+            foreach (var column in schema.GetTableByName(node.Method, node.Parameters).Columns)
+            {
+                columnToIndexMap.Add(column.ColumnName, column.ColumnIndex);
+            }
+            
+            _instructions.Add(new UseTableWithRemappedColumns(node.VariableName, columnToIndexMap));
+            _instructions.Add(new GrabFirstValueFromSource(_labels, AnotherValueFromSourceLabelName));
+            _labels.Add(WhereClauseBeginsLabelName, new Label(_instructions.Count));
+        }
+
         public void Visit(CreateTableNode node)
         {
-            _instructions.Add(new LoadTable(node.Schema, node.Keys, _tableMetadatas[node.Schema].Columns.ToArray()));
+            _instructions.Add(new LoadTable(node.Name, node.Keys, _tableMetadatas[node.Name].Columns.ToArray()));
+        }
+
+        public void Visit(RenameTableNode node)
+        {
+            _instructions.Add(new RenameTable(node.TableSourceName, node.TableDestinationName));
         }
 
         public void Visit(TranslatedSetTreeNode node)
@@ -612,12 +641,12 @@ namespace Musoq.Evaluator.Visitors
             Visit((QueryNode) node);
             _instructions.Add(new ClearStats());
             _labels.Add(EndOfQueryProcessing, new Label(_instructions.Count));
-            if (node.ShouldLoadResultTableAsResult && isSingleQueryMode)
-                _instructions.Add(new LoadString(node.ResultTable));
+            _lastQuery = node;
         }
 
         public void Visit(RootNode node)
         {
+            _instructions.Add(new LoadString(_lastQuery.Into.Name));
             _instructions.Add(new Exit());
             VirtualMachine = new VirtualMachine(_instructions.ToArray());
         }
@@ -652,6 +681,10 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(MultiStatementNode node)
+        {
+        }
+
+        public void Visit(CteExpressionNode node)
         {
         }
 
