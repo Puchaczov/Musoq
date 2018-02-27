@@ -12,8 +12,6 @@ namespace Musoq.Console
     {
         static int Main(string[] args)
         {
-            var result = CommandLine.Parser.Default.ParseArguments<ApplicationArguments>(args);
-            
             return CommandLine.Parser.Default.ParseArguments<ApplicationArguments>(args)
                 .MapResult(
                     ProcessArguments,
