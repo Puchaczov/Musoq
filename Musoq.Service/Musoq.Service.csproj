@@ -165,10 +165,10 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if not exist "$(TargetDir)\Plugins\Disk\" mkdir "$(TargetDir)\Plugins\Disk\"
+Copy /Y "$(SolutionDir)Musoq.Schema.Disk\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\Disk\"
 if not exist "$(TargetDir)\Plugins\Json\" mkdir "$(TargetDir)\Plugins\Json\"
+Copy /Y "$(SolutionDir)Musoq.Schema.Json\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\Json\"
 if not exist "$(TargetDir)\Plugins\Csv\" mkdir "$(TargetDir)\Plugins\Csv\"
-Copy /Y "$(SolutionDir)Musoq.Schema.Disk\bin\Debug\netstandard2.0\" "$(TargetDir)\Plugins\Disk\"
-Copy /Y "$(SolutionDir)Musoq.Schema.Json\bin\Debug\netstandard2.0\" "$(TargetDir)\Plugins\Json\"
-Copy /Y "$(SolutionDir)Musoq.Schema.Csv\bin\Debug\netstandard2.0\" "$(TargetDir)\Plugins\Csv\"</PostBuildEvent>
+Copy /Y "$(SolutionDir)Musoq.Schema.Csv\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\Csv\"</PostBuildEvent>
   </PropertyGroup>
 </Project>
