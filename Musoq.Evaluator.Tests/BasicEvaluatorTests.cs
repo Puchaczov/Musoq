@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter;
-using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Tests.Schema;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests
 {
@@ -552,6 +549,35 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(4, table[3].Values[0]);
             Assert.AreEqual(5, table[4].Values[0]);
             Assert.AreEqual(6, table[5].Values[0]);
+        }
+
+        [TestMethod]
+        public void SelectDecimalWithoutMarkingNumberExplicitlyTest()
+        {
+            var query = "select 1.0, -1.0 from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX"),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("1.0", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("-1.0", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual(1, table.Count());
+            Assert.AreEqual(1.0m, table[0].Values[0]);
+            Assert.AreEqual(-1.0m, table[0].Values[1]);
         }
     }
 }

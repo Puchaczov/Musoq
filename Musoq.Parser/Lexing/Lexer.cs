@@ -169,7 +169,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KGroupBy = @"(?<=[\s]{1,}|^)group[\s]{1,}by(?=[\s]{1,}|$)";
             public static readonly string KHaving = string.Format(Keyword, HavingToken.TokenText);
             public static readonly string KContains = string.Format(Keyword, ContainsToken.TokenText);
-            public static readonly string KDecimal = @"([0-9]+(\.[0-9]{1,})?)d";
+            public static readonly string KDecimal = @"[\-]?([0-9]+(\.[0-9]{1,})?)[dD]?";
             public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
             public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
             public static readonly string KSkip = string.Format(Keyword, SkipToken.TokenText);
