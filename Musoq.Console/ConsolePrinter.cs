@@ -27,8 +27,6 @@ namespace Musoq.Console
             System.Console.WriteLine();
             System.Console.WriteLine("SUMMARY:");
             System.Console.WriteLine($"Computation time: {_computationTime}");
-
-            System.Console.ReadKey();
         }
     }
 }

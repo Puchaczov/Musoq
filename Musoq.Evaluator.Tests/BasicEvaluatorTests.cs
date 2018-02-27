@@ -35,6 +35,36 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
+        public void ComplexWhere1Test()
+        {
+            var query = "select Population from #A.Entities() where Population > 0 and Population - 100 > -1.5d and Population - 100 < 1.5d";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 99),
+                        new BasicEntity("KATOWICE", "POLAND", 101),
+                        new BasicEntity("BERLIN", "GERMANY", 50)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Population", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(99m, table[0].Values[0]);
+            Assert.AreEqual(101m, table[1].Values[0]);
+        }
+
+        [TestMethod]
         public void NotLikeOperatorTest()
         {
             var query = "select Name from #A.Entities() where Name not like '%AA%'";
