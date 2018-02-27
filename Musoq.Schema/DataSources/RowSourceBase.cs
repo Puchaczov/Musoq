@@ -29,6 +29,7 @@ namespace Musoq.Schema.DataSources
                     }
                     finally
                     {
+                        chunkedSource.Add(new List<EntityResolver<T>>());
                         tokenSource.Cancel();
                     }
                 });

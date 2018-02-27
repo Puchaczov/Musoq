@@ -15,6 +15,9 @@ namespace Musoq.Schema.DataSources
         private IReadOnlyList<EntityResolver<T>> _currentChunk;
         private int _currentIndex = -1;
 
+#if DEBUG
+        private readonly Stopwatch _watcher = new Stopwatch();
+#endif
 
         public ChunkEnumerator(BlockingCollection<IReadOnlyList<EntityResolver<T>>> readedRows, CancellationToken token)
         {
@@ -25,10 +28,6 @@ namespace Musoq.Schema.DataSources
             _watcher.Start();
 #endif
         }
-
-#if DEBUG
-        private readonly Stopwatch _watcher = new Stopwatch();
-#endif
 
         public bool MoveNext()
         {
