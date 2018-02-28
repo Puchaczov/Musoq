@@ -489,6 +489,12 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public decimal Round(decimal value, long precision)
+        {
+            return Math.Round(value, (int)precision);
+        }
+
+        [BindableMethod]
         public decimal Round(decimal value, int precision)
         {
             return Math.Round(value, precision);

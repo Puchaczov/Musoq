@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
@@ -383,6 +384,11 @@ namespace Musoq.Schema.Disk
             }
             catch (Exception e)
             {
+                if (Debugger.IsAttached)
+                    Debugger.Break();
+                else
+                    Debug.WriteLine(e);
+
                 operationSucessfull = false;
             }
 
