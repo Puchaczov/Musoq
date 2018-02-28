@@ -24,7 +24,11 @@ namespace Musoq.Schema.DataSources
             _readedRows = readedRows;
             _token = token;
             _currentChunk = _readedRows.Take();
+
 #if DEBUG
+            if (_currentChunk == null && Debugger.IsAttached)
+                Debugger.Break();
+
             _watcher.Start();
 #endif
         }
@@ -58,8 +62,9 @@ namespace Musoq.Schema.DataSources
                     IReadOnlyList<EntityResolver<T>> newChunk = null;
                     while (newChunk == null || newChunk.Count == 0)
                     {
-                        newChunk = _readedRows.Take(_token);
+                        newChunk = _readedRows.Count > 0 ? _readedRows.Take() : _readedRows.Take(_token);
                     }
+
                     _currentChunk = newChunk;
 #if DEBUG
                     var stopped = _watcher.Elapsed;
@@ -67,10 +72,19 @@ namespace Musoq.Schema.DataSources
 #endif
                 }
 
+#if DEBUG
+                if(_currentChunk == null && Debugger.IsAttached)
+                    Debugger.Break();
+#endif
+
                 _currentIndex = 0;
                 return true;
             }
             catch (OperationCanceledException)
+            {
+                return false;
+            }
+            catch (NullReferenceException)
             {
                 return false;
             }
