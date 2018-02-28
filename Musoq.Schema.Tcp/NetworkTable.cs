@@ -33,7 +33,6 @@ namespace Musoq.Schema.Tcp
                     _columns = JsonConvert.DeserializeObject<SchemaColumn[]>(json);
                     return _columns;
                 }
-
             }
         }
     }
