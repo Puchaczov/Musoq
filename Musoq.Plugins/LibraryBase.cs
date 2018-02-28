@@ -73,42 +73,42 @@ namespace Musoq.Plugins
         [AggregationSetMethod]
         public void SetCount([InjectGroup] Group group, string name, decimal value)
         {
-            var values = group.GetOrCreateValue(name, 1);
+            var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
         public void SetCount([InjectGroup] Group group, string name, DateTimeOffset value)
         {
-            var values = group.GetOrCreateValue(name, 1);
+            var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
         public void SetCount([InjectGroup] Group group, string name, long value)
         {
-            var values = group.GetOrCreateValue(name, 1);
+            var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
         public void SetCount([InjectGroup] Group group, string name, int value)
         {
-            var values = group.GetOrCreateValue(name, 1);
+            var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
         public void SetCount([InjectGroup] Group group, string name, short value)
         {
-            var values = group.GetOrCreateValue(name, 1);
+            var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
         public void SetCount([InjectGroup] Group group, string name, bool value)
         {
-            var values = group.GetOrCreateValue(name, 1);
+            var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 

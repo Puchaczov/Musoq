@@ -578,31 +578,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(SingleSetNode node)
         {
             var query = (InternalQueryNode) Nodes.Pop();
-
-            var nodes = new List<Node>();
-            
-            switch (_ctePart)
-            {
-                case CtePart.Outer:
-                    var innerQuery = _cteInnerQuery.Peek();
-                    nodes.Add(new RenameTableNode(innerQuery.Into.Name, _currentCteExpression.Name));
-                    var keys = query.GroupBy == null
-                        ? new string[0]
-                        : query.GroupBy?.Fields.Select(f => f.FieldName).ToArray();
-                    nodes.Add(new CreateTableNode(query.Into.Name, keys, query.Select.Fields));
-                    break;
-                case CtePart.Inner:
-                    _cteInnerQuery.Push(query);
-                    goto default;
-                default:
-                    nodes.Add(new CreateTableNode(node.Query.From.Schema, new string[0], query.Select.Fields));
-                    break;
-
-            }
-
-            nodes.Add(query);
-
-            Nodes.Push(new MultiStatementNode(nodes.ToArray(), query.ReturnType));
+            Nodes.Push(new MultiStatementNode(GenerateTransitionNodes(node.Query, query), query.ReturnType));
         }
 
         public void Visit(RefreshNode node)
@@ -651,7 +627,12 @@ namespace Musoq.Evaluator.Visitors
                 new ShouldBePresentInTheTable(fTable.Name, true, node.Keys), rightQuery.Skip, rightQuery.Take, node.IsTheLastOne, fTable.Name, false,
                 null);
 
-            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable}, trLQuery, trQuery, fTable.Name,
+            var transitionTables = new List<CreateTableNode> { fTable };
+
+            if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
+                _cteInnerQuery.Push(trQuery);
+
+            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery, fTable.Name,
                 node.Keys));
         }
 
@@ -696,7 +677,12 @@ namespace Musoq.Evaluator.Visitors
             var trQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
                 rightQuery.GroupBy, new IntoNode(fTable.Name), null, rightQuery.Skip, rightQuery.Take, node.IsTheLastOne, fTable.Name, false, null);
 
-            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable}, trLQuery, trQuery, fTable.Name,
+            var transitionTables = new List<CreateTableNode> {fTable};
+
+            if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
+                _cteInnerQuery.Push(trQuery);
+
+            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery, fTable.Name,
                 node.Keys));
         }
 
@@ -742,7 +728,12 @@ namespace Musoq.Evaluator.Visitors
                     new ShouldBePresentInTheTable(rightQuery.From.Schema, true, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
                     fTable.Name, false, null);
 
-            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable, sTable}, trLQuery, trQuery,
+            var transitionTables = new List<CreateTableNode> { fTable, sTable };
+
+            if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
+                _cteInnerQuery.Push(trQuery);
+
+            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery,
                 fTable.Name, node.Keys));
         }
 
@@ -787,7 +778,12 @@ namespace Musoq.Evaluator.Visitors
                     new ShouldBePresentInTheTable(rightQuery.From.Schema, false, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
                     fTable.Name, false, null);
 
-            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(new[] {fTable, sTable}, trLQuery, trQuery,
+            var transitionTables = new List<CreateTableNode> { fTable, sTable };
+
+            if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
+                _cteInnerQuery.Push(trQuery);
+
+            translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery,
                 fTable.Name, node.Keys));
         }
 
@@ -1008,6 +1004,32 @@ namespace Musoq.Evaluator.Visitors
 
             return fields.ToArray();
         }
+        private Node[] GenerateTransitionNodes(QueryNode oldQuery, InternalQueryNode newQuery)
+        {
+            var nodes = new List<Node>();
+
+            switch (_ctePart)
+            {
+                case CtePart.Outer:
+                    var innerQuery = _cteInnerQuery.Peek();
+                    nodes.Add(new RenameTableNode(innerQuery.Into.Name, _currentCteExpression.Name));
+                    var keys = newQuery.GroupBy == null
+                        ? new string[0]
+                        : newQuery.GroupBy?.Fields.Select(f => f.FieldName).ToArray();
+                    nodes.Add(new CreateTableNode(newQuery.Into.Name, keys, newQuery.Select.Fields));
+                    break;
+                case CtePart.Inner:
+                    _cteInnerQuery.Push(newQuery);
+                    goto default;
+                default:
+                    nodes.Add(new CreateTableNode(oldQuery.From.Schema, new string[0], newQuery.Select.Fields));
+                    break;
+            }
+
+            nodes.Add(newQuery);
+
+            return nodes.ToArray();
+        }
 
         private RefreshNode CreateRefreshMethods()
         {
@@ -1047,6 +1069,11 @@ namespace Musoq.Evaluator.Visitors
             }
 
             return new RefreshNode(methods.ToArray());
+        }
+
+        private bool IsRightMostQuery(SetOperatorNode node)
+        {
+            return node.Right is QueryNode;
         }
 
         private bool HasMethod(IEnumerable<AccessMethodNode> methods, AccessMethodNode node)
