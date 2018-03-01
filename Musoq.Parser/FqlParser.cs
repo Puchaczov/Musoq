@@ -10,6 +10,9 @@ namespace Musoq.Parser
 {
     public class FqlParser
     {
+
+        private static readonly TokenType[] SetOperators = { TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect };
+
         private readonly Lexer _lexer;
 
         private bool _isInGroupBySection;
@@ -110,8 +113,7 @@ namespace Musoq.Parser
 
         private static bool IsSetOperator(TokenType currentTokenType)
         {
-            return new[]
-                {TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect}.Contains(currentTokenType);
+            return SetOperators.Contains(currentTokenType);
         }
 
         private QueryNode ComposeQuery()
@@ -187,7 +189,7 @@ namespace Musoq.Parser
             do
             {
                 fields.Add(ConsumeField(i++));
-            } while (Current.TokenType != TokenType.RightParenthesis && Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having && Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
+            } while (!IsSetOperator(Current.TokenType) && Current.TokenType != TokenType.RightParenthesis && Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having && Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
                      ConsumeAndGetToken().TokenType == TokenType.Comma);
 
             return fields.ToArray();

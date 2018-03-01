@@ -23,6 +23,7 @@ namespace Musoq.Evaluator.Visitors
         private readonly Stack<InternalQueryNode> _cteInnerQuery = new Stack<InternalQueryNode>();
         private readonly Dictionary<string, int> _tmpVariableNames = new Dictionary<string, int>();
         private CteExpressionNode _currentCteExpression;
+        private InternalQueryNode _setLeftNode;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
 
@@ -590,7 +591,7 @@ namespace Musoq.Evaluator.Visitors
             TranslatedSetTreeNode translatedTree;
 
             var rightNode = Nodes.Pop();
-            var leftNode = Nodes.Pop();
+            var leftNode = _setLeftNode ?? Nodes.Pop();
             if (!node.IsNested)
                 Nodes.Push(translatedTree = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>()));
             else
@@ -601,10 +602,10 @@ namespace Musoq.Evaluator.Visitors
 
             CreateTableNode fTable;
             if (!node.IsNested)
-                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
+                fTable = new CreateTableNode($"{leftQuery.Into.Name}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
             else
                 fTable = new CreateTableNode(
-                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
+                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
 
             InternalQueryNode trLQuery;
             if (node.IsNested)
@@ -632,6 +633,8 @@ namespace Musoq.Evaluator.Visitors
             if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
                 _cteInnerQuery.Push(trQuery);
 
+            _setLeftNode = trLQuery;
+
             translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery, fTable.Name,
                 node.Keys));
         }
@@ -641,7 +644,7 @@ namespace Musoq.Evaluator.Visitors
             TranslatedSetTreeNode translatedTree;
 
             var rightNode = Nodes.Pop();
-            var leftNode = Nodes.Pop();
+            var leftNode = _setLeftNode ?? Nodes.Pop();
 
             if (!node.IsNested)
                 Nodes.Push(translatedTree = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>()));
@@ -653,10 +656,10 @@ namespace Musoq.Evaluator.Visitors
 
             CreateTableNode fTable;
             if (!node.IsNested)
-                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
+                fTable = new CreateTableNode($"{leftQuery.Into.Name}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
             else
                 fTable = new CreateTableNode(
-                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
+                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
 
             InternalQueryNode trLQuery;
             if (node.IsNested)
@@ -682,6 +685,8 @@ namespace Musoq.Evaluator.Visitors
             if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
                 _cteInnerQuery.Push(trQuery);
 
+            _setLeftNode = trLQuery;
+
             translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery, fTable.Name,
                 node.Keys));
         }
@@ -691,7 +696,7 @@ namespace Musoq.Evaluator.Visitors
             TranslatedSetTreeNode translatedTree;
 
             var rightNode = Nodes.Pop();
-            var leftNode = Nodes.Pop();
+            var leftNode = _setLeftNode ?? Nodes.Pop();
 
             if (!node.IsNested)
                 Nodes.Push(translatedTree = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>()));
@@ -704,34 +709,36 @@ namespace Musoq.Evaluator.Visitors
 
             CreateTableNode fTable;
             if (!node.IsNested)
-                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
+                fTable = new CreateTableNode($"{leftQuery.Into.Name}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
             else
                 fTable = new CreateTableNode(
-                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
+                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
 
-            var sTable = new CreateTableNode($"{rightQuery.From.Schema}", node.Keys,
+            var sTable = new CreateTableNode($"{rightQuery.Into.Name}", node.Keys,
                 rightQuery.Select.Fields);
 
             var trLQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
-                rightQuery.GroupBy, new IntoNode(rightQuery.From.Schema), null, rightQuery.Skip, rightQuery.Take, false, string.Empty, false, null);
+                rightQuery.GroupBy, new IntoNode(rightQuery.Into.Name), null, rightQuery.Skip, rightQuery.Take, false, string.Empty, false, null);
 
             InternalQueryNode trQuery;
             if (node.IsNested)
                 trQuery = new InternalQueryNode(ChangeMethodCallsForColumnAccess(leftQuery.Select),
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
                         string.Empty), new WhereNode(new PutTrueNode()), null, new IntoNode($"{fTable.Name}"),
-                    new ShouldBePresentInTheTable(rightQuery.From.Schema, true, node.Keys), null, null, node.IsTheLastOne,
+                    new ShouldBePresentInTheTable(rightQuery.Into.Name, true, node.Keys), null, null, node.IsTheLastOne,
                     fTable.Name, true, null);
             else
                 trQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy,
                     new IntoNode($"{fTable.Name}"),
-                    new ShouldBePresentInTheTable(rightQuery.From.Schema, true, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
+                    new ShouldBePresentInTheTable(rightQuery.Into.Name, true, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
                     fTable.Name, false, null);
 
             var transitionTables = new List<CreateTableNode> { fTable, sTable };
 
             if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
                 _cteInnerQuery.Push(trQuery);
+
+            _setLeftNode = trLQuery;
 
             translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery,
                 fTable.Name, node.Keys));
@@ -742,7 +749,7 @@ namespace Musoq.Evaluator.Visitors
             TranslatedSetTreeNode translatedTree;
 
             var rightNode = Nodes.Pop();
-            var leftNode = Nodes.Pop();
+            var leftNode = _setLeftNode ?? Nodes.Pop();
 
             if (!node.IsNested)
                 Nodes.Push(translatedTree = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>()));
@@ -755,33 +762,35 @@ namespace Musoq.Evaluator.Visitors
 
             CreateTableNode fTable;
             if (!node.IsNested)
-                fTable = new CreateTableNode($"{leftQuery.From.Schema}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
+                fTable = new CreateTableNode($"{leftQuery.Into.Name}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
             else
                 fTable = new CreateTableNode(
-                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.From.Schema}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
+                    $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
 
-            var sTable = new CreateTableNode($"{rightQuery.From.Schema}", node.Keys, rightQuery.Select.Fields);
+            var sTable = new CreateTableNode($"{rightQuery.Into.Name}", node.Keys, rightQuery.Select.Fields);
 
             var trLQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
-                rightQuery.GroupBy, new IntoNode(rightQuery.From.Schema), null, rightQuery.Skip, rightQuery.Take, false, string.Empty, false, null);
+                rightQuery.GroupBy, new IntoNode(rightQuery.Into.Name), null, rightQuery.Skip, rightQuery.Take, false, string.Empty, false, null);
 
             InternalQueryNode trQuery;
             if (node.IsNested)
                 trQuery = new InternalQueryNode(ChangeMethodCallsForColumnAccess(leftQuery.Select),
                     new ExistingTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName,
                         string.Empty), new WhereNode(new PutTrueNode()), null, new IntoNode(fTable.Name),
-                    new ShouldBePresentInTheTable(rightQuery.From.Schema, false, node.Keys), null, null, node.IsTheLastOne,
+                    new ShouldBePresentInTheTable(rightQuery.Into.Name, false, node.Keys), null, null, node.IsTheLastOne,
                     fTable.Name, true, null);
             else
                 trQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy,
                     new IntoNode($"{fTable.Name}"),
-                    new ShouldBePresentInTheTable(rightQuery.From.Schema, false, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
+                    new ShouldBePresentInTheTable(rightQuery.Into.Name, false, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
                     fTable.Name, false, null);
 
             var transitionTables = new List<CreateTableNode> { fTable, sTable };
 
             if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
                 _cteInnerQuery.Push(trQuery);
+
+            _setLeftNode = trLQuery;
 
             translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery,
                 fTable.Name, node.Keys));

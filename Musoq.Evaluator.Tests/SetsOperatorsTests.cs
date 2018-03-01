@@ -177,7 +177,12 @@ select Name from #C.Entities() skip 3";
         public void MultipleUnionsComplexTest()
         {
             var query =
-                @"select Name from #A.Entities() union (Name) select Name from #B.Entities() union (Name) select Name from #C.Entities() union (Name) select Name from #D.Entities()";
+                @"
+select Name from #A.Entities() union (Name) 
+select Name from #B.Entities() union (Name) 
+select Name from #C.Entities() union (Name) 
+select Name from #D.Entities()";
+
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001")}},
@@ -264,7 +269,11 @@ select Name from #C.Entities() skip 3";
         public void MultipleUnionsAllComplexTest()
         {
             var query =
-                @"select Name from #A.Entities() union all (Name) select Name from #B.Entities() union all (Name) select Name from #C.Entities() union all (Name) select Name from #D.Entities()";
+                @"
+select Name from #A.Entities() union all (Name) 
+select Name from #B.Entities() union all (Name) 
+select Name from #C.Entities() union all (Name) 
+select Name from #D.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001")}},
@@ -379,6 +388,32 @@ select Name from #C.Entities() skip 3";
         }
 
         [TestMethod]
+        public void ExceptMultipleSourcesTest()
+        {
+            var query =
+                @"
+select Name from #A.Entities() except (Name) 
+select Name from #B.Entities() except (Name) 
+select Name from #C.Entities() except (Name) 
+select Name from #D.Entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")}},
+                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")}},
+                {"#C", new[] {new BasicEntity("005")}},
+                {"#D", new[] {new BasicEntity("007")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("002", table[0].Values[0]);
+            Assert.AreEqual("008", table[1].Values[0]);
+        }
+
+        [TestMethod]
         public void IntersectDoubleSourceTest()
         {
             var query = @"select Name from #A.Entities() intersect (Name) select Name from #B.Entities()";
@@ -452,6 +487,32 @@ select Name from #C.Entities()";
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("005", table[0].Values[0]);
+        }
+
+        [TestMethod]
+        public void IntersectMultipleSourcesTest()
+        {
+            var query =
+                @"
+select Name from #A.Entities() intersect (Name) 
+select Name from #B.Entities() intersect (Name) 
+select Name from #C.Entities() intersect (Name) 
+select Name from #D.Entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")}},
+                {"#B", new[] {new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")}},
+                {"#C", new[] {new BasicEntity("005"), new BasicEntity("007"), new BasicEntity("001")}},
+                {"#D", new[] {new BasicEntity("008"),  new BasicEntity("007"), new BasicEntity("001")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual("007", table[1].Values[0]);
         }
 
         [TestMethod]
@@ -576,6 +637,141 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
             Assert.AreEqual("001", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void MixedMultipleSourcesTest()
+        {
+            var query =
+                @"
+select Name from #A.Entities() union (Name) 
+select Name from #B.Entities() except (Name) 
+select Name from #C.Entities() intersect (Name) 
+select Name from #D.Entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")}},
+                {"#B", new[] {new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")}},
+                {"#C", new[] {new BasicEntity("005"), new BasicEntity("007")}},
+                {"#D", new[] {new BasicEntity("001"),  new BasicEntity("002"), new BasicEntity("003")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual("002", table[1].Values[0]);
+            Assert.AreEqual("003", table[2].Values[0]);
+        }
+
+        [TestMethod]
+        public void UnionSourceGroupByTest()
+        {
+            var query =
+@"select City, Sum(Population) from #A.Entities() group by City
+union (City)
+select City, Sum(Population) from #B.Entities() group by City
+union (City)
+select City, Sum(Population) from #C.Entities() group by City";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)}},
+                {"#B", new[] {new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13) }},
+                {"#C", new[] {new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual(200m, table[0].Values[1]);
+            Assert.AreEqual("003", table[1].Values[0]);
+            Assert.AreEqual(39m, table[1].Values[1]);
+            Assert.AreEqual("002", table[2].Values[0]);
+            Assert.AreEqual(28m, table[2].Values[1]);
+        }
+
+        [TestMethod]
+        public void UnionAllSourceGroupByTest()
+        {
+            var query =
+                @"select City, Sum(Population) from #A.Entities() group by City
+union all (City)
+select City, Sum(Population) from #B.Entities() group by City
+union all (City)
+select City, Sum(Population) from #C.Entities() group by City";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)}},
+                {"#B", new[] {new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13) }},
+                {"#C", new[] {new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual(200m, table[0].Values[1]);
+            Assert.AreEqual("003", table[1].Values[0]);
+            Assert.AreEqual(39m, table[1].Values[1]);
+            Assert.AreEqual("002", table[2].Values[0]);
+            Assert.AreEqual(28m, table[2].Values[1]);
+        }
+
+        [TestMethod]
+        public void ExceptSourceGroupByTest()
+        {
+            var query =
+                @"select City, Sum(Population) from #A.Entities() group by City
+except (City)
+select City, Sum(Population) from #B.Entities() group by City
+except (City)
+select City, Sum(Population) from #C.Entities() group by City";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001", "", 100), new BasicEntity("001", "", 100), new BasicEntity("002", "", 500), }},
+                {"#B", new[] {new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13) }},
+                {"#C", new[] {new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual(200m, table[0].Values[1]);
+        }
+
+        [TestMethod]
+        public void IntersectSourceGroupByTest()
+        {
+            var query =
+                @"select City, Sum(Population) from #A.Entities() group by City
+except (City)
+select City, Sum(Population) from #B.Entities() group by City
+except (City)
+select City, Sum(Population) from #C.Entities() group by City";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001", "", 100), new BasicEntity("001", "", 100), new BasicEntity("002", "", 500), }},
+                {"#B", new[] {new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13) }},
+                {"#C", new[] {new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual(200m, table[0].Values[1]);
         }
     }
 }

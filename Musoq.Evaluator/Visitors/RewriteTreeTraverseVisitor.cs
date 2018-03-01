@@ -451,27 +451,36 @@ namespace Musoq.Evaluator.Visitors
 
         private void TraverseSetOperator(SetOperatorNode node)
         {
-            var nodes = new Stack<SetOperatorNode>();
-            nodes.Push(node);
-
-            while (nodes.Count > 0)
+            if (node.Right is SetOperatorNode)
             {
-                var current = nodes.Pop();
+                var nodes = new Stack<SetOperatorNode>();
+                nodes.Push(node);
 
-                if (current.Right is SetOperatorNode operatorNode)
-                {
-                    nodes.Push(operatorNode);
+                node.Left.Accept(this);
 
-                    node.Left.Accept(this);
-                    operatorNode.Left.Accept(this);
-                    current.Accept(_visitor);
-                }
-                else
+                while (nodes.Count > 0)
                 {
-                    current.Left.Accept(this);
-                    current.Right.Accept(this);
-                    current.Accept(_visitor);
+                    var current = nodes.Pop();
+
+                    if (current.Right is SetOperatorNode operatorNode)
+                    {
+                        nodes.Push(operatorNode);
+                        
+                        operatorNode.Left.Accept(this);
+                        current.Accept(_visitor);
+                    }
+                    else
+                    {
+                        current.Right.Accept(this);
+                        current.Accept(_visitor);
+                    }
                 }
+            }
+            else
+            {
+                node.Left.Accept(this);
+                node.Right.Accept(this);
+                node.Accept(_visitor);
             }
         }
     }
