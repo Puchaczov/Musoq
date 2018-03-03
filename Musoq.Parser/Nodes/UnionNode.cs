@@ -1,4 +1,5 @@
-﻿using Musoq.Parser.Tokens;
+﻿using System.Linq;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes
 {
@@ -17,7 +18,8 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"{Left.ToString()} union {Right.ToString()}";
+            var keys = Keys.Length == 0 ? string.Empty : Keys.Aggregate((a, b) => a + "," + b);
+            return $"{Left.ToString()} union ({keys}) {Right.ToString()}";
         }
     }
 }

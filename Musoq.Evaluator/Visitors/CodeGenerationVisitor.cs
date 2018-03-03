@@ -23,6 +23,7 @@ namespace Musoq.Evaluator.Visitors
 
         private readonly Dictionary<string, TableMetadata> _tableMetadatas;
 
+        private int _sourceOrder;
         private int _order;
         private InternalQueryNode _lastQuery;
 
@@ -39,13 +40,13 @@ namespace Musoq.Evaluator.Visitors
         private GeneratorSelectScope SelectScope => _selectScope.Peek();
 
         private string AnotherValueFromSourceLabelName
-            => $"{SelectScope.Name}.GetAnotherValueFromSource";
+            => $"{SelectScope.Name}.GetAnotherValueFromSource.{SelectScope.Order}";
 
         private string WhereClauseBeginsLabelName
-            => $"{SelectScope.Name}.WhereClauseBegins";
+            => $"{SelectScope.Name}.WhereClauseBegins.{SelectScope.Order}";
 
         private string EndOfQueryProcessing
-            => $"{SelectScope.Name}.EndOfQueryProcessing";
+            => $"{SelectScope.Name}.EndOfQueryProcessing.{SelectScope.Order}";
 
         public void Visit(Node node)
         {
@@ -514,7 +515,8 @@ namespace Musoq.Evaluator.Visitors
             var scope = new GeneratorSelectScope
             {
                 Name = node.Id,
-                Alias = node.Schema
+                Alias = node.Schema,
+                Order = _sourceOrder++
             };
             _selectScope.Push(scope);
             
@@ -528,7 +530,8 @@ namespace Musoq.Evaluator.Visitors
             var scope = new GeneratorSelectScope
             {
                 Name = node.Id,
-                Alias = node.Alias
+                Alias = node.Alias,
+                Order = _sourceOrder++
             };
             _selectScope.Push(scope);
 
@@ -545,7 +548,8 @@ namespace Musoq.Evaluator.Visitors
             var scope = new GeneratorSelectScope
             {
                 Name = node.Id,
-                Alias = node.Schema
+                Alias = node.Schema,
+                Order = _sourceOrder++
             };
             _selectScope.Push(scope);
 
@@ -559,7 +563,8 @@ namespace Musoq.Evaluator.Visitors
             var scope = new GeneratorSelectScope
             {
                 Name = node.Id,
-                Alias = node.VariableName
+                Alias = node.VariableName,
+                Order = _sourceOrder++
             };
             _selectScope.Push(scope);
 
@@ -701,6 +706,7 @@ namespace Musoq.Evaluator.Visitors
         {
             public string Name { get; set; }
             public string Alias { get; set; }
+            public int Order { get; set; }
         }
     }
 }

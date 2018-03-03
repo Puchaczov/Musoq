@@ -773,5 +773,58 @@ select City, Sum(Population) from #C.Entities() group by City";
             Assert.AreEqual("001", table[0].Values[0]);
             Assert.AreEqual(200m, table[0].Values[1]);
         }
+
+        [TestMethod]
+        public void UnionSameSourceTest()
+        {
+            var query =
+                @"
+select Name from #A.Entities() where Name = '001'
+union (Name)
+select Name from #A.Entities() where Name = '002'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual("002", table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void UnionMultipleTimesSameSourceTest()
+        {
+            var query =
+                @"
+select Name from #A.Entities() where Name = '001'
+union (Name)
+select Name from #A.Entities() where Name = '002'
+union (Name)
+select Name from #A.Entities() where Name = '003'
+union (Name)
+select Name from #A.Entities() where Name = '004'
+union (Name)
+select Name from #A.Entities() where Name = '005'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(5, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual("002", table[1].Values[0]);
+            Assert.AreEqual("003", table[2].Values[0]);
+            Assert.AreEqual("004", table[3].Values[0]);
+            Assert.AreEqual("005", table[4].Values[0]);
+        }
     }
 }

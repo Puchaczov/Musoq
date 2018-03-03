@@ -41,7 +41,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Csv.Tests", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Service.Client.Tests", "Musoq.Service.Client.Tests\Musoq.Service.Client.Tests.csproj", "{4F86FFB1-5F31-41B6-B935-2DC77EB1426B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.FlatFile", "Musoq.Schema.FlatFile\Musoq.Schema.FlatFile.csproj", "{1720D50B-F6AA-4654-9F05-71488FB3AD2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.FlatFile", "Musoq.Schema.FlatFile\Musoq.Schema.FlatFile.csproj", "{1720D50B-F6AA-4654-9F05-71488FB3AD2D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.FlatFileTests", "Musoq.Schema.FlatFileTests\Musoq.Schema.FlatFileTests.csproj", "{73C0716B-29C2-482E-9DC2-F797DFA2499C}"
 EndProject

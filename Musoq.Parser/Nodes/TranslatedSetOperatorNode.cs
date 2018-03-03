@@ -39,12 +39,12 @@ namespace Musoq.Parser.Nodes
 
             foreach (var table in CreateTableNodes)
             {
-                builder.Append(table);
+                builder.Append(table.ToString());
                 builder.Append(Environment.NewLine);
             }
 
-            builder.Append(FQuery);
-            builder.Append(SQuery);
+            builder.Append(FQuery.ToString());
+            builder.Append(SQuery.ToString());
 
             return builder.ToString();
         }
