@@ -2,6 +2,7 @@
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Disk.Directories;
 using Musoq.Schema.Disk.Files;
+using Musoq.Schema.Disk.Process;
 using Musoq.Schema.Disk.Zip;
 using Musoq.Schema.Managers;
 
@@ -13,6 +14,7 @@ namespace Musoq.Schema.Disk
         private const string FilesTable = "files";
         private const string ZipTable = "zip";
         private const string SchemaName = "disk";
+        private const string ProcessesName = "process";
 
         public DiskSchema()
             : base(SchemaName, CreateLibrary())
@@ -28,6 +30,8 @@ namespace Musoq.Schema.Disk
                     return new DirectoriesBasedTable();
                 case ZipTable:
                     return new ZipBasedTable();
+                case ProcessesName:
+                    return new ProcessBasedTable();
             }
 
             throw new NotSupportedException();
@@ -43,6 +47,8 @@ namespace Musoq.Schema.Disk
                     return new DirectoriesSource(parameters[0], TryRecognizeBoolean(parameters[1]));
                 case ZipTable:
                     return new ZipSource(parameters[0]);
+                case ProcessesName:
+                    return new ProcessesSource();
             }
 
             throw new NotSupportedException();

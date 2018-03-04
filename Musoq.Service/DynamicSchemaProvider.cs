@@ -15,6 +15,7 @@ namespace Musoq.Service
 
         public ISchema GetSchema(string schema)
         {
+            schema = schema.ToLowerInvariant();
             return _schemas.First(f => $"#{f.Name}" == schema);
         }
     }
