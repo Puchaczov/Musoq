@@ -102,24 +102,27 @@ namespace Musoq.Parser.Lexing
 
             if (int.TryParse(tokenText, out var _) && !tokenText.Contains(" "))
                 return TokenType.Integer;
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KKeyObjectAccess)
+
+            var regex = matchedDefinition.Regex.ToString();
+
+            if (regex == TokenRegexDefinition.KKeyObjectAccess)
                 return TokenType.KeyAccess;
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KNumericArrayAccess)
+            if (regex == TokenRegexDefinition.KNumericArrayAccess)
                 return TokenType.NumericAccess;
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KDecimal)
+            if (regex == TokenRegexDefinition.KDecimal)
                 return TokenType.Decimal;
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KGroupBy)
+            if (regex == TokenRegexDefinition.KGroupBy)
                 return TokenType.GroupBy;
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KUnionAll)
+            if (regex == TokenRegexDefinition.KUnionAll)
                 return TokenType.UnionAll;
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.Function)
+            if (regex == TokenRegexDefinition.Function)
                 return TokenType.Function;
             var last = Current();
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KColumn && last != null && last.TokenType == TokenType.Dot)
+            if (regex == TokenRegexDefinition.KColumn && last != null && last.TokenType == TokenType.Dot)
                 return TokenType.Property;
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KColumn)
+            if (regex == TokenRegexDefinition.KColumn)
                 return TokenType.Column;
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KHFrom)
+            if (regex == TokenRegexDefinition.KHFrom)
                 return TokenType.Word;
 
             return TokenType.Word;
