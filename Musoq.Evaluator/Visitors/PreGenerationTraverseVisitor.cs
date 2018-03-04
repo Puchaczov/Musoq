@@ -400,9 +400,16 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CteExpressionNode node)
         {
-            node.InnerExpression.Accept(this);
+            foreach (var exp in node.InnerExpression)
+                exp.Accept(this);
             node.Accept(_visitor);
             node.OuterExpression.Accept(this);
+        }
+
+        public void Visit(CteInnerExpressionNode node)
+        {
+            node.Value.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(GroupByNode node)

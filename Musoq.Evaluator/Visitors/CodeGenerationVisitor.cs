@@ -693,6 +693,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(CteInnerExpressionNode node)
+        {
+        }
+
         private void GenerateConvertingInstructions(BinaryNode node)
         {
             foreach (var inst in EvaluationHelper.GetConvertingInstructions(node.Left.ReturnType,

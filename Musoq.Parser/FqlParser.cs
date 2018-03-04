@@ -44,14 +44,33 @@ namespace Musoq.Parser
         private CteExpressionNode ComposeCteExpression()
         {
             Consume(TokenType.With);
+
+            var expressions = new List<CteInnerExpressionNode>();
+
             var col = ComposeBaseTypes() as AccessColumnNode;
             Consume(TokenType.As);
 
             Consume(TokenType.LeftParenthesis);
             var innerSets = ComposeSetOps(0);
+            expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
             Consume(TokenType.RightParenthesis);
+
+            while (Current.TokenType == TokenType.Comma)
+            {
+                Consume(TokenType.Comma);
+
+                col = ComposeBaseTypes() as AccessColumnNode;
+                Consume(TokenType.As);
+
+                Consume(TokenType.LeftParenthesis);
+                innerSets = ComposeSetOps(0);
+                Consume(TokenType.RightParenthesis);
+                expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
+            }
+
             var outerSets = ComposeSetOps(0);
-            return new CteExpressionNode(col.Name, innerSets, outerSets);
+
+            return new CteExpressionNode(expressions.ToArray(), outerSets);
         }
 
         private Node ComposeSetOps(int nestingLevel)
@@ -246,7 +265,7 @@ namespace Musoq.Parser
             Right
         }
 
-        private Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precDict =
+        private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precDict =
             new Dictionary<TokenType, (short Precendence, Associativity Associativity)>()
             {
                 {TokenType.Plus, (1, Associativity.Left)},
@@ -350,45 +369,44 @@ namespace Musoq.Parser
 
         private Node ComposeComplexAccess(Node node)
         {
-            if (node is AccessColumnNode columnNode)
+            if (!(node is AccessColumnNode)) return node;
+
+            var isComplexObjectAccessor = IsComplexObjectAccessor(Current);
+
+            if (isComplexObjectAccessor)
             {
-                var isComplexObjectAccessor = IsComplexObjectAccessor(Current);
+                Consume(TokenType.Dot);
+                var ct = Current;
 
-                if (isComplexObjectAccessor)
+                switch (Current.TokenType)
                 {
-                    Consume(TokenType.Dot);
-                    var ct = Current;
-
-                    switch (Current.TokenType)
-                    {
-                        case TokenType.Column:
-                        case TokenType.KeyAccess:
-                        case TokenType.NumericAccess:
-                        case TokenType.Property:
-                            node = new AccessPropertyNode(node, ComposeBaseTypes(), true, ct.Value);
-                            break;
-                    }
-
-                    isComplexObjectAccessor = IsComplexObjectAccessor(Current);
+                    case TokenType.Column:
+                    case TokenType.KeyAccess:
+                    case TokenType.NumericAccess:
+                    case TokenType.Property:
+                        node = new AccessPropertyNode(node, ComposeBaseTypes(), true, ct.Value);
+                        break;
                 }
 
-                while (isComplexObjectAccessor)
+                isComplexObjectAccessor = IsComplexObjectAccessor(Current);
+            }
+
+            while (isComplexObjectAccessor)
+            {
+                Consume(TokenType.Dot);
+                var ct = Current;
+
+                switch (Current.TokenType)
                 {
-                    Consume(TokenType.Dot);
-                    var ct = Current;
-
-                    switch (Current.TokenType)
-                    {
-                        case TokenType.Column:
-                        case TokenType.KeyAccess:
-                        case TokenType.NumericAccess:
-                        case TokenType.Property:
-                            node = new AccessPropertyNode(node, ComposeBaseTypes(), false, ct.Value);
-                            break;
-                    }
-
-                    isComplexObjectAccessor = IsComplexObjectAccessor(Current);
+                    case TokenType.Column:
+                    case TokenType.KeyAccess:
+                    case TokenType.NumericAccess:
+                    case TokenType.Property:
+                        node = new AccessPropertyNode(node, ComposeBaseTypes(), false, ct.Value);
+                        break;
                 }
+
+                isComplexObjectAccessor = IsComplexObjectAccessor(Current);
             }
 
             return node;

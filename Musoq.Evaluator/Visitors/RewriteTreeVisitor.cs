@@ -20,14 +20,13 @@ namespace Musoq.Evaluator.Visitors
         private readonly List<CreateTableNode> _preCreatedTables = new List<CreateTableNode>();
         private readonly Stack<AccessMethodNode> _queryMethods = new Stack<AccessMethodNode>();
         private readonly TransitionSchemaProvider _schemaProvider;
-        private readonly Stack<InternalQueryNode> _cteInnerQuery = new Stack<InternalQueryNode>();
         private readonly Dictionary<string, int> _tmpVariableNames = new Dictionary<string, int>();
-        private CteExpressionNode _currentCteExpression;
         private InternalQueryNode _setLeftNode;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
 
         private string _currentSchema;
+        private string _currentCte;
 
         private ISchema _schema;
         private ISchemaTable _table;
@@ -47,14 +46,11 @@ namespace Musoq.Evaluator.Visitors
 
             if (part == CtePart.Outer)
                 _setLeftNode = null;
-
-            _currentCteExpression = node;
         }
 
         public void EndCteQuery()
         {
             _ctePart = CtePart.None;
-            _cteInnerQuery.Pop();
         }
 
         public void Visit(Node node)
@@ -585,7 +581,7 @@ namespace Musoq.Evaluator.Visitors
             var query = (InternalQueryNode) Nodes.Pop();
 
             if (_ctePart == CtePart.Inner)
-                _cteInnerQuery.Push(query);
+                _cteLastQueriesByName.Add(_currentCte, query);
 
             var nodes = new Node[] {new CreateTableNode(query.Into.Name, new string[0], query.Select.Fields), query};
 
@@ -641,7 +637,7 @@ namespace Musoq.Evaluator.Visitors
             var transitionTables = new List<CreateTableNode> { fTable };
 
             if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
-                _cteInnerQuery.Push(trQuery);
+                _cteLastQueriesByName.Add(_currentCte, trQuery);
 
             _setLeftNode = trLQuery;
 
@@ -693,7 +689,7 @@ namespace Musoq.Evaluator.Visitors
             var transitionTables = new List<CreateTableNode> {fTable};
 
             if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
-                _cteInnerQuery.Push(trQuery);
+                _cteLastQueriesByName.Add(_currentCte, trQuery);
 
             _setLeftNode = trLQuery;
 
@@ -746,7 +742,7 @@ namespace Musoq.Evaluator.Visitors
             var transitionTables = new List<CreateTableNode> { fTable, sTable };
 
             if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
-                _cteInnerQuery.Push(trQuery);
+                _cteLastQueriesByName.Add(_currentCte, trQuery);
 
             _setLeftNode = trLQuery;
 
@@ -798,7 +794,7 @@ namespace Musoq.Evaluator.Visitors
             var transitionTables = new List<CreateTableNode> { fTable, sTable };
 
             if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
-                _cteInnerQuery.Push(trQuery);
+                _cteLastQueriesByName.Add(_currentCte, trQuery);
 
             _setLeftNode = trLQuery;
 
@@ -824,36 +820,72 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(CteExpressionNode node)
         {
             var outerQuery = Nodes.Pop();
-            var innerQuery = Nodes.Pop();
 
             var list = new List<Node>();
+            var blocks = new List<List<Node>>();
 
-            var cteLatestQuery = _cteInnerQuery.Peek();
-            var renameTable = new RenameTableNode(cteLatestQuery.Into.Name, _currentCteExpression.Name);
+            for (var i = node.InnerExpression.Length - 1; i >= 0; i--)
+            {
+                var block = new List<Node>();
+                blocks.Add(block);
+                var cteInnerExpressionNode = node.InnerExpression[i];
+                var innerQuery = (CteInnerExpressionNode) Nodes.Pop();
+
+                var cteLatestQuery = _cteLastQueriesByName[innerQuery.Name];
+                var renameTable = new RenameTableNode(cteLatestQuery.Into.Name, cteInnerExpressionNode.Name);
+                
+                if (innerQuery.Value is TranslatedSetTreeNode innerSet)
+                {
+                    foreach (var set in innerSet.Nodes)
+                    {
+                        block.AddRange(set.CreateTableNodes);
+                        block.Add(set.FQuery);
+                        block.Add(set.SQuery);
+                    }
+                }
+                else if (innerQuery.Value is MultiStatementNode multiStatementNode)
+                {
+                    block.AddRange(multiStatementNode.Nodes);
+                }
+                else
+                {
+                    block.Add(innerQuery.Value);
+                }
+
+                block.Add(renameTable);
+            }
+
+            blocks.Reverse();
+
+            foreach(var block in blocks)
+                list.AddRange(block);
 
             if (outerQuery is TranslatedSetTreeNode translatedSet)
             {
                 foreach (var set in translatedSet.Nodes)
                 {
                     list.AddRange(set.CreateTableNodes);
-                    list.Add(renameTable);
                     list.Add(set.FQuery);
                     list.Add(set.SQuery);
                 }
             }
             else if (outerQuery is MultiStatementNode multiStatementNode)
             {
-                list.Add(renameTable);
                 list.AddRange(multiStatementNode.Nodes);
             }
             else
             {
-                list.Add(renameTable);
                 list.Add(outerQuery);
             }
 
-            outerQuery = new MultiStatementNode(list.ToArray(), null);
-            Nodes.Push(new CteExpressionNode(node.Name, innerQuery, outerQuery));
+            Nodes.Push(new MultiStatementNode(list.ToArray(), null));
+        }
+
+        private readonly Dictionary<string, InternalQueryNode> _cteLastQueriesByName = new Dictionary<string, InternalQueryNode>();
+
+        public void Visit(CteInnerExpressionNode node)
+        {
+            Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name));
         }
 
         public string[] CurrentParameters { get; private set; }
@@ -887,9 +919,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void AddSchema(string name)
         {
-            var query = _cteInnerQuery.Peek();
+            var query = _cteLastQueriesByName[name];
 
             _schemaProvider.AddTransitionSchema(new TransitionSchema(name, CreateSchemaTable(query)));
+        }
+
+        public void SetCurrentCteName(string name)
+        {
+            _currentCte = name;
         }
 
         private ISchemaTable CreateSchemaTable(InternalQueryNode query)
@@ -1049,21 +1086,6 @@ namespace Musoq.Evaluator.Visitors
             }
 
             return fields.ToArray();
-        }
-        private Node[] GenerateTransitionNodes(InternalQueryNode newQuery)
-        {
-            var nodes = new List<Node>();
-
-            var innerQuery = _cteInnerQuery.Peek();
-            nodes.Add(new RenameTableNode(innerQuery.Into.Name, _currentCteExpression.Name));
-            var keys = newQuery.GroupBy == null
-                ? new string[0]
-                : newQuery.GroupBy?.Fields.Select(f => f.FieldName).ToArray();
-            nodes.Add(new CreateTableNode(newQuery.Into.Name, keys, newQuery.Select.Fields));
-
-            nodes.Add(newQuery);
-
-            return nodes.ToArray();
         }
 
         private RefreshNode CreateRefreshMethods()

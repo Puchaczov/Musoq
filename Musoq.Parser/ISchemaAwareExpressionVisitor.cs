@@ -14,6 +14,8 @@ namespace Musoq.Parser
 
         void AddSchema(string name);
 
+        void SetCurrentCteName(string name);
+
         void BeginCteQueryPart(CteExpressionNode node, CtePart part);
 
         void EndCteQuery();

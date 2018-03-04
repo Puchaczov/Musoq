@@ -436,12 +436,22 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(CteExpressionNode node)
         {
             _visitor.BeginCteQueryPart(node, CtePart.Inner);
-            node.InnerExpression.Accept(this);
-            _visitor.AddSchema(node.Name);
+            foreach (var exp in node.InnerExpression)
+            {
+                _visitor.SetCurrentCteName(exp.Name);
+                exp.Accept(this);
+                _visitor.AddSchema(exp.Name);
+            }
             _visitor.BeginCteQueryPart(node, CtePart.Outer);
             node.OuterExpression.Accept(this);
             node.Accept(_visitor);
             _visitor.EndCteQuery();
+        }
+
+        public void Visit(CteInnerExpressionNode node)
+        {
+            node.Value.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(FromNode node)

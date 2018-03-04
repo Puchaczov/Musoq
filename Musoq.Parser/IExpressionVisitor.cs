@@ -68,5 +68,6 @@ namespace Musoq.Parser
         void Visit(PutTrueNode node);
         void Visit(MultiStatementNode node);
         void Visit(CteExpressionNode node);
+        void Visit(CteInnerExpressionNode node);
     }
 }

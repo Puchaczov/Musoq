@@ -284,6 +284,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(CteInnerExpressionNode node)
+        {
+        }
+
         public void Visit(GroupByNode node)
         {
         }
