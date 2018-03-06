@@ -462,6 +462,56 @@ select City, Country from #B.entities()";
         }
 
         [TestMethod]
+        public void SimpleCteWithMultipleOuterExpressionsTest()
+        {
+            var query = @"
+with p as (
+    select City, Country from #A.entities() intersect (Country, City) 
+    select City, Country from #B.entities()
+) select City, Country from p where Country = 'FINLAND' union (Country, City)
+  select City, Country from p where Country = 'POLAND'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("HELSINKI", "FINLAND", 500),
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400)
+                    }
+                },
+                {
+                    "#B",
+                    new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350),
+                        new BasicEntity("TOKYO", "JAPAN", 500),
+                        new BasicEntity("HELSINKI", "FINLAND", 500)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+
+            Assert.AreEqual(2, table.Count());
+
+            Assert.AreEqual("HELSINKI", table[0].Values[0]);
+            Assert.AreEqual("FINLAND", table[0].Values[1]);
+
+            Assert.AreEqual("WARSAW", table[1].Values[0]);
+            Assert.AreEqual("POLAND", table[1].Values[1]);
+        }
+
+        [TestMethod]
         public void CteWithSetInInnerOuterExpressionTest()
         {
             var query = @"

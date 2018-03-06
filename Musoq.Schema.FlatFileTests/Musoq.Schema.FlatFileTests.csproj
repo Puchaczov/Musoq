@@ -63,6 +63,10 @@
       <Project>{B50CC668-94C3-429A-9D1F-45F4BB40CB0B}</Project>
       <Name>Musoq.Evaluator</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj">
+      <Project>{38B5F6DB-2DCB-46BF-A250-219D97B1C973}</Project>
+      <Name>Musoq.Parser</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj">
       <Project>{10775a77-bc60-47fd-a6ff-f02c3ea41944}</Project>
       <Name>Musoq.Plugins</Name>

@@ -537,8 +537,7 @@ namespace Musoq.Evaluator.Visitors
 
             var schema = _schemaProvider.GetSchema(node.Schema);
             var source = schema.GetRowSource(node.Method, node.Parameters);
-            var enumarble = source.Rows;
-            _instructions.Add(new LoadSource(enumarble));
+            _instructions.Add(new LoadSource(source));
             _instructions.Add(new GrabFirstValueFromSource(_labels, AnotherValueFromSourceLabelName));
             _labels.Add(WhereClauseBeginsLabelName, new Label(_instructions.Count));
         }

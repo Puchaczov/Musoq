@@ -2,20 +2,18 @@
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Lexing;
+using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
 namespace Musoq.Converter
 {
     public static class InstanceCreator
     {
-        public static VirtualMachine Create(string script, ISchemaProvider schemaProvider)
+        public static VirtualMachine Create(RootNode root, ISchemaProvider schemaProvider)
         {
             schemaProvider = new TransitionSchemaProvider(schemaProvider);
 
-            var lexer = new Lexer(script, true);
-            var parser = new FqlParser(lexer);
-
-            var query = parser.ComposeAll();
+            var query = root;
 
             var rewriter = new RewriteTreeVisitor((TransitionSchemaProvider)schemaProvider);
             var rewriteTraverser = new RewriteTreeTraverseVisitor(rewriter);
@@ -36,6 +34,19 @@ namespace Musoq.Converter
             query.Accept(traverser);
 
             return codeGenerator.VirtualMachine;
+        }
+
+        public static VirtualMachine Create(string script, ISchemaProvider schemaProvider)
+        {
+            return Create(CreateTree(script), schemaProvider);
+        }
+
+        public static RootNode CreateTree(string script)
+        {
+            var lexer = new Lexer(script, true);
+            var parser = new FqlParser(lexer);
+
+            return parser.ComposeAll();
         }
     }
 }

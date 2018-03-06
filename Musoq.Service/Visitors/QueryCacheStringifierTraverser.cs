@@ -1,30 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
-namespace Musoq.Evaluator.Visitors
+namespace Musoq.Service.Visitors
 {
-    public class CodeGenerationTraverseVisitor : IExpressionVisitor
+    public class QueryCacheStringifierTraverser : IExpressionVisitor
     {
-        private readonly IExpressionVisitor _visitor;
+        private readonly QueryCacheStringifier _visitor;
 
         /// <summary>
         ///     Initialize object.
         /// </summary>
         /// <param name="visitor">Visitor that will generate code for VM</param>
-        public CodeGenerationTraverseVisitor(IExpressionVisitor visitor,
-            IReadOnlyCollection<AccessMethodNode> aggregationMethods)
+        public QueryCacheStringifierTraverser(QueryCacheStringifier visitor)
         {
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         }
 
+        private void Iterate<TField>(TField[] arr)
+            where TField : Node
+        {
+            if(arr.Length == 0)
+                return;
+
+            for (int i = 0; i < arr.Length - 1; i++)
+            {
+                arr[i].Accept(this);
+                _visitor.AddText(",");
+            }
+
+            arr[arr.Length - 1].Accept(this);
+        }
+
         public void Visit(SelectNode node)
         {
-            foreach (var field in node.Fields)
-                field.Accept(this);
             node.Accept(_visitor);
+            _visitor.AddText("(");
+            Iterate(node.Fields);
+            _visitor.AddText(")");
         }
 
         public void Visit(StringNode node)
@@ -44,27 +60,27 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ContainsNode node)
         {
+            node.Accept(_visitor);
             node.Right.Accept(this);
             node.Left.Accept(this);
-            node.Accept(_visitor);
         }
 
         public void Visit(AccessMethodNode node)
         {
-            node.Arguments.Accept(this);
             node.Accept(_visitor);
+            node.Arguments.Accept(this);
         }
 
         public void Visit(GroupByAccessMethodNode node)
         {
-            node.Arguments.Accept(this);
             node.Accept(_visitor);
+            node.Arguments.Accept(this);
         }
 
         public void Visit(AccessRefreshAggreationScoreNode node)
         {
-            node.Arguments.Accept(this);
             node.Accept(_visitor);
+            node.Arguments.Accept(this);
         }
 
         public void Visit(AccessColumnNode node)
@@ -109,22 +125,20 @@ namespace Musoq.Evaluator.Visitors
         /// <param name="node">Where node that will be visited.</param>
         public virtual void Visit(WhereNode node)
         {
-            node.Expression.Accept(this);
             node.Accept(_visitor);
+            node.Expression.Accept(this);
         }
 
         public void Visit(GroupByNode node)
         {
-            foreach (var field in node.Fields)
-                field.Accept(this);
-
             node.Accept(_visitor);
+            Iterate(node.Fields);
         }
 
         public void Visit(HavingNode node)
         {
-            node.Expression.Accept(this);
             node.Accept(_visitor);
+            node.Expression.Accept(this);
         }
 
         public void Visit(SkipNode node)
@@ -139,22 +153,28 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ExistingTableFromNode node)
         {
+            _visitor.AddText("from");
             node.Accept(_visitor);
         }
 
         public void Visit(SchemaFromNode node)
         {
+            _visitor.AddText("from");
             node.Accept(_visitor);
         }
 
         public void Visit(NestedQueryFromNode node)
         {
-            node.Query.Accept(this);
+            _visitor.AddText("from");
+            _visitor.AddText("(");
             node.Accept(_visitor);
+            node.Query.Accept(this);
+            _visitor.AddText(")");
         }
 
         public void Visit(CteFromNode node)
         {
+            _visitor.AddText("from");
             node.Accept(_visitor);
         }
 
@@ -170,9 +190,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(TranslatedSetTreeNode node)
         {
+            node.Accept(_visitor);
             foreach (var item in node.Nodes)
                 item.Accept(this);
-            node.Accept(_visitor);
         }
 
         public void Visit(IntoNode node)
@@ -192,27 +212,29 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(TranslatedSetOperatorNode node)
         {
+            node.Accept(_visitor);
             foreach (var item in node.CreateTableNodes)
                 item.Accept(_visitor);
             node.FQuery.Accept(this);
             node.SQuery.Accept(this);
-            node.Accept(_visitor);
         }
 
         public void Visit(QueryNode node)
         {
+            node.Accept(_visitor);
+            node.Select.Accept(this);
             node.From.Accept(this);
-            node.Skip?.Accept(this);
             node.Where.Accept(this);
             node.GroupBy?.Accept(this);
             node.GroupBy?.Having?.Accept(this);
+            node.Skip?.Accept(this);
             node.Take?.Accept(this);
-            node.Select.Accept(this);
-            node.Accept(_visitor);
         }
 
         public void Visit(InternalQueryNode node)
         {
+            node.Accept(_visitor);
+            node.Select?.Accept(this);
             node.From.Accept(this);
             node.Skip?.Accept(this);
             node.Where.Accept(this);
@@ -220,10 +242,8 @@ namespace Musoq.Evaluator.Visitors
             node.Refresh?.Accept(this);
             node.GroupBy?.Having?.Accept(this);
             node.Take?.Accept(this);
-            node.Select?.Accept(this);
             node.ShouldBePresent?.Accept(_visitor);
             node.Into?.Accept(_visitor);
-            node.Accept(_visitor);
         }
 
         /// <summary>
@@ -233,8 +253,8 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(OrNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(ShortCircuitingNodeLeft node)
@@ -252,8 +272,8 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(HyphenNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         /// <summary>
@@ -263,8 +283,8 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(AndNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         /// <summary>
@@ -274,62 +294,62 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(EqualityNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(GreaterOrEqualNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(LessOrEqualNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(GreaterNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(LessNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(DiffNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(NotNode node)
         {
-            node.Expression.Accept(this);
             node.Accept(_visitor);
+            node.Expression.Accept(this);
         }
 
         public void Visit(LikeNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(FieldNode node)
         {
-            node.Expression.Accept(this);
             node.Accept(_visitor);
+            node.Expression.Accept(this);
         }
 
         /// <summary>
@@ -338,9 +358,10 @@ namespace Musoq.Evaluator.Visitors
         /// <param name="node">ArgList node that will be visited.</param>
         public void Visit(ArgsListNode node)
         {
-            foreach (var item in node.Args)
-                item.Accept(this);
             node.Accept(_visitor);
+            _visitor.AddText("(");
+            Iterate(node.Args);
+            _visitor.AddText(")");
         }
 
         /// <summary>
@@ -360,35 +381,35 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(StarNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(FSlashNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(ModuloNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(AddNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(RootNode node)
         {
-            node.Expression.Accept(this);
             node.Accept(_visitor);
+            node.Expression.Accept(this);
         }
 
         public void Visit(SingleSetNode node)
@@ -400,37 +421,36 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(UnionNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(UnionAllNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(ExceptNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(RefreshNode node)
         {
+            node.Accept(_visitor);
             foreach (var item in node.Nodes)
                 item.Accept(this);
-
-            node.Accept(_visitor);
         }
 
         public void Visit(IntersectNode node)
         {
             node.Left.Accept(this);
-            node.Right.Accept(this);
             node.Accept(_visitor);
+            node.Right.Accept(this);
         }
 
         public void Visit(PutTrueNode node)
@@ -440,23 +460,24 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(MultiStatementNode node)
         {
+            node.Accept(_visitor);
             foreach (var cNode in node.Nodes)
                 cNode.Accept(this);
-            node.Accept(_visitor);
         }
 
         public void Visit(CteExpressionNode node)
         {
-            foreach (var exp in node.InnerExpression)
-                exp.Accept(this);
             node.Accept(_visitor);
+            Iterate(node.InnerExpression);
             node.OuterExpression.Accept(this);
         }
 
         public void Visit(CteInnerExpressionNode node)
         {
-            node.Value.Accept(this);
             node.Accept(_visitor);
+            _visitor.AddText("(");
+            node.Value.Accept(this);
+            _visitor.AddText(")");
         }
 
         public void Visit(FromNode node)
@@ -470,9 +491,9 @@ namespace Musoq.Evaluator.Visitors
         /// <param name="node">Function node that will be visited.</param>
         public virtual void Visit(RawFunctionNode node)
         {
+            node.Accept(_visitor);
             foreach (var item in node.Parameters.Reverse())
                 item.Accept(this);
-            node.Accept(_visitor);
         }
     }
 }

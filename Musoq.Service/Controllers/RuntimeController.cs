@@ -2,11 +2,16 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web.Http;
+using CacheManager.Core;
 using Musoq.Converter;
+using Musoq.Evaluator;
+using Musoq.Plugins.Helpers;
 using Musoq.Service.Client;
 using Musoq.Service.Models;
+using Musoq.Service.Visitors;
 
 namespace Musoq.Service.Controllers
 {
@@ -14,12 +19,15 @@ namespace Musoq.Service.Controllers
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
         private readonly IDictionary<Guid, ExecutionState> _runetimeState;
+        private readonly ICacheManager<VirtualMachine> _expressionsCache;
 
         public RuntimeController(IDictionary<Guid, QueryContext> contexts,
-            IDictionary<Guid, ExecutionState> runetimeState)
+            IDictionary<Guid, ExecutionState> runetimeState,
+            CacheManager.Core.ICacheManager<Evaluator.VirtualMachine> expressionsCache)
         {
             _contexts = contexts;
             _runetimeState = runetimeState;
+            _expressionsCache = expressionsCache;
         }
 
         [HttpPost]
@@ -47,10 +55,24 @@ namespace Musoq.Service.Controllers
                     var watch = new Stopwatch();
                     
                     watch.Start();
-                    var vm = InstanceCreator.Create(query, new DynamicSchemaProvider());
+
+                    var root = InstanceCreator.CreateTree(query);
+
+                    var cacheKeyCreator = new QueryCacheStringifier();
+                    var traverser = new QueryCacheStringifierTraverser(cacheKeyCreator);
+
+                    root.Accept(traverser);
+
+                    var key = cacheKeyCreator.CacheKey;
+                    var hash = HashHelper.ComputeHash<MD5CryptoServiceProvider>(key);
+
+                    if(!_expressionsCache.TryGetOrAdd(hash, (s) => InstanceCreator.Create(root, new DynamicSchemaProvider()), out var vm))
+                        vm = InstanceCreator.Create(root, new DynamicSchemaProvider());
+
                     var compiledTime = watch.Elapsed;
                     state.Result = vm.Execute();
                     var executionTime = watch.Elapsed;
+
                     watch.Stop();
 
                     state.CompilationTime = compiledTime;
@@ -59,7 +81,6 @@ namespace Musoq.Service.Controllers
                 }
                 catch (Exception exc)
                 {
-
                     state.Status = ExecutionStatus.Failure;
                     state.FailureMessage = exc.ToString();
                 }

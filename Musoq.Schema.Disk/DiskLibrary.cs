@@ -10,22 +10,21 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
+using Musoq.Plugins.Helpers;
 using Group = Musoq.Plugins.Group;
 
 namespace Musoq.Schema.Disk
 {
     [BindableClass]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    public partial class DiskLibrary : LibraryBase
+    public class DiskLibrary : LibraryBase
     {
         [BindableMethod]
         public string Sha1File([InjectSource] FileInfo file)
         {
             using (var stream = file.OpenRead())
             {
-                var sha = new SHA1CryptoServiceProvider();
-                var hash = sha.ComputeHash(stream);
-                return BitConverter.ToString(hash).Replace("-", string.Empty);
+                return HashHelper.ComputeHash<SHA1CryptoServiceProvider>(stream);
             }
         }
 
@@ -34,9 +33,7 @@ namespace Musoq.Schema.Disk
         {
             using (var stream = file.OpenRead())
             {
-                var sha = new SHA256Managed();
-                var hash = sha.ComputeHash(stream);
-                return BitConverter.ToString(hash).Replace("-", string.Empty);
+                return HashHelper.ComputeHash<SHA256CryptoServiceProvider>(stream);
             }
         }
 
@@ -45,9 +42,7 @@ namespace Musoq.Schema.Disk
         {
             using (var stream = file.OpenRead())
             {
-                var sha = new MD5CryptoServiceProvider();
-                var hash = sha.ComputeHash(stream);
-                return BitConverter.ToString(hash).Replace("-", string.Empty);
+                return HashHelper.ComputeHash<MD5CryptoServiceProvider>(stream);
             }
         }
 
