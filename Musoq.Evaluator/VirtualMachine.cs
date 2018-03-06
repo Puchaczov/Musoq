@@ -43,24 +43,12 @@ namespace Musoq.Evaluator
             return Current.Tables[Current.StringsStack.Pop()];
         }
 
-        public StackFrame Current { get; private set; }
+        public StackFrame Current { get; }
 
         public long this[Register register]
         {
             get => Current.Registers[(int) register];
             set => Current.Registers[(int) register] = value;
-        }
-
-        public void PushStackFrame()
-        {
-            _frames.Push(new StackFrame());
-            Current = _frames.Peek();
-        }
-
-        public void PopStackFram()
-        {
-            _frames.Pop();
-            Current = _frames.Peek();
         }
     }
 }
