@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Musoq.Plugins.Attributes;
+using Musoq.Plugins.Helpers;
 
 namespace Musoq.Plugins
 {
@@ -578,19 +579,19 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string Sha512(string content)
         {
-            return CalculateHash<SHA512Managed>(content);
+            return HashHelper.ComputeHash<SHA512Managed>(content);
         }
 
         [BindableMethod]
         public string Sha256(string content)
         {
-            return CalculateHash<SHA256Managed>(content);
+            return HashHelper.ComputeHash<SHA256Managed>(content);
         }
 
         [BindableMethod]
         public string Md5(string content)
         {
-            return CalculateHash<MD5CryptoServiceProvider>(content);
+            return HashHelper.ComputeHash<MD5CryptoServiceProvider>(content);
         }
 
         [BindableMethod]
@@ -630,17 +631,6 @@ namespace Musoq.Plugins
                 new Regex(@"\A" + new Regex(@"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\")
                               .Replace(searchFor, ch => @"\" + ch).Replace('_', '.')
                               .Replace("%", ".*") + @"\z", RegexOptions.Singleline).IsMatch(content);
-        }
-
-        private static string CalculateHash<THashProvider>(string content)
-            where THashProvider : HashAlgorithm, new()
-        {
-            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(content)))
-            {
-                var provider = new THashProvider();
-                var hash = provider.ComputeHash(stream);
-                return BitConverter.ToString(hash).Replace("-", string.Empty);
-            }
         }
 
         private static Group GetParentGroup(Group group, long number)

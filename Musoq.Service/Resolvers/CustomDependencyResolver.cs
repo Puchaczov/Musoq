@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Web.Http.Dependencies;
+using CacheManager.Core;
+using Musoq.Evaluator;
 using Musoq.Service.Client;
 using Musoq.Service.Controllers;
 using Musoq.Service.Models;
@@ -12,6 +14,9 @@ namespace Musoq.Service.Resolvers
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
         private readonly IDictionary<Guid, ExecutionState> _states;
+
+        private readonly ICacheManager<VirtualMachine> _expressionsCache = CacheFactory.Build<VirtualMachine>("evaluatedExpressions",
+            settings => { settings.WithSystemRuntimeCacheHandle("exps"); });
 
         public CustomDependencyResolver()
         {
@@ -31,7 +36,7 @@ namespace Musoq.Service.Resolvers
                 case nameof(ContextController):
                     return new ContextController(_contexts);
                 case nameof(RuntimeController):
-                    return new RuntimeController(_contexts, _states);
+                    return new RuntimeController(_contexts, _states, _expressionsCache);
                 case nameof(SelfController):
                     return new SelfController();
             }

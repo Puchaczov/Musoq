@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CsvSchemaProvider.cs" />
+    <Compile Include="DiskSchemaProvider.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -63,9 +64,17 @@
       <Project>{B50CC668-94C3-429A-9D1F-45F4BB40CB0B}</Project>
       <Name>Musoq.Evaluator</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj">
+      <Project>{38B5F6DB-2DCB-46BF-A250-219D97B1C973}</Project>
+      <Name>Musoq.Parser</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Musoq.Schema.Csv\Musoq.Schema.Csv.csproj">
       <Project>{44D1D33F-600A-444C-969B-E3258F5B2FDD}</Project>
       <Name>Musoq.Schema.Csv</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Musoq.Schema.Disk\Musoq.Schema.Disk.csproj">
+      <Project>{e4945f2f-34a6-40e3-81aa-c234e44f5893}</Project>
+      <Name>Musoq.Schema.Disk</Name>
     </ProjectReference>
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj">
       <Project>{1B7D2E6C-05A9-42E1-BE32-9A6821E390CA}</Project>

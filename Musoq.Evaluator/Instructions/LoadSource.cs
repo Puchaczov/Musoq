@@ -5,16 +5,17 @@ namespace Musoq.Evaluator.Instructions
 {
     public class LoadSource : ByteCodeInstruction
     {
-        private readonly IEnumerable<IObjectResolver> _source;
+        private readonly RowSource _source;
 
-        public LoadSource(IEnumerable<IObjectResolver> enumarble)
+        public LoadSource(RowSource rowSource)
         {
-            _source = enumarble;
+            _source = rowSource;
         }
 
         public override void Execute(IVirtualMachine virtualMachine)
         {
-            virtualMachine.Current.SourceStack.Push(_source.GetEnumerator());
+            var source = _source.Rows;
+            virtualMachine.Current.SourceStack.Push(source.GetEnumerator());
             virtualMachine[Register.Ip] += 1;
         }
 

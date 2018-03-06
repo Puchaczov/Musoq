@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Tables;
+using Musoq.Plugins;
 
 namespace Musoq.Evaluator
 {
@@ -40,7 +41,11 @@ namespace Musoq.Evaluator
                     Debugger.Break();
             }
 
-            return Current.Tables[Current.StringsStack.Pop()];
+            var table = Current.Tables[Current.StringsStack.Pop()];
+
+            Clear();
+
+            return table;
         }
 
         public StackFrame Current { get; private set; }
@@ -49,6 +54,25 @@ namespace Musoq.Evaluator
         {
             get => Current.Registers[(int) register];
             set => Current.Registers[(int) register] = value;
+        }
+
+        private void Clear()
+        {
+            Current.SourceStack.Clear();
+            Current.Groups.Clear();
+
+            Current.CurrentGroup = new Group(null, new string[0], new object[0]);
+            Current.Groups.Add("root", Current.CurrentGroup);
+
+            Current.LongsStack.Clear();
+            Current.NumericsStack.Clear();
+            Current.ObjectsStack.Clear();
+            Current.Stats = new AmendableQueryStats();
+            Current.StringsStack.Clear();
+            Current.Tables.Clear();
+
+            this[Register.Ip] = 0;
+            this[Register.Sop] = 0;
         }
 
         public void PushStackFrame()
