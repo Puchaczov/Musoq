@@ -23,7 +23,7 @@ namespace Musoq.Service.Controllers
 
         public RuntimeController(IDictionary<Guid, QueryContext> contexts,
             IDictionary<Guid, ExecutionState> runetimeState,
-            CacheManager.Core.ICacheManager<Evaluator.VirtualMachine> expressionsCache)
+            ICacheManager<VirtualMachine> expressionsCache)
         {
             _contexts = contexts;
             _runetimeState = runetimeState;

@@ -13,8 +13,8 @@ namespace Musoq.Schema.Csv
 
         public ChunkedFile(BlockingCollection<List<EntityResolver<string[]>>> readedRows, CancellationToken token)
         {
-            this._readedRows = readedRows;
-            this._token = token;
+            _readedRows = readedRows;
+            _token = token;
         }
 
         public IEnumerator<IObjectResolver> GetEnumerator()

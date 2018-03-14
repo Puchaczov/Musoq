@@ -226,7 +226,7 @@ namespace Musoq.Service.Visitors
 
         public void Visit(SchemaFromNode node)
         {
-            _script.Append("_");
+            _script.Append($"{node.Schema}.{node.Method}");
         }
 
         public void Visit(NestedQueryFromNode node)

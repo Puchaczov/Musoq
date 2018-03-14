@@ -9,15 +9,14 @@ namespace Musoq.Evaluator
 {
     public class VirtualMachine : IVirtualMachine
     {
-        private readonly Stack<StackFrame> _frames;
         private readonly ByteCodeInstruction[] _instructions;
 
         public VirtualMachine(ByteCodeInstruction[] byteCodeInstruction)
         {
             _instructions = byteCodeInstruction;
-            _frames = new Stack<StackFrame>();
-            _frames.Push(new StackFrame());
-            Current = _frames.Peek();
+            var frames = new Stack<StackFrame>();
+            frames.Push(new StackFrame());
+            Current = frames.Peek();
         }
 
         public Table Execute()
