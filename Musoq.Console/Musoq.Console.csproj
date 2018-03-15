@@ -11,6 +11,7 @@
     <PackageReference Include="ConsoleTableExt" Version="2.0.1" />
     <PackageReference Include="CsvHelper" Version="7.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,6 +19,12 @@
     <ProjectReference Include="..\Musoq.Schema.Tcp.Core\Musoq.Schema.Tcp.Core.csproj" />
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
     <ProjectReference Include="..\Musoq.Service.Client\Musoq.Service.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App.config">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
