@@ -31,7 +31,7 @@ namespace Musoq.Schema.Managers
 
         public MethodInfo ResolveProperty(string name)
         {
-            return _propsManager.Properties.Single(f => f.Name == name);
+            return _propsManager.Properties.SingleOrDefault(f => f.Name == name);
         }
 
         public object GetObjectForTheMethod(MethodInfo method)

@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Musoq.Schema;
+using Musoq.Service.Exceptions;
 using Musoq.Service.Helpers;
 
 namespace Musoq.Service
@@ -16,7 +17,12 @@ namespace Musoq.Service
         public ISchema GetSchema(string schema)
         {
             schema = schema.ToLowerInvariant();
-            return _schemas.First(f => $"#{f.Name}" == schema);
+            var foundedSchema = _schemas.FirstOrDefault(f => $"#{f.Name.ToLowerInvariant()}" == schema);
+
+            if (foundedSchema == null)
+                throw new SchemaNotFoundException(schema);
+
+            return foundedSchema;
         }
     }
 }

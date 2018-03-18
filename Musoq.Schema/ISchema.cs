@@ -19,5 +19,7 @@ namespace Musoq.Schema
         bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo);
 
         MethodInfo ResolveProperty(string property);
+
+        bool TryResolveProperty(string property, out MethodInfo methodInfo);
     }
 }

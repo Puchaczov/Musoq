@@ -41,7 +41,19 @@ namespace Musoq.Schema.DataSources
 
         public MethodInfo ResolveProperty(string property)
         {
-            return _aggregator.ResolveProperty(property);
+            MethodInfo method;
+            if ((method = _aggregator.ResolveProperty(property)) != null)
+                return method;
+
+            throw new MissingMethodException(property);
+        }
+
+        public bool TryResolveProperty(string property, out MethodInfo methodInfo)
+        {
+            if ((methodInfo = _aggregator.ResolveProperty(property)) != null)
+                return true;
+
+            return false;
         }
     }
 }

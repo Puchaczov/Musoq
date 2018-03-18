@@ -84,7 +84,19 @@ namespace Musoq.Evaluator.Tests.Schema
 
         public MethodInfo ResolveProperty(string property)
         {
-            return _aggreagator.ResolveProperty(property);
+            MethodInfo method;
+            if ((method = _aggreagator.ResolveProperty(property)) != null)
+                return method;
+
+            throw new MissingMethodException(property);
+        }
+
+        public bool TryResolveProperty(string property, out MethodInfo methodInfo)
+        {
+            if ((methodInfo = _aggreagator.ResolveProperty(property)) != null)
+                return true;
+
+            return false;
         }
     }
 }

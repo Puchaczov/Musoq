@@ -10,6 +10,7 @@ using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins.Helpers;
 using Musoq.Service.Client;
+using Musoq.Service.Logging;
 using Musoq.Service.Models;
 using Musoq.Service.Visitors;
 
@@ -20,23 +21,25 @@ namespace Musoq.Service.Controllers
         private readonly IDictionary<Guid, QueryContext> _contexts;
         private readonly IDictionary<Guid, ExecutionState> _runetimeState;
         private readonly ICacheManager<VirtualMachine> _expressionsCache;
+        private readonly IServiceLogger _logger;
 
         public RuntimeController(IDictionary<Guid, QueryContext> contexts,
             IDictionary<Guid, ExecutionState> runetimeState,
-            ICacheManager<VirtualMachine> expressionsCache)
+            ICacheManager<VirtualMachine> expressionsCache, IServiceLogger logger)
         {
             _contexts = contexts;
             _runetimeState = runetimeState;
             _expressionsCache = expressionsCache;
+            _logger = logger;
         }
 
         [HttpPost]
         public Guid Execute([FromUri] Guid id)
         {
-            Console.WriteLine($"Executing task: {id}.");
-
             if (!_contexts.TryGetValue(id, out var context))
                 return Guid.Empty;
+
+            _logger.Log($"Executing task: {id}.");
 
             var query = context.Query;
             var state = new ExecutionState
@@ -83,6 +86,7 @@ namespace Musoq.Service.Controllers
                 {
                     state.Status = ExecutionStatus.Failure;
                     state.FailureMessage = exc.ToString();
+                    _logger.Log(exc);
                 }
             });
 
@@ -92,7 +96,8 @@ namespace Musoq.Service.Controllers
         [HttpGet]
         public ResultTable Result([FromUri] Guid id)
         {
-            Console.WriteLine($"Returning result for: {id}.");
+            _logger.Log($"Returning result for: {id}.");
+
             var state = _runetimeState[id];
             var table = state.Result;
             var computationTime = state.ExecutionTime;
@@ -107,7 +112,8 @@ namespace Musoq.Service.Controllers
         [HttpGet]
         public (bool HasContext, ExecutionStatus Status) Status([FromUri] Guid id)
         {
-            Console.WriteLine($"Checking status for: {id}.");
+            _logger.Log($"Checking status for: {id}.");
+
             if (!_runetimeState.ContainsKey(id))
                 return (false, ExecutionStatus.WaitingToStart);
 

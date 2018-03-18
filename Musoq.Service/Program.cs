@@ -13,11 +13,11 @@ namespace Musoq.Service
             var server = new ContextService();
             server.Start(args);
 #else
-            var ServicesToRun = new ServiceBase[]
+            var servicesToRun = new ServiceBase[]
             {
                 new ContextService()
             };
-            ServiceBase.Run(ServicesToRun);
+            ServiceBase.Run(servicesToRun);
 #endif
         }
     }

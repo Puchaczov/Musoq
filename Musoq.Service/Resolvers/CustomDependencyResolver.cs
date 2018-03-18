@@ -6,6 +6,7 @@ using CacheManager.Core;
 using Musoq.Evaluator;
 using Musoq.Service.Client;
 using Musoq.Service.Controllers;
+using Musoq.Service.Logging;
 using Musoq.Service.Models;
 
 namespace Musoq.Service.Resolvers
@@ -34,9 +35,9 @@ namespace Musoq.Service.Resolvers
             switch (name)
             {
                 case nameof(ContextController):
-                    return new ContextController(_contexts);
+                    return new ContextController(_contexts, new ServiceLogger());
                 case nameof(RuntimeController):
-                    return new RuntimeController(_contexts, _states, _expressionsCache);
+                    return new RuntimeController(_contexts, _states, _expressionsCache, new ServiceLogger());
                 case nameof(SelfController):
                     return new SelfController();
             }

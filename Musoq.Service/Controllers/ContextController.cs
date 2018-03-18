@@ -6,22 +6,25 @@ using System.Web.Http;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Service.Client;
+using Musoq.Service.Logging;
 
 namespace Musoq.Service.Controllers
 {
     public class ContextController : ApiController
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
+        private readonly IServiceLogger _logger;
 
-        public ContextController(IDictionary<Guid, QueryContext> contexts)
+        public ContextController(IDictionary<Guid, QueryContext> contexts, IServiceLogger logger)
         {
             _contexts = contexts;
+            _logger = logger;
         }
 
         [HttpPost]
         public Guid Create([FromBody] QueryContext context)
         {
-            Console.WriteLine("Creating context.");
+            _logger.Log($"Creating context ({context.Query}).");
             var id = Guid.NewGuid();
             _contexts.Add(id, context);
             return id;
@@ -42,8 +45,11 @@ namespace Musoq.Service.Controllers
                     {
                         Name = method.Name,
                         ReturnType = method.ReturnType.Name,
-                        Args = method.GetParameters().Where(f => f.GetCustomAttribute<InjectTypeAttribute>() == null)
-                            .Select(f => f.ParameterType.Name).ToArray()
+                        Args = method
+                            .GetParameters()
+                            .Where(f => f.GetCustomAttribute<InjectTypeAttribute>() == null)
+                            .Select(f => f.ParameterType.Name)
+                            .ToArray()
                     });
                 }
             }

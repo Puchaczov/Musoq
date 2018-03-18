@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser;
@@ -253,7 +254,9 @@ namespace Musoq.Evaluator.Visitors
             var column = _table.Columns.SingleOrDefault(f => f.ColumnName == node.Name);
             if (column == null)
             {
-                var method = _schema.ResolveProperty(node.Name);
+                if(!_schema.TryResolveProperty(node.Name, out var method))
+                    throw new UnknownColumnException($"Unknown column '{node.Name}'.");
+
                 node.ChangeReturnType(method.ReturnType);
                 Nodes.Push(new AccessMethodNode(new FunctionToken(method.Name, TextSpan.Empty), new ArgsListNode(new Node[0]), null, method));
             }
