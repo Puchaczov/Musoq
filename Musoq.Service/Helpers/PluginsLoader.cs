@@ -5,13 +5,19 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Musoq.Schema;
+using Musoq.Service.Logging;
 
 namespace Musoq.Service.Helpers
 {
     public static class PluginsLoader
     {
+        private static ISchema[] _plugins;
+
         public static ISchema[] LoadSchemas()
         {
+            if (_plugins != null)
+                return _plugins;
+
             var assemblies = GetReferencingAssemblies();
             var assemblyTypes = assemblies.SelectMany(assembly =>
                 assembly.GetTypes());
@@ -30,12 +36,12 @@ namespace Musoq.Service.Helpers
                 }
                 catch (Exception e)
                 {
-                    if (Debugger.IsAttached)
-                        Debug.Write(e);
+                    ServiceLogger.Instance.Log(e);
                 }
             }
 
-            return plugins.ToArray();
+            _plugins = plugins.ToArray();
+            return _plugins;
         }
 
         private static IEnumerable<Assembly> GetReferencingAssemblies()
@@ -53,10 +59,7 @@ namespace Musoq.Service.Helpers
                 .GetDirectories()
                 .SelectMany(sm => sm
                     .GetFiles("*.dll")
-                    .Select(file =>
-                    {
-                        return Assembly.LoadFile(file.FullName);
-                    }));
+                    .Select(file => Assembly.LoadFile(file.FullName)));
         }
     }
 }

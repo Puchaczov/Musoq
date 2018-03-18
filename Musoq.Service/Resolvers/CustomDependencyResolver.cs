@@ -35,9 +35,9 @@ namespace Musoq.Service.Resolvers
             switch (name)
             {
                 case nameof(ContextController):
-                    return new ContextController(_contexts, new ServiceLogger());
+                    return new ContextController(_contexts, ServiceLogger.Instance);
                 case nameof(RuntimeController):
-                    return new RuntimeController(_contexts, _states, _expressionsCache, new ServiceLogger());
+                    return new RuntimeController(_contexts, _states, _expressionsCache, ServiceLogger.Instance);
                 case nameof(SelfController):
                     return new SelfController();
             }
