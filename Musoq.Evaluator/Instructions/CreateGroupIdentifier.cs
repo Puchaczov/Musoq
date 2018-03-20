@@ -40,6 +40,9 @@ namespace Musoq.Evaluator.Instructions
                     case nameof(Boolean):
                         values[i] = (virtualMachine.Current.BooleanStack.Pop(), type.Name);
                         break;
+                    default:
+                        values[i] = (virtualMachine.Current.ObjectsStack.Pop(), type.Name);
+                        break;
                 }
             }
 
@@ -86,6 +89,9 @@ namespace Musoq.Evaluator.Instructions
                         break;
                     case nameof(Boolean):
                         virtualMachine.Current.BooleanStack.Push((bool) values[i].Value);
+                        break;
+                    default:
+                        virtualMachine.Current.ObjectsStack.Push(values[i].Value);
                         break;
                 }
             }

@@ -16,6 +16,7 @@ namespace Musoq.Schema.DataSources
         }
 
         public string Name { get; }
+
         public abstract ISchemaTable GetTableByName(string name, string[] parameters);
 
         public abstract RowSource GetRowSource(string name, string[] parameters);
@@ -33,6 +34,7 @@ namespace Musoq.Schema.DataSources
         public bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo)
         {
             var founded = _aggregator.TryResolveMethod(method, parameters, out methodInfo);
+
             if (founded)
                 return methodInfo.GetCustomAttribute<AggregationMethodAttribute>() != null;
 

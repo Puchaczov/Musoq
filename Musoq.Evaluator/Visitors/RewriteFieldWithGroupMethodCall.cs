@@ -43,5 +43,10 @@ namespace Musoq.Evaluator.Visitors
                 base.Visit(node);
             }
         }
+
+        public override void Visit(AccessCallChainNode node)
+        {
+            Nodes.Push(new DetailedAccessColumnNode(node.ToString(), _fieldOrder++, node.ReturnType));
+        }
     }
 }

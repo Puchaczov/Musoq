@@ -45,6 +45,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.FlatFile", "Mu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.FlatFileTests", "Musoq.Schema.FlatFileTests\Musoq.Schema.FlatFileTests.csproj", "{73C0716B-29C2-482E-9DC2-F797DFA2499C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Git", "Musoq.Schema.Git\Musoq.Schema.Git.csproj", "{DDCD1887-28E5-45C3-B08B-D7E05F1B7F88}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,10 @@ Global
 		{73C0716B-29C2-482E-9DC2-F797DFA2499C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73C0716B-29C2-482E-9DC2-F797DFA2499C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73C0716B-29C2-482E-9DC2-F797DFA2499C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDCD1887-28E5-45C3-B08B-D7E05F1B7F88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDCD1887-28E5-45C3-B08B-D7E05F1B7F88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDCD1887-28E5-45C3-B08B-D7E05F1B7F88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDCD1887-28E5-45C3-B08B-D7E05F1B7F88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

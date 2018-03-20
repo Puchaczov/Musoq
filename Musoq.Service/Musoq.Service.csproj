@@ -218,6 +218,8 @@ Copy /Y "$(SolutionDir)Musoq.Schema.Json\bin\$(ConfigurationName)\netstandard2.0
 if not exist "$(TargetDir)\Plugins\Csv\" mkdir "$(TargetDir)\Plugins\Csv\"
 Copy /Y "$(SolutionDir)Musoq.Schema.Csv\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\Csv\"
 if not exist "$(TargetDir)\Plugins\FlatFile\" mkdir "$(TargetDir)\Plugins\FlatFile\"
-Copy /Y "$(SolutionDir)Musoq.Schema.FlatFile\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\FlatFile\"</PostBuildEvent>
+Copy /Y "$(SolutionDir)Musoq.Schema.FlatFile\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\FlatFile\"
+if not exist "$(TargetDir)\Plugins\Git\" mkdir "$(TargetDir)\Plugins\Git\"
+xcopy "$(SolutionDir)Musoq.Schema.Git\bin\$(ConfigurationName)\*.*" "$(TargetDir)\Plugins\Git\" /Y /I /E</PostBuildEvent>
   </PropertyGroup>
 </Project>

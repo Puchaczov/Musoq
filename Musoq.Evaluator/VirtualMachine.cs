@@ -32,6 +32,12 @@ namespace Musoq.Evaluator
                     var instruction = _instructions[ip];
                     instruction.Execute(this);
                 }
+
+                var table = Current.Tables[Current.StringsStack.Pop()];
+
+                Clear();
+
+                return table;
             }
             catch (Exception e)
             {
@@ -40,11 +46,9 @@ namespace Musoq.Evaluator
                     Debugger.Break();
             }
 
-            var table = Current.Tables[Current.StringsStack.Pop()];
-
             Clear();
 
-            return table;
+            return null;
         }
 
         public StackFrame Current { get; }

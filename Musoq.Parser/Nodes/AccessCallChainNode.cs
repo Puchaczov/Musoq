@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Text;
 
 namespace Musoq.Parser.Nodes
 {
@@ -39,7 +40,29 @@ namespace Musoq.Parser.Nodes
         public override string Id { get; }
         public override string ToString()
         {
-            return "ACCESS CALL CHAIN";
+            var callChain = new StringBuilder();
+
+            callChain.Append(ColumnName);
+            callChain.Append('.');
+
+            (PropertyInfo Property, object Arg) prop;
+
+            for (var i = 0; i < Props.Length - 1; ++i)
+            {
+                prop = Props[i];
+                if(prop.Arg == null)
+                    callChain.Append($"{prop.Property.Name}.");
+                else
+                    callChain.Append($"{prop.Property.Name}[{prop.Arg}]");
+            }
+            
+            prop = Props[Props.Length - 1];
+            if (prop.Arg == null)
+                callChain.Append($"{prop.Property.Name}");
+            else
+                callChain.Append($"{prop.Property.Name}[{prop.Arg}]");
+
+            return callChain.ToString();
         }
     }
 }

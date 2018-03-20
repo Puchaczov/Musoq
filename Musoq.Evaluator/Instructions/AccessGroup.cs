@@ -45,7 +45,7 @@ namespace Musoq.Evaluator.Instructions
                     case nameof(Boolean):
                         allValues[i] = virtualMachine.Current.BooleanStack.Pop();
                         break;
-                    case nameof(Object):
+                    default:
                         allValues[i] = virtualMachine.Current.ObjectsStack.Pop();
                         break;
                 }

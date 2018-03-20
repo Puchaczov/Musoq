@@ -50,18 +50,18 @@ namespace Musoq.Schema.Disk.Directories
             DirectoriesColumns = new ISchemaColumn[]
             {
                 new SchemaColumn(nameof(DirectoryInfo.FullName), 0, typeof(string)),
-                new SchemaColumn(nameof(DirectoryInfo.Attributes), 0, typeof(FileAttributes)),
-                new SchemaColumn(nameof(DirectoryInfo.CreationTime), 0, typeof(DateTime)),
-                new SchemaColumn(nameof(DirectoryInfo.CreationTimeUtc), 0, typeof(DateTime)),
-                new SchemaColumn(nameof(DirectoryInfo.Exists), 0, typeof(bool)),
-                new SchemaColumn(nameof(DirectoryInfo.Extension), 0, typeof(string)),
-                new SchemaColumn(nameof(DirectoryInfo.LastAccessTime), 0, typeof(DateTime)),
-                new SchemaColumn(nameof(DirectoryInfo.LastAccessTimeUtc), 0, typeof(DateTime)),
-                new SchemaColumn(nameof(DirectoryInfo.Name), 0, typeof(string)),
-                new SchemaColumn(nameof(DirectoryInfo.LastWriteTime), 0, typeof(DateTime)),
-                new SchemaColumn(nameof(DirectoryInfo.Parent), 0, typeof(DirectoryInfo)),
-                new SchemaColumn(nameof(DirectoryInfo.Root), 0, typeof(DirectoryInfo)),
-                new SchemaColumn(nameof(DirectoryInfo), 0, typeof(DirectoryInfo))
+                new SchemaColumn(nameof(DirectoryInfo.Attributes), 1, typeof(FileAttributes)),
+                new SchemaColumn(nameof(DirectoryInfo.CreationTime), 2, typeof(DateTime)),
+                new SchemaColumn(nameof(DirectoryInfo.CreationTimeUtc), 3, typeof(DateTime)),
+                new SchemaColumn(nameof(DirectoryInfo.Exists), 4, typeof(bool)),
+                new SchemaColumn(nameof(DirectoryInfo.Extension), 5, typeof(string)),
+                new SchemaColumn(nameof(DirectoryInfo.LastAccessTime), 6, typeof(DateTime)),
+                new SchemaColumn(nameof(DirectoryInfo.LastAccessTimeUtc), 7, typeof(DateTime)),
+                new SchemaColumn(nameof(DirectoryInfo.Name), 8, typeof(string)),
+                new SchemaColumn(nameof(DirectoryInfo.LastWriteTime), 9, typeof(DateTime)),
+                new SchemaColumn(nameof(DirectoryInfo.Parent), 10, typeof(DirectoryInfo)),
+                new SchemaColumn(nameof(DirectoryInfo.Root), 11, typeof(DirectoryInfo)),
+                new SchemaColumn(nameof(DirectoryInfo), 12, typeof(DirectoryInfo))
             };
         }
     }

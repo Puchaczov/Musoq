@@ -347,7 +347,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new AccessCallChainNode(column.ColumnName, column.ColumnType, properties.ToArray()));
         }
 
-        public void Visit(AccessCallChainNode node)
+        public virtual void Visit(AccessCallChainNode node)
         {
             Nodes.Push(new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props));
         }
@@ -994,7 +994,8 @@ namespace Musoq.Evaluator.Visitors
 
                     if (subNode is AccessMethodNode aggregateMethod && aggregateMethod.IsAggregateMethod)
                     {
-                        if(nestedFields.Select(f => f.Expression.ToString()).Contains(subNode.ToString()))
+                        var subNodeStr = subNode.ToString();
+                        if(nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
                             continue;
 
                         nestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
@@ -1117,6 +1118,14 @@ namespace Musoq.Evaluator.Visitors
                 else if (_schema.TryResolveAggreationMethod(name, types, out methodInfo))
                 {
                     resolved = true;
+                }
+                else
+                {
+                    var args = types.Length == 0
+                        ? string.Empty
+                        : types.Select(t => t.Name).Aggregate((a, b) => a + ", " + b);
+
+                    throw new RefreshMethodNotFoundException($"Could not found method {name}({args})");
                 }
 
                 if (resolved)
