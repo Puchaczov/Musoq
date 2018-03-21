@@ -544,7 +544,11 @@ namespace Musoq.Evaluator.Visitors
         private FieldNode[] ConcatAggregateFieldsWithGroupByFields(FieldNode[] selectFields, FieldNode[] groupByFields)
         {
             var fields = new List<FieldNode>(selectFields);
-            var nextOrder = selectFields.Max(f => f.FieldOrder);
+            var nextOrder = -1;
+
+            if (selectFields.Length > 0)
+                nextOrder = selectFields.Max(f => f.FieldOrder);
+
             foreach (var groupField in groupByFields)
             {
                 var hasField = selectFields.Any(field => field.Expression.ToString() == groupField.Expression.ToString());
@@ -1098,7 +1102,7 @@ namespace Musoq.Evaluator.Visitors
 
             foreach (var item in _queryMethods.Where(f => f.IsAggregateMethod))
             {
-                if(item.Method.GetCustomAttribute<AggregateSetDoNotResolveAttribute>() != null)
+                if (item.Method.GetCustomAttribute<AggregateSetDoNotResolveAttribute>() != null)
                     continue;
 
                 var name = $"Set{item.Method.Name}";
@@ -1109,17 +1113,9 @@ namespace Musoq.Evaluator.Visitors
                         item.ExtraAggregateArguments.Args.Select(f => f.ReturnType))
                     .Where(f => f != null).ToArray();
 
-                var resolved = false;
-
-                if (_schema.TryResolveAggreationMethod(name, types, out var methodInfo))
-                {
-                    resolved = true;
-                }
-                else if (_schema.TryResolveAggreationMethod(name, types, out methodInfo))
-                {
-                    resolved = true;
-                }
-                else
+                var resolved = _schema.TryResolveAggreationMethod(name, types, out var methodInfo);
+                
+                if(!resolved)
                 {
                     var args = types.Length == 0
                         ? string.Empty
@@ -1128,13 +1124,11 @@ namespace Musoq.Evaluator.Visitors
                     throw new RefreshMethodNotFoundException($"Could not found method {name}({args})");
                 }
 
-                if (resolved)
-                {
-                    var newArgs = new ArgsListNode(item.Arguments.Args.Concat(item.ExtraAggregateArguments.Args).ToArray());
-                    var newAccessMethod = new AccessRefreshAggreationScoreNode(new FunctionToken(name, TextSpan.Empty), newArgs, null, methodInfo);
-                    if (!HasMethod(methods, newAccessMethod))
-                        methods.Add(newAccessMethod);
-                }
+                var newArgs = new ArgsListNode(item.Arguments.Args.Concat(item.ExtraAggregateArguments.Args).ToArray());
+                var newAccessMethod = new AccessRefreshAggreationScoreNode(new FunctionToken(name, TextSpan.Empty),
+                    newArgs, null, methodInfo);
+                if (!HasMethod(methods, newAccessMethod))
+                    methods.Add(newAccessMethod);
             }
 
             return new RefreshNode(methods.ToArray());

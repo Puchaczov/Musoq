@@ -754,5 +754,74 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("MUNICH", table[4].Values[0]);
             Assert.AreEqual(1750m, table[4].Values[1]);
         }
+
+        [TestMethod]
+        public void GroupBySimpleAccessTest()
+        {
+            var query = @"select Month from #A.Entities() group by Month";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[]
+                {
+                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
+                }}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("jan", table[0].Values[0]);
+        }
+
+        [TestMethod]
+        public void GroupByComplexObjectAccessTest()
+        {
+            var query = @"select Self.Month from #A.Entities() group by Self.Month";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[]
+                {
+                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
+                }}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("jan", table[0].Values[0]);
+        }
+
+        [TestMethod]
+        public void GroupByComplexObjectAccessWithSumTest()
+        {
+            var query = @"select Self.Month, Sum(Self.Money) from #A.Entities() group by Self.Month";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[]
+                {
+                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
+                    new BasicEntity("cracow", "feb", Convert.ToDecimal(100))
+                }}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+
+            Assert.AreEqual(2, table.Count);
+
+            Assert.AreEqual("jan", table[0].Values[0]);
+            Assert.AreEqual(500m, table[0].Values[1]);
+
+            Assert.AreEqual("feb", table[1].Values[0]);
+            Assert.AreEqual(100m, table[1].Values[1]);
+        }
     }
 }
