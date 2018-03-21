@@ -16,6 +16,10 @@ namespace Musoq.Schema.Git
         public static readonly IDictionary<int, Func<Tag, object>> TagsIndexToMethodAccessMap;
         public static readonly ISchemaColumn[] TagColumns;
 
+        public static readonly IDictionary<string, int> BranchesNameToIndexMap;
+        public static readonly IDictionary<int, Func<Branch, object>> BranchesIndexToMethodAccessMap;
+        public static readonly ISchemaColumn[] BranchColumns;
+
         static SchemaGitHelper()
         {
             CommitsNameToIndexMap = new Dictionary<string, int>
@@ -83,6 +87,46 @@ namespace Musoq.Schema.Git
                 new SchemaColumn(nameof(Tag.PeeledTarget), 4, typeof(GitObject)),
                 new SchemaColumn(nameof(Tag.Reference), 5, typeof(Reference)),
                 new SchemaColumn(nameof(Tag.Target), 6, typeof(GitObject))
+            };
+
+
+            BranchesNameToIndexMap = new Dictionary<string, int>
+            {
+                {nameof(Branch.IsCurrentRepositoryHead), 0},
+                {nameof(Branch.IsRemote), 1},
+                {nameof(Branch.IsTracking), 2},
+                {nameof(Branch.RemoteName), 3},
+                {nameof(Branch.Tip), 4},
+                {nameof(Branch.TrackingDetails), 5},
+                {nameof(Branch.CanonicalName), 6},
+                {nameof(Branch.FriendlyName), 7},
+                {nameof(Branch.Reference), 8}
+            };
+
+            BranchesIndexToMethodAccessMap = new Dictionary<int, Func<Branch, object>>
+            {
+                {0, info => info.IsCurrentRepositoryHead},
+                {1, info => info.IsRemote},
+                {2, info => info.IsTracking},
+                {3, info => info.RemoteName},
+                {4, info => info.Tip},
+                {5, info => info.TrackingDetails},
+                {6, info => info.CanonicalName},
+                {7, info => info.FriendlyName},
+                {8, info => info.Reference}
+            };
+
+            BranchColumns = new ISchemaColumn[]
+            {
+                new SchemaColumn(nameof(Branch.IsCurrentRepositoryHead), 0, typeof(bool)),
+                new SchemaColumn(nameof(Branch.IsRemote), 1, typeof(bool)),
+                new SchemaColumn(nameof(Branch.IsTracking), 2, typeof(bool)),
+                new SchemaColumn(nameof(Branch.RemoteName), 3, typeof(string)),
+                new SchemaColumn(nameof(Branch.Tip), 4, typeof(Commit)),
+                new SchemaColumn(nameof(Branch.TrackingDetails), 5, typeof(BranchTrackingDetails)),
+                new SchemaColumn(nameof(Branch.CanonicalName), 6, typeof(string)),
+                new SchemaColumn(nameof(Branch.FriendlyName), 7, typeof(string)),
+                new SchemaColumn(nameof(Branch.Reference), 8, typeof(Reference))
             };
         }
     }

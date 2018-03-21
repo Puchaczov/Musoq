@@ -46,6 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BranchesSource.cs" />
+    <Compile Include="BranchesTable.cs" />
     <Compile Include="GitSchema.cs" />
     <Compile Include="CommitsSource.cs" />
     <Compile Include="CommitsTable.cs" />

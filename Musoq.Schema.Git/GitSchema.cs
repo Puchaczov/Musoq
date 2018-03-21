@@ -23,6 +23,8 @@ namespace Musoq.Schema.Git
                     return new CommitsTable();
                 case "tags":
                     return new TagsTable();
+                case "branches":
+                    return new BranchesTable();
             }
 
             throw new NotSupportedException(name);
@@ -34,6 +36,10 @@ namespace Musoq.Schema.Git
             {
                 case "commits":
                     return new CommitsSource(parameters[0], SchemaGitHelper.CommitsNameToIndexMap, SchemaGitHelper.CommitsIndexToMethodAccessMap);
+                case "tags":
+                    return new TagsSource(parameters[0], SchemaGitHelper.TagsNameToIndexMap, SchemaGitHelper.TagsIndexToMethodAccessMap);
+                case "branches":
+                    return new BranchesSource(parameters[0], SchemaGitHelper.BranchesNameToIndexMap, SchemaGitHelper.BranchesIndexToMethodAccessMap);
             }
 
             throw new NotSupportedException(name);
