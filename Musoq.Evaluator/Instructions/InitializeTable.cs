@@ -4,7 +4,7 @@ using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Instructions
 {
-    internal class InitializeTable<T> : ByteCodeInstruction
+    internal class InitializeTable<T> : Instruction
     {
         private readonly IDictionary<string, Column> _columns;
         private readonly string _name;

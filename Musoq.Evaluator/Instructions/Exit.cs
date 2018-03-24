@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class Exit : ByteCodeInstruction
+    public class Exit : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

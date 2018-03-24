@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class LoadBoolean : ByteCodeInstruction
+    public class LoadBoolean : Instruction
     {
         private readonly bool _value;
 

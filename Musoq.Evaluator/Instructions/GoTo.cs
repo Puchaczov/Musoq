@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class GoTo<T> : ByteCodeInstruction
+    public class GoTo<T> : Instruction
     {
         private readonly int _value;
 

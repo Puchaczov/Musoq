@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class AndInstruction<T> : ByteCodeInstruction
+    public class AndInstruction<T> : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

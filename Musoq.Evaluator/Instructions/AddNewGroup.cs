@@ -3,7 +3,7 @@ using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class AddNewGroup : ByteCodeInstruction
+    public class AddNewGroup : Instruction
     {
         private readonly IDictionary<int, string> _columnToValue;
         private readonly string _name;

@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public abstract class CallInstruction<T> : ByteCodeInstruction
+    public abstract class CallInstruction<T> : Instruction
     {
         protected CallInstruction(int argsCount, MethodInfo methodInfo)
         {

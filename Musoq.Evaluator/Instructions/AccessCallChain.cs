@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class AccessCallChain : ByteCodeInstruction
+    public class AccessCallChain : Instruction
     {
         private readonly (PropertyInfo Property, object Arg)[] _props;
 

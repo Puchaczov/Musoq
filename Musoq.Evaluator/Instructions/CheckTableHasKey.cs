@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class CheckTableHasKey : ByteCodeInstruction
+    public class CheckTableHasKey : Instruction
     {
         private readonly int[] _indexedColumns;
         private readonly string _sourceName;

@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class Skip<T> : ByteCodeInstruction
+    public class Skip<T> : Instruction
     {
         protected readonly int Value;
 

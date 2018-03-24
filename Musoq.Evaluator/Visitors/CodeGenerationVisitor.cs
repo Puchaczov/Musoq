@@ -14,7 +14,7 @@ namespace Musoq.Evaluator.Visitors
 {
     public class CodeGenerationVisitor : IExpressionVisitor
     {
-        private readonly IList<ByteCodeInstruction> _instructions;
+        private readonly IList<Instruction> _instructions;
 
         private readonly Dictionary<string, Label> _labels;
         private readonly Stack<int> _orders = new Stack<int>();
@@ -30,7 +30,7 @@ namespace Musoq.Evaluator.Visitors
         public CodeGenerationVisitor(ISchemaProvider schemaProvider,
             Dictionary<string, TableMetadata> tableMetadatas)
         {
-            _instructions = new List<ByteCodeInstruction>();
+            _instructions = new List<Instruction>();
             _schemaProvider = schemaProvider;
             _tableMetadatas = tableMetadatas;
             _labels = new Dictionary<string, Label>();
@@ -172,7 +172,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ShortCircuitingNodeLeft node)
         {
-            ByteCodeInstruction instruction;
+            Instruction instruction;
             var order = _order++;
             _orders.Push(order);
 

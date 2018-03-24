@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public abstract class UseTableAsSource : ByteCodeInstruction
+    public abstract class UseTableAsSource : Instruction
     {
         private readonly string _name;
 

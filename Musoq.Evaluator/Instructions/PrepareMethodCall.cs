@@ -7,7 +7,7 @@ using Musoq.Schema.Helpers;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class PrepareMethodCall : ByteCodeInstruction
+    public class PrepareMethodCall : Instruction
     {
         private readonly MethodInfo _method;
         private readonly object _methodsAggregator;

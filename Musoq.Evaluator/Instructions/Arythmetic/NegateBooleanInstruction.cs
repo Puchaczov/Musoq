@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions.Arythmetic
 {
-    public class NegateBooleanInstruction : ByteCodeInstruction
+    public class NegateBooleanInstruction : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

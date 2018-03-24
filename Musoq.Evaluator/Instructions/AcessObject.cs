@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public abstract class AcessObject : ByteCodeInstruction
+    public abstract class AcessObject : Instruction
     {
         protected AcessObject(Type returnType)
         {

@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class AccessColumnNumeric<T> : ByteCodeInstruction
+    public class AccessColumnNumeric<T> : Instruction
     {
         private readonly int _order;
 

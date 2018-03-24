@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class GrabFirstValueFromSource : ByteCodeInstruction
+    public class GrabFirstValueFromSource : Instruction
     {
         private readonly string _label;
         private readonly IDictionary<string, Label> _labels;

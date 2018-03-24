@@ -4,7 +4,7 @@ using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class AccessGroup : ByteCodeInstruction
+    public class AccessGroup : Instruction
     {
         private readonly FieldNode[] _fields;
         private readonly int _fieldsLength;

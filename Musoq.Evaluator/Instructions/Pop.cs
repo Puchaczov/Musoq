@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class Pop<T> : ByteCodeInstruction
+    public class Pop<T> : Instruction
     {
         public enum StackType
         {

@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions.Arythmetic
 {
-    public class LessOrEqualStringInstruction : ByteCodeInstruction
+    public class LessOrEqualStringInstruction : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

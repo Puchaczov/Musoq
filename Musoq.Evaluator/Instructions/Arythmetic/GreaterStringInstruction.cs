@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions.Arythmetic
 {
-    public class GreaterStringInstruction : ByteCodeInstruction
+    public class GreaterStringInstruction : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

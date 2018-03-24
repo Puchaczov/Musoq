@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class LoadNumberToRegister<T> : ByteCodeInstruction
+    public class LoadNumberToRegister<T> : Instruction
     {
         private readonly Register register;
         private readonly long value;

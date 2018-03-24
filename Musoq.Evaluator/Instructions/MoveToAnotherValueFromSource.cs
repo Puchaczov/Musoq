@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class MoveToAnotherValueFromSource : ByteCodeInstruction
+    public class MoveToAnotherValueFromSource : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

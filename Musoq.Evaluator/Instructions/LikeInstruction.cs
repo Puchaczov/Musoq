@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class LikeInstruction : ByteCodeInstruction
+    public class LikeInstruction : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class GrabRow : ByteCodeInstruction
+    public class GrabRow : Instruction
     {
         private readonly Type[] _columnsTypes;
 

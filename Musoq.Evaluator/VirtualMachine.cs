@@ -9,9 +9,9 @@ namespace Musoq.Evaluator
 {
     public class VirtualMachine : IVirtualMachine
     {
-        private readonly ByteCodeInstruction[] _instructions;
+        private readonly Instruction[] _instructions;
 
-        public VirtualMachine(ByteCodeInstruction[] byteCodeInstruction)
+        public VirtualMachine(Instruction[] byteCodeInstruction)
         {
             _instructions = byteCodeInstruction;
             var frames = new Stack<StackFrame>();

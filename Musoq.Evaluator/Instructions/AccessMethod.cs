@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class AccessMethod : ByteCodeInstruction
+    public class AccessMethod : Instruction
     {
         private readonly int _argsCount;
 

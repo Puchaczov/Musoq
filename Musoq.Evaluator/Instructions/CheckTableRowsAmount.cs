@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class CheckTableRowsAmount : ByteCodeInstruction
+    public class CheckTableRowsAmount : Instruction
     {
         private readonly long _value;
         private readonly Dictionary<string, Label> _labels;

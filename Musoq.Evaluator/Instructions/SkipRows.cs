@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class SkipRows : ByteCodeInstruction
+    public class SkipRows : Instruction
     {
         private readonly long _value;
         private Dictionary<string, Label> _labels;

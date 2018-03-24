@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class CreateGroupIdentifier : ByteCodeInstruction
+    public class CreateGroupIdentifier : Instruction
     {
         private readonly int _groupCount;
         private readonly Type[] _types;

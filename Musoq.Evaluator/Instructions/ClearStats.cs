@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class ClearStats : ByteCodeInstruction
+    public class ClearStats : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

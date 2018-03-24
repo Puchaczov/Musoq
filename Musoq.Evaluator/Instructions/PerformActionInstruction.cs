@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class PerformActionInstruction : ByteCodeInstruction
+    public class PerformActionInstruction : Instruction
     {
         private readonly Action<IVirtualMachine> _action;
         private readonly string _desc;

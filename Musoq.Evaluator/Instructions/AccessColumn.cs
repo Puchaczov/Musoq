@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class AccessColumn : ByteCodeInstruction
+    public class AccessColumn : Instruction
     {
         private readonly Type _columnType;
         private readonly string _name;

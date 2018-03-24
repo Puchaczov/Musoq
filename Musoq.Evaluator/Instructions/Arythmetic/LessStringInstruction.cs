@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions.Arythmetic
 {
-    public class LessStringInstruction : ByteCodeInstruction
+    public class LessStringInstruction : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

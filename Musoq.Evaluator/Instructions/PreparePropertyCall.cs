@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class PreparePropertyCall<T> : ByteCodeInstruction
+    public class PreparePropertyCall<T> : Instruction
     {
         private readonly object _obj;
 

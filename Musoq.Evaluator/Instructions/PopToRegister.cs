@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class PopToRegister : ByteCodeInstruction
+    public class PopToRegister : Instruction
     {
         private readonly Register _register;
 

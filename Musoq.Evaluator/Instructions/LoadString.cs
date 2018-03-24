@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class LoadString : ByteCodeInstruction
+    public class LoadString : Instruction
     {
         private readonly string _value;
 

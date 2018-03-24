@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions.Converts
 {
-    public class ConvertToDecimal : ByteCodeInstruction
+    public class ConvertToDecimal : Instruction
     {
         public override void Execute(IVirtualMachine virtualMachine)
         {

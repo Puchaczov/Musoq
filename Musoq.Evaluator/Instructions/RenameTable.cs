@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class RenameTable : ByteCodeInstruction
+    public class RenameTable : Instruction
     {
         private readonly string _tableSourceName;
         private readonly string _tableDestinationName;

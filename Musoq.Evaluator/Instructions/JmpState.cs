@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class JmpState : ByteCodeInstruction
+    public class JmpState : Instruction
     {
         private readonly bool _expectedState;
         private readonly string _label;

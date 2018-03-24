@@ -3,7 +3,7 @@ using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class LoadTable : ByteCodeInstruction
+    public class LoadTable : Instruction
     {
         private readonly Column[] _columns;
         private readonly string[] _keys;

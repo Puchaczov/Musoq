@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class Jmp : ByteCodeInstruction
+    public class Jmp : Instruction
     {
         private readonly string _label;
         private readonly IDictionary<string, Label> _labels;

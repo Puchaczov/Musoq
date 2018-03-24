@@ -3,7 +3,7 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class LoadSource : ByteCodeInstruction
+    public class LoadSource : Instruction
     {
         private readonly RowSource _source;
 

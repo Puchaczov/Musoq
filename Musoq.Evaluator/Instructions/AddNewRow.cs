@@ -2,7 +2,7 @@
 
 namespace Musoq.Evaluator.Instructions
 {
-    public class AddNewRow : ByteCodeInstruction
+    public class AddNewRow : Instruction
     {
         private readonly string _name;
 

@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Evaluator.Instructions
 {
-    public class LoadNumeric : ByteCodeInstruction
+    public class LoadNumeric : Instruction
     {
         private readonly decimal _value;
 
