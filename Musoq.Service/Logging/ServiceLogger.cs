@@ -28,15 +28,6 @@ namespace Musoq.Service.Logging
             _logger.Log(LogLevel.Error, exc);
         }
 
-        public static IServiceLogger Instance
-        {
-            get
-            {
-                if(_instance == null)
-                    _instance = new ServiceLogger();
-
-                return _instance;
-            }
-        }
+        public static IServiceLogger Instance => _instance ?? (_instance = new ServiceLogger());
     }
 }

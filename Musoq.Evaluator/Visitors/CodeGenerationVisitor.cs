@@ -4,7 +4,6 @@ using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Instructions.Arythmetic;
-using Musoq.Evaluator.Tables;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;

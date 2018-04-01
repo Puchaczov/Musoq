@@ -220,6 +220,8 @@ Copy /Y "$(SolutionDir)Musoq.Schema.Csv\bin\$(ConfigurationName)\netstandard2.0\
 if not exist "$(TargetDir)\Plugins\FlatFile\" mkdir "$(TargetDir)\Plugins\FlatFile\"
 Copy /Y "$(SolutionDir)Musoq.Schema.FlatFile\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\FlatFile\"
 if not exist "$(TargetDir)\Plugins\Git\" mkdir "$(TargetDir)\Plugins\Git\"
-xcopy "$(SolutionDir)Musoq.Schema.Git\bin\$(ConfigurationName)\*.*" "$(TargetDir)\Plugins\Git\" /Y /I /E</PostBuildEvent>
+xcopy "$(SolutionDir)Musoq.Schema.Git\bin\$(ConfigurationName)\*.*" "$(TargetDir)\Plugins\Git\" /Y /I /E
+if not exist "$(TargetDir)\Plugins\Time\" mkdir "$(TargetDir)\Plugins\Time\"
+xcopy "$(SolutionDir)Musoq.Schema.Time\bin\$(ConfigurationName)\netcoreapp2.0\*.*" "$(TargetDir)\Plugins\Time\" /Y /I /E</PostBuildEvent>
   </PropertyGroup>
 </Project>
