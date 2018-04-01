@@ -1,13 +1,13 @@
 # Musoq
-Musoq is handy tool that allows querying everything that can be potentially queryable.
+Musoq is handy tool that allows querying everything that is potentially queryable.
 
-Would you like to query multiple folders that fits some sophisticated conditions? No problem! Perform data analysis on CSV from your bank account? That's why Musoq was created for. You don't have to import datas to Database engine but instead focus on typing ad-hoc queries to raw source was provided to you.
+Would you like to query multiple folders that fits some sophisticated conditions? No problem! Perform data analysis on CSV from your bank account? That's why Musoq was created for. You don't have to import datas to database engine but instead focus on typing ad-hoc queries to raw source.
 
 ![alt text](https://raw.githubusercontent.com/Puchaczov/Musoq/master/query_res.png)
 
 ## Pluggable architecture
 
-You can easily write your own data source (currently implemented plugins are: CSV, Files, Directories, Flat files)
+You can easily write your own data source. To read how to do it, jump into wiki of this repo.
 
 ## Currently implemented features
 
@@ -103,6 +103,7 @@ and file to be queried is:
             <tr><td>#Json</td><td>Exposes json file as queryable source.</td></tr>
             <tr><td>#Csv</td><td>Exposes csv file as queryable source.</td></tr>
             <tr><td>#FlatFile</td><td>Exposes FlatFile file as queryable source.</td></tr>
+            <tr><td>#Git</td><td>Exposes git repository as queryable source.</td></tr>
       </thead>
 </table>
 
