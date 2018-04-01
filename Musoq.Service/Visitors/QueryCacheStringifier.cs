@@ -221,12 +221,14 @@ namespace Musoq.Service.Visitors
 
         public void Visit(ExistingTableFromNode node)
         {
-            _script.Append($"{node.Schema}.{node.Method}");
+            var parameters = node.Parameters.Length == 0 ? "()" : node.Parameters.Aggregate((a, b) => a + "," + b);
+            _script.Append($"{node.Schema}.{node.Method}({parameters})");
         }
 
         public void Visit(SchemaFromNode node)
         {
-            _script.Append($"{node.Schema}.{node.Method}");
+            var parameters = node.Parameters.Length == 0 ? "()" : node.Parameters.Aggregate((a, b) => a + "," + b);
+            _script.Append($"{node.Schema}.{node.Method}({parameters})");
         }
 
         public void Visit(NestedQueryFromNode node)

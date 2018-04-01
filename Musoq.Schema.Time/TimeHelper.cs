@@ -35,7 +35,7 @@ namespace Musoq.Schema.Time
                 {4, date => date.Day},
                 {5, date => date.Month},
                 {6, date => date.Year},
-                {7, date => date.DayOfWeek},
+                {7, date => (int)date.DayOfWeek},
                 {8, date => date.DayOfYear},
                 {9, date => date.TimeOfDay}
             };
@@ -49,7 +49,7 @@ namespace Musoq.Schema.Time
                 new SchemaColumn(nameof(DateTimeOffset.Day), 4, typeof(int)),
                 new SchemaColumn(nameof(DateTimeOffset.Month), 5, typeof(int)),
                 new SchemaColumn(nameof(DateTimeOffset.Year), 6, typeof(int)),
-                new SchemaColumn(nameof(DateTimeOffset.DayOfWeek), 7, typeof(DayOfWeek)),
+                new SchemaColumn(nameof(DateTimeOffset.DayOfWeek), 7, typeof(int)),
                 new SchemaColumn(nameof(DateTimeOffset.DayOfYear), 8, typeof(int)),
                 new SchemaColumn(nameof(DateTimeOffset.TimeOfDay), 9, typeof(TimeSpan))
             };

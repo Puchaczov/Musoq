@@ -72,7 +72,7 @@
       <Name>Musoq.Plugins</Name>
     </ProjectReference>
     <ProjectReference Include="..\Musoq.Schema.Time\Musoq.Schema.Time.csproj">
-      <Project>{49ff3959-124f-4c90-a4eb-7c470e96aee7}</Project>
+      <Project>{7fd63301-226d-44f6-85ac-50a42d4933d4}</Project>
       <Name>Musoq.Schema.Time</Name>
     </ProjectReference>
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj">
