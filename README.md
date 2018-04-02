@@ -1,21 +1,30 @@
 # Musoq
-Musoq is handy tool that allows querying everything that is potentially queryable.
+Musoq is handy tool that allows querying everything that can be treated as queryable source.
 
-Would you like to query multiple folders that fits some sophisticated conditions? No problem! Perform data analysis on CSV from your bank account? That's why Musoq was created for. You don't have to import datas to database engine but instead focus on typing ad-hoc queries to raw source.
+# What is Musoq? 
+Musoq exposes raw datas as queryable source. This allows you to write SQL-like queries and ask questions for those sources. Musoq uses concepts of schemas and tables. Those allows you to logically group your tables. What would be used as query source? Virtually anything! Those below are just ideas but some of them had been already implemented!
+
+- Directories
+- Files
+- Structured files (.csv, .json, .xml, logs)
+- Photos (by exif attributes)
+- Archived files (.zip)
+- Git, Svn, TFS
+- Websites (tables, lists)
+- Processes
+- Time
 
 ![alt text](https://raw.githubusercontent.com/Puchaczov/Musoq/master/query_res.png)
-
-## Pluggable architecture
-
-You can easily write your own data source. To read how to do it, jump into wiki of this repo.
 
 ## Currently implemented features
 
 - Use of `*` to select all columns.
-- Group by (access to parent group, group by expression rather than column, group by column)
+- Group by
 - User defined functions and aggregation functions.
+- Plugin api
 - Set operators (non sql-like usage) (union, union all, except, intersect)
 - Complex object arrays and properties accessing.
+- Parametrizable source.
 - Like / not like operator
 - Contains operator (Doesn't support nested queries yet)
 - CTE expressions
@@ -23,9 +32,42 @@ You can easily write your own data source. To read how to do it, jump into wiki 
 ## Features considered to be explored / implemented
 
 - Query parallelization
-- Case when sytax
+- Case when syntax
+- Order by syntax
+- Joins multiple tables
+- Nested queries (corellated and uncorellated)
+
+## Pluggable architecture
+
+You can easily write your own data source. There is fairly simple plugin api that all plugins uses. To read in details how to do it, jump into wiki of this repo ![click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
+
+## Plugins
+
+<table>
+      <thead>
+            <tr><td>#Disk</td><td>Exposes files and directories from the hard disk as queryable source.</td></tr>
+            <tr><td>#Zip</td><td>Exposes compressed (.zip) files from the hard disk so that you can decompress files that fits sophisticated conditions.</td></tr>
+            <tr><td>#Json</td><td>Exposes json file as queryable source.</td></tr>
+            <tr><td>#Csv</td><td>Exposes csv file as queryable source.</td></tr>
+            <tr><td>#FlatFile</td><td>Exposes FlatFile file as queryable source.</td></tr>
+            <tr><td>#Git</td><td>Exposes git repository as queryable source.</td></tr>
+            <tr><td>#Time</td><td>Exposes time queryable source.</td></tr>
+      </thead>
+</table>
 
 ## Query examples
+
+- Gets all commits from repo
+
+      select * from #git.commits('path/to/repo')
+
+- Gets all files from folder that has extension `.exe` or `.png`
+
+      select * from #disk.files('path/to/foder', 'false') where Extension = '.exe' or Extension = '.png'
+      
+- Gets all hours from 7 to 12 (excludingly) for all saturday and sundays from `01.04.2018 00:00:00` to `30.04.2018 00:00:00`
+
+      select DateTime, DayOfWeek + 1 from #time.interval('01.04.2018 00:00:00', '30.04.2018 00:00:00', 'hours') where Hour >= 7 and Hour < 12 and (DayOfWeek + 1 = 6 or DayOfWeek + 1 = 7)
 
 - Shows `.cs` files from folders `some_path_to_dir_1`, `some_path_to_dir_2`, `some_path_to_dir` and their subfolders (uses disk plugin).
 
@@ -38,11 +80,11 @@ You can easily write your own data source. To read how to do it, jump into wiki 
       select Name, Sha256File(), CreationTime, Length from #disk.directory('some_path_to_dir', 'true')
       where Extension = '.cs' take 5
 
-- Groups by `Country` and `City` and calculates. `ParentCount` returns count of rows that specific country has.
+- Groups by `Country` and `City`.
 
-      select Country, City, Count(City), ParentCount(1) from #A.Entities() group by Country, City
+      select Country, City, Count(City) from #A.Entities() group by Country, City
       
-- Accessing complex objects and incrementing it's value.
+- Accessing complex objects and passing it to method.
 
       select Inc(Self.Array[2]) from #A.Entities()
       
@@ -93,19 +135,6 @@ and file to be queried is:
         "Books": []
       }
     ]
-
-## Plugins
-
-<table>
-      <thead>
-            <tr><td>#Disk</td><td>Exposes files and directories from the hard disk as queryable source.</td></tr>
-            <tr><td>#Zip</td><td>Exposes compressed (.zip) files from the hard disk so that you can decompress files that fits sophisticated conditions.</td></tr>
-            <tr><td>#Json</td><td>Exposes json file as queryable source.</td></tr>
-            <tr><td>#Csv</td><td>Exposes csv file as queryable source.</td></tr>
-            <tr><td>#FlatFile</td><td>Exposes FlatFile file as queryable source.</td></tr>
-            <tr><td>#Git</td><td>Exposes git repository as queryable source.</td></tr>
-      </thead>
-</table>
 
 ## Please, be aware of
 
