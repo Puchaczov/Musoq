@@ -28,6 +28,7 @@ Musoq exposes raw datas as queryable source. This allows you to write SQL-like q
 - Like / not like operator
 - Contains operator (Doesn't support nested queries yet)
 - CTE expressions
+- Skip & Take operators.
 
 ## Features considered to be explored / implemented
 
@@ -51,7 +52,7 @@ You can easily write your own data source. There is fairly simple plugin api tha
             <tr><td>#Csv</td><td>Exposes csv file as queryable source.</td></tr>
             <tr><td>#FlatFile</td><td>Exposes FlatFile file as queryable source.</td></tr>
             <tr><td>#Git</td><td>Exposes git repository as queryable source.</td></tr>
-            <tr><td>#Time</td><td>Exposes time queryable source.</td></tr>
+            <tr><td>#Time</td><td>Exposes time as queryable source.</td></tr>
       </thead>
 </table>
 
@@ -138,7 +139,7 @@ and file to be queried is:
 
 ## Please, be aware of
 
-As the language looks like sql, it doesn't mean it is SQL compliant. It uses SQL syntax and repeats some of it's behaviour hoverwer, some differences may appear. It will also implement some experimental syntax and behaviours that are not used by database engines.
+As the language looks like sql, it doesn't mean it is fully SQL compliant. It uses SQL syntax and repeats some of it's behaviour hoverwer, some differences may appear. It will also implement some experimental syntax and behaviours that are not used by database engines.
 
 Hopefully, I will list the incompatibilities here:
 
