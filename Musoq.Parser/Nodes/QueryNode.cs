@@ -4,15 +4,16 @@ namespace Musoq.Parser.Nodes
 {
     public class QueryNode : Node
     {
-        public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, SkipNode skip, TakeNode take)
+        public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take)
         {
             Select = select;
             From = from;
             Where = where;
             GroupBy = groupBy;
+            OrderBy = orderBy;
             Skip = skip;
             Take = take;
-            Id = $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{skip?.Id}{take?.Id}";
+            Id = $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{orderBy?.Id}{skip?.Id}{take?.Id}";
         }
 
         public SelectNode Select { get; }
@@ -22,6 +23,8 @@ namespace Musoq.Parser.Nodes
         public WhereNode Where { get; }
 
         public GroupByNode GroupBy { get; }
+
+        public OrderByNode OrderBy { get; }
 
         public SkipNode Skip { get; }
 
@@ -38,7 +41,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"{Select?.ToString()} {From?.ToString()} {Where?.ToString()} {GroupBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
+            return $"{Select?.ToString()} {From?.ToString()} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
         }
     }
 }

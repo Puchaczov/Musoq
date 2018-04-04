@@ -122,6 +122,10 @@ namespace Musoq.Parser.Lexing
                 return TokenType.Property;
             if (regex == TokenRegexDefinition.KColumn)
                 return TokenType.Column;
+            if (regex == TokenRegexDefinition.KInnerJoin)
+                return TokenType.InnerJoin;
+            if (regex == TokenRegexDefinition.KOuterJoin)
+                return TokenType.OuterJoin;
             if (regex == TokenRegexDefinition.KHFrom)
                 return TokenType.Word;
 
@@ -178,6 +182,10 @@ namespace Musoq.Parser.Lexing
             public static readonly string KSkip = string.Format(Keyword, SkipToken.TokenText);
             public static readonly string KTake = string.Format(Keyword, TakeToken.TokenText);
             public static readonly string KWith = string.Format(Keyword, WithToken.TokenText);
+            public static readonly string KInnerJoin = @"(?<=[\s]{1,}|^)inner[\s]{1,}join(?=[\s]{1,}|$)";
+            public static readonly string KOuterJoin = @"(?<=[\s]{1,}|^)outer[\s]{1,}join(?=[\s]{1,}|$)";
+            public static readonly string KOn = string.Format(Keyword, OnToken.TokenText);
+            public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
         }
 
         /// <summary>
@@ -231,7 +239,11 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccess),
                 new TokenDefinition(TokenRegexDefinition.KColumn),
                 new TokenDefinition(TokenRegexDefinition.KHFrom),
-                new TokenDefinition(TokenRegexDefinition.KDot)
+                new TokenDefinition(TokenRegexDefinition.KDot),
+                new TokenDefinition(TokenRegexDefinition.KInnerJoin),
+                new TokenDefinition(TokenRegexDefinition.KOuterJoin),
+                new TokenDefinition(TokenRegexDefinition.KOn),
+                new TokenDefinition(TokenRegexDefinition.KOrderBy),
             };
         }
 

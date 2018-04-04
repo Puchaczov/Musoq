@@ -4,10 +4,10 @@ namespace Musoq.Parser.Nodes
 {
     public class InternalQueryNode : QueryNode
     {
-        public InternalQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, IntoNode into,
+        public InternalQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, IntoNode into,
             ShouldBePresentInTheTable shouldBePresent, SkipNode skip, TakeNode take,  bool shouldLoadResultTableAsResult, string resultTable,
             bool useColumnAccessInstead, RefreshNode refresh)
-            : base(select, from, where, groupBy, skip, take)
+            : base(select, from, where, groupBy, orderBy, skip, take)
         {
             UseColumnAccessInstead = useColumnAccessInstead;
             Refresh = refresh;
@@ -18,14 +18,18 @@ namespace Musoq.Parser.Nodes
         }
 
         public bool UseColumnAccessInstead { get; }
+
         public IntoNode Into { get; }
+
         public ShouldBePresentInTheTable ShouldBePresent { get; }
+
         public RefreshNode Refresh { get; }
+
         public bool ShouldLoadResultTableAsResult { get; }
+
         public string ResultTable { get; }
 
         public override Type ReturnType => null;
-        public bool HasGroupBy => GroupBy != null;
 
         public override void Accept(IExpressionVisitor visitor)
         {
@@ -35,7 +39,7 @@ namespace Musoq.Parser.Nodes
         public override string ToString()
         {
             return
-                $"{Select.ToString()} {From.ToString()} {Where.ToString()} {GroupBy?.ToString()} {Into?.ToString()} {ShouldBePresent?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
+                $"{Select.ToString()} {From.ToString()} {Where.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Into?.ToString()} {ShouldBePresent?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
         }
     }
 }

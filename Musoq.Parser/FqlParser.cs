@@ -141,9 +141,18 @@ namespace Musoq.Parser
             var fromNode = ComposeFrom();
             var whereNode = ComposeWhereNode();
             var groupBy = ComposeGrouByNode();
+            var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            return new QueryNode(selectNode, fromNode, whereNode, groupBy, skip, take);
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+        }
+
+        private OrderByNode ComposeOrderBy()
+        {
+            if (Current.TokenType != TokenType.OrderBy) return null;
+
+            Consume(TokenType.OrderBy);
+            return new OrderByNode(ComposeFields());
         }
 
         private TakeNode ComposeTake()
@@ -174,7 +183,7 @@ namespace Musoq.Parser
             {
                 Consume(TokenType.GroupBy);
 
-                var fields = ConsumeFields();
+                var fields = ComposeFields();
 
                 if (Current.TokenType != TokenType.Having) return new GroupByNode(fields, null);
 
@@ -195,12 +204,12 @@ namespace Musoq.Parser
             Consume(TokenType.Select);
             ConsumeWhiteSpaces();
 
-            var fields = ConsumeFields();
+            var fields = ComposeFields();
 
             return new SelectNode(fields);
         }
 
-        private FieldNode[] ConsumeFields()
+        private FieldNode[] ComposeFields()
         {
             var fields = new List<FieldNode>();
             var i = 0;
@@ -541,7 +550,7 @@ namespace Musoq.Parser
                     Consume(TokenType.Star);
                     return new AllColumnsNode();
                 case TokenType.LeftParenthesis:
-                    return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeArithmeticExpression(0), TokenType.RightParenthesis);
+                    return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeOperations(), TokenType.RightParenthesis);
                 case TokenType.Hyphen:
                     Consume(TokenType.Hyphen);
                     return new StarNode(new IntegerNode("-1"), Compose(f => f.ComposeArithmeticExpression(minPrec)));

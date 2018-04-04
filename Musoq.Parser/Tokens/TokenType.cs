@@ -49,6 +49,10 @@
         Contains,
         Skip,
         Take,
-        With
+        With,
+        InnerJoin,
+        OuterJoin,
+        On,
+        OrderBy
     }
 }
