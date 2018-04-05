@@ -1,4 +1,6 @@
-﻿using Musoq.Schema.DataSources;
+﻿using System;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
 
 namespace Musoq.Schema.FlatFile
@@ -14,12 +16,24 @@ namespace Musoq.Schema.FlatFile
 
         public override ISchemaTable GetTableByName(string name, string[] parameters)
         {
-            return new FlatFileTable();
+            switch (name.ToLowerInvariant())
+            {
+                case "file":
+                    return new FlatFileTable();
+            }
+
+            throw new TableNotFoundException(nameof(name));
         }
 
         public override RowSource GetRowSource(string name, string[] parameters)
         {
-            return new FlatFileSource(parameters[0]);
+            switch (name.ToLowerInvariant())
+            {
+                case "file":
+                    return new FlatFileSource(parameters[0]);
+            }
+
+            throw new SourceNotFoundException(nameof(name));
         }
 
         private static MethodsAggregator CreateLibrary()

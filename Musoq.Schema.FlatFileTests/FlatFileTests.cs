@@ -13,7 +13,7 @@ namespace Musoq.Schema.FlatFileTests
         [TestMethod]
         public void HasSelectedAllLinesTest()
         {
-            var query = @"select LineNumber, Line from #FlatFile.whatever('./TestMultilineFile.txt')";
+            var query = @"select LineNumber, Line from #FlatFile.file('./TestMultilineFile.txt')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Execute();
