@@ -29,6 +29,8 @@ namespace Musoq.Parser.Lexing
         {
             switch (tokenText.ToLowerInvariant())
             {
+                case DescToken.TokenText:
+                    return TokenType.Desc;
                 case AndToken.TokenText:
                     return TokenType.And;
                 case CommaToken.TokenText:
@@ -186,6 +188,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KOuterJoin = @"(?<=[\s]{1,}|^)outer[\s]{1,}join(?=[\s]{1,}|$)";
             public static readonly string KOn = string.Format(Keyword, OnToken.TokenText);
             public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
+            public static readonly string KDesc = string.Format(Keyword, DescToken.TokenText);
         }
 
         /// <summary>
@@ -198,6 +201,7 @@ namespace Musoq.Parser.Lexing
             /// </summary>
             public static TokenDefinition[] General => new[]
             {
+                new TokenDefinition(TokenRegexDefinition.KDesc),
                 new TokenDefinition(TokenRegexDefinition.KLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNotLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KDecimal),
@@ -283,6 +287,8 @@ namespace Musoq.Parser.Lexing
 
             switch (token)
             {
+                case TokenType.Desc:
+                    return new DescToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.And:
                     return new AndToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Comma:

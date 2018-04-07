@@ -5,6 +5,7 @@ namespace Musoq.Parser
     public interface IExpressionVisitor
     {
         void Visit(Node node);
+        void Visit(DescNode node);
         void Visit(StarNode node);
         void Visit(FSlashNode node);
         void Visit(ModuloNode node);

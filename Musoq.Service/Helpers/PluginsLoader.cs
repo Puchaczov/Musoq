@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Musoq.Schema;
+using Musoq.Schema.Helpers;
 using Musoq.Service.Logging;
 
 namespace Musoq.Service.Helpers
@@ -18,7 +19,7 @@ namespace Musoq.Service.Helpers
             if (_plugins != null)
                 return _plugins;
 
-            var assemblies = GetReferencingAssemblies();
+            var assemblies = PluginsHelper.GetReferencingAssemblies(ApplicationConfiguration.PluginsFolder);
             var assemblyTypes = assemblies.SelectMany(assembly =>
                 assembly.GetTypes());
 
@@ -42,24 +43,6 @@ namespace Musoq.Service.Helpers
 
             _plugins = plugins.ToArray();
             return _plugins;
-        }
-
-        private static IEnumerable<Assembly> GetReferencingAssemblies()
-        {
-            var assembly = Assembly.GetEntryAssembly();
-            var fileInfo = new FileInfo(assembly.Location);
-
-            if (fileInfo.Directory == null)
-                return new List<Assembly>();
-
-            var thisDir = fileInfo.Directory.FullName;
-            var pluginsDir = new DirectoryInfo(Path.Combine(thisDir, ApplicationConfiguration.PluginsFolder));
-
-            return pluginsDir
-                .GetDirectories()
-                .SelectMany(sm => sm
-                    .GetFiles("*.dll")
-                    .Select(file => Assembly.LoadFile(file.FullName)));
         }
     }
 }

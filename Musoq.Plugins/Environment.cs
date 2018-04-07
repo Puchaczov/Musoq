@@ -7,16 +7,22 @@ namespace Musoq.Plugins
 {
     public class Environment
     {
-        private readonly ConcurrentDictionary<string, object> _objects;
+        private static readonly ConcurrentDictionary<string, object> Objects;
 
-        public Environment()
+        static Environment()
         {
-            _objects = new ConcurrentDictionary<string, object>();
+            Objects = new ConcurrentDictionary<string, object>();
         }
 
         public T Value<T>(string name)
         {
-            return (T) _objects[name];
+            return (T) Objects[name];
+        }
+
+        public void SetValue<T>(string name, T value)
+        {
+            if (!Objects.TryAdd(name, value))
+                Objects.TryUpdate(name, value, Objects[name]);
         }
     }
 }

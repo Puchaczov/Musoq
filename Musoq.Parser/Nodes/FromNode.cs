@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Parser.Nodes
@@ -22,7 +23,8 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"from {Schema}.{Method}";
+            var args = Parameters.Length == 0 ? string.Empty : Parameters.Aggregate((a, b) => a + ',' + b);
+            return $"from {Schema}.{Method}({args})";
         }
     }
 }

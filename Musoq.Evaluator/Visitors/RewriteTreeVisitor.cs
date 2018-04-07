@@ -12,6 +12,7 @@ using Musoq.Parser.Tokens;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -56,6 +57,60 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(Node node)
         {
+        }
+
+        public void Visit(DescNode node)
+        {
+            var from = (FromNode) Nodes.Pop();
+
+            var fields = new List<FieldNode>
+            {
+                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnName), 0, typeof(string)),
+                    0, "Name"),
+                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnIndex), 1, typeof(int)),
+                    1, "Index"),
+                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnType), 2, typeof(string)),
+                    2, "Type")
+            };
+
+
+            var table = new DynamicTable(new ISchemaColumn[]
+            {
+                new SchemaColumn(nameof(ISchemaColumn.ColumnName), 0, typeof(string)),
+                new SchemaColumn(nameof(ISchemaColumn.ColumnIndex), 1, typeof(int)),
+                new SchemaColumn(nameof(ISchemaColumn.ColumnType), 2, typeof(string)),
+            });
+
+            var schemaName = $"desc_{from.Schema}";
+            var method = "anything";
+            var parameters = new string[0];
+            _schemaProvider.AddTransitionSchema(new DescSchema(schemaName, table, _table.Columns));
+            var select = new SelectNode(fields.ToArray());
+            var newFrom = new SchemaFromNode(schemaName, method, parameters, string.Empty);
+
+            var newQuery = new QueryNode(select, newFrom, new WhereNode(new PutTrueNode()), null, null, null, null);
+
+            Nodes.Push(newFrom);
+            Nodes.Push(new WhereNode(new PutTrueNode()));
+            Nodes.Push(select);
+
+            var oldSchema = _schema;
+            var oTable = _table;
+            var oldSchemaName = CurrentSchema;
+            CurrentSchema = schemaName;
+
+            SetCurrentTable(schemaName, parameters);
+
+            Visit(newQuery);
+
+            _schema = oldSchema;
+            _table = oTable;
+            CurrentSchema = oldSchemaName;
+
+            var newInternalQuery = (InternalQueryNode)Nodes.Pop();
+            var nodes = new Node[] { new CreateTableNode(newInternalQuery.Into.Name, new string[0], newInternalQuery.Select.Fields), newInternalQuery };
+
+            Nodes.Push(new MultiStatementNode(nodes, null));
         }
 
         public void Visit(StarNode node)
@@ -924,7 +979,7 @@ namespace Musoq.Evaluator.Visitors
             _table = _schema.GetTableByName(table, parameters);
         }
 
-        public void AddSchema(string name)
+        public void AddCteSchema(string name)
         {
             var query = _cteLastQueriesByName[name];
 
@@ -1155,5 +1210,75 @@ namespace Musoq.Evaluator.Visitors
         {
             return new SelectNode(TurnIntoFieldColumnAccess(select.Fields));
         }
+    }
+
+    public class DescSchema : SchemaBase
+    {
+        private readonly ISchemaTable _table;
+        private readonly ISchemaColumn[] _columns;
+
+        public DescSchema(string name, ISchemaTable table, ISchemaColumn[] columns) 
+            : base(name, null)
+        {
+            _table = table;
+            _columns = columns;
+        }
+
+        public override ISchemaTable GetTableByName(string name, string[] parameters)
+        {
+            return _table;
+        }
+
+        public override RowSource GetRowSource(string name, string[] parameters)
+        {
+            return new TableMetadataSource(_columns);
+        }
+    }
+
+    public class TableMetadataSource : RowSource
+    {
+        private readonly ISchemaColumn[] _columns;
+
+        public TableMetadataSource(ISchemaColumn[] columns)
+        {
+            _columns = columns;
+        }
+
+        public override IEnumerable<IObjectResolver> Rows
+        {
+            get
+            {
+                foreach (var item in _columns)
+                {
+                    yield return new EntityResolver<object[]>(
+                        new object[]
+                        {
+                            item.ColumnName,
+                            item.ColumnIndex,
+                            item.ColumnType.Name
+                        }, new Dictionary<string, int>()
+                        {
+                            {nameof(ISchemaColumn.ColumnName), 0},
+                            {nameof(ISchemaColumn.ColumnIndex), 1},
+                            {nameof(ISchemaColumn.ColumnType), 2}
+                        }, new Dictionary<int, Func<object[], object>>()
+                        {
+                            {0, items => items[0]},
+                            {1, items => items[1]},
+                            {2, items => items[2]},
+                        });
+                }
+            }
+        }
+    }
+
+    public class DynamicTable : ISchemaTable
+    {
+        public DynamicTable(ISchemaColumn[] columns)
+        {
+            Columns = columns;
+        }
+
+        public ISchemaColumn[] Columns { get; }
     }
 }

@@ -53,6 +53,7 @@
         InnerJoin,
         OuterJoin,
         On,
-        OrderBy
+        OrderBy,
+        Desc
     }
 }

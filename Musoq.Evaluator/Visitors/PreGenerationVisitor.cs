@@ -15,6 +15,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(DescNode node)
+        {
+        }
+
         public void Visit(StarNode node)
         {
         }

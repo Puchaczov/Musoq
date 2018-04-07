@@ -378,6 +378,12 @@ namespace Musoq.Service.Visitors
             throw new NotImplementedException();
         }
 
+        public void Visit(DescNode node)
+        {
+            node.Accept(_visitor);
+            node.From.Accept(this);
+        }
+
         public void Visit(StarNode node)
         {
             node.Left.Accept(this);

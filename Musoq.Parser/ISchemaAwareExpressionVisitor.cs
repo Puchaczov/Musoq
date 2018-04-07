@@ -12,7 +12,7 @@ namespace Musoq.Parser
 
         void SetCurrentTable(string table, string[] parameters);
 
-        void AddSchema(string name);
+        void AddCteSchema(string name);
 
         void SetCurrentCteName(string name);
 

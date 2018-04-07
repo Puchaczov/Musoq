@@ -26,6 +26,7 @@ namespace Musoq.Evaluator.Tables
         {
             return new TransientVariableSource(name);
         }
+
         private static MethodsAggregator CreateLibrary()
         {
             var methodsManager = new MethodsManager();

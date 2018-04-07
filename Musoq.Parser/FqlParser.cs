@@ -31,6 +31,8 @@ namespace Musoq.Parser
             {
                 switch (Current.TokenType)
                 {
+                    case TokenType.Desc:
+                        return new RootNode(ComposeDesc());
                     case TokenType.Select:
                         return new RootNode(ComposeSetOps(0));
                     case TokenType.With:
@@ -39,6 +41,20 @@ namespace Musoq.Parser
             }
 
             return new RootNode(null);
+        }
+
+        private Node ComposeDesc()
+        {
+            Consume(Current.TokenType);
+
+            var name = ComposeWord();
+            Consume(TokenType.Dot);
+            var accessMethod = ComposeAccessMethod();
+
+            var fromNode = new SchemaFromNode(name.Value, accessMethod.Name,
+                accessMethod.Arguments.Args.Select(GetValueOfBasicType).ToArray(), string.Empty);
+
+            return new DescNode(fromNode);
         }
 
         private CteExpressionNode ComposeCteExpression()

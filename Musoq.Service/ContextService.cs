@@ -3,6 +3,8 @@ using System.IO;
 using System.ServiceProcess;
 using Microsoft.Owin.Hosting;
 using Musoq.Service.Client.Helpers;
+using Musoq.Service.Environment;
+using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Service
 {
@@ -17,6 +19,12 @@ namespace Musoq.Service
 
         protected override void OnStart(string[] args)
         {
+            var env = new Plugins.Environment();
+
+            env.SetValue(EnvironmentServiceHelper.PluginsFolderKey, ApplicationConfiguration.PluginsFolder);
+            env.SetValue(EnvironmentServiceHelper.HttpServerAddressKey, ApplicationConfiguration.HttpServerAdress);
+            env.SetValue(EnvironmentServiceHelper.ServerAddressKey, ApplicationConfiguration.ServerAddress);
+
             _server = WebApp.Start<ApiStartup>(ApplicationConfiguration.HttpServerAdress);
         }
 

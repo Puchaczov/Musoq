@@ -331,6 +331,22 @@ namespace Musoq.Evaluator.Visitors
             throw new NotSupportedException();
         }
 
+        public void Visit(DescNode node)
+        {
+            var oldSchema = _visitor.CurrentSchema;
+            var oldMethod = _visitor.CurrentTable;
+            var oldParameters = _visitor.CurrentParameters;
+
+            _visitor.CurrentSchema = node.From.Schema;
+            _visitor.SetCurrentTable(node.From.Method, node.From.Parameters);
+
+            node.From.Accept(this);
+            node.Accept(_visitor);
+
+            _visitor.CurrentSchema = oldSchema;
+            _visitor.SetCurrentTable(oldMethod, oldParameters);
+        }
+
         public void Visit(StarNode node)
         {
             node.Left.Accept(this);
@@ -440,7 +456,7 @@ namespace Musoq.Evaluator.Visitors
             {
                 _visitor.SetCurrentCteName(exp.Name);
                 exp.Accept(this);
-                _visitor.AddSchema(exp.Name);
+                _visitor.AddCteSchema(exp.Name);
             }
             _visitor.BeginCteQueryPart(node, CtePart.Outer);
             node.OuterExpression.Accept(this);

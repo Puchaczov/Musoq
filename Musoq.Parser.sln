@@ -51,6 +51,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Time", "Musoq.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Time.Tests", "Musoq.Schema.Time.Tests\Musoq.Schema.Time.Tests.csproj", "{06529739-5890-47D5-8853-9CDB7401D649}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Plugins", "Musoq.Schema.Plugins\Musoq.Schema.Plugins.csproj", "{F0E5EC35-E5EE-432E-8D5E-AFB5DE062479}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Service.Environment", "Musoq.Service.Environment\Musoq.Service.Environment.csproj", "{6D8072F6-1974-475F-81BB-9BD6506FD059}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +157,14 @@ Global
 		{06529739-5890-47D5-8853-9CDB7401D649}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06529739-5890-47D5-8853-9CDB7401D649}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06529739-5890-47D5-8853-9CDB7401D649}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0E5EC35-E5EE-432E-8D5E-AFB5DE062479}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0E5EC35-E5EE-432E-8D5E-AFB5DE062479}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0E5EC35-E5EE-432E-8D5E-AFB5DE062479}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0E5EC35-E5EE-432E-8D5E-AFB5DE062479}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D8072F6-1974-475F-81BB-9BD6506FD059}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D8072F6-1974-475F-81BB-9BD6506FD059}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D8072F6-1974-475F-81BB-9BD6506FD059}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D8072F6-1974-475F-81BB-9BD6506FD059}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

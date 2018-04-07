@@ -194,6 +194,10 @@
       <Project>{1b7d2e6c-05a9-42e1-be32-9a6821e390ca}</Project>
       <Name>Musoq.Schema</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Musoq.Service.Environment\Musoq.Service.Environment.csproj">
+      <Project>{6d8072f6-1974-475f-81bb-9bd6506fd059}</Project>
+      <Name>Musoq.Service.Environment</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7">
@@ -228,6 +232,8 @@ Copy /Y "$(SolutionDir)Musoq.Schema.FlatFile\bin\$(ConfigurationName)\netstandar
 if not exist "$(TargetDir)\Plugins\Git\" mkdir "$(TargetDir)\Plugins\Git\"
 xcopy "$(SolutionDir)Musoq.Schema.Git\bin\$(ConfigurationName)\*.*" "$(TargetDir)\Plugins\Git\" /Y /I /E
 if not exist "$(TargetDir)\Plugins\Time\" mkdir "$(TargetDir)\Plugins\Time\"
-xcopy "$(SolutionDir)Musoq.Schema.Time\bin\$(ConfigurationName)\*.*" "$(TargetDir)\Plugins\Time\" /Y /I /E</PostBuildEvent>
+xcopy "$(SolutionDir)Musoq.Schema.Time\bin\$(ConfigurationName)\*.*" "$(TargetDir)\Plugins\Time\" /Y /I /E
+if not exist "$(TargetDir)\Plugins\Plugins\" mkdir "$(TargetDir)\Plugins\Plugins\"
+xcopy "$(SolutionDir)Musoq.Schema.Plugins\bin\$(ConfigurationName)\*.*" "$(TargetDir)\Plugins\Plugins\" /Y /I /E</PostBuildEvent>
   </PropertyGroup>
 </Project>

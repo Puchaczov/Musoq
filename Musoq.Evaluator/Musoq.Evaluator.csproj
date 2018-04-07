@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TemporarySchemas\" />
+  </ItemGroup>
+
 </Project>

@@ -22,6 +22,10 @@ namespace Musoq.Service.Visitors
         public void Visit(Node node)
         {
         }
+        public void Visit(DescNode node)
+        {
+            _script.Append("desc");
+        }
 
         public void Visit(StarNode node)
         {

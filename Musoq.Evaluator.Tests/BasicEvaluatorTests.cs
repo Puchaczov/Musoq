@@ -579,5 +579,24 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(1.0m, table[0].Values[0]);
             Assert.AreEqual(-1.0m, table[0].Values[1]);
         }
+
+        [TestMethod]
+        public void DescPlugin()
+        {
+            var query = "desc #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX"),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+        }
     }
 }
