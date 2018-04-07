@@ -6,6 +6,7 @@ using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -65,12 +66,9 @@ namespace Musoq.Evaluator.Visitors
 
             var fields = new List<FieldNode>
             {
-                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnName), 0, typeof(string)),
-                    0, "Name"),
-                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnIndex), 1, typeof(int)),
-                    1, "Index"),
-                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnType), 2, typeof(string)),
-                    2, "Type")
+                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnName), 0, typeof(string)), 0, "Name"),
+                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnIndex), 1, typeof(int)), 1, "Index"),
+                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnType), 2, typeof(string)), 2, "Type")
             };
 
 
@@ -81,8 +79,8 @@ namespace Musoq.Evaluator.Visitors
                 new SchemaColumn(nameof(ISchemaColumn.ColumnType), 2, typeof(string)),
             });
 
-            var schemaName = $"desc_{from.Schema}";
-            var method = "anything";
+            var schemaName = $"desc.{from.Schema}";
+            const string method = "notimportant";
             var parameters = new string[0];
             _schemaProvider.AddTransitionSchema(new DescSchema(schemaName, table, _table.Columns));
             var select = new SelectNode(fields.ToArray());
@@ -1210,75 +1208,5 @@ namespace Musoq.Evaluator.Visitors
         {
             return new SelectNode(TurnIntoFieldColumnAccess(select.Fields));
         }
-    }
-
-    public class DescSchema : SchemaBase
-    {
-        private readonly ISchemaTable _table;
-        private readonly ISchemaColumn[] _columns;
-
-        public DescSchema(string name, ISchemaTable table, ISchemaColumn[] columns) 
-            : base(name, null)
-        {
-            _table = table;
-            _columns = columns;
-        }
-
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
-        {
-            return _table;
-        }
-
-        public override RowSource GetRowSource(string name, string[] parameters)
-        {
-            return new TableMetadataSource(_columns);
-        }
-    }
-
-    public class TableMetadataSource : RowSource
-    {
-        private readonly ISchemaColumn[] _columns;
-
-        public TableMetadataSource(ISchemaColumn[] columns)
-        {
-            _columns = columns;
-        }
-
-        public override IEnumerable<IObjectResolver> Rows
-        {
-            get
-            {
-                foreach (var item in _columns)
-                {
-                    yield return new EntityResolver<object[]>(
-                        new object[]
-                        {
-                            item.ColumnName,
-                            item.ColumnIndex,
-                            item.ColumnType.Name
-                        }, new Dictionary<string, int>()
-                        {
-                            {nameof(ISchemaColumn.ColumnName), 0},
-                            {nameof(ISchemaColumn.ColumnIndex), 1},
-                            {nameof(ISchemaColumn.ColumnType), 2}
-                        }, new Dictionary<int, Func<object[], object>>()
-                        {
-                            {0, items => items[0]},
-                            {1, items => items[1]},
-                            {2, items => items[2]},
-                        });
-                }
-            }
-        }
-    }
-
-    public class DynamicTable : ISchemaTable
-    {
-        public DynamicTable(ISchemaColumn[] columns)
-        {
-            Columns = columns;
-        }
-
-        public ISchemaColumn[] Columns { get; }
     }
 }

@@ -597,6 +597,50 @@ namespace Musoq.Evaluator.Tests
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Execute();
+
+            Assert.AreEqual(3, table.Columns.Count());
+            Assert.AreEqual(8, table.Count);
+
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual("Index", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual("Type", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
+
+            Assert.AreEqual("Name", table[0][0]);
+            Assert.AreEqual(10, table[0][1]);
+            Assert.AreEqual("String", table[0][2]);
+
+            Assert.AreEqual("City", table[1][0]);
+            Assert.AreEqual(11, table[1][1]);
+            Assert.AreEqual("String", table[1][2]);
+
+            Assert.AreEqual("Country", table[2][0]);
+            Assert.AreEqual(12, table[2][1]);
+            Assert.AreEqual("String", table[2][2]);
+
+            Assert.AreEqual("Population", table[3][0]);
+            Assert.AreEqual(13, table[3][1]);
+            Assert.AreEqual("Decimal", table[3][2]);
+
+            Assert.AreEqual("Self", table[4][0]);
+            Assert.AreEqual(14, table[4][1]);
+            Assert.AreEqual("BasicEntity", table[4][2]);
+
+            Assert.AreEqual("Money", table[5][0]);
+            Assert.AreEqual(15, table[5][1]);
+            Assert.AreEqual("Decimal", table[5][2]);
+
+            Assert.AreEqual("Month", table[6][0]);
+            Assert.AreEqual(16, table[6][1]);
+            Assert.AreEqual("String", table[6][2]);
+
+            Assert.AreEqual("Time", table[7][0]);
+            Assert.AreEqual(17, table[7][1]);
+            Assert.AreEqual("DateTime", table[7][2]);
         }
     }
 }

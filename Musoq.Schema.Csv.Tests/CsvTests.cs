@@ -91,15 +91,7 @@ namespace Musoq.Schema.Csv.Tests
 
         private IVirtualMachine CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.Create(script, new JsonSchemaProvider());
-        }
-    }
-
-    internal class JsonSchemaProvider : ISchemaProvider
-    {
-        public ISchema GetSchema(string schema)
-        {
-            return new CsvSchema();
+            return InstanceCreator.Create(script, new CsvSchemaProvider());
         }
     }
 }

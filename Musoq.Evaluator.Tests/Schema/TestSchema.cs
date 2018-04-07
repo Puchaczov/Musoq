@@ -14,6 +14,36 @@ namespace Musoq.Evaluator.Tests.Schema
         private readonly MethodsAggregator _aggreagator;
         private readonly IEnumerable<T> _sources;
 
+        private static readonly IDictionary<string, int> TestNameToIndexMap;
+        private static readonly IDictionary<int, Func<T, object>> TestIndexToObjectAccessMap;
+
+        static TestSchema()
+        {
+            TestNameToIndexMap = new Dictionary<string, int>
+            {
+                {nameof(BasicEntity.Name), 10},
+                {nameof(BasicEntity.City), 11},
+                {nameof(BasicEntity.Country), 12},
+                {nameof(BasicEntity.Population), 13},
+                {nameof(BasicEntity.Self), 14},
+                {nameof(BasicEntity.Money), 15},
+                {nameof(BasicEntity.Month), 16},
+                {nameof(BasicEntity.Time), 17}
+            };
+
+            TestIndexToObjectAccessMap = new Dictionary<int, Func<T, object>>
+            {
+                {10, arg => arg.Name},
+                {11, arg => arg.City},
+                {12, arg => arg.Country},
+                {13, arg => arg.Population},
+                {14, arg => arg.Self},
+                {15, arg => arg.Money},
+                {16, arg => arg.Month},
+                {17, arg => arg.Time}
+            };
+        }
+
         public TestSchema(IEnumerable<T> sources)
         {
             _sources = sources;
@@ -38,29 +68,7 @@ namespace Musoq.Evaluator.Tests.Schema
 
         public RowSource GetRowSource(string name, string[] parameters)
         {
-            return new EntitySource<T>(_sources,
-                new Dictionary<string, int>
-                {
-                        {nameof(BasicEntity.Name), 10},
-                        {nameof(BasicEntity.City), 11},
-                        {nameof(BasicEntity.Country), 12},
-                        {nameof(BasicEntity.Population), 13},
-                        {nameof(BasicEntity.Self), 14},
-                        {nameof(BasicEntity.Money), 15},
-                        {nameof(BasicEntity.Month), 16},
-                        {nameof(BasicEntity.Time), 17}
-                },
-                new Dictionary<int, Func<T, object>>
-                {
-                        {10, arg => arg.Name},
-                        {11, arg => arg.City},
-                        {12, arg => arg.Country},
-                        {13, arg => arg.Population},
-                        {14, arg => arg.Self},
-                        {15, arg => arg.Money},
-                        {16, arg => arg.Month},
-                        {17, arg => arg.Time}
-                });
+            return new EntitySource<T>(_sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
         }
 
         public MethodInfo ResolveMethod(string method, Type[] parameters)
