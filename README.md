@@ -21,14 +21,15 @@ Musoq exposes raw datas as queryable source. This allows you to write SQL-like q
 - Use of `*` to select all columns.
 - Group by
 - User defined functions and aggregation functions.
-- Plugin api
+- Plugin API
 - Set operators (non sql-like usage) (union, union all, except, intersect)
-- Complex object arrays and properties accessing.
-- Parametrizable source.
+- Complex object arrays and properties accessing
+- Parametrizable source
 - Like / not like operator
 - Contains operator (Doesn't support nested queries yet)
 - CTE expressions
-- Skip & Take operators.
+- Skip & Take operators
+- Desc syntax
 
 ## Features considered to be explored / implemented
 
@@ -136,6 +137,10 @@ and file to be queried is:
         "Books": []
       }
     ]
+    
+## How do I know what columns does my source have?
+
+You can easily check it by typing a query that asks the source about columns it has. It's super easy and looks like `desc #git.commits('path/to/repo')`. All plugins supports it out of the box!
 
 ## Please, be aware of
 
