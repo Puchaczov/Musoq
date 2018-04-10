@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins.Helpers;
 using Musoq.Service.Client;
+using Musoq.Service.Environment;
 using Musoq.Service.Logging;
 using Musoq.Service.Models;
 using Musoq.Service.Visitors;
@@ -53,10 +55,17 @@ namespace Musoq.Service.Controllers
             state.Task = Task.Factory.StartNew(() =>
             {
                 state.Status = ExecutionStatus.Running;
+
+                var env = new Plugins.Environment();
+
+                env.SetValue(EnvironmentServiceHelper.PluginsFolderKey, ApplicationConfiguration.PluginsFolder);
+                env.SetValue(EnvironmentServiceHelper.HttpServerAddressKey, ApplicationConfiguration.HttpServerAdress);
+                env.SetValue(EnvironmentServiceHelper.ServerAddressKey, ApplicationConfiguration.ServerAddress);
+                env.SetValue(EnvironmentServiceHelper.TempFolderKey, Path.Combine(Path.GetTempPath(), id.ToString()));
+
                 try
                 {
                     var watch = new Stopwatch();
-                    
                     watch.Start();
 
                     var root = InstanceCreator.CreateTree(query);
@@ -69,7 +78,8 @@ namespace Musoq.Service.Controllers
                     var key = cacheKeyCreator.CacheKey;
                     var hash = HashHelper.ComputeHash<MD5CryptoServiceProvider>(key);
 
-                    if(!_expressionsCache.TryGetOrAdd(hash, (s) => InstanceCreator.Create(root, new DynamicSchemaProvider()), out var vm))
+                    if (!_expressionsCache.TryGetOrAdd(hash,
+                        (s) => InstanceCreator.Create(root, new DynamicSchemaProvider()), out var vm))
                         vm = InstanceCreator.Create(root, new DynamicSchemaProvider());
 
                     var compiledTime = watch.Elapsed;
@@ -87,6 +97,13 @@ namespace Musoq.Service.Controllers
                     state.Status = ExecutionStatus.Failure;
                     state.FailureMessage = exc.ToString();
                     _logger.Log(exc);
+                }
+                finally
+                {
+                    var dirInfo = new DirectoryInfo(env.Value<string>(EnvironmentServiceHelper.TempFolderKey));
+
+                    if (dirInfo.Exists)
+                        dirInfo.Delete();
                 }
             });
 

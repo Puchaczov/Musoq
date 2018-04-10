@@ -2,9 +2,7 @@
 using System.IO;
 using System.ServiceProcess;
 using Microsoft.Owin.Hosting;
-using Musoq.Service.Client.Helpers;
 using Musoq.Service.Environment;
-using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Service
 {
@@ -19,12 +17,6 @@ namespace Musoq.Service
 
         protected override void OnStart(string[] args)
         {
-            var env = new Plugins.Environment();
-
-            env.SetValue(EnvironmentServiceHelper.PluginsFolderKey, ApplicationConfiguration.PluginsFolder);
-            env.SetValue(EnvironmentServiceHelper.HttpServerAddressKey, ApplicationConfiguration.HttpServerAdress);
-            env.SetValue(EnvironmentServiceHelper.ServerAddressKey, ApplicationConfiguration.ServerAddress);
-
             _server = WebApp.Start<ApiStartup>(ApplicationConfiguration.HttpServerAdress);
         }
 
@@ -38,7 +30,6 @@ namespace Musoq.Service
         {
             OnStart(args);
             Console.WriteLine("{1} started at {0}.", ApplicationConfiguration.ServerAddress, nameof(Musoq));
-            //var api = new ApplicationFlowApi(ApplicationConfiguration.ServerAddress);
 
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();

@@ -10,7 +10,7 @@ namespace Musoq.Performance
     {
         static void Main(string[] args)
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 CompileQuery(@"select Extension, Count(Extension) from #disk.files('C:\Users\jpuchala\Documents', 'true') group by Extension");
             }
@@ -23,9 +23,9 @@ namespace Musoq.Performance
             //from #csv.file('C:\Users\jpuchala\Documents\res_purchase_card_(pcard)_fiscal_year_2014_3pcd-aiuu.csv', ',')
             //group by AgencyName");
 
-            Console.WriteLine();
-            Console.WriteLine("Press any key to close.");
-            Console.ReadKey();
+            //Console.WriteLine();
+            //Console.WriteLine("Press any key to close.");
+            //Console.ReadKey();
         }
 
         private static void ExecuteQuery(string query)
