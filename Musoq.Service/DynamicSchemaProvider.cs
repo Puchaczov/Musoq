@@ -1,28 +1,25 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Musoq.Schema;
 using Musoq.Service.Exceptions;
 using Musoq.Service.Helpers;
+using Musoq.Service.Resolvers;
 
 namespace Musoq.Service
 {
     public class DynamicSchemaProvider : ISchemaProvider
     {
-        private readonly ISchema[] _schemas;
-
-        public DynamicSchemaProvider()
-        {
-            _schemas = PluginsLoader.LoadSchemas();
-        }
+        private readonly IDictionary<string, Type> _schemas = CustomDependencyResolver.LoadedSchemas;
 
         public ISchema GetSchema(string schema)
         {
             schema = schema.ToLowerInvariant();
-            var foundedSchema = _schemas.FirstOrDefault(f => $"#{f.Name.ToLowerInvariant()}" == schema);
 
-            if (foundedSchema == null)
-                throw new SchemaNotFoundException(schema);
-
-            return foundedSchema;
+            if (schema.Contains(schema))
+                return (ISchema) Activator.CreateInstance(_schemas[schema]);
+            
+            throw new SchemaNotFoundException(schema);
         }
     }
 }

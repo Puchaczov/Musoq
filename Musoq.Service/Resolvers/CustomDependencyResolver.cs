@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Web.Http.Dependencies;
 using CacheManager.Core;
 using Musoq.Evaluator;
+using Musoq.Schema;
 using Musoq.Service.Client;
 using Musoq.Service.Controllers;
+using Musoq.Service.Helpers;
 using Musoq.Service.Logging;
 using Musoq.Service.Models;
 
@@ -16,6 +18,8 @@ namespace Musoq.Service.Resolvers
         private readonly IDictionary<Guid, QueryContext> _contexts;
         private readonly IDictionary<Guid, ExecutionState> _states;
 
+        public static readonly IDictionary<string, Type> LoadedSchemas;
+
         private readonly ICacheManager<VirtualMachine> _expressionsCache = CacheFactory.Build<VirtualMachine>("evaluatedExpressions",
             settings => { settings.WithSystemRuntimeCacheHandle("exps"); });
 
@@ -23,6 +27,28 @@ namespace Musoq.Service.Resolvers
         {
             _contexts = new ConcurrentDictionary<Guid, QueryContext>();
             _states = new ConcurrentDictionary<Guid, ExecutionState>();
+        }
+
+        static CustomDependencyResolver()
+        {
+            LoadedSchemas = new ConcurrentDictionary<string, Type>();
+
+            var types = new List<Type>();
+
+            types.AddRange(PluginsLoader.LoadDllBasedSchemas());
+
+            foreach (var type in types)
+            {
+                try
+                {
+                    var schema = (ISchema) Activator.CreateInstance(type);
+                    LoadedSchemas.Add(schema.Name.ToLowerInvariant(), type);
+                }
+                catch (Exception e)
+                {
+                    ServiceLogger.Instance.Log(e);
+                }
+            }
         }
 
         public void Dispose()

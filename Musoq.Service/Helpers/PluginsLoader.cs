@@ -4,7 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using IronPython.Hosting;
+using Microsoft.Scripting.Hosting;
+using Musoq.Plugins;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using Musoq.Service.Logging;
 
@@ -12,9 +16,9 @@ namespace Musoq.Service.Helpers
 {
     public static class PluginsLoader
     {
-        private static ISchema[] _plugins;
+        private static Type[] _plugins;
 
-        public static ISchema[] LoadSchemas()
+        public static Type[] LoadDllBasedSchemas()
         {
             if (_plugins != null)
                 return _plugins;
@@ -25,23 +29,8 @@ namespace Musoq.Service.Helpers
 
             var interfaceType = typeof(ISchema);
 
-            assemblyTypes = assemblyTypes.Where(type => interfaceType.IsAssignableFrom(type));
+            _plugins = assemblyTypes.Where(type => interfaceType.IsAssignableFrom(type)).ToArray();
 
-            var plugins = new List<ISchema>();
-
-            foreach (var assemblyType in assemblyTypes)
-            {
-                try
-                {
-                    plugins.Add((ISchema)Activator.CreateInstance(assemblyType));
-                }
-                catch (Exception e)
-                {
-                    ServiceLogger.Instance.Log(e);
-                }
-            }
-
-            _plugins = plugins.ToArray();
             return _plugins;
         }
     }
