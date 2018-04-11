@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Schema;
 using Musoq.Service.Exceptions;
-using Musoq.Service.Helpers;
 using Musoq.Service.Resolvers;
 
 namespace Musoq.Service

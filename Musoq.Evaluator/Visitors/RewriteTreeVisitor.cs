@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Parser;
@@ -13,7 +11,6 @@ using Musoq.Parser.Tokens;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Visitors
 {

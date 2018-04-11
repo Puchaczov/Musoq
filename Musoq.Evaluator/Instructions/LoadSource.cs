@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Musoq.Schema.DataSources;
+﻿using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Instructions
 {

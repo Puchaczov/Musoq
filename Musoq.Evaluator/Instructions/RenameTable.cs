@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Musoq.Evaluator.Instructions
+﻿namespace Musoq.Evaluator.Instructions
 {
     public class RenameTable : Instruction
     {

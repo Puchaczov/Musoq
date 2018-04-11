@@ -1,8 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Disk.Files;
 
 namespace Musoq.Schema.Disk.Process
 {

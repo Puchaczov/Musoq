@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
 {

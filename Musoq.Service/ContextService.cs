@@ -1,8 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.ServiceProcess;
 using Microsoft.Owin.Hosting;
-using Musoq.Service.Environment;
 
 namespace Musoq.Service
 {

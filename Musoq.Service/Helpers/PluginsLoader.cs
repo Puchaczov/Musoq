@@ -1,16 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
-using Musoq.Plugins;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
-using Musoq.Service.Logging;
 
 namespace Musoq.Service.Helpers
 {

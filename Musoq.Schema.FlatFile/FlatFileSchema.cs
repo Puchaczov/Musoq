@@ -1,5 +1,4 @@
-﻿using System;
-using Musoq.Schema.DataSources;
+﻿using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
 

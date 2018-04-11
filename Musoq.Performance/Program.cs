@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using Musoq.Converter;
 using Musoq.Schema;
-using Musoq.Schema.Disk;
 
 namespace Musoq.Performance
 {

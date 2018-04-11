@@ -1,10 +1,6 @@
-﻿using System.Data.Common;
-using System.Text;
-using System.Threading.Tasks;
-using Musoq.Schema.DataSources;
+﻿using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
-using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.Plugins
 {
