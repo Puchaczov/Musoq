@@ -8,13 +8,18 @@ namespace Musoq.Service
 {
     public class DynamicSchemaProvider : ISchemaProvider
     {
-        private readonly IDictionary<string, Type> _schemas = CustomDependencyResolver.LoadedSchemas;
+        private readonly IDictionary<string, Type> _schemas;
+
+        public DynamicSchemaProvider(IDictionary<string, Type> schemas)
+        {
+            _schemas = schemas;
+        }
 
         public ISchema GetSchema(string schema)
         {
             schema = schema.ToLowerInvariant();
 
-            if (schema.Contains(schema))
+            if (_schemas.ContainsKey(schema))
                 return (ISchema) Activator.CreateInstance(_schemas[schema]);
             
             throw new SchemaNotFoundException(schema);

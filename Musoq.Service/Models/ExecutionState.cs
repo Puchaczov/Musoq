@@ -12,7 +12,6 @@ namespace Musoq.Service.Models
         public TimeSpan CompilationTime { get; set; }
         public TimeSpan ExecutionTime { get; set; }
         public string FailureMessage { get; set; }
-
         public Task Task { get; set; }
     }
 }

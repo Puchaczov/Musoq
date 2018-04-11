@@ -24,15 +24,18 @@ namespace Musoq.Service.Controllers
         private readonly IDictionary<Guid, ExecutionState> _runetimeState;
         private readonly ICacheManager<VirtualMachine> _expressionsCache;
         private readonly IServiceLogger _logger;
+        private readonly IDictionary<string, Type> _schemas;
 
         public RuntimeController(IDictionary<Guid, QueryContext> contexts,
             IDictionary<Guid, ExecutionState> runetimeState,
-            ICacheManager<VirtualMachine> expressionsCache, IServiceLogger logger)
+            ICacheManager<VirtualMachine> expressionsCache, IServiceLogger logger,
+            IDictionary<string, Type> schemas)
         {
             _contexts = contexts;
             _runetimeState = runetimeState;
             _expressionsCache = expressionsCache;
             _logger = logger;
+            _schemas = schemas;
         }
 
         [HttpPost]
@@ -79,8 +82,8 @@ namespace Musoq.Service.Controllers
                     var hash = HashHelper.ComputeHash<MD5CryptoServiceProvider>(key);
 
                     if (!_expressionsCache.TryGetOrAdd(hash,
-                        (s) => InstanceCreator.Create(root, new DynamicSchemaProvider()), out var vm))
-                        vm = InstanceCreator.Create(root, new DynamicSchemaProvider());
+                        (s) => InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas)), out var vm))
+                        vm = InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas));
 
                     var compiledTime = watch.Elapsed;
                     state.Result = vm.Execute();
@@ -104,6 +107,8 @@ namespace Musoq.Service.Controllers
 
                     if (dirInfo.Exists)
                         dirInfo.Delete();
+
+                    _logger.Log("Query processed.");
                 }
             });
 
