@@ -642,5 +642,25 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(17, table[7][1]);
             Assert.AreEqual("DateTime", table[7][2]);
         }
+        
+        [Ignore]
+        [TestMethod]
+        public void SimpleJoinTest()
+        {
+            var query = "select a.Id from #A.x1() a inner join #B.x2() b on a.Id = b.Id";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX"),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+        }
     }
 }

@@ -8,6 +8,7 @@ namespace Musoq.Parser.Nodes
         public AccessObjectKeyNode(KeyAccessToken token)
         {
             Token = token;
+            Id = $"{nameof(AccessObjectKeyNode)}{token.Value}";
         }
         public AccessObjectKeyNode(KeyAccessToken token, PropertyInfo propertyInfo)
             : this(token)

@@ -97,6 +97,8 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Skip;
                 case WithToken.TokenText:
                     return TokenType.With;
+                case OnToken.TokenText:
+                    return TokenType.On;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -241,11 +243,11 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNumericArrayAccess),
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccess),
+                new TokenDefinition(TokenRegexDefinition.KInnerJoin),
+                new TokenDefinition(TokenRegexDefinition.KOuterJoin),
                 new TokenDefinition(TokenRegexDefinition.KColumn),
                 new TokenDefinition(TokenRegexDefinition.KHFrom),
                 new TokenDefinition(TokenRegexDefinition.KDot),
-                new TokenDefinition(TokenRegexDefinition.KInnerJoin),
-                new TokenDefinition(TokenRegexDefinition.KOuterJoin),
                 new TokenDefinition(TokenRegexDefinition.KOn),
                 new TokenDefinition(TokenRegexDefinition.KOrderBy),
             };
@@ -375,6 +377,12 @@ namespace Musoq.Parser.Lexing
                     return new TakeToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.With:
                     return new WithToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.On:
+                    return new OnToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.InnerJoin:
+                    return new InnerJoinToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.OuterJoin:
+                    return new OuterJoinToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

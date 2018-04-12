@@ -155,12 +155,34 @@ namespace Musoq.Parser
         {
             var selectNode = ComposeSelectNode();
             var fromNode = ComposeFrom();
+
+            var joins = new List<Node>();
+            while (Current.TokenType == TokenType.InnerJoin || Current.TokenType == TokenType.OuterJoin)
+            {
+                joins.Add(ComposeJoin());
+            }
+
             var whereNode = ComposeWhereNode();
             var groupBy = ComposeGrouByNode();
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
             return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+        }
+
+        private Node ComposeJoin()
+        {
+            switch (Current.TokenType)
+            {
+                case TokenType.InnerJoin:
+                    Consume(TokenType.InnerJoin);
+                    return new InnerJoinNode(ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations());
+                case TokenType.OuterJoin:
+                    Consume(TokenType.OuterJoin);
+                    return new InnerJoinNode(ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations());
+            }
+
+            return null;
         }
 
         private OrderByNode ComposeOrderBy()
@@ -257,6 +279,8 @@ namespace Musoq.Parser
                     return name;
                 case TokenType.Word:
                     return ConsumeAndGetToken(TokenType.Word).Value;
+                case TokenType.Column:
+                    return ConsumeAndGetToken(TokenType.Column).Value;
             }
 
             return string.Empty;
@@ -442,9 +466,11 @@ namespace Musoq.Parser
             return current.TokenType == TokenType.Dot;
         }
 
-        private FromNode ComposeFrom()
+        private FromNode ComposeFrom(bool fromBefore = true)
         {
-            Consume(TokenType.From);
+            if(fromBefore)
+                Consume(TokenType.From);
+
             if (Current.TokenType == TokenType.Word)
             {
                 var name = ComposeWord();
@@ -486,13 +512,16 @@ namespace Musoq.Parser
                 Consume(TokenType.WhiteSpace);
         }
 
-        private WhereNode ComposeWhereNode()
+        private WhereNode ComposeWhereNode(bool withoutWhereToken = false)
         {
             if (Current.TokenType == TokenType.Where)
             {
                 Consume(TokenType.Where);
                 return new WhereNode(ComposeOperations());
             }
+
+            if(withoutWhereToken)
+                return new WhereNode(ComposeOperations());
 
             return new WhereNode(new PutTrueNode());
         }

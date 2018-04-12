@@ -41,6 +41,8 @@ namespace Musoq.Parser.Helpers
             dict.Add((typeof(bool), typeof(bool)), typeof(bool));
 
             dict.Add((typeof(DateTimeOffset), typeof(DateTimeOffset)), typeof(DateTimeOffset));
+
+            dict.Add((typeof(object), typeof(object)), typeof(object));
         }
 
         public static Type GetReturnTypeMap(Type left, Type right)

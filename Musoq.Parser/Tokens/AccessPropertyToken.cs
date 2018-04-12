@@ -1,6 +1,4 @@
-﻿using Musoq.Parser.Tokens;
-
-namespace Musoq.Parser.Nodes
+﻿namespace Musoq.Parser.Tokens
 {
     public class AccessPropertyToken : Token
     {

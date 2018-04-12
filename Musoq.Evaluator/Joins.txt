@@ -1,0 +1,1 @@
+﻿from #schema.whatever() w join #schema2.diff() d on w.Id = d.Id

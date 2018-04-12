@@ -9,6 +9,7 @@ namespace Musoq.Parser.Nodes
         public AccessColumnNode(string column, TextSpan span)
             : this(column, 0, typeof(void), span)
         {
+            Id = $"{nameof(AccessColumnNode)}{column}";
         }
 
         protected AccessColumnNode(string column, int argFieldOrder, Type returnType, TextSpan span)

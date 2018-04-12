@@ -17,6 +17,8 @@ namespace Musoq.Parser.Nodes
             ColumnName = columnName;
             ColumnType = columnType;
             Props = props;
+
+            Id = $"{nameof(AccessCallChainNode)}{ToString()}";
         }
         
         public override Type ReturnType
@@ -38,6 +40,7 @@ namespace Musoq.Parser.Nodes
         }
 
         public override string Id { get; }
+
         public override string ToString()
         {
             var callChain = new StringBuilder();

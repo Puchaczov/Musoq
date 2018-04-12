@@ -8,6 +8,7 @@ namespace Musoq.Parser.Nodes
         public AccessObjectArrayNode(NumericAccessToken token)
         {
             Token = token;
+            Id = $"{nameof(AccessObjectArrayNode)}{token.Value}";
         }
         public AccessObjectArrayNode(NumericAccessToken token, PropertyInfo propertyInfo)
             : this(token)

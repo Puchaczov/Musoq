@@ -17,6 +17,7 @@ namespace Musoq.Parser.Nodes
             Root = root;
             IsOuter = isOuter;
             Name = name;
+            Id = $"{nameof(AccessPropertyNode)}{root.ToString()}{expression.ToString()}{isOuter}{name}";
         }
 
         public AccessPropertyNode(Node root, Node expression, bool isOuter, string name, PropertyInfo propertyInfo)
