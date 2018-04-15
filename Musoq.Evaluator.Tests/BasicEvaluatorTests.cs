@@ -662,5 +662,25 @@ namespace Musoq.Evaluator.Tests
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Execute();
         }
+
+        [Ignore]
+        [TestMethod]
+        public void SimpleLeftJoinTest()
+        {
+            var query = "select a.Id from #A.x1() a left outer join #B.x2() b on a.Id = b.Id";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX"),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Execute();
+        }
     }
 }

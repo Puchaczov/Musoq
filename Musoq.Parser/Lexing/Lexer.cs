@@ -187,7 +187,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KTake = string.Format(Keyword, TakeToken.TokenText);
             public static readonly string KWith = string.Format(Keyword, WithToken.TokenText);
             public static readonly string KInnerJoin = @"(?<=[\s]{1,}|^)inner[\s]{1,}join(?=[\s]{1,}|$)";
-            public static readonly string KOuterJoin = @"(?<=[\s]{1,}|^)outer[\s]{1,}join(?=[\s]{1,}|$)";
+            public static readonly string KOuterJoin = @"(?<=[\s]{1,}|^)(left|right)[\s]{1,}(outer[\s]{1,}join)(?=[\s]{1,}|$)";
             public static readonly string KOn = string.Format(Keyword, OnToken.TokenText);
             public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
             public static readonly string KDesc = string.Format(Keyword, DescToken.TokenText);
@@ -243,8 +243,8 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNumericArrayAccess),
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccess),
-                new TokenDefinition(TokenRegexDefinition.KInnerJoin),
-                new TokenDefinition(TokenRegexDefinition.KOuterJoin),
+                new TokenDefinition(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KColumn),
                 new TokenDefinition(TokenRegexDefinition.KHFrom),
                 new TokenDefinition(TokenRegexDefinition.KDot),
@@ -382,7 +382,11 @@ namespace Musoq.Parser.Lexing
                 case TokenType.InnerJoin:
                     return new InnerJoinToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.OuterJoin:
-                    return new OuterJoinToken(new TextSpan(Position, tokenText.Length));
+                    var type = match.Groups[1].Value.ToLowerInvariant() == "left"
+                        ? OuterJoinNode.OuterJoinType.Left
+                        : OuterJoinNode.OuterJoinType.Right;
+
+                    return new OuterJoinToken(type, new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

@@ -175,18 +175,6 @@ namespace Musoq.Parser.Lexing
             public Regex Regex { get; }
         }
 
-        protected sealed class TokenPosition
-        {
-            public TokenPosition(int index, int length)
-            {
-                Index = index;
-                Length = length;
-            }
-
-            public int Index { get; }
-            public int Length { get; }
-        }
-
         #endregion
     }
 }

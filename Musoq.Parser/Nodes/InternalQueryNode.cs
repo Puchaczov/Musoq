@@ -7,7 +7,7 @@ namespace Musoq.Parser.Nodes
         public InternalQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, IntoNode into,
             ShouldBePresentInTheTable shouldBePresent, SkipNode skip, TakeNode take,  bool shouldLoadResultTableAsResult, string resultTable,
             bool useColumnAccessInstead, RefreshNode refresh)
-            : base(select, from, where, groupBy, orderBy, skip, take)
+            : base(select, from, null, where, groupBy, orderBy, skip, take)
         {
             UseColumnAccessInstead = useColumnAccessInstead;
             Refresh = refresh;

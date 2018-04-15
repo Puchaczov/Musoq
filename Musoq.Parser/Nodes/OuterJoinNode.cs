@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Parser.Nodes
 {
-    public class OuterJoinNode : BinaryNode
+    public class OuterJoinNode : JoinNode
     {
         public enum OuterJoinType
         {

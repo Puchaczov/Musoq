@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Parser.Nodes
 {
-    public class InnerJoinNode : BinaryNode
+    public class InnerJoinNode : JoinNode
     {
         public InnerJoinNode(Node from, Node expression) 
             : base(from, expression)

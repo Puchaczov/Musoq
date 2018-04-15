@@ -83,7 +83,7 @@ namespace Musoq.Evaluator.Visitors
             var select = new SelectNode(fields.ToArray());
             var newFrom = new SchemaFromNode(schemaName, method, parameters, string.Empty);
 
-            var newQuery = new QueryNode(select, newFrom, new WhereNode(new PutTrueNode()), null, null, null, null);
+            var newQuery = new QueryNode(select, newFrom, null, new WhereNode(new PutTrueNode()), null, null, null, null);
 
             Nodes.Push(newFrom);
             Nodes.Push(new WhereNode(new PutTrueNode()));
@@ -563,7 +563,7 @@ namespace Musoq.Evaluator.Visitors
                     Nodes.Push(from);
                     Nodes.Push(where);
                     Nodes.Push(select);
-                    Visit(new QueryNode(node.Select, node.From, node.Where, fakeGroupBy, node.OrderBy, node.Skip, node.Take));
+                    Visit(new QueryNode(node.Select, node.From, null, node.Where, fakeGroupBy, node.OrderBy, node.Skip, node.Take));
                     query = Nodes.Pop() as QueryNode;
                 }
                 else if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
