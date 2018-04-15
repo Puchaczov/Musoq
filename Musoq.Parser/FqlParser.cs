@@ -156,7 +156,7 @@ namespace Musoq.Parser
             var selectNode = ComposeSelectNode();
             var fromNode = ComposeFrom();
 
-            var joins = new List<Node>();
+            var joins = new List<JoinNode>();
             while (Current.TokenType == TokenType.InnerJoin || Current.TokenType == TokenType.OuterJoin)
             {
                 joins.Add(ComposeJoin());
@@ -167,10 +167,10 @@ namespace Musoq.Parser
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            return new QueryNode(selectNode, fromNode, null, whereNode, groupBy, orderBy, skip, take);
+            return new QueryNode(selectNode, fromNode, joins.ToArray(), whereNode, groupBy, orderBy, skip, take);
         }
 
-        private Node ComposeJoin()
+        private JoinNode ComposeJoin()
         {
             switch (Current.TokenType)
             {
