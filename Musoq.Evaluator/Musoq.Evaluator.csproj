@@ -5,9 +5,40 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="RuntimeScripts\MainMethod.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MainMethod.tt</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="RuntimeScripts\MainMethod.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>MainMethod.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="RuntimeScripts\MainMethod.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MainMethod.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

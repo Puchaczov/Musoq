@@ -1,11 +1,17 @@
-﻿select w.Id, d.Id from #schema.whatever() w join #schema.diff() d on w.Id = d.Id where d.Abc > 0
+﻿select 
+	w.Id, 
+	d.Id,
+	w.Sum + d.Sum
+from #schema.whatever() w 
+join #schema.diff() d on w.Id = d.Id 
+where 
+	d.Abc > 0
 
 =>
 
-select w.Id, d.Id from #schema.whatever() w, #schema.diff() d where w.Id = d.Id and d.Abc > 0
-
-=>
-
-select w.Id from #schema.whatever() w into @a
-internal_join (@b.Id = @a.Id)
-select d.Id from #schema.diff() d into @b where d.Abc > 0;
+with p as (
+	select w.Id, w.Sum from #schema.whatever() w
+	internal_join => inner (@b.Id = @a.Id)
+	select d.Id, d.Sum from #schema.diff() d into @b where d.Abc > 0
+)
+select * from p
