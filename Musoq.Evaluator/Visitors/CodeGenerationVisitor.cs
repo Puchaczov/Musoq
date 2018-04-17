@@ -584,6 +584,10 @@ namespace Musoq.Evaluator.Visitors
             _labels.Add(WhereClauseBeginsLabelName, new Label(_instructions.Count));
         }
 
+        public void Visit(JoinFromNode node)
+        {
+        }
+
         public void Visit(CreateTableNode node)
         {
             _instructions.Add(new LoadTable(node.Name, node.Keys, _tableMetadatas[node.Name].Columns.ToArray()));
@@ -696,6 +700,14 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CteInnerExpressionNode node)
+        {
+        }
+
+        public void Visit(JoinsNode node)
+        {
+        }
+
+        public void Visit(JoinNode node)
         {
         }
 

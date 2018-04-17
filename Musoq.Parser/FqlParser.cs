@@ -167,7 +167,7 @@ namespace Musoq.Parser
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            return new QueryNode(selectNode, fromNode, joins.ToArray(), whereNode, groupBy, orderBy, skip, take);
+            return new QueryNode(selectNode, fromNode, new JoinsNode(joins.ToArray()), whereNode, groupBy, orderBy, skip, take);
         }
 
         private JoinNode ComposeJoin()

@@ -360,7 +360,10 @@ namespace Musoq.Evaluator.Visitors
 
             var columnNode = root.Root as AccessColumnNode;
 
-            var column = _table.Columns.Single(f => f.ColumnName == columnNode.Name);
+            var column = _table.Columns.SingleOrDefault(f => f.ColumnName == columnNode.Name);
+
+            if(column == null)
+                column = _table.Columns.SingleOrDefault(f => f.ColumnName == root.Name);
 
             Type currentType = column.ColumnType;
 
@@ -465,6 +468,10 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new CteFromNode(node.VariableName));
         }
 
+        public void Visit(JoinFromNode node)
+        {
+        }
+
         public void Visit(CreateTableNode node)
         {
             var fields = CreateFields(node.Fields);
@@ -504,6 +511,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var select = Nodes.Pop() as SelectNode;
             var where = Nodes.Pop() as WhereNode;
+            var joins = node.Joins != null ? Nodes.Pop() as JoinsNode : null;
             var from = Nodes.Pop() as FromNode;
 
             var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
@@ -524,6 +532,19 @@ namespace Musoq.Evaluator.Visitors
             else
             {
                 outerInto = new IntoNode(from.Schema);
+            }
+
+            if (joins != null)
+            {
+                FromNode joinFrom = from;
+
+                for (int j = 0; j < joins.Joins.Length; j++)
+                {
+                    var currentJoin = joins.Joins[j];
+                    joinFrom = new JoinFromNode(joinFrom, currentJoin.From, currentJoin.Expression);
+                }
+
+                from = joinFrom;
             }
 
             QueryNode query;
@@ -943,6 +964,26 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(CteInnerExpressionNode node)
         {
             Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name));
+        }
+
+        public void Visit(JoinsNode node)
+        {
+            var joins = new JoinNode[node.Joins.Length];
+
+            for (int i = node.Joins.Length - 1, j = 0; i >= 0; i--, ++j)
+            {
+                joins[j] = (JoinNode) Nodes.Pop();
+            }
+
+            Nodes.Push(new JoinsNode(joins));
+        }
+
+        public void Visit(JoinNode node)
+        {
+            if(node is OuterJoinNode outerJoin)
+                Nodes.Push(new OuterJoinNode(outerJoin.Type, (FromNode)Nodes.Pop(), Nodes.Pop()));
+            else
+                Nodes.Push(new InnerJoinNode((FromNode)Nodes.Pop(), Nodes.Pop()));
         }
 
         public string[] CurrentParameters { get; private set; }

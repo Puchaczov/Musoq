@@ -193,6 +193,10 @@ namespace Musoq.Evaluator.Visitors
             _names.Push(node.VariableName);
         }
 
+        public void Visit(JoinFromNode node)
+        {
+        }
+
         public void Visit(CreateTableNode node)
         {
             TableMetadata table;
@@ -289,6 +293,14 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CteInnerExpressionNode node)
+        {
+        }
+
+        public void Visit(JoinsNode node)
+        {
+        }
+
+        public void Visit(JoinNode node)
         {
         }
 

@@ -217,7 +217,8 @@ namespace Musoq.Evaluator.Tests
                 Money = 1.23m,
                 Month = "JANUARY",
                 Population = 250,
-                Time = DateTime.MaxValue
+                Time = DateTime.MaxValue,
+                Id = 5
             };
             var query = "select 1, *, Name as Name2, ToString(Self) as SelfString from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -254,13 +255,17 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("Time", table.Columns.ElementAt(8).Name);
             Assert.AreEqual(typeof(DateTime), table.Columns.ElementAt(8).ColumnType);
 
-            Assert.AreEqual("Name2", table.Columns.ElementAt(9).Name);
-            Assert.AreEqual(typeof(string), table.Columns.ElementAt(9).ColumnType);
+            Assert.AreEqual("Id", table.Columns.ElementAt(9).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(9).ColumnType);
 
-            Assert.AreEqual("SelfString", table.Columns.ElementAt(10).Name);
+            Assert.AreEqual("Name2", table.Columns.ElementAt(10).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(10).ColumnType);
 
+            Assert.AreEqual("SelfString", table.Columns.ElementAt(11).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(11).ColumnType);
+
             Assert.AreEqual(1, table.Count);
+
             Assert.AreEqual(Convert.ToInt64(1), table[0].Values[0]);
             Assert.AreEqual("ABBA", table[0].Values[1]);
             Assert.AreEqual("CRACOV", table[0].Values[2]);
@@ -270,8 +275,9 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(1.23m, table[0].Values[6]);
             Assert.AreEqual("JANUARY", table[0].Values[7]);
             Assert.AreEqual(DateTime.MaxValue, table[0].Values[8]);
-            Assert.AreEqual("ABBA", table[0].Values[9]);
-            Assert.AreEqual("TEST STRING", table[0].Values[10]);
+            Assert.AreEqual(5, table[0].Values[9]);
+            Assert.AreEqual("ABBA", table[0].Values[10]);
+            Assert.AreEqual("TEST STRING", table[0].Values[11]);
         }
 
         [TestMethod]
@@ -599,7 +605,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Execute();
 
             Assert.AreEqual(3, table.Columns.Count());
-            Assert.AreEqual(8, table.Count);
+            Assert.AreEqual(9, table.Count);
 
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -641,6 +647,10 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("Time", table[7][0]);
             Assert.AreEqual(17, table[7][1]);
             Assert.AreEqual("DateTime", table[7][2]);
+
+            Assert.AreEqual("Id", table[8][0]);
+            Assert.AreEqual(18, table[8][1]);
+            Assert.AreEqual("Int32", table[8][2]);
         }
         
         [Ignore]

@@ -50,6 +50,7 @@ namespace Musoq.Parser
         void Visit(SchemaFromNode node);
         void Visit(NestedQueryFromNode node);
         void Visit(CteFromNode node);
+        void Visit(JoinFromNode node);
         void Visit(CreateTableNode node);
         void Visit(RenameTableNode node);
         void Visit(TranslatedSetTreeNode node);
@@ -70,5 +71,7 @@ namespace Musoq.Parser
         void Visit(MultiStatementNode node);
         void Visit(CteExpressionNode node);
         void Visit(CteInnerExpressionNode node);
+        void Visit(JoinsNode node);
+        void Visit(JoinNode node);
     }
 }

@@ -241,6 +241,10 @@ namespace Musoq.Service.Visitors
             _script.Append(node.VariableName);
         }
 
+        public void Visit(JoinFromNode node)
+        {
+        }
+
         public void Visit(CreateTableNode node)
         {
         }
@@ -329,6 +333,15 @@ namespace Musoq.Service.Visitors
         public void Visit(CteInnerExpressionNode node)
         {
             _script.Append($"{node.Name}as");
+        }
+
+        public void Visit(JoinsNode node)
+        {
+        }
+
+        public void Visit(JoinNode node)
+        {
+            _script.Append("on");
         }
     }
 }

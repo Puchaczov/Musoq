@@ -5,7 +5,7 @@ namespace Musoq.Parser.Nodes
 {
     public class QueryNode : Node
     {
-        public QueryNode(SelectNode select, FromNode from, JoinNode[] joins, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take)
+        public QueryNode(SelectNode select, FromNode from, JoinsNode joins, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take)
         {
             Select = select;
             From = from;
@@ -22,7 +22,7 @@ namespace Musoq.Parser.Nodes
 
         public FromNode From { get; }
 
-        public JoinNode[] Joins { get; }
+        public JoinsNode Joins { get; }
 
         public WhereNode Where { get; }
 
@@ -45,9 +45,9 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            var joins = Joins == null || Joins.Length == 0 ? string.Empty : Joins.Select(f => f.ToString()).Aggregate((a, b) => a + " " + b);
+            var joins = Joins == null || Joins.Joins.Length == 0 ? string.Empty : Joins.Joins.Select(f => f.ToString()).Aggregate((a, b) => a + " " + b);
 
-            return $"{Select?.ToString()} {From?.ToString()} {Joins} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
+            return $"{Select?.ToString()} {From?.ToString()} {joins} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
         }
     }
 }

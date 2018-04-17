@@ -57,6 +57,8 @@ namespace Musoq.Evaluator.Tests.Schema
 
         public BasicEntity Self => this;
 
+        public int Id { get; set; }
+
         public int[] Array => new[] { 0, 1, 2 };
 
         public override string ToString()

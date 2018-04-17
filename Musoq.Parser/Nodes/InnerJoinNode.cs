@@ -2,7 +2,7 @@
 {
     public class InnerJoinNode : JoinNode
     {
-        public InnerJoinNode(Node from, Node expression) 
+        public InnerJoinNode(FromNode from, Node expression) 
             : base(from, expression)
         {
             Id = CalculateId(this);

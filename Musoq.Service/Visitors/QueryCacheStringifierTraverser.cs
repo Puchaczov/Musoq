@@ -176,6 +176,11 @@ namespace Musoq.Service.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(JoinFromNode node)
+        {
+            throw new NotSupportedException();
+        }
+
         public void Visit(CreateTableNode node)
         {
             node.Accept(_visitor);
@@ -482,6 +487,19 @@ namespace Musoq.Service.Visitors
             _visitor.AddText("(");
             node.Value.Accept(this);
             _visitor.AddText(")");
+        }
+
+        public void Visit(JoinsNode node)
+        {
+            foreach (var item in node.Joins)
+                item.Accept(this);
+        }
+
+        public void Visit(JoinNode node)
+        {
+            node.From.Accept(this);
+            node.Accept(_visitor);
+            node.Expression.Accept(this);
         }
 
         public void Visit(FromNode node)

@@ -8,7 +8,7 @@
             Right
         }
 
-        public OuterJoinNode(OuterJoinType outerJoinType, Node from, Node expression)
+        public OuterJoinNode(OuterJoinType outerJoinType, FromNode from, Node expression)
             : base(from, expression)
         {
             Id = CalculateId(this);
