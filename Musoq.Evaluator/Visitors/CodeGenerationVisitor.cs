@@ -470,7 +470,7 @@ namespace Musoq.Evaluator.Visitors
             _instructions.Add(new AccessProperty(node.PropertyInfo, null));
         }
 
-        public void Visit(AccessPropertyNode node)
+        public void Visit(DotNode node)
         {
             _instructions.Add(new AccessProperty(node.PropertyInfo, null));
         }

@@ -653,7 +653,6 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("Int32", table[8][2]);
         }
         
-        [Ignore]
         [TestMethod]
         public void SimpleJoinTest()
         {

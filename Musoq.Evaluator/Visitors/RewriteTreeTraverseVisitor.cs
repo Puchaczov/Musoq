@@ -82,7 +82,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(PropertyValueNode node)
         {}
 
-        public void Visit(AccessPropertyNode node)
+        public void Visit(DotNode node)
         {
             node.Accept(_visitor);
         }
@@ -216,13 +216,13 @@ namespace Musoq.Evaluator.Visitors
             _visitor.CurrentSchema = node.From.Schema;
             _visitor.SetCurrentTable(node.From.Method, node.From.Parameters);
 
-            node.Take?.Accept(this);
-            node.Skip?.Accept(this);
-            node.GroupBy?.Accept(this);
             node.From.Accept(this);
             node.Joins.Accept(this);
             node.Where.Accept(this);
             node.Select.Accept(this);
+            node.Take?.Accept(this);
+            node.Skip?.Accept(this);
+            node.GroupBy?.Accept(this);
             node.Accept(_visitor);
 
             _visitor.CurrentSchema = oldSchema;

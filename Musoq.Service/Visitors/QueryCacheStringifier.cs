@@ -176,7 +176,7 @@ namespace Musoq.Service.Visitors
             _script.Append($".{node.Name}");
         }
 
-        public void Visit(AccessPropertyNode node)
+        public void Visit(DotNode node)
         {
             _script.Append($".{node.Name}");
         }

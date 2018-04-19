@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Musoq.Parser.Nodes
 {
-    public class AccessPropertyNode : UnaryNode
+    public class DotNode : UnaryNode
     {
         public Node Root { get; }
 
@@ -11,16 +11,16 @@ namespace Musoq.Parser.Nodes
 
         public string Name { get; }
 
-        public AccessPropertyNode(Node root, Node expression, bool isOuter, string name)
+        public DotNode(Node root, Node expression, bool isOuter, string name)
             : base(expression)
         {
             Root = root;
             IsOuter = isOuter;
             Name = name;
-            Id = $"{nameof(AccessPropertyNode)}{root.ToString()}{expression.ToString()}{isOuter}{name}";
+            Id = $"{nameof(DotNode)}{root.ToString()}{expression.ToString()}{isOuter}{name}";
         }
 
-        public AccessPropertyNode(Node root, Node expression, bool isOuter, string name, PropertyInfo propertyInfo)
+        public DotNode(Node root, Node expression, bool isOuter, string name, PropertyInfo propertyInfo)
             : this(root, expression, isOuter, name)
         {
             PropertyInfo = propertyInfo;
@@ -35,7 +35,7 @@ namespace Musoq.Parser.Nodes
 
         public override string Id { get; }
 
-        public PropertyInfo PropertyInfo { get; set; }
+        public PropertyInfo PropertyInfo { get; }
 
         public override string ToString()
         {

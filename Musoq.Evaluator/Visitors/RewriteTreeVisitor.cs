@@ -21,9 +21,11 @@ namespace Musoq.Evaluator.Visitors
         private readonly Stack<AccessMethodNode> _queryMethods = new Stack<AccessMethodNode>();
         private readonly TransitionSchemaProvider _schemaProvider;
         private readonly Dictionary<string, int> _tmpVariableNames = new Dictionary<string, int>();
+        private readonly Dictionary<string, (ISchema Schema, ISchemaTable Table, int MapIndex)> _aliases = new Dictionary<string, (ISchema Schema, ISchemaTable Table, int MapIndex)>();
         private InternalQueryNode _setLeftNode;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
+        private int _mapIndex = 0;
 
         private string _currentSchema;
         private string _currentCte;
@@ -346,7 +348,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new PropertyValueNode(node.Name));
         }
 
-        public void Visit(AccessPropertyNode node)
+        public void Visit(DotNode node)
         {
             var propsChain = new Stack<Node>();
             var properties = new List<(PropertyInfo Prop, object Arg)>();
@@ -355,17 +357,13 @@ namespace Musoq.Evaluator.Visitors
             while (root != null && !root.IsOuter)
             {
                 propsChain.Push(root.Expression);
-                root = root.Root as AccessPropertyNode;
+                root = root.Root as DotNode;
             }
 
             var columnNode = root.Root as AccessColumnNode;
 
             var column = _table.Columns.SingleOrDefault(f => f.ColumnName == columnNode.Name);
-
-            if(column == null)
-                column = _table.Columns.SingleOrDefault(f => f.ColumnName == root.Name);
-
-            Type currentType = column.ColumnType;
+            var currentType = column.ColumnType;
 
             propsChain.Push(root.Expression);
 
@@ -391,7 +389,7 @@ namespace Musoq.Evaluator.Visitors
                     currentType = p.PropertyType;
                     properties.Add((p, null));
                 }
-                else if (prop is AccessPropertyNode accesPropNode)
+                else if (prop is DotNode accesPropNode)
                 {
                     propsChain.Push(accesPropNode.Expression);
                 }
@@ -453,6 +451,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
+            _aliases.Add(node.Alias, (_schema, _table, _mapIndex++));
             Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, node.Alias));
         }
 
@@ -470,6 +469,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinFromNode node)
         {
+            var source = (FromNode) Nodes.Pop();
+            var joinedTable = (FromNode) Nodes.Pop();
+            var expression = Nodes.Pop();
+            Nodes.Push(new JoinFromNode(source, joinedTable, expression));
         }
 
         public void Visit(CreateTableNode node)
@@ -509,14 +512,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
+            var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
+            var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
+            var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
+
             var select = Nodes.Pop() as SelectNode;
             var where = Nodes.Pop() as WhereNode;
             var joins = node.Joins != null ? Nodes.Pop() as JoinsNode : null;
             var from = Nodes.Pop() as FromNode;
-
-            var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
-            var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
-            var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
 
             IntoNode outerInto;
             if (from is CteFromNode variableFrom)
@@ -536,7 +539,7 @@ namespace Musoq.Evaluator.Visitors
 
             if (joins != null)
             {
-                FromNode joinFrom = from;
+                var joinFrom = from;
 
                 for (int j = 0; j < joins.Joins.Length; j++)
                 {
@@ -580,10 +583,12 @@ namespace Musoq.Evaluator.Visitors
                 {
                     var fakeField = new FieldNode(new IntegerNode("1"), 0, String.Empty);
                     var fakeGroupBy = new GroupByNode(new []{ fakeField }, null);
-                    Nodes.Push(fakeGroupBy);
                     Nodes.Push(from);
                     Nodes.Push(where);
                     Nodes.Push(select);
+                    if (node.Take != null) Nodes.Push(take);
+                    if (node.Skip != null) Nodes.Push(skip);
+                    Nodes.Push(fakeGroupBy);
                     Visit(new QueryNode(node.Select, node.From, null, node.Where, fakeGroupBy, node.OrderBy, node.Skip, node.Take));
                     query = Nodes.Pop() as QueryNode;
                 }
@@ -599,6 +604,7 @@ namespace Musoq.Evaluator.Visitors
                 }
             }
 
+            _aliases.Clear();
             Nodes.Push(query);
         }
 
@@ -980,10 +986,13 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinNode node)
         {
-            if(node is OuterJoinNode outerJoin)
-                Nodes.Push(new OuterJoinNode(outerJoin.Type, (FromNode)Nodes.Pop(), Nodes.Pop()));
+            var fromNode = (FromNode) Nodes.Pop();
+            var expression = Nodes.Pop();
+
+            if (node is OuterJoinNode outerJoin)
+                Nodes.Push(new OuterJoinNode(outerJoin.Type, fromNode, expression));
             else
-                Nodes.Push(new InnerJoinNode((FromNode)Nodes.Pop(), Nodes.Pop()));
+                Nodes.Push(new InnerJoinNode(fromNode, expression));
         }
 
         public string[] CurrentParameters { get; private set; }
@@ -1107,7 +1116,7 @@ namespace Musoq.Evaluator.Visitors
                         subNodes.Push(binary.Left);
                         subNodes.Push(binary.Right);
                     }
-                    else if (subNode is UnaryNode unary && !(subNode is AccessPropertyNode))
+                    else if (subNode is UnaryNode unary && !(subNode is DotNode))
                     {
                         subNodes.Push(unary);
                     }

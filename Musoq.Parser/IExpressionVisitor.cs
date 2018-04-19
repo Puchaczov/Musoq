@@ -37,7 +37,7 @@ namespace Musoq.Parser
         void Visit(AccessObjectArrayNode node);
         void Visit(AccessObjectKeyNode node);
         void Visit(PropertyValueNode node);
-        void Visit(AccessPropertyNode node);
+        void Visit(DotNode node);
         void Visit(AccessCallChainNode node);
         void Visit(ArgsListNode node);
         void Visit(SelectNode node);

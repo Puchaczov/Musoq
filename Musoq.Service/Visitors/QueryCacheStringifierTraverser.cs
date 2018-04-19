@@ -106,7 +106,7 @@ namespace Musoq.Service.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(AccessPropertyNode node)
+        public void Visit(DotNode node)
         {
             node.Accept(_visitor);
             node.Expression.Accept(this);

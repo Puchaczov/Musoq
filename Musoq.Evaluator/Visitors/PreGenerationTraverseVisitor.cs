@@ -87,7 +87,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(AccessPropertyNode node)
+        public void Visit(DotNode node)
         {
             node.Expression.Accept(this);
             node.Accept(_visitor);

@@ -153,7 +153,7 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
-        public void Visit(AccessPropertyNode node)
+        public void Visit(DotNode node)
         {
         }
 

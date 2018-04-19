@@ -322,7 +322,8 @@ namespace Musoq.Parser
                 {TokenType.Hyphen, (1, Associativity.Left)},
                 {TokenType.Star, (2, Associativity.Left)},
                 {TokenType.FSlash, (2, Associativity.Left)},
-                {TokenType.Mod, (2, Associativity.Left)}
+                {TokenType.Mod, (2, Associativity.Left)},
+                {TokenType.Dot, (1, Associativity.Left)}
             };
 
         private Node ComposeArithmeticExpression(int minPrec)
@@ -354,6 +355,9 @@ namespace Musoq.Parser
                     case TokenType.Mod:
                         left = new ModuloNode(left, right);
                         break;
+                    case TokenType.Dot:
+                        left = new DotNode(left, right, false, string.Empty);
+                        break;
                     default:
                         throw new NotSupportedException($"{curr.TokenType} is not supported while parsing expression.");
                 }
@@ -365,7 +369,6 @@ namespace Musoq.Parser
         private Node ComposeEqualityOperators()
         {
             var node = ComposeArithmeticExpression(0);
-            node = ComposeComplexAccess(node);
 
             while (IsEqualityOperator(Current))
                 switch (Current.TokenType)
@@ -415,56 +418,6 @@ namespace Musoq.Parser
                 }
 
             return node;
-        }
-
-        private Node ComposeComplexAccess(Node node)
-        {
-            if (!(node is AccessColumnNode)) return node;
-
-            var isComplexObjectAccessor = IsComplexObjectAccessor(Current);
-
-            if (isComplexObjectAccessor)
-            {
-                Consume(TokenType.Dot);
-                var ct = Current;
-
-                switch (Current.TokenType)
-                {
-                    case TokenType.Column:
-                    case TokenType.KeyAccess:
-                    case TokenType.NumericAccess:
-                    case TokenType.Property:
-                        node = new AccessPropertyNode(node, ComposeBaseTypes(), true, ct.Value);
-                        break;
-                }
-
-                isComplexObjectAccessor = IsComplexObjectAccessor(Current);
-            }
-
-            while (isComplexObjectAccessor)
-            {
-                Consume(TokenType.Dot);
-                var ct = Current;
-
-                switch (Current.TokenType)
-                {
-                    case TokenType.Column:
-                    case TokenType.KeyAccess:
-                    case TokenType.NumericAccess:
-                    case TokenType.Property:
-                        node = new AccessPropertyNode(node, ComposeBaseTypes(), false, ct.Value);
-                        break;
-                }
-
-                isComplexObjectAccessor = IsComplexObjectAccessor(Current);
-            }
-
-            return node;
-        }
-
-        private bool IsComplexObjectAccessor(Token current)
-        {
-            return current.TokenType == TokenType.Dot;
         }
 
         private FromNode ComposeFrom(bool fromBefore = true)
@@ -671,7 +624,8 @@ namespace Musoq.Parser
                    currentToken.TokenType == TokenType.FSlash ||
                    currentToken.TokenType == TokenType.Mod ||
                    currentToken.TokenType == TokenType.Plus ||
-                   currentToken.TokenType == TokenType.Hyphen;
+                   currentToken.TokenType == TokenType.Hyphen ||
+                   currentToken.TokenType == TokenType.Dot;
         }
 
         private static bool IsEqualityOperator(Token currentToken)
