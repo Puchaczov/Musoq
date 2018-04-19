@@ -586,6 +586,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinFromNode node)
         {
+            throw new NotSupportedException();
         }
 
         public void Visit(CreateTableNode node)

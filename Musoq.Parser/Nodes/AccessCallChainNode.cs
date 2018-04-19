@@ -12,11 +12,14 @@ namespace Musoq.Parser.Nodes
 
         public Type ColumnType { get; }
 
-        public AccessCallChainNode(string columnName, Type columnType, (PropertyInfo Property, object Arg)[] props)
+        public string Alias { get; }
+
+        public AccessCallChainNode(string columnName, Type columnType, (PropertyInfo Property, object Arg)[] props, string alias)
         {
             ColumnName = columnName;
             ColumnType = columnType;
             Props = props;
+            Alias = alias;
 
             Id = $"{nameof(AccessCallChainNode)}{ToString()}";
         }
@@ -45,6 +48,12 @@ namespace Musoq.Parser.Nodes
         {
             var callChain = new StringBuilder();
 
+            if (!string.IsNullOrWhiteSpace(Alias))
+            {
+                callChain.Append(Alias);
+                callChain.Append('.');
+            }
+
             callChain.Append(ColumnName);
             callChain.Append('.');
 
@@ -58,6 +67,9 @@ namespace Musoq.Parser.Nodes
                 else
                     callChain.Append($"{prop.Property.Name}[{prop.Arg}]");
             }
+
+            if (Props.Length == 0)
+                return callChain.ToString();
             
             prop = Props[Props.Length - 1];
             if (prop.Arg == null)

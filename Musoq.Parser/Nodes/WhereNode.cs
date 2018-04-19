@@ -25,5 +25,7 @@ namespace Musoq.Parser.Nodes
         {
             return $"where {Expression.ToString()}";
         }
+
+        public static WhereNode Empty => new WhereNode(new PutTrueNode());
     }
 }

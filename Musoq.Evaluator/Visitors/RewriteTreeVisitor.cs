@@ -17,10 +17,12 @@ namespace Musoq.Evaluator.Visitors
     public class RewriteTreeVisitor : ISchemaAwareExpressionVisitor
     {
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
+        protected List<QueryNode> _preQueries = new List<QueryNode>();
         private readonly List<CreateTableNode> _preCreatedTables = new List<CreateTableNode>();
         private readonly Stack<AccessMethodNode> _queryMethods = new Stack<AccessMethodNode>();
         private readonly TransitionSchemaProvider _schemaProvider;
         private readonly Dictionary<string, int> _tmpVariableNames = new Dictionary<string, int>();
+        private readonly Dictionary<string, string> _fromIdToAlias = new Dictionary<string, string>();
         private readonly Dictionary<string, (ISchema Schema, ISchemaTable Table, int MapIndex)> _aliases = new Dictionary<string, (ISchema Schema, ISchemaTable Table, int MapIndex)>();
         private InternalQueryNode _setLeftNode;
 
@@ -55,6 +57,11 @@ namespace Musoq.Evaluator.Visitors
             _ctePart = CtePart.None;
         }
 
+        public void ClearAliases()
+        {
+            _aliases.Clear();
+        }
+
         public void Visit(Node node)
         {
         }
@@ -65,9 +72,9 @@ namespace Musoq.Evaluator.Visitors
 
             var fields = new List<FieldNode>
             {
-                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnName), 0, typeof(string)), 0, "Name"),
-                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnIndex), 1, typeof(int)), 1, "Index"),
-                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnType), 2, typeof(string)), 2, "Type")
+                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnName), 0, typeof(string), string.Empty), 0, "Name"),
+                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnIndex), 1, typeof(int), string.Empty), 1, "Index"),
+                new FieldNode(new DetailedAccessColumnNode(nameof(ISchemaColumn.ColumnType), 2, typeof(string), string.Empty), 2, "Type")
             };
 
 
@@ -315,7 +322,7 @@ namespace Musoq.Evaluator.Visitors
             else
             {
                 node.ChangeReturnType(column.ColumnType);
-                Nodes.Push(new DetailedAccessColumnNode(column.ColumnName, column.ColumnIndex, column.ColumnType));
+                Nodes.Push(new DetailedAccessColumnNode(column.ColumnName, column.ColumnIndex, column.ColumnType, string.Empty));
             }
         }
 
@@ -327,7 +334,7 @@ namespace Musoq.Evaluator.Visitors
             {
                 var column = _table.Columns[i];
 
-                _generatedColumns[i] = new FieldNode(new DetailedAccessColumnNode(column.ColumnName, i, column.ColumnType), i, string.Empty);
+                _generatedColumns[i] = new FieldNode(new DetailedAccessColumnNode(column.ColumnName, i, column.ColumnType, string.Empty), i, string.Empty);
             }
 
             Nodes.Push(node);
@@ -354,18 +361,29 @@ namespace Musoq.Evaluator.Visitors
             var properties = new List<(PropertyInfo Prop, object Arg)>();
 
             var root = node;
-            while (root != null && !root.IsOuter)
+
+            while (root.Root is DotNode dotNode)
             {
-                propsChain.Push(root.Expression);
-                root = root.Root as DotNode;
+                root = dotNode;
             }
 
             var columnNode = root.Root as AccessColumnNode;
 
+            var isAliased = false;
+            var alias = string.Empty;
+            if (_aliases.ContainsKey(columnNode.Name))
+            {
+                alias = columnNode.Name;
+                columnNode = new AccessColumnNode(((PropertyValueNode)root.Expression).Name, TextSpan.Empty);
+                isAliased = true;
+            }
+            else
+            {
+                propsChain.Push(root.Expression);
+            }
+
             var column = _table.Columns.SingleOrDefault(f => f.ColumnName == columnNode.Name);
             var currentType = column.ColumnType;
-
-            propsChain.Push(root.Expression);
 
             while (propsChain.Count > 0)
             {
@@ -395,12 +413,33 @@ namespace Musoq.Evaluator.Visitors
                 }
             }
 
-            Nodes.Push(new AccessCallChainNode(column.ColumnName, column.ColumnType, properties.ToArray()));
+            if (properties.Count == 0)
+            {
+                if (isAliased)
+                {
+                    Nodes.Push(new DetailedAccessColumnNode(column.ColumnName, column.ColumnIndex, column.ColumnType, alias));
+                }
+                else
+                {
+                    Nodes.Push(new DetailedAccessColumnNode(column.ColumnName, column.ColumnIndex, column.ColumnType, string.Empty));
+                }
+            }
+            else
+            {
+                if (isAliased)
+                {
+                    Nodes.Push(new AccessCallChainNode(column.ColumnName, column.ColumnType, properties.ToArray(), alias));
+                }
+                else
+                {
+                    Nodes.Push(new AccessCallChainNode(column.ColumnName, column.ColumnType, properties.ToArray(), string.Empty));
+                }
+            }
         }
 
         public virtual void Visit(AccessCallChainNode node)
         {
-            Nodes.Push(new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props));
+            Nodes.Push(new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props, node.Alias));
         }
 
         public void Visit(ArgsListNode node)
@@ -451,7 +490,11 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
-            _aliases.Add(node.Alias, (_schema, _table, _mapIndex++));
+            if (!string.IsNullOrEmpty(node.Alias))
+            {
+                _aliases.Add(node.Alias, (_schema, _table, _mapIndex++));
+                _fromIdToAlias.Add(node.Id, node.Alias);
+            }
             Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, node.Alias));
         }
 
@@ -544,7 +587,24 @@ namespace Musoq.Evaluator.Visitors
                 for (int j = 0; j < joins.Joins.Length; j++)
                 {
                     var currentJoin = joins.Joins[j];
-                    joinFrom = new JoinFromNode(joinFrom, currentJoin.From, currentJoin.Expression);
+                    var alias = _fromIdToAlias[currentJoin.From.Id];
+                    var table = _aliases[alias].Table;
+
+                    joinFrom = new JoinFromNode(joinFrom, new CteFromNode(alias), currentJoin.Expression);
+
+                    var tmpSelect = new SelectNode(table.Columns.Select(f => new FieldNode(new DetailedAccessColumnNode(f.ColumnName, f.ColumnIndex, f.ColumnType, String.Empty), f.ColumnIndex, f.ColumnName)).ToArray());
+
+                    Nodes.Push(from);
+                    Nodes.Push(where);
+                    Nodes.Push(tmpSelect);
+                    Visit(new QueryNode(tmpSelect, currentJoin.From, null, WhereNode.Empty, null, null, null, null));
+                    var tmpQuery = (InternalQueryNode) Nodes.Pop();
+                    tmpQuery = new InternalQueryNode(tmpQuery.Select, tmpQuery.From, tmpQuery.Where, tmpQuery.GroupBy,
+                        tmpQuery.OrderBy, new IntoNode(alias), tmpQuery.ShouldBePresent, tmpQuery.Skip, tmpQuery.Take,
+                        tmpQuery.ShouldLoadResultTableAsResult, tmpQuery.ResultTable, tmpQuery.UseColumnAccessInstead,
+                        tmpQuery.Refresh);
+                    _schemaProvider.AddTransitionSchema(new TransitionSchema(alias, CreateSchemaTable(tmpQuery)));
+                    _preQueries.Add(tmpQuery);
                 }
 
                 from = joinFrom;
@@ -604,9 +664,9 @@ namespace Musoq.Evaluator.Visitors
                 }
             }
 
-            _aliases.Clear();
             Nodes.Push(query);
         }
+        
 
         private bool IsQueryWithOnlyAggregateMethods(FieldNode[][] splitted)
         {
@@ -654,6 +714,8 @@ namespace Musoq.Evaluator.Visitors
             var nodes = new List<Node>();
 
             foreach (var item in _preCreatedTables) nodes.Add(item);
+
+            foreach (var queryNode in _preQueries) nodes.Add(queryNode);
 
             nodes.Add(Nodes.Pop());
 
@@ -976,9 +1038,9 @@ namespace Musoq.Evaluator.Visitors
         {
             var joins = new JoinNode[node.Joins.Length];
 
-            for (int i = node.Joins.Length - 1, j = 0; i >= 0; i--, ++j)
+            for (int i = node.Joins.Length - 1; i >= 0; i--)
             {
-                joins[j] = (JoinNode) Nodes.Pop();
+                joins[i] = (JoinNode) Nodes.Pop();
             }
 
             Nodes.Push(new JoinsNode(joins));
@@ -986,8 +1048,8 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinNode node)
         {
-            var fromNode = (FromNode) Nodes.Pop();
             var expression = Nodes.Pop();
+            var fromNode = (FromNode) Nodes.Pop();
 
             if (node is OuterJoinNode outerJoin)
                 Nodes.Push(new OuterJoinNode(outerJoin.Type, fromNode, expression));
@@ -1247,7 +1309,7 @@ namespace Musoq.Evaluator.Visitors
         private static FieldNode[] TurnIntoFieldColumnAccess(FieldNode[] fields)
         {
             return fields.Select(f =>
-                new FieldNode(new DetailedAccessColumnNode(f.FieldName, f.FieldOrder, f.ReturnType), f.FieldOrder,
+                new FieldNode(new DetailedAccessColumnNode(f.FieldName, f.FieldOrder, f.ReturnType, string.Empty), f.FieldOrder,
                     f.FieldName)).ToArray();
         }
 

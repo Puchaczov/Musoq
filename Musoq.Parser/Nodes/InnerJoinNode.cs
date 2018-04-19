@@ -1,4 +1,6 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes
 {
     public class InnerJoinNode : JoinNode
     {
@@ -12,6 +14,8 @@
         {
             visitor.Visit(this);
         }
+
+        public override Type ReturnType => typeof(void);
 
         public override string Id { get; }
 

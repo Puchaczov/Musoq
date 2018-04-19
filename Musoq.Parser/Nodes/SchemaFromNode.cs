@@ -9,7 +9,7 @@ namespace Musoq.Parser.Nodes
         {
             Alias = alias;
             var paramsId = parameters.Length == 0 ? string.Empty : parameters.Aggregate((a, b) => a + b);
-            Id = $"{nameof(SchemaFromNode)}{schema}{method}{paramsId}";
+            Id = $"{nameof(SchemaFromNode)}{schema}{method}{paramsId}{Alias}";
         }
 
         public string Alias { get; }
@@ -24,7 +24,7 @@ namespace Musoq.Parser.Nodes
         public override string ToString()
         {
             var parameters = Parameters.Length == 0 ? string.Empty : Parameters.Aggregate((a, b) => a + "," + b);
-            return $"from {Schema}.{Method}({parameters})";
+            return $"from {Schema}.{Method}({parameters}) {Alias}";
         }
     }
 }

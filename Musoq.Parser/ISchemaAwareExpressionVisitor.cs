@@ -19,5 +19,7 @@ namespace Musoq.Parser
         void BeginCteQueryPart(CteExpressionNode node, CtePart part);
 
         void EndCteQuery();
+
+        void ClearAliases();
     }
 }

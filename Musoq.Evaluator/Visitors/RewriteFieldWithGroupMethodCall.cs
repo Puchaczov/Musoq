@@ -31,11 +31,11 @@ namespace Musoq.Evaluator.Visitors
                 Nodes.Pop();
 
                 var wordNode = node.Arguments.Args[0] as WordNode;
-                Nodes.Push(new DetailedAccessColumnNode(wordNode.Value, _fieldOrder++, node.ReturnType));
+                Nodes.Push(new DetailedAccessColumnNode(wordNode.Value, _fieldOrder++, node.ReturnType, string.Empty));
             }
             else if (_fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))
             {
-                Nodes.Push(new DetailedAccessColumnNode(node.ToString(), _fieldOrder++, node.ReturnType));
+                Nodes.Push(new DetailedAccessColumnNode(node.ToString(), _fieldOrder++, node.ReturnType, string.Empty));
             }
             else
             {
@@ -45,7 +45,7 @@ namespace Musoq.Evaluator.Visitors
 
         public override void Visit(AccessCallChainNode node)
         {
-            Nodes.Push(new DetailedAccessColumnNode(node.ToString(), _fieldOrder++, node.ReturnType));
+            Nodes.Push(new DetailedAccessColumnNode(node.ToString(), _fieldOrder++, node.ReturnType, string.Empty));
         }
     }
 }

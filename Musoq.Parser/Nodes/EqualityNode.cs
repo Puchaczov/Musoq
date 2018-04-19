@@ -6,7 +6,7 @@ namespace Musoq.Parser.Nodes
     {
         public EqualityNode(Node left, Node right) : base(left, right)
         {
-            CalculateId(this);
+            Id = CalculateId(this);
         }
 
         public override void Accept(IExpressionVisitor visitor)

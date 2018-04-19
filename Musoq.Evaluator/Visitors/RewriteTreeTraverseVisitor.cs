@@ -227,6 +227,8 @@ namespace Musoq.Evaluator.Visitors
 
             _visitor.CurrentSchema = oldSchema;
             _visitor.SetCurrentTable(oldMethod, oldParameters);
+
+            _visitor.ClearAliases();
         }
 
         public void Visit(OrNode node)

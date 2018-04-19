@@ -432,10 +432,6 @@ namespace Musoq.Parser
                 var accessMethod = ComposeAccessMethod();
                 var alias = ComposeAlias();
 
-                if (string.IsNullOrEmpty(alias))
-                    alias =
-                        $"{name.ToString()}.{accessMethod.ToString()}";
-
                 var fromNode = new SchemaFromNode(name.Value, accessMethod.Name,
                     accessMethod.Arguments.Args.Select(GetValueOfBasicType).ToArray(), alias);
                 return fromNode;

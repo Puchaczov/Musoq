@@ -160,10 +160,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinFromNode node)
         {
-            node.Source.Accept(this);
-            node.With.Accept(this);
-            node.Expression.Accept(this);
+            while (node.Source is JoinFromNode)
+            {
+                node.Source.Accept(this);
+            }
             node.Accept(_visitor);
+            node.Expression.Accept(this);
         }
 
         public void Visit(CreateTableNode node)

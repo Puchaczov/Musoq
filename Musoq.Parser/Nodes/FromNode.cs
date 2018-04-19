@@ -48,5 +48,10 @@ namespace Musoq.Parser.Nodes
         }
 
         public override string Id => $"{typeof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}";
+
+        public override string ToString()
+        {
+            return $"from ({Source.ToString()}, {With.ToString()}, {Expression.ToString()})";
+        }
     }
 }

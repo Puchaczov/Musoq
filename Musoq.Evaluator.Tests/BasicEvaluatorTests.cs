@@ -656,7 +656,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void SimpleJoinTest()
         {
-            var query = "select a.Id from #A.x1() a inner join #B.x2() b on a.Id = b.Id";
+            var query = "select a.Id, b.Id from #A.entities() a inner join #A.entities() b on a.Id = b.Id inner join #A.entities() c on a.Id = c.Id";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
