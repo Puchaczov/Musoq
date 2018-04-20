@@ -584,9 +584,8 @@ namespace Musoq.Evaluator.Visitors
             {
                 var joinFrom = from;
 
-                for (int j = 0; j < joins.Joins.Length; j++)
+                foreach (var currentJoin in joins.Joins)
                 {
-                    var currentJoin = joins.Joins[j];
                     var alias = _fromIdToAlias[currentJoin.From.Id];
                     var table = _aliases[alias].Table;
 
@@ -594,8 +593,8 @@ namespace Musoq.Evaluator.Visitors
 
                     var tmpSelect = new SelectNode(table.Columns.Select(f => new FieldNode(new DetailedAccessColumnNode(f.ColumnName, f.ColumnIndex, f.ColumnType, String.Empty), f.ColumnIndex, f.ColumnName)).ToArray());
 
-                    Nodes.Push(from);
-                    Nodes.Push(where);
+                    Nodes.Push(@from);
+                    Nodes.Push(@where);
                     Nodes.Push(tmpSelect);
                     Visit(new QueryNode(tmpSelect, currentJoin.From, null, WhereNode.Empty, null, null, null, null));
                     var tmpQuery = (InternalQueryNode) Nodes.Pop();

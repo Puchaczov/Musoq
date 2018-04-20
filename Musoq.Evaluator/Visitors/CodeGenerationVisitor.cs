@@ -586,7 +586,42 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinFromNode node)
         {
-            throw new NotSupportedException();
+            GenerateFromBasedSchemaAccess(node.Source);
+            GenerateFromBasedSchemaAccess(node.With);
+        }
+
+        private void GenerateFromBasedSchemaAccess(FromNode node)
+        {
+            ISchema leftSchema;
+
+            switch (node)
+            {
+                case CteFromNode cteFromNode:
+                    leftSchema = _schemaProvider.GetSchema(cteFromNode.VariableName);
+                    var leftTable = leftSchema.GetTableByName(cteFromNode.Method, cteFromNode.Parameters);
+
+
+                    var columnToIndexMap = new Dictionary<string, int>();
+
+                    foreach (var column in leftTable.Columns)
+                    {
+                        columnToIndexMap.Add(column.ColumnName, column.ColumnIndex);
+                    }
+
+                    _instructions.Add(new UseTableWithRemappedColumns(cteFromNode.VariableName, columnToIndexMap));
+                    break;
+                case ExistingTableFromNode existingTableFromNode:
+                    _instructions.Add(new UseTableWithStandardColumns(node.Schema));
+                    break;
+                case NestedQueryFromNode nestedQueryFromNode:
+                    _instructions.Add(new UseTableWithRemappedColumns(node.Schema, nestedQueryFromNode.ColumnToIndexMap));
+                    break;
+                case SchemaFromNode schemaFromNode:
+                    leftSchema = _schemaProvider.GetSchema(node.Schema);
+                    var source = leftSchema.GetRowSource(node.Method, node.Parameters);
+                    _instructions.Add(new LoadSource(source));
+                    break;
+            }
         }
 
         public void Visit(CreateTableNode node)
