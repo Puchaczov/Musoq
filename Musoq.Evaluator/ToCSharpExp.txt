@@ -1,0 +1,323 @@
+﻿select * from #custom.persons() d where d.Name like '%2344%' and d.Age > 10;
+
+Table Evaluate(ISchemaProvider provider)
+{
+	var d = provider.GetSchema("custom");
+	var dRows = d.GetRowSource("persons", new string[0]);
+	var table = new Table(...);
+
+	foreach(var row in dRows) {
+
+		if(!(Like(row.Name, "%2344%") && row.Age > 10))
+			continue;
+
+		var select = new object[]{
+			row.Name,
+			row.Surname,
+			row.Age,
+			row.City
+		};
+
+		table.AddRow(new ObjectRow(select));
+	}
+
+	return table;
+}
+
+--------------------------------------------------------------------------
+
+select City, Name, Count(*) from #custom.persons() d where d.Name like '%2344%' and d.Age > 10 group by City, Name having count(*) > 100;
+
+Table Evaluate(ISchemaProvider provider)
+{
+	var d = provider.GetSchema("custom");
+	var dRows = d.GetRowSource("persons", new string[0]);
+	var table = new Table(...);
+	var groups = new Dictionary<TKey, Group>();
+
+	foreach(var row in dRows) {
+
+		if(!(Like(row.Name, "%2344%") && row.Age > 10))
+			continue;
+
+		var key = new Key(new object[]{ row.City, row.Name });
+
+		Group group;
+		if(!groups.ContainsKey(key)){
+			group = new Group();
+			groups.Add(key, group);
+		}
+		else{
+			group = groups[key];
+		}
+
+		SetCount(group);
+
+		if(!(Count(group) > 100))
+			continue;
+
+		var select = new object[]{
+			row.City,
+			row.Name,
+			Count(group)
+		};
+
+		var groupRow = new GroupRow(select);
+		if(!table.HasRow(groupRow))
+			table.AddRow(groupRow);
+	}
+
+	dRows = new DynamicInMemorySource(table);
+
+	foreach(var row in dRows) {
+
+		var select = new object[]{
+			row.Name,
+			row.Surname,
+			row.Age,
+			row.City
+		};
+
+		table.AddRow(new GroupRow(select));
+	}
+
+	return table;
+}
+
+-------------------------------------------------------------------------
+
+select
+	d.CompanyName,
+	Count(d.CompanyName)
+from #custom.companies() c 
+inner join #custom.persons() p on c.EmployeeId = p.PersonId
+inner join #custom.diplomas() d on c.EmployeeId = d.PersonId
+where 
+	d.MasterThesis is not null and Grade = 5
+group by d.CompanyName having Count() > 5;
+
+Table Evaluate(ISchemaProvider provider)
+{
+	var p = provider.GetSchema("custom");
+	var pRows = d.GetRowSource("persons", new string[0]);
+	var pTable = new Table(...);
+
+	foreach(var dRow in pRows) {
+
+		var select = new object[]{
+			dRow.PersonId,
+			dow.Name,
+			dRow.Surname
+		};
+
+		pTable.AddRow(new ObjectRow(select));
+	}
+
+	var d = provider.GetSchema("custom");
+	var dRows = d.GetRowSource("diplomas", new string[0]);
+	var dTable = new Table(...);
+
+	foreach(var dRow in dRows) {
+
+		var select = new object[]{
+			dRow.PersonId,
+			dRow.Name,
+			dRow.Surname
+		};
+
+		dTable.AddRow(new ObjectRow(select));
+	}
+
+	var c = provider.GetSchema("custom");
+	var cRows = d.GetRowSource("companies", new string[0]);
+
+	var cpTable = new Table(...);
+
+	foreach(var cRow in cRows) {
+		
+		foreach(var pRow in pRows){
+
+			var columns = new object[]{
+				cRow.CompanyId,
+				cRow.CompanyName,
+				cRow.EmployeeId,
+				pRow.PersonId,
+				pRow.Name,
+				pRow.Surname
+			};
+
+			if(cRow.EmployeeId == pRow.PersonId) {
+				cpTable.AddRow(new ObjectRow(columns));
+			}
+		}
+	}
+
+	var cpdTable = new Table(...);
+
+	foreach(var cpRow in ConvertTableToSource(cpTable)) {
+		foreach(var dRow in ConvertTableToSource(dTable)) {
+			var columns = new object[]{
+				cpRow.CompanyId,
+				cpRow.CompanyName,
+				cpRow.EmployeeId,
+				cpRow.PersonId,
+				cpRow.Name,
+				cpRow.Surname,
+				dRow.DimpomaId,
+				dRow.PersonId,
+				dRow.MasterThesis,
+				dRow.Grade
+			};
+
+			if(cpRow.EmployeeId == dRow.PersonId) {
+				cpTable.AddRow(new ObjectRow(columns));
+			}
+		}
+	}
+
+	var g_cpdTable = new Table(...);
+
+	foreach(var g_cpdRow in ConvertTableToSource(cpdTable)){
+
+		var key = new Key(new object[]{ g_cpdRow.City, g_cpdRow.Name });
+
+		if(!(g_cpdRow.MasterThesis != null && g_cpdRow.Grade = 5))
+			continue;
+
+		Group group;
+		if(!groups.ContainsKey(key)){
+			group = new Group();
+			groups.Add(key, group);
+		}
+		else{
+			group = groups[key];
+		}
+
+		SetCount(group);
+
+		if(!(Count(group) > 5))
+			continue;
+
+		var select = new object[]{
+			g_cpdRow.CompanyName,
+			Count(group)
+		};
+
+		var groupRow = new GroupRow(select);
+		if(!g_cpdTable.HasRow(groupRow))
+			g_cpdTable.AddRow(groupRow);
+	}
+
+	var s_g_cpdTable = new Table(...);
+
+	foreach(var s_cpdRow in ConvertTableToSource(g_cpdTable)) {
+
+		if(!(Like(s_cpdRow.Name, "%2344%") && s_cpdRow.Age > 10))
+			continue;
+
+		var select = new object[]{
+			s_cpdRow[0],
+			s_cpdRow[1]
+		};
+
+		s_cpdTable.AddRow(new ObjectRow(select));
+	}
+
+	return cpdTable;
+}
+
+----------------------------------------------------------------------------------
+
+select * from #custom.persons() d where d.Name like '%2344%' and d.Age > 10
+union all
+select * from #custom.persons() d where d.Name like '%2344%';
+
+Table Evaluate1(ISchemaProvider provider)
+{
+	var d = provider.GetSchema("custom");
+	var dRows = d.GetRowSource("persons", new string[0]);
+	var table = new Table(...);
+
+	foreach(var row in dRows) {
+
+		if(!(Like(row.Name, "%2344%") && row.Age > 10))
+			continue;
+
+		var select = new object[]{
+			row.Name,
+			row.Surname,
+			row.Age,
+			row.City
+		};
+
+		table.AddRow(new ObjectRow(select));
+	}
+
+	return table;
+}
+
+Table Evaluate2(ISchemaProvider provider)
+{
+	var d = provider.GetSchema("custom");
+	var dRows = d.GetRowSource("persons", new string[0]);
+	var table = new Table(...);
+
+	foreach(var row in dRows) {
+
+		if(!(Like(row.Name, "%2344%")))
+			continue;
+
+		var select = new object[]{
+			row.Name,
+			row.Surname,
+			row.Age,
+			row.City
+		};
+
+		table.AddRow(new ObjectRow(select));
+	}
+
+	return table;
+}
+
+Table Evaluate_Union(ISchemaProvider provider)
+{
+	var table2 = Evaluate2(provider);
+	var table = new Table(...);
+
+	foreach(var row in Evaluate1(provider)) {
+		
+		if(table2.HasRow(row))
+			continue;
+
+		table.AddRow(row);
+	}
+
+	return table;
+}
+
+---------------------------------------------------
+with p as (
+	select * from #custom.persons();
+), e as (
+	select * from #custom.persons();
+)
+select * from p
+except
+select * from e;
+
+Table Evaluate_Except(ISchemaProvider provider)
+{
+	var table2 = Evaluate2(provider);
+	var table = new Table(...);
+
+	foreach(var row in Evaluate1(provider)) {
+		
+		if(table2.HasRow(row))
+			continue;
+
+		table.AddRow(row);
+	}
+
+	return table;
+}
