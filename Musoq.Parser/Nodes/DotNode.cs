@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 
 namespace Musoq.Parser.Nodes
 {
@@ -20,12 +19,6 @@ namespace Musoq.Parser.Nodes
             Id = $"{nameof(DotNode)}{root.ToString()}{expression.ToString()}{isOuter}{name}";
         }
 
-        public DotNode(Node root, Node expression, bool isOuter, string name, PropertyInfo propertyInfo)
-            : this(root, expression, isOuter, name)
-        {
-            PropertyInfo = propertyInfo;
-        }
-
         public override Type ReturnType => Expression.ReturnType;
 
         public override void Accept(IExpressionVisitor visitor)
@@ -34,8 +27,6 @@ namespace Musoq.Parser.Nodes
         }
 
         public override string Id { get; }
-
-        public PropertyInfo PropertyInfo { get; }
 
         public override string ToString()
         {
