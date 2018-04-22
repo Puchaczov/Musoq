@@ -15,6 +15,19 @@ namespace Musoq.Converter
 
             var query = root;
 
+            var metadataInferer = new BuildMetadataAndInferTypeVisitor(schemaProvider);
+            var metadataInfererTraverser = new RewriteTreeTraverseVisitor(metadataInferer);
+
+            query.Accept(metadataInfererTraverser);
+
+            query = metadataInferer.Root;
+
+            var columnsCollector = new CollectColumnsBySchemasVisitor(schemaProvider);
+            var columnsCollectorTraverser = new CollectColumnsBySchemasTraverseVisitor(columnsCollector);
+
+            query.Accept(columnsCollectorTraverser);
+
+
             var rewriter = new RewriteTreeVisitor((TransitionSchemaProvider)schemaProvider);
             var rewriteTraverser = new RewriteTreeTraverseVisitor(rewriter);
 

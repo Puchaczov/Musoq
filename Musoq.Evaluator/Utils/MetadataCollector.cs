@@ -22,6 +22,7 @@ namespace Musoq.Evaluator.Utils
         public void AddTable(string name, ISchemaTable table)
         {
             _tables.Add(name, table);
+            _realColumns.Add(name, new List<ISchemaColumn>());
             _aliases.Add(name);
         }
 
@@ -29,7 +30,7 @@ namespace Musoq.Evaluator.Utils
         {
             var cols = _tables[name].Columns;
 
-            if (!cols.Contains(column))
+            if (!cols.Any(f => f.ColumnName == column.ColumnName && f.ColumnType == column.ColumnType))
                 throw new Exception();
 
             _realColumns[name].Add(column);
@@ -43,6 +44,11 @@ namespace Musoq.Evaluator.Utils
         public ISchemaColumn[] GetAllColumns(string name)
         {
             return _tables[name].Columns;
+        }
+
+        public ISchemaTable GetTable(string name)
+        {
+            return _tables[name];
         }
     }
 }

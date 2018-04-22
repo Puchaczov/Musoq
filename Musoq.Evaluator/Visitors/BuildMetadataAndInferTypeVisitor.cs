@@ -19,7 +19,7 @@ namespace Musoq.Evaluator.Visitors
     public class BuildMetadataAndInferTypeVisitor : ISchemaAwareExpressionVisitor
     {
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
-        private readonly TransitionSchemaProvider _schemaProvider;
+        private readonly ISchemaProvider _schemaProvider;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
 
@@ -27,7 +27,10 @@ namespace Musoq.Evaluator.Visitors
         private ISchema _schema;
         private ISchemaTable _table;
 
-        public BuildMetadataAndInferTypeVisitor(TransitionSchemaProvider schemaProvider)
+
+        public RootNode Root => new RootNode(Nodes.Peek());
+
+        public BuildMetadataAndInferTypeVisitor(ISchemaProvider schemaProvider)
         {
             _schemaProvider = schemaProvider;
         }
@@ -319,7 +322,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
-            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, node.Alias));
+            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, CreateAliasIfEmpty(node.Alias)));
+        }
+
+        private string CreateAliasIfEmpty(string alias)
+        {
+            return string.IsNullOrEmpty(alias) ? Guid.NewGuid().ToString("N").Substring(0, 4) : alias;
         }
 
         public void Visit(NestedQueryFromNode node)

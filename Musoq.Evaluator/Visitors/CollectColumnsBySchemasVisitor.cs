@@ -1,16 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class CollectColumnsBySchemasVisitor : IExpressionVisitor
+    public class CollectColumnsBySchemasVisitor : ICollectColumnsBySchemasAwareVisitor
     {
         private readonly ISchemaProvider _schemaProvider;
+        private string _currentCteName = string.Empty;
+        private bool _isInsideCte = false;
+        private bool _isInsideinnerCte = false;
+        private List<string> _innerCteScoreTable = new List<string>();
+        private bool _isJoiningPossible;
+        private readonly List<string> _joinsTableName = new List<string>();
+        private readonly List<ISchemaColumn> _realColumns = new List<ISchemaColumn>();
+        private readonly List<string> _setOperatorTableName = new List<string>();
+        private bool _isInsideSetOperator;
+        private QueryPart _queryPart;
 
         public CollectColumnsBySchemasVisitor(ISchemaProvider schemaProvider)
         {
@@ -97,6 +110,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(FieldNode node)
         {
+            if (_queryPart == QueryPart.Select)
+            {
+                _realColumns.Add(new SchemaColumn(node.FieldName, _realColumns.Count, node.ReturnType));
+            }
         }
 
         public void Visit(StringNode node)
@@ -196,6 +213,13 @@ namespace Musoq.Evaluator.Visitors
             var schema = _schemaProvider.GetSchema(node.Schema);
             var table = schema.GetTableByName(node.Method, node.Parameters);
             CollectedColumns.AddTable(node.Alias, table);
+
+            if (_isInsideinnerCte)
+            {
+                _innerCteScoreTable.Add(node.Alias);
+            }
+
+            _joinsTableName.Add(node.Alias);
         }
 
         public void Visit(NestedQueryFromNode node)
@@ -204,7 +228,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CteFromNode node)
         {
-            CollectedColumns.AddTable(node.VariableName, table);
+            _joinsTableName.Add(node.VariableName);
+
+            if (_isInsideinnerCte)
+            {
+                _innerCteScoreTable.Add(node.VariableName);
+            }
         }
 
         public void Visit(JoinFromNode node)
@@ -289,6 +318,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CteInnerExpressionNode node)
         {
+            _currentCteName = node.Name;
         }
 
         public void Visit(JoinsNode node)
@@ -298,5 +328,86 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(JoinNode node)
         {
         }
+
+        public void SetInsideCte()
+        {
+            _isInsideCte = true;
+        }
+
+        public void UnsetInsideCte()
+        {
+            _isInsideCte = false;
+        }
+
+        public void IsInsideInnerCte(string name)
+        {
+            _isInsideinnerCte = true;
+        }
+
+        public void IsOutsideInnerCte(string name)
+        {
+            _isInsideinnerCte = false;
+        }
+
+        public void SetJoiningTablesPossible()
+        {
+            _isJoiningPossible = true;
+        }
+
+        public void UnsetJoiningTablesPossible()
+        {
+            _isJoiningPossible = false;
+        }
+
+        public void SetQueryStarts()
+        {
+        }
+
+        public void UnsetQueryStarts()
+        {
+            var name = _joinsTableName.Aggregate((a, b) => $"{a}_{b}");
+
+            foreach(var column in _realColumns)
+                CollectedColumns.AddUsedColumn(name, column);
+
+            if (_isInsideSetOperator)
+                _setOperatorTableName.Add(name);
+
+            _joinsTableName.Clear();
+        }
+
+        public void SetInsideSetOperator()
+        {
+            _isInsideSetOperator = true;
+        }
+
+        public void UnsetInsideSetOperator()
+        {
+            var name = _setOperatorTableName.Aggregate((a, b) => $"{a}__{b}");
+            var table = new DynamicTable(CollectedColumns.GetUsedColumns(_setOperatorTableName[0]));
+            CollectedColumns.AddTable(name, table);
+
+            foreach(var column in table.Columns)
+                CollectedColumns.AddUsedColumn(name, column);
+
+            _isInsideSetOperator = false;
+
+            _setOperatorTableName.Clear();
+        }
+
+        public void SetQueryPart(QueryPart part)
+        {
+            _queryPart = part;
+        }
+    }
+
+    public enum QueryPart
+    {
+        Select,
+        From,
+        Where,
+        Join,
+        GroupBy,
+        Having
     }
 }
