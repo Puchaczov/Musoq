@@ -5,9 +5,43 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.7.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.7.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="CSharpTemplates\Query.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>Query.cs</LastGenOutput>
+    </None>
+    <None Update="CSharpTemplates\SelectClause.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SelectClause.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="CSharpTemplates\Query.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Query.tt</DependentUpon>
+    </Compile>
+    <Compile Update="CSharpTemplates\SelectClause.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SelectClause.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

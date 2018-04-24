@@ -1,0 +1,9 @@
+﻿foreach(var item in <#= Source #>)
+{
+	if(!(<#= Where #>))
+		continue;
+
+	<#= Group #>
+
+	<#= Select #>
+}

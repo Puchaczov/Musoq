@@ -28,6 +28,11 @@ namespace Musoq.Converter
             query.Accept(columnsCollectorTraverser);
 
 
+            var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies);
+            var csharpRewriteTraverser = new RewriteTreeTraverseVisitor(csharpRewriter);
+
+            query.Accept(csharpRewriteTraverser);
+
             var rewriter = new RewriteTreeVisitor((TransitionSchemaProvider)schemaProvider);
             var rewriteTraverser = new RewriteTreeTraverseVisitor(rewriter);
 

@@ -323,7 +323,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void WhereWithOrTest()
         {
-            var query = @"select Name from #A.Entities() where Name = '001' or Name = '005'";
+            var query = @"select Name, Name from #A.Entities() where Name = '001' or Name = '005'";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001"),  new BasicEntity("002"), new BasicEntity("005")}},

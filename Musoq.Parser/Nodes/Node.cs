@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Musoq.Parser.Nodes
 {
@@ -6,6 +7,7 @@ namespace Musoq.Parser.Nodes
     {
         public abstract Type ReturnType { get; }
 
+        [DebuggerStepThrough]
         public abstract void Accept(IExpressionVisitor visitor);
 
         public abstract string Id { get; }

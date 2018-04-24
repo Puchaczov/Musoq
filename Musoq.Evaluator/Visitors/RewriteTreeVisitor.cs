@@ -20,7 +20,6 @@ namespace Musoq.Evaluator.Visitors
         protected List<QueryNode> _preQueries = new List<QueryNode>();
         private readonly List<CreateTableNode> _preCreatedTables = new List<CreateTableNode>();
         private readonly Stack<AccessMethodNode> _queryMethods = new Stack<AccessMethodNode>();
-        private readonly TransitionSchemaProvider _schemaProvider;
         private readonly Dictionary<string, int> _tmpVariableNames = new Dictionary<string, int>();
         private readonly Dictionary<string, string> _fromIdToAlias = new Dictionary<string, string>();
         private readonly Dictionary<string, (ISchema Schema, ISchemaTable Table, int MapIndex)> _aliases = new Dictionary<string, (ISchema Schema, ISchemaTable Table, int MapIndex)>();
@@ -28,7 +27,8 @@ namespace Musoq.Evaluator.Visitors
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
         private int _mapIndex = 0;
-
+        
+        private readonly TransitionSchemaProvider _schemaProvider;
         private string _currentSchema;
         private string _currentCte;
 

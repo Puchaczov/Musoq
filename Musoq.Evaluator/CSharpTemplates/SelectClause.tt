@@ -1,0 +1,8 @@
+﻿var select = new object[]
+{
+<# foreach(var row in Rows) { #>
+	<#= row #>,
+<# } #>
+};
+
+<#= Table #>.AddRow(new ObjectRow(select));

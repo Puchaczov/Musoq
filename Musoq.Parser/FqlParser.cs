@@ -295,13 +295,11 @@ namespace Musoq.Parser
                 {
                     case TokenType.And:
                         Consume(TokenType.And);
-                        node = new AndNode(new ShortCircuitingNodeLeft(node, TokenType.And),
-                            new ShortCircuitingNodeRight(ComposeEqualityOperators(), TokenType.And));
+                        node = new AndNode(node, ComposeEqualityOperators());
                         break;
                     case TokenType.Or:
                         Consume(TokenType.Or);
-                        node = new OrNode(new ShortCircuitingNodeLeft(node, TokenType.Or),
-                            new ShortCircuitingNodeRight(ComposeEqualityOperators(), TokenType.Or));
+                        node = new OrNode(node, ComposeEqualityOperators());
                         break;
                     default:
                         throw new NotSupportedException();

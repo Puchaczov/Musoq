@@ -27,6 +27,16 @@ namespace Musoq.Evaluator.Visitors
         private ISchema _schema;
         private ISchemaTable _table;
 
+        public List<Assembly> Assemblies { get; } = new List<Assembly>();
+
+        private void AddAssembly(Assembly asm)
+        {
+            if(Assemblies.Contains(asm))
+                return;
+
+            Assemblies.Add(asm);
+        }
+
 
         public RootNode Root => new RootNode(Nodes.Peek());
 
@@ -171,21 +181,25 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(StringNode node)
         {
+            AddAssembly(typeof(string).Assembly);
             Nodes.Push(new StringNode(node.Value));
         }
 
         public void Visit(DecimalNode node)
         {
+            AddAssembly(typeof(decimal).Assembly);
             Nodes.Push(new DecimalNode(node.Value.ToString(CultureInfo.InvariantCulture)));
         }
 
         public void Visit(IntegerNode node)
         {
+            AddAssembly(typeof(int).Assembly);
             Nodes.Push(new IntegerNode(node.Value.ToString()));
         }
 
         public void Visit(WordNode node)
         {
+            AddAssembly(typeof(string).Assembly);
             Nodes.Push(new WordNode(node.Value));
         }
 
@@ -223,11 +237,13 @@ namespace Musoq.Evaluator.Visitors
                 if (!_schema.TryResolveProperty(node.Name, out var method))
                     throw new UnknownColumnException($"Unknown column '{node.Name}'.");
 
+                AddAssembly(method.ReturnType.Assembly);
                 node.ChangeReturnType(method.ReturnType);
                 Nodes.Push(new AccessMethodNode(new FunctionToken(method.Name, TextSpan.Empty), new ArgsListNode(new Node[0]), null, method));
             }
             else
             {
+                AddAssembly(column.ColumnType.Assembly);
                 node.ChangeReturnType(column.ColumnType);
                 Nodes.Push(new AccessColumnNode(column.ColumnName, column.ColumnIndex, column.ColumnType, node.Span));
             }
@@ -241,6 +257,7 @@ namespace Musoq.Evaluator.Visitors
             {
                 var column = _table.Columns[i];
 
+                AddAssembly(column.ColumnType.Assembly);
                 _generatedColumns[i] = new FieldNode(new DetailedAccessColumnNode(column.ColumnName, i, column.ColumnType, string.Empty), i, string.Empty);
             }
 
@@ -586,6 +603,9 @@ namespace Musoq.Evaluator.Visitors
             {
                 accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method);
             }
+
+            AddAssembly(method.DeclaringType.Assembly);
+            AddAssembly(method.ReturnType.Assembly);
 
             node.ChangeMethod(method);
 
