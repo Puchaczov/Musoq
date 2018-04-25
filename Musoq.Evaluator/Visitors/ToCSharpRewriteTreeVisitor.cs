@@ -7,8 +7,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Musoq.Evaluator.CSharpTemplates;
+using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser.Nodes;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -16,11 +18,11 @@ namespace Musoq.Evaluator.Visitors
     {
         private class QueryParts
         {
-            public SyntaxNode From { get; set; }
+            public SyntaxNode[] From { get; set; }
 
             public SyntaxNode Where { get; set; }
 
-            public SyntaxNode Select { get; set; }
+            public SyntaxNode[] Select { get; set; }
         }
 
         public AdhocWorkspace Workspace { get; }
@@ -266,14 +268,10 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(SyntaxFactory.ArgumentList(rargs));
         }
 
-        private static SyntaxTrivia WhiteSpace => SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
         public void Visit(SelectNode node)
         {
-            var variableNameKeyword = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, "select", SyntaxTriviaList.Create(WhiteSpace));
-            var newKeyword = SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword, SyntaxTriviaList.Create(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")));
-            var objectKeyword =
-                SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.ObjectKeyword, SyntaxTriviaList.Empty);
+            var variableNameKeyword = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, "select", SyntaxTriviaList.Create(SyntaxHelper.WhiteSpace));
 
             var syntaxList = new SeparatedSyntaxList<ExpressionSyntax>();
             for (int i = 0; i < node.Fields.Length; i++)
@@ -281,23 +279,8 @@ namespace Musoq.Evaluator.Visitors
                 syntaxList = syntaxList.Add((ExpressionSyntax)Nodes.Pop());
             }
 
-            var rankSpecifiers = new SyntaxList<ArrayRankSpecifierSyntax>();
-
-            rankSpecifiers = rankSpecifiers.Add(
-                SyntaxFactory.ArrayRankSpecifier(
-                    SyntaxFactory.Token(SyntaxKind.OpenBracketToken),
-                    new SeparatedSyntaxList<ExpressionSyntax>()
-                    {
-                        SyntaxFactory.OmittedArraySizeExpression(
-                            SyntaxFactory.Token(SyntaxKind.OmittedArraySizeExpressionToken))
-                    },
-                    SyntaxFactory.Token(SyntaxKind.CloseBracketToken)));
-
-            var array = SyntaxFactory.ArrayCreationExpression(
-                newKeyword,
-                SyntaxFactory.ArrayType(SyntaxFactory.PredefinedType(objectKeyword), rankSpecifiers), 
-                SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, syntaxList));
-            var equalsClause = SyntaxFactory.EqualsValueClause(SyntaxFactory.Token(SyntaxKind.EqualsToken).WithTrailingTrivia(WhiteSpace), array);
+            var array = SyntaxHelper.CreateArrayOfObjects(syntaxList.ToArray());
+            var equalsClause = SyntaxFactory.EqualsValueClause(SyntaxFactory.Token(SyntaxKind.EqualsToken).WithTrailingTrivia(SyntaxHelper.WhiteSpace), array);
 
             var variableDecl = SyntaxFactory.VariableDeclarator(variableNameKeyword, null, equalsClause);
             var list = SyntaxFactory.SeparatedList(new List<VariableDeclaratorSyntax>()
@@ -307,45 +290,40 @@ namespace Musoq.Evaluator.Visitors
 
             var variableDeclaration =
                 SyntaxFactory.VariableDeclaration(
-                    SyntaxFactory.IdentifierName("var").WithTrailingTrivia(WhiteSpace),
+                    SyntaxFactory.IdentifierName("var").WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                     list);
 
-            var invocation = SyntaxFactory
-                .InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("table"),
-                        SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName(nameof(Table.Add))
-                    ),
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList(
-                            new []
-                            {
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.ObjectCreationExpression(
-                                        SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(WhiteSpace),
-                                        SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
-                                        SyntaxFactory.ArgumentList(
-                                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                                new []
-                                                {
-                                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableNameKeyword.Text))
-                                                })
-                                        ),
-                                        SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
-                                )
-                            })));
+            var invocation = SyntaxHelper.CreateMethodInvocation(
+                "table",
+                nameof(Table.Add),
+                new[]
+                {
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.ObjectCreationExpression(
+                            SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(
+                                    new[]
+                                    {
+                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableNameKeyword.Text))
+                                    })
+                            ),
+                            SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
+                    )
+                });
 
-            var exp = SyntaxFactory.ExpressionStatement(invocation);
-
-            Nodes.Push(SyntaxFactory.FieldDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), variableDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+            Parts.Select = new SyntaxNode[]
+            {
+                SyntaxFactory.LocalDeclarationStatement(variableDeclaration),
+                SyntaxFactory.ExpressionStatement(invocation)
+            };
         }
 
         public void Visit(WhereNode node)
         {
-            Nodes.Push(Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
-                new SyntaxNode[] {SyntaxFactory.ContinueStatement()}));
-
-            Parts.From = Nodes.Pop();
+            Parts.Where = Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
+                new SyntaxNode[] { SyntaxFactory.ContinueStatement() });
         }
 
         public void Visit(GroupByNode node)
@@ -372,6 +350,43 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
+            var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
+                node.Alias, 
+                "provider", 
+                nameof(ISchemaProvider.GetSchema),
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                    SyntaxFactory.SeparatedList(new []
+                    {
+                        SyntaxHelper.StringLiteralArgument(node.Schema)
+                    }),
+                    SyntaxFactory.Token(SyntaxKind.CloseParenToken)
+                )
+            );
+
+            var args = node.Parameters.Select(SyntaxHelper.StringLiteral).Cast<ExpressionSyntax>();
+
+            var createdSchemaRows = SyntaxHelper.CreateAssignmentByMethodCall(
+                $"{node.Alias}Rows",
+                node.Alias,
+                nameof(ISchema.GetRowSource),
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList<ArgumentSyntax>(new []
+                    {
+                        SyntaxHelper.StringLiteralArgument(node.Method),
+                        SyntaxFactory.Argument(
+                            SyntaxHelper.CreateArrayOf(
+                                nameof(String),
+                                args.ToArray()))
+                    })
+                ));
+
+            Parts.From = new SyntaxNode[]
+            {
+                SyntaxFactory.LocalDeclarationStatement(createdSchema),
+                SyntaxFactory.LocalDeclarationStatement(createdSchemaRows),
+                SyntaxFactory.IdentifierName($"{node.Alias}Rows")
+            };
         }
 
         public void Visit(NestedQueryFromNode node)
@@ -416,6 +431,81 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
+            var foreachStatement = SyntaxFactory.ForEachStatement(
+                SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
+                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                SyntaxFactory.IdentifierName("var").WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                SyntaxFactory.Identifier("row").WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                SyntaxFactory.Token(SyntaxKind.InKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                (IdentifierNameSyntax)Parts.From[2],
+                SyntaxFactory.Token(SyntaxKind.CloseParenToken),
+                SyntaxFactory.Block(new []
+                {
+                    (StatementSyntax)Parts.Where,
+                    (StatementSyntax)Parts.Select[0],
+                    (StatementSyntax)Parts.Select[1]
+                }));
+
+            var tableColumns = new ExpressionSyntax[node.Select.Fields.Length];
+            for (int i = 0; i < tableColumns.Length; i++)
+            {
+                tableColumns[i] =
+                    SyntaxHelper.CreaateObjectOf(
+                        nameof(Column),
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SeparatedList(new []
+                            {
+                                SyntaxHelper.StringLiteralArgument(node.Select.Fields[i].FieldName),
+                                SyntaxHelper.TypeLiteralArgument(node.Select.Fields[i].ReturnType.Name),
+                                SyntaxHelper.IntLiteralArgument(node.Select.Fields[i].FieldOrder)
+                            })));
+            }
+
+            var createTable = SyntaxHelper.CreateAssignment(
+                "table",
+                SyntaxHelper.CreaateObjectOf(
+                    nameof(Table),
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(new []
+                        {
+                            SyntaxHelper.StringLiteralArgument("test_table_name"),
+                            SyntaxHelper.CreateArrayOfArgument(nameof(Column), tableColumns)
+                        }))));
+
+            var createTableExpression = SyntaxFactory.LocalDeclarationStatement(createTable);
+
+            var returnStatement = Generator.ReturnStatement(SyntaxFactory.IdentifierName("table").WithLeadingTrivia(SyntaxHelper.WhiteSpace));
+            var block = SyntaxFactory.Block(new []
+            {
+                (StatementSyntax)Parts.From[0],
+                (StatementSyntax)Parts.From[1],
+                createTableExpression,
+                foreachStatement,
+                (StatementSyntax)returnStatement
+            });
+
+            var method = SyntaxFactory.MethodDeclaration(
+                new SyntaxList<AttributeListSyntax>(),
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                null,
+                SyntaxFactory.Identifier("MyMethod"),
+                null,
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList(new []
+                    {
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(), 
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()), 
+                            SyntaxFactory.IdentifierName(nameof(ISchemaProvider)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("provider"), null)
+                    })),
+                new SyntaxList<TypeParameterConstraintClauseSyntax>(), 
+                block,
+                null,
+                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
 
         public void Visit(InternalQueryNode node)
@@ -478,6 +568,7 @@ namespace Musoq.Evaluator.Visitors
         public string CurrentSchema { get; set; }
         public string CurrentTable { get; }
         public string[] CurrentParameters { get; }
+
         public void SetCurrentTable(string table, string[] parameters)
         {
         }
