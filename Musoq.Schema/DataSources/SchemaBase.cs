@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Managers;
 
@@ -20,6 +21,8 @@ namespace Musoq.Schema.DataSources
         public abstract ISchemaTable GetTableByName(string name, string[] parameters);
 
         public abstract RowSource GetRowSource(string name, string[] parameters);
+
+        public virtual LibraryBase Library { get; }
 
         public MethodInfo ResolveMethod(string method, Type[] parameters)
         {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -14,8 +13,7 @@ namespace Musoq.Evaluator.Visitors
         ///     Initialize object.
         /// </summary>
         /// <param name="visitor">Visitor that will generate code for VM</param>
-        public CodeGenerationTraverseVisitor(IExpressionVisitor visitor,
-            IReadOnlyCollection<AccessMethodNode> aggregationMethods)
+        public CodeGenerationTraverseVisitor(IExpressionVisitor visitor)
         {
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using Musoq.Plugins;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
@@ -31,6 +32,8 @@ namespace Musoq.Schema.Csv
 
             throw new NotSupportedException();
         }
+
+        public override LibraryBase Library => new CsvLibrary();
 
         private static MethodsAggregator CreateLibrary()
         {
