@@ -317,21 +317,25 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName(nameof(Table.Add))
                     ),
                     SyntaxFactory.ArgumentList(
-                        new SeparatedSyntaxList<ArgumentSyntax>()
-                        {
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.ObjectCreationExpression(
-                                    SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(WhiteSpace), 
-                                    SyntaxFactory.ParseTypeName(nameof(ObjectsRow)), 
-                                    SyntaxFactory.ArgumentList(
-                                        new SeparatedSyntaxList<ArgumentSyntax>()
-                                        {
-                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableNameKeyword.Text))
-                                        }
-                                    ),
-                                    SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
+                        SyntaxFactory.SeparatedList(
+                            new []
+                            {
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.ObjectCreationExpression(
+                                        SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(WhiteSpace),
+                                        SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                                        SyntaxFactory.ArgumentList(
+                                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                                new []
+                                                {
+                                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableNameKeyword.Text))
+                                                })
+                                        ),
+                                        SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
                                 )
-                        }));
+                            })));
+
+            var exp = SyntaxFactory.ExpressionStatement(invocation);
 
             Nodes.Push(SyntaxFactory.FieldDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), variableDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
         }
