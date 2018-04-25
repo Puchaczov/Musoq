@@ -1,4 +1,6 @@
-﻿namespace Musoq.Service
+﻿using System.ServiceProcess;
+
+namespace Musoq.Service
 {
     internal static class Program
     {
