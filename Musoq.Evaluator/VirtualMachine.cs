@@ -1,12 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Tables;
 using Musoq.Plugins;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator
 {
+    public class CompiledMachine : IVirtualMachine
+    {
+        private readonly object _obj;
+        private readonly ISchemaProvider _schemaProvider;
+        private readonly MethodInfo _method;
+
+        public CompiledMachine(object obj, ISchemaProvider schemaProvider, MethodInfo method)
+        {
+            this._obj = obj;
+            this._schemaProvider = schemaProvider;
+            this._method = method;
+        }
+
+        public long this[Register register]
+        {
+            get => 0;
+            set { }
+        }
+
+        public StackFrame Current { get; }
+
+        public Table Execute()
+        {
+            return (Table) _method.Invoke(_obj, new object[]{ _schemaProvider});
+        }
+    }
+
     public class VirtualMachine : IVirtualMachine
     {
         private readonly Instruction[] _instructions;

@@ -9,6 +9,7 @@ using System.Web.Http;
 using CacheManager.Core;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Evaluator.Instructions;
 using Musoq.Plugins.Helpers;
 using Musoq.Service.Client;
 using Musoq.Service.Environment;
@@ -22,13 +23,13 @@ namespace Musoq.Service.Controllers
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
         private readonly IDictionary<Guid, ExecutionState> _runetimeState;
-        private readonly ICacheManager<VirtualMachine> _expressionsCache;
+        private readonly ICacheManager<IVirtualMachine> _expressionsCache;
         private readonly IServiceLogger _logger;
         private readonly IDictionary<string, Type> _schemas;
 
         public RuntimeController(IDictionary<Guid, QueryContext> contexts,
             IDictionary<Guid, ExecutionState> runetimeState,
-            ICacheManager<VirtualMachine> expressionsCache, IServiceLogger logger,
+            ICacheManager<IVirtualMachine> expressionsCache, IServiceLogger logger,
             IDictionary<string, Type> schemas)
         {
             _contexts = contexts;

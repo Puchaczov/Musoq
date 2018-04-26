@@ -38,7 +38,7 @@ namespace Musoq.Evaluator.Visitors
         }
 
 
-        public RootNode Root => new RootNode(Nodes.Peek());
+        public RootNode Root => (RootNode)Nodes.Peek();
 
         public BuildMetadataAndInferTypeVisitor(ISchemaProvider schemaProvider)
         {
@@ -344,7 +344,7 @@ namespace Musoq.Evaluator.Visitors
 
         private string CreateAliasIfEmpty(string alias)
         {
-            return string.IsNullOrEmpty(alias) ? Guid.NewGuid().ToString("N").Substring(0, 4) : alias;
+            return string.IsNullOrEmpty(alias) ? new string(Guid.NewGuid().ToString("N").Where(char.IsLetter).ToArray()).Substring(0, 4) : alias;
         }
 
         public void Visit(NestedQueryFromNode node)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Web.Http.Dependencies;
 using CacheManager.Core;
 using Musoq.Evaluator;
+using Musoq.Evaluator.Instructions;
 using Musoq.Schema;
 using Musoq.Service.Client;
 using Musoq.Service.Controllers;
@@ -20,7 +21,7 @@ namespace Musoq.Service.Resolvers
 
         public IDictionary<string, Type> _loadedSchemas;
 
-        private readonly ICacheManager<VirtualMachine> _expressionsCache = CacheFactory.Build<VirtualMachine>("evaluatedExpressions",
+        private readonly ICacheManager<IVirtualMachine> _expressionsCache = CacheFactory.Build<IVirtualMachine>("evaluatedExpressions",
             settings => { settings.WithSystemRuntimeCacheHandle("exps"); });
 
         public CustomDependencyResolver()

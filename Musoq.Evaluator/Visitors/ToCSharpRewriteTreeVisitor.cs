@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Musoq.Evaluator.CSharpTemplates;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser.Nodes;
+using Musoq.Plugins;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
@@ -29,22 +34,53 @@ namespace Musoq.Evaluator.Visitors
 
         public SyntaxGenerator Generator { get; }
 
-        public CSharpCompilation Compilation { get; }
+        public CSharpCompilation Compilation { get; private set; }
 
         private Stack<SyntaxNode> Nodes { get; }
 
         private QueryParts Parts { get; } = new QueryParts();
 
-        public ToCSharpRewriteTreeVisitor(IEnumerable<System.Reflection.Assembly> assemblies)
+        private readonly List<MethodDeclarationSyntax> _methods = new List<MethodDeclarationSyntax>();
+
+        private readonly List<string> _namespaces = new List<string>();
+
+        public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies)
         {
             Workspace = new AdhocWorkspace();
             Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
             Generator.NamespaceImportDeclaration("System");
             Nodes = new Stack<SyntaxNode>();
-            Compilation = CSharpCompilation.Create("test");
+
+            var objLocation = typeof(object).GetTypeInfo().Assembly.Location;
+            var path = new FileInfo(objLocation);
+
+            var mscorlib = Path.Combine(path.Directory.FullName, "mscorlib.dll");
+            var system = Path.Combine(path.Directory.FullName, "System.dll");
+            var systemCore = Path.Combine(path.Directory.FullName, "System.Core.dll");
+            var runtime = Path.Combine(path.Directory.FullName, "System.Runtime.dll");
+
+            Compilation = CSharpCompilation.Create("InMemoryAssembly.dll");
             Compilation = Compilation
-                .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
-                .AddReferences(assemblies.Select(f => MetadataReference.CreateFromFile(f.Location)).ToArray());
+                .AddReferences(MetadataReference.CreateFromFile(mscorlib))
+                .AddReferences(MetadataReference.CreateFromFile(system))
+                .AddReferences(MetadataReference.CreateFromFile(systemCore))
+                .AddReferences(MetadataReference.CreateFromFile(runtime))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(ISchema).Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(LibraryBase).Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(Table).Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile("C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\2.0.0\\netstandard.dll"))
+                .AddReferences(assemblies.Select(a => MetadataReference.CreateFromFile(a.Location)));
+
+            Compilation = Compilation.WithOptions(
+                new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    optimizationLevel: OptimizationLevel.Debug,
+                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
+
+            _namespaces.Add("System");
+            _namespaces.Add("Musoq.Plugins");
+            _namespaces.Add("Musoq.Schema");
+            _namespaces.Add("Musoq.Evaluator.Tables");
         }
 
         public void Visit(Node node)
@@ -170,6 +206,8 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(FieldNode node)
         {
+            if(!_namespaces.Contains(node.ReturnType.Namespace))
+                _namespaces.Add(node.ReturnType.Namespace);
             var type = Compilation.GetTypeByMetadataName(node.ReturnType.FullName);
             var castedExpression = Generator.CastExpression(type, Nodes.Pop());
             Nodes.Push(castedExpression);
@@ -222,7 +260,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessColumnNode node)
         {
-            Nodes.Push(Generator.InvocationExpression(Generator.MemberAccessExpression(Generator.IdentifierName("row"), Generator.IdentifierName(node.Name))));
+            Nodes.Push(Generator.ElementAccessExpression(Generator.IdentifierName("row"), new []
+            {
+                SyntaxHelper.StringLiteralArgument(node.Name)
+            }));
         }
 
         public void Visit(AllColumnsNode node)
@@ -371,7 +412,7 @@ namespace Musoq.Evaluator.Visitors
                 node.Alias,
                 nameof(ISchema.GetRowSource),
                 SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList<ArgumentSyntax>(new []
+                    SyntaxFactory.SeparatedList(new []
                     {
                         SyntaxHelper.StringLiteralArgument(node.Method),
                         SyntaxFactory.Argument(
@@ -385,7 +426,7 @@ namespace Musoq.Evaluator.Visitors
             {
                 SyntaxFactory.LocalDeclarationStatement(createdSchema),
                 SyntaxFactory.LocalDeclarationStatement(createdSchemaRows),
-                SyntaxFactory.IdentifierName($"{node.Alias}Rows")
+                SyntaxFactory.IdentifierName($"{node.Alias}Rows.Rows")
             };
         }
 
@@ -490,7 +531,7 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
                 SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                 null,
-                SyntaxFactory.Identifier("MyMethod"),
+                SyntaxFactory.Identifier("RunQuery"),
                 null,
                 SyntaxFactory.ParameterList(
                     SyntaxFactory.SeparatedList(new []
@@ -504,8 +545,9 @@ namespace Musoq.Evaluator.Visitors
                     })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(), 
                 block,
-                null,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                null);
+
+            _methods.Add(method);
         }
 
         public void Visit(InternalQueryNode node)
@@ -514,6 +556,33 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(RootNode node)
         {
+            var classDeclaration = Generator.ClassDeclaration("CompiledQuery", new string[0], Accessibility.Public, DeclarationModifiers.None,
+                null, null, _methods);
+
+            var ns = SyntaxFactory.NamespaceDeclaration(
+                SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Query.Compiled")),
+                SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
+                SyntaxFactory.List(
+                    _namespaces.Select(
+                        n => SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(n)))),
+                SyntaxFactory.List<MemberDeclarationSyntax>(new []{ (ClassDeclarationSyntax)classDeclaration }));
+
+            var compilationUnit = SyntaxFactory.CompilationUnit(
+                SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
+                SyntaxFactory.List<UsingDirectiveSyntax>(),
+                SyntaxFactory.List<AttributeListSyntax>(),
+                SyntaxFactory.List<MemberDeclarationSyntax>(new []{ ns }));
+
+            var tree = SyntaxFactory.SyntaxTree(Formatter.Format(compilationUnit, Workspace));
+
+            var text = tree.GetText();
+
+            var s = text.ToString();
+
+            Compilation = Compilation.AddSyntaxTrees(new[]
+            {
+                SyntaxFactory.ParseSyntaxTree(text, new CSharpParseOptions(LanguageVersion.Latest), Path.GetTempFileName())
+            });
         }
 
         public void Visit(SingleSetNode node)

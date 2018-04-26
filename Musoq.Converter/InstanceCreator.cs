@@ -3,7 +3,10 @@ using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Formatting;
 using Musoq.Evaluator;
+using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
@@ -15,7 +18,7 @@ namespace Musoq.Converter
 {
     public static class InstanceCreator
     {
-        public static VirtualMachine Create(RootNode root, ISchemaProvider schemaProvider)
+        public static IVirtualMachine Create(RootNode root, ISchemaProvider schemaProvider)
         {
             schemaProvider = new TransitionSchemaProvider(schemaProvider);
 
@@ -33,35 +36,33 @@ namespace Musoq.Converter
 
             query.Accept(columnsCollectorTraverser);
 
-
             var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies);
             var csharpRewriteTraverser = new RewriteTreeTraverseVisitor(csharpRewriter);
 
             query.Accept(csharpRewriteTraverser);
 
-            var rewriter = new RewriteTreeVisitor((TransitionSchemaProvider)schemaProvider);
-            var rewriteTraverser = new RewriteTreeTraverseVisitor(rewriter);
+            using (var stream = new MemoryStream())
+            using (var pdbStream = new MemoryStream())
+            {
+                EmitResult result = csharpRewriter.Compilation.Emit(stream);
 
-            query.Accept(rewriteTraverser);
+                if (result.Success)
+                {
+                    var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
 
-            query = rewriter.RootScript;
+                    var type = assembly.GetType("Query.Compiled.CompiledQuery");
+                    var method = type.GetMethod("RunQuery");
 
-            var metadataCreator = new PreGenerationVisitor();
-            var metadataTraverser = new PreGenerationTraverseVisitor(metadataCreator);
+                    var obj = Activator.CreateInstance(type);
+                    return new CompiledMachine(obj, schemaProvider, method);
+                }
+            }
 
-            query.Accept(metadataTraverser);
-
-            var codeGenerator = new CodeGenerationVisitor(schemaProvider, metadataCreator.TableMetadata);
-            var traverser =
-                new CodeGenerationTraverseVisitor(codeGenerator);
-
-            query.Accept(traverser);
-
-            return codeGenerator.VirtualMachine;
+            throw new NotSupportedException();
         }
 
 
-        public static VirtualMachine Create(string script, ISchemaProvider schemaProvider)
+        public static IVirtualMachine Create(string script, ISchemaProvider schemaProvider)
         {
             return Create(CreateTree(script), schemaProvider);
         }
