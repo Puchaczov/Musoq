@@ -17,31 +17,40 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="CSharpTemplates\Query.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>Query.cs</LastGenOutput>
-    </None>
-    <None Update="CSharpTemplates\SelectClause.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>SelectClause.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="CSharpTemplates\Query.cs">
+    <Compile Update="RuntimeScripts\DeclarationStatements.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Query.tt</DependentUpon>
+      <DependentUpon>DeclarationStatements.tt</DependentUpon>
     </Compile>
-    <Compile Update="CSharpTemplates\SelectClause.cs">
+    <Compile Update="RuntimeScripts\NestedForeaches.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>SelectClause.tt</DependentUpon>
+      <DependentUpon>NestedForeaches.tt</DependentUpon>
     </Compile>
+    <Compile Update="RuntimeScripts\Select.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Select.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="RuntimeScripts\DeclarationStatements.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>DeclarationStatements.cs</LastGenOutput>
+    </None>
+    <None Update="RuntimeScripts\NestedForeaches.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>NestedForeaches.cs</LastGenOutput>
+    </None>
+    <None Update="RuntimeScripts\Select.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>Select.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>

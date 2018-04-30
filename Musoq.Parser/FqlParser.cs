@@ -63,7 +63,7 @@ namespace Musoq.Parser
 
             var expressions = new List<CteInnerExpressionNode>();
 
-            var col = ComposeBaseTypes() as AccessColumnNode;
+            var col = ComposeBaseTypes() as IdentifierNode;
             Consume(TokenType.As);
 
             Consume(TokenType.LeftParenthesis);
@@ -75,7 +75,7 @@ namespace Musoq.Parser
             {
                 Consume(TokenType.Comma);
 
-                col = ComposeBaseTypes() as AccessColumnNode;
+                col = ComposeBaseTypes() as IdentifierNode;
                 Consume(TokenType.As);
 
                 Consume(TokenType.LeftParenthesis);
@@ -137,7 +137,7 @@ namespace Musoq.Parser
                 {
                     Consume(TokenType.Comma);
                     keys.Add(Current.Value);
-                    Consume(TokenType.Column);
+                    Consume(TokenType.Identifier);
                 }
 
                 Consume(TokenType.RightParenthesis);
@@ -156,34 +156,43 @@ namespace Musoq.Parser
             var selectNode = ComposeSelectNode();
             var fromNode = ComposeFrom();
 
-            var joins = new List<JoinNode>();
-            while (Current.TokenType == TokenType.InnerJoin || Current.TokenType == TokenType.OuterJoin)
-            {
-                joins.Add(ComposeJoin());
-            }
+            fromNode = ComposeJoin(fromNode);
 
             var whereNode = ComposeWhereNode();
             var groupBy = ComposeGrouByNode();
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            return new QueryNode(selectNode, fromNode, new JoinsNode(joins.ToArray()), whereNode, groupBy, orderBy, skip, take);
+            return new QueryNode(selectNode, fromNode, new JoinsNode(new JoinNode[0]), whereNode, groupBy, orderBy, skip, take);
         }
 
-        private JoinNode ComposeJoin()
+        private FromNode ComposeJoin(FromNode from)
         {
-            switch (Current.TokenType)
+            if (IsJoinToken(Current.TokenType))
             {
-                case TokenType.InnerJoin:
-                    Consume(TokenType.InnerJoin);
-                    return new InnerJoinNode(ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations());
-                case TokenType.OuterJoin:
-                    var outerToken = (OuterJoinToken)Current;
-                    Consume(TokenType.OuterJoin);
-                    return new OuterJoinNode(outerToken.Type, ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations());
+                while (IsJoinToken(Current.TokenType))
+                {
+                    switch (Current.TokenType)
+                    {
+                        case TokenType.InnerJoin:
+                            Consume(TokenType.InnerJoin);
+                            from = new JoinFromNode(from, ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(), JoinType.Inner);
+                            break;
+                        case TokenType.OuterJoin:
+                            var outerToken = (OuterJoinToken)Current;
+                            Consume(TokenType.OuterJoin);
+                            from = new JoinFromNode(from, ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(), outerToken.Type == OuterJoinNode.OuterJoinType.Left ? JoinType.OuterLeft : JoinType.OuterRight);
+                            break;
+                    }
+                }
             }
 
-            return null;
+            return new ExpressionFromNode(from);
+        }
+
+        private static bool IsJoinToken(TokenType currentTokenType)
+        {
+            return currentTokenType == TokenType.InnerJoin || currentTokenType == TokenType.OuterJoin;
         }
 
         private OrderByNode ComposeOrderBy()
@@ -280,8 +289,8 @@ namespace Musoq.Parser
                     return name;
                 case TokenType.Word:
                     return ConsumeAndGetToken(TokenType.Word).Value;
-                case TokenType.Column:
-                    return ConsumeAndGetToken(TokenType.Column).Value;
+                case TokenType.Identifier:
+                    return ConsumeAndGetToken(TokenType.Identifier).Value;
             }
 
             return string.Empty;
@@ -435,8 +444,8 @@ namespace Musoq.Parser
                 return fromNode;
             }
 
-            var column = (AccessColumnNode)ComposeBaseTypes();
-            return new CteFromNode(column.Name);
+            var column = (IdentifierNode)ComposeBaseTypes();
+            return new InMemoryTableFromNode(column.Name);
         }
 
         private static string GetValueOfBasicType(Node node)
@@ -520,14 +529,14 @@ namespace Musoq.Parser
                     return ComposeWord();
                 case TokenType.Function:
                     return ComposeAccessMethod();
-                case TokenType.Column:
+                case TokenType.Identifier:
 
                     if (!(Current is ColumnToken column))
                         throw new ArgumentNullException();
 
-                    Consume(TokenType.Column);
+                    Consume(TokenType.Identifier);
 
-                    return new AccessColumnNode(column.Value, column.Span);
+                    return new IdentifierNode(column.Value);
                 case TokenType.KeyAccess:
                     var keyAccess = (KeyAccessToken)Current;
                     Consume(TokenType.KeyAccess);

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 
-namespace Musoq.Evaluator.RuntimeScripts
+namespace MyTemplateNamespace
 {
     internal static class T4Extensions
     {

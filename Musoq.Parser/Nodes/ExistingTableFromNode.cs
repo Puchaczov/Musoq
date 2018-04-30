@@ -2,15 +2,20 @@
 {
     public class ExistingTableFromNode : FromNode
     {
-        public ExistingTableFromNode(string schema, string method) 
-            : base(schema, method, new string[0])
+        public ExistingTableFromNode() 
+            : base(string.Empty)
         {
-            Id = $"{nameof(ExistingTableFromNode)}{schema}{method}";
+            Id = $"{nameof(ExistingTableFromNode)}";
         }
 
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
+        }
+
+        public override string ToString()
+        {
+            throw new System.NotImplementedException();
         }
 
         public override string Id { get; }

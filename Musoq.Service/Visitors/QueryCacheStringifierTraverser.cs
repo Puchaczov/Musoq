@@ -91,6 +91,11 @@ namespace Musoq.Service.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(IdentifierNode node)
+        {
+            node.Accept(_visitor);
+        }
+
         public void Visit(AccessObjectArrayNode node)
         {
             node.Accept(_visitor);
@@ -170,7 +175,7 @@ namespace Musoq.Service.Visitors
             _visitor.AddText(")");
         }
 
-        public void Visit(CteFromNode node)
+        public void Visit(InMemoryTableFromNode node)
         {
             _visitor.AddText("from");
             node.Accept(_visitor);
@@ -179,6 +184,12 @@ namespace Musoq.Service.Visitors
         public void Visit(JoinFromNode node)
         {
             throw new NotSupportedException();
+        }
+
+        public void Visit(ExpressionFromNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(CreateTableNode node)

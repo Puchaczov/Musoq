@@ -24,8 +24,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            var args = From.Parameters.Length == 0 ? string.Empty : From.Parameters.Aggregate((a, b) => $"'{a}'" + ',' + $"'{b}'");
-            return $"desc {From.Schema}.{From.Method}({args})";
+            return $"desc {From.ToString()}";
         }
     }
 }

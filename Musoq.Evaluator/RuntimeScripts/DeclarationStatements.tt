@@ -1,0 +1,3 @@
+﻿	{decl_statement}
+
+	var {score_table} = new Table({score_table_name}, {score_columns});

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Lexing;
@@ -24,23 +25,36 @@ namespace Musoq.Converter
 
             var query = root;
 
-            var metadataInferer = new BuildMetadataAndInferTypeVisitor(schemaProvider);
-            var metadataInfererTraverser = new RewriteTreeTraverseVisitor(metadataInferer);
+            var metadataInferer = new BuildMetadataAndInferTypeVisitor();
+            var metadataInfererTraverser = new BuildMetadataAndInferTypeTraverseVisitor(metadataInferer, schemaProvider);
 
             query.Accept(metadataInfererTraverser);
 
             query = metadataInferer.Root;
 
-            var columnsCollector = new CollectColumnsBySchemasVisitor(schemaProvider);
-            var columnsCollectorTraverser = new CollectColumnsBySchemasTraverseVisitor(columnsCollector);
-
-            query.Accept(columnsCollectorTraverser);
-
             var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies);
-            var csharpRewriteTraverser = new RewriteTreeTraverseVisitor(csharpRewriter);
+            var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, schemaProvider, new ScopeWalker(metadataInfererTraverser.Scope));
 
             query.Accept(csharpRewriteTraverser);
 
+#if DEBUG
+            using (var stream = new MemoryStream())
+            using (var pdbStream = new MemoryStream())
+            {
+                EmitResult result = csharpRewriter.Compilation.Emit(stream, pdbStream);
+
+                if (result.Success)
+                {
+                    var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
+
+                    var type = assembly.GetType("Query.Compiled.CompiledQuery");
+                    var method = type.GetMethod("RunQuery");
+
+                    var obj = Activator.CreateInstance(type);
+                    return new CompiledMachine(obj, schemaProvider, method);
+                }
+            }
+#else
             using (var stream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
             {
@@ -57,6 +71,7 @@ namespace Musoq.Converter
                     return new CompiledMachine(obj, schemaProvider, method);
                 }
             }
+#endif
 
             throw new NotSupportedException();
         }

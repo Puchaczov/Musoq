@@ -1,15 +1,23 @@
-﻿using Musoq.Parser;
+﻿using System.Text;
+using Musoq.Evaluator.Utils;
+using Musoq.Parser;
+using Musoq.Parser.Nodes;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public interface ISchemaAwareExpressionVisitor : IExpressionVisitor
+    public interface IScopeAwareExpressionVisitor : IExpressionVisitor
     {
-        string CurrentSchema { get; set; }
+        void QueryBegins();
+        void QueryEnds();
 
-        string CurrentTable { get; }
+        void SetScope(Scope scope);
 
-        string[] CurrentParameters { get; }
+        void SetQueryIdentifier(string identifier);
 
-        void SetCurrentTable(string table, string[] parameters);
+        void SetCodePattern(StringBuilder code);
+        void SetJoinsAmount(int amount);
+
+        void SetMethodAccessType(MethodAccessType type);
     }
 }

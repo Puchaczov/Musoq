@@ -5,7 +5,7 @@ namespace Musoq.Parser.Nodes
     public class NestedQueryFromNode : FromNode
     {
         public NestedQueryFromNode(QueryNode query, string schema, string method, IDictionary<string, int> columnToIndexMap)
-            : base(schema, method, new string[0])
+            : base(string.Empty)
         {
             Query = query;
             Id = $"{nameof(NestedQueryFromNode)}{query.Id}";

@@ -1,0 +1,5 @@
+﻿	foreach(var score in EvaluationHelper.ConvertTableToSource({select_source}).Rows) {
+		{select_statement}
+	}
+
+	return {score_table};

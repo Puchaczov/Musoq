@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Musoq.Evaluator.CSharpTemplates
+namespace Musoq.Evaluator.RuntimeScripts
 {
     using System;
     
@@ -15,9 +15,9 @@ namespace Musoq.Evaluator.CSharpTemplates
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\Query.tt"
+    #line 1 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\Select.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public partial class Query : QueryBase
+    public partial class Select : SelectBase
     {
 #line hidden
         /// <summary>
@@ -25,35 +25,8 @@ namespace Musoq.Evaluator.CSharpTemplates
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("foreach(var item in ");
-            
-            #line 1 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\Query.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Source));
-            
-            #line default
-            #line hidden
-            this.Write(")\r\n{\r\n\tif(!(");
-            
-            #line 3 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\Query.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Where));
-            
-            #line default
-            #line hidden
-            this.Write("))\r\n\t\tcontinue;\r\n\r\n\t");
-            
-            #line 6 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\Query.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Group));
-            
-            #line default
-            #line hidden
-            this.Write("\r\n\r\n\t");
-            
-            #line 8 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\Query.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Select));
-            
-            #line default
-            #line hidden
-            this.Write("\r\n}");
+            this.Write("\tforeach(var score in EvaluationHelper.ConvertTableToSource({select_source}).Rows" +
+                    ") {\r\n\t\t{select_statement}\r\n\t}\r\n\r\n\treturn {score_table};\r\n");
             return this.GenerationEnvironment.ToString();
         }
     }
@@ -65,7 +38,7 @@ namespace Musoq.Evaluator.CSharpTemplates
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public class QueryBase
+    public class SelectBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

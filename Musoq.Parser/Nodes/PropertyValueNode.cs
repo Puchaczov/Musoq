@@ -3,17 +3,16 @@ using System.Reflection;
 
 namespace Musoq.Parser.Nodes
 {
-    public class PropertyValueNode : Node
+    public class PropertyValueNode : IdentifierNode
     {
-        public string Name { get; }
-
         public PropertyValueNode(string name)
+            : base(name)
         {
-            Name = name;
         }
+
         public PropertyValueNode(string name, PropertyInfo propertyInfo)
+            : base(name)
         {
-            Name = name;
             PropertyInfo = propertyInfo;
         }
 

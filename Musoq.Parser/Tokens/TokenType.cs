@@ -21,7 +21,7 @@
         Comma,
         WhiteSpace,
         Equality,
-        Column,
+        Identifier,
         NumericColumn,
         Function,
         Property,

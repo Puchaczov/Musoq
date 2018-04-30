@@ -161,6 +161,11 @@ namespace Musoq.Service.Visitors
             _script.Append("*");
         }
 
+        public void Visit(IdentifierNode node)
+        {
+            _script.Append(node.Name);
+        }
+
         public void Visit(AccessObjectArrayNode node)
         {
             _script.Append($"{node.ObjectName}[{node.Token.Index}]");
@@ -222,8 +227,7 @@ namespace Musoq.Service.Visitors
 
         public void Visit(ExistingTableFromNode node)
         {
-            var parameters = node.Parameters.Length == 0 ? "()" : node.Parameters.Aggregate((a, b) => a + "," + b);
-            _script.Append($"{node.Schema}.{node.Method}({parameters})");
+            _script.Append(node.ToString());
         }
 
         public void Visit(SchemaFromNode node)
@@ -236,12 +240,16 @@ namespace Musoq.Service.Visitors
         {
         }
 
-        public void Visit(CteFromNode node)
+        public void Visit(InMemoryTableFromNode node)
         {
             _script.Append(node.VariableName);
         }
 
         public void Visit(JoinFromNode node)
+        {
+        }
+
+        public void Visit(ExpressionFromNode node)
         {
         }
 

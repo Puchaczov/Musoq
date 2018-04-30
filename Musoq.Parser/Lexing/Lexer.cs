@@ -125,7 +125,7 @@ namespace Musoq.Parser.Lexing
             if (regex == TokenRegexDefinition.KColumn && last != null && last.TokenType == TokenType.Dot)
                 return TokenType.Property;
             if (regex == TokenRegexDefinition.KColumn)
-                return TokenType.Column;
+                return TokenType.Identifier;
             if (regex == TokenRegexDefinition.KInnerJoin)
                 return TokenType.InnerJoin;
             if (regex == TokenRegexDefinition.KOuterJoin)
@@ -339,7 +339,7 @@ namespace Musoq.Parser.Lexing
                     return new FromToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Select:
                     return new SelectToken(new TextSpan(Position, tokenText.Length));
-                case TokenType.Column:
+                case TokenType.Identifier:
                     return new ColumnToken(tokenText, new TextSpan(Position, tokenText.Length));
                 case TokenType.Property:
                     return new AccessPropertyToken(tokenText, new TextSpan(Position, tokenText.Length));

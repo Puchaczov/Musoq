@@ -4,9 +4,8 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Musoq.Evaluator.Exceptions;
-using Musoq.Evaluator.Tables;
-using Musoq.Evaluator.TemporarySchemas;
+using Musoq.Evaluator.Utils;
+using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -16,18 +15,16 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class BuildMetadataAndInferTypeVisitor : ISchemaAwareExpressionVisitor
+    public class BuildMetadataAndInferTypeVisitor : IScopeAwareExpressionVisitor
     {
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
-        private readonly ISchemaProvider _schemaProvider;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
 
-        private string _currentSchema;
-        private ISchema _schema;
-        private ISchemaTable _table;
-
         public List<Assembly> Assemblies { get; } = new List<Assembly>();
+
+        private Scope _currentScope;
+        private string _identifier;
 
         private void AddAssembly(Assembly asm)
         {
@@ -37,13 +34,7 @@ namespace Musoq.Evaluator.Visitors
             Assemblies.Add(asm);
         }
 
-
         public RootNode Root => (RootNode)Nodes.Peek();
-
-        public BuildMetadataAndInferTypeVisitor(ISchemaProvider schemaProvider)
-        {
-            _schemaProvider = schemaProvider;
-        }
 
         public void Visit(Node node)
         {
@@ -231,37 +222,48 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessColumnNode node)
         {
-            var column = _table.Columns.SingleOrDefault(f => f.ColumnName == node.Name);
-            if (column == null)
-            {
-                if (!_schema.TryResolveProperty(node.Name, out var method))
-                    throw new UnknownColumnException($"Unknown column '{node.Name}'.");
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
 
-                AddAssembly(method.ReturnType.Assembly);
-                node.ChangeReturnType(method.ReturnType);
-                Nodes.Push(new AccessMethodNode(new FunctionToken(method.Name, TextSpan.Empty), new ArgsListNode(new Node[0]), null, method));
-            }
+            ISchemaTable table;
+            if (!string.IsNullOrEmpty(node.Alias))
+                table = tableSymbol.GetTableByAlias(node.Alias);
             else
-            {
-                AddAssembly(column.ColumnType.Assembly);
-                node.ChangeReturnType(column.ColumnType);
-                Nodes.Push(new AccessColumnNode(column.ColumnName, column.ColumnIndex, column.ColumnType, node.Span));
-            }
+                table = tableSymbol.GetTableByColumnName(node.Name);
+
+            var column = table.Columns.SingleOrDefault(f => f.ColumnName == node.Name);
+
+            AddAssembly(column.ColumnType.Assembly);
+            node.ChangeReturnType(column.ColumnType);
+            Nodes.Push(new AccessColumnNode(column.ColumnName, node.Alias, column.ColumnType, node.Span));
         }
 
         public void Visit(AllColumnsNode node)
         {
-            _generatedColumns = new FieldNode[_table.Columns.Length];
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+            var table = tableSymbol.GetTableByAlias(_identifier);
+            _generatedColumns = new FieldNode[table.Columns.Length];
 
-            for (int i = 0; i < _table.Columns.Length; i++)
+            for (int i = 0; i < table.Columns.Length; i++)
             {
-                var column = _table.Columns[i];
+                var column = table.Columns[i];
 
                 AddAssembly(column.ColumnType.Assembly);
-                _generatedColumns[i] = new FieldNode(new DetailedAccessColumnNode(column.ColumnName, i, column.ColumnType, string.Empty), i, string.Empty);
+                _generatedColumns[i] = new FieldNode(new AccessColumnNode(column.ColumnName, _identifier, column.ColumnType, TextSpan.Empty), i, string.Empty);
             }
 
             Nodes.Push(node);
+        }
+
+        public void Visit(IdentifierNode node)
+        {
+            if(node.Name != _identifier)
+            {
+                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                Visit(new AccessColumnNode(node.Name, string.Empty, column.ColumnType, TextSpan.Empty));
+                return;
+            }
+            Nodes.Push(new IdentifierNode(node.Name));
         }
 
         public void Visit(AccessObjectArrayNode node)
@@ -283,7 +285,8 @@ namespace Musoq.Evaluator.Visitors
         {
             var exp = Nodes.Pop();
             var root = Nodes.Pop();
-            Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name));
+
+            Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty));
         }
 
         public virtual void Visit(AccessCallChainNode node)
@@ -351,20 +354,35 @@ namespace Musoq.Evaluator.Visitors
         {
             var query = Nodes.Pop() as QueryNode;
 
-            Nodes.Push(new NestedQueryFromNode(query, node.Schema, node.Method, node.ColumnToIndexMap));
+            Nodes.Push(new NestedQueryFromNode(query, string.Empty, String.Empty, node.ColumnToIndexMap));
         }
 
-        public void Visit(CteFromNode node)
+        public void Visit(InMemoryTableFromNode node)
         {
-            Nodes.Push(new CteFromNode(node.VariableName));
+            Nodes.Push(new InMemoryTableFromNode(node.VariableName));
         }
 
         public void Visit(JoinFromNode node)
         {
-            var source = (FromNode)Nodes.Pop();
-            var joinedTable = (FromNode)Nodes.Pop();
             var expression = Nodes.Pop();
-            Nodes.Push(new JoinFromNode(source, joinedTable, expression));
+            var joinedTable = (FromNode)Nodes.Pop();
+            var source = (FromNode)Nodes.Pop();
+            Nodes.Push(new JoinFromNode(source, joinedTable, expression, node.JoinType));
+        }
+
+        public void Visit(ExpressionFromNode node)
+        {
+            Nodes.Push(new ExpressionFromNode((FromNode)Nodes.Pop()));
+
+            var tableSymbol =_currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Alias);
+
+            foreach (var tableAlias in tableSymbol.CompoundTables)
+            {
+                var table = tableSymbol.GetTableByAlias(tableAlias);
+
+                foreach(var column in table.Columns)
+                    AddAssembly(column.ColumnType.Assembly);
+            }
         }
 
         public void Visit(CreateTableNode node)
@@ -418,7 +436,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ExistingTableFromNode node)
         {
-            Nodes.Push(new ExistingTableFromNode(node.Schema, node.Method));
+            Nodes.Push(new ExistingTableFromNode());
         }
 
         public void Visit(InternalQueryNode node)
@@ -520,35 +538,6 @@ namespace Musoq.Evaluator.Visitors
                 Nodes.Push(new InnerJoinNode(fromNode, expression));
         }
 
-        public string[] CurrentParameters { get; private set; }
-
-        public string CurrentSchema
-        {
-            get => _currentSchema;
-            set
-            {
-                _currentSchema = value;
-
-                if (value == null)
-                    return;
-
-                _schema = _schemaProvider.GetSchema(value);
-            }
-        }
-
-        public string CurrentTable { get; private set; }
-
-        public void SetCurrentTable(string table, string[] parameters)
-        {
-            CurrentTable = table;
-            CurrentParameters = parameters;
-
-            if (table == null)
-                return;
-
-            _table = _schema.GetTableByName(table, parameters);
-        }
-
         private FieldNode[] CreateFields(FieldNode[] oldFields)
         {
             var reorderedList = new FieldNode[oldFields.Length];
@@ -576,40 +565,70 @@ namespace Musoq.Evaluator.Visitors
         private void VisitAccessMethod(AccessMethodNode node,
             Func<FunctionToken, Node, ArgsListNode, MethodInfo, AccessMethodNode> func)
         {
-            var args = Nodes.Pop() as ArgsListNode;
+            //var args = Nodes.Pop() as ArgsListNode;
 
-            var groupArgs = new List<Type> { typeof(string) };
-            groupArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1).Select(f => f.ReturnType));
+            //var groupArgs = new List<Type> { typeof(string) };
+            //groupArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1).Select(f => f.ReturnType));
 
-            if (!_schema.TryResolveAggreationMethod(node.Name, groupArgs.ToArray(), out var method))
-                method = _schema.ResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray());
+            //if (!_schema.TryResolveAggreationMethod(node.Name, groupArgs.ToArray(), out var method))
+            //    method = _schema.ResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray());
 
-            var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
+            //var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
-            AccessMethodNode accessMethod;
-            if (isAggregateMethod)
-            {
-                accessMethod = func(node.FToken, args, node.ExtraAggregateArguments, method);
-                var identifier = accessMethod.ToString();
+            //AccessMethodNode accessMethod;
+            //if (isAggregateMethod)
+            //{
+            //    accessMethod = func(node.FToken, args, node.ExtraAggregateArguments, method);
+            //    var identifier = accessMethod.ToString();
 
-                var newArgs = new List<Node> { new WordNode(identifier) };
-                newArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1));
-                var shouldHaveExtraArgs = accessMethod.ArgsCount > 0;
-                var newExtraArgs = new ArgsListNode(shouldHaveExtraArgs ? new[] { accessMethod.Arguments.Args.Last() } : new Node[0]);
+            //    var newArgs = new List<Node> { new WordNode(identifier) };
+            //    newArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1));
+            //    var shouldHaveExtraArgs = accessMethod.ArgsCount > 0;
+            //    var newExtraArgs = new ArgsListNode(shouldHaveExtraArgs ? new[] { accessMethod.Arguments.Args.Last() } : new Node[0]);
 
-                accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), newExtraArgs, method);
-            }
-            else
-            {
-                accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method);
-            }
+            //    accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), newExtraArgs, method);
+            //}
+            //else
+            //{
+            //    accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method);
+            //}
 
-            AddAssembly(method.DeclaringType.Assembly);
-            AddAssembly(method.ReturnType.Assembly);
+            //AddAssembly(method.DeclaringType.Assembly);
+            //AddAssembly(method.ReturnType.Assembly);
 
-            node.ChangeMethod(method);
+            //node.ChangeMethod(method);
 
-            Nodes.Push(accessMethod);
+            //Nodes.Push(accessMethod);
+        }
+
+        public void QueryBegins()
+        {
+        }
+
+        public void QueryEnds()
+        {
+        }
+
+        public void SetScope(Scope scope)
+        {
+            _currentScope = scope;
+        }
+
+        public void SetQueryIdentifier(string identifier)
+        {
+            _identifier = identifier;
+        }
+
+        public void SetCodePattern(StringBuilder code)
+        {
+        }
+
+        public void SetJoinsAmount(int amount)
+        {
+        }
+
+        public void SetMethodAccessType(MethodAccessType type)
+        {
         }
     }
 }

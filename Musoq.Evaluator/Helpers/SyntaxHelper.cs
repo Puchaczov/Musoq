@@ -15,16 +15,35 @@ namespace Musoq.Evaluator.Helpers
 
         public static SyntaxTrivia DoubleQuoteTrivia => SyntaxFactory.SyntaxTrivia(SyntaxKind.DoubleQuoteToken, "\"");
 
-        public static InvocationExpressionSyntax CreateMethodInvocation(string variableName, string methodName, IEnumerable<SyntaxNode> arguments)
+        public static InvocationExpressionSyntax CreateMethodInvocation(string variableName, string methodName)
+            => CreateMethodInvocation(variableName, methodName, new List<SyntaxNode>());
+        public static InvocationExpressionSyntax CreateMethodInvocation(ExpressionSyntax variableName, string methodName)
+            => CreateMethodInvocation(variableName, methodName, new List<SyntaxNode>());
+
+        public static InvocationExpressionSyntax CreateMethodInvocation(string variableName, string methodName,
+            IEnumerable<SyntaxNode> arguments)
+            => CreateMethodInvocation(SyntaxFactory.IdentifierName(variableName), methodName, arguments);
+
+        public static InvocationExpressionSyntax CreateMethodInvocation(ExpressionSyntax exp, string methodName, IEnumerable<SyntaxNode> arguments)
         {
             return SyntaxFactory
                 .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(variableName),
-                        SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName(methodName)
+                        SyntaxKind.SimpleMemberAccessExpression, 
+                        exp,
+                        SyntaxFactory.Token(SyntaxKind.DotToken), 
+                        SyntaxFactory.IdentifierName(methodName)
                     ),
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(arguments)));
+        }
+
+        public static ElementAccessExpressionSyntax CreateElementAccess(string objectName, IEnumerable<ArgumentSyntax> arguments)
+        {
+            return SyntaxFactory.ElementAccessExpression(
+                SyntaxFactory.IdentifierName(objectName),
+                SyntaxFactory.BracketedArgumentList(
+                    new SeparatedSyntaxList<ArgumentSyntax>().AddRange(arguments)));
         }
 
         public static VariableDeclarationSyntax CreateAssignment(params VariableDeclaratorSyntax[] declarations)
@@ -130,6 +149,19 @@ namespace Musoq.Evaluator.Helpers
                 SyntaxFactory.ParseTypeName(typeName),
                 args,
                 initializer);
+        }
+
+        public static ForEachStatementSyntax Foreach(string variable, string source)
+        {
+            return SyntaxFactory.ForEachStatement(
+                SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
+                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                SyntaxFactory.IdentifierName("var").WithTrailingTrivia(WhiteSpace),
+                SyntaxFactory.Identifier(variable).WithTrailingTrivia(WhiteSpace),
+                SyntaxFactory.Token(SyntaxKind.InKeyword).WithTrailingTrivia(WhiteSpace),
+                SyntaxFactory.IdentifierName(source),
+                SyntaxFactory.Token(SyntaxKind.CloseParenToken),
+                SyntaxFactory.Block());
         }
 
         public static ArrayCreationExpressionSyntax CreateArrayOf(string typeName, ExpressionSyntax[] expressions)

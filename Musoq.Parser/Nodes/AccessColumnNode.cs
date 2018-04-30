@@ -6,15 +6,15 @@ namespace Musoq.Parser.Nodes
     {
         private Type _returnType;
 
-        public AccessColumnNode(string column, TextSpan span)
-            : this(column, 0, typeof(void), span)
+        public AccessColumnNode(string column, string alias, TextSpan span)
+            : this(column, alias, typeof(void), span)
         {
             Id = $"{nameof(AccessColumnNode)}{column}";
         }
 
-        public AccessColumnNode(string column, int argFieldOrder, Type returnType, TextSpan span)
+        public AccessColumnNode(string column, string alias, Type returnType, TextSpan span)
         {
-            Order = argFieldOrder;
+            Alias = alias;
             Span = span;
             _returnType = returnType;
             Name = column;
@@ -23,7 +23,7 @@ namespace Musoq.Parser.Nodes
 
         public string Name { get; }
 
-        public int Order { get; }
+        public string Alias { get; }
 
         public TextSpan Span { get; }
 
@@ -38,12 +38,43 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return Name;
+            if (string.IsNullOrEmpty(Alias))
+                return Name;
+            return $"{Alias}.{Name}";
         }
 
         public void ChangeReturnType(Type returnType)
         {
             _returnType = returnType;
+        }
+    }
+
+    public class IdentifierNode : Node
+    {
+        public IdentifierNode(string name)
+        {
+            Name = name;
+            Id = $"{nameof(IdentifierNode)}{Name}";
+        }
+        public string Name { get; }
+        public override Type ReturnType { get; }
+        public override void Accept(IExpressionVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
+        public override string Id { get; }
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+
+    public class TableReferenceNode : IdentifierNode
+    {
+        public TableReferenceNode(string name) 
+            : base(name)
+        {
         }
     }
 }

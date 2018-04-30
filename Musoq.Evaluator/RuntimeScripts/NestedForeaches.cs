@@ -9,18 +9,15 @@
 // ------------------------------------------------------------------------------
 namespace Musoq.Evaluator.RuntimeScripts
 {
-    using System.Linq;
-    using System.Text;
-    using System.Collections.Generic;
     using System;
     
     /// <summary>
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
+    #line 1 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public partial class MainMethod : MainMethodBase
+    public partial class NestedForeaches : NestedForeachesBase
     {
 #line hidden
         /// <summary>
@@ -28,155 +25,91 @@ namespace Musoq.Evaluator.RuntimeScripts
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write(@"
-namespace Musoq.CodeGenerated 
-{
-	public class TranslatedQuery
-	{
-		private ISchemaProvider _schemaProvider;
-
-		public TranslatedQuery(ISchemaProvider schemaProvider)
-		{
-			_schemaProvider = schemaProvider;
-		}
-
-		public Func<Table> Run(){
-			return () => ComputeQuery();
-		}
-
-		public Table ComputeQuery()
-		{
-			var schema = _schemaProvider.GetSchema(""");
+            this.Write("var {transformed_source_table} = new Table({joined_table_name}, {joined_table_col" +
+                    "umns});\r\n\r\n");
             
-            #line 25 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Schema));
+            #line 3 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+ for(int i = 0; i < Nesting; ++i) { 
             
             #line default
             #line hidden
-            this.Write("\");\r\n\t\t\tvar source = schema.GetRowSource(");
+            this.Write("\tforeach(var {name");
             
-            #line 26 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(RowSourceMethod));
-            
-            #line default
-            #line hidden
-            this.Write(", new string[] { ");
-            
-            #line 26 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(RowSourceArguments));
+            #line 4 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(i));
             
             #line default
             #line hidden
-            this.Write(" });\r\n\t\t\tvar lib = schema.Library;\r\n\t\t\tvar groups = new Dictionary<string, Group>" +
-                    "();\r\n\t\t\tvar table = new Table();\r\n\t\r\n\t\t\tforeach(var row in source) {\r\n\t\t\r\n\t\t\t\t");
+            this.Write("} in {source");
             
-            #line 33 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
- if(ContainsWhereOperator()) { 
+            #line 4 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(i));
             
             #line default
             #line hidden
-            this.Write("\r\n\t\t\t\t\tif(!FitsWhereCondition(row, lib))\r\n\t\t\t\t\t\tcontinue;\r\n\r\n\t\t\t\t");
+            this.Write("}){\r\n\r\n\t");
             
-            #line 38 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
+            #line 6 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+ if(i > 0){ 
+            
+            #line default
+            #line hidden
+            this.Write("\t\tif(!({join_condition");
+            
+            #line 7 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture((i-1)));
+            
+            #line default
+            #line hidden
+            this.Write("}))\r\n\t\t\tcontinue;\r\n\t");
+            
+            #line 9 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } 
             
             #line default
             #line hidden
-            this.Write("\r\n\t\t\t\t");
             
-            #line 40 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
- if(ContainsGroupingOperator()){ 
-            
-            #line default
-            #line hidden
-            this.Write("\r\n\t\t\t\t\tvar groupId = CalculateGroupId(row);\r\n\t\t\t\r\n\t\t\t\t\tGroup group;\r\n\t\t\t\t\tif(grou" +
-                    "ps.ContainsKey(groupId))\r\n\t\t\t\t\t\tgroup = groups[groupId];\r\n\t\t\t\t\telse\r\n\t\t\t\t\t\tgroup" +
-                    " = new Group();\r\n\r\n\t\t\t\t\tgroup.Increment();\r\n\r\n\t\t\t\t\t");
-            
-            #line 52 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
- foreach(var method in RefreshMethods) { 
-            
-            #line default
-            #line hidden
-            this.Write("\r\n\t\t\t\t\tlib.");
-            
-            #line 54 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(method));
-            
-            #line default
-            #line hidden
-            this.Write(";\r\n\r\n\t\t\t\t\t");
-            
-            #line 56 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
+            #line 10 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } 
             
             #line default
             #line hidden
-            this.Write("\r\n\t\t\t\t");
+            this.Write("\t\t{where_statements}\r\n\t");
             
-            #line 58 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
+            #line 12 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+ if(HasGroupBy) { 
+            
+            #line default
+            #line hidden
+            this.Write("\t\t{group_by_statements}\r\n\t");
+            
+            #line 14 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } else { 
             
             #line default
             #line hidden
-            this.Write("\r\n\t\t\t\t\tvar rowValues = new object[");
+            this.Write("\t\t{join_select_statements}\r\n\t");
             
-            #line 60 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Select.Length));
-            
-            #line default
-            #line hidden
-            this.Write("];\r\n\t\t\t\t\t");
-            
-            #line 61 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
- int i = 0; 
-            
-            #line default
-            #line hidden
-            this.Write("\t\t\t\t\t");
-            
-            #line 62 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
- foreach(var field in Select) { 
-            
-            #line default
-            #line hidden
-            this.Write("\t\t\t\t\t\trowValues[");
-            
-            #line 63 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(i++));
-            
-            #line default
-            #line hidden
-            this.Write("] = ");
-            
-            #line 63 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(field.Expression));
-            
-            #line default
-            #line hidden
-            this.Write("; \r\n\t\t\t\t\t");
-            
-            #line 64 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
+            #line 16 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } 
             
             #line default
             #line hidden
-            this.Write("\r\n\t\t\t\t\ttable.AddRow(new Row(rowValues));\r\n\t\t\r\n\t\t\t\t");
+            this.Write("\t}\r\n");
             
-            #line 68 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
+            #line 18 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+ for(int i = 1; i < Nesting - 1; ++i) { 
+            
+            #line default
+            #line hidden
+            this.Write("\t}\r\n");
+            
+            #line 20 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } 
             
             #line default
             #line hidden
-            this.Write("\t\t\t}\r\n\r\n\t\t\treturn table;\r\n\t\t}\r\n\r\n\t\tpublic bool FitsWhereCondition(IObjectResover " +
-                    "row, LibraryBase lib){\r\n\t\t\treturn ");
-            
-            #line 75 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\MainMethod.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Where));
-            
-            #line default
-            #line hidden
-            this.Write(";\r\n\t\t}\r\n\t}\r\n}\r\n");
+            this.Write(" }");
             return this.GenerationEnvironment.ToString();
         }
     }
@@ -188,7 +121,7 @@ namespace Musoq.CodeGenerated
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public class MainMethodBase
+    public class NestedForeachesBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

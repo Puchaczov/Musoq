@@ -1,21 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.TemporarySchemas;
+using Musoq.Evaluator.Utils;
+using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class CodeGenerationTraverseVisitor : IExpressionVisitor
+    public class BuildMetadataAndInferTypeTraverseVisitor : IExpressionVisitor
     {
-        private readonly IExpressionVisitor _visitor;
+        private readonly ISchemaProvider _provider;
+        private readonly IScopeAwareExpressionVisitor _visitor;
+        private readonly Stack<Scope> _scopes = new Stack<Scope>();
+        private Scope _current = new Scope(null, -1);
+        public Scope Scope => _current;
 
-        /// <summary>
-        ///     Initialize object.
-        /// </summary>
-        /// <param name="visitor">Visitor that will generate code for VM</param>
-        public CodeGenerationTraverseVisitor(IExpressionVisitor visitor)
+        public BuildMetadataAndInferTypeTraverseVisitor(IScopeAwareExpressionVisitor visitor, ISchemaProvider provider)
         {
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
+            _provider = provider;
         }
 
         public void Visit(SelectNode node)
@@ -42,8 +48,8 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ContainsNode node)
         {
-            node.Right.Accept(this);
             node.Left.Accept(this);
+            node.Right.Accept(this);
             node.Accept(_visitor);
         }
 
@@ -75,6 +81,11 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(IdentifierNode node)
+        {
+            node.Accept(_visitor);
+        }
+
         public void Visit(AccessObjectArrayNode node)
         {
             node.Accept(_visitor);
@@ -92,8 +103,34 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DotNode node)
         {
-            node.Accept(_visitor);
-            node.Expression.Accept(this);
+            var self = node;
+
+            var ident = (IdentifierNode) self.Root;
+            if (_current.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
+            {
+                if (self.Expression is DotNode dotNode)
+                {
+                    var col = (IdentifierNode) dotNode.Root;
+                    Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
+                }
+                else
+                {
+                    var col = (IdentifierNode) self.Expression;
+                    Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
+                }
+
+                self = self.Expression as DotNode;
+            }
+
+
+            while (!(self is null))
+            {
+                self.Root.Accept(this);
+                self.Expression.Accept(this);
+                self.Accept(_visitor);
+
+                self = self.Expression as DotNode;
+            }
         }
 
         public void Visit(AccessCallChainNode node)
@@ -101,10 +138,6 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        /// <summary>
-        ///     Visits where node in DFS manner.
-        /// </summary>
-        /// <param name="node">Where node that will be visited.</param>
         public virtual void Visit(WhereNode node)
         {
             node.Expression.Accept(this);
@@ -116,6 +149,7 @@ namespace Musoq.Evaluator.Visitors
             foreach (var field in node.Fields)
                 field.Accept(this);
 
+            node.Having?.Accept(this);
             node.Accept(_visitor);
         }
 
@@ -142,6 +176,11 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
+            var schema = _provider.GetSchema(node.Schema);
+            var table = schema.GetTableByName(node.Method, node.Parameters);
+            
+            _current.ScopeSymbolTable.AddSymbol(node.Alias, new TableSymbol(node.Alias, table));
+
             node.Accept(_visitor);
         }
 
@@ -151,23 +190,66 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(CteFromNode node)
+        public void Visit(InMemoryTableFromNode node)
         {
             node.Accept(_visitor);
         }
 
         public void Visit(JoinFromNode node)
         {
-            while (node.Source is JoinFromNode)
+            var joins = new Stack<JoinFromNode>();
+
+            var join = node;
+            while (join != null)
             {
-                node.Source.Accept(this);
+                joins.Push(join);
+                join = join.Source as JoinFromNode;
             }
-            node.Accept(_visitor);
+
+            join = joins.Pop();
+            join.Source.Accept(this);
+            join.With.Accept(this);
+
+            var firstTableSymbol = _current.ScopeSymbolTable.GetSymbol<TableSymbol>(join.Source.Alias);
+            var secondTableSymbol = _current.ScopeSymbolTable.GetSymbol<TableSymbol>(join.With.Alias);
+
+            var id = $"{join.Source.Alias}{join.With.Alias}";
+
+            _current.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
+
+            _visitor.SetQueryIdentifier(id);
+            join.Expression.Accept(this);
+            join.Accept(_visitor);
+
+            while (joins.Count > 0)
+            {
+                join = joins.Pop();
+                join.With.Accept(this);
+
+                var currentTableSymbol = _current.ScopeSymbolTable.GetSymbol<TableSymbol>(join.With.Alias);
+                var previousTableSymbol = _current.ScopeSymbolTable.GetSymbol<TableSymbol>(id);
+
+                id = $"{id}{join.With.Alias}";
+
+                _current.ScopeSymbolTable.AddSymbol(id, previousTableSymbol.MergeSymbols(currentTableSymbol));
+
+                _visitor.SetQueryIdentifier(id);
+                join.Expression.Accept(this);
+                join.Accept(_visitor);
+            }
+        }
+
+        public void Visit(ExpressionFromNode node)
+        {
             node.Expression.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(CreateTableNode node)
         {
+            foreach (var item in node.Fields)
+                item.Accept(this);
+
             node.Accept(_visitor);
         }
 
@@ -202,6 +284,7 @@ namespace Musoq.Evaluator.Visitors
         {
             foreach (var item in node.CreateTableNodes)
                 item.Accept(_visitor);
+
             node.FQuery.Accept(this);
             node.SQuery.Accept(this);
             node.Accept(_visitor);
@@ -209,35 +292,39 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
+            LoadScope();
+
+            _visitor.SetQueryIdentifier(node.From.Alias);
+            _visitor.QueryBegins();
             node.From.Accept(this);
-            node.Skip?.Accept(this);
+
+            node.Joins.Accept(this);
             node.Where.Accept(this);
-            node.GroupBy?.Accept(this);
-            node.GroupBy?.Having?.Accept(this);
-            node.Take?.Accept(this);
             node.Select.Accept(this);
-            node.Accept(_visitor);
-        }
-
-        public void Visit(InternalQueryNode node)
-        {
-            node.From.Accept(this);
-            node.Skip?.Accept(this);
-            node.Where.Accept(this);
-            node.GroupBy?.Accept(this);
-            node.Refresh?.Accept(this);
-            node.GroupBy?.Having?.Accept(this);
             node.Take?.Accept(this);
-            node.Select?.Accept(this);
-            node.ShouldBePresent?.Accept(_visitor);
-            node.Into?.Accept(_visitor);
+            node.Skip?.Accept(this);
+            node.GroupBy?.Accept(this);
             node.Accept(_visitor);
+
+            _visitor.QueryEnds();
+
+            RestoreScope();
         }
 
-        /// <summary>
-        ///     Visit OrNode node in DFS manner.
-        /// </summary>
-        /// <param name="node">OrNode node that will be visited.</param>
+        private void LoadScope()
+        {
+            var newScope = _current.AddScope();
+            _scopes.Push(_current);
+            _current = newScope;
+
+            _visitor.SetScope(newScope);
+        }
+
+        private void RestoreScope()
+        {
+            _current = _scopes.Pop();
+        }
+
         public void Visit(OrNode node)
         {
             node.Left.Accept(this);
@@ -264,10 +351,6 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        /// <summary>
-        ///     Visit And node in DFS manner.
-        /// </summary>
-        /// <param name="node">And node that will be visited.</param>
         public void Visit(AndNode node)
         {
             node.Left.Accept(this);
@@ -275,10 +358,6 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        /// <summary>
-        ///     Visit Equality node in DFS manner.
-        /// </summary>
-        /// <param name="node">Equality node that will be visited.</param>
         public void Visit(EqualityNode node)
         {
             node.Left.Accept(this);
@@ -340,10 +419,6 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        /// <summary>
-        ///     Visit ArgList node.
-        /// </summary>
-        /// <param name="node">ArgList node that will be visited.</param>
         public void Visit(ArgsListNode node)
         {
             foreach (var item in node.Args)
@@ -351,10 +426,6 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        /// <summary>
-        ///     Visit Numeric node.
-        /// </summary>
-        /// <param name="node">Numeric node that will be visited.</param>
         public void Visit(DecimalNode node)
         {
             node.Accept(_visitor);
@@ -362,11 +433,13 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(Node node)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public void Visit(DescNode node)
         {
+
+            node.From.Accept(this);
             node.Accept(_visitor);
         }
 
@@ -398,6 +471,10 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(InternalQueryNode node)
+        {
+        }
+
         public void Visit(RootNode node)
         {
             node.Expression.Accept(this);
@@ -406,29 +483,23 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SingleSetNode node)
         {
-            node.Accept(_visitor);
             node.Query.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(UnionNode node)
         {
-            node.Left.Accept(this);
-            node.Right.Accept(this);
-            node.Accept(_visitor);
+            TraverseSetOperator(node);
         }
 
         public void Visit(UnionAllNode node)
         {
-            node.Left.Accept(this);
-            node.Right.Accept(this);
-            node.Accept(_visitor);
+            TraverseSetOperator(node);
         }
 
         public void Visit(ExceptNode node)
         {
-            node.Left.Accept(this);
-            node.Right.Accept(this);
-            node.Accept(_visitor);
+            TraverseSetOperator(node);
         }
 
         public void Visit(RefreshNode node)
@@ -441,9 +512,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(IntersectNode node)
         {
-            node.Left.Accept(this);
-            node.Right.Accept(this);
-            node.Accept(_visitor);
+            TraverseSetOperator(node);
         }
 
         public void Visit(PutTrueNode node)
@@ -461,9 +530,11 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(CteExpressionNode node)
         {
             foreach (var exp in node.InnerExpression)
+            {
                 exp.Accept(this);
-            node.Accept(_visitor);
+            }
             node.OuterExpression.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(CteInnerExpressionNode node)
@@ -491,15 +562,39 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        /// <summary>
-        ///     Visit Function node in DFS manner.
-        /// </summary>
-        /// <param name="node">Function node that will be visited.</param>
-        public virtual void Visit(RawFunctionNode node)
+        private void TraverseSetOperator(SetOperatorNode node)
         {
-            foreach (var item in node.Parameters.Reverse())
-                item.Accept(this);
-            node.Accept(_visitor);
+            if (node.Right is SetOperatorNode)
+            {
+                var nodes = new Stack<SetOperatorNode>();
+                nodes.Push(node);
+
+                node.Left.Accept(this);
+
+                while (nodes.Count > 0)
+                {
+                    var current = nodes.Pop();
+
+                    if (current.Right is SetOperatorNode operatorNode)
+                    {
+                        nodes.Push(operatorNode);
+                        
+                        operatorNode.Left.Accept(this);
+                        current.Accept(_visitor);
+                    }
+                    else
+                    {
+                        current.Right.Accept(this);
+                        current.Accept(_visitor);
+                    }
+                }
+            }
+            else
+            {
+                node.Left.Accept(this);
+                node.Right.Accept(this);
+                node.Accept(_visitor);
+            }
         }
     }
 }

@@ -34,6 +34,7 @@ namespace Musoq.Parser
         void Visit(AccessRefreshAggreationScoreNode node);
         void Visit(AccessColumnNode node);
         void Visit(AllColumnsNode node);
+        void Visit(IdentifierNode node);
         void Visit(AccessObjectArrayNode node);
         void Visit(AccessObjectKeyNode node);
         void Visit(PropertyValueNode node);
@@ -49,8 +50,9 @@ namespace Musoq.Parser
         void Visit(ExistingTableFromNode node);
         void Visit(SchemaFromNode node);
         void Visit(NestedQueryFromNode node);
-        void Visit(CteFromNode node);
+        void Visit(InMemoryTableFromNode node);
         void Visit(JoinFromNode node);
+        void Visit(ExpressionFromNode node);
         void Visit(CreateTableNode node);
         void Visit(RenameTableNode node);
         void Visit(TranslatedSetTreeNode node);

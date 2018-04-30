@@ -1,10 +1,10 @@
 ﻿namespace Musoq.Parser.Nodes
 {
-    public class CteFromNode : FromNode
+    public class InMemoryTableFromNode : FromNode
     {
 
-        public CteFromNode(string variableName) 
-            : base(variableName, string.Empty, new string[0])
+        public InMemoryTableFromNode(string variableName) 
+            : base(string.Empty)
         {
             VariableName = variableName;
         }
@@ -16,7 +16,7 @@
             visitor.Visit(this);
         }
 
-        public override string Id => $"{nameof(CteFromNode)}{VariableName}";
+        public override string Id => $"{nameof(InMemoryTableFromNode)}{VariableName}";
 
         public override string ToString()
         {

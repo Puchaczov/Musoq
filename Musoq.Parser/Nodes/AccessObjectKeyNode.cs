@@ -3,9 +3,10 @@ using System.Reflection;
 
 namespace Musoq.Parser.Nodes
 {
-    public class AccessObjectKeyNode : Node
+    public class AccessObjectKeyNode : IdentifierNode
     {
         public AccessObjectKeyNode(KeyAccessToken token)
+            : base(token.Name)
         {
             Token = token;
             Id = $"{nameof(AccessObjectKeyNode)}{token.Value}";

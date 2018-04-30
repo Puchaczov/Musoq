@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Instructions.Converts;
+using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Helpers
 {
@@ -38,5 +39,7 @@ namespace Musoq.Evaluator.Helpers
         {
             return _convertionsMap[(left, right)];
         }
+
+        public static TableRowSource ConvertTableToSource(Table table) => new TableRowSource(table);
     }
 }

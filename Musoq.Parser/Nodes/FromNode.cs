@@ -6,26 +6,21 @@ namespace Musoq.Parser.Nodes
 {
     public abstract class FromNode : Node
     {
-        public FromNode(string schema, string method, string[] parameters)
+        protected FromNode(string alias)
         {
-            Schema = schema;
-            Method = method;
-            Parameters = parameters;
+            Alias = alias;
         }
 
-        public string Schema { get; }
-
-        public string Method { get; }
-
-        public string[] Parameters { get; }
+        public virtual string Alias { get; }
 
         public override Type ReturnType => typeof(RowSource);
+    }
 
-        public override string ToString()
-        {
-            var args = Parameters.Length == 0 ? string.Empty : Parameters.Aggregate((a, b) => a + ',' + b);
-            return $"from {Schema}.{Method}({args})";
-        }
+    public enum JoinType
+    {
+        Inner,
+        OuterLeft,
+        OuterRight
     }
 
     public class JoinFromNode : FromNode
@@ -33,14 +28,17 @@ namespace Musoq.Parser.Nodes
         public FromNode Source { get; }
         public FromNode With { get; }
         public Node Expression { get; }
-
-        public JoinFromNode(FromNode joinFrom, FromNode from, Node expression) 
-            : base(string.Empty, string.Empty, new string[0])
+        public JoinType JoinType { get; }
+        public JoinFromNode(FromNode joinFrom, FromNode from, Node expression, JoinType joinType) 
+            : base(string.Empty)
         {
             Source = joinFrom;
             With = @from;
             Expression = expression;
+            JoinType = joinType;
         }
+
+        public override string Alias => $"{Source.Alias}{With.Alias}";
 
         public override void Accept(IExpressionVisitor visitor)
         {
@@ -51,7 +49,32 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"from ({Source.ToString()}, {With.ToString()}, {Expression.ToString()})";
+            return $"({Source.ToString()}, {With.ToString()}, {Expression.ToString()})";
+        }
+    }
+
+    public class ExpressionFromNode : FromNode
+    {
+        public ExpressionFromNode(FromNode @from)
+            : base(String.Empty)
+        {
+            Expression = from;
+            Id = $"{nameof(ExpressionFromNode)}{from.ToString()}";
+        }
+
+        public FromNode Expression { get; }
+
+        public override string Alias => Expression.Alias;
+
+        public override void Accept(IExpressionVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
+        public override string Id { get; }
+        public override string ToString()
+        {
+            return $"from ({Expression.ToString()})";
         }
     }
 }

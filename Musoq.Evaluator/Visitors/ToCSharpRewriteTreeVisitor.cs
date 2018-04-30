@@ -9,27 +9,26 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Musoq.Evaluator.CSharpTemplates;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Utils;
+using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
 using Musoq.Schema;
+using Musoq.Schema.Helpers;
+using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class ToCSharpRewriteTreeVisitor : ISchemaAwareExpressionVisitor
+    public enum MethodAccessType
     {
-        private class QueryParts
-        {
-            public SyntaxNode[] From { get; set; }
-
-            public SyntaxNode Where { get; set; }
-
-            public SyntaxNode[] Select { get; set; }
-        }
-
+        SingleTable,
+        JoinedTable
+    }
+    public class ToCSharpRewriteTreeVisitor : IScopeAwareExpressionVisitor
+    {
         public AdhocWorkspace Workspace { get; }
 
         public SyntaxGenerator Generator { get; }
@@ -38,11 +37,20 @@ namespace Musoq.Evaluator.Visitors
 
         private Stack<SyntaxNode> Nodes { get; }
 
-        private QueryParts Parts { get; } = new QueryParts();
-
         private readonly List<MethodDeclarationSyntax> _methods = new List<MethodDeclarationSyntax>();
 
         private readonly List<string> _namespaces = new List<string>();
+        private Scope _scope;
+        private StringBuilder _code;
+
+        private readonly StringBuilder _declStatements = new StringBuilder();
+        private int _names;
+        private int _sources;
+        private int _joins;
+        private int _joinsAmount;
+        private MethodAccessType _type;
+        private string _queryAlias;
+        private string _transformedSourceTable;
 
         public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies)
         {
@@ -81,6 +89,7 @@ namespace Musoq.Evaluator.Visitors
             _namespaces.Add("Musoq.Plugins");
             _namespaces.Add("Musoq.Schema");
             _namespaces.Add("Musoq.Evaluator.Tables");
+            _namespaces.Add("Musoq.Evaluator.Helpers");
         }
 
         public void Visit(Node node)
@@ -239,11 +248,29 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessMethodNode node)
         {
-            var args = new SyntaxNode[node.ArgsCount];
+            var args = new List<SyntaxNode>();
+
+            var parameters = node.Method.GetParameters().GetParametersWithAttribute<InjectTypeAttribute>();
+
+            foreach (var parameterInfo in parameters)
+            {
+                switch (parameterInfo.GetCustomAttribute<InjectTypeAttribute>())
+                {
+                    case InjectSourceAttribute injectSource:
+                        args.Add(SyntaxHelper.CreateMethodInvocation("row", "Context"));
+                        break;
+                    case InjectGroupAttribute injectGroup:
+                        break;
+                    case InjectGroupAccessName injectGroupAccessName:
+                        break;
+                    case InjectQueryStats injectQueryStats:
+                        break;
+                }
+            }
 
             for (int i = node.ArgsCount - 1; i >= 0; i--)
             {
-                args[i] = Nodes.Pop();
+                args.Add(Nodes.Pop());
             }
 
             Nodes.Push(Generator.InvocationExpression(Generator.MemberAccessExpression(Generator.IdentifierName("lib"),
@@ -260,13 +287,17 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessColumnNode node)
         {
-            Nodes.Push(Generator.ElementAccessExpression(Generator.IdentifierName("row"), new []
-            {
-                SyntaxHelper.StringLiteralArgument(node.Name)
-            }));
+            if(_type == MethodAccessType.JoinedTable)
+                Nodes.Push(Generator.ElementAccessExpression(Generator.IdentifierName($"{node.Alias}Row"), SyntaxHelper.StringLiteralArgument(node.Name)));
+            else
+                Nodes.Push(Generator.ElementAccessExpression(Generator.IdentifierName("score"), SyntaxHelper.StringLiteralArgument(node.Name)));
         }
 
         public void Visit(AllColumnsNode node)
+        {
+        }
+
+        public void Visit(IdentifierNode node)
         {
         }
 
@@ -313,11 +344,22 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(SelectNode node)
         {
             var variableNameKeyword = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, "select", SyntaxTriviaList.Create(SyntaxHelper.WhiteSpace));
-
             var syntaxList = new SeparatedSyntaxList<ExpressionSyntax>();
+            var cols = new List<ExpressionSyntax>();
+
             for (int i = 0; i < node.Fields.Length; i++)
             {
                 syntaxList = syntaxList.Add((ExpressionSyntax)Nodes.Pop());
+                cols.Add(
+                    SyntaxHelper.CreaateObjectOf(
+                        nameof(Column),
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SeparatedList(new[]
+                            {
+                                SyntaxHelper.StringLiteralArgument(node.Fields[i].FieldName),
+                                SyntaxHelper.TypeLiteralArgument(node.Fields[i].ReturnType.Name),
+                                SyntaxHelper.IntLiteralArgument(node.Fields[i].FieldOrder)
+                            }))));
             }
 
             var array = SyntaxHelper.CreateArrayOfObjects(syntaxList.ToArray());
@@ -335,7 +377,7 @@ namespace Musoq.Evaluator.Visitors
                     list);
 
             var invocation = SyntaxHelper.CreateMethodInvocation(
-                "table",
+                "joinedTable",
                 nameof(Table.Add),
                 new[]
                 {
@@ -354,17 +396,24 @@ namespace Musoq.Evaluator.Visitors
                     )
                 });
 
-            Parts.Select = new SyntaxNode[]
-            {
-                SyntaxFactory.LocalDeclarationStatement(variableDeclaration),
-                SyntaxFactory.ExpressionStatement(invocation)
-            };
+            var tableCols = SyntaxHelper.CreateArrayOf(nameof(Column), cols.ToArray());
+            var a1 = SyntaxFactory.LocalDeclarationStatement(variableDeclaration);
+            var a2 = SyntaxFactory.ExpressionStatement(invocation);
+            var code = new StringBuilder();
+            code.Append(a1.ToFullString());
+            code.Append(a2.ToFullString());
+
+            _code.Replace("{score_table_name}", $"\"{_queryAlias}\"");
+            _code.Replace("{score_columns}", tableCols.ToFullString());
+            _code.Replace("{select_statement}", code.ToString());
         }
 
         public void Visit(WhereNode node)
         {
-            Parts.Where = Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
-                new SyntaxNode[] { SyntaxFactory.ContinueStatement() });
+            var ifStatement = Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
+                new SyntaxNode[] {SyntaxFactory.ContinueStatement()});
+
+            _code.Replace("{where_statements}", ifStatement.ToFullString());
         }
 
         public void Visit(GroupByNode node)
@@ -422,24 +471,129 @@ namespace Musoq.Evaluator.Visitors
                     })
                 ));
 
-            Parts.From = new SyntaxNode[]
-            {
-                SyntaxFactory.LocalDeclarationStatement(createdSchema),
-                SyntaxFactory.LocalDeclarationStatement(createdSchemaRows),
-                SyntaxFactory.IdentifierName($"{node.Alias}Rows.Rows")
-            };
+            _declStatements.Append(SyntaxFactory.LocalDeclarationStatement(createdSchema).ToFullString());
+            _declStatements.Append(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
+
+            _code.Replace($"{{source{_sources++}}}", SyntaxFactory.IdentifierName($"{node.Alias}Rows.Rows").ToFullString());
+            _code.Replace($"{{name{_names++}}}", SyntaxFactory.IdentifierName($"{node.Alias}Row").ToFullString());
         }
 
         public void Visit(NestedQueryFromNode node)
         {
         }
 
-        public void Visit(CteFromNode node)
+        public void Visit(InMemoryTableFromNode node)
         {
         }
 
         public void Visit(JoinFromNode node)
         {
+        }
+
+        public void Visit(ExpressionFromNode node)
+        {
+            var transformedTable = "joinedTable";
+            for (int i = _joinsAmount - 2; i >= 0;)
+            {
+                _code.Replace($"{{join_condition{i--}}}", Nodes.Pop().ToFullString());
+            }
+
+            var tableSymbol = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Expression.Alias);
+
+            var args = new List<ExpressionSyntax>();
+            var cols = new List<ExpressionSyntax>();
+
+            int newColumnIndex = 0;
+            foreach (var table in tableSymbol.CompoundTables)
+            {
+                var columns = tableSymbol.GetColumn(table);
+                ISchemaColumn column = null;
+                for (var index = 0; index < columns.Length - 1; index++)
+                {
+                    column = columns[index];
+                    args.Add(
+                        SyntaxHelper.CreateElementAccess(
+                            $"{table}Row", 
+                            new[]
+                            {
+                                SyntaxFactory.Argument((ExpressionSyntax)Generator.LiteralExpression(column.ColumnName)),
+                            }));
+
+                    cols.Add(
+                        SyntaxHelper.CreaateObjectOf(
+                            nameof(Column),
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(new[]
+                                {
+                                    SyntaxHelper.StringLiteralArgument($"{table}.{column.ColumnName}"),
+                                    SyntaxHelper.TypeLiteralArgument(column.ColumnType.Name),
+                                    SyntaxHelper.IntLiteralArgument(newColumnIndex)
+                                }))));
+
+                    AddNamespace(column.ColumnType.Namespace);
+
+                    newColumnIndex += 1;
+                }
+
+                column = columns[columns.Length - 1];
+
+                args.Add(
+                    SyntaxHelper.CreateElementAccess(
+                        $"{table}Row",
+                        new[]
+                        {
+                            SyntaxFactory.Argument((ExpressionSyntax)Generator.LiteralExpression(column.ColumnName))
+                        }));
+
+                cols.Add(
+                    SyntaxHelper.CreaateObjectOf(
+                        nameof(Column),
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SeparatedList(new[]
+                            {
+                                SyntaxHelper.StringLiteralArgument($"{table}.{column.ColumnName}"),
+                                SyntaxHelper.TypeLiteralArgument(column.ColumnType.Name),
+                                SyntaxHelper.IntLiteralArgument(newColumnIndex)
+                            }))));
+
+                AddNamespace(column.ColumnType.Namespace);
+
+                newColumnIndex += 1;
+            }
+
+            var select = SyntaxHelper.CreateAssignment("columns", SyntaxHelper.CreateArrayOfObjects(args.ToArray()));
+
+            var methodInvocation = SyntaxHelper.CreateMethodInvocation(
+                transformedTable, 
+                nameof(Table.Add), 
+                new[]
+                {
+                    SyntaxHelper.CreaateObjectOf(
+                        nameof(ObjectsRow), 
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SeparatedList(
+                                new List<ArgumentSyntax>()
+                                {
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("columns"))
+                                })))
+                });
+
+            var createColumns = SyntaxHelper.CreateArrayOf(nameof(Column), cols.ToArray());
+
+            var code = new StringBuilder();
+            code.Append(SyntaxFactory.LocalDeclarationStatement(select).ToFullString());
+            code.Append(SyntaxFactory.ExpressionStatement(methodInvocation).ToFullString());
+
+            _code.Replace("{join_select_statements}", code.ToString());
+            _code.Replace("{joined_table_name}", $"\"{node.Alias}\"");
+            _code.Replace("{joined_table_columns}", createColumns.ToFullString());
+            _code.Replace("{transformed_source_table}", transformedTable);
+        }
+
+        private void AddNamespace(string columnTypeNamespace)
+        {
+            if(!_namespaces.Contains(columnTypeNamespace))
+                _namespaces.Add(columnTypeNamespace);
         }
 
         public void Visit(CreateTableNode node)
@@ -472,58 +626,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
-            var foreachStatement = SyntaxFactory.ForEachStatement(
-                SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
-                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                SyntaxFactory.IdentifierName("var").WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                SyntaxFactory.Identifier("row").WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                SyntaxFactory.Token(SyntaxKind.InKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                (IdentifierNameSyntax)Parts.From[2],
-                SyntaxFactory.Token(SyntaxKind.CloseParenToken),
-                SyntaxFactory.Block(new []
-                {
-                    (StatementSyntax)Parts.Where,
-                    (StatementSyntax)Parts.Select[0],
-                    (StatementSyntax)Parts.Select[1]
-                }));
-
-            var tableColumns = new ExpressionSyntax[node.Select.Fields.Length];
-            for (int i = 0; i < tableColumns.Length; i++)
-            {
-                tableColumns[i] =
-                    SyntaxHelper.CreaateObjectOf(
-                        nameof(Column),
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList(new []
-                            {
-                                SyntaxHelper.StringLiteralArgument(node.Select.Fields[i].FieldName),
-                                SyntaxHelper.TypeLiteralArgument(node.Select.Fields[i].ReturnType.Name),
-                                SyntaxHelper.IntLiteralArgument(node.Select.Fields[i].FieldOrder)
-                            })));
-            }
-
-            var createTable = SyntaxHelper.CreateAssignment(
-                "table",
-                SyntaxHelper.CreaateObjectOf(
-                    nameof(Table),
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList(new []
-                        {
-                            SyntaxHelper.StringLiteralArgument("test_table_name"),
-                            SyntaxHelper.CreateArrayOfArgument(nameof(Column), tableColumns)
-                        }))));
-
-            var createTableExpression = SyntaxFactory.LocalDeclarationStatement(createTable);
-
-            var returnStatement = Generator.ReturnStatement(SyntaxFactory.IdentifierName("table").WithLeadingTrivia(SyntaxHelper.WhiteSpace));
-            var block = SyntaxFactory.Block(new []
-            {
-                (StatementSyntax)Parts.From[0],
-                (StatementSyntax)Parts.From[1],
-                createTableExpression,
-                foreachStatement,
-                (StatementSyntax)returnStatement
-            });
+            _code.Replace("{decl_statement}", _declStatements.ToString());
 
             var method = SyntaxFactory.MethodDeclaration(
                 new SyntaxList<AttributeListSyntax>(),
@@ -534,17 +637,17 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.Identifier("RunQuery"),
                 null,
                 SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(new []
+                    SyntaxFactory.SeparatedList(new[]
                     {
                         SyntaxFactory.Parameter(
-                            new SyntaxList<AttributeListSyntax>(), 
+                            new SyntaxList<AttributeListSyntax>(),
                             SyntaxTokenList.Create(
-                                new SyntaxToken()), 
+                                new SyntaxToken()),
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("provider"), null)
                     })),
-                new SyntaxList<TypeParameterConstraintClauseSyntax>(), 
-                block,
+                new SyntaxList<TypeParameterConstraintClauseSyntax>(),
+                SyntaxFactory.Block(SyntaxFactory.ParseStatement(_code.ToString())),
                 null);
 
             _methods.Add(method);
@@ -573,11 +676,10 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.List<AttributeListSyntax>(),
                 SyntaxFactory.List<MemberDeclarationSyntax>(new []{ ns }));
 
-            var tree = SyntaxFactory.SyntaxTree(Formatter.Format(compilationUnit, Workspace));
+            var tree = SyntaxFactory.SyntaxTree(Formatter.Format(compilationUnit, Workspace), encoding: Encoding.Unicode, path: Path.GetTempFileName());
 
             var text = tree.GetText();
-
-            var s = text.ToString();
+            var test = text.ToString();
 
             Compilation = Compilation.AddSyntaxTrees(new[]
             {
@@ -634,12 +736,37 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
-        public string CurrentSchema { get; set; }
-        public string CurrentTable { get; }
-        public string[] CurrentParameters { get; }
-
-        public void SetCurrentTable(string table, string[] parameters)
+        public void QueryBegins()
         {
+        }
+
+        public void QueryEnds()
+        {
+        }
+
+        public void SetScope(Scope scope)
+        {
+            _scope = scope;
+        }
+
+        public void SetQueryIdentifier(string identifier)
+        {
+            _queryAlias = identifier;
+        }
+
+        public void SetCodePattern(StringBuilder code)
+        {
+            _code = code;
+        }
+
+        public void SetJoinsAmount(int amount)
+        {
+            _joinsAmount = amount;
+        }
+
+        public void SetMethodAccessType(MethodAccessType type)
+        {
+            _type = type;
         }
     }
 }

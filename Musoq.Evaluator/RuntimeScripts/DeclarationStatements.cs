@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Musoq.Evaluator.CSharpTemplates
+namespace Musoq.Evaluator.RuntimeScripts
 {
     using System;
     
@@ -15,9 +15,9 @@ namespace Musoq.Evaluator.CSharpTemplates
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\SelectClause.tt"
+    #line 1 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\DeclarationStatements.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public partial class SelectClause : SelectClauseBase
+    public partial class DeclarationStatements : DeclarationStatementsBase
     {
 #line hidden
         /// <summary>
@@ -25,35 +25,8 @@ namespace Musoq.Evaluator.CSharpTemplates
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("var select = new object[]\r\n{\r\n");
-            
-            #line 3 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\SelectClause.tt"
- foreach(var row in Rows) { 
-            
-            #line default
-            #line hidden
-            this.Write("\t");
-            
-            #line 4 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\SelectClause.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(row));
-            
-            #line default
-            #line hidden
-            this.Write(",\r\n");
-            
-            #line 5 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\SelectClause.tt"
- } 
-            
-            #line default
-            #line hidden
-            this.Write("};\r\n\r\n");
-            
-            #line 8 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\CSharpTemplates\SelectClause.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Table));
-            
-            #line default
-            #line hidden
-            this.Write(".AddRow(new ObjectRow(select));");
+            this.Write("\t{decl_statement}\r\n\r\n\tvar {score_table} = new Table({score_table_name}, {score_co" +
+                    "lumns});\r\n");
             return this.GenerationEnvironment.ToString();
         }
     }
@@ -65,7 +38,7 @@ namespace Musoq.Evaluator.CSharpTemplates
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public class SelectClauseBase
+    public class DeclarationStatementsBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

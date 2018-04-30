@@ -5,14 +5,20 @@ namespace Musoq.Parser.Nodes
     public class SchemaFromNode : FromNode
     {
         public SchemaFromNode(string schema, string method, string[] parameters, string alias)
-            : base(schema, method, parameters)
+            : base(alias)
         {
-            Alias = alias;
+            Schema = schema;
+            Method = method;
+            Parameters = parameters;
             var paramsId = parameters.Length == 0 ? string.Empty : parameters.Aggregate((a, b) => a + b);
             Id = $"{nameof(SchemaFromNode)}{schema}{method}{paramsId}{Alias}";
         }
 
-        public string Alias { get; }
+        public string Schema { get; }
+
+        public string Method { get; }
+
+        public string[] Parameters { get; }
 
         public override void Accept(IExpressionVisitor visitor)
         {

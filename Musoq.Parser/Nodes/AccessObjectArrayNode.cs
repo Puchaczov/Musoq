@@ -3,9 +3,10 @@ using System.Reflection;
 
 namespace Musoq.Parser.Nodes
 {
-    public class AccessObjectArrayNode : Node
+    public class AccessObjectArrayNode : IdentifierNode
     {
         public AccessObjectArrayNode(NumericAccessToken token)
+            : base(token.Name)
         {
             Token = token;
             Id = $"{nameof(AccessObjectArrayNode)}{token.Value}";
