@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Musoq.Evaluator.Tables;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -8,7 +9,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Schema
 {
-    public class TestSchema<T> : ISchema
+    public class TestSchema<T> : SchemaBase
         where T : BasicEntity
     {
         private readonly MethodsAggregator _aggreagator;
@@ -47,8 +48,13 @@ namespace Musoq.Evaluator.Tests.Schema
         }
 
         public TestSchema(IEnumerable<T> sources)
+        : base("test",CreateLibrary())
         {
             _sources = sources;
+        }
+
+        private static MethodsAggregator CreateLibrary()
+        {
 
             var methodManager = new MethodsManager();
             var propertiesManager = new PropertiesManager();
@@ -58,55 +64,17 @@ namespace Musoq.Evaluator.Tests.Schema
             propertiesManager.RegisterProperties(lib);
             methodManager.RegisterLibraries(lib);
 
-            _aggreagator = new MethodsAggregator(methodManager, propertiesManager);
+            return new MethodsAggregator(methodManager, propertiesManager);
         }
 
-        public string Name => "test";
-
-        public ISchemaTable GetTableByName(string name, string[] parameters)
+        public override ISchemaTable GetTableByName(string name, string[] parameters)
         {
-            return new BasicEntitySchema();
+            return new BasicEntityTable();
         }
 
-        public RowSource GetRowSource(string name, string[] parameters)
+        public override RowSource GetRowSource(string name, string[] parameters)
         {
             return new EntitySource<T>(_sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
-        }
-
-        public MethodInfo ResolveMethod(string method, Type[] parameters)
-        {
-            return _aggreagator.ResolveMethod(method, parameters);
-        }
-
-        public MethodInfo ResolveAggregationMethod(string method, Type[] parameters)
-        {
-            return _aggreagator.ResolveMethod(method, parameters);
-        }
-
-        public bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo)
-        {
-            var founded = _aggreagator.TryResolveMethod(method, parameters, out methodInfo);
-            if (founded)
-                return methodInfo.GetCustomAttribute<AggregationMethodAttribute>() != null;
-
-            return false;
-        }
-
-        public MethodInfo ResolveProperty(string property)
-        {
-            MethodInfo method;
-            if ((method = _aggreagator.ResolveProperty(property)) != null)
-                return method;
-
-            throw new MissingMethodException(property);
-        }
-
-        public bool TryResolveProperty(string property, out MethodInfo methodInfo)
-        {
-            if ((methodInfo = _aggreagator.ResolveProperty(property)) != null)
-                return true;
-
-            return false;
         }
     }
 }

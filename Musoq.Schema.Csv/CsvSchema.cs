@@ -33,8 +33,6 @@ namespace Musoq.Schema.Csv
             throw new NotSupportedException();
         }
 
-        public override LibraryBase Library => new CsvLibrary();
-
         private static MethodsAggregator CreateLibrary()
         {
             var methodsManager = new MethodsManager();

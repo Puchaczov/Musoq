@@ -45,6 +45,7 @@
         Integer,
         KeyAccess,
         NumericAccess,
+        MethodAccess,
         AllColumns,
         Contains,
         Skip,

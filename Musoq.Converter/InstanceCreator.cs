@@ -19,7 +19,7 @@ namespace Musoq.Converter
 {
     public static class InstanceCreator
     {
-        public static IVirtualMachine Create(RootNode root, ISchemaProvider schemaProvider)
+        public static IRunnable Create(RootNode root, ISchemaProvider schemaProvider)
         {
             schemaProvider = new TransitionSchemaProvider(schemaProvider);
 
@@ -50,8 +50,9 @@ namespace Musoq.Converter
                     var type = assembly.GetType("Query.Compiled.CompiledQuery");
                     var method = type.GetMethod("RunQuery");
 
-                    var obj = Activator.CreateInstance(type);
-                    return new CompiledMachine(obj, schemaProvider, method);
+                    var runnable = (IRunnable)Activator.CreateInstance(type);
+                    runnable.Provider = schemaProvider;
+                    return runnable;
                 }
             }
 #else

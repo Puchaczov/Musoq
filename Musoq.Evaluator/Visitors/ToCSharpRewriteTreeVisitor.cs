@@ -17,6 +17,7 @@ using Musoq.Parser.Nodes;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using Environment = Musoq.Plugins.Environment;
 
@@ -38,7 +39,7 @@ namespace Musoq.Evaluator.Visitors
 
         private Stack<SyntaxNode> Nodes { get; }
 
-        private readonly List<MethodDeclarationSyntax> _methods = new List<MethodDeclarationSyntax>();
+        private readonly List<SyntaxNode> _methods = new List<SyntaxNode>();
         private bool _hasGroupBy = false;
         private bool _hasJoin = false;
 
@@ -62,6 +63,7 @@ namespace Musoq.Evaluator.Visitors
         private string _scoreColumns;
 
         private List<string> _preDeclarations = new List<string>();
+        private readonly Dictionary<string, Type> _typesToInstantiate = new Dictionary<string, Type>();
 
         public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies)
         {
@@ -100,6 +102,7 @@ namespace Musoq.Evaluator.Visitors
             _namespaces.Add("System");
             _namespaces.Add("Musoq.Plugins");
             _namespaces.Add("Musoq.Schema");
+            _namespaces.Add("Musoq.Evaluator");
             _namespaces.Add("Musoq.Evaluator.Tables");
             _namespaces.Add("Musoq.Evaluator.Helpers");
         }
@@ -260,16 +263,27 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessMethodNode node)
         {
-            var args = new List<SyntaxNode>();
+            var args = new List<ArgumentSyntax>();
 
             var parameters = node.Method.GetParameters().GetParametersWithAttribute<InjectTypeAttribute>();
+
+            var method = node.Method;
+
+            var variableName = $"{node.Alias}{method.ReflectedType.Name}Lib";
+
+            if (!_typesToInstantiate.ContainsKey(variableName))
+            {
+                _typesToInstantiate.Add(variableName, method.ReflectedType);
+            }
+
+            _scope.ScopeSymbolTable.AddSymbolIfNotExist(method.ReflectedType.Name, new TypeSymbol(method.ReflectedType));
 
             foreach (var parameterInfo in parameters)
             {
                 switch (parameterInfo.GetCustomAttribute<InjectTypeAttribute>())
                 {
                     case InjectSourceAttribute injectSource:
-                        args.Add(SyntaxHelper.CreateMethodInvocation("row", "Context"));
+                        //args.Add(SyntaxHelper.CreateMethodInvocation("row", "Context"));
                         break;
                     case InjectGroupAttribute injectGroup:
                         break;
@@ -280,12 +294,16 @@ namespace Musoq.Evaluator.Visitors
                 }
             }
 
-            for (int i = node.ArgsCount - 1; i >= 0; i--)
+
+            var tmpArgs = (ArgumentListSyntax) Nodes.Pop();
+
+            for (var index = 0; index < tmpArgs.Arguments.Count; index++)
             {
-                args.Add(Nodes.Pop());
+                var item = tmpArgs.Arguments[index];
+                args.Add(item);
             }
 
-            Nodes.Push(Generator.InvocationExpression(Generator.MemberAccessExpression(Generator.IdentifierName("lib"),
+            Nodes.Push(Generator.InvocationExpression(Generator.MemberAccessExpression(Generator.IdentifierName(variableName),
                 Generator.IdentifierName(node.Name)), args));
         }
 
@@ -319,6 +337,8 @@ namespace Musoq.Evaluator.Visitors
             }
 
             var type = Compilation.GetTypeByMetadataName(node.ReturnType.FullName);
+            AddNamespace(node.ReturnType.Namespace);
+
             sNode = Generator.CastExpression(type, sNode);
 
             Nodes.Push(sNode);
@@ -354,18 +374,18 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ArgsListNode node)
         {
-            var args = new SeparatedSyntaxList<SyntaxNode>();
+            var args = SyntaxFactory.SeparatedList<ArgumentSyntax>();
 
             for (int i = 0; i < node.Args.Length; i++)
             {
-                args.Add(Nodes.Pop());
+                args = args.Add(SyntaxFactory.Argument((ExpressionSyntax)Nodes.Pop()));
             }
 
-            var rargs = new SeparatedSyntaxList<SyntaxNode>();
+            var rargs = SyntaxFactory.SeparatedList<ArgumentSyntax>();
 
             for (int i = args.Count - 1; i >= 0; i--)
             {
-                rargs.Add(args[i]);
+                rargs = rargs.Add(args[i]);
             }
 
             Nodes.Push(SyntaxFactory.ArgumentList(rargs));
@@ -517,7 +537,7 @@ namespace Musoq.Evaluator.Visitors
                 ));
 
             _declStatements.Append(SyntaxFactory.LocalDeclarationStatement(createdSchema).ToFullString());
-            _declStatements.Append(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
+            _declStatements.Append(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows).ToFullString());
 
             Script.Replace($"{{source{_sources++}}}", SyntaxFactory.IdentifierName($"{node.Alias}Rows.Rows").ToFullString());
             Script.Replace($"{{name{_names++}}}", SyntaxFactory.IdentifierName($"{node.Alias}Row").ToFullString());
@@ -675,6 +695,19 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
+            foreach (var key in _typesToInstantiate.Keys)
+            {
+                var type = _typesToInstantiate[key];
+
+                var createObject = SyntaxHelper.CreateAssignment(
+                    key,
+                    SyntaxHelper.CreaateObjectOf(type.Name, SyntaxFactory.ArgumentList()));
+
+                _declStatements.Append(SyntaxFactory.LocalDeclarationStatement(createObject));
+                
+                AddNamespace(type.Namespace);
+            }
+
             Script.Replace("{decl_statement}", _declStatements.ToString());
 
             var method = SyntaxFactory.MethodDeclaration(
@@ -708,8 +741,39 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(RootNode node)
         {
+            var method = SyntaxFactory.MethodDeclaration(
+                new SyntaxList<AttributeListSyntax>(),
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                null,
+                SyntaxFactory.Identifier(nameof(IRunnable.Run)),
+                null,
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList(new ParameterSyntax[0])),
+                new SyntaxList<TypeParameterConstraintClauseSyntax>(),
+                SyntaxFactory.Block(SyntaxFactory.ParseStatement("return RunQuery(Provider);")),
+                null);
+
+            var param = SyntaxFactory.PropertyDeclaration(
+                new SyntaxList<AttributeListSyntax>(),
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.IdentifierName(nameof(ISchemaProvider)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                null,
+                SyntaxFactory.Identifier(nameof(IRunnable.Provider)),
+                SyntaxFactory.AccessorList(
+                    SyntaxFactory.List<AccessorDeclarationSyntax>()
+                        .Add(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))
+                        .Add(SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))), 
+                null, 
+                null);
+
+            _methods.Add(method);
+            _methods.Add(param);
+
             var classDeclaration = Generator.ClassDeclaration("CompiledQuery", new string[0], Accessibility.Public, DeclarationModifiers.None,
-                null, null, _methods);
+                null, new SyntaxNode[]{ SyntaxFactory.IdentifierName(nameof(IRunnable)) }, _methods);
 
             var ns = SyntaxFactory.NamespaceDeclaration(
                 SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Query.Compiled")),

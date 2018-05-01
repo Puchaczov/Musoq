@@ -22,18 +22,6 @@ namespace Musoq.Schema.DataSources
 
         public abstract RowSource GetRowSource(string name, string[] parameters);
 
-        public virtual LibraryBase Library { get; }
-
-        public MethodInfo ResolveMethod(string method, Type[] parameters)
-        {
-            return _aggregator.ResolveMethod(method, parameters);
-        }
-
-        public MethodInfo ResolveAggregationMethod(string method, Type[] parameters)
-        {
-            return _aggregator.ResolveMethod(method, parameters);
-        }
-
         public bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo)
         {
             var founded = _aggregator.TryResolveMethod(method, parameters, out methodInfo);
@@ -44,21 +32,9 @@ namespace Musoq.Schema.DataSources
             return false;
         }
 
-        public MethodInfo ResolveProperty(string property)
+        public MethodInfo ResolveMethod(string method, Type[] parameters)
         {
-            MethodInfo method;
-            if ((method = _aggregator.ResolveProperty(property)) != null)
-                return method;
-
-            throw new MissingMethodException(property);
-        }
-
-        public bool TryResolveProperty(string property, out MethodInfo methodInfo)
-        {
-            if ((methodInfo = _aggregator.ResolveProperty(property)) != null)
-                return true;
-
-            return false;
+            return _aggregator.ResolveMethod(method, parameters);
         }
     }
 }

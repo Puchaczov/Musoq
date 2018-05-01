@@ -3,9 +3,9 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Schema
 {
-    public class BasicEntitySchema : ISchemaTable
+    public class BasicEntityTable : ISchemaTable
     {
-        public BasicEntitySchema()
+        public BasicEntityTable()
         {
             Columns = new ISchemaColumn[]
             {

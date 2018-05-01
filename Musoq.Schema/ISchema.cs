@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using Musoq.Plugins;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema
@@ -14,12 +15,6 @@ namespace Musoq.Schema
 
         MethodInfo ResolveMethod(string method, Type[] parameters);
 
-        MethodInfo ResolveAggregationMethod(string method, Type[] parameters);
-
         bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo);
-
-        MethodInfo ResolveProperty(string property);
-
-        bool TryResolveProperty(string property, out MethodInfo methodInfo);
     }
 }

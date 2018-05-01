@@ -109,6 +109,8 @@ namespace Musoq.Parser.Lexing
 
             var regex = matchedDefinition.Regex.ToString();
 
+            if (regex == TokenRegexDefinition.KMethodAccess)
+                return TokenType.MethodAccess;
             if (regex == TokenRegexDefinition.KKeyObjectAccess)
                 return TokenType.KeyAccess;
             if (regex == TokenRegexDefinition.KNumericArrayAccess)
@@ -183,6 +185,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KDecimal = @"[\-]?([0-9]+(\.[0-9]{1,})?)[dD]?";
             public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
             public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
+            public static readonly string KMethodAccess = "([a-zA-Z_-]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
             public static readonly string KSkip = string.Format(Keyword, SkipToken.TokenText);
             public static readonly string KTake = string.Format(Keyword, TakeToken.TokenText);
             public static readonly string KWith = string.Format(Keyword, WithToken.TokenText);
@@ -242,6 +245,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KSkip, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNumericArrayAccess),
+                new TokenDefinition(TokenRegexDefinition.KMethodAccess), 
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccess),
                 new TokenDefinition(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
@@ -387,6 +391,8 @@ namespace Musoq.Parser.Lexing
                         : OuterJoinNode.OuterJoinType.Right;
 
                     return new OuterJoinToken(type, new TextSpan(Position, tokenText.Length));
+                case TokenType.MethodAccess:
+                    return new MethodAccessToken(match.Groups[1].Value, new TextSpan(Position, match.Groups[1].Value.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

@@ -9,32 +9,6 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator
 {
-    public class CompiledMachine : IVirtualMachine
-    {
-        private readonly object _obj;
-        private readonly ISchemaProvider _schemaProvider;
-        private readonly MethodInfo _method;
-
-        public CompiledMachine(object obj, ISchemaProvider schemaProvider, MethodInfo method)
-        {
-            this._obj = obj;
-            this._schemaProvider = schemaProvider;
-            this._method = method;
-        }
-
-        public long this[Register register]
-        {
-            get => 0;
-            set { }
-        }
-
-        public StackFrame Current { get; }
-
-        public Table Run()
-        {
-            return (Table) _method.Invoke(_obj, new object[]{ _schemaProvider});
-        }
-    }
 
     public class VirtualMachine : IVirtualMachine
     {
@@ -79,6 +53,8 @@ namespace Musoq.Evaluator
 
             return null;
         }
+
+        public ISchemaProvider Provider { get; set; }
 
         public StackFrame Current { get; }
 

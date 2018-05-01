@@ -9,13 +9,14 @@ namespace Musoq.Parser.Nodes
     {
         public readonly FunctionToken FToken;
 
-        public AccessMethodNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraAggregateArguments, MethodInfo method = (MethodInfo) null)
+        public AccessMethodNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraAggregateArguments, MethodInfo method = (MethodInfo) null, string alias = "")
         {
             FToken = fToken;
             Arguments = args;
             ExtraAggregateArguments = extraAggregateArguments;
             Method = method;
-            Id = $"{nameof(AccessMethodNode)}{fToken.Value}{args.Id}";
+            Alias = alias;
+            Id = $"{nameof(AccessMethodNode)}{alias}{fToken.Value}{args.Id}";
         }
 
         public MethodInfo Method { get; private set; }
@@ -23,6 +24,8 @@ namespace Musoq.Parser.Nodes
         public ArgsListNode Arguments { get; }
 
         public string Name => FToken.Value;
+
+        public string Alias { get; }
 
         public bool IsAggregateMethod => Method != null && Method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 

@@ -179,7 +179,7 @@ namespace Musoq.Evaluator.Visitors
             var schema = _provider.GetSchema(node.Schema);
             var table = schema.GetTableByName(node.Method, node.Parameters);
             
-            _current.ScopeSymbolTable.AddSymbol(node.Alias, new TableSymbol(node.Alias, table));
+            _current.ScopeSymbolTable.AddSymbol(node.Alias, new TableSymbol(node.Alias, schema, table));
 
             node.Accept(_visitor);
         }

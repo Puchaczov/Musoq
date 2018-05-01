@@ -72,6 +72,24 @@ namespace Musoq.Evaluator.Helpers
                 );
         }
 
+        public static VariableDeclarationSyntax CreateAssignmentByPropertyCall(string variableName, string objectName,
+            string methodName)
+        {
+            return CreateAssignment(
+                SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(variableName),
+                    null,
+                    SyntaxFactory.EqualsValueClause(
+                        SyntaxFactory.Token(SyntaxKind.EqualsToken),
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(objectName),
+                            SyntaxFactory.Token(SyntaxKind.DotToken),
+                            SyntaxFactory.IdentifierName(methodName))
+                    )
+                )
+            );
+        }
+
         public static VariableDeclarationSyntax CreateAssignment(string variableName, ExpressionSyntax expression)
         {
             return CreateAssignment(

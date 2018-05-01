@@ -21,7 +21,7 @@ namespace Musoq.Service.Resolvers
 
         public IDictionary<string, Type> _loadedSchemas;
 
-        private readonly ICacheManager<IVirtualMachine> _expressionsCache = CacheFactory.Build<IVirtualMachine>("evaluatedExpressions",
+        private readonly ICacheManager<IRunnable> _expressionsCache = CacheFactory.Build<IRunnable>("evaluatedExpressions",
             settings => { settings.WithSystemRuntimeCacheHandle("exps"); });
 
         public CustomDependencyResolver()

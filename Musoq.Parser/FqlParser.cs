@@ -49,7 +49,7 @@ namespace Musoq.Parser
 
             var name = ComposeWord();
             Consume(TokenType.Dot);
-            var accessMethod = ComposeAccessMethod();
+            var accessMethod = ComposeAccessMethod(string.Empty);
 
             var fromNode = new SchemaFromNode(name.Value, accessMethod.Name,
                 accessMethod.Arguments.Args.Select(GetValueOfBasicType).ToArray(), string.Empty);
@@ -436,7 +436,7 @@ namespace Musoq.Parser
             {
                 var name = ComposeWord();
                 Consume(TokenType.Dot);
-                var accessMethod = ComposeAccessMethod();
+                var accessMethod = ComposeAccessMethod(string.Empty);
                 var alias = ComposeAlias();
 
                 var fromNode = new SchemaFromNode(name.Value, accessMethod.Name,
@@ -528,7 +528,7 @@ namespace Musoq.Parser
                 case TokenType.Word:
                     return ComposeWord();
                 case TokenType.Function:
-                    return ComposeAccessMethod();
+                    return ComposeAccessMethod(string.Empty);
                 case TokenType.Identifier:
 
                     if (!(Current is ColumnToken column))
@@ -545,6 +545,11 @@ namespace Musoq.Parser
                     var numiercAccess = (NumericAccessToken) Current;
                     Consume(TokenType.NumericAccess);
                     return new AccessObjectArrayNode(numiercAccess);
+                case TokenType.MethodAccess:
+                    var methodAccess = (MethodAccessToken) Current;
+                    Consume(TokenType.MethodAccess);
+                    Consume(TokenType.Dot);
+                    return ComposeAccessMethod(methodAccess.Alias);
                 case TokenType.Property:
                     token = ConsumeAndGetToken(TokenType.Property);
                     return new PropertyValueNode(token.Value);
@@ -572,7 +577,7 @@ namespace Musoq.Parser
             return new WordNode(ConsumeAndGetToken(TokenType.Word).Value);
         }
 
-        private AccessMethodNode ComposeAccessMethod()
+        private AccessMethodNode ComposeAccessMethod(string alias)
         {
             if (!(Current is FunctionToken func))
                 throw new ArgumentNullException();
@@ -581,9 +586,7 @@ namespace Musoq.Parser
 
             var args = ComposeArgs();
 
-            return _isInGroupBySection
-                ? new GroupByAccessMethodNode(func, args, null, null)
-                : new AccessMethodNode(func, args, null);
+            return new AccessMethodNode(func, args, null, null, alias);
         }
 
         private Token ConsumeAndGetToken(TokenType expected)

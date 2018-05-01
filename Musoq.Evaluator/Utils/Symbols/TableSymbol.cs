@@ -8,16 +8,16 @@ namespace Musoq.Evaluator.Utils.Symbols
 {
     public class TableSymbol : Symbol
     {
-        private readonly Dictionary<string, ISchemaTable> _tables = new Dictionary<string, ISchemaTable>();
+        private readonly Dictionary<string, (ISchema Schema, ISchemaTable Table)> _tables = new Dictionary<string, (ISchema, ISchemaTable)>();
         private readonly List<string> _orders = new List<string>();
 
-        public TableSymbol(string alias, ISchemaTable table)
+        public TableSymbol(string alias, ISchema schema, ISchemaTable table)
         {
-            _tables.Add(alias, table);
+            _tables.Add(alias, (schema, table));
             _orders.Add(alias);
         }
 
-        public TableSymbol(string[] aliases, ISchemaTable[] tables)
+        public TableSymbol(string[] aliases, params (ISchema, ISchemaTable)[] tables)
         {
             for (int i = 0; i < aliases.Length; i++)
             {
@@ -30,14 +30,15 @@ namespace Musoq.Evaluator.Utils.Symbols
 
         public string[] CompoundTables => _orders.ToArray();
 
-        public ISchemaTable GetTableByColumnName(string column)
+        public (ISchema Schema, ISchemaTable Table) GetTableByColumnName(string column)
         {
-            ISchemaTable score = null;
+            (ISchema, ISchemaTable) score = (null, null);
+
             foreach (var table in _tables)
             {
-                var col = table.Value.Columns.SingleOrDefault(c => c.ColumnName == column);
+                var col = table.Value.Table.Columns.SingleOrDefault(c => c.ColumnName == column);
 
-                if(score != null)
+                if(col == null)
                     throw new NotSupportedException();
 
                 score = table.Value;
@@ -46,19 +47,19 @@ namespace Musoq.Evaluator.Utils.Symbols
             return score;
         }
 
-        public ISchemaTable GetTableByAlias(string alias)
+        public (ISchema Schema, ISchemaTable Table) GetTableByAlias(string alias)
         {
             return _tables[alias];
         }
 
         public ISchemaColumn GetColumnByAliasAndName(string alias, string columnName)
         {
-            return _tables[alias].Columns.Single(c => c.ColumnName == columnName);
+            return _tables[alias].Table.Columns.Single(c => c.ColumnName == columnName);
         }
 
         public ISchemaColumn[] GetColumn(string alias)
         {
-            return _tables[alias].Columns;
+            return _tables[alias].Table.Columns;
         }
 
         public int GetColumnIndex(string alias, string columnName)
@@ -67,11 +68,11 @@ namespace Musoq.Evaluator.Utils.Symbols
             int count = 0;
             while (_orders[i] != alias)
             {
-                count += _tables[_orders[i]].Columns.Length;
+                count += _tables[_orders[i]].Table.Columns.Length;
                 i++;
             }
 
-            var columns = _tables[_orders[i]].Columns;
+            var columns = _tables[_orders[i]].Table.Columns;
             int j = 0;
             for (; j < columns.Length; j++)
             {
@@ -110,5 +111,15 @@ namespace Musoq.Evaluator.Utils.Symbols
         }
 
         public ISchemaColumn Column { get; }
+    }
+
+    public class TypeSymbol : Symbol
+    {
+        public TypeSymbol(Type type)
+        {
+            Type = type;
+        }
+
+        public Type Type { get; }
     }
 }

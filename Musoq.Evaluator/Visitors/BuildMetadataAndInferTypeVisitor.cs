@@ -228,13 +228,13 @@ namespace Musoq.Evaluator.Visitors
         {
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
 
-            ISchemaTable table;
+            (ISchema Schema, ISchemaTable Table) tuple;
             if (!string.IsNullOrEmpty(node.Alias))
-                table = tableSymbol.GetTableByAlias(node.Alias);
+                tuple = tableSymbol.GetTableByAlias(node.Alias);
             else
-                table = tableSymbol.GetTableByColumnName(node.Name);
+                tuple = tableSymbol.GetTableByColumnName(node.Name);
 
-            var column = table.Columns.SingleOrDefault(f => f.ColumnName == node.Name);
+            var column = tuple.Table.Columns.SingleOrDefault(f => f.ColumnName == node.Name);
 
             AddAssembly(column.ColumnType.Assembly);
             node.ChangeReturnType(column.ColumnType);
@@ -244,7 +244,8 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(AllColumnsNode node)
         {
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-            var table = tableSymbol.GetTableByAlias(_identifier);
+            var tuple = tableSymbol.GetTableByAlias(_identifier);
+            var table = tuple.Table;
             _generatedColumns = new FieldNode[table.Columns.Length];
 
             for (int i = 0; i < table.Columns.Length; i++)
@@ -388,9 +389,9 @@ namespace Musoq.Evaluator.Visitors
 
             foreach (var tableAlias in tableSymbol.CompoundTables)
             {
-                var table = tableSymbol.GetTableByAlias(tableAlias);
+                var tuple = tableSymbol.GetTableByAlias(tableAlias);
 
-                foreach(var column in table.Columns)
+                foreach(var column in tuple.Table.Columns)
                     AddAssembly(column.ColumnType.Assembly);
             }
         }
@@ -595,40 +596,42 @@ namespace Musoq.Evaluator.Visitors
         private void VisitAccessMethod(AccessMethodNode node,
             Func<FunctionToken, Node, ArgsListNode, MethodInfo, AccessMethodNode> func)
         {
-            //var args = Nodes.Pop() as ArgsListNode;
+            var args = Nodes.Pop() as ArgsListNode;
 
-            //var groupArgs = new List<Type> { typeof(string) };
-            //groupArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1).Select(f => f.ReturnType));
+            var groupArgs = new List<Type> { typeof(string) };
+            groupArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1).Select(f => f.ReturnType));
 
-            //if (!_schema.TryResolveAggreationMethod(node.Name, groupArgs.ToArray(), out var method))
-            //    method = _schema.ResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray());
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Alias);
+            var schemaTablePair = tableSymbol.GetTableByAlias(node.Alias);
+            if (!schemaTablePair.Schema.TryResolveAggreationMethod(node.Name, groupArgs.ToArray(), out var method))
+                method = schemaTablePair.Schema.ResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray());
 
-            //var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
+            var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
-            //AccessMethodNode accessMethod;
-            //if (isAggregateMethod)
-            //{
-            //    accessMethod = func(node.FToken, args, node.ExtraAggregateArguments, method);
-            //    var identifier = accessMethod.ToString();
+            AccessMethodNode accessMethod;
+            if (isAggregateMethod)
+            {
+                accessMethod = func(node.FToken, args, node.ExtraAggregateArguments, method);
+                var identifier = accessMethod.ToString();
 
-            //    var newArgs = new List<Node> { new WordNode(identifier) };
-            //    newArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1));
-            //    var shouldHaveExtraArgs = accessMethod.ArgsCount > 0;
-            //    var newExtraArgs = new ArgsListNode(shouldHaveExtraArgs ? new[] { accessMethod.Arguments.Args.Last() } : new Node[0]);
+                var newArgs = new List<Node> { new WordNode(identifier) };
+                newArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1));
+                var shouldHaveExtraArgs = accessMethod.ArgsCount > 0;
+                var newExtraArgs = new ArgsListNode(shouldHaveExtraArgs ? new[] { accessMethod.Arguments.Args.Last() } : new Node[0]);
 
-            //    accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), newExtraArgs, method);
-            //}
-            //else
-            //{
-            //    accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method);
-            //}
+                accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), newExtraArgs, method);
+            }
+            else
+            {
+                accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method);
+            }
 
-            //AddAssembly(method.DeclaringType.Assembly);
-            //AddAssembly(method.ReturnType.Assembly);
+            AddAssembly(method.DeclaringType.Assembly);
+            AddAssembly(method.ReturnType.Assembly);
 
-            //node.ChangeMethod(method);
+            node.ChangeMethod(method);
 
-            //Nodes.Push(accessMethod);
+            Nodes.Push(accessMethod);
         }
 
         public void QueryBegins()

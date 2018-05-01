@@ -12,6 +12,12 @@ namespace Musoq.Evaluator.Utils
             _symbols.Add(key, symbol);
         }
 
+        public void AddSymbolIfNotExist(object key, Symbol symbol)
+        {
+            if (!_symbols.ContainsKey(key))
+                _symbols.Add(key, symbol);
+        }
+
         public Symbol GetSymbol(object key)
         {
             return _symbols[key];

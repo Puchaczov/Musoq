@@ -23,13 +23,13 @@ namespace Musoq.Service.Controllers
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
         private readonly IDictionary<Guid, ExecutionState> _runetimeState;
-        private readonly ICacheManager<IVirtualMachine> _expressionsCache;
+        private readonly ICacheManager<IRunnable> _expressionsCache;
         private readonly IServiceLogger _logger;
         private readonly IDictionary<string, Type> _schemas;
 
         public RuntimeController(IDictionary<Guid, QueryContext> contexts,
             IDictionary<Guid, ExecutionState> runetimeState,
-            ICacheManager<IVirtualMachine> expressionsCache, IServiceLogger logger,
+            ICacheManager<IRunnable> expressionsCache, IServiceLogger logger,
             IDictionary<string, Type> schemas)
         {
             _contexts = contexts;
