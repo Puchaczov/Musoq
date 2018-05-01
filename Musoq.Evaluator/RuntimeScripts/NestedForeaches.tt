@@ -1,4 +1,4 @@
-﻿var {transformed_source_table} = new Table({joined_table_name}, {joined_table_columns});
+﻿var {transformed_source_table} = new Table({transformed_table_name}, {transformed_table_columns});
 
 <# for(int i = 0; i < Nesting; ++i) { #>
 	foreach(var {name<#=i#>} in {source<#=i#>}){
@@ -8,11 +8,11 @@
 			continue;
 	<# } #>
 <# } #>
-		{where_statements}
+		{where_statement}
 	<# if(HasGroupBy) { #>
 		{group_by_statements}
 	<# } else { #>
-		{join_select_statements}
+		{transformed_select_statements}
 	<# } #>
 	}
 <# for(int i = 1; i < Nesting - 1; ++i) { #>

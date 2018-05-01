@@ -25,8 +25,7 @@ namespace Musoq.Evaluator.RuntimeScripts
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("\t{decl_statement}\r\n\r\n\tvar {score_table} = new Table({score_table_name}, {score_co" +
-                    "lumns});\r\n");
+            this.Write("\t{decl_statement}\r\n");
             return this.GenerationEnvironment.ToString();
         }
     }

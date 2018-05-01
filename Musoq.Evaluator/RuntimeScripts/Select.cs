@@ -25,8 +25,9 @@ namespace Musoq.Evaluator.RuntimeScripts
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("\tforeach(var score in EvaluationHelper.ConvertTableToSource({select_source}).Rows" +
-                    ") {\r\n\t\t{select_statement}\r\n\t}\r\n\r\n\treturn {score_table};\r\n");
+            this.Write("\tvar {score_table} = new Table({score_table_name}, {score_columns});\r\n\r\n\tforeach(" +
+                    "var score in {source_rows}.Rows) {\r\n\t\t{pre_script_dependant}\r\n\t}\r\n\r\n\treturn {sco" +
+                    "re_table};\r\n");
             return this.GenerationEnvironment.ToString();
         }
     }

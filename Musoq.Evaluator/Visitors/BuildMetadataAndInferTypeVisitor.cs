@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Musoq.Evaluator.RuntimeScripts;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
@@ -25,6 +26,9 @@ namespace Musoq.Evaluator.Visitors
 
         private Scope _currentScope;
         private string _identifier;
+        private bool _hasGroupByOrJoin;
+        private bool _hasGroupBy;
+        private int _nesting;
 
         private void AddAssembly(Assembly asm)
         {
@@ -311,6 +315,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(GroupByNode node)
         {
+            _hasGroupByOrJoin = true;
+            _hasGroupBy = true;
+
             var having = Nodes.Peek() as HavingNode;
 
             if (having != null)
@@ -342,7 +349,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
-            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, CreateAliasIfEmpty(node.Alias)));
+            _nesting += 1;
+            var alias = CreateAliasIfEmpty(node.Alias);
+            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, alias));
         }
 
         private string CreateAliasIfEmpty(string alias)
@@ -364,6 +373,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinFromNode node)
         {
+            _hasGroupByOrJoin = true;
             var expression = Nodes.Pop();
             var joinedTable = (FromNode)Nodes.Pop();
             var source = (FromNode)Nodes.Pop();
@@ -431,6 +441,26 @@ namespace Musoq.Evaluator.Visitors
             var joins = node.Joins != null ? Nodes.Pop() as JoinsNode : null;
             var from = Nodes.Pop() as FromNode;
 
+            if(_currentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
+                _currentScope.ScopeSymbolTable.UpdateSymbol(string.Empty, from.Alias);
+
+            _currentScope.Script.Append(new DeclarationStatements().TransformText());
+
+            if (_hasGroupByOrJoin)
+            {
+                _currentScope.Script.Append(new NestedForeaches() { HasGroupBy = _hasGroupBy, Nesting = _nesting }.TransformText());
+                _currentScope.Script.Append(new Select().TransformText());
+                _currentScope.Script.Replace("{pre_script_dependant}", "{select_statements}");
+            }
+            else
+            {
+                _currentScope.Script.Append(new Select().TransformText());
+                _currentScope.Script.Replace("{pre_script_dependant}", "{where_statement}{select_statements}");
+            }
+
+            _nesting = 0;
+            _hasGroupBy = false;
+            _hasGroupByOrJoin = false;
             Nodes.Push(new QueryNode(select, from, joins, where, groupBy, null, skip, take));
         }
 

@@ -56,7 +56,7 @@ namespace Musoq.Parser.Nodes
     public class ExpressionFromNode : FromNode
     {
         public ExpressionFromNode(FromNode @from)
-            : base(String.Empty)
+            : base(from.Alias)
         {
             Expression = from;
             Id = $"{nameof(ExpressionFromNode)}{from.ToString()}";

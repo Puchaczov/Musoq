@@ -19,6 +19,12 @@ namespace Musoq.Evaluator.Utils
 
         public TSymbol GetSymbol<TSymbol>(object key) where TSymbol : Symbol => (TSymbol) GetSymbol(key);
 
+        public void UpdateSymbol(object oldKey, object newKey)
+        {
+            _symbols.Add(newKey, GetSymbol(oldKey));
+            _symbols.Remove(oldKey);
+        }
+
         public bool SymbolIsOfType<TType>(object key) where TType : Symbol =>
             _symbols.ContainsKey(key) && _symbols[key].GetType() == typeof(TType);
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Musoq.Evaluator.Utils
 {
@@ -20,6 +21,8 @@ namespace Musoq.Evaluator.Utils
         public Scope Parent { get; }
 
         public SymbolTable ScopeSymbolTable { get; } = new SymbolTable();
+
+        public StringBuilder Script { get; } = new StringBuilder();
 
         public Scope AddScope(Func<Scope, int, Scope> createScope)
         {

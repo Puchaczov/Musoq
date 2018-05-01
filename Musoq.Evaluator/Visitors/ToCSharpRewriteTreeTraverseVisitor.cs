@@ -16,6 +16,7 @@ namespace Musoq.Evaluator.Visitors
         private ScopeWalker _walker;
         private readonly StringBuilder _code = new StringBuilder();
         private bool _hasGroupBy;
+        private bool _hasJoin;
 
         public ToCSharpRewriteTreeTraverseVisitor(IScopeAwareExpressionVisitor visitor, ISchemaProvider provider, ScopeWalker walker)
         {
@@ -25,6 +26,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SelectNode node)
         {
+            if(_hasJoin || _hasGroupBy)
+                _visitor.SetMethodAccessType(MethodAccessType.JoinedSelectTable);
+
             _code.Append(new Select().TransformText());
             foreach (var field in node.Fields)
                 field.Accept(this);
@@ -204,7 +208,8 @@ namespace Musoq.Evaluator.Visitors
             }
 
             join.Accept(_visitor);
-            _visitor.SetMethodAccessType(MethodAccessType.SingleTable);
+
+            _hasJoin = true;
         }
 
         public void Visit(ExpressionFromNode node)
@@ -285,8 +290,6 @@ namespace Musoq.Evaluator.Visitors
 
             _walker = _walker.Parent();
             _visitor.SetScope(_walker.Scope);
-
-            var str = _code.ToString();
         }
 
         public void Visit(OrNode node)

@@ -24,8 +24,9 @@ namespace Musoq.Evaluator.Visitors
 {
     public enum MethodAccessType
     {
-        SingleTable,
-        JoinedTable
+        SelectTable,
+        JoinedTable,
+        JoinedSelectTable
     }
     public class ToCSharpRewriteTreeVisitor : IScopeAwareExpressionVisitor
     {
@@ -38,10 +39,15 @@ namespace Musoq.Evaluator.Visitors
         private Stack<SyntaxNode> Nodes { get; }
 
         private readonly List<MethodDeclarationSyntax> _methods = new List<MethodDeclarationSyntax>();
+        private bool _hasGroupBy = false;
+        private bool _hasJoin = false;
+
+        public bool HasGroupByOrJoin => _hasGroupBy || _hasJoin;
 
         private readonly List<string> _namespaces = new List<string>();
         private Scope _scope;
-        private StringBuilder _code;
+
+        private StringBuilder Script => _scope.Script;
 
         private readonly StringBuilder _declStatements = new StringBuilder();
         private int _names;
@@ -51,6 +57,11 @@ namespace Musoq.Evaluator.Visitors
         private MethodAccessType _type;
         private string _queryAlias;
         private string _transformedSourceTable;
+        private string _scoreTable;
+        private string _scoreTableName;
+        private string _scoreColumns;
+
+        private List<string> _preDeclarations = new List<string>();
 
         public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies)
         {
@@ -76,6 +87,7 @@ namespace Musoq.Evaluator.Visitors
                 .AddReferences(MetadataReference.CreateFromFile(typeof(ISchema).Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(LibraryBase).Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Table).Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(SyntaxFactory).Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile("C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\2.0.0\\netstandard.dll"))
                 .AddReferences(assemblies.Select(a => MetadataReference.CreateFromFile(a.Location)));
 
@@ -287,10 +299,29 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessColumnNode node)
         {
-            if(_type == MethodAccessType.JoinedTable)
-                Nodes.Push(Generator.ElementAccessExpression(Generator.IdentifierName($"{node.Alias}Row"), SyntaxHelper.StringLiteralArgument(node.Name)));
-            else
-                Nodes.Push(Generator.ElementAccessExpression(Generator.IdentifierName("score"), SyntaxHelper.StringLiteralArgument(node.Name)));
+            SyntaxNode sNode;
+            switch (_type)
+            {
+                case MethodAccessType.JoinedTable:
+                    sNode = Generator.ElementAccessExpression(Generator.IdentifierName($"{node.Alias}Row"),
+                        SyntaxHelper.StringLiteralArgument(node.Name));
+                    break;
+                case MethodAccessType.JoinedSelectTable:
+                    sNode = Generator.ElementAccessExpression(Generator.IdentifierName("score"), 
+                        SyntaxHelper.StringLiteralArgument($"{node.Alias}.{node.Name}"));
+                    break;
+                case MethodAccessType.SelectTable:
+                    sNode = Generator.ElementAccessExpression(Generator.IdentifierName("score"),
+                        SyntaxHelper.StringLiteralArgument(node.Name));
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+
+            var type = Compilation.GetTypeByMetadataName(node.ReturnType.FullName);
+            sNode = Generator.CastExpression(type, sNode);
+
+            Nodes.Push(sNode);
         }
 
         public void Visit(AllColumnsNode node)
@@ -343,13 +374,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SelectNode node)
         {
+            var scoreTable = $"{_queryAlias}ScoreTable";
             var variableNameKeyword = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, "select", SyntaxTriviaList.Create(SyntaxHelper.WhiteSpace));
-            var syntaxList = new SeparatedSyntaxList<ExpressionSyntax>();
+            var syntaxList = new ExpressionSyntax[node.Fields.Length];
             var cols = new List<ExpressionSyntax>();
 
             for (int i = 0; i < node.Fields.Length; i++)
             {
-                syntaxList = syntaxList.Add((ExpressionSyntax)Nodes.Pop());
+                syntaxList[node.Fields.Length - 1 - i] = (ExpressionSyntax) Nodes.Pop();
                 cols.Add(
                     SyntaxHelper.CreaateObjectOf(
                         nameof(Column),
@@ -377,7 +409,7 @@ namespace Musoq.Evaluator.Visitors
                     list);
 
             var invocation = SyntaxHelper.CreateMethodInvocation(
-                "joinedTable",
+                scoreTable,
                 nameof(Table.Add),
                 new[]
                 {
@@ -403,9 +435,21 @@ namespace Musoq.Evaluator.Visitors
             code.Append(a1.ToFullString());
             code.Append(a2.ToFullString());
 
-            _code.Replace("{score_table_name}", $"\"{_queryAlias}\"");
-            _code.Replace("{score_columns}", tableCols.ToFullString());
-            _code.Replace("{select_statement}", code.ToString());
+            _scoreColumns = tableCols.ToFullString();
+            Script.Replace("{score_table_name}", $"\"{_queryAlias}\"");
+            Script.Replace("{score_columns}", tableCols.ToFullString());
+            Script.Replace("{score_table}", scoreTable);
+
+            if (HasGroupByOrJoin)
+            {
+                Script.Replace("{source_rows}", $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({_transformedSourceTable})");
+            }
+            else
+            {
+                Script.Replace("{source_rows}", $"{_queryAlias}Rows");
+            }
+
+            Script.Replace("{select_statements}", code.ToString());
         }
 
         public void Visit(WhereNode node)
@@ -413,11 +457,12 @@ namespace Musoq.Evaluator.Visitors
             var ifStatement = Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
                 new SyntaxNode[] {SyntaxFactory.ContinueStatement()});
 
-            _code.Replace("{where_statements}", ifStatement.ToFullString());
+            Script.Replace("{where_statement}", ifStatement.ToFullString());
         }
 
         public void Visit(GroupByNode node)
         {
+            _hasGroupBy = true;
         }
 
         public void Visit(HavingNode node)
@@ -474,8 +519,8 @@ namespace Musoq.Evaluator.Visitors
             _declStatements.Append(SyntaxFactory.LocalDeclarationStatement(createdSchema).ToFullString());
             _declStatements.Append(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
 
-            _code.Replace($"{{source{_sources++}}}", SyntaxFactory.IdentifierName($"{node.Alias}Rows.Rows").ToFullString());
-            _code.Replace($"{{name{_names++}}}", SyntaxFactory.IdentifierName($"{node.Alias}Row").ToFullString());
+            Script.Replace($"{{source{_sources++}}}", SyntaxFactory.IdentifierName($"{node.Alias}Rows.Rows").ToFullString());
+            Script.Replace($"{{name{_names++}}}", SyntaxFactory.IdentifierName($"{node.Alias}Row").ToFullString());
         }
 
         public void Visit(NestedQueryFromNode node)
@@ -488,14 +533,15 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinFromNode node)
         {
+            _hasJoin = true;
         }
 
         public void Visit(ExpressionFromNode node)
         {
-            var transformedTable = "joinedTable";
+            _transformedSourceTable = "transformedTable";
             for (int i = _joinsAmount - 2; i >= 0;)
             {
-                _code.Replace($"{{join_condition{i--}}}", Nodes.Pop().ToFullString());
+                Script.Replace($"{{join_condition{i--}}}", Nodes.Pop().ToFullString());
             }
 
             var tableSymbol = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Expression.Alias);
@@ -564,7 +610,7 @@ namespace Musoq.Evaluator.Visitors
             var select = SyntaxHelper.CreateAssignment("columns", SyntaxHelper.CreateArrayOfObjects(args.ToArray()));
 
             var methodInvocation = SyntaxHelper.CreateMethodInvocation(
-                transformedTable, 
+                _transformedSourceTable, 
                 nameof(Table.Add), 
                 new[]
                 {
@@ -584,10 +630,13 @@ namespace Musoq.Evaluator.Visitors
             code.Append(SyntaxFactory.LocalDeclarationStatement(select).ToFullString());
             code.Append(SyntaxFactory.ExpressionStatement(methodInvocation).ToFullString());
 
-            _code.Replace("{join_select_statements}", code.ToString());
-            _code.Replace("{joined_table_name}", $"\"{node.Alias}\"");
-            _code.Replace("{joined_table_columns}", createColumns.ToFullString());
-            _code.Replace("{transformed_source_table}", transformedTable);
+            Script.Replace("{transformed_select_statements}", code.ToString());
+            Script.Replace("{transformed_table_name}", $"\"{node.Alias}\"");
+            Script.Replace("{transformed_table_columns}", createColumns.ToFullString());
+            Script.Replace("{transformed_source_table}", _transformedSourceTable);
+
+            _scoreTable = $"{node.Alias}Table";
+            _scoreTableName = node.Alias;
         }
 
         private void AddNamespace(string columnTypeNamespace)
@@ -626,7 +675,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
-            _code.Replace("{decl_statement}", _declStatements.ToString());
+            Script.Replace("{decl_statement}", _declStatements.ToString());
 
             var method = SyntaxFactory.MethodDeclaration(
                 new SyntaxList<AttributeListSyntax>(),
@@ -647,7 +696,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.Identifier("provider"), null)
                     })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
-                SyntaxFactory.Block(SyntaxFactory.ParseStatement(_code.ToString())),
+                SyntaxFactory.Block(SyntaxFactory.ParseStatement(Script.ToString())),
                 null);
 
             _methods.Add(method);
@@ -756,7 +805,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void SetCodePattern(StringBuilder code)
         {
-            _code = code;
         }
 
         public void SetJoinsAmount(int amount)

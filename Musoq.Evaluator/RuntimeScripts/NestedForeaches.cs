@@ -25,8 +25,8 @@ namespace Musoq.Evaluator.RuntimeScripts
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("var {transformed_source_table} = new Table({joined_table_name}, {joined_table_col" +
-                    "umns});\r\n\r\n");
+            this.Write("var {transformed_source_table} = new Table({transformed_table_name}, {transformed" +
+                    "_table_columns});\r\n\r\n");
             
             #line 3 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  for(int i = 0; i < Nesting; ++i) { 
@@ -74,7 +74,7 @@ namespace Musoq.Evaluator.RuntimeScripts
             
             #line default
             #line hidden
-            this.Write("\t\t{where_statements}\r\n\t");
+            this.Write("\t\t{where_statement}\r\n\t");
             
             #line 12 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  if(HasGroupBy) { 
@@ -88,7 +88,7 @@ namespace Musoq.Evaluator.RuntimeScripts
             
             #line default
             #line hidden
-            this.Write("\t\t{join_select_statements}\r\n\t");
+            this.Write("\t\t{transformed_select_statements}\r\n\t");
             
             #line 16 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } 
