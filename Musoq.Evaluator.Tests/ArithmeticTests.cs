@@ -89,7 +89,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual(typeof(TResult), table.Columns.ElementAt(0).ColumnType);

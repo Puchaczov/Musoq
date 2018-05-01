@@ -77,7 +77,7 @@ namespace Musoq.Converter
         }
 
 
-        public static IVirtualMachine Create(string script, ISchemaProvider schemaProvider)
+        public static IRunnable Create(string script, ISchemaProvider schemaProvider)
         {
             return Create(CreateTree(script), schemaProvider);
         }

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Instructions;
 using Musoq.Schema.FlatFile;
 
@@ -15,7 +16,7 @@ namespace Musoq.Schema.FlatFileTests
             var query = @"select LineNumber, Line from #FlatFile.file('./TestMultilineFile.txt')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("LineNumber", table.Columns.ElementAt(0).Name);
@@ -44,7 +45,7 @@ namespace Musoq.Schema.FlatFileTests
             Assert.AreEqual("linexx", table[5].Values[1]);
         }
 
-        private IVirtualMachine CreateAndRunVirtualMachine(string script)
+        private IRunnable CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.Create(script, new FlatFileSchemaProvider());
         }

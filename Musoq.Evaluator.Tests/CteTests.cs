@@ -28,7 +28,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
@@ -72,7 +72,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
@@ -116,7 +116,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
@@ -152,7 +152,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
@@ -194,7 +194,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
@@ -245,7 +245,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
@@ -297,7 +297,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
@@ -338,7 +338,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
@@ -387,7 +387,7 @@ select City, Country from p";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
@@ -436,7 +436,7 @@ select City, Country from #B.entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
@@ -495,7 +495,7 @@ with p as (
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
@@ -552,7 +552,7 @@ select City, Country from #C.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
@@ -612,7 +612,7 @@ select City, Country from f";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("City", table.Columns.ElementAt(0).Name);

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Instructions;
 using Newtonsoft.Json.Linq;
 
@@ -15,7 +16,7 @@ namespace Musoq.Schema.Json.Tests
             var query = @"select Name, Age from #json.file('./JsonTestFile_First.json', './JsonTestFile_First.schema.json', ' ')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
@@ -38,7 +39,7 @@ namespace Musoq.Schema.Json.Tests
             var query = @"select Array from #json.file('./JsonTestFile_MakeFlatArray_Arr.json', './JsonTestFile_MakeFlatArray_Arr.schema.json', ' ')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Array", table.Columns.ElementAt(0).Name);
@@ -55,7 +56,7 @@ namespace Musoq.Schema.Json.Tests
             var query = @"select Name, Length(Books) from #json.file('./JsonTestFile_First.json', './JsonTestFile_First.schema.json', ' ')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
@@ -78,7 +79,7 @@ namespace Musoq.Schema.Json.Tests
             var query = @"select MakeFlat(Array) from #json.file('./JsonTestFile_MakeFlatArray.json', './JsonTestFile_MakeFlatArray.schema.json', ' ')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("MakeFlat(Array)", table.Columns.ElementAt(0).Name);
@@ -89,7 +90,7 @@ namespace Musoq.Schema.Json.Tests
             Assert.AreEqual(string.Empty, table[1].Values[0]);
         }
 
-        private IVirtualMachine CreateAndRunVirtualMachine(string script)
+        private IRunnable CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.Create(script, new JsonSchemaProvider());
         }

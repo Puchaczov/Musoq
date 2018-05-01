@@ -87,7 +87,7 @@ namespace Musoq.Service.Controllers
                         vm = InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas));
 
                     var compiledTime = watch.Elapsed;
-                    state.Result = vm.Execute();
+                    state.Result = vm.Run();
                     var executionTime = watch.Elapsed;
 
                     watch.Stop();

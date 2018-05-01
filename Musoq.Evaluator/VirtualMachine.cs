@@ -30,7 +30,7 @@ namespace Musoq.Evaluator
 
         public StackFrame Current { get; }
 
-        public Table Execute()
+        public Table Run()
         {
             return (Table) _method.Invoke(_obj, new object[]{ _schemaProvider});
         }
@@ -48,7 +48,7 @@ namespace Musoq.Evaluator
             Current = frames.Peek();
         }
 
-        public Table Execute()
+        public Table Run()
         {
             // ReSharper disable once TooWideLocalVariableScope
             long ip;

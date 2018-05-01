@@ -1,11 +1,8 @@
-﻿using Musoq.Evaluator.Tables;
-
-namespace Musoq.Evaluator.Instructions
+﻿namespace Musoq.Evaluator.Instructions
 {
-    public interface IVirtualMachine
+    public interface IVirtualMachine : IRunnable
     {
         long this[Register register] { get; set; }
         StackFrame Current { get; }
-        Table Execute();
     }
 }

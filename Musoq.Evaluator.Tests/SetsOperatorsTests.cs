@@ -18,7 +18,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(4, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -38,7 +38,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
@@ -56,7 +56,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("005", table[0].Values[0]);
@@ -80,7 +80,7 @@ select Name from #C.Entities() skip 3";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(3, table.Count);
             Assert.AreEqual("005", table[0].Values[0]);
@@ -99,7 +99,7 @@ select Name from #C.Entities() skip 3";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(4, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -119,7 +119,7 @@ select Name from #C.Entities() skip 3";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(3, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -140,7 +140,7 @@ select Name from #C.Entities() skip 3";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(3, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -161,7 +161,7 @@ select Name from #C.Entities() skip 3";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(3, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -188,7 +188,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(4, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -208,7 +208,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(5, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -231,7 +231,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(4, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -253,7 +253,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(3, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -279,7 +279,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(5, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -300,7 +300,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(5, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -321,7 +321,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
@@ -338,7 +338,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("010", table[0].Values[0]);
@@ -357,7 +357,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(0, table.Count);
         }
@@ -377,7 +377,7 @@ select Name from #C.Entities() skip 3";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
@@ -402,7 +402,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
@@ -420,7 +420,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -437,7 +437,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("005", table[0].Values[0]);
@@ -456,7 +456,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -479,7 +479,7 @@ select Name from #C.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("005", table[0].Values[0]);
@@ -504,7 +504,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -529,7 +529,7 @@ select Name from #C.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
@@ -554,7 +554,7 @@ select Name from #C.Entities() where Extension = '.txt'";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
@@ -579,7 +579,7 @@ select Name from #C.Entities() skip 3 where Extension = '.txt'";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
@@ -603,7 +603,7 @@ select Name from #C.Entities() where Extension = '.txt' skip 3";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -628,7 +628,7 @@ select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
@@ -654,7 +654,7 @@ select Name from #D.Entities()";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(3, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -680,7 +680,7 @@ select City, Sum(Population) from #C.Entities() group by City";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(3, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -709,7 +709,7 @@ select City, Sum(Population) from #C.Entities() group by City";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(3, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -738,7 +738,7 @@ select City, Sum(Population) from #C.Entities() group by City";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -763,7 +763,7 @@ select City, Sum(Population) from #C.Entities() group by City";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -785,7 +785,7 @@ select Name from #A.Entities() where Name = '002'";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -813,7 +813,7 @@ select Name from #A.Entities() where Name = '005'";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(5, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);

@@ -19,7 +19,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
@@ -50,7 +50,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Population", table.Columns.ElementAt(0).Name);
@@ -71,7 +71,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
@@ -91,7 +91,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
@@ -112,7 +112,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
@@ -134,7 +134,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("'abc' + 'cda'", table.Columns.ElementAt(0).Name);
@@ -154,7 +154,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
@@ -176,7 +176,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("NothingToDo(Self)", table.Columns.ElementAt(0).Name);
@@ -196,7 +196,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Self", table.Columns.ElementAt(0).Name);
@@ -227,7 +227,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
             Assert.AreEqual("1", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(Int64), table.Columns.ElementAt(0).ColumnType);
 
@@ -290,7 +290,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual("Self.Array[2]", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(Int32), table.Columns.ElementAt(0).ColumnType);
@@ -310,7 +310,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual("Inc(Self.Array[2])", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(Int64), table.Columns.ElementAt(0).ColumnType);
@@ -330,7 +330,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -347,7 +347,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -364,7 +364,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(4, table.Count);
             Assert.AreEqual("003", table[0].Values[0]);
@@ -383,7 +383,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -400,7 +400,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("002", table[0].Values[0]);
@@ -417,7 +417,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(0, table.Count);
         }
@@ -432,7 +432,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(6, table.Count);
             Assert.AreEqual("001", table[0].Values[0]);
@@ -453,7 +453,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(0, table.Count);
         }
@@ -470,7 +470,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(4, table.Columns.Count());
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
@@ -501,7 +501,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Concat(Country, ToString(Population))", table.Columns.ElementAt(0).Name);
@@ -527,7 +527,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Time", table.Columns.ElementAt(0).Name);
@@ -546,7 +546,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(6, table.Count);
             Assert.AreEqual(1, table[0].Values[0]);
@@ -573,7 +573,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("1.0", table.Columns.ElementAt(0).Name);
@@ -602,7 +602,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(3, table.Columns.Count());
             Assert.AreEqual(9, table.Count);
@@ -669,7 +669,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
         }
 
         [Ignore]
@@ -689,7 +689,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Execute();
+            var table = vm.Run();
         }
     }
 }

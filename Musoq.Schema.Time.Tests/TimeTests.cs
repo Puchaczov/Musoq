@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Instructions;
 
 namespace Musoq.Schema.Time.Tests
@@ -13,7 +14,7 @@ namespace Musoq.Schema.Time.Tests
             var query = "select Day from #time.interval('01.04.2018 00:00:00', '30.04.2018 00:00:00', 'days')";
             
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             for (int i = 1; i <= 30; i++)
             {
@@ -21,7 +22,7 @@ namespace Musoq.Schema.Time.Tests
             }
         }
 
-        private IVirtualMachine CreateAndRunVirtualMachine(string script)
+        private IRunnable CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.Create(script, new TimeSchemaProvider());
         }

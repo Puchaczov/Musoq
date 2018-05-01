@@ -7,7 +7,7 @@ namespace Musoq.Evaluator.Tests
 {
     public class TestBase
     {
-        protected IVirtualMachine CreateAndRunVirtualMachine<T>(string script,
+        protected IRunnable CreateAndRunVirtualMachine<T>(string script,
             IDictionary<string, IEnumerable<T>> sources)
             where T : BasicEntity
         {

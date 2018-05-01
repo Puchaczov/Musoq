@@ -34,7 +34,7 @@ namespace Musoq.Performance
             watch.Start();
             var vm = InstanceCreator.Create(query, CreateCsvSchema());
             var compiledTime = watch.Elapsed;
-            var table = vm.Execute();
+            var table = vm.Run();
             watch.Stop();
             var executionTime = watch.Elapsed;
 

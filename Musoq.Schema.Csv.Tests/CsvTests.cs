@@ -2,6 +2,7 @@
 using Musoq.Converter;
 using Musoq.Evaluator.Instructions;
 using System.Linq;
+using Musoq.Evaluator;
 
 namespace Musoq.Schema.Csv.Tests
 {
@@ -14,7 +15,7 @@ namespace Musoq.Schema.Csv.Tests
             var query = "SELECT Name FROM #csv.file('./Files/BankingTransactions.csv', ',')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
@@ -40,7 +41,7 @@ namespace Musoq.Schema.Csv.Tests
             var query = "SELECT Count(OperationDate) FROM #csv.file('./Files/BankingTransactions.csv', ',')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Count(OperationDate)", table.Columns.ElementAt(0).Name);
@@ -56,7 +57,7 @@ namespace Musoq.Schema.Csv.Tests
             var query = "SELECT ParentCount(1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv', ',') group by ExtractFromDate(OperationDate, 'month')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(6, table.Columns.Count());
             Assert.AreEqual("ParentCount(1)", table.Columns.ElementAt(0).Name);
@@ -89,7 +90,7 @@ namespace Musoq.Schema.Csv.Tests
             Assert.AreEqual(3842.85m, table[1].Values[5]);
         }
 
-        private IVirtualMachine CreateAndRunVirtualMachine(string script)
+        private IRunnable CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.Create(script, new CsvSchemaProvider());
         }

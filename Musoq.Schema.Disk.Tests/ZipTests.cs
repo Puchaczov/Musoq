@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Instructions;
 
 namespace Musoq.Schema.Disk.Tests
@@ -15,7 +16,7 @@ namespace Musoq.Schema.Disk.Tests
             var query = @"select FullName from #disk.zip('./Files.zip')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("FullName", table.Columns.ElementAt(0).Name);
@@ -33,7 +34,7 @@ namespace Musoq.Schema.Disk.Tests
             var query = "select Decompress(AggregateFiles(File), './Results/DecompressTest') from #disk.zip('./Files.zip')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Decompress(AggregateFiles(File), './Results/DecompressTest')", table.Columns.ElementAt(0).Name);
@@ -55,7 +56,7 @@ namespace Musoq.Schema.Disk.Tests
             var query = "select Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest') from #disk.zip('./Files.zip') where Level = 1";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest')", table.Columns.ElementAt(0).Name);
@@ -70,7 +71,7 @@ namespace Musoq.Schema.Disk.Tests
             Directory.Delete("./Results/DecompressWithFilterTest", true);
         }
 
-        private IVirtualMachine CreateAndRunVirtualMachine(string script)
+        private IRunnable CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.Create(script, new DiskSchemaProvider());
         }

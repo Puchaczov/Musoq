@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Instructions;
 
 namespace Musoq.Schema.Disk.Tests
@@ -16,7 +17,7 @@ namespace Musoq.Schema.Disk.Tests
             var query = $"select Compress(AggregateFiles(), './Results/{nameof(CompressFilesTest)}.zip', 'fastest') from #disk.files('./Files', 'false')";
             
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual($"Compress(AggregateFiles(), './Results/{nameof(CompressFilesTest)}.zip', 'fastest')", table.Columns.ElementAt(0).Name);
@@ -36,7 +37,7 @@ namespace Musoq.Schema.Disk.Tests
             var query = $"select Compress(AggregateDirectories(), '{resultName}', 'fastest') from #disk.directories('./Directories', 'false')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual($"Compress(AggregateDirectories(), '{resultName}', 'fastest')", table.Columns.ElementAt(0).Name);
@@ -66,7 +67,7 @@ namespace Musoq.Schema.Disk.Tests
             var query = "select Parent.Name from #disk.directories('./Directories', 'false')";
 
             var vm = CreateAndRunVirtualMachine(query);
-            var table = vm.Execute();
+            var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Parent.Name", table.Columns.ElementAt(0).Name);
@@ -77,7 +78,7 @@ namespace Musoq.Schema.Disk.Tests
             Assert.AreEqual("Directories", table[1].Values[0]);
         }
 
-        private IVirtualMachine CreateAndRunVirtualMachine(string script)
+        private IRunnable CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.Create(script, new DiskSchemaProvider());
         }
