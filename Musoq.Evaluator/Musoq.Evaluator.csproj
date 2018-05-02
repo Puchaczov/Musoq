@@ -26,6 +26,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>DeclarationStatements.tt</DependentUpon>
     </Compile>
+    <Compile Update="RuntimeScripts\Grouping.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Grouping.tt</DependentUpon>
+    </Compile>
     <Compile Update="RuntimeScripts\NestedForeaches.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -42,6 +47,10 @@
     <None Update="RuntimeScripts\DeclarationStatements.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>DeclarationStatements.cs</LastGenOutput>
+    </None>
+    <None Update="RuntimeScripts\Grouping.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>Grouping.cs</LastGenOutput>
     </None>
     <None Update="RuntimeScripts\NestedForeaches.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>

@@ -15,9 +15,9 @@ namespace Musoq.Evaluator.RuntimeScripts
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\Select.tt"
+    #line 1 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\Grouping.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public partial class Select : SelectBase
+    public partial class Grouping : GroupingBase
     {
 #line hidden
         /// <summary>
@@ -25,9 +25,6 @@ namespace Musoq.Evaluator.RuntimeScripts
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("\tvar {score_table} = new Table({score_table_name}, {score_columns});\r\n\r\n\t{skip_in" +
-                    "it}\r\n\t{take_init}\r\n\tforeach(var score in {source_rows}.Rows) {\r\n\t\t{pre_script_de" +
-                    "pendant}\r\n\t}\r\n\r\n\treturn {score_table};\r\n");
             return this.GenerationEnvironment.ToString();
         }
     }
@@ -39,7 +36,7 @@ namespace Musoq.Evaluator.RuntimeScripts
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public class SelectBase
+    public class GroupingBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

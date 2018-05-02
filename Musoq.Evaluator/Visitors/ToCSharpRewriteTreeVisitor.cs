@@ -13,7 +13,9 @@ using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
@@ -224,14 +226,24 @@ namespace Musoq.Evaluator.Visitors
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            var identifier = Generator.IdentifierName("lib");
-            Generator.InvocationExpression(identifier);
+
+            var arg = SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList(new[]
+                {
+                    SyntaxFactory.Argument((ExpressionSyntax)a),
+                    SyntaxFactory.Argument((ExpressionSyntax)b),
+                }));
+
+            Nodes.Push(arg);
+
+            Visit(new AccessMethodNode(
+                new FunctionToken(nameof(Operators.Like), TextSpan.Empty),
+                new ArgsListNode(new[] { node.Left, node.Right }), null, typeof(Operators).GetMethod(nameof(Operators.Like))));
         }
 
         public void Visit(FieldNode node)
         {
-            if(!_namespaces.Contains(node.ReturnType.Namespace))
-                _namespaces.Add(node.ReturnType.Namespace);
+            AddNamespace(node.ReturnType.Namespace);
             var type = Compilation.GetTypeByMetadataName(node.ReturnType.FullName);
             var castedExpression = Generator.CastExpression(type, Nodes.Pop());
             Nodes.Push(castedExpression);
@@ -259,6 +271,30 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ContainsNode node)
         {
+            var comparsionValues = (ArgumentListSyntax)Nodes.Pop();
+            var a = Nodes.Pop();
+
+            var expressions = new ExpressionSyntax[comparsionValues.Arguments.Count];
+            for (var index = 0; index < comparsionValues.Arguments.Count; index++)
+            {
+                var argument = comparsionValues.Arguments[index];
+                expressions[index] = argument.Expression;
+            }
+
+            var objExpression = SyntaxHelper.CreateArrayOfObjects(node.ReturnType.Name, expressions);
+
+            var arg = SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList(new[]
+                {
+                    SyntaxFactory.Argument((ExpressionSyntax)a),
+                    SyntaxFactory.Argument(objExpression)
+                }));
+
+            Nodes.Push(arg);
+
+            Visit(new AccessMethodNode(
+                new FunctionToken(nameof(Operators.Contains), TextSpan.Empty),
+                new ArgsListNode(new[] { node.Left, node.Right }), null, typeof(Operators).GetMethod(nameof(Operators.Contains))));
         }
 
         public void Visit(AccessMethodNode node)
@@ -493,10 +529,60 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SkipNode node)
         {
+            var skip = SyntaxFactory.LocalDeclarationStatement(
+                SyntaxHelper.CreateAssignment("skipAmount", (ExpressionSyntax)Generator.LiteralExpression(1)));
+
+            var ifStatement = Generator.IfStatement(
+                Generator.LessThanOrEqualExpression(
+                    SyntaxFactory.IdentifierName("skipAmount"),
+                    Generator.LiteralExpression(node.Value)),
+                new SyntaxNode[]
+                {
+                    SyntaxFactory.PostfixUnaryExpression(
+                        SyntaxKind.PostIncrementExpression, 
+                        SyntaxFactory.IdentifierName("skipAmount")),
+                    SyntaxFactory.ContinueStatement()
+                });
+
+            Script.Replace("{skip_init}", skip.ToFullString());
+            Script.Replace("{skip}", ifStatement.ToFullString());
         }
 
         public void Visit(TakeNode node)
         {
+            var take = SyntaxFactory.LocalDeclarationStatement(
+                SyntaxHelper.CreateAssignment("tookAmount", (ExpressionSyntax)Generator.LiteralExpression(0)));
+
+            var ifStatement = 
+                SyntaxFactory.GlobalStatement(
+                    (StatementSyntax)Generator.IfStatement(
+                        Generator.ValueEqualsExpression(
+                            SyntaxFactory.IdentifierName("tookAmount"),
+                            Generator.LiteralExpression(node.Value)),
+                        new SyntaxNode[]
+                        {
+                            SyntaxFactory.BreakStatement()
+                        }));
+
+            var incTookAmount = SyntaxFactory.GlobalStatement(
+                SyntaxFactory.ExpressionStatement(
+                    SyntaxFactory.PostfixUnaryExpression(
+                    SyntaxKind.PostIncrementExpression,
+                    SyntaxFactory.IdentifierName("tookAmount"))));
+
+            var blockTake = SyntaxFactory.CompilationUnit(
+                SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
+                SyntaxFactory.List<UsingDirectiveSyntax>(),
+                SyntaxFactory.List<AttributeListSyntax>(),
+                SyntaxFactory.List<MemberDeclarationSyntax>(
+                    new MemberDeclarationSyntax[]
+                    {
+                        (MemberDeclarationSyntax)ifStatement,
+                        incTookAmount
+                    }));
+
+            Script.Replace("{take_init}", take.ToFullString());
+            Script.Replace("{take}", blockTake.ToFullString());
         }
 
         public void Visit(ExistingTableFromNode node)
@@ -709,6 +795,10 @@ namespace Musoq.Evaluator.Visitors
             }
 
             Script.Replace("{decl_statement}", _declStatements.ToString());
+            Script.Replace("{skip_init}", string.Empty);
+            Script.Replace("{take_init}", string.Empty);
+            Script.Replace("{skip}", string.Empty);
+            Script.Replace("{take}", string.Empty);
 
             var method = SyntaxFactory.MethodDeclaration(
                 new SyntaxList<AttributeListSyntax>(),

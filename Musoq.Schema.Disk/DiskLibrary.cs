@@ -57,22 +57,6 @@ namespace Musoq.Schema.Disk
         }
 
         [BindableMethod]
-        public bool Like([InjectSource] FileInfo file, string expression)
-        {
-            using (var stream = new StreamReader(file.OpenRead()))
-            {
-                var content = stream.ReadToEnd();
-                return Like(content, expression);
-            }
-        }
-
-        [BindableMethod]
-        public bool NotLike(string content, string expression)
-        {
-            return !Like(content, expression);
-        }
-
-        [BindableMethod]
         public bool HasAttribute([InjectSource] FileInfo file, long flags)
         {
             return (flags & Convert.ToUInt32(file.Attributes)) == flags;

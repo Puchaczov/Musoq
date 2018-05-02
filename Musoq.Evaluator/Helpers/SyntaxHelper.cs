@@ -154,6 +154,11 @@ namespace Musoq.Evaluator.Helpers
             return CreateArrayOf(nameof(Object), expressions);
         }
 
+        public static ArrayCreationExpressionSyntax CreateArrayOfObjects(string typeName, ExpressionSyntax[] expressions)
+        {
+            return CreateArrayOf(typeName, expressions);
+        }
+
         public static ArgumentSyntax CreateArrayOfArgument(string typeName, ExpressionSyntax[] expressions)
         {
             return SyntaxFactory.Argument(CreateArrayOf(typeName, expressions));

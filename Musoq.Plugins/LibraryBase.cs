@@ -631,15 +631,6 @@ namespace Musoq.Plugins
             return obj.ToString();
         }
 
-        [BindableMethod]
-        public bool Like(string content, string searchFor)
-        {
-            return 
-                new Regex(@"\A" + new Regex(@"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\")
-                              .Replace(searchFor, ch => @"\" + ch).Replace('_', '.')
-                              .Replace("%", ".*") + @"\z", RegexOptions.Singleline).IsMatch(content);
-        }
-
         private static Group GetParentGroup(Group group, long number)
         {
             var i = 0;

@@ -26,85 +26,86 @@ namespace Musoq.Evaluator.RuntimeScripts
         public virtual string TransformText()
         {
             this.Write("var {transformed_source_table} = new Table({transformed_table_name}, {transformed" +
-                    "_table_columns});\r\n\r\n");
+                    "_table_columns});\r\nvar groups = new Dictionary<Key, Group>();\r\nvar rootGroup = n" +
+                    "ew Group(\"root\");\r\n\r\n");
             
-            #line 3 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 5 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  for(int i = 0; i < Nesting; ++i) { 
             
             #line default
             #line hidden
             this.Write("\tforeach(var {name");
             
-            #line 4 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 6 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(i));
             
             #line default
             #line hidden
             this.Write("} in {source");
             
-            #line 4 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 6 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(i));
             
             #line default
             #line hidden
             this.Write("}){\r\n\r\n\t");
             
-            #line 6 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 8 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  if(i > 0){ 
             
             #line default
             #line hidden
             this.Write("\t\tif(!({join_condition");
             
-            #line 7 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 9 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture((i-1)));
             
             #line default
             #line hidden
             this.Write("}))\r\n\t\t\tcontinue;\r\n\t");
             
-            #line 9 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 11 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } 
             
             #line default
             #line hidden
             
-            #line 10 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 12 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } 
             
             #line default
             #line hidden
             this.Write("\t\t{where_statement}\r\n\t");
             
-            #line 12 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 14 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  if(HasGroupBy) { 
             
             #line default
             #line hidden
             this.Write("\t\t{group_by_statements}\r\n\t");
             
-            #line 14 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 16 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } else { 
             
             #line default
             #line hidden
             this.Write("\t\t{transformed_select_statements}\r\n\t");
             
-            #line 16 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 18 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } 
             
             #line default
             #line hidden
             this.Write("\t}\r\n");
             
-            #line 18 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 20 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  for(int i = 1; i < Nesting - 1; ++i) { 
             
             #line default
             #line hidden
             this.Write("\t}\r\n");
             
-            #line 20 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
+            #line 22 "C:\Users\Puchacz\Source\Repos\Musoq\Musoq.Evaluator\RuntimeScripts\NestedForeaches.tt"
  } 
             
             #line default

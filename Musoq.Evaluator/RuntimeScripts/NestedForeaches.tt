@@ -1,4 +1,6 @@
 ﻿var {transformed_source_table} = new Table({transformed_table_name}, {transformed_table_columns});
+var groups = new Dictionary<Key, Group>();
+var rootGroup = new Group("root");
 
 <# for(int i = 0; i < Nesting; ++i) { #>
 	foreach(var {name<#=i#>} in {source<#=i#>}){

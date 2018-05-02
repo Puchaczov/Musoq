@@ -273,17 +273,20 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessObjectArrayNode node)
         {
-            Nodes.Push(new AccessObjectArrayNode(node.Token));
+            var parentNodeType = Nodes.Peek().ReturnType;
+            Nodes.Push(new AccessObjectArrayNode(node.Token, parentNodeType.GetProperty(node.Name)));
         }
 
         public void Visit(AccessObjectKeyNode node)
         {
-            Nodes.Push(new AccessObjectKeyNode(node.Token));
+            var parentNodeType = Nodes.Peek().ReturnType;
+            Nodes.Push(new AccessObjectKeyNode(node.Token, parentNodeType.GetProperty(node.ObjectName)));
         }
 
         public void Visit(PropertyValueNode node)
         {
-            Nodes.Push(new PropertyValueNode(node.Name));
+            var parentNodeType = Nodes.Peek().ReturnType;
+            Nodes.Push(new PropertyValueNode(node.Name, parentNodeType.GetProperty(node.Name)));
         }
 
         public void Visit(DotNode node)
@@ -451,12 +454,12 @@ namespace Musoq.Evaluator.Visitors
             {
                 _currentScope.Script.Append(new NestedForeaches() { HasGroupBy = _hasGroupBy, Nesting = _nesting }.TransformText());
                 _currentScope.Script.Append(new Select().TransformText());
-                _currentScope.Script.Replace("{pre_script_dependant}", "{select_statements}");
+                _currentScope.Script.Replace("{pre_script_dependant}", "{skip}{take}{select_statements}");
             }
             else
             {
                 _currentScope.Script.Append(new Select().TransformText());
-                _currentScope.Script.Replace("{pre_script_dependant}", "{where_statement}{select_statements}");
+                _currentScope.Script.Replace("{pre_script_dependant}", "{where_statement}{skip}{take}{select_statements}");
             }
 
             _nesting = 0;
