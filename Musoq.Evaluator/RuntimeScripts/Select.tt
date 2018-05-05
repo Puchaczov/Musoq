@@ -1,9 +1,9 @@
-﻿	var {score_table} = new Table({score_table_name}, {score_columns});
+﻿var {score_table} = new Table({score_table_name}, {score_columns});
 
-	{skip_init}
-	{take_init}
-	foreach(var score in {source_rows}.Rows) {
-		{pre_script_dependant}
-	}
+{skip_init}
+{take_init}
+foreach(var score in {source_rows}.Rows) {
+    {pre_script_dependant}
+}
 
-	return {score_table};
+return {score_table};

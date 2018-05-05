@@ -200,6 +200,10 @@ namespace Musoq.Service.Visitors
             _script.Append("select");
         }
 
+        public void Visit(GroupSelectNode node)
+        {
+        }
+
         public void Visit(WhereNode node)
         {
             _script.Append("where");
@@ -269,7 +273,7 @@ namespace Musoq.Service.Visitors
         {
         }
 
-        public void Visit(IntoGroupNode node)
+        public void Visit(QueryScope node)
         {
         }
 

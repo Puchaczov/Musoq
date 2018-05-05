@@ -25,12 +25,19 @@ namespace Musoq.Converter
 
             var query = root;
 
-            var metadataInferer = new BuildMetadataAndInferTypeVisitor();
-            var metadataInfererTraverser = new BuildMetadataAndInferTypeTraverseVisitor(metadataInferer, schemaProvider);
+            var metadataInferer = new BuildMetadataAndInferTypeVisitor(schemaProvider);
+            var metadataInfererTraverser = new BuildMetadataAndInferTypeTraverseVisitor(metadataInferer);
 
             query.Accept(metadataInfererTraverser);
 
             query = metadataInferer.Root;
+
+            var rewriter = new RewriteQueryVisitor((TransitionSchemaProvider)schemaProvider, metadataInferer.RefreshMethods);
+            var rewriteTraverser = new BuildMetadataAndInferTypeTraverseVisitor(rewriter);
+
+            query.Accept(rewriteTraverser);
+
+            query = rewriter.RootScript;
 
             var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies);
             var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, schemaProvider, new ScopeWalker(metadataInfererTraverser.Scope));
@@ -43,17 +50,15 @@ namespace Musoq.Converter
             {
                 EmitResult result = csharpRewriter.Compilation.Emit(stream, pdbStream);
 
-                if (result.Success)
-                {
-                    var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
+                if (!result.Success) throw new NotSupportedException();
 
-                    var type = assembly.GetType("Query.Compiled.CompiledQuery");
-                    var method = type.GetMethod("RunQuery");
+                var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
 
-                    var runnable = (IRunnable)Activator.CreateInstance(type);
-                    runnable.Provider = schemaProvider;
-                    return runnable;
-                }
+                var type = assembly.GetType("Query.Compiled.CompiledQuery");
+
+                var runnable = (IRunnable)Activator.CreateInstance(type);
+                runnable.Provider = schemaProvider;
+                return runnable;
             }
 #else
             using (var stream = new MemoryStream())

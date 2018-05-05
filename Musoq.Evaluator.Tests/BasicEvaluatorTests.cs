@@ -379,7 +379,17 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Name from #A.Entities() take 2";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+                {"#A",
+                    new[] 
+                    {
+                        new BasicEntity("001"),
+                        new BasicEntity("002"),
+                        new BasicEntity("003"),
+                        new BasicEntity("004"),
+                        new BasicEntity("005"),
+                        new BasicEntity("006")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);

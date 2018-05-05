@@ -30,9 +30,9 @@ namespace Musoq.Evaluator.Utils.Symbols
 
         public string[] CompoundTables => _orders.ToArray();
 
-        public (ISchema Schema, ISchemaTable Table) GetTableByColumnName(string column)
+        public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByColumnName(string column)
         {
-            (ISchema, ISchemaTable) score = (null, null);
+            (ISchema, ISchemaTable, string) score = (null, null, null);
 
             foreach (var table in _tables)
             {
@@ -41,15 +41,15 @@ namespace Musoq.Evaluator.Utils.Symbols
                 if(col == null)
                     throw new NotSupportedException();
 
-                score = table.Value;
+                score = (table.Value.Schema, table.Value.Table, table.Key);
             }
 
             return score;
         }
 
-        public (ISchema Schema, ISchemaTable Table) GetTableByAlias(string alias)
+        public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByAlias(string alias)
         {
-            return _tables[alias];
+            return (_tables[alias].Schema, _tables[alias].Table, alias);
         }
 
         public ISchemaColumn GetColumnByAliasAndName(string alias, string columnName)
@@ -57,7 +57,29 @@ namespace Musoq.Evaluator.Utils.Symbols
             return _tables[alias].Table.Columns.Single(c => c.ColumnName == columnName);
         }
 
-        public ISchemaColumn[] GetColumn(string alias)
+        public ISchemaColumn GetColumn(string columnName)
+        {
+            ISchemaColumn column = null;
+            foreach (var table in _orders)
+            {
+                var tmpColumn = _tables[table].Table.Columns.SingleOrDefault(col => col.ColumnName == columnName);
+
+                if(column != null)
+                    throw new NotSupportedException("Multiple column with the same identifier");
+
+                if(tmpColumn == null)
+                    continue;
+
+                column = tmpColumn;
+            }
+
+            if (column == null)
+                throw new NotSupportedException("No such column.");
+
+            return column;
+        }
+
+        public ISchemaColumn[] GetColumns(string alias)
         {
             return _tables[alias].Table.Columns;
         }

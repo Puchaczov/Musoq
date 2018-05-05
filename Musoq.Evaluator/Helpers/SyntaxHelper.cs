@@ -164,17 +164,31 @@ namespace Musoq.Evaluator.Helpers
             return SyntaxFactory.Argument(CreateArrayOf(typeName, expressions));
         }
 
-        public static ObjectCreationExpressionSyntax CreaateObjectOf(string typeName, ArgumentListSyntax args, InitializerExpressionSyntax initializer = null)
+        public static ObjectCreationExpressionSyntax CreateObjectOf(string typeName, ArgumentListSyntax args, InitializerExpressionSyntax initializer = null)
+        {
+            return CreateObjectOf(typeName, SyntaxFactory.ParseTypeName(typeName), args, initializer);
+        }
+
+        public static ObjectCreationExpressionSyntax CreateObjectOf(string typeName, TypeSyntax type, ArgumentListSyntax args, InitializerExpressionSyntax initializer = null)
         {
             return SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword,
                     SyntaxTriviaList.Create(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " "))),
-                SyntaxFactory.ParseTypeName(typeName),
+                type,
                 args,
                 initializer);
         }
 
         public static ForEachStatementSyntax Foreach(string variable, string source)
+        {
+            return Foreach(variable, source, SyntaxFactory.Block());
+        }
+        public static ForEachStatementSyntax Foreach(string variable, string source, IfStatementSyntax ifStatement)
+        {
+            return Foreach(variable, source, SyntaxFactory.Block(ifStatement));
+        }
+
+        public static ForEachStatementSyntax Foreach(string variable, string source, BlockSyntax block)
         {
             return SyntaxFactory.ForEachStatement(
                 SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
@@ -184,10 +198,10 @@ namespace Musoq.Evaluator.Helpers
                 SyntaxFactory.Token(SyntaxKind.InKeyword).WithTrailingTrivia(WhiteSpace),
                 SyntaxFactory.IdentifierName(source),
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken),
-                SyntaxFactory.Block());
+                block);
         }
 
-        public static ArrayCreationExpressionSyntax CreateArrayOf(string typeName, ExpressionSyntax[] expressions)
+        public static ArrayCreationExpressionSyntax CreateArrayOf(string typeName, ExpressionSyntax[] expressions, int ranksAmount = 1)
         {
             var newKeyword = SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword, SyntaxTriviaList.Create(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")));
             var syntaxList = new SeparatedSyntaxList<ExpressionSyntax>();
@@ -199,18 +213,21 @@ namespace Musoq.Evaluator.Helpers
 
             var rankSpecifiers = new SyntaxList<ArrayRankSpecifierSyntax>();
 
-            rankSpecifiers = rankSpecifiers.Add(
-                SyntaxFactory.ArrayRankSpecifier(
-                    SyntaxFactory.Token(SyntaxKind.OpenBracketToken),
-                    new SeparatedSyntaxList<ExpressionSyntax>
-                    {
-                        SyntaxFactory.OmittedArraySizeExpression(
-                            SyntaxFactory.Token(SyntaxKind.OmittedArraySizeExpressionToken)
-                        )
-                    },
-                    SyntaxFactory.Token(SyntaxKind.CloseBracketToken)
-                )
-            );
+            for (int i = 0; i < ranksAmount; i++)
+            {
+                rankSpecifiers = rankSpecifiers.Add(
+                    SyntaxFactory.ArrayRankSpecifier(
+                        SyntaxFactory.Token(SyntaxKind.OpenBracketToken),
+                        new SeparatedSyntaxList<ExpressionSyntax>
+                        {
+                            SyntaxFactory.OmittedArraySizeExpression(
+                                SyntaxFactory.Token(SyntaxKind.OmittedArraySizeExpressionToken)
+                            )
+                        },
+                        SyntaxFactory.Token(SyntaxKind.CloseBracketToken)
+                    )
+                );
+            }
 
             return SyntaxFactory.ArrayCreationExpression(
                 newKeyword,

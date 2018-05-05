@@ -163,7 +163,7 @@ namespace Musoq.Parser
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            return new QueryNode(selectNode, fromNode, new JoinsNode(new JoinNode[0]), whereNode, groupBy, orderBy, skip, take);
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
         }
 
         private FromNode ComposeJoin(FromNode from)
@@ -185,6 +185,8 @@ namespace Musoq.Parser
                             break;
                     }
                 }
+
+                from = new JoinsNode((JoinFromNode)from);
             }
 
             return new ExpressionFromNode(from);

@@ -3,8 +3,8 @@
     public class InMemoryTableFromNode : FromNode
     {
 
-        public InMemoryTableFromNode(string variableName) 
-            : base(string.Empty)
+        public InMemoryTableFromNode(string variableName, string alias = "") 
+            : base(alias)
         {
             VariableName = variableName;
         }

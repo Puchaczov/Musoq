@@ -41,6 +41,10 @@ namespace Musoq.Service.Visitors
             _visitor.AddText(")");
         }
 
+        public void Visit(GroupSelectNode node)
+        {
+        }
+
         public void Visit(StringNode node)
         {
             node.Accept(_visitor);
@@ -214,7 +218,7 @@ namespace Musoq.Service.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(IntoGroupNode node)
+        public void Visit(QueryScope node)
         {
             node.Accept(_visitor);
         }
@@ -256,8 +260,6 @@ namespace Musoq.Service.Visitors
             node.Refresh?.Accept(this);
             node.GroupBy?.Having?.Accept(this);
             node.Take?.Accept(this);
-            node.ShouldBePresent?.Accept(_visitor);
-            node.Into?.Accept(_visitor);
         }
 
         /// <summary>
@@ -502,8 +504,8 @@ namespace Musoq.Service.Visitors
 
         public void Visit(JoinsNode node)
         {
-            foreach (var item in node.Joins)
-                item.Accept(this);
+            node.Joins.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(JoinNode node)

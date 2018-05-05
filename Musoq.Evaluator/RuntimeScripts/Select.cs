@@ -25,9 +25,9 @@ namespace Musoq.Evaluator.RuntimeScripts
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("\tvar {score_table} = new Table({score_table_name}, {score_columns});\r\n\r\n\t{skip_in" +
-                    "it}\r\n\t{take_init}\r\n\tforeach(var score in {source_rows}.Rows) {\r\n\t\t{pre_script_de" +
-                    "pendant}\r\n\t}\r\n\r\n\treturn {score_table};\r\n");
+            this.Write("var {score_table} = new Table({score_table_name}, {score_columns});\r\n\r\n{skip_init" +
+                    "}\r\n{take_init}\r\nforeach(var score in {source_rows}.Rows) {\r\n    {pre_script_depe" +
+                    "ndant}\r\n}\r\n\r\nreturn {score_table};\r\n");
             return this.GenerationEnvironment.ToString();
         }
     }

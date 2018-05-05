@@ -1,25 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Musoq.Evaluator.TemporarySchemas;
+using System.Text;
+using Musoq.Evaluator.RuntimeScripts;
 using Musoq.Evaluator.Utils;
-using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Schema;
+using IdentifierNode = Musoq.Parser.Nodes.IdentifierNode;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class BuildMetadataAndInferTypeTraverseVisitor : IExpressionVisitor
+    public class RewriteQueryTraverseVisitor : IExpressionVisitor
     {
-        private readonly IScopeAwareExpressionVisitor _visitor;
-        private readonly Stack<Scope> _scopes = new Stack<Scope>();
-        private Scope _current = new Scope(null, -1);
-        public Scope Scope => _current;
+        private readonly IExpressionVisitor _visitor;
+        private ScopeWalker _walker;
 
-        public BuildMetadataAndInferTypeTraverseVisitor(IScopeAwareExpressionVisitor visitor)
+        public RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor visitor, ScopeWalker walker)
         {
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
+            _walker = walker;
         }
 
         public void Visit(SelectNode node)
@@ -31,6 +29,8 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(GroupSelectNode node)
         {
+            foreach (var field in node.Fields)
+                field.Accept(this);
             node.Accept(_visitor);
         }
 
@@ -95,45 +95,16 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(AccessObjectKeyNode node)
-        {
-            node.Accept(_visitor);
-        }
+        {}
 
         public void Visit(PropertyValueNode node)
-        {
-            node.Accept(_visitor);
-        }
+        {}
 
         public void Visit(DotNode node)
         {
-            var self = node;
-
-            var ident = (IdentifierNode) self.Root;
-            if (_current.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
-            {
-                if (self.Expression is DotNode dotNode)
-                {
-                    var col = (IdentifierNode) dotNode.Root;
-                    Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
-                }
-                else
-                {
-                    var col = (IdentifierNode) self.Expression;
-                    Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
-                }
-
-                self = self.Expression as DotNode;
-            }
-
-
-            while (!(self is null))
-            {
-                self.Root.Accept(this);
-                self.Expression.Accept(this);
-                self.Accept(_visitor);
-
-                self = self.Expression as DotNode;
-            }
+            node.Root.Accept(this);
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(AccessCallChainNode node)
@@ -205,34 +176,26 @@ namespace Musoq.Evaluator.Visitors
             }
 
             join = joins.Pop();
+
             join.Source.Accept(this);
             join.With.Accept(this);
-
-            var firstTableSymbol = _current.ScopeSymbolTable.GetSymbol<TableSymbol>(join.Source.Alias);
-            var secondTableSymbol = _current.ScopeSymbolTable.GetSymbol<TableSymbol>(join.With.Alias);
-
-            var id = $"{join.Source.Alias}{join.With.Alias}";
-
-            _current.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
-            
             join.Expression.Accept(this);
-            join.Accept(_visitor);
 
-            while (joins.Count > 0)
+            while (joins.Count > 1)
             {
                 join = joins.Pop();
                 join.With.Accept(this);
-
-                var currentTableSymbol = _current.ScopeSymbolTable.GetSymbol<TableSymbol>(join.With.Alias);
-                var previousTableSymbol = _current.ScopeSymbolTable.GetSymbol<TableSymbol>(id);
-
-                id = $"{id}{join.With.Alias}";
-
-                _current.ScopeSymbolTable.AddSymbol(id, previousTableSymbol.MergeSymbols(currentTableSymbol));
-                
                 join.Expression.Accept(this);
-                join.Accept(_visitor);
             }
+
+            if (joins.Count > 0)
+            {
+                join = joins.Pop();
+                join.With.Accept(this);
+                join.Expression.Accept(this);
+            }
+
+            join.Accept(_visitor);
         }
 
         public void Visit(ExpressionFromNode node)
@@ -288,29 +251,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
-            LoadScope();
             node.From.Accept(this);
             node.Where.Accept(this);
             node.Select.Accept(this);
+
             node.Take?.Accept(this);
             node.Skip?.Accept(this);
             node.GroupBy?.Accept(this);
             node.Accept(_visitor);
-            RestoreScope();
-        }
-
-        private void LoadScope()
-        {
-            var newScope = _current.AddScope();
-            _scopes.Push(_current);
-            _current = newScope;
-
-            _visitor.SetScope(newScope);
-        }
-
-        private void RestoreScope()
-        {
-            _current = _scopes.Pop();
         }
 
         public void Visit(OrNode node)
@@ -461,6 +409,15 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(InternalQueryNode node)
         {
+            node.From.Accept(this);
+            node.Where.Accept(this);
+            node.Select.Accept(this);
+
+            node.Take?.Accept(this);
+            node.Skip?.Accept(this);
+            node.GroupBy?.Accept(this);
+            node.Refresh?.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(RootNode node)
@@ -510,9 +467,13 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(MultiStatementNode node)
         {
+            _walker = _walker.NextChild();
+
             foreach (var cNode in node.Nodes)
                 cNode.Accept(this);
             node.Accept(_visitor);
+
+            _walker = _walker.Parent();
         }
 
         public void Visit(CteExpressionNode node)

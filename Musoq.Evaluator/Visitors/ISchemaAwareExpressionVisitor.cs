@@ -6,12 +6,10 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public interface IScopeAwareExpressionVisitor : IExpressionVisitor
+    public interface IToCSharpTranslationExpressionVisitor : IScopeAwareExpressionVisitor
     {
         void QueryBegins();
         void QueryEnds();
-
-        void SetScope(Scope scope);
 
         void SetQueryIdentifier(string identifier);
 
@@ -19,5 +17,14 @@ namespace Musoq.Evaluator.Visitors
         void SetJoinsAmount(int amount);
 
         void SetMethodAccessType(MethodAccessType type);
+        void SelectBegins();
+        void SelectEnds();
+        void TurnOnAggregateMethodsToColumnAcceess();
+        void TurnOffAggregateMethodsToColumnAcceess();
+    }
+
+    public interface IScopeAwareExpressionVisitor : IExpressionVisitor
+    {
+        void SetScope(Scope scope);
     }
 }

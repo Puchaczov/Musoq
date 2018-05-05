@@ -25,6 +25,37 @@ namespace Musoq.Evaluator.RuntimeScripts
         /// </summary>
         public virtual string TransformText()
         {
+            this.Write(@"var keys = {group_keys};
+var values = {group_fields_values};
+
+var parent = rootGroup;
+Group group = null;
+
+for(int i = 0; i < keys.Length; ++i)
+{
+    var key = keys[i];
+    if(groups.ContainsKey(key))
+    {
+        group = groups[key];
+    }
+    else
+    {
+        group = new Group(parent, groupFieldsNames[i], values[i]);
+        groups.Add(key, group);
+    }
+
+    parent = group;
+}
+
+{refresh_methods}
+
+{having}
+
+if(!usedGroups.Contains(group))
+{
+    {transformed_source_table}.Add({group_row});
+    usedGroups.Add(group);
+}");
             return this.GenerationEnvironment.ToString();
         }
     }

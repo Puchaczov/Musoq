@@ -42,6 +42,7 @@ namespace Musoq.Parser
         void Visit(AccessCallChainNode node);
         void Visit(ArgsListNode node);
         void Visit(SelectNode node);
+        void Visit(GroupSelectNode node);
         void Visit(WhereNode node);
         void Visit(GroupByNode node);
         void Visit(HavingNode node);
@@ -57,7 +58,7 @@ namespace Musoq.Parser
         void Visit(RenameTableNode node);
         void Visit(TranslatedSetTreeNode node);
         void Visit(IntoNode node);
-        void Visit(IntoGroupNode node);
+        void Visit(QueryScope node);
         void Visit(ShouldBePresentInTheTable node);
         void Visit(TranslatedSetOperatorNode node);
         void Visit(QueryNode node);

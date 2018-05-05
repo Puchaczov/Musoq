@@ -5,7 +5,7 @@ namespace Musoq.Parser.Nodes
 {
     public class QueryNode : Node
     {
-        public QueryNode(SelectNode select, FromNode from, JoinsNode joins, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take)
+        public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take)
         {
             Select = select;
             From = from;
@@ -14,15 +14,12 @@ namespace Musoq.Parser.Nodes
             OrderBy = orderBy;
             Skip = skip;
             Take = take;
-            Joins = joins;
             Id = $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{orderBy?.Id}{skip?.Id}{take?.Id}";
         }
 
         public SelectNode Select { get; }
 
         public FromNode From { get; }
-
-        public JoinsNode Joins { get; }
 
         public WhereNode Where { get; }
 
@@ -45,9 +42,22 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            var joins = Joins == null || Joins.Joins.Length == 0 ? string.Empty : Joins.Joins.Select(f => f.ToString()).Aggregate((a, b) => a + " " + b);
 
-            return $"{Select?.ToString()} {From?.ToString()} {joins} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
+            return $"{Select?.ToString()} {From?.ToString()} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
         }
+    }
+
+    public class DetailedQueryNode : QueryNode
+    {
+        public DetailedQueryNode(SelectNode @select, FromNode @from, WhereNode @where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take, string sourceName, bool mustTransformSource) 
+            : base(@select, @from, @where, groupBy, orderBy, skip, take)
+        {
+            SourceName = sourceName;
+            MustTransformSource = mustTransformSource;
+        }
+
+        public string SourceName { get; }
+
+        public bool MustTransformSource { get; }
     }
 }

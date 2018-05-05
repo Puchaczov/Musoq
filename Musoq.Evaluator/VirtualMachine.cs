@@ -26,7 +26,6 @@ namespace Musoq.Evaluator
         {
             // ReSharper disable once TooWideLocalVariableScope
             long ip;
-
             try
             {
                 while (this[Register.Sop] != (int) SpecialOperationRegister.Exit)

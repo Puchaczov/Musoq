@@ -1,20 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Musoq.Parser.Nodes
 {
-    public class IntoGroupNode : IntoNode
+    public class QueryScope : Node
     {
-        public IntoGroupNode(string name, IDictionary<int, string> columnToValue)
-            : base(name)
+        public QueryScope(Node[] statements)
         {
-            ColumnToValue = columnToValue;
+            Statements = statements;
         }
 
-        public IDictionary<int, string> ColumnToValue { get; }
+        public Node[] Statements { get; }
+
+        public override Type ReturnType { get; }
 
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
+        }
+
+        public override string Id { get; }
+        public override string ToString()
+        {
+            return null;
         }
     }
 }

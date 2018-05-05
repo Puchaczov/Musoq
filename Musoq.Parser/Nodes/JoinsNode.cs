@@ -3,17 +3,15 @@ using System.Linq;
 
 namespace Musoq.Parser.Nodes
 {
-    public class JoinsNode : Node {
+    public class JoinsNode : FromNode {
 
-        public JoinsNode(JoinNode[] args)
+        public JoinsNode(JoinFromNode joins)
+            : base(joins.Alias)
         {
-            Joins = args;
-
-            var argsId = args.Length == 0 ? string.Empty : args.Select(f => f.Id).Aggregate((a, b) => a + b);
-            Id = $"{nameof(JoinsNode)}{argsId}";
+            Id = $"{nameof(JoinsNode)}{joins.Id}";
         }
 
-        public JoinNode[] Joins { get; }
+        public JoinFromNode Joins { get; }
 
         public override Type ReturnType => typeof(void);
 
@@ -26,10 +24,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            var str = Joins.Length == 0
-                ? string.Empty
-                : Joins.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
-            return str;
+            return Joins.ToString();
         }
     }
 }

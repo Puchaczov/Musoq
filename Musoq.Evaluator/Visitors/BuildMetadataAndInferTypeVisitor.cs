@@ -19,9 +19,6 @@ namespace Musoq.Evaluator.Visitors
     public class BuildMetadataAndInferTypeVisitor : IScopeAwareExpressionVisitor
     {
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
-
-        private FieldNode[] _generatedColumns = new FieldNode[0];
-
         public List<Assembly> Assemblies { get; } = new List<Assembly>();
 
         private Scope _currentScope;
@@ -29,6 +26,17 @@ namespace Musoq.Evaluator.Visitors
         private bool _hasGroupByOrJoin;
         private bool _hasGroupBy;
         private int _nesting;
+        private string _queryAlias;
+        private FieldNode[] _generatedColumns = new FieldNode[0];
+        private bool _insideSelect;
+        private ISchemaProvider _provider;
+
+        public List<AccessMethodNode> RefreshMethods = new List<AccessMethodNode>();
+
+        public BuildMetadataAndInferTypeVisitor(ISchemaProvider provider)
+        {
+            _provider = provider;
+        }
 
         private void AddAssembly(Assembly asm)
         {
@@ -174,6 +182,13 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new SelectNode(fields.ToArray()));
         }
 
+        public void Visit(GroupSelectNode node)
+        {
+            var fields = CreateFields(node.Fields);
+
+            Nodes.Push(new GroupSelectNode(fields.ToArray()));
+        }
+
         public void Visit(StringNode node)
         {
             AddAssembly(typeof(string).Assembly);
@@ -208,19 +223,20 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(AccessMethodNode node)
         {
             VisitAccessMethod(node,
-                (token, node1, exargs, arg3) => new AccessMethodNode(token, node1 as ArgsListNode, exargs, arg3));
+                (token, node1, exargs, arg3, alias) => new AccessMethodNode(token, node1 as ArgsListNode, exargs, arg3, alias));
+
         }
 
         public void Visit(GroupByAccessMethodNode node)
         {
             VisitAccessMethod(node,
-                (token, node1, exargs, arg3) => new GroupByAccessMethodNode(token, node1 as ArgsListNode, exargs, arg3));
+                (token, node1, exargs, arg3, alias) => new GroupByAccessMethodNode(token, node1 as ArgsListNode, exargs, arg3));
         }
 
         public void Visit(AccessRefreshAggreationScoreNode node)
         {
             VisitAccessMethod(node,
-                (token, node1, exargs, arg3) =>
+                (token, node1, exargs, arg3, alias) =>
                     new AccessRefreshAggreationScoreNode(token, node1 as ArgsListNode, exargs, arg3));
         }
 
@@ -228,7 +244,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
 
-            (ISchema Schema, ISchemaTable Table) tuple;
+            (ISchema Schema, ISchemaTable Table, string TableName) tuple;
             if (!string.IsNullOrEmpty(node.Alias))
                 tuple = tableSymbol.GetTableByAlias(node.Alias);
             else
@@ -238,7 +254,9 @@ namespace Musoq.Evaluator.Visitors
 
             AddAssembly(column.ColumnType.Assembly);
             node.ChangeReturnType(column.ColumnType);
-            Nodes.Push(new AccessColumnNode(column.ColumnName, node.Alias, column.ColumnType, node.Span));
+
+            var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span);
+            Nodes.Push(accessColumn);
         }
 
         public void Visit(AllColumnsNode node)
@@ -330,8 +348,9 @@ namespace Musoq.Evaluator.Visitors
             var fields = new FieldNode[node.Fields.Length];
 
             for (var i = node.Fields.Length - 1; i >= 0; --i)
+            {
                 fields[i] = Nodes.Pop() as FieldNode;
-
+            }
 
             Nodes.Push(new GroupByNode(fields, having));
         }
@@ -353,9 +372,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
+            var schema = _provider.GetSchema(node.Schema);
+            var table = schema.GetTableByName(node.Method, node.Parameters);
+
+            _queryAlias = CreateAliasIfEmpty(node.Alias);
+            _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, new TableSymbol(_queryAlias, schema, table));
+
             _nesting += 1;
-            var alias = CreateAliasIfEmpty(node.Alias);
-            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, alias));
+            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, _queryAlias));
         }
 
         private string CreateAliasIfEmpty(string alias)
@@ -386,9 +410,11 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ExpressionFromNode node)
         {
-            Nodes.Push(new ExpressionFromNode((FromNode)Nodes.Pop()));
+            var from = (FromNode) Nodes.Pop();
+            _identifier = from.Alias;
+            Nodes.Push(new ExpressionFromNode(from));
 
-            var tableSymbol =_currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Alias);
+            var tableSymbol =_currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
 
             foreach (var tableAlias in tableSymbol.CompoundTables)
             {
@@ -420,9 +446,8 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new IntoNode(node.Name));
         }
 
-        public void Visit(IntoGroupNode node)
+        public void Visit(QueryScope node)
         {
-            Nodes.Push(new IntoGroupNode(node.Name, node.ColumnToValue));
         }
 
         public void Visit(ShouldBePresentInTheTable node)
@@ -442,7 +467,6 @@ namespace Musoq.Evaluator.Visitors
 
             var select = Nodes.Pop() as SelectNode;
             var where = Nodes.Pop() as WhereNode;
-            var joins = node.Joins != null ? Nodes.Pop() as JoinsNode : null;
             var from = Nodes.Pop() as FromNode;
 
             if(_currentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
@@ -465,7 +489,7 @@ namespace Musoq.Evaluator.Visitors
             _nesting = 0;
             _hasGroupBy = false;
             _hasGroupByOrJoin = false;
-            Nodes.Push(new QueryNode(select, from, joins, where, groupBy, null, skip, take));
+            Nodes.Push(new QueryNode(select, from, where, groupBy, null, skip, take));
         }
 
         public void Visit(ExistingTableFromNode node)
@@ -551,14 +575,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinsNode node)
         {
-            var joins = new JoinNode[node.Joins.Length];
-
-            for (int i = node.Joins.Length - 1; i >= 0; i--)
-            {
-                joins[i] = (JoinNode)Nodes.Pop();
-            }
-
-            Nodes.Push(new JoinsNode(joins));
+            Nodes.Push(new JoinsNode((JoinFromNode)Nodes.Pop()));
         }
 
         public void Visit(JoinNode node)
@@ -597,15 +614,17 @@ namespace Musoq.Evaluator.Visitors
         }
 
         private void VisitAccessMethod(AccessMethodNode node,
-            Func<FunctionToken, Node, ArgsListNode, MethodInfo, AccessMethodNode> func)
+            Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, AccessMethodNode> func)
         {
             var args = Nodes.Pop() as ArgsListNode;
 
             var groupArgs = new List<Type> { typeof(string) };
             groupArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1).Select(f => f.ReturnType));
 
-            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Alias);
-            var schemaTablePair = tableSymbol.GetTableByAlias(node.Alias);
+            var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
+
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
+            var schemaTablePair = tableSymbol.GetTableByAlias(alias);
             if (!schemaTablePair.Schema.TryResolveAggreationMethod(node.Name, groupArgs.ToArray(), out var method))
                 method = schemaTablePair.Schema.ResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray());
 
@@ -614,19 +633,32 @@ namespace Musoq.Evaluator.Visitors
             AccessMethodNode accessMethod;
             if (isAggregateMethod)
             {
-                accessMethod = func(node.FToken, args, node.ExtraAggregateArguments, method);
+                accessMethod = func(node.FToken, args, node.ExtraAggregateArguments, method, alias);
                 var identifier = accessMethod.ToString();
 
                 var newArgs = new List<Node> { new WordNode(identifier) };
                 newArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1));
-                var shouldHaveExtraArgs = accessMethod.ArgsCount > 0;
-                var newExtraArgs = new ArgsListNode(shouldHaveExtraArgs ? new[] { accessMethod.Arguments.Args.Last() } : new Node[0]);
+                var newSetArgs = new List<Node> { new WordNode(identifier) };
+                newSetArgs.AddRange(args.Args);
 
-                accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), newExtraArgs, method);
+                var setMethodName = $"Set{method.Name}";
+
+                if(!schemaTablePair.Schema.TryResolveAggreationMethod(
+                    setMethodName, 
+                    newSetArgs.Select(f => f.ReturnType).ToArray(), 
+                    out var setMethod))
+                    throw new NotSupportedException();
+
+                var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty), new ArgsListNode(newSetArgs.ToArray()), null, setMethod,
+                    string.Empty);
+
+                RefreshMethods.Add(setMethodNode);
+
+                accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), null, method, alias);
             }
             else
             {
-                accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method);
+                accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method, alias);
             }
 
             AddAssembly(method.DeclaringType.Assembly);
@@ -637,34 +669,9 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(accessMethod);
         }
 
-        public void QueryBegins()
-        {
-        }
-
-        public void QueryEnds()
-        {
-        }
-
         public void SetScope(Scope scope)
         {
             _currentScope = scope;
-        }
-
-        public void SetQueryIdentifier(string identifier)
-        {
-            _identifier = identifier;
-        }
-
-        public void SetCodePattern(StringBuilder code)
-        {
-        }
-
-        public void SetJoinsAmount(int amount)
-        {
-        }
-
-        public void SetMethodAccessType(MethodAccessType type)
-        {
         }
     }
 }

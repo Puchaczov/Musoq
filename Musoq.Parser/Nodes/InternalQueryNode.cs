@@ -4,30 +4,13 @@ namespace Musoq.Parser.Nodes
 {
     public class InternalQueryNode : QueryNode
     {
-        public InternalQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, IntoNode into,
-            ShouldBePresentInTheTable shouldBePresent, SkipNode skip, TakeNode take,  bool shouldLoadResultTableAsResult, string resultTable,
-            bool useColumnAccessInstead, RefreshNode refresh)
-            : base(select, from, null, where, groupBy, orderBy, skip, take)
+        public InternalQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take, RefreshNode refresh)
+            : base(select, from, where, groupBy, orderBy, skip, take)
         {
-            UseColumnAccessInstead = useColumnAccessInstead;
             Refresh = refresh;
-            Into = into;
-            ShouldBePresent = shouldBePresent;
-            ShouldLoadResultTableAsResult = shouldLoadResultTableAsResult;
-            ResultTable = resultTable;
         }
 
-        public bool UseColumnAccessInstead { get; }
-
-        public IntoNode Into { get; }
-
-        public ShouldBePresentInTheTable ShouldBePresent { get; }
-
         public RefreshNode Refresh { get; }
-
-        public bool ShouldLoadResultTableAsResult { get; }
-
-        public string ResultTable { get; }
 
         public override Type ReturnType => null;
 
@@ -39,7 +22,7 @@ namespace Musoq.Parser.Nodes
         public override string ToString()
         {
             return
-                $"{Select.ToString()} {From.ToString()} {Where.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Into?.ToString()} {ShouldBePresent?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
+                $"{Select.ToString()} {From.ToString()} {Where.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
         }
     }
 }
