@@ -43,7 +43,7 @@ namespace Musoq.Evaluator.Tables
         {
             for (var i = 0; i < columns.Length; i++)
             {
-                _columnsByIndex.Add(i, columns[i]);
+                _columnsByIndex.Add(columns[i].ColumnOrder, columns[i]);
                 _columnsByName.Add(columns[i].Name, columns[i]);
             }
         }

@@ -78,25 +78,24 @@ namespace Musoq.Evaluator.Visitors
                 new SchemaColumn(nameof(ISchemaColumn.ColumnType), 2, typeof(string))
             });
 
-            var schemaName = $"desc.{from.Schema}";
+            var schemaName = $"{from.Schema}.desc";
             const string method = "notimportant";
             var parameters = new string[0];
-            _schemaProvider.AddTransitionSchema(new DescSchema(schemaName, table, _table.Columns));
+
+            var schema = _schemaProvider.GetSchema(from.Schema);
+            var schemaTable = schema.GetTableByName(from.Method, from.Parameters);
+
+            _schemaProvider.AddTransitionSchema(new DescSchema(schemaName, table, schemaTable.Columns));
             var select = new SelectNode(fields.ToArray());
-            var newFrom = new SchemaFromNode(schemaName, method, parameters, string.Empty);
+            var newFrom = new SchemaFromNode(schemaName, method, parameters, "desc");
 
             var newQuery = new QueryNode(select, newFrom, new WhereNode(new PutTrueNode()), null, null, null, null);
 
-            Nodes.Push(newFrom);
+            Nodes.Push(new ExpressionFromNode(newFrom));
             Nodes.Push(new WhereNode(new PutTrueNode()));
             Nodes.Push(select);
 
             Visit(newQuery);
-
-            var newInternalQuery = (InternalQueryNode)Nodes.Pop();
-            var nodes = new Node[] { new CreateTableNode(newInternalQuery.From.Alias, new string[0], newInternalQuery.Select.Fields), newInternalQuery };
-
-            Nodes.Push(new MultiStatementNode(nodes, null));
         }
 
         public void Visit(StarNode node)
@@ -124,19 +123,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
-            if (left.ReturnType == typeof(string) && right.ReturnType == typeof(string))
-            {
-                var methodName = "Concat";
-                var token = new FunctionToken(methodName, TextSpan.Empty);
-                var args = new ArgsListNode(new[] { left, right });
-                var method = _schema.ResolveMethod(methodName, new[] { left.ReturnType, right.ReturnType });
-
-                Nodes.Push(new AccessMethodNode(token, args, null, method));
-            }
-            else
-            {
-                Nodes.Push(new AddNode(left, right));
-            }
+            Nodes.Push(new AddNode(left, right));
         }
 
         public void Visit(HyphenNode node)
@@ -219,17 +206,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(LikeNode node)
         {
-            const string methodName = "Like";
-
             var right = Nodes.Pop();
             var left = Nodes.Pop();
-            var method = _schema.ResolveMethod(methodName, new[] { left.ReturnType, right.ReturnType });
-            var fToken = new FunctionToken(methodName, TextSpan.Empty);
-            var argList = new ArgsListNode(new[] { left, right });
-
-            var accessMethod = new AccessMethodNode(fToken, argList, null, method);
-
-            Nodes.Push(accessMethod);
+            Nodes.Push(new LikeNode(left, right));
         }
 
         public virtual void Visit(FieldNode node)
@@ -277,24 +256,20 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(AccessMethodNode node)
         {
-            VisitAccessMethod(node,
-                (token, node1, exargs, arg3) => new AccessMethodNode(token, node1 as ArgsListNode, exargs, arg3));
+            VisitAccessMethod(node);
         }
 
         public void Visit(GroupByAccessMethodNode node)
         {
-            VisitAccessMethod(node,
-                (token, node1, exargs, arg3) => new GroupByAccessMethodNode(token, node1 as ArgsListNode, exargs, arg3));
+            VisitAccessMethod(node);
         }
 
         public void Visit(AccessRefreshAggreationScoreNode node)
         {
-            VisitAccessMethod(node,
-                (token, node1, exargs, arg3) =>
-                    new AccessRefreshAggreationScoreNode(token, node1 as ArgsListNode, exargs, arg3));
+            VisitAccessMethod(node);
         }
 
-        public void Visit(AccessColumnNode node)
+        public virtual void Visit(AccessColumnNode node)
         {
             Nodes.Push(new AccessColumnNode(node.Name, node.Alias, node.ReturnType, node.Span));
         }
@@ -446,10 +421,11 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
+            var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
+
             var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
             var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
 
-            var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
 
             var select = Nodes.Pop() as SelectNode;
             var where = Nodes.Pop() as WhereNode;
@@ -483,7 +459,7 @@ namespace Musoq.Evaluator.Visitors
                 var source = $"{transformingQuery.From.Alias}TransformedScore";
 
                 query = new DetailedQueryNode(outSelect, new InMemoryTableFromNode($"{node.From.Alias}Score", $"{node.From.Alias}Score"), 
-                    new WhereNode(new PutTrueNode()), null, null, skip, take, source, true);
+                    new WhereNode(new PutTrueNode()), null, null, skip, take, source, $"{node.From.Alias}Score", true);
 
                 Nodes.Push(
                     new MultiStatementNode(
@@ -504,10 +480,17 @@ namespace Musoq.Evaluator.Visitors
                 {
                     var fakeField = new FieldNode(new IntegerNode("1"), 0, String.Empty);
                     var fakeGroupBy = new GroupByNode(new[] { fakeField }, null);
-                    Nodes.Push(fakeGroupBy);
                     Nodes.Push(from);
                     Nodes.Push(where);
                     Nodes.Push(select);
+
+                    if(node.Take != null)
+                        Nodes.Push(node.Take);
+
+                    if(node.Skip != null)
+                        Nodes.Push(node.Skip);
+
+                    Nodes.Push(fakeGroupBy);
                     Visit(new QueryNode(node.Select, node.From, node.Where, fakeGroupBy, node.OrderBy, node.Skip, node.Take));
                 }
                 else if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
@@ -521,7 +504,7 @@ namespace Musoq.Evaluator.Visitors
                             new Node[]
                             {
                                 new CreateTableNode($"{from.Alias}Score", new string[0], select.Fields),
-                                new DetailedQueryNode(select, from, where, null, null, skip, take, $"{from.Alias}Rows", false), 
+                                new DetailedQueryNode(select, from, where, null, null, skip, take, $"{from.Alias}Rows", $"{from.Alias}Score", false), 
                             }, 
                             null));
                 }
@@ -552,7 +535,7 @@ namespace Musoq.Evaluator.Visitors
 
                 if (!hasField)
                 {
-                    fields.Add(new FieldNode(groupField.Expression, ++nextOrder, groupField.FieldName));
+                    fields.Add(new FieldNode(groupField.Expression, ++nextOrder, String.Empty));
                 }
             }
 
@@ -913,12 +896,11 @@ namespace Musoq.Evaluator.Visitors
             return new VariableTable(query.Select.Fields.Select(field => new SchemaColumn(field.FieldName, field.FieldOrder, field.ReturnType)).Cast<ISchemaColumn>().ToArray());
         }
 
-        private void VisitAccessMethod(AccessMethodNode node,
-            Func<FunctionToken, Node, ArgsListNode, MethodInfo, AccessMethodNode> func)
+        private void VisitAccessMethod(AccessMethodNode node)
         {
             var args = Nodes.Pop() as ArgsListNode;
 
-            Nodes.Push(new AccessMethodNode(node.FToken, args, null, node.Method));
+            Nodes.Push(new AccessMethodNode(node.FToken, args, null, node.Method, node.Alias));
         }
 
         private FieldNode[][] SplitBetweenAggreateAndNonAggreagate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields, bool useOuterFields)
@@ -945,7 +927,8 @@ namespace Musoq.Evaluator.Visitors
                         if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
                             continue;
 
-                        nestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
+                        var nameArg = (WordNode)aggregateMethod.Arguments.Args[0];
+                        nestedFields.Add(new FieldNode(subNode, fieldOrder, nameArg.Value));
                         rawNestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
                         fieldOrder += 1;
                     }

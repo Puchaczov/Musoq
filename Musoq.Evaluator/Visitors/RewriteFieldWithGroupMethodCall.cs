@@ -25,6 +25,11 @@ namespace Musoq.Evaluator.Visitors
             Expression = Nodes.Pop() as FieldNode;
         }
 
+        public override void Visit(AccessColumnNode node)
+        {
+            Nodes.Push(new AccessColumnNode($"{node.Alias}.{node.Name}", string.Empty, node.ReturnType, TextSpan.Empty));
+        }
+
         public override void Visit(AccessMethodNode node)
         {
             if (node.IsAggregateMethod)

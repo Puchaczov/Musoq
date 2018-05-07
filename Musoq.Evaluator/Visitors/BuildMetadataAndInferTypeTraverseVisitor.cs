@@ -426,9 +426,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DescNode node)
         {
-
+            LoadScope();
             node.From.Accept(this);
             node.Accept(_visitor);
+            RestoreScope();
         }
 
         public void Visit(StarNode node)

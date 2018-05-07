@@ -5,8 +5,8 @@ namespace Musoq.Parser.Nodes
 {
     public class GroupByAccessMethodNode : AccessMethodNode
     {
-        public GroupByAccessMethodNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraArgs, MethodInfo method) 
-            : base(fToken, args, extraArgs, method)
+        public GroupByAccessMethodNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraArgs, MethodInfo method, string alias) 
+            : base(fToken, args, extraArgs, method, alias)
         {
         }
 

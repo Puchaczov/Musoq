@@ -5,8 +5,8 @@ namespace Musoq.Parser.Nodes
 {
     public class AccessRefreshAggreationScoreNode : AccessMethodNode
     {
-        public AccessRefreshAggreationScoreNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraArgs, MethodInfo method)
-            : base(fToken, args, extraArgs, method)
+        public AccessRefreshAggreationScoreNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraArgs, MethodInfo method, string alias)
+            : base(fToken, args, extraArgs, method, alias)
         {
         }
 

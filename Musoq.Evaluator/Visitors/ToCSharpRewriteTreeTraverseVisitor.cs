@@ -26,9 +26,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SelectNode node)
         {
-            if(_hasJoin || _hasGroupBy)
-                _visitor.SetMethodAccessType(MethodAccessType.JoinedSelectTable);
-
             _visitor.TurnOnAggregateMethodsToColumnAcceess();
 
             _code.Append(new Select().TransformText());
@@ -42,9 +39,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(GroupSelectNode node)
         {
-            if (_hasJoin || _hasGroupBy)
-                _visitor.SetMethodAccessType(MethodAccessType.JoinedOrGroupedTable);
-
             _code.Append(new Select().TransformText());
             foreach (var field in node.Fields)
                 field.Accept(this);
@@ -192,7 +186,6 @@ namespace Musoq.Evaluator.Visitors
                 join = join.Source as JoinFromNode;
             }
 
-            _visitor.SetMethodAccessType(MethodAccessType.JoinedOrGroupedTable);
             _visitor.SetJoinsAmount(joins.Count + 1);
 
             var nestedForeachesPattern = new NestedForeaches
@@ -279,6 +272,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
+            _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
             _visitor.QueryBegins();
 
             node.From.Accept(this);
@@ -406,9 +400,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DescNode node)
         {
-
+            _walker = _walker.NextChild();
             node.From.Accept(this);
             node.Accept(_visitor);
+            _walker = _walker.PrevChild();
         }
 
         public void Visit(StarNode node)
@@ -441,6 +436,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(InternalQueryNode node)
         {
+            _visitor.SetMethodAccessType(MethodAccessType.TransformingQuery);
             node.Refresh?.Accept(this);
             node.From.Accept(this);
             node.Where.Accept(this);

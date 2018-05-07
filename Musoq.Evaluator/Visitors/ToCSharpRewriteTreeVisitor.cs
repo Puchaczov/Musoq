@@ -34,9 +34,8 @@ namespace Musoq.Evaluator.Visitors
 {
     public enum MethodAccessType
     {
-        SelectTable,
-        JoinedOrGroupedTable,
-        JoinedSelectTable
+        ResultQuery,
+        TransformingQuery
     }
     public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     {
@@ -76,11 +75,12 @@ namespace Musoq.Evaluator.Visitors
         private readonly Dictionary<string, Type> _typesToInstantiate = new Dictionary<string, Type>();
         private bool _changeMethodAccessToColumnAccess;
 
-        private List<StatementSyntax> _statements = new List<StatementSyntax>();
         private readonly Stack<FromNode> _foreaches = new Stack<FromNode>();
         private VariableDeclarationSyntax _groupValues;
         private VariableDeclarationSyntax _groupKeys;
         private SyntaxNode _groupHaving;
+
+        private List<StatementSyntax> Statements { get; } = new List<StatementSyntax>();
 
         public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies)
         {
@@ -92,18 +92,32 @@ namespace Musoq.Evaluator.Visitors
 
             var objLocation = typeof(object).GetTypeInfo().Assembly.Location;
             var path = new FileInfo(objLocation);
-
-            var mscorlib = Path.Combine(path.Directory.FullName, "mscorlib.dll");
-            var system = Path.Combine(path.Directory.FullName, "System.dll");
-            var systemCore = Path.Combine(path.Directory.FullName, "System.Core.dll");
-            var runtime = Path.Combine(path.Directory.FullName, "System.Runtime.dll");
+            var directory = path.Directory;
 
             Compilation = CSharpCompilation.Create("InMemoryAssembly.dll");
+
+            foreach (var file in directory.GetFiles("System*.dll"))
+            {
+                try
+                {
+                    AssemblyName.GetAssemblyName(file.FullName);
+                    Compilation = Compilation.AddReferences(MetadataReference.CreateFromFile(file.FullName));
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    System.Console.WriteLine("The file cannot be found.");
+                }
+                catch (System.BadImageFormatException)
+                {
+                    System.Console.WriteLine("The file is not an assembly.");
+                }
+                catch (System.IO.FileLoadException)
+                {
+                    System.Console.WriteLine("The assembly has already been loaded.");
+                }
+            }
+
             Compilation = Compilation
-                .AddReferences(MetadataReference.CreateFromFile(mscorlib))
-                .AddReferences(MetadataReference.CreateFromFile(system))
-                .AddReferences(MetadataReference.CreateFromFile(systemCore))
-                .AddReferences(MetadataReference.CreateFromFile(runtime))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(ISchema).Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(LibraryBase).Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Table).Assembly.Location))
@@ -260,9 +274,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(FieldNode node)
         {
-            AddNamespace(node.ReturnType.Namespace);
-            var type = Compilation.GetTypeByMetadataName(node.ReturnType.FullName);
-            var castedExpression = Generator.CastExpression(type, Nodes.Pop());
+            var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
+            AddReference(types);
+            AddNamespace(types);
+            var castedExpression = Generator.CastExpression(
+                SyntaxFactory.IdentifierName(
+                    EvaluationHelper.GetCastableType(node.ReturnType)), Nodes.Pop());
             Nodes.Push(castedExpression);
         }
 
@@ -327,6 +344,15 @@ namespace Musoq.Evaluator.Visitors
             if (!_typesToInstantiate.ContainsKey(variableName))
             {
                 _typesToInstantiate.Add(variableName, method.ReflectedType);
+                AddNamespace(method.ReflectedType.Namespace);
+
+                Statements.Add(
+                    SyntaxFactory.LocalDeclarationStatement(
+                        SyntaxHelper.CreateAssignment(
+                            variableName,
+                            SyntaxHelper.CreateObjectOf(
+                                method.ReflectedType.Name, 
+                                SyntaxFactory.ArgumentList()))));
             }
 
             _scope.ScopeSymbolTable.AddSymbolIfNotExist(method.ReflectedType.Name, new TypeSymbol(method.ReflectedType));
@@ -378,15 +404,11 @@ namespace Musoq.Evaluator.Visitors
             SyntaxNode sNode;
             switch (_type)
             {
-                case MethodAccessType.JoinedOrGroupedTable:
+                case MethodAccessType.TransformingQuery:
                     sNode = Generator.ElementAccessExpression(Generator.IdentifierName($"{node.Alias}Row"),
                         SyntaxHelper.StringLiteralArgument(node.Name));
                     break;
-                case MethodAccessType.JoinedSelectTable:
-                    sNode = Generator.ElementAccessExpression(Generator.IdentifierName("score"), 
-                        SyntaxHelper.StringLiteralArgument($"{node.Alias}.{node.Name}"));
-                    break;
-                case MethodAccessType.SelectTable:
+                case MethodAccessType.ResultQuery:
                     sNode = Generator.ElementAccessExpression(Generator.IdentifierName("score"),
                         SyntaxHelper.StringLiteralArgument(node.Name));
                     break;
@@ -394,10 +416,13 @@ namespace Musoq.Evaluator.Visitors
                     throw new NotSupportedException();
             }
 
-            var type = Compilation.GetTypeByMetadataName(node.ReturnType.FullName);
-            AddNamespace(node.ReturnType.Namespace);
+            var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
+            AddNamespace(types);
+            AddReference(types);
 
-            sNode = Generator.CastExpression(type, sNode);
+            sNode = Generator.CastExpression(
+                SyntaxFactory.IdentifierName(
+                    EvaluationHelper.GetCastableType(node.ReturnType)), sNode);
 
             Nodes.Push(sNode);
         }
@@ -581,7 +606,7 @@ namespace Musoq.Evaluator.Visitors
             fieldNames.Append(fieldName);
             fieldNames.Append("};");
 
-            _statements.Add(SyntaxFactory.ParseStatement(fieldNames.ToString()));
+            Statements.Add(SyntaxFactory.ParseStatement(fieldNames.ToString()));
 
             AddNamespace(typeof(GroupKey).Namespace);
         }
@@ -609,7 +634,7 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.ContinueStatement()
                 });
 
-            _statements.Add(skip);
+            Statements.Add(skip);
 
             Nodes.Push(ifStatement);
         }
@@ -635,7 +660,7 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxKind.PostIncrementExpression,
                     SyntaxFactory.IdentifierName("tookAmount")));
 
-            _statements.Add(take);
+            Statements.Add(take);
 
             Nodes.Push(SyntaxFactory.Block(new[]
             {
@@ -681,8 +706,8 @@ namespace Musoq.Evaluator.Visitors
                     })
                 ));
 
-            _statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchema));
-            _statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
+            Statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchema));
+            Statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
         }
 
         public void Visit(NestedQueryFromNode node)
@@ -812,12 +837,28 @@ namespace Musoq.Evaluator.Visitors
                 _namespaces.Add(columnTypeNamespace);
         }
 
+        private void AddNamespace(Type[] types)
+        {
+            foreach(var type in types)
+                AddNamespace(type.Namespace);
+        }
+
+        private void AddReference(Type[] types)
+        {
+            Compilation =
+                Compilation.AddReferences(types.Select(a => MetadataReference.CreateFromFile(a.Assembly.Location)));
+        }
+
         public void Visit(CreateTableNode node)
         {
             var cols = new List<ExpressionSyntax>();
 
             foreach (var field in node.Fields)
             {
+                var types = EvaluationHelper.GetNestedTypes(field.ReturnType);
+                AddNamespace(types);
+                AddReference(types);
+
                 cols.Add(
                     SyntaxHelper.CreateObjectOf(
                         nameof(Column),
@@ -825,7 +866,8 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.SeparatedList(new[]
                             {
                                 SyntaxHelper.StringLiteralArgument(field.FieldName),
-                                SyntaxHelper.TypeLiteralArgument(field.ReturnType.Name),
+                                SyntaxHelper.TypeLiteralArgument(
+                                    EvaluationHelper.GetCastableType(field.ReturnType)),
                                 SyntaxHelper.IntLiteralArgument(field.FieldOrder)
                             }))));
             }
@@ -898,7 +940,7 @@ namespace Musoq.Evaluator.Visitors
             var source = detailedQuery.MustTransformSource ? $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({detailedQuery.SourceName})" : detailedQuery.SourceName;
 
             fullBlock = fullBlock.AddStatements(SyntaxHelper.Foreach("score", $"{source}.Rows", block));
-            fullBlock = fullBlock.AddStatements((StatementSyntax) Generator.ReturnStatement(SyntaxFactory.IdentifierName(node.From.Alias)));
+            fullBlock = fullBlock.AddStatements((StatementSyntax) Generator.ReturnStatement(SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName)));
 
             Nodes.Push(fullBlock);
         }
@@ -912,9 +954,9 @@ namespace Musoq.Evaluator.Visitors
 
             if (node.GroupBy != null)
             {
-                _statements.Add(SyntaxFactory.ParseStatement("var rootGroup = new Group(null, new string[0], new string[0]);").WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)));
-                _statements.Add(SyntaxFactory.ParseStatement("var usedGroups = new HashSet<Group>();").WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)));
-                _statements.Add(SyntaxFactory.ParseStatement("var groups = new Dictionary<GroupKey, Group>();").WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)));
+                Statements.Add(SyntaxFactory.ParseStatement("var rootGroup = new Group(null, new string[0], new string[0]);").WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)));
+                Statements.Add(SyntaxFactory.ParseStatement("var usedGroups = new HashSet<Group>();").WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)));
+                Statements.Add(SyntaxFactory.ParseStatement("var groups = new Dictionary<GroupKey, Group>();").WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)));
 
                 block = block.AddStatements(where);
                 block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(_groupKeys));
@@ -928,22 +970,20 @@ namespace Musoq.Evaluator.Visitors
                 if (node.Refresh.Nodes.Length > 0)
                     block = block.AddStatements(((BlockSyntax) Nodes.Pop()).Statements.ToArray());
 
-                block = block.AddStatements((StatementSyntax) _groupHaving);
+                if(node.GroupBy.Having != null)
+                    block = block.AddStatements((StatementSyntax) _groupHaving);
 
-                var indexToColumnMapCode = new List<InitializerExpressionSyntax>();
-                var indexToColumnMap = new Dictionary<int, string>();
+                var indexToColumnMapCode = new InitializerExpressionSyntax[node.Select.Fields.Length];
 
-                for (int i = 0; i < node.Select.Fields.Length; i++)
+                for (int i = 0, j = node.Select.Fields.Length - 1; i < node.Select.Fields.Length; i++, --j)
                 {
 
-                    indexToColumnMapCode.Add(
+                    indexToColumnMapCode[i] =
                         SyntaxFactory.InitializerExpression(
                             SyntaxKind.ComplexElementInitializerExpression,
                             SyntaxFactory.SeparatedList<ExpressionSyntax>()
-                                .Add((LiteralExpressionSyntax)Generator.LiteralExpression(i))
-                                .Add((LiteralExpressionSyntax)Generator.LiteralExpression(node.Select.Fields[i].FieldName))));
-
-                    indexToColumnMap.Add(i, node.Select.Fields[i].FieldName);
+                                .Add((LiteralExpressionSyntax)Generator.LiteralExpression(j))
+                                .Add((LiteralExpressionSyntax)Generator.LiteralExpression(node.Select.Fields[i].FieldName)));
                 }
 
                 var indexToValueDictVariableName = "indexToValueDict";
@@ -957,7 +997,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.SeparatedList<ExpressionSyntax>()
                                 .AddRange(indexToColumnMapCode))));
 
-                _statements.Add(SyntaxFactory.LocalDeclarationStatement(columnToValueDict));
+                Statements.Add(SyntaxFactory.LocalDeclarationStatement(columnToValueDict));
 
                 block = block.AddStatements(AddGroupStatement($"{node.From.Alias}TransformedScore", indexToValueDictVariableName));
             }
@@ -1154,7 +1194,7 @@ namespace Musoq.Evaluator.Visitors
 
             Compilation = Compilation.AddSyntaxTrees(new[]
             {
-                SyntaxFactory.ParseSyntaxTree(builder.ToString(), new CSharpParseOptions(LanguageVersion.Latest, DocumentationMode.Parse), testPath, Encoding.Unicode)
+                SyntaxFactory.ParseSyntaxTree(builder.ToString(), new CSharpParseOptions(LanguageVersion.Latest), testPath, Encoding.Unicode)
             });
         }
 
@@ -1176,6 +1216,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(RefreshNode node)
         {
+            if (node.Nodes.Length == 0)
+                return;
+
             var block = SyntaxFactory.Block();
             for (int i = 0, k = node.Nodes.Length - 1; i < node.Nodes.Length; i++, k--)
             {
@@ -1214,7 +1257,7 @@ namespace Musoq.Evaluator.Visitors
                     statements.Add(statement);
             }
 
-            _statements.AddRange(statements);
+            Statements.AddRange(statements);
 
             var method = SyntaxFactory.MethodDeclaration(
                 new SyntaxList<AttributeListSyntax>(),
@@ -1235,11 +1278,11 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.Identifier("provider"), null)
                     })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
-                SyntaxFactory.Block(_statements),
+                SyntaxFactory.Block(Statements),
                 null);
 
             _methods.Add(method);
-            _statements.Clear();
+            Statements.Clear();
         }
 
         public void Visit(CteExpressionNode node)

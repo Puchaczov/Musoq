@@ -11,22 +11,19 @@ namespace Musoq.Evaluator.Utils.Symbols
         private readonly Dictionary<string, (ISchema Schema, ISchemaTable Table)> _tables = new Dictionary<string, (ISchema, ISchemaTable)>();
         private readonly List<string> _orders = new List<string>();
 
-        public TableSymbol(string alias, ISchema schema, ISchemaTable table)
+        public TableSymbol(string alias, ISchema schema, ISchemaTable table, bool hasAlias)
         {
             _tables.Add(alias, (schema, table));
             _orders.Add(alias);
+            HasAlias = hasAlias;
         }
 
-        public TableSymbol(string[] aliases, params (ISchema, ISchemaTable)[] tables)
+        private TableSymbol()
         {
-            for (int i = 0; i < aliases.Length; i++)
-            {
-                _tables.Add(aliases[i], tables[i]);
-                _orders.Add(aliases[i]);
-            }
+            HasAlias = true;
         }
 
-        private TableSymbol() { }
+        public bool HasAlias { get; }
 
         public string[] CompoundTables => _orders.ToArray();
 

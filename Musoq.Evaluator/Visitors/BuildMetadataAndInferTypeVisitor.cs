@@ -230,14 +230,14 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(GroupByAccessMethodNode node)
         {
             VisitAccessMethod(node,
-                (token, node1, exargs, arg3, alias) => new GroupByAccessMethodNode(token, node1 as ArgsListNode, exargs, arg3));
+                (token, node1, exargs, arg3, alias) => new GroupByAccessMethodNode(token, node1 as ArgsListNode, exargs, arg3, alias));
         }
 
         public void Visit(AccessRefreshAggreationScoreNode node)
         {
             VisitAccessMethod(node,
                 (token, node1, exargs, arg3, alias) =>
-                    new AccessRefreshAggreationScoreNode(token, node1 as ArgsListNode, exargs, arg3));
+                    new AccessRefreshAggreationScoreNode(token, node1 as ArgsListNode, exargs, arg3, alias));
         }
 
         public void Visit(AccessColumnNode node)
@@ -271,7 +271,7 @@ namespace Musoq.Evaluator.Visitors
                 var column = table.Columns[i];
 
                 AddAssembly(column.ColumnType.Assembly);
-                _generatedColumns[i] = new FieldNode(new AccessColumnNode(column.ColumnName, _identifier, column.ColumnType, TextSpan.Empty), i, string.Empty);
+                _generatedColumns[i] = new FieldNode(new AccessColumnNode(column.ColumnName, _identifier, column.ColumnType, TextSpan.Empty), i, tableSymbol.HasAlias ? _identifier : column.ColumnName);
             }
 
             Nodes.Push(node);
@@ -375,8 +375,11 @@ namespace Musoq.Evaluator.Visitors
             var schema = _provider.GetSchema(node.Schema);
             var table = schema.GetTableByName(node.Method, node.Parameters);
 
+            AddAssembly(schema.GetType().Assembly);
+
             _queryAlias = CreateAliasIfEmpty(node.Alias);
-            _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, new TableSymbol(_queryAlias, schema, table));
+            var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
+            _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
 
             _nesting += 1;
             Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, _queryAlias));
@@ -650,7 +653,7 @@ namespace Musoq.Evaluator.Visitors
                     throw new NotSupportedException();
 
                 var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty), new ArgsListNode(newSetArgs.ToArray()), null, setMethod,
-                    string.Empty);
+                    alias);
 
                 RefreshMethods.Add(setMethodNode);
 

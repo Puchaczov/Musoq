@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -50,7 +51,15 @@ namespace Musoq.Converter
             {
                 EmitResult result = csharpRewriter.Compilation.Emit(stream, pdbStream);
 
-                if (!result.Success) throw new NotSupportedException();
+                if (!result.Success)
+                {
+                    var all = new StringBuilder();
+
+                    foreach (var diagnostic in result.Diagnostics)
+                        all.Append(diagnostic);
+
+                    throw new NotSupportedException(all.ToString());
+                }
 
                 var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
 
