@@ -10,7 +10,7 @@
     <PackageReference Include="CommandLineParser" Version="2.2.1" />
     <PackageReference Include="ConsoleTableExt" Version="2.0.1" />
     <PackageReference Include="CsvHelper" Version="7.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.1" />
   </ItemGroup>
 

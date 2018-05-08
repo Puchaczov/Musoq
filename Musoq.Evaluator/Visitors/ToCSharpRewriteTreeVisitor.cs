@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -689,7 +690,7 @@ namespace Musoq.Evaluator.Visitors
                 )
             );
 
-            var args = node.Parameters.Select(SyntaxHelper.StringLiteral).Cast<ExpressionSyntax>();
+            var args = node.Parameters.Select(f => SyntaxHelper.StringLiteral(f.Escape())).Cast<ExpressionSyntax>();
 
             var createdSchemaRows = SyntaxHelper.CreateAssignmentByMethodCall(
                 $"{node.Alias}Rows",
@@ -1191,6 +1192,11 @@ namespace Musoq.Evaluator.Visitors
             {
                 file.Write(builder.ToString());
             }
+
+            Debug.WriteLine("START");
+            foreach(var item in Compilation.ExternalReferences)
+                Debug.WriteLine(item.Display);
+            Debug.WriteLine("STOP");
 
             Compilation = Compilation.AddSyntaxTrees(new[]
             {
