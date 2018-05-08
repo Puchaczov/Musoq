@@ -7,6 +7,8 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web.Http;
 using CacheManager.Core;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Instructions;
@@ -52,10 +54,8 @@ namespace Musoq.Service.Controllers
             {
                 Status = ExecutionStatus.WaitingToStart
             };
-
             var taskId = Guid.NewGuid();
             _runetimeState.Add(taskId, state);
-
             state.Task = Task.Factory.StartNew(() =>
             {
                 state.Status = ExecutionStatus.Running;

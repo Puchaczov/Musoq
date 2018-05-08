@@ -1,4 +1,6 @@
-﻿using System.ServiceProcess;
+﻿using System;
+using System.Diagnostics;
+using System.ServiceProcess;
 
 namespace Musoq.Service
 {
@@ -9,6 +11,7 @@ namespace Musoq.Service
         /// </summary>
         private static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 #if DEBUG
             var server = new ContextService();
             server.Start(args);
@@ -19,6 +22,17 @@ namespace Musoq.Service
             };
             ServiceBase.Run(servicesToRun);
 #endif
+        }
+
+        private static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (assembly.FullName == args.Name)
+                    return assembly;
+            }
+
+            return null;
         }
     }
 }

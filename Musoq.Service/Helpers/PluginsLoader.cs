@@ -20,9 +20,14 @@ namespace Musoq.Service.Helpers
 
             var interfaceType = typeof(ISchema);
 
-            _plugins = assemblyTypes.Where(type => interfaceType.IsAssignableFrom(type)).ToArray();
+            _plugins = assemblyTypes.Where(type => interfaceType.IsAssignableFrom(type) && type.HasParameterlessConstructor()).ToArray();
 
             return _plugins;
+        }
+
+        public static bool HasParameterlessConstructor(this Type type)
+        {
+            return type.GetConstructor(Type.EmptyTypes) != null;
         }
     }
 }

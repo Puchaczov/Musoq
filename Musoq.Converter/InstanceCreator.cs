@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -60,7 +61,7 @@ namespace Musoq.Converter
 
                     throw new NotSupportedException(all.ToString());
                 }
-
+                
                 var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
 
                 var type = assembly.GetType("Query.Compiled.CompiledQuery");
@@ -90,7 +91,6 @@ namespace Musoq.Converter
 
             throw new NotSupportedException();
         }
-
 
         public static IRunnable Create(string script, ISchemaProvider schemaProvider)
         {
