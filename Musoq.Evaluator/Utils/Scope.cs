@@ -1,20 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Musoq.Evaluator.Utils
 {
+    [DebuggerDisplay("ScopeId: {Id}")]
     public class Scope
     {
         private readonly List<Scope> _scopes = new List<Scope>();
 
         private readonly Dictionary<string, string> _attributes = new Dictionary<string, string>();
 
+        private static int _scopeId = 0;
+
         public Scope(Scope parent, int selfIndex)
         {
             Parent = parent;
             SelfIndex = selfIndex;
+            Id = _scopeId++;
         }
+
+        public int Id { get; }
 
         public IReadOnlyList<Scope> Child => _scopes;
 
@@ -50,6 +57,11 @@ namespace Musoq.Evaluator.Utils
         {
             get => _attributes.ContainsKey(key) ? _attributes[key] : Parent[key];
             set => _attributes[key] = value;
+        }
+
+        public bool ContainsAttribute(string attributeName)
+        {
+            return _attributes.ContainsKey(attributeName) || (Parent!= null && Parent.ContainsAttribute(attributeName));
         }
     }
 

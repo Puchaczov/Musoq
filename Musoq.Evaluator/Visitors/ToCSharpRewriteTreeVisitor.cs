@@ -60,16 +60,10 @@ namespace Musoq.Evaluator.Visitors
         private MethodAccessType _type;
         private string _queryAlias;
         private string _transformedSourceTable;
-        private string _scoreTable;
-        private string _scoreTableName;
-        private string _scoreColumns;
 
-        private List<string> _preDeclarations = new List<string>();
-        private Dictionary<string, string> _patterns = new Dictionary<string, string>();
         private readonly Dictionary<string, Type> _typesToInstantiate = new Dictionary<string, Type>();
         private bool _changeMethodAccessToColumnAccess;
-
-        private readonly Stack<FromNode> _foreaches = new Stack<FromNode>();
+        
         private VariableDeclarationSyntax _groupValues;
         private VariableDeclarationSyntax _groupKeys;
         private SyntaxNode _groupHaving;
@@ -760,104 +754,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ExpressionFromNode node)
         {
-            if (_hasGroupBy || _hasJoin)
-            {
-                VisitTransformingExpressionFrom(node);
-            }
-            else
-            {
-                VisitScoreExpressionFrom(node);
-            }
-        }
-
-        private void VisitTransformingExpressionFrom(ExpressionFromNode node)
-        {
-            var tableSymbol = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Expression.Alias);
-
-            var args = new List<ExpressionSyntax>();
-            var cols = new List<ExpressionSyntax>();
-
-            int newColumnIndex = 0;
-            foreach (var table in tableSymbol.CompoundTables)
-            {
-                var columns = tableSymbol.GetColumns(table);
-                ISchemaColumn column = null;
-                for (var index = 0; index < columns.Length - 1; index++)
-                {
-                    column = columns[index];
-                    args.Add(
-                        SyntaxHelper.CreateElementAccess(
-                            $"{table}Row",
-                            new[]
-                            {
-                                SyntaxFactory.Argument(
-                                    (ExpressionSyntax)Generator.LiteralExpression(column.ColumnName)),
-                            }));
-
-                    cols.Add(
-                        SyntaxHelper.CreateObjectOf(
-                            nameof(Column),
-                            SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SeparatedList(new[]
-                                {
-                                    SyntaxHelper.StringLiteralArgument($"{table}.{column.ColumnName}"),
-                                    SyntaxHelper.TypeLiteralArgument(column.ColumnType.Name),
-                                    SyntaxHelper.IntLiteralArgument(newColumnIndex)
-                                }))));
-
-                    AddNamespace(column.ColumnType.Namespace);
-
-                    newColumnIndex += 1;
-                }
-
-                column = columns[columns.Length - 1];
-
-                args.Add(
-                    SyntaxHelper.CreateElementAccess(
-                        $"{table}Row",
-                        new[]
-                        {
-                            SyntaxFactory.Argument((ExpressionSyntax)Generator.LiteralExpression(column.ColumnName))
-                        }));
-
-                cols.Add(
-                    SyntaxHelper.CreateObjectOf(
-                        nameof(Column),
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList(new[]
-                            {
-                                SyntaxHelper.StringLiteralArgument($"{table}.{column.ColumnName}"),
-                                SyntaxHelper.TypeLiteralArgument(column.ColumnType.Name),
-                                SyntaxHelper.IntLiteralArgument(newColumnIndex)
-                            }))));
-
-                AddNamespace(column.ColumnType.Namespace);
-
-                newColumnIndex += 1;
-            }
-
-            var select = SyntaxHelper.CreateAssignment("columns", SyntaxHelper.CreateArrayOfObjects(args.ToArray()));
-
-            var methodInvocation = SyntaxHelper.CreateMethodInvocation(
-                _transformedSourceTable,
-                nameof(Table.Add),
-                new[]
-                {
-                    SyntaxHelper.CreateObjectOf(
-                        nameof(ObjectsRow),
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList(
-                                new List<ArgumentSyntax>()
-                                {
-                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("columns"))
-                                })))
-                });
-
-            var createColumns = SyntaxHelper.CreateArrayOf(nameof(Column), cols.ToArray());
-
-            var code = new StringBuilder();
-            code.Append(SyntaxFactory.LocalDeclarationStatement(select).ToFullString());
-            code.Append(SyntaxFactory.ExpressionStatement(methodInvocation).ToFullString());
+            VisitScoreExpressionFrom(node);
         }
 
         private void VisitScoreExpressionFrom(ExpressionFromNode node)

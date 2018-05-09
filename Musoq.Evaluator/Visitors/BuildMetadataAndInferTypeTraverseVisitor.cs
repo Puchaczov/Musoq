@@ -214,6 +214,7 @@ namespace Musoq.Evaluator.Visitors
             var id = $"{join.Source.Alias}{join.With.Alias}";
 
             _current.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
+            _current[MetaAttributes.ProcessedQueryId] = id;
             
             join.Expression.Accept(this);
             join.Accept(_visitor);
@@ -229,7 +230,8 @@ namespace Musoq.Evaluator.Visitors
                 id = $"{id}{join.With.Alias}";
 
                 _current.ScopeSymbolTable.AddSymbol(id, previousTableSymbol.MergeSymbols(currentTableSymbol));
-                
+                _current[MetaAttributes.ProcessedQueryId] = id;
+
                 join.Expression.Accept(this);
                 join.Accept(_visitor);
             }

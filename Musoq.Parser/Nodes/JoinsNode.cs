@@ -9,6 +9,7 @@ namespace Musoq.Parser.Nodes
             : base(joins.Alias)
         {
             Id = $"{nameof(JoinsNode)}{joins.Id}";
+            Joins = joins;
         }
 
         public JoinFromNode Joins { get; }

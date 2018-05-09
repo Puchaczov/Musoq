@@ -243,7 +243,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessColumnNode node)
         {
-            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+            var identifier = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId) ? _currentScope[MetaAttributes.ProcessedQueryId] : _identifier;
+
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
             (ISchema Schema, ISchemaTable Table, string TableName) tuple;
             if (!string.IsNullOrEmpty(node.Alias))
@@ -409,7 +411,9 @@ namespace Musoq.Evaluator.Visitors
             var expression = Nodes.Pop();
             var joinedTable = (FromNode)Nodes.Pop();
             var source = (FromNode)Nodes.Pop();
-            Nodes.Push(new JoinFromNode(source, joinedTable, expression, node.JoinType));
+            var joinedFrom = new JoinFromNode(source, joinedTable, expression, node.JoinType);
+            _identifier = joinedFrom.Alias;
+            Nodes.Push(joinedFrom);
         }
 
         public void Visit(ExpressionFromNode node)
@@ -579,6 +583,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinsNode node)
         {
+            _identifier = node.Alias;
             Nodes.Push(new JoinsNode((JoinFromNode)Nodes.Pop()));
         }
 

@@ -180,22 +180,22 @@ namespace Musoq.Evaluator.Visitors
             join.Source.Accept(this);
             join.With.Accept(this);
             join.Expression.Accept(this);
+            join.Accept(_visitor);
 
             while (joins.Count > 1)
             {
                 join = joins.Pop();
                 join.With.Accept(this);
                 join.Expression.Accept(this);
+                join.Accept(_visitor);
             }
 
-            if (joins.Count > 0)
-            {
-                join = joins.Pop();
-                join.With.Accept(this);
-                join.Expression.Accept(this);
-            }
+            if (joins.Count <= 0) return;
 
-            join.Accept(_visitor);
+            @join = joins.Pop();
+            @join.With.Accept(this);
+            @join.Expression.Accept(this);
+            @join.Accept(_visitor);
         }
 
         public void Visit(ExpressionFromNode node)

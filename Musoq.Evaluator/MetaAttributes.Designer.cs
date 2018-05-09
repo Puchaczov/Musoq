@@ -61,6 +61,15 @@ namespace Musoq.Evaluator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ProcessedQueryId.
+        /// </summary>
+        internal static string ProcessedQueryId {
+            get {
+                return ResourceManager.GetString("ProcessedQueryId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SelectIntoVariableName.
         /// </summary>
         internal static string SelectIntoVariableName {

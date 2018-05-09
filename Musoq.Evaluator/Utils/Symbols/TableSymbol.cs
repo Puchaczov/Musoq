@@ -81,6 +81,17 @@ namespace Musoq.Evaluator.Utils.Symbols
             return _tables[alias].Table.Columns;
         }
 
+        public ISchemaColumn[] GetColumns()
+        {
+            var columns = new List<ISchemaColumn>();
+            foreach (var table in _orders)
+            {
+                columns.AddRange(GetColumns(table));
+            }
+
+            return columns.ToArray();
+        }
+
         public int GetColumnIndex(string alias, string columnName)
         {
             int i = 0;
