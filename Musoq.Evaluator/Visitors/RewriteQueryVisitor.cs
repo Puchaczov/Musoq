@@ -18,8 +18,6 @@ namespace Musoq.Evaluator.Visitors
     public class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
-        private readonly List<CreateTableNode> _preCreatedTables = new List<CreateTableNode>();
-        private readonly Stack<AccessMethodNode> _queryMethods = new Stack<AccessMethodNode>();
         private readonly TransitionSchemaProvider _schemaProvider;
         private readonly List<AccessMethodNode> _refreshMethods;
         private readonly Dictionary<string, int> _tmpVariableNames = new Dictionary<string, int>();
@@ -455,11 +453,26 @@ namespace Musoq.Evaluator.Visitors
                 var rawAggRenamedSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(rawlySplitted[2], groupBy.Fields));
                 var groupKeys = groupBy.Fields.Select(f => f.FieldName).ToArray();
 
-                var transformingQuery = new InternalQueryNode(aggSelect, nestedFrom, where, groupBy, null, null, null, refreshMethods);
-                var source = $"{transformingQuery.From.Alias}TransformedScore";
+                var parent = _scope.Parent;
+                parent.RemoveScope(_scope);
 
-                query = new DetailedQueryNode(outSelect, new InMemoryTableFromNode($"{node.From.Alias}Score", $"{node.From.Alias}Score"), 
-                    new WhereNode(new PutTrueNode()), null, null, skip, take, source, $"{node.From.Alias}Score", true);
+                var scopeCreateTranformingTable = parent.AddScope();
+                var scopeTransformedQuery = parent.AddScope();
+                var scopeCreateResultTable = parent.AddScope();
+                var scopeResultQuery = parent.AddScope();
+
+                var source = $"{nestedFrom.Alias}TransformedScore";
+                scopeTransformedQuery[MetaAttributes.TransformedIntoVariableName] = source;
+                scopeTransformedQuery.ScopeSymbolTable.AddSymbol(nestedFrom.Alias, _scope.ScopeSymbolTable.GetSymbol(nestedFrom.Alias));
+                _scope = scopeResultQuery;
+
+                var transformingQuery = new InternalQueryNode(aggSelect, nestedFrom, where, groupBy, null, null, null, refreshMethods);
+
+                var returnScore = $"{nestedFrom.Alias}Score";
+                scopeResultQuery[MetaAttributes.SelectIntoVariableName] = returnScore;
+
+                query = new DetailedQueryNode(outSelect, new InMemoryTableFromNode(returnScore, returnScore), 
+                    new WhereNode(new PutTrueNode()), null, null, skip, take, source, returnScore, true);
 
                 Nodes.Push(
                     new MultiStatementNode(
@@ -499,11 +512,18 @@ namespace Musoq.Evaluator.Visitors
                 }
                 else
                 {
+                    var parent = _scope.Parent;
+                    parent.RemoveScope(_scope);
+
+                    var scopeCreateResultTable = parent.AddScope();
+                    var scopeResultQuery = parent.AddScope();
+
+                    scopeResultQuery[MetaAttributes.SelectIntoVariableName] = $"{from.Alias}Score";
                     Nodes.Push(
                         new MultiStatementNode(
                             new Node[]
                             {
-                                new CreateTableNode($"{from.Alias}Score", new string[0], select.Fields),
+                                new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], new string[0], select.Fields),
                                 new DetailedQueryNode(select, from, where, null, null, skip, take, $"{from.Alias}Rows", $"{from.Alias}Score", false), 
                             }, 
                             null));

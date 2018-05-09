@@ -54,6 +54,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DescNode node)
         {
+
             Nodes.Push(new DescNode((FromNode)Nodes.Pop()));
         }
 

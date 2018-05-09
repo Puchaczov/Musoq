@@ -35,7 +35,7 @@ namespace Musoq.Converter
             query = metadataInferer.Root;
 
             var rewriter = new RewriteQueryVisitor((TransitionSchemaProvider)schemaProvider, metadataInferer.RefreshMethods);
-            var rewriteTraverser = new BuildMetadataAndInferTypeTraverseVisitor(rewriter);
+            var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataInfererTraverser.Scope));
 
             query.Accept(rewriteTraverser);
 

@@ -8,6 +8,8 @@ namespace Musoq.Evaluator.Utils
     {
         private readonly List<Scope> _scopes = new List<Scope>();
 
+        private readonly Dictionary<string, string> _attributes = new Dictionary<string, string>();
+
         public Scope(Scope parent, int selfIndex)
         {
             Parent = parent;
@@ -18,7 +20,7 @@ namespace Musoq.Evaluator.Utils
 
         public int SelfIndex { get; }
 
-        public Scope Parent { get; }
+        public Scope Parent { get; private set; }
 
         public SymbolTable ScopeSymbolTable { get; } = new SymbolTable();
 
@@ -36,6 +38,18 @@ namespace Musoq.Evaluator.Utils
             var scope = new Scope(this, _scopes.Count);
             _scopes.Add(scope);
             return scope;
+        }
+
+        public void RemoveScope(Scope scope)
+        {
+            _scopes.Remove(scope);
+            scope.Parent = null;
+        }
+
+        public string this[string key]
+        {
+            get => _attributes.ContainsKey(key) ? _attributes[key] : Parent[key];
+            set => _attributes[key] = value;
         }
     }
 

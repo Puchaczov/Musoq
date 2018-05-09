@@ -230,7 +230,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CreateTableNode node)
         {
+            _walker = _walker.NextChild();
+            _visitor.SetScope(_walker.Scope);
+
             node.Accept(_visitor);
+
+            _walker = _walker.Parent();
         }
 
         public void Visit(RenameTableNode node)
@@ -272,7 +277,11 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
+            _walker = _walker.NextChild();
+            _visitor.SetScope(_walker.Scope);
+
             _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
+            _visitor.SetQueryIdentifier(node.From.Alias);
             _visitor.QueryBegins();
 
             node.From.Accept(this);
@@ -285,6 +294,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
 
             _visitor.QueryEnds();
+            _walker = _walker.Parent();
         }
 
         public void Visit(OrNode node)
@@ -401,9 +411,11 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(DescNode node)
         {
             _walker = _walker.NextChild();
+
             node.From.Accept(this);
             node.Accept(_visitor);
-            _walker = _walker.PrevChild();
+
+            _walker = _walker.Parent();
         }
 
         public void Visit(StarNode node)
@@ -436,7 +448,11 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(InternalQueryNode node)
         {
+            _walker = _walker.NextChild();
+            _visitor.SetScope(_walker.Scope);
+
             _visitor.SetMethodAccessType(MethodAccessType.TransformingQuery);
+            _visitor.SetQueryIdentifier(node.From.Alias);
             node.Refresh?.Accept(this);
             node.From.Accept(this);
             node.Where.Accept(this);
@@ -445,6 +461,8 @@ namespace Musoq.Evaluator.Visitors
             node.Skip?.Accept(this);
             node.GroupBy?.Accept(this);
             node.Accept(_visitor);
+            
+            _walker = _walker.Parent();
         }
 
         public void Visit(RootNode node)
@@ -495,14 +513,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(MultiStatementNode node)
         {
-            _walker = _walker.NextChild();
-            _visitor.SetScope(_walker.Scope);
-
             foreach (var cNode in node.Nodes)
                 cNode.Accept(this);
             node.Accept(_visitor);
-
-            _walker = _walker.Parent();
         }
 
         public void Visit(CteExpressionNode node)

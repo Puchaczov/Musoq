@@ -52,18 +52,11 @@ namespace Musoq.Evaluator.Visitors
         private bool _hasGroupBy = false;
         private bool _hasJoin = false;
 
-        public bool HasGroupByOrJoin => _hasGroupBy || _hasJoin;
-
         private readonly List<string> _namespaces = new List<string>();
         private Scope _scope;
-
-        private StringBuilder Script => _scope.Script;
-
-        private readonly StringBuilder _declStatements = new StringBuilder();
         private int _names;
         private int _sources;
         private int _joins;
-        private int _joinsAmount;
         private MethodAccessType _type;
         private string _queryAlias;
         private string _transformedSourceTable;
@@ -119,6 +112,7 @@ namespace Musoq.Evaluator.Visitors
             }
 
             Compilation = Compilation
+                .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(ISchema).Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(LibraryBase).Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Table).Assembly.Location))
@@ -130,7 +124,9 @@ namespace Musoq.Evaluator.Visitors
                 new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimizationLevel: OptimizationLevel.Debug,
-                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
+                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default)
+                    .WithConcurrentBuild(true)
+                    .WithPlatform(Platform.AnyCpu));
 
             _namespaces.Add("System");
             _namespaces.Add("System.Collections.Generic");
@@ -363,7 +359,28 @@ namespace Musoq.Evaluator.Visitors
                 switch (parameterInfo.GetCustomAttribute<InjectTypeAttribute>())
                 {
                     case InjectSourceAttribute injectSource:
-                        //args.Add(SyntaxHelper.CreateMethodInvocation("row", "Context"));
+                        string objectName;
+
+                        switch (_type)
+                        {
+                            case MethodAccessType.TransformingQuery:
+                                objectName = $"{_queryAlias}Row";
+                                break;
+                            case MethodAccessType.ResultQuery:
+                                objectName = "score";
+                                break;
+                            default:
+                                throw new NotSupportedException();
+                        }
+
+                        args.Add(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.CastExpression(
+                                    SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(parameterInfo.ParameterType)), 
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.IdentifierName(objectName), 
+                                        SyntaxFactory.IdentifierName(nameof(IObjectResolver.Context))))));
                         break;
                     case InjectGroupAttribute injectGroup:
                         args.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")));
@@ -403,19 +420,23 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(AccessColumnNode node)
         {
             SyntaxNode sNode;
+
+            string variableName;
             switch (_type)
             {
                 case MethodAccessType.TransformingQuery:
-                    sNode = Generator.ElementAccessExpression(Generator.IdentifierName($"{node.Alias}Row"),
-                        SyntaxHelper.StringLiteralArgument(node.Name));
+                    variableName = $"{node.Alias}Row";
                     break;
                 case MethodAccessType.ResultQuery:
-                    sNode = Generator.ElementAccessExpression(Generator.IdentifierName("score"),
-                        SyntaxHelper.StringLiteralArgument(node.Name));
+                    variableName = "score";
                     break;
                 default:
                     throw new NotSupportedException();
             }
+
+            sNode = Generator.ElementAccessExpression(
+                Generator.IdentifierName(variableName),
+                SyntaxHelper.StringLiteralArgument(node.Name));
 
             var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
             AddNamespace(types);
@@ -478,7 +499,19 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SelectNode node)
         {
-            var scoreTable = $"{_queryAlias}Score";
+            string scoreTable;
+
+            switch (_type)
+            {
+                case MethodAccessType.TransformingQuery:
+                    scoreTable = _scope[MetaAttributes.TransformedIntoVariableName];
+                    break;
+                case MethodAccessType.ResultQuery:
+                    scoreTable = _scope[MetaAttributes.SelectIntoVariableName];
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
 
             var variableNameKeyword = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, "select", SyntaxTriviaList.Create(SyntaxHelper.WhiteSpace));
             var syntaxList = new ExpressionSyntax[node.Fields.Length];
@@ -1333,7 +1366,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void SetJoinsAmount(int amount)
         {
-            _joinsAmount = amount;
         }
 
         public void SetMethodAccessType(MethodAccessType type)

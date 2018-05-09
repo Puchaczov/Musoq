@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="MetaAttributes.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MetaAttributes.resx</DependentUpon>
+    </Compile>
     <Compile Update="RuntimeScripts\DeclarationStatements.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -41,6 +47,13 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Select.tt</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="MetaAttributes.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>MetaAttributes.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
