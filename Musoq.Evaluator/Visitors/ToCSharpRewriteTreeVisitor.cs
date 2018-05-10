@@ -67,6 +67,7 @@ namespace Musoq.Evaluator.Visitors
         private VariableDeclarationSyntax _groupValues;
         private VariableDeclarationSyntax _groupKeys;
         private SyntaxNode _groupHaving;
+        private List<string> _loadedAssemblies = new List<string>();
 
         private List<StatementSyntax> Statements { get; } = new List<StatementSyntax>();
 
@@ -106,13 +107,14 @@ namespace Musoq.Evaluator.Visitors
             }
 
             Compilation = Compilation
-                .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
-                .AddReferences(MetadataReference.CreateFromFile(typeof(ISchema).Assembly.Location))
-                .AddReferences(MetadataReference.CreateFromFile(typeof(LibraryBase).Assembly.Location))
-                .AddReferences(MetadataReference.CreateFromFile(typeof(Table).Assembly.Location))
-                .AddReferences(MetadataReference.CreateFromFile(typeof(SyntaxFactory).Assembly.Location))
-                .AddReferences(MetadataReference.CreateFromFile("C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\2.0.0\\netstandard.dll"))
-                .AddReferences(assemblies.Select(a => MetadataReference.CreateFromFile(a.Location)));
+                .AddReferences(MetadataReference.CreateFromFile("C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\2.0.0\\netstandard.dll"));
+
+            AddReference(typeof(object));
+            AddReference(typeof(ISchema));
+            AddReference(typeof(LibraryBase));
+            AddReference(typeof(Table));
+            AddReference(typeof(SyntaxFactory));
+            AddReference(assemblies.ToArray());
 
             Compilation = Compilation.WithOptions(
                 new CSharpCompilationOptions(
@@ -122,13 +124,13 @@ namespace Musoq.Evaluator.Visitors
                     .WithConcurrentBuild(true)
                     .WithPlatform(Platform.AnyCpu));
 
-            _namespaces.Add("System");
-            _namespaces.Add("System.Collections.Generic");
-            _namespaces.Add("Musoq.Plugins");
-            _namespaces.Add("Musoq.Schema");
-            _namespaces.Add("Musoq.Evaluator");
-            _namespaces.Add("Musoq.Evaluator.Tables");
-            _namespaces.Add("Musoq.Evaluator.Helpers");
+            AddNamespace("System");
+            AddNamespace("System.Collections.Generic");
+            AddNamespace("Musoq.Plugins");
+            AddNamespace("Musoq.Schema");
+            AddNamespace("Musoq.Evaluator");
+            AddNamespace("Musoq.Evaluator.Tables");
+            AddNamespace("Musoq.Evaluator.Helpers");
         }
 
         public void Visit(Node node)
@@ -493,19 +495,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SelectNode node)
         {
-            string scoreTable;
-
-            switch (_type)
-            {
-                case MethodAccessType.TransformingQuery:
-                    scoreTable = _scope[MetaAttributes.TransformedIntoVariableName];
-                    break;
-                case MethodAccessType.ResultQuery:
-                    scoreTable = _scope[MetaAttributes.SelectIntoVariableName];
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
+            string scoreTable = _scope[MetaAttributes.SelectIntoVariableName];
 
             var variableNameKeyword = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, "select", SyntaxTriviaList.Create(SyntaxHelper.WhiteSpace));
             var syntaxList = new ExpressionSyntax[node.Fields.Length];
@@ -697,8 +687,20 @@ namespace Musoq.Evaluator.Visitors
             }));
         }
 
-        public void Visit(ExistingTableFromNode node)
+        public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
+            var ifStatement = Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
+                new SyntaxNode[] { SyntaxFactory.ContinueStatement() }).WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+
+            var foreaches = SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"), SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
+                    SyntaxFactory.IdentifierName($"EvaluationHelper.ConvertTableToSource({node.InMemoryTableAlias}TransitionTable).Rows"),
+                    SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ForEachStatement(
+                        SyntaxFactory.IdentifierName("var"), SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
+                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows"),
+                        SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>((StatementSyntax)ifStatement))))))
+                .NormalizeWhitespace();
+
+            Nodes.Push(SyntaxFactory.Block(foreaches));
         }
 
         public void Visit(SchemaFromNode node)
@@ -774,10 +776,30 @@ namespace Musoq.Evaluator.Visitors
                 AddNamespace(type.Namespace);
         }
 
-        private void AddReference(Type[] types)
+        private void AddReference(params Type[] types)
         {
-            Compilation =
-                Compilation.AddReferences(types.Select(a => MetadataReference.CreateFromFile(a.Assembly.Location)));
+            foreach (var type in types)
+            {
+                if (!_loadedAssemblies.Contains(type.Assembly.Location))
+                {
+                    _loadedAssemblies.Add(type.Assembly.Location);
+                    Compilation =
+                        Compilation.AddReferences(MetadataReference.CreateFromFile(type.Assembly.Location));
+                }
+            }
+        }
+
+        private void AddReference(params Assembly[] assemblies)
+        {
+            foreach (var assembly in assemblies)
+            {
+                if (!_loadedAssemblies.Contains(assembly.Location))
+                {
+                    _loadedAssemblies.Add(assembly.Location);
+                    Compilation =
+                        Compilation.AddReferences(MetadataReference.CreateFromFile(assembly.Location));
+                }
+            }
         }
 
         public void Visit(CreateTableNode node)
@@ -786,21 +808,28 @@ namespace Musoq.Evaluator.Visitors
 
             foreach (var field in node.Fields)
             {
-                var types = EvaluationHelper.GetNestedTypes(field.ReturnType);
-                AddNamespace(types);
-                AddReference(types);
+                try
+                {
+                    var types = EvaluationHelper.GetNestedTypes(field.ReturnType);
+                    AddNamespace(types);
+                    AddReference(types);
 
-                cols.Add(
-                    SyntaxHelper.CreateObjectOf(
-                        nameof(Column),
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList(new[]
-                            {
-                                SyntaxHelper.StringLiteralArgument(field.FieldName),
-                                SyntaxHelper.TypeLiteralArgument(
-                                    EvaluationHelper.GetCastableType(field.ReturnType)),
-                                SyntaxHelper.IntLiteralArgument(field.FieldOrder)
-                            }))));
+                    cols.Add(
+                        SyntaxHelper.CreateObjectOf(
+                            nameof(Column),
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(new[]
+                                {
+                                    SyntaxHelper.StringLiteralArgument(field.FieldName),
+                                    SyntaxHelper.TypeLiteralArgument(
+                                        EvaluationHelper.GetCastableType(field.ReturnType)),
+                                    SyntaxHelper.IntLiteralArgument(field.FieldOrder)
+                                }))));
+                }
+                catch (Exception exc)
+                {
+
+                }
             }
 
             var createObject = SyntaxHelper.CreateAssignment(

@@ -158,7 +158,7 @@ namespace Musoq.Service.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(ExistingTableFromNode node)
+        public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
             _visitor.AddText("from");
             node.Accept(_visitor);

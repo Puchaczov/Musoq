@@ -500,9 +500,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new QueryNode(select, from, where, groupBy, null, skip, take));
         }
 
-        public void Visit(ExistingTableFromNode node)
+        public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
-            Nodes.Push(new ExistingTableFromNode());
+            var exp = Nodes.Pop();
+            var from = (FromNode)Nodes.Pop();
+            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp));
         }
 
         public void Visit(InternalQueryNode node)

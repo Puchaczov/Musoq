@@ -435,42 +435,71 @@ namespace Musoq.Evaluator.Visitors
             var where = Nodes.Pop() as WhereNode;
             var from = Nodes.Pop() as ExpressionFromNode;
 
-            
-            if (from.Expression is InMemoryTableFromNode variableFrom)
-            {
-                if (!_tmpVariableNames.ContainsKey(variableFrom.VariableName))
-                    _tmpVariableNames.Add(variableFrom.VariableName, 1);
-
-                from = new ExpressionFromNode(new InMemoryTableFromNode(variableFrom.VariableName));
-            }
-
             QueryNode query;
 
             var splittedNodes = new List<Node>();
 
-            var oldScope = _scope;
-            var parent = _scope.Parent ?? _scope;
-            parent?.RemoveScope(_scope);
-            _scope = parent;
-
-            if(_scope.Id != oldScope.Id)
-                _scope.ScopeSymbolTable.AddSymbol(from.Alias, oldScope.ScopeSymbolTable.GetSymbol(from.Alias));
+            var parent = _scope.Parent;
 
             var source = $"{from.Alias}Rows";
 
             if (from.Expression is JoinsNode)
             {
-                for (int i = 0; i < _joinedTables.Count; i++)
+                var current = _joinedTables[0];
+                var left = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.Source.Alias);
+                var right = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.With.Alias);
+
+                var scopeCreateTable = parent.AddScope();
+                var scopeJoinedQuery = parent.AddScope();
+
+                var leftFields = left.GetColumns();
+                var rightFields = right.GetColumns();
+                var both = CreateFields(
+                        leftFields,
+                        current.Source.Alias)
+                    .Concat(
+                        CreateFields(
+                            rightFields,
+                            current.With.Alias)).ToArray();
+
+                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, left);
+                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, right);
+
+                var targetTableName = $"{current.Source.Alias}{current.With.Alias}";
+
+                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, _scope.ScopeSymbolTable.GetSymbol(targetTableName));
+                scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = $"{targetTableName}TransitionTable";
+
+
+                var joinedQuery = new InternalQueryNode(
+                    new SelectNode(both),
+                    new ExpressionFromNode(current),
+                    new WhereNode(new PutTrueNode()),
+                    null,
+                    null,
+                    null,
+                    null,
+                    new RefreshNode(new AccessMethodNode[0]));
+
+                var targetTable = new CreateTableNode(targetTableName, new string[0], both);
+
+                splittedNodes.Add(targetTable);
+                splittedNodes.Add(joinedQuery);
+
+                source = $"{targetTable.Name}Rows";
+
+                for (int i = 1; i < _joinedTables.Count; i++)
                 {
-                    var current = _joinedTables[i];
-                    var left = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.Source.Alias);
-                    var right = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.With.Alias);
+                    current = _joinedTables[i];
+                    left = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.Source.Alias);
+                    right = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.With.Alias);
 
-                    parent.AddScope();
+                    scopeCreateTable = parent.AddScope();
+                    scopeJoinedQuery = parent.AddScope();
 
-                    var leftFields = left.GetColumns();
-                    var rightFields = right.GetColumns();
-                    var both = CreateFields(
+                    leftFields = left.GetColumns();
+                    rightFields = right.GetColumns();
+                    both = CreateFields(
                             leftFields,
                             current.Source.Alias)
                         .Concat(
@@ -478,9 +507,18 @@ namespace Musoq.Evaluator.Visitors
                                 rightFields,
                                 current.With.Alias)).ToArray();
 
-                    var joinedQuery = new InternalQueryNode(
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, left);
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, right);
+
+                    targetTableName = $"{current.Source.Alias}{current.With.Alias}";
+
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, _scope.ScopeSymbolTable.GetSymbol(targetTableName));
+                    scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = $"{targetTableName}TransitionTable";
+
+
+                    joinedQuery = new InternalQueryNode(
                         new SelectNode(both),
-                        new ExpressionFromNode(current),
+                        new ExpressionFromNode(new JoinInMemoryWithSourceTableFromNode(current.Source.Alias, current.With, current.Expression)),
                         new WhereNode(new PutTrueNode()),
                         null,
                         null,
@@ -488,7 +526,7 @@ namespace Musoq.Evaluator.Visitors
                         null,
                         new RefreshNode(new AccessMethodNode[0]));
 
-                    var targetTable = new CreateTableNode($"{current.Source.Alias}{current.With.Alias}", new string[0], both);
+                    targetTable = new CreateTableNode(targetTableName, new string[0], both);
 
                     splittedNodes.Add(targetTable);
                     splittedNodes.Add(joinedQuery);
@@ -511,9 +549,8 @@ namespace Musoq.Evaluator.Visitors
                 var scopeResultQuery = parent.AddScope();
 
                 var destination = $"{nestedFrom.Alias}TransformedScore";
-                scopeTransformedQuery[MetaAttributes.TransformedIntoVariableName] = destination;
+                scopeTransformedQuery[MetaAttributes.SelectIntoVariableName] = destination;
                 scopeTransformedQuery.ScopeSymbolTable.AddSymbol(nestedFrom.Alias, _scope.ScopeSymbolTable.GetSymbol(nestedFrom.Alias));
-                _scope = scopeResultQuery;
 
                 var transformingQuery = new InternalQueryNode(aggSelect, nestedFrom, where, groupBy, null, null, null, refreshMethods);
 
@@ -555,6 +592,7 @@ namespace Musoq.Evaluator.Visitors
 
                     Nodes.Push(fakeGroupBy);
                     Visit(new QueryNode(node.Select, node.From, node.Where, fakeGroupBy, node.OrderBy, node.Skip, node.Take));
+                    return;
                 }
                 else if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
                 {
@@ -576,6 +614,10 @@ namespace Musoq.Evaluator.Visitors
                             null));
                 }
             }
+
+            var parentScope = _scope.Parent;
+            parentScope.RemoveScope(_scope);
+            _scope = parentScope.Child[0];
         }
 
         private bool IsQueryWithOnlyAggregateMethods(FieldNode[][] splitted)
@@ -609,8 +651,11 @@ namespace Musoq.Evaluator.Visitors
             return fields.ToArray();
         }
 
-        public void Visit(ExistingTableFromNode node)
+        public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
+            var exp = Nodes.Pop();
+            var from = (FromNode)Nodes.Pop();
+            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp));
         }
 
         public void Visit(InternalQueryNode node)

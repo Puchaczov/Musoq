@@ -229,7 +229,7 @@ namespace Musoq.Service.Visitors
             _script.Append($"take{node.Value}");
         }
 
-        public void Visit(ExistingTableFromNode node)
+        public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
             _script.Append(node.ToString());
         }
