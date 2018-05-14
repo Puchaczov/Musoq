@@ -187,7 +187,7 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
-        public void TableShouldComplexTypeTest()
+        public void TableShouldReturnComplexTypeTest()
         {
             var query = "select Self from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -281,7 +281,7 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
-        public void SimpleAccessObjectTest()
+        public void SimpleAccessArrayTest()
         {
             var query = @"select Self.Array[2] from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -298,6 +298,24 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual(2, table[0].Values[0]);
             Assert.AreEqual(2, table[1].Values[0]);
+        }
+
+        [TestMethod]
+        public void SimpleAccessObjectTest()
+        {
+            var query = @"select Self.Array from #A.Entities()";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001")} }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("Self.Array", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
         }
 
         [TestMethod]

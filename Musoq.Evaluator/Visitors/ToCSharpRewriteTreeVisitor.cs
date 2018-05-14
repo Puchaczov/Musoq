@@ -125,6 +125,13 @@ namespace Musoq.Evaluator.Visitors
             AddNamespace("Musoq.Evaluator");
             AddNamespace("Musoq.Evaluator.Tables");
             AddNamespace("Musoq.Evaluator.Helpers");
+
+            Statements.Add(SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxHelper.CreateAssignment(
+                        "stats",
+                        SyntaxHelper.CreateObjectOf(
+                            nameof(AmendableQueryStats),
+                            SyntaxFactory.ArgumentList()))));
         }
 
         public void Visit(Node node)
@@ -378,6 +385,9 @@ namespace Musoq.Evaluator.Visitors
                     case InjectGroupAccessName injectGroupAccessName:
                         break;
                     case InjectQueryStats injectQueryStats:
+                        args.Add(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("stats")));
                         break;
                 }
             }
@@ -886,13 +896,22 @@ namespace Musoq.Evaluator.Visitors
                 block = block.AddStatements(take.Statements.ToArray());
 
             block = block.AddStatements(select.Statements.ToArray());
-
+            block = block.AddStatements(GenerateStatsUpdateStatements());
             var fullBlock = SyntaxFactory.Block();
 
             fullBlock = fullBlock.AddStatements(SyntaxHelper.Foreach("score", _scope[MetaAttributes.SourceName], block));
             fullBlock = fullBlock.AddStatements((StatementSyntax) Generator.ReturnStatement(SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName)));
 
             Statements.AddRange(fullBlock.Statements);
+        }
+
+        private StatementSyntax GenerateStatsUpdateStatements()
+        {
+            return SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+                SyntaxKind.AddAssignmentExpression,
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("stats"), SyntaxFactory.IdentifierName("RowNumber")),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1))));
         }
 
         public void Visit(InternalQueryNode node)
