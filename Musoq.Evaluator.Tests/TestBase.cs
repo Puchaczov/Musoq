@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Musoq.Converter;
-using Musoq.Evaluator.Instructions;
 using Musoq.Evaluator.Tests.Schema;
 
 namespace Musoq.Evaluator.Tests

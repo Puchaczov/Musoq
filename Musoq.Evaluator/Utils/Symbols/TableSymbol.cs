@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Utils.Symbols
@@ -131,6 +132,23 @@ namespace Musoq.Evaluator.Utils.Symbols
 
             return symbol;
         }
+
+        public TableSymbol JoinSymbols(TableSymbol other)
+        {
+            var symbol = new TableSymbol();
+            var name = _tables.Keys.Aggregate((a, b) => a + b);
+
+            var tables = _tables.Values.Select(f => f.Table);
+            var table = new DynamicTable(tables.Select(f => f.Columns).Aggregate((a, b) => a.Concat(b).ToArray()));
+
+            symbol._tables.Add(name, (new TransitionSchema(name, table), table));
+            symbol._tables.Add(other._orders[0], (other._tables[other._orders[0]].Schema, other._tables[other._orders[0]].Table));
+
+            symbol._orders.Add(name);
+            symbol._orders.Add(other._orders[0]);
+
+            return symbol;
+        }
     }
 
     public class ColumnSymbol : Symbol
@@ -151,5 +169,15 @@ namespace Musoq.Evaluator.Utils.Symbols
         }
 
         public Type Type { get; }
+    }
+
+    public class FieldsNamesSymbol : Symbol
+    {
+        public FieldsNamesSymbol(string[] names)
+        {
+            Names = names;
+        }
+
+        public string[] Names { get; }
     }
 }

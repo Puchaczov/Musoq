@@ -50,7 +50,7 @@ namespace Musoq.Parser
         void Visit(TakeNode node);
         void Visit(JoinInMemoryWithSourceTableFromNode node);
         void Visit(SchemaFromNode node);
-        void Visit(NestedQueryFromNode node);
+        void Visit(JoinSourcesTableFromNode node);
         void Visit(InMemoryTableFromNode node);
         void Visit(JoinFromNode node);
         void Visit(ExpressionFromNode node);

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -184,9 +181,12 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(NestedQueryFromNode node)
+        public void Visit(JoinSourcesTableFromNode node)
         {
-            node.Query.Accept(this);
+            node.Expression.Accept(this);
+            node.First.Accept(this);
+            node.Second.Accept(this);
+
             node.Accept(_visitor);
         }
 

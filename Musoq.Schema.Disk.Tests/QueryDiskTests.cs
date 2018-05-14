@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
-using Musoq.Evaluator.Instructions;
 
 namespace Musoq.Schema.Disk.Tests
 {

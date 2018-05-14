@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
-using Musoq.Evaluator.Instructions;
 using Newtonsoft.Json.Linq;
 
 namespace Musoq.Schema.Json.Tests

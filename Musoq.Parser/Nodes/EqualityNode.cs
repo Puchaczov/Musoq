@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes
+﻿namespace Musoq.Parser.Nodes
 {
     public class EqualityNode : BinaryNode
     {

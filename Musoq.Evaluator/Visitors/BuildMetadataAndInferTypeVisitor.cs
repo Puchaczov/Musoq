@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Musoq.Evaluator.RuntimeScripts;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -12,7 +11,6 @@ using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -393,11 +391,13 @@ namespace Musoq.Evaluator.Visitors
             return string.IsNullOrEmpty(alias) ? new string(Guid.NewGuid().ToString("N").Where(char.IsLetter).ToArray()).Substring(0, 4) : alias;
         }
 
-        public void Visit(NestedQueryFromNode node)
+        public void Visit(JoinSourcesTableFromNode node)
         {
-            var query = Nodes.Pop() as QueryNode;
+            var exp = Nodes.Pop();
+            var b = (FromNode)Nodes.Pop();
+            var a = (FromNode)Nodes.Pop();
 
-            Nodes.Push(new NestedQueryFromNode(query, string.Empty, String.Empty, node.ColumnToIndexMap));
+            Nodes.Push(new JoinSourcesTableFromNode(a, b, exp));
         }
 
         public void Visit(InMemoryTableFromNode node)
@@ -470,6 +470,16 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(QueryNode node)
         {
             var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
+
+            if (groupBy == null && RefreshMethods.Count > 0)
+            {
+                groupBy = new GroupByNode(
+                    new FieldNode[]
+                    {
+                        new FieldNode(new IntegerNode("1"), 0, String.Empty), 
+                    }, null);
+            }
+
             var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
             var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
 

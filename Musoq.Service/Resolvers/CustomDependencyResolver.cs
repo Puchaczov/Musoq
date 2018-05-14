@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Web.Http.Dependencies;
 using CacheManager.Core;
 using Musoq.Evaluator;
-using Musoq.Evaluator.Instructions;
 using Musoq.Schema;
 using Musoq.Service.Client;
 using Musoq.Service.Controllers;

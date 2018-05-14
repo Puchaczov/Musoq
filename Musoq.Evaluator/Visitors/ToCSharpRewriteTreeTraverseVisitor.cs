@@ -166,9 +166,12 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(NestedQueryFromNode node)
+        public void Visit(JoinSourcesTableFromNode node)
         {
-            node.Query.Accept(this);
+            node.Expression.Accept(this);
+            node.First.Accept(this);
+            node.Second.Accept(this);
+
             node.Accept(_visitor);
         }
 

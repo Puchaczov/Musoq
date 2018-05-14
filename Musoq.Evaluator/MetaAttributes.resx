@@ -117,13 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CreateTableVariableName" xml:space="preserve">
+    <value>CreateTableVariableName</value>
+  </data>
   <data name="ProcessedQueryId" xml:space="preserve">
     <value>ProcessedQueryId</value>
   </data>
   <data name="SelectIntoVariableName" xml:space="preserve">
     <value>SelectIntoVariableName</value>
   </data>
-  <data name="TransformedIntoVariableName" xml:space="preserve">
-    <value>TransformedIntoVariableName</value>
+  <data name="SourceName" xml:space="preserve">
+    <value>SourceName</value>
   </data>
 </root>

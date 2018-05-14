@@ -240,7 +240,7 @@ namespace Musoq.Service.Visitors
             _script.Append($"{node.Schema}.{node.Method}({parameters})");
         }
 
-        public void Visit(NestedQueryFromNode node)
+        public void Visit(JoinSourcesTableFromNode node)
         {
         }
 

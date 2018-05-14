@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Managers;
 

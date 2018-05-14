@@ -61,6 +61,15 @@ namespace Musoq.Evaluator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to CreateTableVariableName.
+        /// </summary>
+        internal static string CreateTableVariableName {
+            get {
+                return ResourceManager.GetString("CreateTableVariableName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ProcessedQueryId.
         /// </summary>
         internal static string ProcessedQueryId {
@@ -79,11 +88,11 @@ namespace Musoq.Evaluator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TransformedIntoVariableName.
+        ///   Looks up a localized string similar to SourceName.
         /// </summary>
-        internal static string TransformedIntoVariableName {
+        internal static string SourceName {
             get {
-                return ResourceManager.GetString("TransformedIntoVariableName", resourceCulture);
+                return ResourceManager.GetString("SourceName", resourceCulture);
             }
         }
     }

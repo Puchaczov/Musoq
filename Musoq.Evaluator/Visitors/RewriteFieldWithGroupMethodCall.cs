@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
@@ -27,7 +28,7 @@ namespace Musoq.Evaluator.Visitors
 
         public override void Visit(AccessColumnNode node)
         {
-            Nodes.Push(new AccessColumnNode($"{node.Alias}.{node.Name}", string.Empty, node.ReturnType, TextSpan.Empty));
+            Nodes.Push(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), string.Empty, node.ReturnType, TextSpan.Empty));
         }
 
         public override void Visit(AccessMethodNode node)

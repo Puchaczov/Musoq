@@ -170,13 +170,9 @@ namespace Musoq.Service.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(NestedQueryFromNode node)
+        public void Visit(JoinSourcesTableFromNode node)
         {
-            _visitor.AddText("from");
-            _visitor.AddText("(");
-            node.Accept(_visitor);
-            node.Query.Accept(this);
-            _visitor.AddText(")");
+            _visitor.AddText(node.ToString());
         }
 
         public void Visit(InMemoryTableFromNode node)

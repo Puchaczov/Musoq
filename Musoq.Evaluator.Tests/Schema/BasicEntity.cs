@@ -4,6 +4,8 @@ namespace Musoq.Evaluator.Tests.Schema
 {
     public class BasicEntity
     {
+        public BasicEntity() { }
+
         public BasicEntity(string name)
         {
             Name = name;
