@@ -319,6 +319,24 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
+        public void AccessObjectTest()
+        {
+            var query = @"select Self.Self.Array from #A.Entities()";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("001")} }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("Self.Self.Array", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
+        }
+
+        [TestMethod]
         public void SimpleAccessObjectIncrementTest()
         {
             var query = @"select Inc(Self.Array[2]) from #A.Entities()";

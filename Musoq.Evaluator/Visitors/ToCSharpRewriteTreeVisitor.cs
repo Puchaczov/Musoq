@@ -459,14 +459,37 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessObjectArrayNode node)
         {
+            var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax)Nodes.Pop());
+
+            Nodes.Push(SyntaxFactory
+                .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(node.Token.Index)))))));
         }
 
         public void Visit(AccessObjectKeyNode node)
         {
+            var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
+
+            Nodes.Push(SyntaxFactory
+                .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(node.Token.Key)))))));
         }
 
         public void Visit(PropertyValueNode node)
         {
+            var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax)Nodes.Pop());
+
+            Nodes.Push(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression, 
+                    exp, 
+                    SyntaxFactory.IdentifierName(node.Name)));
         }
 
         public void Visit(DotNode node)

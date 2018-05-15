@@ -16,7 +16,8 @@ namespace Musoq.Parser.Nodes
             PropertyInfo = propertyInfo;
         }
 
-        public override Type ReturnType { get; }
+        public override Type ReturnType => PropertyInfo.PropertyType;
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);

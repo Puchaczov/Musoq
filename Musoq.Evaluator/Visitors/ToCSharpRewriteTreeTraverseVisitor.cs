@@ -106,10 +106,14 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(AccessObjectKeyNode node)
-        {}
+        {
+            node.Accept(_visitor);
+        }
 
         public void Visit(PropertyValueNode node)
-        {}
+        {
+            node.Accept(_visitor);
+        }
 
         public void Visit(DotNode node)
         {

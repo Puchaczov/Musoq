@@ -2,7 +2,7 @@
 
 namespace Musoq.Parser.Nodes
 {
-    public class AccessColumnNode : Node
+    public class AccessColumnNode : IdentifierNode
     {
         private Type _returnType;
 
@@ -13,15 +13,13 @@ namespace Musoq.Parser.Nodes
         }
 
         public AccessColumnNode(string column, string alias, Type returnType, TextSpan span)
+            : base(column)
         {
             Alias = alias;
             Span = span;
             _returnType = returnType;
-            Name = column;
             Id = $"{nameof(AccessColumnNode)}{column}{returnType.Name}";
         }
-
-        public string Name { get; }
 
         public string Alias { get; }
 

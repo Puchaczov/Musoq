@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
@@ -105,23 +106,31 @@ namespace Musoq.Evaluator.Visitors
         {
             var self = node;
 
-            var ident = (IdentifierNode) self.Root;
-            if (_current.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
+            var theMostInner = self;
+            while (!(self is null))
             {
-                if (self.Expression is DotNode dotNode)
+                theMostInner = self;
+                self = self.Root as DotNode;
+            }
+
+            var ident = (IdentifierNode) theMostInner.Root;
+            if (node == theMostInner && _current.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
+            {
+                if (theMostInner.Expression is DotNode dotNode)
                 {
                     var col = (IdentifierNode) dotNode.Root;
                     Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
                 }
                 else
                 {
-                    var col = (IdentifierNode) self.Expression;
+                    var col = (IdentifierNode)theMostInner.Expression;
                     Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
                 }
 
-                self = self.Expression as DotNode;
+                return;
             }
 
+            self = node;
 
             while (!(self is null))
             {

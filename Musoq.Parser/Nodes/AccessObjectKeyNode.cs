@@ -21,7 +21,7 @@ namespace Musoq.Parser.Nodes
 
         public string ObjectName => Token.Name;
 
-        public override Type ReturnType { get; }
+        public override Type ReturnType => PropertyInfo.PropertyType.GetElementType();
 
         public override void Accept(IExpressionVisitor visitor)
         {

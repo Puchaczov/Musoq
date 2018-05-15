@@ -10,16 +10,17 @@ namespace Musoq.Parser.Nodes
 
         public string Name { get; }
 
-        public DotNode(Node root, Node expression, bool isOuter, string name)
+        public DotNode(Node root, Node expression, bool isOuter, string name, Type returnType = null)
             : base(expression)
         {
             Root = root;
             IsOuter = isOuter;
             Name = name;
             Id = $"{nameof(DotNode)}{root.ToString()}{expression.ToString()}{isOuter}{name}";
+            ReturnType = returnType;
         }
 
-        public override Type ReturnType => Expression.ReturnType;
+        public override Type ReturnType { get; }
 
         public override void Accept(IExpressionVisitor visitor)
         {

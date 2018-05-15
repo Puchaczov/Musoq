@@ -31,6 +31,18 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), string.Empty, node.ReturnType, TextSpan.Empty));
         }
 
+        public override void Visit(DotNode node)
+        {
+            if (!(node.Root is DotNode) && node.Root is AccessColumnNode column)
+            {
+                var name = $"{NamingHelper.ToColumnName(column.Alias, column.Name)}.{node.Expression.ToString()}";
+                Nodes.Push(new AccessColumnNode(name, string.Empty, node.ReturnType, TextSpan.Empty));
+                return;
+            }
+
+            base.Visit(node);
+        }
+
         public override void Visit(AccessMethodNode node)
         {
             if (node.IsAggregateMethod)
