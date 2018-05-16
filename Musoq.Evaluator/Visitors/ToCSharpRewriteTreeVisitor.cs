@@ -61,7 +61,8 @@ namespace Musoq.Evaluator.Visitors
         private VariableDeclarationSyntax _groupValues;
         private VariableDeclarationSyntax _groupKeys;
         private SyntaxNode _groupHaving;
-        private List<string> _loadedAssemblies = new List<string>();
+        private readonly List<string> _loadedAssemblies = new List<string>();
+        private readonly Stack<string> _methodNames = new Stack<string>();
 
         private List<StatementSyntax> Statements { get; } = new List<StatementSyntax>();
 
@@ -125,13 +126,6 @@ namespace Musoq.Evaluator.Visitors
             AddNamespace("Musoq.Evaluator");
             AddNamespace("Musoq.Evaluator.Tables");
             AddNamespace("Musoq.Evaluator.Helpers");
-
-            Statements.Add(SyntaxFactory.LocalDeclarationStatement(
-                    SyntaxHelper.CreateAssignment(
-                        "stats",
-                        SyntaxHelper.CreateObjectOf(
-                            nameof(AmendableQueryStats),
-                            SyntaxFactory.ArgumentList()))));
         }
 
         public void Visit(Node node)
@@ -355,7 +349,7 @@ namespace Musoq.Evaluator.Visitors
             {
                 switch (parameterInfo.GetCustomAttribute<InjectTypeAttribute>())
                 {
-                    case InjectSourceAttribute injectSource:
+                    case InjectSourceAttribute _:
                         string objectName;
 
                         switch (_type)
@@ -379,12 +373,12 @@ namespace Musoq.Evaluator.Visitors
                                         SyntaxFactory.IdentifierName(objectName), 
                                         SyntaxFactory.IdentifierName(nameof(IObjectResolver.Context))))));
                         break;
-                    case InjectGroupAttribute injectGroup:
+                    case InjectGroupAttribute _:
                         args.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")));
                         break;
-                    case InjectGroupAccessName injectGroupAccessName:
+                    case InjectGroupAccessName _:
                         break;
-                    case InjectQueryStats injectQueryStats:
+                    case InjectQueryStats _:
                         args.Add(
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("stats")));
@@ -1123,7 +1117,7 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.ParameterList(
                     SyntaxFactory.SeparatedList(new ParameterSyntax[0])),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
-                SyntaxFactory.Block(SyntaxFactory.ParseStatement("return RunQuery(Provider);")),
+                SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {_methodNames.Pop()}(Provider);")),
                 null);
 
             var param = SyntaxFactory.PropertyDeclaration(
@@ -1144,7 +1138,7 @@ namespace Musoq.Evaluator.Visitors
             _methods.Add(param);
 
             var classDeclaration = Generator.ClassDeclaration("CompiledQuery", new string[0], Accessibility.Public, DeclarationModifiers.None,
-                null, new SyntaxNode[]{ SyntaxFactory.IdentifierName(nameof(IRunnable)) }, _methods);
+                null, new SyntaxNode[]{ SyntaxFactory.IdentifierName(nameof(BaseOperations)), SyntaxFactory.IdentifierName(nameof(IRunnable)) }, _methods);
 
             var ns = SyntaxFactory.NamespaceDeclaration(
                 SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Query.Compiled")),
@@ -1183,11 +1177,6 @@ namespace Musoq.Evaluator.Visitors
                 file.Write(builder.ToString());
             }
 
-            Debug.WriteLine("START");
-            foreach(var item in Compilation.ExternalReferences)
-                Debug.WriteLine(item.Display);
-            Debug.WriteLine("STOP");
-
             Compilation = Compilation.AddSyntaxTrees(new[]
             {
                 SyntaxFactory.ParseSyntaxTree(builder.ToString(), new CSharpParseOptions(LanguageVersion.Latest), testPath, Encoding.Unicode)
@@ -1200,14 +1189,57 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(UnionNode node)
         {
+            var b = _methodNames.Pop();
+            var a = _methodNames.Pop();
+            var name = $"{a}_Union_{b}";
+            _methodNames.Push(name);
+
+            var aInvocation = SyntaxFactory
+                .InvocationExpression(SyntaxFactory.IdentifierName(a))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.IdentifierName("provider")))));
+
+            var bInvocation = SyntaxFactory
+                .InvocationExpression(SyntaxFactory.IdentifierName(b))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.IdentifierName("provider")))));
+
+            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Union), aInvocation, bInvocation));
         }
 
         public void Visit(UnionAllNode node)
         {
+            var b = _methodNames.Pop();
+            var a = _methodNames.Pop();
+            var name = $"{a}_UnionAll_{b}";
+            _methodNames.Push(name);
+
+            var aInvocation = SyntaxFactory
+                .InvocationExpression(SyntaxFactory.IdentifierName(a))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.IdentifierName("provider")))));
+
+            var bInvocation = SyntaxFactory
+                .InvocationExpression(SyntaxFactory.IdentifierName(b))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.IdentifierName("provider")))));
+
+            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Union), aInvocation, bInvocation));
         }
 
         public void Visit(ExceptNode node)
         {
+            var b = _methodNames.Pop();
+            var a = _methodNames.Pop();
+            _methodNames.Push($"{a}_Except_{b}");
         }
 
         public void Visit(RefreshNode node)
@@ -1227,6 +1259,66 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(IntersectNode node)
         {
+            var b = _methodNames.Pop();
+            var a = _methodNames.Pop();
+            _methodNames.Push($"{a}_Intersect_{b}");
+        }
+
+        private MethodDeclarationSyntax GenerateMethod(string methodName, string setOperator, ExpressionSyntax firstTableExpression, ExpressionSyntax secondTableExpression)
+        {
+            return SyntaxFactory
+                .MethodDeclaration(SyntaxFactory.IdentifierName(nameof(Table)),
+                    SyntaxFactory.Identifier(methodName))
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+                .WithParameterList(SyntaxFactory.ParameterList(
+                    SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(SyntaxFactory
+                        .Parameter(SyntaxFactory.Identifier("provider"))
+                        .WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider)))))).WithBody(SyntaxFactory.Block(
+                    SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(SyntaxFactory
+                        .InvocationExpression(SyntaxFactory.IdentifierName(setOperator)).WithArgumentList(
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                new SyntaxNodeOrToken[]
+                                {
+                                    SyntaxFactory.Argument(firstTableExpression),
+                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                    SyntaxFactory.Argument(secondTableExpression),
+                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                    SyntaxFactory.Argument(SyntaxFactory
+                                        .ParenthesizedLambdaExpression(
+                                            SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression))
+                                        .WithParameterList(SyntaxFactory.ParameterList(
+                                            SyntaxFactory.SeparatedList<ParameterSyntax>(new SyntaxNodeOrToken[]
+                                            {
+                                                SyntaxFactory.Parameter(SyntaxFactory.Identifier("first")),
+                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                SyntaxFactory.Parameter(SyntaxFactory.Identifier("second"))
+                                            }))))
+                                })))))));
+        }
+
+        private SyntaxNode GenerateSetOperator(string operatorMethodName, ExpressionSyntax firstArg, ExpressionSyntax secondArg, ExpressionSyntax compareExpression)
+        {
+            return SyntaxFactory.ExpressionStatement(SyntaxFactory
+                .InvocationExpression(SyntaxFactory.IdentifierName(operatorMethodName)).WithArgumentList(
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(new SyntaxNodeOrToken[]
+                    {
+                        SyntaxFactory.Argument(firstArg),
+                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                        SyntaxFactory.Argument(secondArg),
+                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                        SyntaxFactory.Argument(SyntaxFactory
+                            .ParenthesizedLambdaExpression(SyntaxFactory.Block(
+                                SyntaxFactory.SingletonList<StatementSyntax>(
+                                    SyntaxFactory.ReturnStatement(
+                                        compareExpression))))
+                            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList<ParameterSyntax>(
+                                new SyntaxNodeOrToken[]
+                                {
+                                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("fTableRow")),
+                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("sTableRow"))
+                                }))))
+                    }))));
         }
 
         public void Visit(PutTrueNode node)
@@ -1236,13 +1328,22 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(MultiStatementNode node)
         {
+            Statements.Insert(0, SyntaxFactory.LocalDeclarationStatement(
+                SyntaxHelper.CreateAssignment(
+                    "stats",
+                    SyntaxHelper.CreateObjectOf(
+                        nameof(AmendableQueryStats),
+                        SyntaxFactory.ArgumentList()))));
+
+            _methodNames.Push(_scope[MetaAttributes.MethodName]);
+
             var method = SyntaxFactory.MethodDeclaration(
                 new SyntaxList<AttributeListSyntax>(),
                 SyntaxFactory.TokenList(
                     SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
                 SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                 null,
-                SyntaxFactory.Identifier("RunQuery"),
+                SyntaxFactory.Identifier(_scope[MetaAttributes.MethodName]),
                 null,
                 SyntaxFactory.ParameterList(
                     SyntaxFactory.SeparatedList(new[]

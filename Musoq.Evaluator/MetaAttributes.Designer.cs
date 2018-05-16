@@ -70,6 +70,15 @@ namespace Musoq.Evaluator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MethodName.
+        /// </summary>
+        internal static string MethodName {
+            get {
+                return ResourceManager.GetString("MethodName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ProcessedQueryId.
         /// </summary>
         internal static string ProcessedQueryId {

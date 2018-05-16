@@ -20,7 +20,6 @@ namespace Musoq.Evaluator.Visitors
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
         private readonly TransitionSchemaProvider _schemaProvider;
         private readonly List<AccessMethodNode> _refreshMethods;
-        private readonly Dictionary<string, int> _tmpVariableNames = new Dictionary<string, int>();
         private InternalQueryNode _setLeftNode;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
@@ -442,10 +441,11 @@ namespace Musoq.Evaluator.Visitors
             QueryNode query;
 
             var splittedNodes = new List<Node>();
-            var parent = _scope.Parent;
             var source = from.Alias.ToRowsSource().WithRowsUsage();
 
             QueryNode lastJoinQuery = null;
+
+            _scope[MetaAttributes.MethodName] = $"ComputeTable_{from.Alias}";
 
             if (from.Expression is JoinsNode)
             {
@@ -453,8 +453,8 @@ namespace Musoq.Evaluator.Visitors
                 var left = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.Source.Alias);
                 var right = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.With.Alias);
 
-                var scopeCreateTable = parent.AddScope();
-                var scopeJoinedQuery = parent.AddScope();
+                var scopeCreateTable = _scope.AddScope("Table");
+                var scopeJoinedQuery = _scope.AddScope("Query");
 
                 var bothForCreateTable = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias, (name, alias) => NamingHelper.ToColumnName(alias, name));
                 var bothForSelect = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias, (name, alias) => name);
@@ -500,8 +500,8 @@ namespace Musoq.Evaluator.Visitors
 
                     targetTableName = $"{current.Source.Alias}{current.With.Alias}";
 
-                    scopeCreateTable = parent.AddScope();
-                    scopeJoinedQuery = parent.AddScope();
+                    scopeCreateTable = _scope.AddScope("Table");
+                    scopeJoinedQuery = _scope.AddScope("Query");
 
                     bothForCreateTable = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias, (name, alias) => NamingHelper.ToColumnName(alias, name));
                     bothForSelect = CreateAndConcatFields(
@@ -567,10 +567,10 @@ namespace Musoq.Evaluator.Visitors
                 var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(splitted[0], groupBy.Fields).Reverse().ToArray());
                 var outSelect = new SelectNode(splitted[1]);
 
-                var scopeCreateTranformingTable = parent.AddScope();
-                var scopeTransformedQuery = parent.AddScope();
-                var scopeCreateResultTable = parent.AddScope();
-                var scopeResultQuery = parent.AddScope();
+                var scopeCreateTranformingTable = _scope.AddScope("Table");
+                var scopeTransformedQuery = _scope.AddScope("Query");
+                var scopeCreateResultTable = _scope.AddScope("Table");
+                var scopeResultQuery = _scope.AddScope("Query");
 
                 scopeCreateTranformingTable[MetaAttributes.CreateTableVariableName] = nestedFrom.Alias.ToGroupingTable();
                 scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = nestedFrom.Alias.ToScoreTable();
@@ -646,7 +646,7 @@ namespace Musoq.Evaluator.Visitors
             {
                 var splitted = SplitBetweenAggreateAndNonAggreagate(select.Fields, new FieldNode[0], true);
 
-                if (IsQueryWithOnlyAggregateMethods(splitted))
+                if (IsQueryWithOnlyAggregateMethods(splitted)) //TODO Remove this branch as it SHOULD not be used anymore
                 {
                     var fakeField = new FieldNode(new IntegerNode("1"), 0, String.Empty);
                     var fakeGroupBy = new GroupByNode(new[] { fakeField }, null);
@@ -670,8 +670,8 @@ namespace Musoq.Evaluator.Visitors
                 }
                 else
                 {
-                    var scopeCreateResultTable = parent.AddScope();
-                    var scopeResultQuery = parent.AddScope();
+                    var scopeCreateResultTable = _scope.AddScope("Table");
+                    var scopeResultQuery = _scope.AddScope("Query");
 
                     scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = from.Alias.ToScoreTable();
                     scopeResultQuery[MetaAttributes.SelectIntoVariableName] = from.Alias.ToScoreTable();
@@ -690,10 +690,6 @@ namespace Musoq.Evaluator.Visitors
                             null));
                 }
             }
-
-            var parentScope = _scope.Parent;
-            parentScope.RemoveScope(_scope);
-            _scope = parentScope.Child[0];
         }
 
         private bool IsQueryWithOnlyAggregateMethods(FieldNode[][] splitted)
@@ -762,208 +758,30 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(UnionNode node)
         {
-            //TranslatedSetTreeNode translatedTree;
-
-            //var rightNode = Nodes.Pop();
-            //var leftNode = _setLeftNode ?? Nodes.Pop();
-            //if (!node.IsNested)
-            //    Nodes.Push(translatedTree = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>()));
-            //else
-            //    translatedTree = (TranslatedSetTreeNode)Nodes.Peek();
-
-            //var leftQuery = leftNode as InternalQueryNode;
-            //var rightQuery = rightNode as InternalQueryNode;
-
-            //CreateTableNode fTable;
-            //if (!node.IsNested)
-            //    fTable = new CreateTableNode($"{leftQuery.Into.Name}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
-            //else
-            //    fTable = new CreateTableNode(
-            //        $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
-
-            //InternalQueryNode trLQuery;
-            //if (node.IsNested)
-            //{
-            //    var columns = ChangeMethodCallsForColumnAccess(leftQuery.Select);
-            //    var exTable =
-            //        new InMemoryTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName);
-            //    trLQuery = new InternalQueryNode(columns, exTable, new WhereNode(new PutTrueNode()), null, null,
-            //        new IntoNode(fTable.Name), null, null, null, false, string.Empty, true, null);
-            //}
-            //else
-            //{
-            //    trLQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy, null,
-            //        new IntoNode(fTable.Name), null, leftQuery.Skip, leftQuery.Take, false, string.Empty, false, null);
-            //}
-
-            //var trQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
-            //    rightQuery.GroupBy, null, new IntoNode(fTable.Name),
-            //    new ShouldBePresentInTheTable(fTable.Name, true, node.Keys), rightQuery.Skip, rightQuery.Take, node.IsTheLastOne, fTable.Name, false,
-            //    null);
-
-            //var transitionTables = new List<CreateTableNode> { fTable };
-
-            //if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
-            //    _cteLastQueriesByName.Add(_currentCte, trQuery);
-
-            //_setLeftNode = trLQuery;
-
-            //translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery, fTable.Name,
-            //    node.Keys));
+            var right = Nodes.Pop();
+            var left = Nodes.Pop();
+            Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
         public void Visit(UnionAllNode node)
         {
-            //TranslatedSetTreeNode translatedTree;
-
-            //var rightNode = Nodes.Pop();
-            //var leftNode = _setLeftNode ?? Nodes.Pop();
-
-            //if (!node.IsNested)
-            //    Nodes.Push(translatedTree = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>()));
-            //else
-            //    translatedTree = (TranslatedSetTreeNode)Nodes.Peek();
-
-            //var leftQuery = leftNode as InternalQueryNode;
-            //var rightQuery = rightNode as InternalQueryNode;
-
-            //CreateTableNode fTable;
-            //if (!node.IsNested)
-            //    fTable = new CreateTableNode($"{leftQuery.Into.Name}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
-            //else
-            //    fTable = new CreateTableNode(
-            //        $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
-
-            //InternalQueryNode trLQuery;
-            //if (node.IsNested)
-            //{
-            //    var columns = ChangeMethodCallsForColumnAccess(leftQuery.Select);
-            //    var exTable =
-            //        new InMemoryTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName);
-            //    trLQuery = new InternalQueryNode(columns, exTable, new WhereNode(new PutTrueNode()), null, null,
-            //        new IntoNode(fTable.Name), null, null, null, false, string.Empty, true, null);
-            //}
-            //else
-            //{
-            //    trLQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy, null,
-            //        new IntoNode(fTable.Name), null, leftQuery.Skip, leftQuery.Take, false, string.Empty, false, null);
-            //}
-
-            //var trQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
-            //    rightQuery.GroupBy, null, new IntoNode(fTable.Name), null, rightQuery.Skip, rightQuery.Take, node.IsTheLastOne, fTable.Name, false, null);
-
-            //var transitionTables = new List<CreateTableNode> { fTable };
-
-            //if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
-            //    _cteLastQueriesByName.Add(_currentCte, trQuery);
-
-            //_setLeftNode = trLQuery;
-
-            //translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery, fTable.Name,
-            //    node.Keys));
+            var right = Nodes.Pop();
+            var left = Nodes.Pop();
+            Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
         public void Visit(ExceptNode node)
         {
-            //TranslatedSetTreeNode translatedTree;
-
-            //var rightNode = Nodes.Pop();
-            //var leftNode = _setLeftNode ?? Nodes.Pop();
-
-            //if (!node.IsNested)
-            //    Nodes.Push(translatedTree = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>()));
-            //else
-            //    translatedTree = (TranslatedSetTreeNode)Nodes.Peek();
-
-
-            //var leftQuery = leftNode as InternalQueryNode;
-            //var rightQuery = rightNode as InternalQueryNode;
-
-            //CreateTableNode fTable;
-            //if (!node.IsNested)
-            //    fTable = new CreateTableNode($"{leftQuery.Into.Name}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
-            //else
-            //    fTable = new CreateTableNode(
-            //        $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
-
-            //var sTable = new CreateTableNode($"{rightQuery.Into.Name}", node.Keys,
-            //    rightQuery.Select.Fields);
-
-            //var trLQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
-            //    rightQuery.GroupBy, null, new IntoNode(rightQuery.Into.Name), null, rightQuery.Skip, rightQuery.Take, false, string.Empty, false, null);
-
-            //InternalQueryNode trQuery;
-            //if (node.IsNested)
-            //    trQuery = new InternalQueryNode(ChangeMethodCallsForColumnAccess(leftQuery.Select),
-            //        new InMemoryTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName), new WhereNode(new PutTrueNode()), null, null, new IntoNode($"{fTable.Name}"),
-            //        new ShouldBePresentInTheTable(rightQuery.Into.Name, true, node.Keys), null, null, node.IsTheLastOne,
-            //        fTable.Name, true, null);
-            //else
-            //    trQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy, null,
-            //        new IntoNode($"{fTable.Name}"),
-            //        new ShouldBePresentInTheTable(rightQuery.Into.Name, true, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
-            //        fTable.Name, false, null);
-
-            //var transitionTables = new List<CreateTableNode> { fTable, sTable };
-
-            //if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
-            //    _cteLastQueriesByName.Add(_currentCte, trQuery);
-
-            //_setLeftNode = trLQuery;
-
-            //translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery,
-            //    fTable.Name, node.Keys));
+            var right = Nodes.Pop();
+            var left = Nodes.Pop();
+            Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
         public void Visit(IntersectNode node)
         {
-            //TranslatedSetTreeNode translatedTree;
-
-            //var rightNode = Nodes.Pop();
-            //var leftNode = _setLeftNode ?? Nodes.Pop();
-
-            //if (!node.IsNested)
-            //    Nodes.Push(translatedTree = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>()));
-            //else
-            //    translatedTree = (TranslatedSetTreeNode)Nodes.Peek();
-
-
-            //var leftQuery = leftNode as InternalQueryNode;
-            //var rightQuery = rightNode as InternalQueryNode;
-
-            //CreateTableNode fTable;
-            //if (!node.IsNested)
-            //    fTable = new CreateTableNode($"{leftQuery.Into.Name}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(leftQuery.Select.Fields));
-            //else
-            //    fTable = new CreateTableNode(
-            //        $"{translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName}{rightQuery.Into.Name}", node.Keys, TurnIntoFieldColumnAccess(rightQuery.Select.Fields));
-
-            //var sTable = new CreateTableNode($"{rightQuery.Into.Name}", node.Keys, rightQuery.Select.Fields);
-
-            //var trLQuery = new InternalQueryNode(rightQuery.Select, rightQuery.From, rightQuery.Where,
-            //    rightQuery.GroupBy, null, new IntoNode(rightQuery.Into.Name), null, rightQuery.Skip, rightQuery.Take, false, string.Empty, false, null);
-
-            //InternalQueryNode trQuery;
-            //if (node.IsNested)
-            //    trQuery = new InternalQueryNode(ChangeMethodCallsForColumnAccess(leftQuery.Select),
-            //        new InMemoryTableFromNode(translatedTree.Nodes[translatedTree.Nodes.Count - 1].ResultTableName), new WhereNode(new PutTrueNode()), null, null, new IntoNode(fTable.Name),
-            //        new ShouldBePresentInTheTable(rightQuery.Into.Name, false, node.Keys), null, null, node.IsTheLastOne,
-            //        fTable.Name, true, null);
-            //else
-            //    trQuery = new InternalQueryNode(leftQuery.Select, leftQuery.From, leftQuery.Where, leftQuery.GroupBy, null,
-            //        new IntoNode($"{fTable.Name}"),
-            //        new ShouldBePresentInTheTable(rightQuery.Into.Name, false, node.Keys), leftQuery.Skip, leftQuery.Take, node.IsTheLastOne,
-            //        fTable.Name, false, null);
-
-            //var transitionTables = new List<CreateTableNode> { fTable, sTable };
-
-            //if (IsRightMostQuery(node) && _ctePart == CtePart.Inner)
-            //    _cteLastQueriesByName.Add(_currentCte, trQuery);
-
-            //_setLeftNode = trLQuery;
-
-            //translatedTree.Nodes.Add(new TranslatedSetOperatorNode(transitionTables.ToArray(), trLQuery, trQuery,
-            //    fTable.Name, node.Keys));
+            var right = Nodes.Pop();
+            var left = Nodes.Pop();
+            Nodes.Push(new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
         public void Visit(PutTrueNode node)

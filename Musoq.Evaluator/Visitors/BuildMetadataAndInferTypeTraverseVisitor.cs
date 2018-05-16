@@ -301,7 +301,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
-            LoadScope();
+            LoadScope("Query");
             node.From.Accept(this);
             node.Where.Accept(this);
             node.Select.Accept(this);
@@ -312,9 +312,9 @@ namespace Musoq.Evaluator.Visitors
             RestoreScope();
         }
 
-        private void LoadScope()
+        private void LoadScope(string name)
         {
-            var newScope = _current.AddScope();
+            var newScope = _current.AddScope(name);
             _scopes.Push(_current);
             _current = newScope;
 
@@ -439,7 +439,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DescNode node)
         {
-            LoadScope();
+            LoadScope("Desc");
             node.From.Accept(this);
             node.Accept(_visitor);
             RestoreScope();
@@ -491,17 +491,23 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(UnionNode node)
         {
+            LoadScope("Union");
             TraverseSetOperator(node);
+            RestoreScope();
         }
 
         public void Visit(UnionAllNode node)
         {
+            LoadScope("UnionAll");
             TraverseSetOperator(node);
+            RestoreScope();
         }
 
         public void Visit(ExceptNode node)
         {
+            LoadScope("Except");
             TraverseSetOperator(node);
+            RestoreScope();
         }
 
         public void Visit(RefreshNode node)
@@ -514,7 +520,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(IntersectNode node)
         {
+            LoadScope("Intersect");
             TraverseSetOperator(node);
+            RestoreScope();
         }
 
         public void Visit(PutTrueNode node)
@@ -569,7 +577,7 @@ namespace Musoq.Evaluator.Visitors
             {
                 var nodes = new Stack<SetOperatorNode>();
                 nodes.Push(node);
-
+                
                 node.Left.Accept(this);
 
                 while (nodes.Count > 0)
@@ -581,6 +589,7 @@ namespace Musoq.Evaluator.Visitors
                         nodes.Push(operatorNode);
                         
                         operatorNode.Left.Accept(this);
+
                         current.Accept(_visitor);
                     }
                     else

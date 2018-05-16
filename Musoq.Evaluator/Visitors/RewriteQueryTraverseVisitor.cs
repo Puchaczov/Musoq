@@ -456,17 +456,35 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(UnionNode node)
         {
+            _walker = _walker.NextChild();
+            _visitor.SetScope(_walker.Scope);
+
             TraverseSetOperator(node);
+
+            _walker = _walker.Parent();
+            _visitor.SetScope(_walker.Scope);
         }
 
         public void Visit(UnionAllNode node)
         {
+            _walker = _walker.NextChild();
+            _visitor.SetScope(_walker.Scope);
+
             TraverseSetOperator(node);
+
+            _walker = _walker.Parent();
+            _visitor.SetScope(_walker.Scope);
         }
 
         public void Visit(ExceptNode node)
         {
+            _walker = _walker.NextChild();
+            _visitor.SetScope(_walker.Scope);
+
             TraverseSetOperator(node);
+
+            _walker = _walker.Parent();
+            _visitor.SetScope(_walker.Scope);
         }
 
         public void Visit(RefreshNode node)
@@ -479,7 +497,13 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(IntersectNode node)
         {
+            _walker = _walker.NextChild();
+            _visitor.SetScope(_walker.Scope);
+
             TraverseSetOperator(node);
+
+            _walker = _walker.Parent();
+            _visitor.SetScope(_walker.Scope);
         }
 
         public void Visit(PutTrueNode node)
@@ -544,7 +568,6 @@ namespace Musoq.Evaluator.Visitors
                     if (current.Right is SetOperatorNode operatorNode)
                     {
                         nodes.Push(operatorNode);
-                        
                         operatorNode.Left.Accept(this);
                         current.Accept(_visitor);
                     }

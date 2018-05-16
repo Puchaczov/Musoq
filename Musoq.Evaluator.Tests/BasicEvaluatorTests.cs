@@ -504,12 +504,10 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(0, table.Count);
         }
 
-
-
         [TestMethod]
         public void ColumnNamesSimpleTest()
         {
-            var query = @"select Name, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from #A.Entities()";
+            var query = @"select Name as TestName, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new BasicEntity[] { }}
@@ -519,7 +517,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(4, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("TestName", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual("GetOne()", table.Columns.ElementAt(1).Name);

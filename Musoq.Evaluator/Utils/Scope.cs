@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Musoq.Evaluator.Utils
 {
-    [DebuggerDisplay("ScopeId: {Id}")]
+    [DebuggerDisplay("Name: '{Name}', ScopeId: {Id}")]
     public class Scope
     {
         private readonly List<Scope> _scopes = new List<Scope>();
@@ -14,14 +14,17 @@ namespace Musoq.Evaluator.Utils
 
         private static int _scopeId = 0;
 
-        public Scope(Scope parent, int selfIndex)
+        public Scope(Scope parent, int selfIndex, string name = "")
         {
             Parent = parent;
             SelfIndex = selfIndex;
             Id = _scopeId++;
+            Name = name;
         }
 
         public int Id { get; }
+
+        public string Name { get; }
 
         public IReadOnlyList<Scope> Child => _scopes;
 
@@ -40,9 +43,9 @@ namespace Musoq.Evaluator.Utils
             return scope;
         }
 
-        public Scope AddScope()
+        public Scope AddScope(string name = "")
         {
-            var scope = new Scope(this, _scopes.Count);
+            var scope = new Scope(this, _scopes.Count, name);
             _scopes.Add(scope);
             return scope;
         }
