@@ -19,7 +19,6 @@ namespace Musoq.Evaluator.Visitors
     {
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
         private readonly TransitionSchemaProvider _schemaProvider;
-        private readonly List<AccessMethodNode> _refreshMethods;
         private InternalQueryNode _setLeftNode;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
@@ -32,10 +31,9 @@ namespace Musoq.Evaluator.Visitors
 
         private CtePart _ctePart = CtePart.None;
 
-        public RewriteQueryVisitor(TransitionSchemaProvider schemaProvider, List<AccessMethodNode> refreshMethods)
+        public RewriteQueryVisitor(TransitionSchemaProvider schemaProvider)
         {
             _schemaProvider = schemaProvider;
-            _refreshMethods = refreshMethods;
         }
 
         public RootNode RootScript { get; private set; }
@@ -447,6 +445,11 @@ namespace Musoq.Evaluator.Visitors
 
             _scope[MetaAttributes.MethodName] = $"ComputeTable_{from.Alias}";
 
+            IReadOnlyList<AccessMethodNode> usedRefreshMethods = null;
+
+            if(_scope.ScopeSymbolTable.SymbolIsOfType<RefreshMethodsSymbol>(from.Alias.ToRefreshMethodsSymbolName()))
+                usedRefreshMethods = _scope.ScopeSymbolTable.GetSymbol<RefreshMethodsSymbol>(from.Alias.ToRefreshMethodsSymbolName()).RefreshMethods;
+
             if (from.Expression is JoinsNode)
             {
                 var current = _joinedTables[0];
@@ -521,8 +524,8 @@ namespace Musoq.Evaluator.Visitors
                     scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                     scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
-                    var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(_schemaProvider, _refreshMethods, usedTables);
-                    var traverser = new RewriteQueryTraverseVisitor(expressionUpdater, new ScopeWalker(_scope));
+                    var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
+                    var traverser = new CloneTraverseVisitor(expressionUpdater);
 
                     new WhereNode(current.Expression).Accept(traverser);
 
@@ -551,8 +554,8 @@ namespace Musoq.Evaluator.Visitors
                     source = targetTableName.ToTransitionTable().ToTransformedRowsSource();
                 }
 
-                var selectRewriter = new RewriteSelectToUseJoinTransitionTable(_schemaProvider, _refreshMethods);
-                var selectTranverser = new RewriteQueryTraverseVisitor(selectRewriter, new ScopeWalker(_scope));
+                var selectRewriter = new RewriteSelectToUseJoinTransitionTable();
+                var selectTranverser = new CloneTraverseVisitor(selectRewriter);
 
                 select.Accept(selectTranverser);
                 scoreSelect = selectRewriter.ChangedSelect;
@@ -563,7 +566,7 @@ namespace Musoq.Evaluator.Visitors
                 var nestedFrom = splittedNodes.Count > 0 ? new ExpressionFromNode(new InMemoryTableFromNode(lastJoinQuery.From.Alias)) : @from;
 
                 var splitted = SplitBetweenAggreateAndNonAggreagate(select.Fields, groupBy.Fields, true);
-                var refreshMethods = CreateRefreshMethods();
+                var refreshMethods = CreateRefreshMethods(usedRefreshMethods);
                 var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(splitted[0], groupBy.Fields).Reverse().ToArray());
                 var outSelect = new SelectNode(splitted[1]);
 
@@ -582,8 +585,8 @@ namespace Musoq.Evaluator.Visitors
 
                 if (splittedNodes.Count > 0)
                 {
-                    var selectRewriter = new RewriteSelectToUseJoinTransitionTable(_schemaProvider, _refreshMethods, nestedFrom.Alias);
-                    var selectTraverser = new RewriteQueryTraverseVisitor(selectRewriter, new ScopeWalker(_scope));
+                    var selectRewriter = new RewriteSelectToUseJoinTransitionTable(nestedFrom.Alias);
+                    var selectTraverser = new CloneTraverseVisitor(selectRewriter);
 
                     groupBy.Accept(selectTraverser);
                     groupBy = selectRewriter.ChangedGroupBy;
@@ -666,7 +669,7 @@ namespace Musoq.Evaluator.Visitors
                 }
                 else if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
                 {
-                    query = new InternalQueryNode(select, from, where, null, null, skip, take, CreateRefreshMethods());
+                    query = new InternalQueryNode(select, from, where, null, null, skip, take, CreateRefreshMethods(usedRefreshMethods));
                 }
                 else
                 {
@@ -941,8 +944,8 @@ namespace Musoq.Evaluator.Visitors
                 if (!useOuterFields)
                     continue;
 
-                var rewriter = new RewriteFieldWithGroupMethodCall(_schemaProvider, 0, groupByFields);
-                var traverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(_scope));
+                var rewriter = new RewriteFieldWithGroupMethodCall(0, groupByFields);
+                var traverser = new CloneTraverseVisitor(rewriter);
                 
                 root.Accept(traverser);
 
@@ -1055,11 +1058,11 @@ namespace Musoq.Evaluator.Visitors
             return fields.ToArray();
         }
 
-        private RefreshNode CreateRefreshMethods()
+        private RefreshNode CreateRefreshMethods(IReadOnlyList<AccessMethodNode> refreshMethods)
         {
             var methods = new List<AccessMethodNode>();
 
-            foreach (var method in _refreshMethods)
+            foreach (var method in refreshMethods)
             {
                 if (method.Method.GetCustomAttribute<AggregateSetDoNotResolveAttribute>() != null)
                     continue;

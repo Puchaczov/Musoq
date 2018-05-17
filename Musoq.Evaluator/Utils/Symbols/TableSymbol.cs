@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
+using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Utils.Symbols
 {
     public class TableSymbol : Symbol
     {
-        private readonly Dictionary<string, (ISchema Schema, ISchemaTable Table)> _tables = new Dictionary<string, (ISchema, ISchemaTable)>();
+        private readonly Dictionary<string, Tuple<ISchema, ISchemaTable>> _tables = new Dictionary<string, Tuple<ISchema, ISchemaTable>>();
         private readonly List<string> _orders = new List<string>();
 
         public TableSymbol(string alias, ISchema schema, ISchemaTable table, bool hasAlias)
         {
-            _tables.Add(alias, (schema, table));
+            _tables.Add(alias, new Tuple<ISchema, ISchemaTable>(schema, table));
             _orders.Add(alias);
             HasAlias = hasAlias;
         }
@@ -34,12 +35,12 @@ namespace Musoq.Evaluator.Utils.Symbols
 
             foreach (var table in _tables)
             {
-                var col = table.Value.Table.Columns.SingleOrDefault(c => c.ColumnName == column);
+                var col = table.Value.Item2.Columns.SingleOrDefault(c => c.ColumnName == column);
 
                 if(col == null)
                     throw new NotSupportedException();
 
-                score = (table.Value.Schema, table.Value.Table, table.Key);
+                score = (table.Value.Item1, table.Value.Item2, table.Key);
             }
 
             return score;
@@ -47,12 +48,12 @@ namespace Musoq.Evaluator.Utils.Symbols
 
         public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByAlias(string alias)
         {
-            return (_tables[alias].Schema, _tables[alias].Table, alias);
+            return (_tables[alias].Item1, _tables[alias].Item2, alias);
         }
 
         public ISchemaColumn GetColumnByAliasAndName(string alias, string columnName)
         {
-            return _tables[alias].Table.Columns.Single(c => c.ColumnName == columnName);
+            return _tables[alias].Item2.Columns.Single(c => c.ColumnName == columnName);
         }
 
         public ISchemaColumn GetColumn(string columnName)
@@ -60,7 +61,7 @@ namespace Musoq.Evaluator.Utils.Symbols
             ISchemaColumn column = null;
             foreach (var table in _orders)
             {
-                var tmpColumn = _tables[table].Table.Columns.SingleOrDefault(col => col.ColumnName == columnName);
+                var tmpColumn = _tables[table].Item2.Columns.SingleOrDefault(col => col.ColumnName == columnName);
 
                 if(column != null)
                     throw new NotSupportedException("Multiple column with the same identifier");
@@ -79,7 +80,7 @@ namespace Musoq.Evaluator.Utils.Symbols
 
         public ISchemaColumn[] GetColumns(string alias)
         {
-            return _tables[alias].Table.Columns;
+            return _tables[alias].Item2.Columns;
         }
 
         public ISchemaColumn[] GetColumns()
@@ -99,11 +100,11 @@ namespace Musoq.Evaluator.Utils.Symbols
             int count = 0;
             while (_orders[i] != alias)
             {
-                count += _tables[_orders[i]].Table.Columns.Length;
+                count += _tables[_orders[i]].Item2.Columns.Length;
                 i++;
             }
 
-            var columns = _tables[_orders[i]].Table.Columns;
+            var columns = _tables[_orders[i]].Item2.Columns;
             int j = 0;
             for (; j < columns.Length; j++)
             {
@@ -138,11 +139,11 @@ namespace Musoq.Evaluator.Utils.Symbols
             var symbol = new TableSymbol();
             var name = _tables.Keys.Aggregate((a, b) => a + b);
 
-            var tables = _tables.Values.Select(f => f.Table);
+            var tables = _tables.Values.Select(f => f.Item2);
             var table = new DynamicTable(tables.Select(f => f.Columns).Aggregate((a, b) => a.Concat(b).ToArray()));
 
-            symbol._tables.Add(name, (new TransitionSchema(name, table), table));
-            symbol._tables.Add(other._orders[0], (other._tables[other._orders[0]].Schema, other._tables[other._orders[0]].Table));
+            symbol._tables.Add(name, new Tuple<ISchema, ISchemaTable>(new TransitionSchema(name, table), table));
+            symbol._tables.Add(other._orders[0], new Tuple<ISchema, ISchemaTable>(other._tables[other._orders[0]].Item1, other._tables[other._orders[0]].Item2));
 
             symbol._orders.Add(name);
             symbol._orders.Add(other._orders[0]);
@@ -179,5 +180,16 @@ namespace Musoq.Evaluator.Utils.Symbols
         }
 
         public string[] Names { get; }
+    }
+
+
+    public class RefreshMethodsSymbol : Symbol
+    {
+        public RefreshMethodsSymbol(IEnumerable<AccessMethodNode> refreshMethods)
+        {
+            RefreshMethods = refreshMethods.ToArray();
+        }
+
+        public IReadOnlyList<AccessMethodNode> RefreshMethods { get; }
     }
 }

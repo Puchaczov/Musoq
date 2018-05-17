@@ -5,14 +5,13 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class RewriteWhereConditionWithUpdatedColumnAccess : RewriteQueryVisitor
+    public class RewriteWhereConditionWithUpdatedColumnAccess : CloneQueryVisitor
     {
         private readonly IDictionary<string, string> _aliases;
 
         public WhereNode Where { get; private set; }
 
-        public RewriteWhereConditionWithUpdatedColumnAccess(TransitionSchemaProvider schemaProvider, List<AccessMethodNode> refreshMethods, IDictionary<string, string> usedTables) 
-            : base(schemaProvider, refreshMethods)
+        public RewriteWhereConditionWithUpdatedColumnAccess(IDictionary<string, string> usedTables)
         {
             _aliases = usedTables;
         }

@@ -51,5 +51,14 @@
         {
             return $"{alias}:{scope}['{name}']";
         }
+
+        public static string ToSetOperatorKey(this string left, string right)
+        {
+            return $"{left}{right}SetKey";
+        }
+        public static string ToRefreshMethodsSymbolName(this string left)
+        {
+            return $"{left}RefreshMethods";
+        }
     }
 }

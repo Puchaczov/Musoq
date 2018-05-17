@@ -6,10 +6,9 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class RewriteFieldWithGroupMethodCall : RewriteQueryVisitor
+    public class RewriteFieldWithGroupMethodCall : CloneQueryVisitor
     {
-        public RewriteFieldWithGroupMethodCall(TransitionSchemaProvider schemaProvider, int fieldOrder, FieldNode[] fields)
-            : base(schemaProvider, new List<AccessMethodNode>())
+        public RewriteFieldWithGroupMethodCall(int fieldOrder, FieldNode[] fields)
         {
             _fieldOrder = fieldOrder;
             _fields = fields;

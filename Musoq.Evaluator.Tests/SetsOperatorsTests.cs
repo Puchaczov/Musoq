@@ -10,11 +10,11 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void UnionWithDifferentColumnsAsAKeyTest()
         {
-            var query = @"select Name from #A.Entities() union (Name) select MyName as Name from #B.Entities()";
+            var query = @"select Name from #A.Entities() union (Name) select City as Name from #B.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}},
-                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004")}}
+                {"#B", new[] {new BasicEntity("003", "", 0), new BasicEntity("004", "", 0)}}
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -537,14 +537,14 @@ select Name from #C.Entities()";
         }
 
         [TestMethod]
-        public void MixedSourcesExceptUnionWithConditionsScenarioTest()
+        public void MixedSourcesExceptUnionScenario1Test()
         {
             var query =
-                @"select Name from #A.Entities() where Extension = '.txt'
+                @"select Name from #A.Entities()
 except (Name)
-select Name from #B.Entities() where Extension = '.txt'
+select Name from #B.Entities()
 union (Name)
-select Name from #C.Entities() where Extension = '.txt'";
+select Name from #C.Entities()";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -586,14 +586,14 @@ select Name from #C.Entities() skip 3 where Extension = '.txt'";
         }
 
         [TestMethod]
-        public void MixedSourcesWithSkipIntersectUnionWithConditionsScenarioTest()
+        public void MixedSourcesWithSkipIntersectUnionScenarioTest()
         {
             var query =
-                @"select Name from #A.Entities() where Extension = '.txt' skip 1
+                @"select Name from #A.Entities() skip 1
 intersect (Name)
-select Name from #B.Entities() where Extension = '.txt' skip 2
+select Name from #B.Entities() skip 2
 union (Name)
-select Name from #C.Entities() where Extension = '.txt' skip 3";
+select Name from #C.Entities() skip 3";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -611,14 +611,14 @@ select Name from #C.Entities() where Extension = '.txt' skip 3";
         }
 
         [TestMethod]
-        public void MixedSourcesExceptUnionWithMultipleColumnsConditionsScenarioTest()
+        public void MixedSourcesExceptUnionWithMultipleColumnsScenarioTest()
         {
             var query =
-                @"select Name, RandomNumber() from #A.Entities() where Extension = '.txt'
+                @"select Name, RandomNumber() from #A.Entities()
 except (Name)
-select Name, RandomNumber() from #B.Entities() where Extension = '.txt'
+select Name, RandomNumber() from #B.Entities()
 union (Name)
-select Name, RandomNumber() from #C.Entities() where Extension = '.txt'";
+select Name, RandomNumber() from #C.Entities()";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {

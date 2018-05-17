@@ -93,6 +93,11 @@ namespace Musoq.Evaluator.Utils
             return new ScopeWalker(_scope.Child[_childIndex++], this);
         }
 
+        public ScopeWalker Child()
+        {
+            return new ScopeWalker(_scope.Child[_childIndex], this);
+        }
+
         public ScopeWalker PrevChild()
         {
             return new ScopeWalker(_scope.Child[_childIndex--], this);

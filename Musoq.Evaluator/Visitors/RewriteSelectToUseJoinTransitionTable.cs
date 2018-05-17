@@ -5,12 +5,11 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class RewriteSelectToUseJoinTransitionTable : RewriteQueryVisitor
+    public class RewriteSelectToUseJoinTransitionTable : CloneQueryVisitor
     {
         private readonly string _alias;
 
-        public RewriteSelectToUseJoinTransitionTable(TransitionSchemaProvider schemaProvider, List<AccessMethodNode> refreshMethods, string alias = "") 
-            : base(schemaProvider, refreshMethods)
+        public RewriteSelectToUseJoinTransitionTable(string alias = "")
         {
             _alias = alias;
         }

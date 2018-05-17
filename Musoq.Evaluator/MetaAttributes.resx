@@ -129,6 +129,9 @@
   <data name="SelectIntoVariableName" xml:space="preserve">
     <value>SelectIntoVariableName</value>
   </data>
+  <data name="SetOperatorName" xml:space="preserve">
+    <value>SetOperatorName</value>
+  </data>
   <data name="SourceName" xml:space="preserve">
     <value>SourceName</value>
   </data>

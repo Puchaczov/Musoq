@@ -34,6 +34,7 @@ namespace Musoq.Evaluator.Visitors
     }
     public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     {
+        private readonly IDictionary<string, int[]> _setOperatorFieldIndexes;
         public AdhocWorkspace Workspace { get; }
 
         public SyntaxGenerator Generator { get; }
@@ -66,8 +67,9 @@ namespace Musoq.Evaluator.Visitors
 
         private List<StatementSyntax> Statements { get; } = new List<StatementSyntax>();
 
-        public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies)
+        public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies, IDictionary<string, int[]> setOperatorFieldIndexes)
         {
+            _setOperatorFieldIndexes = setOperatorFieldIndexes;
             Workspace = new AdhocWorkspace();
 
             Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
@@ -1208,7 +1210,7 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.Argument(
                             SyntaxFactory.IdentifierName("provider")))));
 
-            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Union), aInvocation, bInvocation));
+            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Union), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
         }
 
         public void Visit(UnionAllNode node)
@@ -1232,14 +1234,55 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.Argument(
                             SyntaxFactory.IdentifierName("provider")))));
 
-            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Union), aInvocation, bInvocation));
+            _methods.Add(GenerateMethod(name, nameof(BaseOperations.UnionAll), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
         }
 
         public void Visit(ExceptNode node)
         {
             var b = _methodNames.Pop();
             var a = _methodNames.Pop();
-            _methodNames.Push($"{a}_Except_{b}");
+            var name = $"{a}_Except_{b}";
+            _methodNames.Push(name);
+
+            var aInvocation = SyntaxFactory
+                .InvocationExpression(SyntaxFactory.IdentifierName(a))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.IdentifierName("provider")))));
+
+            var bInvocation = SyntaxFactory
+                .InvocationExpression(SyntaxFactory.IdentifierName(b))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.IdentifierName("provider")))));
+
+            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Except), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
+        }
+
+        public void Visit(IntersectNode node)
+        {
+            var b = _methodNames.Pop();
+            var a = _methodNames.Pop();
+            var name = $"{a}_Intersect_{b}";
+            _methodNames.Push(name);
+
+            var aInvocation = SyntaxFactory
+                .InvocationExpression(SyntaxFactory.IdentifierName(a))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.IdentifierName("provider")))));
+
+            var bInvocation = SyntaxFactory
+                .InvocationExpression(SyntaxFactory.IdentifierName(b))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.IdentifierName("provider")))));
+
+            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Intersect), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
         }
 
         public void Visit(RefreshNode node)
@@ -1257,14 +1300,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(block);
         }
 
-        public void Visit(IntersectNode node)
-        {
-            var b = _methodNames.Pop();
-            var a = _methodNames.Pop();
-            _methodNames.Push($"{a}_Intersect_{b}");
-        }
-
-        private MethodDeclarationSyntax GenerateMethod(string methodName, string setOperator, ExpressionSyntax firstTableExpression, ExpressionSyntax secondTableExpression)
+        private MethodDeclarationSyntax GenerateMethod(string methodName, string setOperator, string key, ExpressionSyntax firstTableExpression, ExpressionSyntax secondTableExpression)
         {
             return SyntaxFactory
                 .MethodDeclaration(SyntaxFactory.IdentifierName(nameof(Table)),
@@ -1274,8 +1310,9 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(SyntaxFactory
                         .Parameter(SyntaxFactory.Identifier("provider"))
                         .WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider)))))).WithBody(SyntaxFactory.Block(
-                    SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(SyntaxFactory
-                        .InvocationExpression(SyntaxFactory.IdentifierName(setOperator)).WithArgumentList(
+                    SyntaxFactory.SingletonList<StatementSyntax>(
+                        SyntaxFactory.ReturnStatement(
+                            SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(setOperator)).WithArgumentList(
                             SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(
                                 new SyntaxNodeOrToken[]
                                 {
@@ -1285,7 +1322,7 @@ namespace Musoq.Evaluator.Visitors
                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
                                     SyntaxFactory.Argument(SyntaxFactory
                                         .ParenthesizedLambdaExpression(
-                                            SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression))
+                                            GenerateLambdaBody("first", "second", key))
                                         .WithParameterList(SyntaxFactory.ParameterList(
                                             SyntaxFactory.SeparatedList<ParameterSyntax>(new SyntaxNodeOrToken[]
                                             {
@@ -1294,6 +1331,55 @@ namespace Musoq.Evaluator.Visitors
                                                 SyntaxFactory.Parameter(SyntaxFactory.Identifier("second"))
                                             }))))
                                 })))))));
+        }
+
+        private CSharpSyntaxNode GenerateLambdaBody(string first, string second, string key)
+        {
+            var indexes = _setOperatorFieldIndexes[key];
+            var equality = SyntaxFactory
+                .InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(first)).WithArgumentList(
+                        SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(indexes[0])))))), SyntaxFactory.IdentifierName("Equals")))
+                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                    SyntaxFactory.Argument(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(second))
+                        .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(indexes[0]))))))))));
+
+
+            var subExpressions = new Stack<ExpressionSyntax>();
+            subExpressions.Push(equality);
+
+            for (int i = 1; i < indexes.Length; i++)
+            {
+                equality = SyntaxFactory
+                    .InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(first)).WithArgumentList(
+                                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(indexes[i])))))), SyntaxFactory.IdentifierName("Equals")))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                        SyntaxFactory.Argument(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(second))
+                            .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                                    SyntaxFactory.Argument(
+                                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                            SyntaxFactory.Literal(indexes[i]))))))))));
+
+                subExpressions.Push(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.LogicalAndExpression,
+                        subExpressions.Pop(),
+                        equality));
+            }
+
+            return subExpressions.Pop();
         }
 
         private SyntaxNode GenerateSetOperator(string operatorMethodName, ExpressionSyntax firstArg, ExpressionSyntax secondArg, ExpressionSyntax compareExpression)

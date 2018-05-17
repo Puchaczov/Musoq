@@ -28,14 +28,14 @@ namespace Musoq.Converter
 
             query = metadataInferer.Root;
 
-            var rewriter = new RewriteQueryVisitor((TransitionSchemaProvider)schemaProvider, metadataInferer.RefreshMethods);
+            var rewriter = new RewriteQueryVisitor((TransitionSchemaProvider)schemaProvider);
             var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataInfererTraverser.Scope));
 
             query.Accept(rewriteTraverser);
 
             query = rewriter.RootScript;
 
-            var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies);
+            var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies, metadataInferer.SetOperatorFieldPositions);
             var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, schemaProvider, new ScopeWalker(metadataInfererTraverser.Scope));
 
             query.Accept(csharpRewriteTraverser);
@@ -44,7 +44,7 @@ namespace Musoq.Converter
             using (var stream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
             {
-                EmitResult result = csharpRewriter.Compilation.Emit(stream, pdbStream);
+                var result = csharpRewriter.Compilation.Emit(stream, pdbStream);
 
                 if (!result.Success)
                 {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.RuntimeScripts;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -27,9 +28,10 @@ namespace Musoq.Evaluator.Visitors
         private string _queryAlias;
         private FieldNode[] _generatedColumns = new FieldNode[0];
         private bool _insideSelect;
-        private ISchemaProvider _provider;
+        private readonly ISchemaProvider _provider;
+        public readonly List<AccessMethodNode> RefreshMethods = new List<AccessMethodNode>();
 
-        public List<AccessMethodNode> RefreshMethods = new List<AccessMethodNode>();
+        public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
         public BuildMetadataAndInferTypeVisitor(ISchemaProvider provider)
         {
@@ -528,8 +530,11 @@ namespace Musoq.Evaluator.Visitors
             var select = Nodes.Pop() as SelectNode;
             var where = Nodes.Pop() as WhereNode;
             var from = Nodes.Pop() as FromNode;
+            
+            _currentScope.ScopeSymbolTable.AddSymbol(from.Alias.ToRefreshMethodsSymbolName(), new RefreshMethodsSymbol(RefreshMethods));
+            RefreshMethods.Clear();
 
-            if(_currentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
+            if (_currentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
                 _currentScope.ScopeSymbolTable.UpdateSymbol(string.Empty, from.Alias);
 
             _currentScope.Script.Append(new DeclarationStatements().TransformText());
@@ -579,20 +584,34 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(UnionNode node)
         {
+            var key = CreateSetOperatorPositionKey();
+            _currentScope[MetaAttributes.SetOperatorName] = key;
+            SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode)node.Left, node.Keys));
+
             var right = Nodes.Pop();
             var left = Nodes.Pop();
+
             Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
         public void Visit(UnionAllNode node)
         {
+            var key = CreateSetOperatorPositionKey();
+            _currentScope[MetaAttributes.SetOperatorName] = key;
+            SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode)node.Left, node.Keys));
+
             var right = Nodes.Pop();
             var left = Nodes.Pop();
+
             Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
         public void Visit(ExceptNode node)
         {
+            var key = CreateSetOperatorPositionKey();
+            _currentScope[MetaAttributes.SetOperatorName] = key;
+            SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode)node.Left, node.Keys));
+
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
@@ -600,6 +619,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(IntersectNode node)
         {
+            var key = CreateSetOperatorPositionKey();
+            _currentScope[MetaAttributes.SetOperatorName] = key;
+            SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode)node.Left, node.Keys));
+
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
@@ -730,6 +753,32 @@ namespace Musoq.Evaluator.Visitors
             node.ChangeMethod(method);
 
             Nodes.Push(accessMethod);
+        }
+
+        private int[] CreateSetOperatorPositionIndexes(QueryNode node, string[] keys)
+        {
+            var indexes = new int[keys.Length];
+
+            var fieldIndex = 0;
+            var index = 0;
+
+            foreach (var field in node.Select.Fields)
+            {
+                if (keys.Contains(field.FieldName))
+                    indexes[index++] = fieldIndex;
+
+                fieldIndex += 1;
+            }
+
+            return indexes;
+        }
+
+        private int _setKey = 0;
+
+        private string CreateSetOperatorPositionKey()
+        {
+            var key = _setKey++;
+            return key.ToString().ToSetOperatorKey(key.ToString());
         }
 
         public void SetScope(Scope scope)

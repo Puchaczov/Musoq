@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Visitors
     {
         private readonly IScopeAwareExpressionVisitor _visitor;
         private readonly Stack<Scope> _scopes = new Stack<Scope>();
-        private Scope _current = new Scope(null, -1);
+        private Scope _current = new Scope(null, -1, "Root");
         public Scope Scope => _current;
 
         public BuildMetadataAndInferTypeTraverseVisitor(IScopeAwareExpressionVisitor visitor)
@@ -324,6 +324,7 @@ namespace Musoq.Evaluator.Visitors
         private void RestoreScope()
         {
             _current = _scopes.Pop();
+            _visitor.SetScope(_current);
         }
 
         public void Visit(OrNode node)
@@ -493,21 +494,18 @@ namespace Musoq.Evaluator.Visitors
         {
             LoadScope("Union");
             TraverseSetOperator(node);
-            RestoreScope();
         }
 
         public void Visit(UnionAllNode node)
         {
             LoadScope("UnionAll");
             TraverseSetOperator(node);
-            RestoreScope();
         }
 
         public void Visit(ExceptNode node)
         {
             LoadScope("Except");
             TraverseSetOperator(node);
-            RestoreScope();
         }
 
         public void Visit(RefreshNode node)
@@ -522,7 +520,6 @@ namespace Musoq.Evaluator.Visitors
         {
             LoadScope("Intersect");
             TraverseSetOperator(node);
-            RestoreScope();
         }
 
         public void Visit(PutTrueNode node)
@@ -573,38 +570,10 @@ namespace Musoq.Evaluator.Visitors
 
         private void TraverseSetOperator(SetOperatorNode node)
         {
-            if (node.Right is SetOperatorNode)
-            {
-                var nodes = new Stack<SetOperatorNode>();
-                nodes.Push(node);
-                
-                node.Left.Accept(this);
-
-                while (nodes.Count > 0)
-                {
-                    var current = nodes.Pop();
-
-                    if (current.Right is SetOperatorNode operatorNode)
-                    {
-                        nodes.Push(operatorNode);
-                        
-                        operatorNode.Left.Accept(this);
-
-                        current.Accept(_visitor);
-                    }
-                    else
-                    {
-                        current.Right.Accept(this);
-                        current.Accept(_visitor);
-                    }
-                }
-            }
-            else
-            {
-                node.Left.Accept(this);
-                node.Right.Accept(this);
-                node.Accept(_visitor);
-            }
+            node.Left.Accept(this);
+            node.Right.Accept(this);
+            node.Accept(_visitor);
+            RestoreScope();
         }
     }
 }

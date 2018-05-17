@@ -97,6 +97,15 @@ namespace Musoq.Evaluator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SetOperatorName.
+        /// </summary>
+        internal static string SetOperatorName {
+            get {
+                return ResourceManager.GetString("SetOperatorName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SourceName.
         /// </summary>
         internal static string SourceName {

@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tables
         where TKey : IEquatable<TKey>
     {
         protected readonly Dictionary<TKey, List<int>> Indexes;
-        protected readonly List<TValue> Rows;
+        protected internal readonly List<TValue> Rows;
 
         protected IndexedList()
         {
@@ -26,6 +26,11 @@ namespace Musoq.Evaluator.Tables
         public bool Contains(TValue value)
         {
             return Rows.Contains(value);
+        }
+
+        public bool Contains(TValue value, Func<TValue, TValue, bool> comparer)
+        {
+            return Rows.Any(row => comparer(row, value));
         }
 
         public bool Contains(TKey key, TValue value)
