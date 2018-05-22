@@ -747,9 +747,6 @@ namespace Musoq.Evaluator.Visitors
         {
             var query = (InternalQueryNode)Nodes.Pop();
 
-            if (_ctePart == CtePart.Inner)
-                _cteLastQueriesByName.Add(_currentCte, query);
-
             var nodes = new Node[] { new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields), query };
 
             Nodes.Push(new MultiStatementNode(nodes, null));
@@ -804,69 +801,16 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CteExpressionNode node)
         {
-            var outerQuery = Nodes.Pop();
+            var sets = new CteInnerExpressionNode[node.InnerExpression.Length];
 
-            var list = new List<Node>();
-            var blocks = new List<List<Node>>();
+            var set = Nodes.Pop();
 
-            for (var i = node.InnerExpression.Length - 1; i >= 0; i--)
-            {
-                var block = new List<Node>();
-                blocks.Add(block);
-                var cteInnerExpressionNode = node.InnerExpression[i];
-                var innerQuery = (CteInnerExpressionNode)Nodes.Pop();
+            for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
+                sets[i] = (CteInnerExpressionNode)Nodes.Pop();
 
-                var cteLatestQuery = _cteLastQueriesByName[innerQuery.Name];
-                var renameTable = new RenameTableNode(cteLatestQuery.From.Alias, cteInnerExpressionNode.Name);
-
-                if (innerQuery.Value is TranslatedSetTreeNode innerSet)
-                {
-                    foreach (var set in innerSet.Nodes)
-                    {
-                        block.AddRange(set.CreateTableNodes);
-                        block.Add(set.FQuery);
-                        block.Add(set.SQuery);
-                    }
-                }
-                else if (innerQuery.Value is MultiStatementNode multiStatementNode)
-                {
-                    block.AddRange(multiStatementNode.Nodes);
-                }
-                else
-                {
-                    block.Add(innerQuery.Value);
-                }
-
-                block.Add(renameTable);
-            }
-
-            blocks.Reverse();
-
-            foreach (var block in blocks)
-                list.AddRange(block);
-
-            if (outerQuery is TranslatedSetTreeNode translatedSet)
-            {
-                foreach (var set in translatedSet.Nodes)
-                {
-                    list.AddRange(set.CreateTableNodes);
-                    list.Add(set.FQuery);
-                    list.Add(set.SQuery);
-                }
-            }
-            else if (outerQuery is MultiStatementNode multiStatementNode)
-            {
-                list.AddRange(multiStatementNode.Nodes);
-            }
-            else
-            {
-                list.Add(outerQuery);
-            }
-
-            Nodes.Push(new MultiStatementNode(list.ToArray(), null));
+            Nodes.Push(new CteExpressionNode(sets, set));
         }
-
-        private readonly Dictionary<string, InternalQueryNode> _cteLastQueriesByName = new Dictionary<string, InternalQueryNode>();
+        
         private Scope _scope;
         private readonly List<JoinFromNode> _joinedTables = new List<JoinFromNode>();
 

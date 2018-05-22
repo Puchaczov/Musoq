@@ -535,18 +535,30 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CteExpressionNode node)
         {
+            _walker = _walker.NextChild();
+            _visitor.SetScope(_walker.Scope);
+
             foreach (var exp in node.InnerExpression)
             {
                 exp.Accept(this);
             }
             node.OuterExpression.Accept(this);
             node.Accept(_visitor);
+
+            _walker = _walker.Parent();
+            _visitor.SetScope(_walker.Scope);
         }
 
         public void Visit(CteInnerExpressionNode node)
         {
+            _walker = _walker.NextChild();
+            _visitor.SetScope(_walker.Scope);
+
             node.Value.Accept(this);
             node.Accept(_visitor);
+
+            _walker = _walker.Parent();
+            _visitor.SetScope(_walker.Scope);
         }
 
         public void Visit(JoinsNode node)

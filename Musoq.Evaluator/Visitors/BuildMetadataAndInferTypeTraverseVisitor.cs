@@ -536,18 +536,23 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CteExpressionNode node)
         {
+            LoadScope("CTE");
             foreach (var exp in node.InnerExpression)
             {
                 exp.Accept(this);
             }
+
             node.OuterExpression.Accept(this);
             node.Accept(_visitor);
+            RestoreScope();
         }
 
         public void Visit(CteInnerExpressionNode node)
         {
+            LoadScope("CTE Inner Expression");
             node.Value.Accept(this);
             node.Accept(_visitor);
+            RestoreScope();
         }
 
         public void Visit(JoinsNode node)
