@@ -80,24 +80,6 @@ namespace Musoq.Evaluator.Helpers
             );
         }
 
-        public static VariableDeclarationSyntax CreateAssignmentByPropertyCall(string variableName, string objectName,
-            string methodName)
-        {
-            return CreateAssignment(
-                SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(variableName),
-                    null,
-                    SyntaxFactory.EqualsValueClause(
-                        SyntaxFactory.Token(SyntaxKind.EqualsToken),
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName(objectName),
-                            SyntaxFactory.Token(SyntaxKind.DotToken),
-                            SyntaxFactory.IdentifierName(methodName))
-                    )
-                )
-            );
-        }
-
         public static VariableDeclarationSyntax CreateAssignment(string variableName, ExpressionSyntax expression)
         {
             return CreateAssignment(
@@ -169,18 +151,13 @@ namespace Musoq.Evaluator.Helpers
             return CreateArrayOf(typeName, expressions);
         }
 
-        public static ArgumentSyntax CreateArrayOfArgument(string typeName, ExpressionSyntax[] expressions)
-        {
-            return SyntaxFactory.Argument(CreateArrayOf(typeName, expressions));
-        }
-
         public static ObjectCreationExpressionSyntax CreateObjectOf(string typeName, ArgumentListSyntax args,
             InitializerExpressionSyntax initializer = null)
         {
-            return CreateObjectOf(typeName, SyntaxFactory.ParseTypeName(typeName), args, initializer);
+            return CreateObjectOf(SyntaxFactory.ParseTypeName(typeName), args, initializer);
         }
 
-        public static ObjectCreationExpressionSyntax CreateObjectOf(string typeName, TypeSyntax type,
+        private static ObjectCreationExpressionSyntax CreateObjectOf(TypeSyntax type,
             ArgumentListSyntax args, InitializerExpressionSyntax initializer = null)
         {
             return SyntaxFactory.ObjectCreationExpression(
@@ -189,16 +166,6 @@ namespace Musoq.Evaluator.Helpers
                 type,
                 args,
                 initializer);
-        }
-
-        public static ForEachStatementSyntax Foreach(string variable, string source)
-        {
-            return Foreach(variable, source, SyntaxFactory.Block());
-        }
-
-        public static ForEachStatementSyntax Foreach(string variable, string source, IfStatementSyntax ifStatement)
-        {
-            return Foreach(variable, source, SyntaxFactory.Block(ifStatement));
         }
 
         public static ForEachStatementSyntax Foreach(string variable, string source, BlockSyntax block)

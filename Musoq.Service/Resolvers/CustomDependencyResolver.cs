@@ -23,7 +23,7 @@ namespace Musoq.Service.Resolvers
 
         private readonly IDictionary<Guid, ExecutionState> _states;
 
-        public IDictionary<string, Type> _loadedSchemas;
+        private IDictionary<string, Type> LoadedSchemas;
 
         public CustomDependencyResolver()
         {
@@ -46,7 +46,7 @@ namespace Musoq.Service.Resolvers
                     return new ContextController(_contexts, ServiceLogger.Instance);
                 case nameof(RuntimeController):
                     return new RuntimeController(_contexts, _states, _expressionsCache, ServiceLogger.Instance,
-                        _loadedSchemas);
+                        LoadedSchemas);
                 case nameof(SelfController):
                     return new SelfController();
             }
@@ -66,7 +66,7 @@ namespace Musoq.Service.Resolvers
 
         private void LoadSchemas()
         {
-            _loadedSchemas = new ConcurrentDictionary<string, Type>();
+            LoadedSchemas = new ConcurrentDictionary<string, Type>();
 
             var types = new List<Type>();
 
@@ -77,7 +77,7 @@ namespace Musoq.Service.Resolvers
                 {
                     ServiceLogger.Instance.Log($"Attempting to load plugin {type.Name}");
                     var schema = (ISchema) Activator.CreateInstance(type);
-                    _loadedSchemas.Add($"#{schema.Name.ToLowerInvariant()}", type);
+                    LoadedSchemas.Add($"#{schema.Name.ToLowerInvariant()}", type);
                 }
                 catch (Exception e)
                 {

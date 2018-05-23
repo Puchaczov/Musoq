@@ -165,7 +165,6 @@ namespace Musoq.Parser.Lexing
                 if (matchedDefinition == null)
                     throw new UnknownTokenException(Position, Input[Position],
                         $"Unrecognized token exception at {Position} for {Input.Substring(Position)}");
-                var oldPos = Position;
                 var token = GetToken(matchedDefinition, match);
                 Position += matchLength;
 

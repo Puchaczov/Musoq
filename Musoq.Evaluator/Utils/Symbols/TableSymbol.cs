@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.Tables;
-using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Utils.Symbols
@@ -126,25 +124,6 @@ namespace Musoq.Evaluator.Utils.Symbols
                 symbol._tables.Add(item.Key, item.Value);
                 symbol._orders.Add(item.Key);
             }
-
-            return symbol;
-        }
-
-        public TableSymbol JoinSymbols(TableSymbol other)
-        {
-            var symbol = new TableSymbol();
-            var name = _tables.Keys.Aggregate((a, b) => a + b);
-
-            var tables = _tables.Values.Select(f => f.Item2);
-            var table = new DynamicTable(tables.Select(f => f.Columns).Aggregate((a, b) => a.Concat(b).ToArray()));
-
-            symbol._tables.Add(name, new Tuple<ISchema, ISchemaTable>(new TransitionSchema(name, table), table));
-            symbol._tables.Add(other._orders[0],
-                new Tuple<ISchema, ISchemaTable>(other._tables[other._orders[0]].Item1,
-                    other._tables[other._orders[0]].Item2));
-
-            symbol._orders.Add(name);
-            symbol._orders.Add(other._orders[0]);
 
             return symbol;
         }

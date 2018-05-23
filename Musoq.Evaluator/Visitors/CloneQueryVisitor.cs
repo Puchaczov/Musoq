@@ -261,12 +261,9 @@ namespace Musoq.Evaluator.Visitors
                     dotNode = dot.Root;
                 }
 
-                var chain = theMostInnerDotNode;
-                var column = (AccessColumnNode) dotNode;
                 dotNode = theMostInnerDotNode;
                 var props = new List<(PropertyInfo, object)>();
 
-                var type = column.ReturnType;
                 while (dotNode != null && dotNode is DotNode dot)
                 {
                     switch (dot.Expression)

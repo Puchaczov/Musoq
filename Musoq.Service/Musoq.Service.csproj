@@ -235,7 +235,6 @@
     <Compile Include="Exceptions\SchemaNotFoundException.cs" />
     <Compile Include="Logging\IServiceLogger.cs" />
     <Compile Include="Logging\ServiceLogger.cs" />
-    <Compile Include="Models\AppDirectory.cs" />
     <Compile Include="ApplicationConfiguration.cs" />
     <Compile Include="Controllers\ContextController.cs" />
     <Compile Include="ContextService.cs">

@@ -15,16 +15,16 @@ namespace Musoq.Service.Controllers
     {
         private const string Query = "select FullName, Sha256File() from #disk.directory('{0}', 'true')";
 
-        private static readonly Assembly _entryAssembly = Assembly.GetEntryAssembly();
-        private static readonly string _entryDir = Path.GetDirectoryName(_entryAssembly.Location);
-        private static readonly string _pluginsDir = Path.Combine(_entryDir, ApplicationConfiguration.PluginsFolder);
+        private static readonly Assembly EntryAssembly = Assembly.GetEntryAssembly();
+        private static readonly string EntryDir = Path.GetDirectoryName(EntryAssembly.Location);
+        private static readonly string PluginsDir = Path.Combine(EntryDir, ApplicationConfiguration.PluginsFolder);
 
         [HttpPost]
         public Guid UsedFiles()
         {
             var context = new QueryContext
             {
-                Query = string.Format(Query, _entryDir)
+                Query = string.Format(Query, EntryDir)
             };
 
             var api = new ContextApi(ApplicationConfiguration.HttpServerAdress);
@@ -36,7 +36,7 @@ namespace Musoq.Service.Controllers
         [HttpGet]
         public IEnumerable<string> Plugins()
         {
-            return Directory.GetDirectories(_pluginsDir);
+            return Directory.GetDirectories(PluginsDir);
         }
 
         [HttpPost]
@@ -51,7 +51,7 @@ namespace Musoq.Service.Controllers
 
                 foreach (var file in provider.FileData)
                 {
-                    var pluginSpecificDir = Path.Combine(_pluginsDir, file.Headers.ContentDisposition.FileName);
+                    var pluginSpecificDir = Path.Combine(PluginsDir, file.Headers.ContentDisposition.FileName);
 
                     if (!Directory.Exists(pluginSpecificDir))
                         Directory.CreateDirectory(pluginSpecificDir);

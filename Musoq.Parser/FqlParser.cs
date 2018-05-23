@@ -654,17 +654,6 @@ namespace Musoq.Parser
             return currentToken.TokenType == TokenType.And || currentToken.TokenType == TokenType.Or;
         }
 
-        private static Type InferMinimalNumericType(Token token)
-        {
-            if (bool.TryParse(token.Value, out var bResult))
-                return typeof(bool);
-
-            if (short.TryParse(token.Value, out var sResult))
-                return typeof(short);
-
-            return typeof(long);
-        }
-
         private enum Associativity
         {
             Left,

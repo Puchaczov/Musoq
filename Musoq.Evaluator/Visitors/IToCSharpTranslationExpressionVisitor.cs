@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Musoq.Evaluator.Visitors
+﻿namespace Musoq.Evaluator.Visitors
 {
     public interface IToCSharpTranslationExpressionVisitor : IScopeAwareExpressionVisitor
     {
@@ -8,8 +6,6 @@ namespace Musoq.Evaluator.Visitors
         void QueryEnds();
 
         void SetQueryIdentifier(string identifier);
-
-        void SetCodePattern(StringBuilder code);
         void SetJoinsAmount(int amount);
 
         void SetMethodAccessType(MethodAccessType type);

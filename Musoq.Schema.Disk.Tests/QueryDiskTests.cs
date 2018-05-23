@@ -53,8 +53,8 @@ namespace Musoq.Schema.Disk.Tests
             {
                 using (var zipArchive = new ZipArchive(zipFile))
                 {
-                    zipArchive.Entries.Any(f => f.Name == "Directory1/TextFile1.txt");
-                    zipArchive.Entries.Any(f => f.Name == "Directory2/TextFile2.txt");
+                    Assert.IsTrue(zipArchive.Entries.Any(f => f.FullName == "Directory1\\TextFile1.txt"));
+                    Assert.IsTrue(zipArchive.Entries.Any(f => f.FullName == "Directory2\\TextFile2.txt"));
                     Assert.AreEqual(2, zipArchive.Entries.Count);
                 }
             }

@@ -30,7 +30,6 @@ namespace Musoq.Evaluator.Visitors
 
         private Scope _scope;
         private InternalQueryNode _setLeftNode;
-        private ISchemaTable _table;
 
         public RewriteQueryVisitor(TransitionSchemaProvider schemaProvider)
         {
@@ -267,19 +266,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AllColumnsNode node)
         {
-            _generatedColumns = new FieldNode[_table.Columns.Length];
-
-            for (var i = 0; i < _table.Columns.Length; i++)
-            {
-                var column = _table.Columns[i];
-
-                _generatedColumns[i] =
-                    new FieldNode(
-                        new AccessColumnNode(column.ColumnName, string.Empty, column.ColumnType, TextSpan.Empty), i,
-                        string.Empty);
-            }
-
-            Nodes.Push(node);
+            Nodes.Push(new AllColumnsNode());
         }
 
         public void Visit(IdentifierNode node)
@@ -660,33 +647,12 @@ namespace Musoq.Evaluator.Visitors
                     new MultiStatementNode(
                         splittedNodes.ToArray(),
                         null));
-
-                source = destination;
             }
             else
             {
                 var splitted = SplitBetweenAggreateAndNonAggreagate(select.Fields, new FieldNode[0], true);
-
-                if (IsQueryWithOnlyAggregateMethods(splitted)
-                ) //TODO Remove this branch as it SHOULD not be used anymore
-                {
-                    var fakeField = new FieldNode(new IntegerNode("1"), 0, string.Empty);
-                    var fakeGroupBy = new GroupByNode(new[] {fakeField}, null);
-                    Nodes.Push(from);
-                    Nodes.Push(where);
-                    Nodes.Push(select);
-
-                    if (node.Take != null)
-                        Nodes.Push(node.Take);
-
-                    if (node.Skip != null)
-                        Nodes.Push(node.Skip);
-
-                    Nodes.Push(fakeGroupBy);
-                    Visit(new QueryNode(node.Select, node.From, node.Where, fakeGroupBy, node.OrderBy, node.Skip,
-                        node.Take));
-                }
-                else if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
+                
+                if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
                 {
                     query = new InternalQueryNode(select, from, where, null, null, skip, take,
                         CreateRefreshMethods(usedRefreshMethods));
@@ -823,19 +789,6 @@ namespace Musoq.Evaluator.Visitors
             _scope = scope;
         }
 
-        public void BeginCteQueryPart(CteExpressionNode node, CtePart part)
-        {
-            _ctePart = part;
-
-            if (part == CtePart.Outer)
-                _setLeftNode = null;
-        }
-
-        public void EndCteQuery()
-        {
-            _ctePart = CtePart.None;
-        }
-
         private bool IsQueryWithOnlyAggregateMethods(FieldNode[][] splitted)
         {
             return splitted[0].Length > 0 && splitted[0].Length == splitted[1].Length;
@@ -939,31 +892,6 @@ namespace Musoq.Evaluator.Visitors
             return retFields;
         }
 
-        private FieldNode[] SplitBetweenAggreateAndNonAggreagate(FieldNode[] fieldsToSplit, FieldNode[] aggFields)
-        {
-            var ids = aggFields.Select(f => f.Expression.ToString());
-            return fieldsToSplit.Where(f => ids.Contains(f.Expression.ToString())).ToArray();
-        }
-
-        private IDictionary<string, int> CreateColumnToIndexMap(FieldNode[] fields)
-        {
-            var dict = new Dictionary<string, int>();
-
-            for (var i = 0; i < fields.Length; i++)
-                dict.Add(fields[i].FieldName, i);
-
-            return dict;
-        }
-
-        private IDictionary<int, string> CreateIndexToColumnMap(FieldNode[] fields)
-        {
-            var dict = new Dictionary<int, string>();
-
-            for (var i = 0; i < fields.Length; i++) dict.Add(i, fields[i].Expression.ToString());
-
-            return dict;
-        }
-
         private FieldNode[] CreateFields(FieldNode[] oldFields)
         {
             var reorderedList = new FieldNode[oldFields.Length];
@@ -1047,22 +975,9 @@ namespace Musoq.Evaluator.Visitors
             return new RefreshNode(methods.ToArray());
         }
 
-        private bool IsRightMostQuery(SetOperatorNode node)
-        {
-            return node.Right is QueryNode;
-        }
-
         private bool HasMethod(IEnumerable<AccessMethodNode> methods, AccessMethodNode node)
         {
             return methods.Any(f => f.ToString() == node.ToString());
-        }
-
-        private static FieldNode[] TurnIntoFieldColumnAccess(FieldNode[] fields)
-        {
-            return fields.Select(f =>
-                new FieldNode(new AccessColumnNode(f.FieldName, string.Empty, f.ReturnType, TextSpan.Empty),
-                    f.FieldOrder,
-                    f.FieldName)).ToArray();
         }
     }
 }

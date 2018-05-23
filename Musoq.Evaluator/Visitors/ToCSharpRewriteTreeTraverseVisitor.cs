@@ -4,7 +4,6 @@ using System.Text;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -16,8 +15,7 @@ namespace Musoq.Evaluator.Visitors
         private bool _hasJoin;
         private ScopeWalker _walker;
 
-        public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor,
-            ISchemaProvider provider, ScopeWalker walker)
+        public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor, ScopeWalker walker)
         {
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
             _walker = walker;
@@ -465,7 +463,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(RootNode node)
         {
-            _visitor.SetCodePattern(_code);
             node.Expression.Accept(this);
             node.Accept(_visitor);
         }

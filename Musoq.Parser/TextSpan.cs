@@ -69,9 +69,8 @@ namespace Musoq.Parser
             if (obj == null)
                 return false;
 
-            if (obj is TextSpan)
+            if (obj is TextSpan span)
             {
-                var span = (TextSpan) obj;
                 return span.Start == Start && span.Length == Length;
             }
 

@@ -19,7 +19,7 @@ namespace Musoq.Evaluator
             return result;
         }
 
-        public Table UnionAll(Table first, Table second, Func<Row, Row, bool> comparer)
+        public Table UnionAll(Table first, Table second, Func<Row, Row, bool> comparer = null)
         {
             var result = new Table($"{first}UnionAll{second}", first.Columns.ToArray());
 

@@ -7,14 +7,14 @@
         public const string ServerAddressKey = "ServerAddress";
         public const string TempFolderKey = "TempFolder";
 
-        private static readonly Plugins.Environment env = new Plugins.Environment();
+        private static readonly Plugins.Environment Env = new Plugins.Environment();
 
-        public static string PluginsFolder => env.Value<string>(PluginsFolderKey);
+        public static string PluginsFolder => Env.Value<string>(PluginsFolderKey);
 
-        public static string HttpServerAddress => env.Value<string>(HttpServerAddressKey);
+        public static string HttpServerAddress => Env.Value<string>(HttpServerAddressKey);
 
-        public static string ServerAddress => env.Value<string>(ServerAddressKey);
+        public static string ServerAddress => Env.Value<string>(ServerAddressKey);
 
-        public static string TempFolder => env.Value<string>(TempFolderKey);
+        public static string TempFolder => Env.Value<string>(TempFolderKey);
     }
 }

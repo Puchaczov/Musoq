@@ -71,17 +71,6 @@ namespace Musoq.Evaluator.Tables
             return _columnsByName[name];
         }
 
-        public Column GetColumn(int index)
-        {
-            return _columnsByIndex[index];
-        }
-
-        public int GetColumnIndex(string name)
-        {
-            var column = _columnsByName[name];
-            return _columnsByIndex.SingleOrDefault(f => f.Value.Name == name).Key;
-        }
-
         public void Add(Row value)
         {
             var newIndex = Rows.Count;

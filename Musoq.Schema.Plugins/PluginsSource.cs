@@ -31,7 +31,7 @@ namespace Musoq.Schema.Plugins
                     chunk.Add(new EntityResolver<PluginEntity>(new PluginEntity(assemblyType.Assembly, schema.Name),
                         PluginsHelper.PluginNameToIndexMap, PluginsHelper.PluginIndexToMethodAccessMap));
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
 
