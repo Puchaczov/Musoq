@@ -244,46 +244,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(AccessCallChainNode node)
         {
-            var chainPretend = Nodes.Pop();
-
-            if (chainPretend is AccessColumnNode)
-            {
-                Nodes.Push(chainPretend);
-            }
-            else
-            {
-                var dotNode = chainPretend;
-
-                DotNode theMostInnerDotNode = null;
-                while (dotNode != null && dotNode is DotNode dot)
-                {
-                    theMostInnerDotNode = dot;
-                    dotNode = dot.Root;
-                }
-
-                dotNode = theMostInnerDotNode;
-                var props = new List<(PropertyInfo, object)>();
-
-                while (dotNode != null && dotNode is DotNode dot)
-                {
-                    switch (dot.Expression)
-                    {
-                        case PropertyValueNode prop:
-                            props.Add((prop.PropertyInfo, null));
-                            break;
-                        case AccessObjectKeyNode objKey:
-                            props.Add((objKey.PropertyInfo, objKey.Token.Key));
-                            break;
-                        case AccessObjectArrayNode objArr:
-                            props.Add((objArr.PropertyInfo, objArr.Token.Index));
-                            break;
-                    }
-
-                    dotNode = dot.Expression;
-                }
-
-                Nodes.Push(new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props, node.Alias));
-            }
+            Nodes.Push(new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props, node.Alias));
         }
 
         public virtual void Visit(ArgsListNode node)

@@ -54,15 +54,13 @@ namespace Musoq.Schema.Json
 
             foreach (var prop in obj.Properties().Reverse())
                 props.Push(prop);
-
-            var registeredNames = new Dictionary<string, int>();
+            
             var columns = new List<ISchemaColumn>();
             var columnIndex = 0;
 
             while (props.Count > 0)
             {
                 var prop = props.Pop();
-                registeredNames.Add(prop.Name, 1);
 
                 switch (prop.Value.Type)
                 {

@@ -23,7 +23,7 @@ namespace Musoq.Parser.Nodes
         protected static string CalculateId<T>(T node)
             where T : BinaryNode
         {
-            return $"{typeof(T).Name}{node.Left.Id}{node.Right.Id}{node?.ReturnType?.Name}";
+            return $"{typeof(T).Name}{node.Left.Id}{node.Right.Id}{node.ReturnType?.Name}";
         }
 
         private static bool IsNullOrVoid(Type type)

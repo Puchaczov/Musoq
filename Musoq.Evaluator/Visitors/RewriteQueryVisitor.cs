@@ -634,9 +634,7 @@ namespace Musoq.Evaluator.Visitors
                     null,
                     skip,
                     take,
-                    destination,
-                    returnScore,
-                    true);
+                    returnScore);
 
                 splittedNodes.Add(new CreateTableNode(destination, new string[0], transformingQuery.Select.Fields));
                 splittedNodes.Add(transformingQuery);
@@ -672,8 +670,8 @@ namespace Musoq.Evaluator.Visitors
 
                     splittedNodes.Add(new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName],
                         new string[0], select.Fields));
-                    splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, where, null, null, skip, take, source,
-                        scopeResultQuery[MetaAttributes.SelectIntoVariableName], false));
+                    splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, where, null, null, skip, take,
+                        scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
 
                     Nodes.Push(
                         new MultiStatementNode(

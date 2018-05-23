@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
@@ -35,32 +39,72 @@ namespace Musoq.Converter
 
             query = rewriter.RootScript;
 
+#if DEBUG
+            string tempPath = Path.GetTempPath();
+            string tempFileName = $"{Guid.NewGuid().ToString()}";
+            string assemblyPath = Path.Combine(tempPath, $"{tempFileName}.dll");
+            string pdbPath = Path.Combine(tempPath, $"{tempFileName}.pdb");
+            string csPath = Path.Combine(tempPath, $"{tempFileName}.cs");
+
+
             var csharpRewriter =
-                new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies, metadataInferer.SetOperatorFieldPositions);
+                new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies, metadataInferer.SetOperatorFieldPositions, csPath);
             var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter,
                 new ScopeWalker(metadataInfererTraverser.Scope));
 
             query.Accept(csharpRewriteTraverser);
 
-#if DEBUG
             using (var stream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
             {
+                var result = csharpRewriter.Compilation.Emit(stream, pdbStream);
+
+                if (!result.Success)
+                {
+                    var all = new StringBuilder();
+
+                    foreach (var diagnostic in result.Diagnostics)
+                        all.Append(diagnostic);
+
+                    throw new NotSupportedException(all.ToString());
+                }
+                
+                var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
+
+                var type = assembly.GetType("Query.Compiled.CompiledQuery");
+
+                var runnable = (IRunnable)Activator.CreateInstance(type);
+                runnable.Provider = schemaProvider;
+
+                if (!Debugger.IsAttached) return runnable;
+
                 var builder = new StringBuilder();
                 using (var writer = new StringWriter(builder))
                 {
                     csharpRewriter.Compilation.SyntaxTrees[0].GetRoot().WriteTo(writer);
                 }
 
-                var testPath = Path.Combine("E:\\Temp",
-                    $"{Guid.NewGuid().ToString()}.cs");
-
-                using (var file = new StreamWriter(File.OpenWrite(testPath)))
+                using (var file = new StreamWriter(File.OpenWrite(csPath)))
                 {
                     file.Write(builder.ToString());
                 }
 
-                var result = csharpRewriter.Compilation.Emit(stream, pdbStream);
+                runnable = new RunnableDebugDecorator(runnable, csPath);
+
+                return runnable;
+            }
+#else
+            var csharpRewriter =
+                new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies, metadataInferer.SetOperatorFieldPositions, string.Empty);
+            var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter,
+                new ScopeWalker(metadataInfererTraverser.Scope));
+
+            query.Accept(csharpRewriteTraverser);
+
+            using (var stream = new MemoryStream())
+            using (var pdbStream = new MemoryStream())
+            {
+                EmitResult result = csharpRewriter.Compilation.Emit(stream);
 
                 if (!result.Success)
                 {
@@ -76,26 +120,9 @@ namespace Musoq.Converter
 
                 var type = assembly.GetType("Query.Compiled.CompiledQuery");
 
-                var runnable = (IRunnable) Activator.CreateInstance(type);
+                var runnable = (IRunnable)Activator.CreateInstance(type);
                 runnable.Provider = schemaProvider;
                 return runnable;
-            }
-#else
-            using (var stream = new MemoryStream())
-            using (var pdbStream = new MemoryStream())
-            {
-                EmitResult result = csharpRewriter.Compilation.Emit(stream);
-
-                if (result.Success)
-                {
-                    var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
-
-                    var type = assembly.GetType("Query.Compiled.CompiledQuery");
-
-                    var runnable = (IRunnable)Activator.CreateInstance(type);
-                    runnable.Provider = schemaProvider;
-                    return runnable;
-                }
             }
 #endif
         }

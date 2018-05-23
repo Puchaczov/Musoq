@@ -25,7 +25,7 @@ namespace Musoq.Parser.Nodes
         public override Type ReturnType => PropertyInfo.PropertyType.GetElementType();
 
         public override string Id { get; }
-        public PropertyInfo PropertyInfo { get; set; }
+        public PropertyInfo PropertyInfo { get; private set; }
 
         public override void Accept(IExpressionVisitor visitor)
         {

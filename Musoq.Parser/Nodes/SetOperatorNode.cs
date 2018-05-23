@@ -9,14 +9,11 @@ namespace Musoq.Parser.Nodes
             bool isTheLastOne)
             : base(left, right)
         {
-            OperatorType = (SetOperator) type;
             Keys = keys;
             IsNested = isNested;
             IsTheLastOne = isTheLastOne;
             Id = CalculateId(this);
         }
-
-        public SetOperator OperatorType { get; }
 
         public string[] Keys { get; }
 
