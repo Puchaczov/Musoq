@@ -44,6 +44,20 @@ namespace Musoq.Converter
             using (var stream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
             {
+                var builder = new StringBuilder();
+                using (var writer = new StringWriter(builder))
+                {
+                    csharpRewriter.Compilation.SyntaxTrees[0].GetRoot().WriteTo(writer);
+                }
+
+                var testPath = Path.Combine("E:\\Temp",
+                    $"{Guid.NewGuid().ToString()}.cs");
+
+                using (var file = new StreamWriter(File.OpenWrite(testPath)))
+                {
+                    file.Write(builder.ToString());
+                }
+
                 var result = csharpRewriter.Compilation.Emit(stream, pdbStream);
 
                 if (!result.Success)
@@ -75,10 +89,10 @@ namespace Musoq.Converter
                     var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
 
                     var type = assembly.GetType("Query.Compiled.CompiledQuery");
-                    var method = type.GetMethod("RunQuery");
 
-                    var obj = Activator.CreateInstance(type);
-                    return new CompiledMachine(obj, schemaProvider, method);
+                    var runnable = (IRunnable)Activator.CreateInstance(type);
+                    runnable.Provider = schemaProvider;
+                    return runnable;
                 }
             }
 #endif

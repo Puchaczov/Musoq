@@ -19,12 +19,12 @@ namespace Musoq.Performance
             //    AgencyName,
             //    Count(AgencyName),
             //    Sum(ToDecimal(Amount))
-            //from #csv.file('C:\Users\jpuchala\Documents\res_purchase_card_(pcard)_fiscal_year_2014_3pcd-aiuu.csv', ',')
+            //from #csv.file('C:\Users\Puchacz\Downloads\cards\res_purchase_card_(pcard)_fiscal_year_2014_3pcd-aiuu.csv', ',')
             //group by AgencyName");
 
-            //Console.WriteLine();
-            //Console.WriteLine("Press any key to close.");
-            //Console.ReadKey();
+            Console.WriteLine();
+            Console.WriteLine("Press any key to close.");
+            Console.ReadKey();
         }
 
         private static void ExecuteQuery(string query)

@@ -74,16 +74,15 @@ namespace Musoq.Evaluator.Visitors
         {
             _setOperatorFieldIndexes = setOperatorFieldIndexes;
             Workspace = new AdhocWorkspace();
+            Nodes = new Stack<SyntaxNode>();
 
             Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
-            Generator.NamespaceImportDeclaration("System");
-            Nodes = new Stack<SyntaxNode>();
 
             var objLocation = typeof(object).GetTypeInfo().Assembly.Location;
             var path = new FileInfo(objLocation);
             var directory = path.Directory;
 
-            Compilation = CSharpCompilation.Create("InMemoryAssembly.dll");
+            Compilation = CSharpCompilation.Create("InMemoryAssembly");
 
             foreach (var file in directory.GetFiles("System*.dll"))
             {
@@ -97,13 +96,9 @@ namespace Musoq.Evaluator.Visitors
                     System.Console.WriteLine("The file cannot be found.");
                 }
                 catch (System.BadImageFormatException)
-                {
-                    System.Console.WriteLine("The file is not an assembly.");
-                }
+                {}
                 catch (System.IO.FileLoadException)
-                {
-                    System.Console.WriteLine("The assembly has already been loaded.");
-                }
+                {}
             }
 
             Compilation = Compilation
@@ -119,7 +114,7 @@ namespace Musoq.Evaluator.Visitors
             Compilation = Compilation.WithOptions(
                 new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
-                    optimizationLevel: OptimizationLevel.Debug,
+                    optimizationLevel: OptimizationLevel.Release,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default)
                     .WithConcurrentBuild(true)
                     .WithPlatform(Platform.AnyCpu));
@@ -1207,23 +1202,9 @@ namespace Musoq.Evaluator.Visitors
 
             SyntaxNode formatted = Formatter.Format(compilationUnit, Workspace);
 
-            var builder = new StringBuilder();
-            using(var writer = new StringWriter(builder))
-            {
-                formatted.WriteTo(writer);
-            }
-
-            var testPath = Path.Combine("E:\\Temp",
-                $"{Guid.NewGuid().ToString()}.cs");
-
-            using (var file = new StreamWriter(File.OpenWrite(testPath)))
-            {
-                file.Write(builder.ToString());
-            }
-
             Compilation = Compilation.AddSyntaxTrees(new[]
             {
-                SyntaxFactory.ParseSyntaxTree(builder.ToString(), new CSharpParseOptions(LanguageVersion.Latest), testPath, Encoding.Unicode)
+                SyntaxFactory.ParseSyntaxTree(formatted.ToFullString(), new CSharpParseOptions(LanguageVersion.CSharp7_3), string.Empty, Encoding.Unicode)
             });
         }
 
