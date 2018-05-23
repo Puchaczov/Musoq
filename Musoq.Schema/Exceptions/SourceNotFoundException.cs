@@ -6,6 +6,7 @@ namespace Musoq.Schema.Exceptions
     {
         public SourceNotFoundException(string table)
             : base(table)
-        { }
+        {
+        }
     }
 }

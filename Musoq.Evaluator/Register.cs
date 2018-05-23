@@ -5,6 +5,6 @@
         A = 0,
         B,
         Ip,
-        Sop,
+        Sop
     }
 }

@@ -10,7 +10,8 @@ namespace Musoq.Schema.Json
 
         public JsonSchema()
             : base(SchemaName, CreateLibrary())
-        { }
+        {
+        }
 
         public override ISchemaTable GetTableByName(string name, string[] parameters)
         {

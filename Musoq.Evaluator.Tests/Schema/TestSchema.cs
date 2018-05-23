@@ -9,11 +9,10 @@ namespace Musoq.Evaluator.Tests.Schema
     public class TestSchema<T> : SchemaBase
         where T : BasicEntity
     {
-        private readonly MethodsAggregator _aggreagator;
-        private readonly IEnumerable<T> _sources;
-
         private static readonly IDictionary<string, int> TestNameToIndexMap;
         private static readonly IDictionary<int, Func<T, object>> TestIndexToObjectAccessMap;
+        private readonly MethodsAggregator _aggreagator;
+        private readonly IEnumerable<T> _sources;
 
         static TestSchema()
         {
@@ -45,14 +44,13 @@ namespace Musoq.Evaluator.Tests.Schema
         }
 
         public TestSchema(IEnumerable<T> sources)
-        : base("test",CreateLibrary())
+            : base("test", CreateLibrary())
         {
             _sources = sources;
         }
 
         private static MethodsAggregator CreateLibrary()
         {
-
             var methodManager = new MethodsManager();
             var propertiesManager = new PropertiesManager();
 

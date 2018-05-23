@@ -17,6 +17,9 @@ namespace Musoq.Plugins
     [SuppressMessage("ReSharper", "UnusedParameter.Global")]
     public abstract class LibraryBase
     {
+        private readonly IDictionary<string, IDictionary<string, string>> _fileNameToClusteredWordsMapDictionary =
+            new Dictionary<string, IDictionary<string, string>>();
+
         [AggregationGetMethod]
         public string AggregateValue([InjectGroup] Group group, string name)
         {
@@ -142,7 +145,7 @@ namespace Musoq.Plugins
         {
             return group.GetValue<decimal>(name);
         }
-        
+
         [AggregationSetMethod]
         public void SetSum([InjectGroup] Group group, string name, decimal number)
         {
@@ -167,8 +170,8 @@ namespace Musoq.Plugins
         public void SetSumIncome([InjectGroup] Group group, string name, decimal number)
         {
             var value = group.GetOrCreateValue<decimal>(name);
-            
-            if(number >= 0)
+
+            if (number >= 0)
                 group.SetValue(name, value + number);
         }
 
@@ -183,7 +186,7 @@ namespace Musoq.Plugins
         {
             var value = group.GetOrCreateValue<decimal>(name);
 
-            if(number < 0)
+            if (number < 0)
                 group.SetValue(name, value + number);
         }
 
@@ -192,7 +195,7 @@ namespace Musoq.Plugins
         {
             return group.GetValue<decimal>(name);
         }
-        
+
         [AggregationSetMethod]
         public void SetStringAsNumericSum([InjectGroup] Group group, string name, string number)
         {
@@ -295,7 +298,7 @@ namespace Musoq.Plugins
             var parent = GetParentGroup(group, number);
             SetSumOutcome(parent, name, value);
             group.GetOrCreateValueWithConverter<Group, decimal>(name, parent,
-                o => ((Group)o).GetRawValue<decimal>(name));
+                o => ((Group) o).GetRawValue<decimal>(name));
         }
 
         [BindableMethod]
@@ -344,9 +347,6 @@ namespace Musoq.Plugins
             return index == -1 ? text : text.Substring(0, index);
         }
 
-        private readonly IDictionary<string, IDictionary<string, string>> _fileNameToClusteredWordsMapDictionary =
-            new Dictionary<string, IDictionary<string, string>>();
-
         [BindableMethod]
         public string ClusteredByContainsKey(string dictionaryFilename, string value)
         {
@@ -367,17 +367,13 @@ namespace Musoq.Plugins
                             .ToLowerInvariant()
                             .Trim();
 
-                        if(line == System.Environment.NewLine || line == string.Empty)
+                        if (line == System.Environment.NewLine || line == string.Empty)
                             continue;
 
                         if (line.EndsWith(":"))
-                        {
                             currentKey = line.Substring(0, line.Length - 1);
-                        }
                         else
-                        {
                             map.Add(line, currentKey);
-                        }
                     }
                 }
             }
@@ -499,7 +495,7 @@ namespace Musoq.Plugins
         [BindableMethod]
         public decimal Round(decimal value, long precision)
         {
-            return Math.Round(value, (int)precision);
+            return Math.Round(value, (int) precision);
         }
 
         [BindableMethod]
@@ -574,7 +570,7 @@ namespace Musoq.Plugins
             if (value.Length < index + length + 1)
                 length = value.Length - (index + 1);
 
-            return value.Substring((int)index, (int)length);
+            return value.Substring((int) index, (int) length);
         }
 
         [BindableMethod]

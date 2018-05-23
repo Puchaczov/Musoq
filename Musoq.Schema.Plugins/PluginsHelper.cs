@@ -30,7 +30,7 @@ namespace Musoq.Schema.Plugins
             {
                 new SchemaColumn(nameof(PluginEntity.FullName), 0, typeof(string)),
                 new SchemaColumn(nameof(PluginEntity.Location), 1, typeof(string)),
-                new SchemaColumn(nameof(PluginEntity.SchemaName), 2, typeof(string)),
+                new SchemaColumn(nameof(PluginEntity.SchemaName), 2, typeof(string))
             };
         }
     }

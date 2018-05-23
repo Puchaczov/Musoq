@@ -26,7 +26,7 @@ namespace Musoq.Schema.Disk.Files
 
                 var dirFiles = new List<EntityResolver<FileInfo>>();
 
-                foreach(var file in dir.GetFiles())
+                foreach (var file in dir.GetFiles())
                     dirFiles.Add(new EntityResolver<FileInfo>(file, SchemaFilesHelper.FilesNameToIndexMap,
                         SchemaFilesHelper.FilesIndexToMethodAccessMap));
 

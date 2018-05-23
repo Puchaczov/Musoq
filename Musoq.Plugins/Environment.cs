@@ -6,7 +6,7 @@ namespace Musoq.Plugins
     public class Environment
     {
         private static readonly ConcurrentDictionary<string, object> Objects;
-        
+
         private static readonly ConcurrentDictionary<string, Func<object, object>> Converters;
 
         static Environment()

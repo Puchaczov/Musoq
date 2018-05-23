@@ -20,7 +20,7 @@ namespace Musoq.Service
 
             if (_schemas.ContainsKey(schema))
                 return (ISchema) Activator.CreateInstance(_schemas[schema]);
-            
+
             throw new SchemaNotFoundException(schema);
         }
     }

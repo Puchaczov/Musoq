@@ -76,7 +76,13 @@ select Name from #C.Entities() skip 3";
             {
                 {"#A", new[] {new BasicEntity("001"), new BasicEntity("005")}},
                 {"#B", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}},
-                {"#C", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("004"), new BasicEntity("005")}}
+                {
+                    "#C",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("004"), new BasicEntity("005")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -366,7 +372,7 @@ select Name from #D.Entities()";
         public void ExceptWithSkipTripleSourcesTest()
         {
             var query =
-@"select Name from #A.Entities() skip 1 except (Name) 
+                @"select Name from #A.Entities() skip 1 except (Name) 
 select Name from #B.Entities() skip 2 except (Name) 
 select Name from #C.Entities() skip 3";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -395,7 +401,13 @@ select Name from #D.Entities()";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")}},
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
+                    }
+                },
                 {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")}},
                 {"#C", new[] {new BasicEntity("005")}},
                 {"#D", new[] {new BasicEntity("007")}}
@@ -433,7 +445,13 @@ select Name from #D.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}},
-                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005") }}
+                {
+                    "#B",
+                    new[]
+                    {
+                        new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -474,7 +492,13 @@ select Name from #C.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}},
-                {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005")}},
+                {
+                    "#B",
+                    new[]
+                    {
+                        new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005")
+                    }
+                },
                 {"#C", new[] {new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("005")}}
             };
 
@@ -497,10 +521,16 @@ select Name from #D.Entities()";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")}},
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
+                    }
+                },
                 {"#B", new[] {new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")}},
                 {"#C", new[] {new BasicEntity("005"), new BasicEntity("007"), new BasicEntity("001")}},
-                {"#D", new[] {new BasicEntity("008"),  new BasicEntity("007"), new BasicEntity("001")}}
+                {"#D", new[] {new BasicEntity("008"), new BasicEntity("007"), new BasicEntity("001")}}
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -599,7 +629,13 @@ select Name from #C.Entities() skip 3";
             {
                 {"#A", new[] {new BasicEntity("002"), new BasicEntity("001")}},
                 {"#B", new[] {new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")}},
-                {"#C", new[] {new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("003"), new BasicEntity("006")}}
+                {
+                    "#C",
+                    new[]
+                    {
+                        new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("003"), new BasicEntity("006")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -647,10 +683,16 @@ select Name from #D.Entities()";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")}},
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
+                    }
+                },
                 {"#B", new[] {new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")}},
                 {"#C", new[] {new BasicEntity("005"), new BasicEntity("007")}},
-                {"#D", new[] {new BasicEntity("001"),  new BasicEntity("002"), new BasicEntity("003")}}
+                {"#D", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003")}}
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -666,7 +708,7 @@ select Name from #D.Entities()";
         public void UnionSourceGroupByTest()
         {
             var query =
-@"select City, Sum(Population) from #A.Entities() group by City
+                @"select City, Sum(Population) from #A.Entities() group by City
 union (City)
 select City, Sum(Population) from #B.Entities() group by City
 union (City)
@@ -675,7 +717,13 @@ select City, Sum(Population) from #C.Entities() group by City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)}},
-                {"#B", new[] {new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13) }},
+                {
+                    "#B",
+                    new[]
+                    {
+                        new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
+                    }
+                },
                 {"#C", new[] {new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)}}
             };
 
@@ -704,7 +752,13 @@ select City, Sum(Population) from #C.Entities() group by City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)}},
-                {"#B", new[] {new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13) }},
+                {
+                    "#B",
+                    new[]
+                    {
+                        new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
+                    }
+                },
                 {"#C", new[] {new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)}}
             };
 
@@ -732,8 +786,21 @@ select City, Sum(Population) from #C.Entities() group by City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001", "", 100), new BasicEntity("001", "", 100), new BasicEntity("002", "", 500), }},
-                {"#B", new[] {new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13) }},
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001", "", 100), new BasicEntity("001", "", 100),
+                        new BasicEntity("002", "", 500)
+                    }
+                },
+                {
+                    "#B",
+                    new[]
+                    {
+                        new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
+                    }
+                },
                 {"#C", new[] {new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)}}
             };
 
@@ -757,8 +824,21 @@ select City, Sum(Population) from #C.Entities() group by City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001", "", 100), new BasicEntity("001", "", 100), new BasicEntity("002", "", 500), }},
-                {"#B", new[] {new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13) }},
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001", "", 100), new BasicEntity("001", "", 100),
+                        new BasicEntity("002", "", 500)
+                    }
+                },
+                {
+                    "#B",
+                    new[]
+                    {
+                        new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
+                    }
+                },
                 {"#C", new[] {new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)}}
             };
 
@@ -809,7 +889,14 @@ select Name from #A.Entities() where Name = '005'";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005")}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
+                        new BasicEntity("005")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);

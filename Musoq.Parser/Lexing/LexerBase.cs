@@ -43,6 +43,25 @@ namespace Musoq.Parser.Lexing
 
         #endregion
 
+        #region TokenUtils
+
+        protected sealed class TokenDefinition
+        {
+            public TokenDefinition(string pattern)
+            {
+                Regex = new Regex(pattern);
+            }
+
+            public TokenDefinition(string pattern, RegexOptions options)
+            {
+                Regex = new Regex(pattern, options);
+            }
+
+            public Regex Regex { get; }
+        }
+
+        #endregion
+
         #region Private Variables
 
         private readonly TokenDefinition[] _definitions;
@@ -154,25 +173,6 @@ namespace Musoq.Parser.Lexing
             }
 
             return AssignTokenOfType(GetEndOfFileToken);
-        }
-
-        #endregion
-
-        #region TokenUtils
-
-        protected sealed class TokenDefinition
-        {
-            public TokenDefinition(string pattern)
-            {
-                Regex = new Regex(pattern);
-            }
-
-            public TokenDefinition(string pattern, RegexOptions options)
-            {
-                Regex = new Regex(pattern, options);
-            }
-
-            public Regex Regex { get; }
         }
 
         #endregion

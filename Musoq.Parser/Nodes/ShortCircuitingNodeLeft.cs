@@ -17,6 +17,8 @@ namespace Musoq.Parser.Nodes
         public Node Expression { get; }
         public override Type ReturnType => Expression.ReturnType;
 
+        public override string Id { get; }
+
         public override string ToString()
         {
             return Expression.ToString();
@@ -26,7 +28,5 @@ namespace Musoq.Parser.Nodes
         {
             visitor.Visit(this);
         }
-
-        public override string Id { get; }
     }
 }

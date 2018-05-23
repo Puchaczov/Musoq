@@ -2,7 +2,7 @@
 {
     public class AccessPropertyToken : Token
     {
-        public AccessPropertyToken(string value, TextSpan span) 
+        public AccessPropertyToken(string value, TextSpan span)
             : base(value, TokenType.Property, span)
         {
             Name = value;

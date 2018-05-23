@@ -8,10 +8,11 @@ namespace Musoq.Schema.Csv
     {
         private const string FileTable = "file";
         private const string SchemaName = "csv";
-        
+
         public CsvSchema()
             : base(SchemaName, CreateLibrary())
-        { }
+        {
+        }
 
         public override ISchemaTable GetTableByName(string name, string[] parameters)
         {

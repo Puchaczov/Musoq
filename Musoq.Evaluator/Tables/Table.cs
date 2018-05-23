@@ -87,17 +87,19 @@ namespace Musoq.Evaluator.Tables
             var newIndex = Rows.Count;
 
             if (value.Count != _columnsByIndex.Count)
-                throw new NotSupportedException($"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
+                throw new NotSupportedException(
+                    $"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
 
-            for (int i = 0; i < value.Count; i++)
+            for (var i = 0; i < value.Count; i++)
             {
-                if(value[i] == null)
+                if (value[i] == null)
                     continue;
 
                 var t1 = value[i].GetType();
                 var t2 = _columnsByIndex[i].ColumnType;
                 if (!t2.IsAssignableFrom(t1))
-                    throw new NotSupportedException($"({nameof(Add)}) Mismatched types. {t2.Name} is not assignable from {t1.Name}");
+                    throw new NotSupportedException(
+                        $"({nameof(Add)}) Mismatched types. {t2.Name} is not assignable from {t1.Name}");
             }
 
             Rows.Add(value);
@@ -110,10 +112,7 @@ namespace Musoq.Evaluator.Tables
 
                 var objects = new object[indexes.Length];
 
-                for (int i = 0; i < indexes.Length; i++)
-                {
-                    objects[i] = value[_columnsByIndex[indexes[i]].ColumnOrder];
-                }
+                for (var i = 0; i < indexes.Length; i++) objects[i] = value[_columnsByIndex[indexes[i]].ColumnOrder];
 
                 var key = new Key(objects, indexes);
 

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.ServiceProcess;
+using System.Reflection;
 
 namespace Musoq.Service
 {
@@ -23,13 +23,11 @@ namespace Musoq.Service
 #endif
         }
 
-        private static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
                 if (assembly.FullName == args.Name)
                     return assembly;
-            }
 
             return null;
         }

@@ -14,7 +14,8 @@ namespace Musoq.Parser.Nodes
             SQuery = sQuery;
             ResultTableName = resultTableName;
             Keys = keys;
-            Id = $"{nameof(TranslatedSetOperatorNode)}{createTableNode.Select(f => f.Id).Aggregate((a, b) => a + b)}{fQuery.Id}{sQuery.Id}{resultTableName}{keys.Aggregate((a, b) => a + b)}";
+            Id =
+                $"{nameof(TranslatedSetOperatorNode)}{createTableNode.Select(f => f.Id).Aggregate((a, b) => a + b)}{fQuery.Id}{sQuery.Id}{resultTableName}{keys.Aggregate((a, b) => a + b)}";
         }
 
         public override Type ReturnType => null;
@@ -26,12 +27,12 @@ namespace Musoq.Parser.Nodes
 
         public string[] Keys { get; }
 
+        public override string Id { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
-
-        public override string Id { get; }
 
         public override string ToString()
         {

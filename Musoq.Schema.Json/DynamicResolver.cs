@@ -5,8 +5,8 @@ namespace Musoq.Schema.Json
 {
     public class DynamicResolver : IObjectResolver
     {
-        private JObject _obj;
         private readonly DynamicJsonWrapper _wrapper;
+        private JObject _obj;
 
         public DynamicResolver(JObject obj)
         {

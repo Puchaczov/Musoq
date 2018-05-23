@@ -18,21 +18,6 @@ namespace Musoq.Service.Visitors
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         }
 
-        private void Iterate<TField>(TField[] arr)
-            where TField : Node
-        {
-            if(arr.Length == 0)
-                return;
-
-            for (int i = 0; i < arr.Length - 1; i++)
-            {
-                arr[i].Accept(this);
-                _visitor.AddText(",");
-            }
-
-            arr[arr.Length - 1].Accept(this);
-        }
-
         public void Visit(SelectNode node)
         {
             node.Accept(_visitor);
@@ -509,6 +494,21 @@ namespace Musoq.Service.Visitors
             node.From.Accept(this);
             node.Accept(_visitor);
             node.Expression.Accept(this);
+        }
+
+        private void Iterate<TField>(TField[] arr)
+            where TField : Node
+        {
+            if (arr.Length == 0)
+                return;
+
+            for (var i = 0; i < arr.Length - 1; i++)
+            {
+                arr[i].Accept(this);
+                _visitor.AddText(",");
+            }
+
+            arr[arr.Length - 1].Accept(this);
         }
 
         public void Visit(FromNode node)

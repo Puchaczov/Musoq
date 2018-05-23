@@ -30,13 +30,15 @@ namespace Musoq.Schema.Disk.Tests
         [TestMethod]
         public void DecompressTest()
         {
-            var query = "select Decompress(AggregateFiles(File), './Results/DecompressTest') from #disk.zip('./Files.zip')";
+            var query =
+                "select Decompress(AggregateFiles(File), './Results/DecompressTest') from #disk.zip('./Files.zip')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Decompress(AggregateFiles(File), './Results/DecompressTest')", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Decompress(AggregateFiles(File), './Results/DecompressTest')",
+                table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -52,13 +54,15 @@ namespace Musoq.Schema.Disk.Tests
         [TestMethod]
         public void DecompressWithFilterTest()
         {
-            var query = "select Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest') from #disk.zip('./Files.zip') where Level = 1";
+            var query =
+                "select Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest') from #disk.zip('./Files.zip') where Level = 1";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest')", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest')",
+                table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);

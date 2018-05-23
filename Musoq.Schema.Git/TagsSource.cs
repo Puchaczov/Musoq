@@ -6,7 +6,9 @@ namespace Musoq.Schema.Git
 {
     public class TagsSource : RepositorySource<Tag>
     {
-        public TagsSource(string repo, IDictionary<string, int> nameToIndexMap, IDictionary<int, Func<Tag, object>> indexToObjectAccessMap) : base(repo, nameToIndexMap, indexToObjectAccessMap)
+        public TagsSource(string repo, IDictionary<string, int> nameToIndexMap,
+            IDictionary<int, Func<Tag, object>> indexToObjectAccessMap) : base(repo, nameToIndexMap,
+            indexToObjectAccessMap)
         {
         }
 

@@ -17,7 +17,7 @@ namespace Musoq.Service.Client.Helpers
 
         public async Task<Guid> Execute(Guid id)
         {
-            var client = new HttpClient()
+            var client = new HttpClient
             {
                 BaseAddress = new Uri(_address)
             };
@@ -29,7 +29,7 @@ namespace Musoq.Service.Client.Helpers
 
         public async Task<ResultTable> Result(Guid id)
         {
-            var client = new HttpClient()
+            var client = new HttpClient
             {
                 BaseAddress = new Uri(_address)
             };
@@ -39,7 +39,7 @@ namespace Musoq.Service.Client.Helpers
 
         public async Task<(bool HasContext, ExecutionStatus Status)> Status(Guid id)
         {
-            var client = new HttpClient()
+            var client = new HttpClient
             {
                 BaseAddress = new Uri(_address)
             };

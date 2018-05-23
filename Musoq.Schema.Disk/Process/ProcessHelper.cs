@@ -10,6 +10,7 @@ namespace Musoq.Schema.Disk.Process
         public static readonly IDictionary<string, int> ProcessNameToIndexMap;
         public static readonly IDictionary<int, Func<System.Diagnostics.Process, object>> ProcessIndexToMethodAccessMap;
         public static readonly ISchemaColumn[] ProcessColumns;
+
         static ProcessHelper()
         {
             ProcessNameToIndexMap = new Dictionary<string, int>
@@ -32,7 +33,7 @@ namespace Musoq.Schema.Disk.Process
                 {nameof(System.Diagnostics.Process.TotalProcessorTime), 15},
                 {nameof(System.Diagnostics.Process.UserProcessorTime), 16},
                 {"Dir", 17},
-                {"FileName",  18}
+                {"FileName", 18}
             };
 
             ProcessIndexToMethodAccessMap = new Dictionary<int, Func<System.Diagnostics.Process, object>>
@@ -54,28 +55,32 @@ namespace Musoq.Schema.Disk.Process
                 {14, info => info.StartTime},
                 {15, info => info.TotalProcessorTime},
                 {16, info => info.UserProcessorTime},
-                {17, info =>
                 {
-                    try
+                    17, info =>
                     {
-                        return new FileInfo(info.MainModule.FileName).Directory.FullName;
+                        try
+                        {
+                            return new FileInfo(info.MainModule.FileName).Directory.FullName;
+                        }
+                        catch (Exception)
+                        {
+                            return "None";
+                        }
                     }
-                    catch (Exception)
-                    {
-                        return "None";
-                    }
-                }},
-                {18, info =>
+                },
                 {
-                    try
+                    18, info =>
                     {
-                        return new FileInfo(info.MainModule.FileName).Name;
+                        try
+                        {
+                            return new FileInfo(info.MainModule.FileName).Name;
+                        }
+                        catch (Exception)
+                        {
+                            return "None";
+                        }
                     }
-                    catch (Exception)
-                    {
-                        return "None";
-                    }
-                }}
+                }
             };
 
             ProcessColumns = new ISchemaColumn[]

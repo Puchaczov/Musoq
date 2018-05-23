@@ -7,9 +7,9 @@ namespace Musoq.Evaluator.Utils
 {
     public class MetadataCollector
     {
-        private readonly Dictionary<string, ISchemaTable> _tables;
-        private readonly Dictionary<string, List<ISchemaColumn>> _realColumns;
         private readonly List<string> _aliases;
+        private readonly Dictionary<string, List<ISchemaColumn>> _realColumns;
+        private readonly Dictionary<string, ISchemaTable> _tables;
 
         public MetadataCollector()
         {

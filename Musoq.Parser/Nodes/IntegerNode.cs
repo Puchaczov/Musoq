@@ -14,6 +14,8 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType => typeof(long);
 
+        public override string Id { get; }
+
         public override string ToString()
         {
             return Value.ToString();
@@ -23,7 +25,5 @@ namespace Musoq.Parser.Nodes
         {
             visitor.Visit(this);
         }
-
-        public override string Id { get; }
     }
 }

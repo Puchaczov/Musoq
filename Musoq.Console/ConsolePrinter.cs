@@ -8,7 +8,7 @@ namespace Musoq.Console
     {
         private readonly TimeSpan _computationTime;
 
-        public ConsolePrinter(DataTable table, TimeSpan computationTime) 
+        public ConsolePrinter(DataTable table, TimeSpan computationTime)
             : base(table)
         {
             _computationTime = computationTime;
@@ -17,12 +17,10 @@ namespace Musoq.Console
         public override void Print()
         {
             if (Table.Rows.Count > 0)
-            {
                 ConsoleTableBuilder
                     .From(Table)
                     .WithFormat(ConsoleTableBuilderFormat.Minimal)
                     .ExportAndWrite();
-            }
 
             System.Console.WriteLine();
             System.Console.WriteLine("SUMMARY:");

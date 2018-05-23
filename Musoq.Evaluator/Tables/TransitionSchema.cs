@@ -1,5 +1,4 @@
-﻿using Musoq.Plugins;
-using Musoq.Schema;
+﻿using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
@@ -9,7 +8,7 @@ namespace Musoq.Evaluator.Tables
     {
         private readonly ISchemaTable _table;
 
-        public TransitionSchema(string name, ISchemaTable table) 
+        public TransitionSchema(string name, ISchemaTable table)
             : base(name, CreateLibrary())
         {
             _table = table;

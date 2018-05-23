@@ -2,7 +2,7 @@
 {
     public abstract class JoinNode : BinaryNode
     {
-        protected JoinNode(FromNode left, Node right) 
+        protected JoinNode(FromNode left, Node right)
             : base(left, right)
         {
         }

@@ -8,7 +8,7 @@ namespace Musoq.Schema.Plugins
     {
         private const string SchemaName = "Plugins";
 
-        public SchemaPlugins() 
+        public SchemaPlugins()
             : base(SchemaName, CreateLibrary())
         {
         }

@@ -2,7 +2,7 @@
 {
     public class GroupSelectNode : SelectNode
     {
-        public GroupSelectNode(FieldNode[] fields) 
+        public GroupSelectNode(FieldNode[] fields)
             : base(fields)
         {
         }

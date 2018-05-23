@@ -7,10 +7,10 @@ namespace Musoq.Parser.Nodes
     {
         public abstract Type ReturnType { get; }
 
+        public abstract string Id { get; }
+
         [DebuggerStepThrough]
         public abstract void Accept(IExpressionVisitor visitor);
-
-        public abstract string Id { get; }
 
         public new abstract string ToString();
     }

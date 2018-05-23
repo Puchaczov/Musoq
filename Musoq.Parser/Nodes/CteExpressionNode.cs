@@ -5,25 +5,24 @@ namespace Musoq.Parser.Nodes
 {
     public class CteExpressionNode : Node
     {
-        private readonly Node _outerSets;
-
         public CteExpressionNode(CteInnerExpressionNode[] sets, Node outerSets)
         {
             InnerExpression = sets;
-            _outerSets = outerSets;
+            OuterExpression = outerSets;
         }
 
         public override Type ReturnType => typeof(void);
+
+        public CteInnerExpressionNode[] InnerExpression { get; }
+
+        public Node OuterExpression { get; }
+
+        public override string Id => $"{nameof(CteExpressionNode)}{OuterExpression.Id}";
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
-
-        public CteInnerExpressionNode[] InnerExpression { get; }
-
-        public Node OuterExpression => _outerSets;
-
-        public override string Id => $"{nameof(CteExpressionNode)}{_outerSets.Id}";
 
         public override string ToString()
         {
@@ -32,7 +31,7 @@ namespace Musoq.Parser.Nodes
             query.Append("with");
             query.Append(" ");
 
-            for (int i = 0; i < InnerExpression.Length  - 1; i++)
+            for (var i = 0; i < InnerExpression.Length - 1; i++)
             {
                 query.Append("(");
                 query.Append(InnerExpression[i].ToString());
@@ -44,7 +43,7 @@ namespace Musoq.Parser.Nodes
             query.Append(InnerExpression[InnerExpression.Length - 1].ToString());
             query.Append(") ");
             query.Append(Environment.NewLine);
-            query.Append(_outerSets.ToString());
+            query.Append(OuterExpression.ToString());
 
             return query.ToString();
         }

@@ -57,11 +57,11 @@ namespace Musoq.Service.Client.Helpers
             }
             catch (Exception e)
             {
-                if(Debugger.IsAttached)
+                if (Debugger.IsAttached)
                     Debug.Write(e);
             }
 
-            return new ResultTable(string.Empty, new String[0], new object[0][], TimeSpan.Zero);
+            return new ResultTable(string.Empty, new string[0], new object[0][], TimeSpan.Zero);
         }
 
         public async Task<IReadOnlyList<T>> RunQueryAsync<T>(QueryContext context)

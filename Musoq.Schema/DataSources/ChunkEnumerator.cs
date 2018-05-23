@@ -10,14 +10,14 @@ namespace Musoq.Schema.DataSources
     public class ChunkEnumerator<T> : IEnumerator<IObjectResolver>
     {
         private readonly BlockingCollection<IReadOnlyList<EntityResolver<T>>> _readedRows;
-        private CancellationToken _token;
-
-        private IReadOnlyList<EntityResolver<T>> _currentChunk;
-        private int _currentIndex = -1;
 
 #if DEBUG
         private readonly Stopwatch _watcher = new Stopwatch();
 #endif
+
+        private IReadOnlyList<EntityResolver<T>> _currentChunk;
+        private int _currentIndex = -1;
+        private readonly CancellationToken _token;
 
         public ChunkEnumerator(BlockingCollection<IReadOnlyList<EntityResolver<T>>> readedRows, CancellationToken token)
         {
@@ -43,7 +43,6 @@ namespace Musoq.Schema.DataSources
 
             try
             {
-
                 var wasTaken = false;
                 for (var i = 0; i < 10; i++)
                 {
@@ -61,9 +60,7 @@ namespace Musoq.Schema.DataSources
 #endif
                     IReadOnlyList<EntityResolver<T>> newChunk = null;
                     while (newChunk == null || newChunk.Count == 0)
-                    {
                         newChunk = _readedRows.Count > 0 ? _readedRows.Take() : _readedRows.Take(_token);
-                    }
 
                     _currentChunk = newChunk;
 #if DEBUG
@@ -73,7 +70,7 @@ namespace Musoq.Schema.DataSources
                 }
 
 #if DEBUG
-                if(_currentChunk == null && Debugger.IsAttached)
+                if (_currentChunk == null && Debugger.IsAttached)
                     Debugger.Break();
 #endif
 

@@ -11,10 +11,14 @@ namespace Musoq.Schema.Csv
     public class ChunkEnumerator : IEnumerator<IObjectResolver>
     {
         private readonly BlockingCollection<List<EntityResolver<string[]>>> _readedRows;
-        private CancellationToken _token;
+
+#if DEBUG
+        private readonly Stopwatch _watcher = new Stopwatch();
+#endif
 
         private List<EntityResolver<string[]>> _currentChunk;
         private int _currentIndex = -1;
+        private readonly CancellationToken _token;
 
 
         public ChunkEnumerator(BlockingCollection<List<EntityResolver<string[]>>> readedRows, CancellationToken token)
@@ -27,10 +31,6 @@ namespace Musoq.Schema.Csv
 #endif
         }
 
-#if DEBUG
-        private readonly Stopwatch _watcher = new Stopwatch();
-#endif
-
         public bool MoveNext()
         {
             if (_readedRows.Count == 0 && _token.IsCancellationRequested && _currentIndex == _currentChunk.Count)
@@ -41,7 +41,6 @@ namespace Musoq.Schema.Csv
 
             try
             {
-
                 var wasTaken = false;
                 for (var i = 0; i < 10; i++)
                 {
@@ -59,9 +58,7 @@ namespace Musoq.Schema.Csv
 #endif
                     List<EntityResolver<string[]>> newChunk = null;
                     while (newChunk == null || newChunk.Count == 0)
-                    {
                         newChunk = _readedRows.Count > 0 ? _readedRows.Take() : _readedRows.Take(_token);
-                    }
                     _currentChunk = newChunk;
 #if DEBUG
                     var stopped = _watcher.Elapsed;

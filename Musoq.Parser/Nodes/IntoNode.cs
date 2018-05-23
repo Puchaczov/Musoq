@@ -14,12 +14,12 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType => null;
 
+        public override string Id { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
-
-        public override string Id { get; }
 
         public override string ToString()
         {

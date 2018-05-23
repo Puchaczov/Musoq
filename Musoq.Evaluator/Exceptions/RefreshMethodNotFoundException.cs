@@ -6,6 +6,7 @@ namespace Musoq.Evaluator.Exceptions
     {
         public RefreshMethodNotFoundException(string message)
             : base(message)
-        { }
+        {
+        }
     }
 }

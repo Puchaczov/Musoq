@@ -23,7 +23,7 @@ namespace Musoq.Schema.Time
                 {nameof(DateTimeOffset.Year), 6},
                 {nameof(DateTimeOffset.DayOfWeek), 7},
                 {nameof(DateTimeOffset.DayOfYear), 8},
-                {nameof(DateTimeOffset.TimeOfDay), 9},
+                {nameof(DateTimeOffset.TimeOfDay), 9}
             };
 
             TimeIndexToMethodAccessMap = new Dictionary<int, Func<DateTimeOffset, object>>
@@ -35,7 +35,7 @@ namespace Musoq.Schema.Time
                 {4, date => date.Day},
                 {5, date => date.Month},
                 {6, date => date.Year},
-                {7, date => (int)date.DayOfWeek},
+                {7, date => (int) date.DayOfWeek},
                 {8, date => date.DayOfYear},
                 {9, date => date.TimeOfDay}
             };

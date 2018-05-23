@@ -28,7 +28,7 @@ namespace Musoq.Schema.Tcp
                     var reader = new BinaryReader(stream);
                     var writer = new BinaryWriter(stream);
 
-                    writer.Write(BitConverter.GetBytes((byte)Commands.GetRowsChunk));
+                    writer.Write(BitConverter.GetBytes((byte) Commands.GetRowsChunk));
 
                     var countOfRows = reader.ReadInt32();
                     while (countOfRows > 0)
@@ -36,7 +36,6 @@ namespace Musoq.Schema.Tcp
                         var dict = new Dictionary<string, object>();
 
                         foreach (var column in _columns)
-                        {
                             switch (column.ColumnType.Name)
                             {
                                 case nameof(Boolean):
@@ -67,13 +66,12 @@ namespace Musoq.Schema.Tcp
                                     dict.Add(column.ColumnName, text);
                                     break;
                             }
-                        }
 
                         countOfRows -= 1;
 
                         if (countOfRows <= 0)
                         {
-                            writer.Write(BitConverter.GetBytes((byte)Commands.GetRowsChunk));
+                            writer.Write(BitConverter.GetBytes((byte) Commands.GetRowsChunk));
                             countOfRows = reader.ReadInt32();
                         }
 

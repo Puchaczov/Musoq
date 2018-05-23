@@ -51,7 +51,7 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("GERMANY", table[4].Values[0]);
             Assert.AreEqual("MUNICH", table[4].Values[1]);
         }
-        
+
         [TestMethod]
         public void SimpleCteWithStarTest()
         {
@@ -99,7 +99,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void SimpleCteWithGroupingTest()
         {
-            var query = "with p as (select Country, Sum(Population) from #A.entities() group by Country) select * from p";
+            var query =
+                "with p as (select Country, Sum(Population) from #A.entities() group by Country) select * from p";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -135,7 +136,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void SimpleCteWithGrouping2Test()
         {
-            var query = "with p as (select Population, Country from #A.entities()) select Country, Sum(Population) from p group by Country";
+            var query =
+                "with p as (select Population, Country from #A.entities()) select Country, Sum(Population) from p group by Country";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -170,7 +172,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void SimpleCteWithUnionTest()
         {
-            var query = "with p as (select City, Country from #A.entities() union (Country, City) select City, Country from #B.entities()) select City, Country from p";
+            var query =
+                "with p as (select City, Country from #A.entities() union (Country, City) select City, Country from #B.entities()) select City, Country from p";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -221,7 +224,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void SimpleCteWithUnionAllTest()
         {
-            var query = "with p as (select City, Country from #A.entities() union all (Country) select City, Country from #B.entities()) select City, Country from p";
+            var query =
+                "with p as (select City, Country from #A.entities() union all (Country) select City, Country from #B.entities()) select City, Country from p";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -272,7 +276,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void SimpleCteWithExceptTest()
         {
-            var query = "with p as (select City, Country from #A.entities() except (Country) select City, Country from #B.entities()) select City, Country from p";
+            var query =
+                "with p as (select City, Country from #A.entities() except (Country) select City, Country from #B.entities()) select City, Country from p";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -312,7 +317,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void SimpleCteWithIntersectTest()
         {
-            var query = "with p as (select City, Country from #A.entities() intersect (Country, City) select City, Country from #B.entities()) select City, Country from p";
+            var query =
+                "with p as (select City, Country from #A.entities() intersect (Country, City) select City, Country from #B.entities()) select City, Country from p";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {

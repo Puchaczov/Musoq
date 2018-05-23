@@ -27,7 +27,9 @@ namespace Musoq.Plugins
         public int Count { get; private set; }
 
         private IDictionary<string, object> Values { get; } = new Dictionary<string, object>();
-        private IDictionary<string, Func<object, object>> Converters { get; } = new Dictionary<string, Func<object, object>>();
+
+        private IDictionary<string, Func<object, object>> Converters { get; } =
+            new Dictionary<string, Func<object, object>>();
 
         public void Hit()
         {
@@ -50,7 +52,7 @@ namespace Musoq.Plugins
             if (!Values.ContainsKey(name))
                 throw new KeyNotFoundException(name);
 
-            return (T)Values[name];
+            return (T) Values[name];
         }
 
         public T GetOrCreateValue<T>(string name, T defValue = default(T))
@@ -58,7 +60,7 @@ namespace Musoq.Plugins
             if (!Values.ContainsKey(name))
                 Values.Add(name, defValue);
 
-            return (T)Values[name];
+            return (T) Values[name];
         }
 
         public void SetValue<T>(string name, T value)
@@ -71,7 +73,7 @@ namespace Musoq.Plugins
             if (!Values.ContainsKey(name))
                 Values.Add(name, value);
 
-            if(!Converters.ContainsKey(name))
+            if (!Converters.ContainsKey(name))
                 Converters.Add(name, converter);
 
             return (TR) Converters[name](Values[name]);

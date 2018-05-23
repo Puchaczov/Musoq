@@ -18,7 +18,8 @@ namespace Musoq.Schema.Disk
 
         public DiskSchema()
             : base(SchemaName, CreateLibrary())
-        { }
+        {
+        }
 
         public override ISchemaTable GetTableByName(string name, string[] parameters)
         {

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
-using Microsoft.CodeAnalysis.Emit;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
@@ -28,15 +27,18 @@ namespace Musoq.Converter
 
             query = metadataInferer.Root;
 
-            var rewriter = new RewriteQueryVisitor((TransitionSchemaProvider)schemaProvider);
-            var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataInfererTraverser.Scope));
+            var rewriter = new RewriteQueryVisitor((TransitionSchemaProvider) schemaProvider);
+            var rewriteTraverser =
+                new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataInfererTraverser.Scope));
 
             query.Accept(rewriteTraverser);
 
             query = rewriter.RootScript;
 
-            var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies, metadataInferer.SetOperatorFieldPositions);
-            var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, schemaProvider, new ScopeWalker(metadataInfererTraverser.Scope));
+            var csharpRewriter =
+                new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies, metadataInferer.SetOperatorFieldPositions);
+            var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, schemaProvider,
+                new ScopeWalker(metadataInfererTraverser.Scope));
 
             query.Accept(csharpRewriteTraverser);
 
@@ -69,12 +71,12 @@ namespace Musoq.Converter
 
                     throw new NotSupportedException(all.ToString());
                 }
-                
+
                 var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
 
                 var type = assembly.GetType("Query.Compiled.CompiledQuery");
 
-                var runnable = (IRunnable)Activator.CreateInstance(type);
+                var runnable = (IRunnable) Activator.CreateInstance(type);
                 runnable.Provider = schemaProvider;
                 return runnable;
             }

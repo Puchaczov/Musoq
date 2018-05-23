@@ -16,12 +16,13 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType => typeof(void);
 
+        public override string Id => $"{nameof(CteInnerExpressionNode)}{Value.Id}";
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        public override string Id => $"{nameof(CteInnerExpressionNode)}{Value.Id}";
         public override string ToString()
         {
             return $"{Name} as {Value.ToString()}";

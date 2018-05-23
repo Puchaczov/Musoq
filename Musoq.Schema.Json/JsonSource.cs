@@ -37,7 +37,7 @@ namespace Musoq.Schema.Json
                         IEnumerable<IObjectResolver> rows = null;
                         if (reader.TokenType == JsonToken.StartObject)
                             rows = ParseObject(serializer, reader);
-                        else if(reader.TokenType == JsonToken.StartArray)
+                        else if (reader.TokenType == JsonToken.StartArray)
                             rows = ParseArray(serializer, reader);
 
                         if (rows == null)
@@ -66,7 +66,7 @@ namespace Musoq.Schema.Json
         {
             while (reader.TokenType == JsonToken.StartObject)
             {
-                var obj = (JObject)serializer.Deserialize(reader);
+                var obj = (JObject) serializer.Deserialize(reader);
                 var props = new Stack<JProperty>();
 
                 foreach (var prop in obj.Properties().Reverse())
@@ -83,11 +83,11 @@ namespace Musoq.Schema.Json
                         case JTokenType.None:
                             break;
                         case JTokenType.Object:
-                            foreach (var mprop in ((JObject)prop.Value).Properties().Reverse())
+                            foreach (var mprop in ((JObject) prop.Value).Properties().Reverse())
                                 props.Push(mprop);
                             break;
                         case JTokenType.Array:
-                            row.Add(prop.Name, (JArray)prop.Value);
+                            row.Add(prop.Name, (JArray) prop.Value);
                             break;
                         case JTokenType.Constructor:
                             break;

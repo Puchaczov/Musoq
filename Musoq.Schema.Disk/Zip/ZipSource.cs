@@ -22,9 +22,10 @@ namespace Musoq.Schema.Disk.Zip
                 {
                     using (var zip = new ZipArchive(file))
                     {
-                        foreach(var entry in zip.Entries)
-                            if(entry.Name != string.Empty)
-                                yield return new EntityResolver<ZipArchiveEntry>(entry, SchemaZipHelper.NameToIndexMap, SchemaZipHelper.IndexToMethodAccessMap);
+                        foreach (var entry in zip.Entries)
+                            if (entry.Name != string.Empty)
+                                yield return new EntityResolver<ZipArchiveEntry>(entry, SchemaZipHelper.NameToIndexMap,
+                                    SchemaZipHelper.IndexToMethodAccessMap);
                     }
                 }
             }

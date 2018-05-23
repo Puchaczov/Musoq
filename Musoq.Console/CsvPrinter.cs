@@ -7,7 +7,8 @@ namespace Musoq.Console
     public class CsvPrinter : Printer
     {
         private readonly string _path;
-        public CsvPrinter(DataTable table, string path) 
+
+        public CsvPrinter(DataTable table, string path)
             : base(table)
         {
             _path = path;
@@ -35,7 +36,7 @@ namespace Musoq.Console
                 for (var index = 0; index < Table.Rows.Count - 1; index++)
                 {
                     var row = Table.Rows[index];
-                    foreach(var item in row.ItemArray)
+                    foreach (var item in row.ItemArray)
                         csv.WriteField(item);
                     csv.NextRecord();
                 }

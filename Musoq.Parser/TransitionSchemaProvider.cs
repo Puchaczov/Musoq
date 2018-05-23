@@ -5,8 +5,8 @@ namespace Musoq.Parser
 {
     public class TransitionSchemaProvider : ISchemaProvider
     {
-        private readonly Dictionary<string, ISchema> _transientSchemas = new Dictionary<string, ISchema>();
         private readonly ISchemaProvider _schemaProvider;
+        private readonly Dictionary<string, ISchema> _transientSchemas = new Dictionary<string, ISchema>();
 
         public TransitionSchemaProvider(ISchemaProvider schema)
         {

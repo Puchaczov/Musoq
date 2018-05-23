@@ -5,6 +5,7 @@
         public const string TokenText = "contains";
 
         public ContainsToken(TextSpan span) : base(TokenText, TokenType.Contains, span)
-        { }
+        {
+        }
     }
 }

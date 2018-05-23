@@ -9,8 +9,10 @@ namespace Musoq.Evaluator.Utils.Symbols
 {
     public class TableSymbol : Symbol
     {
-        private readonly Dictionary<string, Tuple<ISchema, ISchemaTable>> _tables = new Dictionary<string, Tuple<ISchema, ISchemaTable>>();
         private readonly List<string> _orders = new List<string>();
+
+        private readonly Dictionary<string, Tuple<ISchema, ISchemaTable>> _tables =
+            new Dictionary<string, Tuple<ISchema, ISchemaTable>>();
 
         public TableSymbol(string alias, ISchema schema, ISchemaTable table, bool hasAlias)
         {
@@ -36,7 +38,7 @@ namespace Musoq.Evaluator.Utils.Symbols
             {
                 var col = table.Value.Item2.Columns.SingleOrDefault(c => c.ColumnName == column);
 
-                if(col == null)
+                if (col == null)
                     throw new NotSupportedException();
 
                 score = (table.Value.Item1, table.Value.Item2, table.Key);
@@ -62,10 +64,10 @@ namespace Musoq.Evaluator.Utils.Symbols
             {
                 var tmpColumn = _tables[table].Item2.Columns.SingleOrDefault(col => col.ColumnName == columnName);
 
-                if(column != null)
+                if (column != null)
                     throw new NotSupportedException("Multiple column with the same identifier");
 
-                if(tmpColumn == null)
+                if (tmpColumn == null)
                     continue;
 
                 column = tmpColumn;
@@ -85,18 +87,15 @@ namespace Musoq.Evaluator.Utils.Symbols
         public ISchemaColumn[] GetColumns()
         {
             var columns = new List<ISchemaColumn>();
-            foreach (var table in _orders)
-            {
-                columns.AddRange(GetColumns(table));
-            }
+            foreach (var table in _orders) columns.AddRange(GetColumns(table));
 
             return columns.ToArray();
         }
 
         public int GetColumnIndex(string alias, string columnName)
         {
-            int i = 0;
-            int count = 0;
+            var i = 0;
+            var count = 0;
             while (_orders[i] != alias)
             {
                 count += _tables[_orders[i]].Item2.Columns.Length;
@@ -104,14 +103,12 @@ namespace Musoq.Evaluator.Utils.Symbols
             }
 
             var columns = _tables[_orders[i]].Item2.Columns;
-            int j = 0;
+            var j = 0;
             for (; j < columns.Length; j++)
-            {
-                if(columns[j].ColumnName == columnName)
+                if (columns[j].ColumnName == columnName)
                     break;
-            }
 
-            return (count + j + 1);
+            return count + j + 1;
         }
 
         public TableSymbol MergeSymbols(TableSymbol other)
@@ -142,7 +139,9 @@ namespace Musoq.Evaluator.Utils.Symbols
             var table = new DynamicTable(tables.Select(f => f.Columns).Aggregate((a, b) => a.Concat(b).ToArray()));
 
             symbol._tables.Add(name, new Tuple<ISchema, ISchemaTable>(new TransitionSchema(name, table), table));
-            symbol._tables.Add(other._orders[0], new Tuple<ISchema, ISchemaTable>(other._tables[other._orders[0]].Item1, other._tables[other._orders[0]].Item2));
+            symbol._tables.Add(other._orders[0],
+                new Tuple<ISchema, ISchemaTable>(other._tables[other._orders[0]].Item1,
+                    other._tables[other._orders[0]].Item2));
 
             symbol._orders.Add(name);
             symbol._orders.Add(other._orders[0]);

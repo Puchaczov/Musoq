@@ -2,17 +2,17 @@
 using System.IO;
 using System.Linq;
 using CommandLine;
+using Musoq.Console.Helpers;
 using Musoq.Service.Client;
 using Musoq.Service.Client.Helpers;
-using Musoq.Console.Helpers;
 
 namespace Musoq.Console
 {
     public class Program
     {
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
-            return CommandLine.Parser.Default.ParseArguments<ApplicationArguments>(args)
+            return Parser.Default.ParseArguments<ApplicationArguments>(args)
                 .MapResult(
                     ProcessArguments,
                     _ => 1);
@@ -24,7 +24,9 @@ namespace Musoq.Console
                 ? appArgs.Query
                 : File.ReadAllText(appArgs.QuerySourceFile);
 
-            var api = new ApplicationFlowApi(string.IsNullOrEmpty(appArgs.Address) ? Configuration.Address : appArgs.Address);
+            var api = new ApplicationFlowApi(string.IsNullOrEmpty(appArgs.Address)
+                ? Configuration.Address
+                : appArgs.Address);
 
             var result = api.RunQueryAsync(new QueryContext
             {

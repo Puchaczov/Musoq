@@ -4,7 +4,8 @@ namespace Musoq.Parser.Nodes
 {
     public class InternalQueryNode : QueryNode
     {
-        public InternalQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take, RefreshNode refresh)
+        public InternalQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy,
+            OrderByNode orderBy, SkipNode skip, TakeNode take, RefreshNode refresh)
             : base(select, from, where, groupBy, orderBy, skip, take)
         {
             Refresh = refresh;

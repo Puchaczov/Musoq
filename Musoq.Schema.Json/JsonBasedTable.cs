@@ -42,7 +42,7 @@ namespace Musoq.Schema.Json
         {
             return new ISchemaColumn[]
             {
-                new SchemaColumn("Array", 0, typeof(JArray)) 
+                new SchemaColumn("Array", 0, typeof(JArray))
             };
         }
 
@@ -70,7 +70,7 @@ namespace Musoq.Schema.Json
                         break;
                     case JTokenType.Object:
                         columns.Add(new SchemaColumn(prop.Name, columnIndex++, typeof(JObject)));
-                        foreach (var mprop in ((JObject)prop.Value).Properties().Reverse())
+                        foreach (var mprop in ((JObject) prop.Value).Properties().Reverse())
                             props.Push(mprop);
                         break;
                     case JTokenType.Array:

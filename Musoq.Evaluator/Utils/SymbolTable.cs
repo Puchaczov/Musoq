@@ -23,7 +23,10 @@ namespace Musoq.Evaluator.Utils
             return _symbols[key];
         }
 
-        public TSymbol GetSymbol<TSymbol>(object key) where TSymbol : Symbol => (TSymbol) GetSymbol(key);
+        public TSymbol GetSymbol<TSymbol>(object key) where TSymbol : Symbol
+        {
+            return (TSymbol) GetSymbol(key);
+        }
 
         public void UpdateSymbol(object oldKey, object newKey)
         {
@@ -31,7 +34,9 @@ namespace Musoq.Evaluator.Utils
             _symbols.Remove(oldKey);
         }
 
-        public bool SymbolIsOfType<TType>(object key) where TType : Symbol =>
-            _symbols.ContainsKey(key) && _symbols[key].GetType() == typeof(TType);
+        public bool SymbolIsOfType<TType>(object key) where TType : Symbol
+        {
+            return _symbols.ContainsKey(key) && _symbols[key].GetType() == typeof(TType);
+        }
     }
 }

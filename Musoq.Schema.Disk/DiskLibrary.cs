@@ -170,7 +170,8 @@ namespace Musoq.Schema.Disk
         }
 
         [AggregationSetMethod]
-        public void SetAggregateDirectories([InjectGroup] Group group, [InjectSource] DirectoryInfo directory, string name)
+        public void SetAggregateDirectories([InjectGroup] Group group, [InjectSource] DirectoryInfo directory,
+            string name)
         {
             var list = group.GetOrCreateValue(name, new List<DirectoryInfo>());
 
@@ -181,18 +182,6 @@ namespace Musoq.Schema.Disk
         public IReadOnlyList<DirectoryInfo> AggregateDirectories([InjectGroup] Group group, string name)
         {
             return group.GetValue<IReadOnlyList<DirectoryInfo>>(name);
-        }
-
-        private class DirectoryinfoPosition
-        {
-            public DirectoryinfoPosition(DirectoryInfo dir, bool isRoot)
-            {
-                Directory = dir;
-                IsRoot = isRoot;
-            }
-
-            public DirectoryInfo Directory { get; }
-            public bool IsRoot { get; }
         }
 
         [BindableMethod]
@@ -244,7 +233,7 @@ namespace Musoq.Schema.Disk
                                 zip.CreateEntryFromFile(file.FullName, entryName.Trim('\\'), level);
                             }
 
-                            foreach(var subDir in dir.Directory.GetDirectories())
+                            foreach (var subDir in dir.Directory.GetDirectories())
                                 dirs.Push(new DirectoryinfoPosition(subDir, false));
                         }
                     }
@@ -287,10 +276,7 @@ namespace Musoq.Schema.Disk
                 {
                     using (var zip = new ZipArchive(zipArchiveFile, ZipArchiveMode.Create))
                     {
-                        foreach (var file in files)
-                        {
-                            zip.CreateEntryFromFile(file.FullName, file.Name, level);
-                        }
+                        foreach (var file in files) zip.CreateEntryFromFile(file.FullName, file.Name, level);
                     }
                 }
                 catch (Exception)
@@ -320,7 +306,8 @@ namespace Musoq.Schema.Disk
                 var rootDirs = di.GetDirectories();
                 foreach (var dir in groupedByDir)
                 {
-                    if (rootDirs.All(f => dir.Key.Contains('\\') || !f.FullName.Substring(tempPath.Length).EndsWith(dir.Key)))
+                    if (rootDirs.All(f =>
+                        dir.Key.Contains('\\') || !f.FullName.Substring(tempPath.Length).EndsWith(dir.Key)))
                         continue;
 
                     if (!Directory.Exists(path))
@@ -339,7 +326,8 @@ namespace Musoq.Schema.Disk
                             var pUri = new Uri(extractedDir.Parent.FullName);
                             var tUri = new Uri(tempPath);
                             if (pUri != tUri)
-                                subDir = extractedDir.FullName.Substring(tempPath.Length).Replace(dir.Key, string.Empty).TrimStart('\\');
+                                subDir = extractedDir.FullName.Substring(tempPath.Length).Replace(dir.Key, string.Empty)
+                                    .TrimStart('\\');
 
                             var destDir = Path.Combine(path, subDir);
                             var destPath = Path.Combine(destDir, file.Name);
@@ -353,13 +341,9 @@ namespace Musoq.Schema.Disk
                             File.Move(file.FullName, destPath);
                         }
 
-                        foreach (var subDir in extractedDir.GetDirectories())
-                        {
-                            extractedDirs.Push(subDir);
-                        }
+                        foreach (var subDir in extractedDir.GetDirectories()) extractedDirs.Push(subDir);
                     }
                 }
-
             }
             catch (Exception e)
             {
@@ -377,25 +361,37 @@ namespace Musoq.Schema.Disk
         [BindableMethod]
         public string Combine(string path1, string path2)
         {
-            return Path.Combine(new [] {path1, path2});
+            return Path.Combine(new[] {path1, path2});
         }
 
         [BindableMethod]
         public string Combine(string path1, string path2, string path3)
         {
-            return Path.Combine(new[] { path1, path2, path3 });
+            return Path.Combine(new[] {path1, path2, path3});
         }
 
         [BindableMethod]
         public string Combine(string path1, string path2, string path3, string path4)
         {
-            return Path.Combine(new[] { path1, path2, path3, path4 });
+            return Path.Combine(new[] {path1, path2, path3, path4});
         }
 
         [BindableMethod]
         public string Combine(string path1, string path2, string path3, string path4, string path5)
         {
-            return Path.Combine(new[] { path1, path2, path3, path4, path5 });
+            return Path.Combine(path1, path2, path3, path4, path5);
+        }
+
+        private class DirectoryinfoPosition
+        {
+            public DirectoryinfoPosition(DirectoryInfo dir, bool isRoot)
+            {
+                Directory = dir;
+                IsRoot = isRoot;
+            }
+
+            public DirectoryInfo Directory { get; }
+            public bool IsRoot { get; }
         }
     }
 }

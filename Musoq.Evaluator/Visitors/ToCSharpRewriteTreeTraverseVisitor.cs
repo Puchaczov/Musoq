@@ -5,19 +5,19 @@ using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
-using IdentifierNode = Musoq.Parser.Nodes.IdentifierNode;
 
 namespace Musoq.Evaluator.Visitors
 {
     public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     {
-        private readonly IToCSharpTranslationExpressionVisitor _visitor;
-        private ScopeWalker _walker;
         private readonly StringBuilder _code = new StringBuilder();
+        private readonly IToCSharpTranslationExpressionVisitor _visitor;
         private bool _hasGroupBy;
         private bool _hasJoin;
+        private ScopeWalker _walker;
 
-        public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor, ISchemaProvider provider, ScopeWalker walker)
+        public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor,
+            ISchemaProvider provider, ScopeWalker walker)
         {
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
             _walker = walker;
@@ -26,7 +26,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(SelectNode node)
         {
             _visitor.TurnOnAggregateMethodsToColumnAcceess();
-            
+
             foreach (var field in node.Fields)
                 field.Accept(this);
             node.Accept(_visitor);
@@ -459,7 +459,7 @@ namespace Musoq.Evaluator.Visitors
             node.Skip?.Accept(this);
             node.GroupBy?.Accept(this);
             node.Accept(_visitor);
-            
+
             _walker = _walker.Parent();
         }
 
@@ -527,10 +527,7 @@ namespace Musoq.Evaluator.Visitors
             _walker = _walker.NextChild();
             _visitor.SetScope(_walker.Scope);
 
-            foreach (var exp in node.InnerExpression)
-            {
-                exp.Accept(this);
-            }
+            foreach (var exp in node.InnerExpression) exp.Accept(this);
             node.OuterExpression.Accept(this);
             node.Accept(_visitor);
 

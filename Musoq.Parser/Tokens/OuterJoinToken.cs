@@ -4,7 +4,6 @@ namespace Musoq.Parser.Tokens
 {
     public class OuterJoinToken : Token
     {
-
         public const string TokenText = "outer join";
 
         public OuterJoinToken(OuterJoinNode.OuterJoinType type, TextSpan span)

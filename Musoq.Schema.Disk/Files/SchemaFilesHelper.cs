@@ -10,6 +10,7 @@ namespace Musoq.Schema.Disk.Files
         public static readonly IDictionary<string, int> FilesNameToIndexMap;
         public static readonly IDictionary<int, Func<FileInfo, object>> FilesIndexToMethodAccessMap;
         public static readonly ISchemaColumn[] FilesColumns;
+
         static SchemaFilesHelper()
         {
             FilesNameToIndexMap = new Dictionary<string, int>

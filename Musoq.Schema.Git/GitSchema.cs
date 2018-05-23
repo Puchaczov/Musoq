@@ -8,7 +8,7 @@ namespace Musoq.Schema.Git
     {
         private const string SchemaName = "git";
 
-        public GitSchema() 
+        public GitSchema()
             : base(SchemaName, CreateLibrary())
         {
         }
@@ -33,11 +33,14 @@ namespace Musoq.Schema.Git
             switch (name)
             {
                 case "commits":
-                    return new CommitsSource(parameters[0], SchemaGitHelper.CommitsNameToIndexMap, SchemaGitHelper.CommitsIndexToMethodAccessMap);
+                    return new CommitsSource(parameters[0], SchemaGitHelper.CommitsNameToIndexMap,
+                        SchemaGitHelper.CommitsIndexToMethodAccessMap);
                 case "tags":
-                    return new TagsSource(parameters[0], SchemaGitHelper.TagsNameToIndexMap, SchemaGitHelper.TagsIndexToMethodAccessMap);
+                    return new TagsSource(parameters[0], SchemaGitHelper.TagsNameToIndexMap,
+                        SchemaGitHelper.TagsIndexToMethodAccessMap);
                 case "branches":
-                    return new BranchesSource(parameters[0], SchemaGitHelper.BranchesNameToIndexMap, SchemaGitHelper.BranchesIndexToMethodAccessMap);
+                    return new BranchesSource(parameters[0], SchemaGitHelper.BranchesNameToIndexMap,
+                        SchemaGitHelper.BranchesIndexToMethodAccessMap);
             }
 
             throw new NotSupportedException(name);

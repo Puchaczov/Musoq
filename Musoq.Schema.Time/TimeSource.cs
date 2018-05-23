@@ -7,9 +7,9 @@ namespace Musoq.Schema.Time
 {
     public class TimeSource : RowSourceBase<DateTimeOffset>
     {
+        private readonly string _resolution;
         private readonly DateTimeOffset _startAt;
         private readonly DateTimeOffset _stopAt;
-        private readonly string _resolution;
 
         public TimeSource(DateTimeOffset startAt, DateTimeOffset stopAt, string resolution)
         {
@@ -18,7 +18,8 @@ namespace Musoq.Schema.Time
             _resolution = resolution;
         }
 
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<DateTimeOffset>>> chunkedSource)
+        protected override void CollectChunks(
+            BlockingCollection<IReadOnlyList<EntityResolver<DateTimeOffset>>> chunkedSource)
         {
             Func<DateTimeOffset, DateTimeOffset> modify;
             switch (_resolution)
@@ -51,7 +52,8 @@ namespace Musoq.Schema.Time
 
             while (currentTime <= _stopAt)
             {
-                listOfCalcTimes.Add(new EntityResolver<DateTimeOffset>(currentTime, TimeHelper.TimeNameToIndexMap, TimeHelper.TimeIndexToMethodAccessMap));
+                listOfCalcTimes.Add(new EntityResolver<DateTimeOffset>(currentTime, TimeHelper.TimeNameToIndexMap,
+                    TimeHelper.TimeIndexToMethodAccessMap));
                 currentTime = modify(currentTime);
 
                 if (i++ > 99)

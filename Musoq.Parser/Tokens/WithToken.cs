@@ -4,7 +4,7 @@
     {
         public const string TokenText = "with";
 
-        public WithToken(TextSpan span) 
+        public WithToken(TextSpan span)
             : base(TokenText, TokenType.With, span)
         {
         }

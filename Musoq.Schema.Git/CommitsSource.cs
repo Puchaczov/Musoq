@@ -6,9 +6,11 @@ namespace Musoq.Schema.Git
 {
     public class CommitsSource : RepositorySource<Commit>
     {
-        public CommitsSource(string repo, IDictionary<string, int> nameToIndexMap, IDictionary<int, Func<Commit, object>> indexToObjectAccessMap) 
+        public CommitsSource(string repo, IDictionary<string, int> nameToIndexMap,
+            IDictionary<int, Func<Commit, object>> indexToObjectAccessMap)
             : base(repo, nameToIndexMap, indexToObjectAccessMap)
-        { }
+        {
+        }
 
         protected override int ChunkSize => 100;
 

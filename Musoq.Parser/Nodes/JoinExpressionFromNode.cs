@@ -2,7 +2,7 @@
 {
     public class JoinExpressionFromNode : ExpressionFromNode
     {
-        public JoinExpressionFromNode(FromNode @from) : base(@from)
+        public JoinExpressionFromNode(FromNode from) : base(from)
         {
         }
     }

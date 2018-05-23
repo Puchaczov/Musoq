@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Tables
         {
             _table = rowSource;
             _columnToIndexMap = new Dictionary<string, int>();
-            
+
             foreach (var column in _table.Columns)
                 _columnToIndexMap.Add(column.Name, column.ColumnOrder);
         }
@@ -24,6 +24,7 @@ namespace Musoq.Evaluator.Tables
             _columnToIndexMap = columnToIndexMap;
         }
 
-        public override IEnumerable<IObjectResolver> Rows => _table.Select(row => new RowResolver(row, _columnToIndexMap));
+        public override IEnumerable<IObjectResolver> Rows =>
+            _table.Select(row => new RowResolver(row, _columnToIndexMap));
     }
 }

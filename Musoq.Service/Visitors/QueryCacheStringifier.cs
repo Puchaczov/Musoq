@@ -11,14 +11,10 @@ namespace Musoq.Service.Visitors
 
         public string CacheKey => _script.ToString();
 
-        public void AddText(string value)
-        {
-            _script.Append(value);
-        }
-
         public void Visit(Node node)
         {
         }
+
         public void Visit(DescNode node)
         {
             _script.Append("desc");
@@ -354,6 +350,11 @@ namespace Musoq.Service.Visitors
         public void Visit(JoinNode node)
         {
             _script.Append("on");
+        }
+
+        public void AddText(string value)
+        {
+            _script.Append(value);
         }
     }
 }

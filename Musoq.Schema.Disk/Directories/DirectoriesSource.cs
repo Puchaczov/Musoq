@@ -14,7 +14,8 @@ namespace Musoq.Schema.Disk.Directories
             _source = new DirectorySourceSearchOptions(path, recursive);
         }
 
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<DirectoryInfo>>> chunkedSource)
+        protected override void CollectChunks(
+            BlockingCollection<IReadOnlyList<EntityResolver<DirectoryInfo>>> chunkedSource)
         {
             var sources = new Stack<DirectorySourceSearchOptions>();
             sources.Push(_source);
@@ -27,7 +28,8 @@ namespace Musoq.Schema.Disk.Directories
                 var chunk = new List<EntityResolver<DirectoryInfo>>();
 
                 foreach (var file in dir.GetDirectories())
-                    chunk.Add(new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap, SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap));
+                    chunk.Add(new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap,
+                        SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap));
 
                 chunkedSource.Add(chunk);
 

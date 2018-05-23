@@ -5,9 +5,9 @@ using Musoq.Schema;
 
 namespace Musoq.Performance
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             //for (int i = 0; i < 1000; i++)
             //{
@@ -15,7 +15,7 @@ namespace Musoq.Performance
             //}
 
             ExecuteQuery(
-            @"select
+                @"select
                 AgencyName,
                 Count(AgencyName),
                 Sum(ToDecimal(Amount))

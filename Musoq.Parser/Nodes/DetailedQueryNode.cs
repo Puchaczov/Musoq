@@ -2,8 +2,10 @@
 {
     public class DetailedQueryNode : QueryNode
     {
-        public DetailedQueryNode(SelectNode @select, FromNode @from, WhereNode @where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take, string sourceName, string returnVariableName, bool mustTransformSource) 
-            : base(@select, @from, @where, groupBy, orderBy, skip, take)
+        public DetailedQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy,
+            OrderByNode orderBy, SkipNode skip, TakeNode take, string sourceName, string returnVariableName,
+            bool mustTransformSource)
+            : base(select, from, where, groupBy, orderBy, skip, take)
         {
             SourceName = sourceName;
             MustTransformSource = mustTransformSource;

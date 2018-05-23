@@ -16,7 +16,7 @@ namespace Musoq.Evaluator.Tests
             var readedChunks = new BlockingCollection<IReadOnlyList<EntityResolver<string>>>
             {
                 new List<EntityResolver<string>>(),
-                new List<EntityResolver<string>>()
+                new List<EntityResolver<string>>
                 {
                     new EntityResolver<string>("a", null, null),
                     new EntityResolver<string>("ab", null, null),
@@ -24,7 +24,7 @@ namespace Musoq.Evaluator.Tests
                     new EntityResolver<string>("abcd", null, null)
                 },
                 new List<EntityResolver<string>>(),
-                new List<EntityResolver<string>>()
+                new List<EntityResolver<string>>
                 {
                     new EntityResolver<string>("x", null, null),
                     new EntityResolver<string>("xs", null, null)

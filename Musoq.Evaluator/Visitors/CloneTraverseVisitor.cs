@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Musoq.Evaluator.Utils;
-using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
@@ -441,10 +437,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CteExpressionNode node)
         {
-            foreach (var exp in node.InnerExpression)
-            {
-                exp.Accept(this);
-            }
+            foreach (var exp in node.InnerExpression) exp.Accept(this);
             node.OuterExpression.Accept(this);
             node.Accept(_visitor);
         }

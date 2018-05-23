@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests
     [TestClass]
     public class ComparsionsTests : TestBase
     {
-
         [TestMethod]
         public void ArithmeticOpsGreaterTest()
         {

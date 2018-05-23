@@ -104,7 +104,7 @@ namespace Musoq.Parser.Lexing
             if (string.IsNullOrWhiteSpace(tokenText))
                 return TokenType.WhiteSpace;
 
-            if (int.TryParse(tokenText, out var _) && !tokenText.Contains(" "))
+            if (int.TryParse(tokenText, out _) && !tokenText.Contains(" "))
                 return TokenType.Integer;
 
             var regex = matchedDefinition.Regex.ToString();
@@ -185,12 +185,18 @@ namespace Musoq.Parser.Lexing
             public static readonly string KDecimal = @"[\-]?([0-9]+(\.[0-9]{1,})?)[dD]?";
             public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
             public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
-            public static readonly string KMethodAccess = "([a-zA-Z_-]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
+
+            public static readonly string KMethodAccess =
+                "([a-zA-Z_-]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
+
             public static readonly string KSkip = string.Format(Keyword, SkipToken.TokenText);
             public static readonly string KTake = string.Format(Keyword, TakeToken.TokenText);
             public static readonly string KWith = string.Format(Keyword, WithToken.TokenText);
             public static readonly string KInnerJoin = @"(?<=[\s]{1,}|^)inner[\s]{1,}join(?=[\s]{1,}|$)";
-            public static readonly string KOuterJoin = @"(?<=[\s]{1,}|^)(left|right)[\s]{1,}(outer[\s]{1,}join)(?=[\s]{1,}|$)";
+
+            public static readonly string KOuterJoin =
+                @"(?<=[\s]{1,}|^)(left|right)[\s]{1,}(outer[\s]{1,}join)(?=[\s]{1,}|$)";
+
             public static readonly string KOn = string.Format(Keyword, OnToken.TokenText);
             public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
             public static readonly string KDesc = string.Format(Keyword, DescToken.TokenText);
@@ -245,7 +251,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KSkip, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNumericArrayAccess),
-                new TokenDefinition(TokenRegexDefinition.KMethodAccess), 
+                new TokenDefinition(TokenRegexDefinition.KMethodAccess),
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccess),
                 new TokenDefinition(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
@@ -253,7 +259,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KHFrom),
                 new TokenDefinition(TokenRegexDefinition.KDot),
                 new TokenDefinition(TokenRegexDefinition.KOn),
-                new TokenDefinition(TokenRegexDefinition.KOrderBy),
+                new TokenDefinition(TokenRegexDefinition.KOrderBy)
             };
         }
 
@@ -369,10 +375,12 @@ namespace Musoq.Parser.Lexing
                     return new HavingToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.NumericAccess:
                     match = matchedDefinition.Regex.Match(tokenText);
-                    return new NumericAccessToken(match.Groups[1].Value, match.Groups[2].Value, new TextSpan(Position, tokenText.Length));
+                    return new NumericAccessToken(match.Groups[1].Value, match.Groups[2].Value,
+                        new TextSpan(Position, tokenText.Length));
                 case TokenType.KeyAccess:
                     match = matchedDefinition.Regex.Match(tokenText);
-                    return new KeyAccessToken(match.Groups[1].Value, match.Groups[2].Value, new TextSpan(Position, tokenText.Length));
+                    return new KeyAccessToken(match.Groups[1].Value, match.Groups[2].Value,
+                        new TextSpan(Position, tokenText.Length));
                 case TokenType.Contains:
                     return new ContainsToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Skip:
@@ -392,7 +400,8 @@ namespace Musoq.Parser.Lexing
 
                     return new OuterJoinToken(type, new TextSpan(Position, tokenText.Length));
                 case TokenType.MethodAccess:
-                    return new MethodAccessToken(match.Groups[1].Value, new TextSpan(Position, match.Groups[1].Value.Length));
+                    return new MethodAccessToken(match.Groups[1].Value,
+                        new TextSpan(Position, match.Groups[1].Value.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

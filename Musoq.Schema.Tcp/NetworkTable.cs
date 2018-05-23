@@ -28,7 +28,7 @@ namespace Musoq.Schema.Tcp
                     var reader = new BinaryReader(stream);
                     var writer = new BinaryWriter(stream);
 
-                    writer.Write(BitConverter.GetBytes((byte)Commands.GetHeaders));
+                    writer.Write(BitConverter.GetBytes((byte) Commands.GetHeaders));
                     var json = reader.ReadString();
                     _columns = JsonConvert.DeserializeObject<SchemaColumn[]>(json);
                     return _columns;

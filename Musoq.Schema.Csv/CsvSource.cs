@@ -33,18 +33,14 @@ namespace Musoq.Schema.Csv
 
                 Stream stream;
                 if (SizeConverter.ToMegabytes(file.Length) > Performance.FreeMemoryInMegabytes())
-                {
                     stream = file.OpenRead();
-                }
                 else
-                {
                     stream = new MemoryStream(Encoding.UTF8.GetBytes(file.OpenText().ReadToEnd()));
-                }
 
                 var readedRows = new BlockingCollection<List<EntityResolver<string[]>>>();
                 var tokenSource = new CancellationTokenSource();
 
-                Thread thread = new Thread(() =>
+                var thread = new Thread(() =>
                 {
                     try
                     {

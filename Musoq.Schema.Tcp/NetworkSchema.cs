@@ -7,11 +7,11 @@ namespace Musoq.Schema.Tcp
     public class NetworkSchema : SchemaBase
     {
         private const string SchemaName = "Network";
-        
+
         private TcpClient _client;
         private NetworkTable _table;
 
-        public NetworkSchema(MethodsAggregator methodsAggregator) 
+        public NetworkSchema(MethodsAggregator methodsAggregator)
             : base(SchemaName, methodsAggregator)
         {
         }

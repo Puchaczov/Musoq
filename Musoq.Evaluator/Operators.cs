@@ -13,7 +13,10 @@ namespace Musoq.Evaluator
                               .Replace("%", ".*") + @"\z", RegexOptions.Singleline).IsMatch(content);
         }
 
-        public bool Constains(string value, string[] values) => Contains<string>(value, values);
+        public bool Constains(string value, string[] values)
+        {
+            return Contains(value, values);
+        }
 
         public bool Contains<T>(T value, T[] values)
         {

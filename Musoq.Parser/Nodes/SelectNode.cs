@@ -16,16 +16,18 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType { get; }
 
+        public override string Id { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        public override string Id { get; }
-
         public override string ToString()
         {
-            var fieldsTxt = Fields.Length == 0 ? string.Empty : Fields.Select(FieldToString).Aggregate((a, b) => $"{a}, {b}");
+            var fieldsTxt = Fields.Length == 0
+                ? string.Empty
+                : Fields.Select(FieldToString).Aggregate((a, b) => $"{a}, {b}");
             return $"select {fieldsTxt}";
         }
 

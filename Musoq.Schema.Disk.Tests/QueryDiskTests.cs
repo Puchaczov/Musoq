@@ -13,18 +13,20 @@ namespace Musoq.Schema.Disk.Tests
         [TestMethod]
         public void CompressFilesTest()
         {
-            var query = $"select Compress(AggregateFiles(), './Results/{nameof(CompressFilesTest)}.zip', 'fastest') from #disk.files('./Files', 'false')";
-            
+            var query =
+                $"select Compress(AggregateFiles(), './Results/{nameof(CompressFilesTest)}.zip', 'fastest') from #disk.files('./Files', 'false')";
+
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual($"Compress(AggregateFiles(), './Results/{nameof(CompressFilesTest)}.zip', 'fastest')", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual($"Compress(AggregateFiles(), './Results/{nameof(CompressFilesTest)}.zip', 'fastest')",
+                table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual($"./Results/{nameof(CompressFilesTest)}.zip", table[0].Values[0]);
-            
+
             File.Delete($"./Results/{nameof(CompressFilesTest)}.zip");
         }
 
@@ -33,13 +35,15 @@ namespace Musoq.Schema.Disk.Tests
         {
             var resultName = $"./Results/{nameof(CompressDirectoriesTest)}.zip";
 
-            var query = $"select Compress(AggregateDirectories(), '{resultName}', 'fastest') from #disk.directories('./Directories', 'false')";
+            var query =
+                $"select Compress(AggregateDirectories(), '{resultName}', 'fastest') from #disk.directories('./Directories', 'false')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual($"Compress(AggregateDirectories(), '{resultName}', 'fastest')", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual($"Compress(AggregateDirectories(), '{resultName}', 'fastest')",
+                table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -47,7 +51,7 @@ namespace Musoq.Schema.Disk.Tests
 
             using (var zipFile = File.OpenRead(resultName))
             {
-                using(var zipArchive = new ZipArchive(zipFile))
+                using (var zipArchive = new ZipArchive(zipFile))
                 {
                     zipArchive.Entries.Any(f => f.Name == "Directory1/TextFile1.txt");
                     zipArchive.Entries.Any(f => f.Name == "Directory2/TextFile2.txt");

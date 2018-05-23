@@ -21,9 +21,9 @@ namespace Musoq.Service.Controllers
     public class RuntimeController : ApiController
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
-        private readonly IDictionary<Guid, ExecutionState> _runetimeState;
         private readonly ICacheManager<IRunnable> _expressionsCache;
         private readonly IServiceLogger _logger;
+        private readonly IDictionary<Guid, ExecutionState> _runetimeState;
         private readonly IDictionary<string, Type> _schemas;
 
         public RuntimeController(IDictionary<Guid, QueryContext> contexts,
@@ -80,7 +80,7 @@ namespace Musoq.Service.Controllers
                     var hash = HashHelper.ComputeHash<MD5CryptoServiceProvider>(key);
 
                     if (!_expressionsCache.TryGetOrAdd(hash,
-                        (s) => InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas)), out var vm))
+                        s => InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas)), out var vm))
                         vm = InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas));
 
                     var compiledTime = watch.Elapsed;

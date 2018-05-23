@@ -4,7 +4,7 @@ namespace Musoq.Parser.Nodes
 {
     public class NumericAccessToken : Token
     {
-        public NumericAccessToken(string name, string value, TextSpan span) 
+        public NumericAccessToken(string name, string value, TextSpan span)
             : base(value, TokenType.NumericAccess, span)
         {
             Index = int.Parse(value);

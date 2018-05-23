@@ -8,11 +8,12 @@ namespace Musoq.Schema.Git
 {
     public abstract class RepositorySource<TItem> : RowSourceBase<TItem>, IDisposable
     {
-        private readonly Repository _repo;
-        private readonly IDictionary<string, int> _nameToIndexMap;
         private readonly IDictionary<int, Func<TItem, object>> _indexToObjectAccessMap;
+        private readonly IDictionary<string, int> _nameToIndexMap;
+        private readonly Repository _repo;
 
-        protected RepositorySource(string repo, IDictionary<string, int> nameToIndexMap, IDictionary<int, Func<TItem, object>> indexToObjectAccessMap)
+        protected RepositorySource(string repo, IDictionary<string, int> nameToIndexMap,
+            IDictionary<int, Func<TItem, object>> indexToObjectAccessMap)
         {
             _nameToIndexMap = nameToIndexMap;
             _indexToObjectAccessMap = indexToObjectAccessMap;
@@ -20,6 +21,12 @@ namespace Musoq.Schema.Git
         }
 
         protected abstract int ChunkSize { get; }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<TItem>>> chunkedSource)
         {
@@ -31,7 +38,7 @@ namespace Musoq.Schema.Git
             {
                 chunk.Add(new EntityResolver<TItem>(item, _nameToIndexMap, _indexToObjectAccessMap));
 
-                if(i++ < ChunkSize)
+                if (i++ < ChunkSize)
                     continue;
 
                 chunkedSource.Add(chunk);
@@ -54,12 +61,6 @@ namespace Musoq.Schema.Git
             if (disposing)
             {
             }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         ~RepositorySource()

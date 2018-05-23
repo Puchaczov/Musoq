@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -8,6 +7,10 @@ namespace Musoq.Evaluator.Visitors
 {
     public class RewriteFieldWithGroupMethodCall : CloneQueryVisitor
     {
+        private readonly FieldNode[] _fields;
+
+        private int _fieldOrder;
+
         public RewriteFieldWithGroupMethodCall(int fieldOrder, FieldNode[] fields)
         {
             _fieldOrder = fieldOrder;
@@ -15,9 +18,6 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public FieldNode Expression { get; private set; }
-
-        private int _fieldOrder;
-        private readonly FieldNode[] _fields;
 
         public override void Visit(FieldNode node)
         {
@@ -27,7 +27,8 @@ namespace Musoq.Evaluator.Visitors
 
         public override void Visit(AccessColumnNode node)
         {
-            Nodes.Push(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), string.Empty, node.ReturnType, TextSpan.Empty));
+            Nodes.Push(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), string.Empty,
+                node.ReturnType, TextSpan.Empty));
         }
 
         public override void Visit(DotNode node)

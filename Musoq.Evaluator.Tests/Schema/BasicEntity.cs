@@ -4,7 +4,9 @@ namespace Musoq.Evaluator.Tests.Schema
 {
     public class BasicEntity
     {
-        public BasicEntity() { }
+        public BasicEntity()
+        {
+        }
 
         public BasicEntity(string name)
         {
@@ -61,7 +63,7 @@ namespace Musoq.Evaluator.Tests.Schema
 
         public int Id { get; set; }
 
-        public int[] Array => new[] { 0, 1, 2 };
+        public int[] Array => new[] {0, 1, 2};
 
         public override string ToString()
         {

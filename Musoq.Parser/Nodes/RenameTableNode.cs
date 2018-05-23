@@ -16,12 +16,12 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType => typeof(void);
 
+        public override string Id => $"{nameof(RenameTableNode)}{TableSourceName}{TableDestinationName}";
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
-
-        public override string Id => $"{nameof(RenameTableNode)}{TableSourceName}{TableDestinationName}";
 
         public override string ToString()
         {

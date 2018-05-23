@@ -6,15 +6,8 @@ namespace Musoq.Parser.Nodes
 {
     public class AccessCallChainNode : Node
     {
-        public (PropertyInfo Property, object Arg)[] Props { get; }
-
-        public string ColumnName { get; }
-
-        public Type ColumnType { get; }
-
-        public string Alias { get; }
-
-        public AccessCallChainNode(string columnName, Type columnType, (PropertyInfo Property, object Arg)[] props, string alias)
+        public AccessCallChainNode(string columnName, Type columnType, (PropertyInfo Property, object Arg)[] props,
+            string alias)
         {
             ColumnName = columnName;
             ColumnType = columnType;
@@ -23,7 +16,15 @@ namespace Musoq.Parser.Nodes
 
             Id = $"{nameof(AccessCallChainNode)}{ToString()}";
         }
-        
+
+        public (PropertyInfo Property, object Arg)[] Props { get; }
+
+        public string ColumnName { get; }
+
+        public Type ColumnType { get; }
+
+        public string Alias { get; }
+
         public override Type ReturnType
         {
             get
@@ -37,12 +38,12 @@ namespace Musoq.Parser.Nodes
             }
         }
 
+        public override string Id { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
-
-        public override string Id { get; }
 
         public override string ToString()
         {
@@ -62,7 +63,7 @@ namespace Musoq.Parser.Nodes
             for (var i = 0; i < Props.Length - 1; ++i)
             {
                 prop = Props[i];
-                if(prop.Arg == null)
+                if (prop.Arg == null)
                     callChain.Append($"{prop.Property.Name}.");
                 else
                     callChain.Append($"{prop.Property.Name}[{prop.Arg}]");
@@ -70,7 +71,7 @@ namespace Musoq.Parser.Nodes
 
             if (Props.Length == 0)
                 return callChain.ToString();
-            
+
             prop = Props[Props.Length - 1];
             if (prop.Arg == null)
                 callChain.Append($"{prop.Property.Name}");

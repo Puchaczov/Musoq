@@ -11,6 +11,7 @@ namespace Musoq.Parser.Nodes
             Token = token;
             Id = $"{nameof(AccessObjectKeyNode)}{token.Value}";
         }
+
         public AccessObjectKeyNode(KeyAccessToken token, PropertyInfo propertyInfo)
             : this(token)
         {
@@ -23,14 +24,14 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType => PropertyInfo.PropertyType.GetElementType();
 
+        public override string Id { get; }
+
+        public PropertyInfo PropertyInfo { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
-
-        public override string Id { get; }
-
-        public PropertyInfo PropertyInfo { get; }
 
         public override string ToString()
         {

@@ -9,17 +9,18 @@ namespace Musoq.Evaluator.Visitors
     {
         private readonly IDictionary<string, string> _aliases;
 
-        public WhereNode Where { get; private set; }
-
         public RewriteWhereConditionWithUpdatedColumnAccess(IDictionary<string, string> usedTables)
         {
             _aliases = usedTables;
         }
 
+        public WhereNode Where { get; private set; }
+
         public override void Visit(AccessColumnNode node)
         {
-            if(_aliases.ContainsKey(node.Alias))
-                base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), _aliases[node.Alias], node.ReturnType, TextSpan.Empty));
+            if (_aliases.ContainsKey(node.Alias))
+                base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), _aliases[node.Alias],
+                    node.ReturnType, TextSpan.Empty));
             else
                 base.Visit(node);
         }

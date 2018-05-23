@@ -5,10 +5,10 @@ namespace Musoq.Evaluator.TemporarySchemas
 {
     public class DescSchema : SchemaBase
     {
-        private readonly ISchemaTable _table;
         private readonly ISchemaColumn[] _columns;
+        private readonly ISchemaTable _table;
 
-        public DescSchema(string name, ISchemaTable table, ISchemaColumn[] columns) 
+        public DescSchema(string name, ISchemaTable table, ISchemaColumn[] columns)
             : base(name, null)
         {
             _table = table;

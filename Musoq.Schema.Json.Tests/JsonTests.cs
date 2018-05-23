@@ -12,7 +12,8 @@ namespace Musoq.Schema.Json.Tests
         [TestMethod]
         public void SimpleSelectTest()
         {
-            var query = @"select Name, Age from #json.file('./JsonTestFile_First.json', './JsonTestFile_First.schema.json', ' ')";
+            var query =
+                @"select Name, Age from #json.file('./JsonTestFile_First.json', './JsonTestFile_First.schema.json', ' ')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -35,7 +36,8 @@ namespace Musoq.Schema.Json.Tests
         [TestMethod]
         public void SelectArrayTest()
         {
-            var query = @"select Array from #json.file('./JsonTestFile_MakeFlatArray_Arr.json', './JsonTestFile_MakeFlatArray_Arr.schema.json', ' ')";
+            var query =
+                @"select Array from #json.file('./JsonTestFile_MakeFlatArray_Arr.json', './JsonTestFile_MakeFlatArray_Arr.schema.json', ' ')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -45,14 +47,15 @@ namespace Musoq.Schema.Json.Tests
             Assert.AreEqual(typeof(JArray), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
-            Assert.AreEqual(3, ((JArray)table[0].Values[0]).Count);
-            Assert.AreEqual(0, ((JArray)table[1].Values[0]).Count);
+            Assert.AreEqual(3, ((JArray) table[0].Values[0]).Count);
+            Assert.AreEqual(0, ((JArray) table[1].Values[0]).Count);
         }
 
         [TestMethod]
         public void SelectWithArrayLengthTest()
         {
-            var query = @"select Name, Length(Books) from #json.file('./JsonTestFile_First.json', './JsonTestFile_First.schema.json', ' ')";
+            var query =
+                @"select Name, Length(Books) from #json.file('./JsonTestFile_First.json', './JsonTestFile_First.schema.json', ' ')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -75,7 +78,8 @@ namespace Musoq.Schema.Json.Tests
         [TestMethod]
         public void MakeFlatArrayTest()
         {
-            var query = @"select MakeFlat(Array) from #json.file('./JsonTestFile_MakeFlatArray.json', './JsonTestFile_MakeFlatArray.schema.json', ' ')";
+            var query =
+                @"select MakeFlat(Array) from #json.file('./JsonTestFile_MakeFlatArray.json', './JsonTestFile_MakeFlatArray.schema.json', ' ')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();

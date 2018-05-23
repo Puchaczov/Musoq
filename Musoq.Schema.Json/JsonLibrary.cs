@@ -23,7 +23,7 @@ namespace Musoq.Schema.Json
 
             var flattedArray = new StringBuilder();
 
-            for (int i = 0; i < cnt - 1; i++)
+            for (var i = 0; i < cnt - 1; i++)
             {
                 flattedArray.Append(array[i]);
                 flattedArray.Append(", ");

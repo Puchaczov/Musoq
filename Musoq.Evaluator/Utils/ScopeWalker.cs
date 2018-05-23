@@ -2,16 +2,13 @@
 {
     public class ScopeWalker
     {
-        private readonly Scope _scope;
+        private readonly ScopeWalker _parent;
         private int _childIndex;
-        private readonly ScopeWalker _parent = null;
-
-        public Scope Scope => _scope;
 
 
         public ScopeWalker(Scope scope)
         {
-            _scope = scope;
+            Scope = scope;
         }
 
         private ScopeWalker(Scope scope, ScopeWalker parent)
@@ -20,19 +17,21 @@
             _parent = parent;
         }
 
+        public Scope Scope { get; }
+
         public ScopeWalker NextChild()
         {
-            return new ScopeWalker(_scope.Child[_childIndex++], this);
+            return new ScopeWalker(Scope.Child[_childIndex++], this);
         }
 
         public ScopeWalker Child()
         {
-            return new ScopeWalker(_scope.Child[_childIndex], this);
+            return new ScopeWalker(Scope.Child[_childIndex], this);
         }
 
         public ScopeWalker PrevChild()
         {
-            return new ScopeWalker(_scope.Child[_childIndex--], this);
+            return new ScopeWalker(Scope.Child[_childIndex--], this);
         }
 
         public ScopeWalker Parent()

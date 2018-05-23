@@ -10,10 +10,21 @@ namespace Musoq.Parser
 {
     public class FqlParser
     {
-
-        private static readonly TokenType[] SetOperators = { TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect };
+        private static readonly TokenType[] SetOperators =
+            {TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect};
 
         private readonly Lexer _lexer;
+
+        private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precDict =
+            new Dictionary<TokenType, (short Precendence, Associativity Associativity)>
+            {
+                {TokenType.Plus, (1, Associativity.Left)},
+                {TokenType.Hyphen, (1, Associativity.Left)},
+                {TokenType.Star, (2, Associativity.Left)},
+                {TokenType.FSlash, (2, Associativity.Left)},
+                {TokenType.Mod, (2, Associativity.Left)},
+                {TokenType.Dot, (1, Associativity.Left)}
+            };
 
         private bool _isInGroupBySection;
 
@@ -28,7 +39,6 @@ namespace Musoq.Parser
         {
             _lexer.Next();
             while (Current.TokenType != TokenType.EndOfFile)
-            {
                 switch (Current.TokenType)
                 {
                     case TokenType.Desc:
@@ -38,7 +48,6 @@ namespace Musoq.Parser
                     case TokenType.With:
                         return new RootNode(ComposeCteExpression());
                 }
-            }
 
             return new RootNode(null);
         }
@@ -171,22 +180,26 @@ namespace Musoq.Parser
             if (IsJoinToken(Current.TokenType))
             {
                 while (IsJoinToken(Current.TokenType))
-                {
                     switch (Current.TokenType)
                     {
                         case TokenType.InnerJoin:
                             Consume(TokenType.InnerJoin);
-                            from = new JoinFromNode(from, ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(), JoinType.Inner);
+                            from = new JoinFromNode(from,
+                                ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(),
+                                JoinType.Inner);
                             break;
                         case TokenType.OuterJoin:
-                            var outerToken = (OuterJoinToken)Current;
+                            var outerToken = (OuterJoinToken) Current;
                             Consume(TokenType.OuterJoin);
-                            from = new JoinFromNode(from, ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(), outerToken.Type == OuterJoinNode.OuterJoinType.Left ? JoinType.OuterLeft : JoinType.OuterRight);
+                            from = new JoinFromNode(from,
+                                ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(),
+                                outerToken.Type == OuterJoinNode.OuterJoinType.Left
+                                    ? JoinType.OuterLeft
+                                    : JoinType.OuterRight);
                             break;
                     }
-                }
 
-                from = new JoinsNode((JoinFromNode)from);
+                from = new JoinsNode((JoinFromNode) from);
             }
 
             return new ExpressionFromNode(from);
@@ -267,7 +280,9 @@ namespace Musoq.Parser
             do
             {
                 fields.Add(ConsumeField(i++));
-            } while (!IsSetOperator(Current.TokenType) && Current.TokenType != TokenType.RightParenthesis && Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having && Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
+            } while (!IsSetOperator(Current.TokenType) && Current.TokenType != TokenType.RightParenthesis &&
+                     Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having &&
+                     Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
                      ConsumeAndGetToken().TokenType == TokenType.Comma);
 
             return fields.ToArray();
@@ -318,26 +333,9 @@ namespace Musoq.Parser
             return node;
         }
 
-        enum Associativity
-        {
-            Left,
-            Right
-        }
-
-        private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precDict =
-            new Dictionary<TokenType, (short Precendence, Associativity Associativity)>()
-            {
-                {TokenType.Plus, (1, Associativity.Left)},
-                {TokenType.Hyphen, (1, Associativity.Left)},
-                {TokenType.Star, (2, Associativity.Left)},
-                {TokenType.FSlash, (2, Associativity.Left)},
-                {TokenType.Mod, (2, Associativity.Left)},
-                {TokenType.Dot, (1, Associativity.Left)}
-            };
-
         private Node ComposeArithmeticExpression(int minPrec)
         {
-            Node left = ComposeBaseTypes(minPrec);
+            var left = ComposeBaseTypes(minPrec);
 
             while (IsArithmeticBinaryOperator(Current) && _precDict[Current.TokenType].Precendence >= minPrec)
             {
@@ -431,7 +429,7 @@ namespace Musoq.Parser
 
         private FromNode ComposeFrom(bool fromBefore = true)
         {
-            if(fromBefore)
+            if (fromBefore)
                 Consume(TokenType.From);
 
             string alias;
@@ -447,7 +445,7 @@ namespace Musoq.Parser
                 return fromNode;
             }
 
-            var column = (IdentifierNode)ComposeBaseTypes();
+            var column = (IdentifierNode) ComposeBaseTypes();
             alias = ComposeAlias();
             return new InMemoryTableFromNode(column.Name, alias);
         }
@@ -481,7 +479,7 @@ namespace Musoq.Parser
                 return new WhereNode(ComposeOperations());
             }
 
-            if(withoutWhereToken)
+            if (withoutWhereToken)
                 return new WhereNode(ComposeOperations());
 
             return new WhereNode(new PutTrueNode());
@@ -505,7 +503,6 @@ namespace Musoq.Parser
             Consume(TokenType.LeftParenthesis);
 
             if (Current.TokenType != TokenType.RightParenthesis)
-            {
                 do
                 {
                     if (Current.TokenType == TokenType.Comma)
@@ -513,7 +510,6 @@ namespace Musoq.Parser
 
                     args.Add(ComposeOperations());
                 } while (Current.TokenType == TokenType.Comma);
-            }
 
             Consume(TokenType.RightParenthesis);
 
@@ -542,7 +538,7 @@ namespace Musoq.Parser
 
                     return new IdentifierNode(column.Value);
                 case TokenType.KeyAccess:
-                    var keyAccess = (KeyAccessToken)Current;
+                    var keyAccess = (KeyAccessToken) Current;
                     Consume(TokenType.KeyAccess);
                     return new AccessObjectKeyNode(keyAccess);
                 case TokenType.NumericAccess:
@@ -561,7 +557,8 @@ namespace Musoq.Parser
                     Consume(TokenType.Star);
                     return new AllColumnsNode();
                 case TokenType.LeftParenthesis:
-                    return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeOperations(), TokenType.RightParenthesis);
+                    return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeOperations(),
+                        TokenType.RightParenthesis);
                 case TokenType.Hyphen:
                     Consume(TokenType.Hyphen);
                     return new StarNode(new IntegerNode("-1"), Compose(f => f.ComposeArithmeticExpression(minPrec)));
@@ -666,6 +663,12 @@ namespace Musoq.Parser
                 return typeof(short);
 
             return typeof(long);
+        }
+
+        private enum Associativity
+        {
+            Left,
+            Right
         }
     }
 }

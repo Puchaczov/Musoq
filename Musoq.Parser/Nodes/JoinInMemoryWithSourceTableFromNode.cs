@@ -2,10 +2,11 @@
 {
     public class JoinInMemoryWithSourceTableFromNode : FromNode
     {
-        public JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression) 
+        public JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression)
             : base($"{inMemoryTableAlias}{sourceTable.Alias}")
         {
-            Id = $"{nameof(JoinInMemoryWithSourceTableFromNode)}{inMemoryTableAlias}{sourceTable.Alias}{expression.ToString()}";
+            Id =
+                $"{nameof(JoinInMemoryWithSourceTableFromNode)}{inMemoryTableAlias}{sourceTable.Alias}{expression.ToString()}";
             InMemoryTableAlias = inMemoryTableAlias;
             SourceTable = sourceTable;
             Expression = expression;
@@ -17,6 +18,8 @@
 
         public Node Expression { get; }
 
+        public override string Id { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
@@ -26,7 +29,5 @@
         {
             return $"join {InMemoryTableAlias} with {SourceTable.Alias} on {Expression.ToString()}";
         }
-
-        public override string Id { get; }
     }
 }

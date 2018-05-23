@@ -6,6 +6,7 @@ namespace Musoq.Evaluator.Exceptions
     {
         public UnknownColumnException(string message)
             : base(message)
-        { }
+        {
+        }
     }
 }

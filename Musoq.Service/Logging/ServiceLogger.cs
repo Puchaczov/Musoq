@@ -5,14 +5,15 @@ namespace Musoq.Service.Logging
 {
     public class ServiceLogger : IServiceLogger
     {
-        private readonly ILogger _logger;
-
         private static ServiceLogger _instance;
+        private readonly ILogger _logger;
 
         private ServiceLogger()
         {
             _logger = LogManager.GetCurrentClassLogger();
         }
+
+        public static IServiceLogger Instance => _instance ?? (_instance = new ServiceLogger());
 
         public void Log(string message)
         {
@@ -23,7 +24,5 @@ namespace Musoq.Service.Logging
         {
             _logger.Log(LogLevel.Error, exc);
         }
-
-        public static IServiceLogger Instance => _instance ?? (_instance = new ServiceLogger());
     }
 }

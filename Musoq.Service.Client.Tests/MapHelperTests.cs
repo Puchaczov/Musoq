@@ -8,36 +8,20 @@ namespace Musoq.Service.Client.Tests
     [TestClass]
     public class MapHelperTests
     {
-        private class TestClass
-        {
-            public int TestInt { get; set; }
-
-            public bool TestBool { get; set; }
-
-            public string TestString { get; set; }
-        }
-
-        private class TestClassComplex
-        {
-            public int TestInt { get; set; }
-
-            public bool TestBool { get; set; }
-
-            public string[] TestArrayOfStrings { get; set; }
-        }
-
         private ResultTable _table;
 
         [TestMethod]
         public void TryMapBasicTypesTest()
         {
-            var columns = new[] { "TestInt", "TestBool", "TestString" };
+            var columns = new[] {"TestInt", "TestBool", "TestString"};
             _table = new ResultTable(string.Empty, columns, new[]
             {
-                new object[]{
+                new object[]
+                {
                     1, true, "abc"
                 },
-                new object[]{
+                new object[]
+                {
                     2, false, "xcd"
                 }
             }, TimeSpan.Zero);
@@ -61,17 +45,18 @@ namespace Musoq.Service.Client.Tests
         [TestMethod]
         public void TryMapTypeWithConverterTest()
         {
-            var columns = new[] { "TestInt", "TestBool", "TestArrayOfStrings" };
+            var columns = new[] {"TestInt", "TestBool", "TestArrayOfStrings"};
             _table = new ResultTable(string.Empty, columns, new[]
             {
-                new object[]{
+                new object[]
+                {
                     1, true, "abc,ff"
                 }
             }, TimeSpan.Zero);
 
             var converters = new Dictionary<string, Func<object, object>>
             {
-                { "TestArrayOfStrings", (obj) => ((string)obj).Split(',') }
+                {"TestArrayOfStrings", obj => ((string) obj).Split(',')}
             };
 
             var list = MapHelper.MapToType<TestClassComplex>(_table, converters);
@@ -84,6 +69,24 @@ namespace Musoq.Service.Client.Tests
             Assert.AreEqual(2, list[0].TestArrayOfStrings.Length);
             Assert.AreEqual("abc", list[0].TestArrayOfStrings[0]);
             Assert.AreEqual("ff", list[0].TestArrayOfStrings[1]);
+        }
+
+        private class TestClass
+        {
+            public int TestInt { get; set; }
+
+            public bool TestBool { get; set; }
+
+            public string TestString { get; set; }
+        }
+
+        private class TestClassComplex
+        {
+            public int TestInt { get; set; }
+
+            public bool TestBool { get; set; }
+
+            public string[] TestArrayOfStrings { get; set; }
         }
     }
 }

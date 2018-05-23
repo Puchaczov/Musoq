@@ -17,7 +17,7 @@ namespace Musoq.Service.Client.Helpers
 
         public async Task<Guid> UsedFiles()
         {
-            var client = new HttpClient()
+            var client = new HttpClient
             {
                 BaseAddress = new Uri(_address)
             };

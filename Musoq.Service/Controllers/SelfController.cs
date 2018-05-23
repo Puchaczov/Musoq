@@ -22,7 +22,7 @@ namespace Musoq.Service.Controllers
         [HttpPost]
         public Guid UsedFiles()
         {
-            var context = new QueryContext()
+            var context = new QueryContext
             {
                 Query = string.Format(Query, _entryDir)
             };
@@ -42,7 +42,7 @@ namespace Musoq.Service.Controllers
         [HttpPost]
         public HttpResponseMessage UploadPlugin()
         {
-            if(!Request.Content.IsMimeMultipartContent())
+            if (!Request.Content.IsMimeMultipartContent())
                 throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
 
             try

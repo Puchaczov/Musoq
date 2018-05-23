@@ -1,6 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using System.Linq;
 using Musoq.Evaluator;
 
 namespace Musoq.Schema.Csv.Tests
@@ -53,7 +53,8 @@ namespace Musoq.Schema.Csv.Tests
         [TestMethod]
         public void SimpleGroupByWithSum()
         {
-            var query = "SELECT ParentCount(1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv', ',') group by ExtractFromDate(OperationDate, 'month')";
+            var query =
+                "SELECT ParentCount(1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv', ',') group by ExtractFromDate(OperationDate, 'month')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -69,7 +70,8 @@ namespace Musoq.Schema.Csv.Tests
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(3).ColumnType);
             Assert.AreEqual("SumOutcome(ToDecimal(Money))", table.Columns.ElementAt(4).Name);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
-            Assert.AreEqual("SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money)))", table.Columns.ElementAt(5).Name);
+            Assert.AreEqual("SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money)))",
+                table.Columns.ElementAt(5).Name);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(5).ColumnType);
 
             Assert.AreEqual(2, table.Count);

@@ -33,7 +33,7 @@ namespace Musoq.Evaluator.Tables
             string value;
             for (var i = 0; i < Values.Length - 1; i++)
             {
-                value = Values[i] == null ? "null" : Values[i].ToString(); 
+                value = Values[i] == null ? "null" : Values[i].ToString();
                 key.Append($"{value},");
             }
 
@@ -48,7 +48,7 @@ namespace Musoq.Evaluator.Tables
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != GetType()) return false;
-            return Equals(Values, ((GroupKey)obj).Values);
+            return Equals(Values, ((GroupKey) obj).Values);
         }
 
         public override int GetHashCode()
@@ -56,10 +56,7 @@ namespace Musoq.Evaluator.Tables
             unchecked
             {
                 var hash = 0;
-                for (var i = 0; i < Values.Length; ++i)
-                {
-                    hash += Values[i].GetHashCode();
-                }
+                for (var i = 0; i < Values.Length; ++i) hash += Values[i].GetHashCode();
 
                 return hash;
             }

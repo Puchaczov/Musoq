@@ -9,14 +9,14 @@ namespace Musoq.Parser.Nodes
             Id = CalculateId(this);
         }
 
+        public override Type ReturnType => typeof(bool);
+
+        public override string Id { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
-
-        public override Type ReturnType => typeof(bool);
-
-        public override string Id { get; }
 
         public override string ToString()
         {

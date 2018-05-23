@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -17,39 +16,30 @@ namespace Musoq.Evaluator.Visitors
 {
     public class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
-        protected Stack<Node> Nodes { get; } = new Stack<Node>();
+        private readonly List<JoinFromNode> _joinedTables = new List<JoinFromNode>();
         private readonly TransitionSchemaProvider _schemaProvider;
-        private InternalQueryNode _setLeftNode;
+
+        private CtePart _ctePart = CtePart.None;
+        private string _currentCte;
+
+        private string _currentSchema;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
 
-        private string _currentSchema;
-        private string _currentCte;
-
         private ISchema _schema;
-        private ISchemaTable _table;
 
-        private CtePart _ctePart = CtePart.None;
+        private Scope _scope;
+        private InternalQueryNode _setLeftNode;
+        private ISchemaTable _table;
 
         public RewriteQueryVisitor(TransitionSchemaProvider schemaProvider)
         {
             _schemaProvider = schemaProvider;
         }
 
+        protected Stack<Node> Nodes { get; } = new Stack<Node>();
+
         public RootNode RootScript { get; private set; }
-
-        public void BeginCteQueryPart(CteExpressionNode node, CtePart part)
-        {
-            _ctePart = part;
-
-            if (part == CtePart.Outer)
-                _setLeftNode = null;
-        }
-
-        public void EndCteQuery()
-        {
-            _ctePart = CtePart.None;
-        }
 
         public void Visit(Node node)
         {
@@ -57,13 +47,19 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DescNode node)
         {
-            var from = (SchemaFromNode)Nodes.Pop();
+            var from = (SchemaFromNode) Nodes.Pop();
 
             var fields = new List<FieldNode>
             {
-                new FieldNode(new AccessColumnNode(nameof(ISchemaColumn.ColumnName), string.Empty, typeof(string), TextSpan.Empty), 0, "Name"),
-                new FieldNode(new AccessColumnNode(nameof(ISchemaColumn.ColumnIndex), string.Empty, typeof(int), TextSpan.Empty), 1, "Index"),
-                new FieldNode(new AccessColumnNode(nameof(ISchemaColumn.ColumnType), string.Empty, typeof(string), TextSpan.Empty), 2, "Type")
+                new FieldNode(
+                    new AccessColumnNode(nameof(ISchemaColumn.ColumnName), string.Empty, typeof(string),
+                        TextSpan.Empty), 0, "Name"),
+                new FieldNode(
+                    new AccessColumnNode(nameof(ISchemaColumn.ColumnIndex), string.Empty, typeof(int), TextSpan.Empty),
+                    1, "Index"),
+                new FieldNode(
+                    new AccessColumnNode(nameof(ISchemaColumn.ColumnType), string.Empty, typeof(string),
+                        TextSpan.Empty), 2, "Type")
             };
 
             var table = new DynamicTable(new ISchemaColumn[]
@@ -273,11 +269,14 @@ namespace Musoq.Evaluator.Visitors
         {
             _generatedColumns = new FieldNode[_table.Columns.Length];
 
-            for (int i = 0; i < _table.Columns.Length; i++)
+            for (var i = 0; i < _table.Columns.Length; i++)
             {
                 var column = _table.Columns[i];
 
-                _generatedColumns[i] = new FieldNode(new AccessColumnNode(column.ColumnName, String.Empty, column.ColumnType, TextSpan.Empty), i, string.Empty);
+                _generatedColumns[i] =
+                    new FieldNode(
+                        new AccessColumnNode(column.ColumnName, string.Empty, column.ColumnType, TextSpan.Empty), i,
+                        string.Empty);
             }
 
             Nodes.Push(node);
@@ -352,12 +351,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SkipNode node)
         {
-            Nodes.Push(new SkipNode((IntegerNode)node.Expression));
+            Nodes.Push(new SkipNode((IntegerNode) node.Expression));
         }
 
         public void Visit(TakeNode node)
         {
-            Nodes.Push(new TakeNode((IntegerNode)node.Expression));
+            Nodes.Push(new TakeNode((IntegerNode) node.Expression));
         }
 
         public void Visit(SchemaFromNode node)
@@ -372,15 +371,15 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(JoinFromNode node)
         {
             var exp = Nodes.Pop();
-            var right = (FromNode)Nodes.Pop();
-            var left = (FromNode)Nodes.Pop();
+            var right = (FromNode) Nodes.Pop();
+            var left = (FromNode) Nodes.Pop();
             Nodes.Push(new JoinFromNode(left, right, exp, node.JoinType));
             _joinedTables.Add(node);
         }
 
         public void Visit(ExpressionFromNode node)
         {
-            Nodes.Push(new ExpressionFromNode((FromNode)Nodes.Pop()));
+            Nodes.Push(new ExpressionFromNode((FromNode) Nodes.Pop()));
         }
 
         public void Visit(InMemoryTableFromNode node)
@@ -447,8 +446,9 @@ namespace Musoq.Evaluator.Visitors
 
             IReadOnlyList<AccessMethodNode> usedRefreshMethods = null;
 
-            if(_scope.ScopeSymbolTable.SymbolIsOfType<RefreshMethodsSymbol>(from.Alias.ToRefreshMethodsSymbolName()))
-                usedRefreshMethods = _scope.ScopeSymbolTable.GetSymbol<RefreshMethodsSymbol>(from.Alias.ToRefreshMethodsSymbolName()).RefreshMethods;
+            if (_scope.ScopeSymbolTable.SymbolIsOfType<RefreshMethodsSymbol>(from.Alias.ToRefreshMethodsSymbolName()))
+                usedRefreshMethods = _scope.ScopeSymbolTable
+                    .GetSymbol<RefreshMethodsSymbol>(from.Alias.ToRefreshMethodsSymbolName()).RefreshMethods;
 
             if (from.Expression is JoinsNode)
             {
@@ -459,22 +459,26 @@ namespace Musoq.Evaluator.Visitors
                 var scopeCreateTable = _scope.AddScope("Table");
                 var scopeJoinedQuery = _scope.AddScope("Query");
 
-                var bothForCreateTable = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias, (name, alias) => NamingHelper.ToColumnName(alias, name));
-                var bothForSelect = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias, (name, alias) => name);
+                var bothForCreateTable = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias,
+                    (name, alias) => NamingHelper.ToColumnName(alias, name));
+                var bothForSelect = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias,
+                    (name, alias) => name);
 
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, left);
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, right);
 
                 var targetTableName = $"{current.Source.Alias}{current.With.Alias}";
 
-                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, _scope.ScopeSymbolTable.GetSymbol(targetTableName));
+                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
+                    _scope.ScopeSymbolTable.GetSymbol(targetTableName));
                 scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                 scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
 
                 var joinedQuery = new InternalQueryNode(
                     new SelectNode(bothForSelect),
-                    new ExpressionFromNode(new JoinSourcesTableFromNode(current.Source, current.With, current.Expression)),
+                    new ExpressionFromNode(new JoinSourcesTableFromNode(current.Source, current.With,
+                        current.Expression)),
                     new WhereNode(new PutTrueNode()),
                     null,
                     null,
@@ -495,7 +499,7 @@ namespace Musoq.Evaluator.Visitors
                     {current.With.Alias, targetTableName}
                 };
 
-                for (int i = 1; i < _joinedTables.Count; i++)
+                for (var i = 1; i < _joinedTables.Count; i++)
                 {
                     current = _joinedTables[i];
                     left = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.Source.Alias);
@@ -506,13 +510,14 @@ namespace Musoq.Evaluator.Visitors
                     scopeCreateTable = _scope.AddScope("Table");
                     scopeJoinedQuery = _scope.AddScope("Query");
 
-                    bothForCreateTable = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias, (name, alias) => NamingHelper.ToColumnName(alias, name));
+                    bothForCreateTable = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias,
+                        (name, alias) => NamingHelper.ToColumnName(alias, name));
                     bothForSelect = CreateAndConcatFields(
-                        left, 
-                        current.Source.Alias, 
-                        right, 
-                        current.With.Alias, 
-                        (name, alias) => NamingHelper.ToColumnName(alias, name), 
+                        left,
+                        current.Source.Alias,
+                        right,
+                        current.With.Alias,
+                        (name, alias) => NamingHelper.ToColumnName(alias, name),
                         (name, alias) => name,
                         (name, alias) => NamingHelper.ToColumnName(alias, name),
                         (name, alias) => name);
@@ -520,7 +525,8 @@ namespace Musoq.Evaluator.Visitors
                     scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, left);
                     scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, right);
 
-                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, _scope.ScopeSymbolTable.GetSymbol(targetTableName));
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
+                        _scope.ScopeSymbolTable.GetSymbol(targetTableName));
                     scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                     scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
@@ -537,7 +543,8 @@ namespace Musoq.Evaluator.Visitors
 
                     joinedQuery = new InternalQueryNode(
                         new SelectNode(bothForSelect),
-                        new ExpressionFromNode(new JoinInMemoryWithSourceTableFromNode(current.Source.Alias, current.With, expressionUpdater.Where.Expression)),
+                        new ExpressionFromNode(new JoinInMemoryWithSourceTableFromNode(current.Source.Alias,
+                            current.With, expressionUpdater.Where.Expression)),
                         new WhereNode(new PutTrueNode()),
                         null,
                         null,
@@ -563,11 +570,14 @@ namespace Musoq.Evaluator.Visitors
 
             if (groupBy != null)
             {
-                var nestedFrom = splittedNodes.Count > 0 ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias)) : @from;
+                var nestedFrom = splittedNodes.Count > 0
+                    ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
+                    : from;
 
                 var splitted = SplitBetweenAggreateAndNonAggreagate(select.Fields, groupBy.Fields, true);
                 var refreshMethods = CreateRefreshMethods(usedRefreshMethods);
-                var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(splitted[0], groupBy.Fields).Reverse().ToArray());
+                var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(splitted[0], groupBy.Fields)
+                    .Reverse().ToArray());
                 var outSelect = new SelectNode(splitted[1]);
 
                 var scopeCreateTranformingTable = _scope.AddScope("Table");
@@ -575,13 +585,17 @@ namespace Musoq.Evaluator.Visitors
                 var scopeCreateResultTable = _scope.AddScope("Table");
                 var scopeResultQuery = _scope.AddScope("Query");
 
-                scopeCreateTranformingTable[MetaAttributes.CreateTableVariableName] = nestedFrom.Alias.ToGroupingTable();
+                scopeCreateTranformingTable[MetaAttributes.CreateTableVariableName] =
+                    nestedFrom.Alias.ToGroupingTable();
                 scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = nestedFrom.Alias.ToScoreTable();
 
                 var destination = nestedFrom.Alias.ToGroupingTable().ToTransformedRowsSource();
                 scopeTransformedQuery[MetaAttributes.SelectIntoVariableName] = destination;
-                scopeTransformedQuery[MetaAttributes.SourceName] = splittedNodes.Count > 0 ? nestedFrom.Alias.ToTransitionTable().ToTransformedRowsSource() : nestedFrom.Alias.ToRowsSource().WithRowsUsage();
-                scopeTransformedQuery.ScopeSymbolTable.AddSymbol(nestedFrom.Alias, _scope.ScopeSymbolTable.GetSymbol(nestedFrom.Alias));
+                scopeTransformedQuery[MetaAttributes.SourceName] = splittedNodes.Count > 0
+                    ? nestedFrom.Alias.ToTransitionTable().ToTransformedRowsSource()
+                    : nestedFrom.Alias.ToRowsSource().WithRowsUsage();
+                scopeTransformedQuery.ScopeSymbolTable.AddSymbol(nestedFrom.Alias,
+                    _scope.ScopeSymbolTable.GetSymbol(nestedFrom.Alias));
 
                 if (splittedNodes.Count > 0)
                 {
@@ -591,7 +605,8 @@ namespace Musoq.Evaluator.Visitors
                     groupBy.Accept(selectTraverser);
                     groupBy = selectRewriter.ChangedGroupBy;
 
-                    scopeTransformedQuery.ScopeSymbolTable.AddSymbol("groupFields", new FieldsNamesSymbol(groupBy.Fields.Select(f => f.FieldName).ToArray()));
+                    scopeTransformedQuery.ScopeSymbolTable.AddSymbol("groupFields",
+                        new FieldsNamesSymbol(groupBy.Fields.Select(f => f.FieldName).ToArray()));
 
                     var newRefreshMethods = new List<AccessMethodNode>();
                     foreach (var method in refreshMethods.Nodes)
@@ -604,33 +619,36 @@ namespace Musoq.Evaluator.Visitors
                         }
 
                         var newArgs = new ArgsListNode(newNodes.ToArray());
-                        newRefreshMethods.Add(new AccessMethodNode(method.FToken, newArgs, method.ExtraAggregateArguments, method.Method));
+                        newRefreshMethods.Add(new AccessMethodNode(method.FToken, newArgs,
+                            method.ExtraAggregateArguments, method.Method));
                     }
 
                     refreshMethods = new RefreshNode(newRefreshMethods.ToArray());
                 }
                 else
                 {
-                    scopeTransformedQuery.ScopeSymbolTable.AddSymbol("groupFields", new FieldsNamesSymbol(groupBy.Fields.Select(f => f.Expression.ToString()).ToArray()));
+                    scopeTransformedQuery.ScopeSymbolTable.AddSymbol("groupFields",
+                        new FieldsNamesSymbol(groupBy.Fields.Select(f => f.Expression.ToString()).ToArray()));
                 }
 
-                var transformingQuery = new InternalQueryNode(aggSelect, nestedFrom, where, groupBy, null, null, null, refreshMethods);
+                var transformingQuery = new InternalQueryNode(aggSelect, nestedFrom, where, groupBy, null, null, null,
+                    refreshMethods);
 
                 var returnScore = nestedFrom.Alias.ToScoreTable();
                 scopeResultQuery[MetaAttributes.SelectIntoVariableName] = returnScore;
                 scopeResultQuery[MetaAttributes.SourceName] = destination;
 
                 query = new DetailedQueryNode(
-                    outSelect, 
+                    outSelect,
                     new ExpressionFromNode(
                         new InMemoryGroupedFromNode(returnScore)),
                     new WhereNode(new PutTrueNode()),
-                    null, 
-                    null, 
-                    skip, 
-                    take, 
-                    destination, 
-                    returnScore, 
+                    null,
+                    null,
+                    skip,
+                    take,
+                    destination,
+                    returnScore,
                     true);
 
                 splittedNodes.Add(new CreateTableNode(destination, new string[0], transformingQuery.Select.Fields));
@@ -640,7 +658,7 @@ namespace Musoq.Evaluator.Visitors
 
                 Nodes.Push(
                     new MultiStatementNode(
-                        splittedNodes.ToArray(), 
+                        splittedNodes.ToArray(),
                         null));
 
                 source = destination;
@@ -649,27 +667,29 @@ namespace Musoq.Evaluator.Visitors
             {
                 var splitted = SplitBetweenAggreateAndNonAggreagate(select.Fields, new FieldNode[0], true);
 
-                if (IsQueryWithOnlyAggregateMethods(splitted)) //TODO Remove this branch as it SHOULD not be used anymore
+                if (IsQueryWithOnlyAggregateMethods(splitted)
+                ) //TODO Remove this branch as it SHOULD not be used anymore
                 {
-                    var fakeField = new FieldNode(new IntegerNode("1"), 0, String.Empty);
-                    var fakeGroupBy = new GroupByNode(new[] { fakeField }, null);
+                    var fakeField = new FieldNode(new IntegerNode("1"), 0, string.Empty);
+                    var fakeGroupBy = new GroupByNode(new[] {fakeField}, null);
                     Nodes.Push(from);
                     Nodes.Push(where);
                     Nodes.Push(select);
 
-                    if(node.Take != null)
+                    if (node.Take != null)
                         Nodes.Push(node.Take);
 
-                    if(node.Skip != null)
+                    if (node.Skip != null)
                         Nodes.Push(node.Skip);
 
                     Nodes.Push(fakeGroupBy);
-                    Visit(new QueryNode(node.Select, node.From, node.Where, fakeGroupBy, node.OrderBy, node.Skip, node.Take));
-                    return;
+                    Visit(new QueryNode(node.Select, node.From, node.Where, fakeGroupBy, node.OrderBy, node.Skip,
+                        node.Take));
                 }
                 else if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
                 {
-                    query = new InternalQueryNode(select, from, where, null, null, skip, take, CreateRefreshMethods(usedRefreshMethods));
+                    query = new InternalQueryNode(select, from, where, null, null, skip, take,
+                        CreateRefreshMethods(usedRefreshMethods));
                 }
                 else
                 {
@@ -682,54 +702,25 @@ namespace Musoq.Evaluator.Visitors
 
                     var newFrom = lastJoinQuery != null
                         ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
-                        : from; 
+                        : from;
 
-                    splittedNodes.Add(new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], new string[0], select.Fields));
-                    splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, where, null, null, skip, take, source, scopeResultQuery[MetaAttributes.SelectIntoVariableName], false));
+                    splittedNodes.Add(new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName],
+                        new string[0], select.Fields));
+                    splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, where, null, null, skip, take, source,
+                        scopeResultQuery[MetaAttributes.SelectIntoVariableName], false));
 
                     Nodes.Push(
                         new MultiStatementNode(
-                            splittedNodes.ToArray(), 
+                            splittedNodes.ToArray(),
                             null));
                 }
             }
         }
 
-        private bool IsQueryWithOnlyAggregateMethods(FieldNode[][] splitted)
-        {
-            return splitted[0].Length > 0 && splitted[0].Length == splitted[1].Length;
-        }
-
-        private bool IsQueryWithMixedAggregateAndNonAggregateMethods(FieldNode[][] splitted)
-        {
-            return splitted[0].Length > 0 && splitted[0].Length != splitted[1].Length;
-        }
-
-        private FieldNode[] ConcatAggregateFieldsWithGroupByFields(FieldNode[] selectFields, FieldNode[] groupByFields)
-        {
-            var fields = new List<FieldNode>(selectFields);
-            var nextOrder = -1;
-
-            if (selectFields.Length > 0)
-                nextOrder = selectFields.Max(f => f.FieldOrder);
-
-            foreach (var groupField in groupByFields)
-            {
-                var hasField = selectFields.Any(field => field.Expression.ToString() == groupField.Expression.ToString());
-
-                if (!hasField)
-                {
-                    fields.Add(new FieldNode(groupField.Expression, ++nextOrder, String.Empty));
-                }
-            }
-
-            return fields.ToArray();
-        }
-
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
             var exp = Nodes.Pop();
-            var from = (FromNode)Nodes.Pop();
+            var from = (FromNode) Nodes.Pop();
             Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp));
         }
 
@@ -745,9 +736,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SingleSetNode node)
         {
-            var query = (InternalQueryNode)Nodes.Pop();
+            var query = (InternalQueryNode) Nodes.Pop();
 
-            var nodes = new Node[] { new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields), query };
+            var nodes = new Node[] {new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields), query};
 
             Nodes.Push(new MultiStatementNode(nodes, null));
         }
@@ -767,7 +758,8 @@ namespace Musoq.Evaluator.Visitors
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
-            Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+            Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
+                node.IsTheLastOne));
         }
 
         public void Visit(ExceptNode node)
@@ -781,7 +773,8 @@ namespace Musoq.Evaluator.Visitors
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
-            Nodes.Push(new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+            Nodes.Push(
+                new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
         public void Visit(PutTrueNode node)
@@ -806,13 +799,10 @@ namespace Musoq.Evaluator.Visitors
             var set = Nodes.Pop();
 
             for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
-                sets[i] = (CteInnerExpressionNode)Nodes.Pop();
+                sets[i] = (CteInnerExpressionNode) Nodes.Pop();
 
             Nodes.Push(new CteExpressionNode(sets, set));
         }
-        
-        private Scope _scope;
-        private readonly List<JoinFromNode> _joinedTables = new List<JoinFromNode>();
 
         public void Visit(CteInnerExpressionNode node)
         {
@@ -821,7 +811,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinsNode node)
         {
-            Nodes.Push(new JoinsNode((JoinFromNode)Nodes.Pop()));
+            Nodes.Push(new JoinsNode((JoinFromNode) Nodes.Pop()));
         }
 
         public void Visit(JoinNode node)
@@ -833,6 +823,48 @@ namespace Musoq.Evaluator.Visitors
             _scope = scope;
         }
 
+        public void BeginCteQueryPart(CteExpressionNode node, CtePart part)
+        {
+            _ctePart = part;
+
+            if (part == CtePart.Outer)
+                _setLeftNode = null;
+        }
+
+        public void EndCteQuery()
+        {
+            _ctePart = CtePart.None;
+        }
+
+        private bool IsQueryWithOnlyAggregateMethods(FieldNode[][] splitted)
+        {
+            return splitted[0].Length > 0 && splitted[0].Length == splitted[1].Length;
+        }
+
+        private bool IsQueryWithMixedAggregateAndNonAggregateMethods(FieldNode[][] splitted)
+        {
+            return splitted[0].Length > 0 && splitted[0].Length != splitted[1].Length;
+        }
+
+        private FieldNode[] ConcatAggregateFieldsWithGroupByFields(FieldNode[] selectFields, FieldNode[] groupByFields)
+        {
+            var fields = new List<FieldNode>(selectFields);
+            var nextOrder = -1;
+
+            if (selectFields.Length > 0)
+                nextOrder = selectFields.Max(f => f.FieldOrder);
+
+            foreach (var groupField in groupByFields)
+            {
+                var hasField =
+                    selectFields.Any(field => field.Expression.ToString() == groupField.Expression.ToString());
+
+                if (!hasField) fields.Add(new FieldNode(groupField.Expression, ++nextOrder, string.Empty));
+            }
+
+            return fields.ToArray();
+        }
+
         private void VisitAccessMethod(AccessMethodNode node)
         {
             var args = Nodes.Pop() as ArgsListNode;
@@ -840,13 +872,14 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new AccessMethodNode(node.FToken, args, null, node.Method, node.Alias));
         }
 
-        private FieldNode[][] SplitBetweenAggreateAndNonAggreagate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields, bool useOuterFields)
+        private FieldNode[][] SplitBetweenAggreateAndNonAggreagate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields,
+            bool useOuterFields)
         {
             var nestedFields = new List<FieldNode>();
             var outerFields = new List<FieldNode>();
             var rawNestedFields = new List<FieldNode>();
 
-            int fieldOrder = 0;
+            var fieldOrder = 0;
 
             foreach (var root in fieldsToSplit)
             {
@@ -864,7 +897,7 @@ namespace Musoq.Evaluator.Visitors
                         if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
                             continue;
 
-                        var nameArg = (WordNode)aggregateMethod.Arguments.Args[0];
+                        var nameArg = (WordNode) aggregateMethod.Arguments.Args[0];
                         nestedFields.Add(new FieldNode(subNode, fieldOrder, nameArg.Value));
                         rawNestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
                         fieldOrder += 1;
@@ -879,6 +912,7 @@ namespace Musoq.Evaluator.Visitors
                         subNodes.Push(binary.Left);
                         subNodes.Push(binary.Right);
                     }
+
                     //else if (subNode is UnaryNode unary && !(subNode is AccessPropertyNode))
                     //{
                     //    subNodes.Push(unary);
@@ -890,7 +924,7 @@ namespace Musoq.Evaluator.Visitors
 
                 var rewriter = new RewriteFieldWithGroupMethodCall(0, groupByFields);
                 var traverser = new CloneTraverseVisitor(rewriter);
-                
+
                 root.Accept(traverser);
 
                 outerFields.Add(rewriter.Expression);
@@ -925,10 +959,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var dict = new Dictionary<int, string>();
 
-            for (var i = 0; i < fields.Length; i++)
-            {
-                dict.Add(i, fields[i].Expression.ToString());
-            }
+            for (var i = 0; i < fields.Length; i++) dict.Add(i, fields[i].Expression.ToString());
 
             return dict;
         }
@@ -947,7 +978,8 @@ namespace Musoq.Evaluator.Visitors
 
                 if (field.Expression is AllColumnsNode)
                 {
-                    fields.AddRange(_generatedColumns.Select(column => new FieldNode(column.Expression, p++, column.FieldName)));
+                    fields.AddRange(_generatedColumns.Select(column =>
+                        new FieldNode(column.Expression, p++, column.FieldName)));
                     continue;
                 }
 
@@ -959,45 +991,42 @@ namespace Musoq.Evaluator.Visitors
 
         private FieldNode[] CreateAndConcatFields(TableSymbol left, string lAlias, TableSymbol right, string rAlias,
             Func<string, string, string> func)
-            => CreateAndConcatFields(left, lAlias, right, rAlias, func, func, (name, alias) => name, (name, alias) => name);
+        {
+            return CreateAndConcatFields(left, lAlias, right, rAlias, func, func, (name, alias) => name,
+                (name, alias) => name);
+        }
 
-        private FieldNode[] CreateAndConcatFields(TableSymbol left, string lAlias, TableSymbol right, string rAlias, Func<string, string, string> lfunc, Func<string, string, string> rfunc, Func<string, string, string> lcfunc, Func<string, string, string> rcfunc)
+        private FieldNode[] CreateAndConcatFields(TableSymbol left, string lAlias, TableSymbol right, string rAlias,
+            Func<string, string, string> lfunc, Func<string, string, string> rfunc, Func<string, string, string> lcfunc,
+            Func<string, string, string> rcfunc)
         {
             var fields = new List<FieldNode>();
 
-            int i = 0;
+            var i = 0;
 
             foreach (var compoundTable in left.CompoundTables)
-            {
-                foreach (var column in left.GetColumns(compoundTable))
-                {
-                    fields.Add(
-                        new FieldNode(
-                            new AccessColumnNode(
-                                lcfunc(column.ColumnName, compoundTable),
-                                lAlias,
-                                column.ColumnType,
-                                TextSpan.Empty), 
-                            i++,
-                            lfunc(column.ColumnName, compoundTable)));
-                }
-            }
+            foreach (var column in left.GetColumns(compoundTable))
+                fields.Add(
+                    new FieldNode(
+                        new AccessColumnNode(
+                            lcfunc(column.ColumnName, compoundTable),
+                            lAlias,
+                            column.ColumnType,
+                            TextSpan.Empty),
+                        i++,
+                        lfunc(column.ColumnName, compoundTable)));
 
             foreach (var compoundTable in right.CompoundTables)
-            {
-                foreach (var column in right.GetColumns(compoundTable))
-                {
-                    fields.Add(
-                        new FieldNode(
-                            new AccessColumnNode(
-                                rcfunc(column.ColumnName, compoundTable),
-                                rAlias,
-                                column.ColumnType,
-                                TextSpan.Empty),
-                            i++,
-                            rfunc(column.ColumnName, compoundTable)));
-                }
-            }
+            foreach (var column in right.GetColumns(compoundTable))
+                fields.Add(
+                    new FieldNode(
+                        new AccessColumnNode(
+                            rcfunc(column.ColumnName, compoundTable),
+                            rAlias,
+                            column.ColumnType,
+                            TextSpan.Empty),
+                        i++,
+                        rfunc(column.ColumnName, compoundTable)));
 
             return fields.ToArray();
         }
@@ -1031,7 +1060,8 @@ namespace Musoq.Evaluator.Visitors
         private static FieldNode[] TurnIntoFieldColumnAccess(FieldNode[] fields)
         {
             return fields.Select(f =>
-                new FieldNode(new AccessColumnNode(f.FieldName, string.Empty, f.ReturnType, TextSpan.Empty), f.FieldOrder,
+                new FieldNode(new AccessColumnNode(f.FieldName, string.Empty, f.ReturnType, TextSpan.Empty),
+                    f.FieldOrder,
                     f.FieldName)).ToArray();
         }
     }

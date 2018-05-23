@@ -56,6 +56,7 @@
         {
             return $"{left}{right}SetKey";
         }
+
         public static string ToRefreshMethodsSymbolName(this string left)
         {
             return $"{left}RefreshMethods";

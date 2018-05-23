@@ -15,6 +15,8 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType => typeof(decimal);
 
+        public override string Id { get; }
+
         public override string ToString()
         {
             return Value.ToString(CultureInfo.InvariantCulture);
@@ -24,7 +26,5 @@ namespace Musoq.Parser.Nodes
         {
             visitor.Visit(this);
         }
-
-        public override string Id { get; }
     }
 }

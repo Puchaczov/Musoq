@@ -23,7 +23,7 @@ namespace Musoq.Schema.Json
                     case JTokenType.None:
                         break;
                     case JTokenType.Object:
-                        return new DynamicJsonWrapper((JObject)value);
+                        return new DynamicJsonWrapper((JObject) value);
                     case JTokenType.Array:
                         break;
                     case JTokenType.Constructor:

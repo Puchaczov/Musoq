@@ -4,7 +4,8 @@ namespace Musoq.Parser.Nodes
 {
     public class QueryNode : Node
     {
-        public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy, SkipNode skip, TakeNode take)
+        public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
+            SkipNode skip, TakeNode take)
         {
             Select = select;
             From = from;
@@ -32,17 +33,17 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType => null;
 
+        public override string Id { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        public override string Id { get; }
-
         public override string ToString()
         {
-
-            return $"{Select?.ToString()} {From?.ToString()} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
+            return
+                $"{Select?.ToString()} {From?.ToString()} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
         }
     }
 }

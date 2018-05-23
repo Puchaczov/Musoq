@@ -35,7 +35,8 @@ namespace Musoq.Schema.Disk.Zip
                 {3, info => info.LastWriteTime},
                 {4, info => info.Length},
                 {5, info => info},
-                {6,
+                {
+                    6,
                     info =>
                     {
                         //CONSIDER USING MEMORY MAPPED FILES!

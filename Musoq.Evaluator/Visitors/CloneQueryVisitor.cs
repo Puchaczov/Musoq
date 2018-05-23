@@ -3,15 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Utils;
-using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Tokens;
-using Musoq.Plugins.Attributes;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -19,7 +12,7 @@ namespace Musoq.Evaluator.Visitors
     {
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
 
-        public RootNode Root => (RootNode)Nodes.Peek();
+        public RootNode Root => (RootNode) Nodes.Peek();
 
         public void Visit(Node node)
         {
@@ -27,7 +20,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(DescNode node)
         {
-            Nodes.Push(new DescNode((FromNode)Nodes.Pop()));
+            Nodes.Push(new DescNode((FromNode) Nodes.Pop()));
         }
 
         public virtual void Visit(StarNode node)
@@ -153,7 +146,7 @@ namespace Musoq.Evaluator.Visitors
             var fields = new FieldNode[node.Fields.Length];
 
             for (var i = node.Fields.Length - 1; i >= 0; --i)
-                fields[i] = (FieldNode)Nodes.Pop();
+                fields[i] = (FieldNode) Nodes.Pop();
 
             Nodes.Push(new SelectNode(fields.ToArray()));
         }
@@ -163,7 +156,7 @@ namespace Musoq.Evaluator.Visitors
             var fields = new FieldNode[node.Fields.Length];
 
             for (var i = node.Fields.Length - 1; i >= 0; --i)
-                fields[i] = (FieldNode)Nodes.Pop();
+                fields[i] = (FieldNode) Nodes.Pop();
 
             Nodes.Push(new GroupSelectNode(fields));
         }
@@ -197,7 +190,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(AccessMethodNode node)
         {
-            Nodes.Push(new AccessMethodNode(node.FToken, (ArgsListNode)Nodes.Pop(), null, node.Method, node.Alias));
+            Nodes.Push(new AccessMethodNode(node.FToken, (ArgsListNode) Nodes.Pop(), null, node.Method, node.Alias));
         }
 
         public virtual void Visit(GroupByAccessMethodNode node)
@@ -254,7 +247,9 @@ namespace Musoq.Evaluator.Visitors
             var chainPretend = Nodes.Pop();
 
             if (chainPretend is AccessColumnNode)
+            {
                 Nodes.Push(chainPretend);
+            }
             else
             {
                 var dotNode = chainPretend;
@@ -267,9 +262,9 @@ namespace Musoq.Evaluator.Visitors
                 }
 
                 var chain = theMostInnerDotNode;
-                var column = (AccessColumnNode)dotNode;
+                var column = (AccessColumnNode) dotNode;
                 dotNode = theMostInnerDotNode;
-                var props = new List<(PropertyInfo, Object)>();
+                var props = new List<(PropertyInfo, object)>();
 
                 var type = column.ReturnType;
                 while (dotNode != null && dotNode is DotNode dot)
@@ -286,6 +281,7 @@ namespace Musoq.Evaluator.Visitors
                             props.Add((objArr.PropertyInfo, objArr.Token.Index));
                             break;
                     }
+
                     dotNode = dot.Expression;
                 }
 
@@ -317,10 +313,7 @@ namespace Musoq.Evaluator.Visitors
 
             var fields = new FieldNode[node.Fields.Length];
 
-            for (var i = node.Fields.Length - 1; i >= 0; --i)
-            {
-                fields[i] = Nodes.Pop() as FieldNode;
-            }
+            for (var i = node.Fields.Length - 1; i >= 0; --i) fields[i] = Nodes.Pop() as FieldNode;
 
             Nodes.Push(new GroupByNode(fields, having));
         }
@@ -332,12 +325,12 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(SkipNode node)
         {
-            Nodes.Push(new SkipNode((IntegerNode)node.Expression));
+            Nodes.Push(new SkipNode((IntegerNode) node.Expression));
         }
 
         public virtual void Visit(TakeNode node)
         {
-            Nodes.Push(new TakeNode((IntegerNode)node.Expression));
+            Nodes.Push(new TakeNode((IntegerNode) node.Expression));
         }
 
         public virtual void Visit(SchemaFromNode node)
@@ -348,8 +341,8 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(JoinSourcesTableFromNode node)
         {
             var exp = Nodes.Pop();
-            var b = (FromNode)Nodes.Pop();
-            var a = (FromNode)Nodes.Pop();
+            var b = (FromNode) Nodes.Pop();
+            var a = (FromNode) Nodes.Pop();
 
             Nodes.Push(new JoinSourcesTableFromNode(a, b, exp));
         }
@@ -362,15 +355,15 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(JoinFromNode node)
         {
             var expression = Nodes.Pop();
-            var joinedTable = (FromNode)Nodes.Pop();
-            var source = (FromNode)Nodes.Pop();
+            var joinedTable = (FromNode) Nodes.Pop();
+            var source = (FromNode) Nodes.Pop();
             var joinedFrom = new JoinFromNode(source, joinedTable, expression, node.JoinType);
             Nodes.Push(joinedFrom);
         }
 
         public virtual void Visit(ExpressionFromNode node)
         {
-            var from = (FromNode)Nodes.Pop();
+            var from = (FromNode) Nodes.Pop();
             Nodes.Push(new ExpressionFromNode(from));
         }
 
@@ -379,7 +372,7 @@ namespace Musoq.Evaluator.Visitors
             var items = new FieldNode[node.Fields.Length];
 
             for (var i = node.Fields.Length - 1; i >= 0; --i)
-                items[i] = (FieldNode)Nodes.Pop();
+                items[i] = (FieldNode) Nodes.Pop();
 
             Nodes.Push(new CreateTableNode(node.Name, node.Keys, items));
         }
@@ -428,7 +421,7 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
             var exp = Nodes.Pop();
-            var from = (FromNode)Nodes.Pop();
+            var from = (FromNode) Nodes.Pop();
             Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp));
         }
 
@@ -464,7 +457,8 @@ namespace Musoq.Evaluator.Visitors
             var right = Nodes.Pop();
             var left = Nodes.Pop();
 
-            Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+            Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
+                node.IsTheLastOne));
         }
 
         public virtual void Visit(ExceptNode node)
@@ -478,7 +472,8 @@ namespace Musoq.Evaluator.Visitors
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
-            Nodes.Push(new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+            Nodes.Push(
+                new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
         public virtual void Visit(PutTrueNode node)
@@ -501,7 +496,7 @@ namespace Musoq.Evaluator.Visitors
             var sets = new CteInnerExpressionNode[node.InnerExpression.Length];
 
             for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
-                sets[i] = (CteInnerExpressionNode)Nodes.Pop();
+                sets[i] = (CteInnerExpressionNode) Nodes.Pop();
 
             Nodes.Push(new CteExpressionNode(sets, Nodes.Pop()));
         }
@@ -513,13 +508,13 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(JoinsNode node)
         {
-            Nodes.Push(new JoinsNode((JoinFromNode)Nodes.Pop()));
+            Nodes.Push(new JoinsNode((JoinFromNode) Nodes.Pop()));
         }
 
         public virtual void Visit(JoinNode node)
         {
             var expression = Nodes.Pop();
-            var fromNode = (FromNode)Nodes.Pop();
+            var fromNode = (FromNode) Nodes.Pop();
 
             if (node is OuterJoinNode outerJoin)
                 Nodes.Push(new OuterJoinNode(outerJoin.Type, fromNode, expression));

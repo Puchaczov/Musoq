@@ -6,12 +6,12 @@ namespace Musoq.Parser.Nodes
     {
         public override Type ReturnType => typeof(bool);
 
+        public override string Id => $"{nameof(PutTrueNode)}true";
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
-
-        public override string Id => $"{nameof(PutTrueNode)}true";
 
         public override string ToString()
         {

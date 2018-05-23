@@ -15,12 +15,14 @@ namespace Musoq.Evaluator.Tests
             var query = @"select SumIncome(1, Money), SumOutcome(1, Money) from #A.Entities() group by Month, City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[]
                 {
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }}
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -38,10 +40,18 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void GroupBySubtractGroupsTest()
         {
-            var query = @"select SumIncome(Money), SumOutcome(Money), SumIncome(Money) - Abs(SumOutcome(Money)) from #A.Entities() group by Month";
+            var query =
+                @"select SumIncome(Money), SumOutcome(Money), SumIncome(Money) - Abs(SumOutcome(Money)) from #A.Entities() group by Month";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("jan", Convert.ToDecimal(400)), new BasicEntity("jan", Convert.ToDecimal(300)), new BasicEntity("jan", Convert.ToDecimal(-200)) }}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("jan", Convert.ToDecimal(400)), new BasicEntity("jan", Convert.ToDecimal(300)),
+                        new BasicEntity("jan", Convert.ToDecimal(-200))
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -419,7 +429,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void GroupByColumnSubstringTest()
         {
-            var query = "select Country, Substr(City, IndexOf(City, ':')) as 'City', Count(City) as 'Count', Sum(Population) as 'Sum' from #A.Entities() group by Substr(City, IndexOf(City, ':')), Country";
+            var query =
+                "select Country, Substr(City, IndexOf(City, ':')) as 'City', Count(City) as 'Count', Sum(Population) as 'Sum' from #A.Entities() group by Substr(City, IndexOf(City, ':')), Country";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -460,7 +471,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void GroupByWithParentCountTest()
         {
-            var query = "select Country, City as 'City', ParentCount(1), Count(City) as 'CountOfCities' from #A.Entities() group by Country, City";
+            var query =
+                "select Country, City as 'City', ParentCount(1), Count(City) as 'CountOfCities' from #A.Entities() group by Country, City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -519,7 +531,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void GroupByWithWhereTest()
         {
-            var query = "select Country, City as 'City', ParentCount(1), Count(City) as 'CountOfCities' from #A.Entities() where Country = 'POLAND' group by Country, City";
+            var query =
+                "select Country, City as 'City', ParentCount(1), Count(City) as 'CountOfCities' from #A.Entities() where Country = 'POLAND' group by Country, City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -759,12 +772,14 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Month from #A.Entities() group by Month";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[]
                 {
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }}
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -780,12 +795,14 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Self.Month from #A.Entities() group by Self.Month";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[]
                 {
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }}
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -801,13 +818,15 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Self.Month, Sum(Self.Money) from #A.Entities() group by Self.Month";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[]
                 {
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
-                    new BasicEntity("cracow", "feb", Convert.ToDecimal(100))
-                }}
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
+                        new BasicEntity("cracow", "feb", Convert.ToDecimal(100))
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);

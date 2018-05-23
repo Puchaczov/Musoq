@@ -34,13 +34,15 @@ namespace Musoq.Service.Controllers
         public Method[] Methods()
         {
             var methods = new List<Method>();
-            foreach (var library in new LibraryBase[] { /*TO DO*/ })
+            foreach (var library in new LibraryBase[]
+            {
+                /*TO DO*/
+            })
             {
                 var bindableMethods = library.GetType().GetMethods()
                     .Where(f => f.GetCustomAttribute<BindableMethodAttribute>() != null);
 
                 foreach (var method in bindableMethods)
-                {
                     methods.Add(new Method
                     {
                         Name = method.Name,
@@ -51,7 +53,6 @@ namespace Musoq.Service.Controllers
                             .Select(f => f.ParameterType.Name)
                             .ToArray()
                     });
-                }
             }
 
             return methods.ToArray();

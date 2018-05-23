@@ -14,11 +14,12 @@ namespace Musoq.Schema.FlatFile
             _filePath = filePath;
         }
 
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<FlatFileEntity>>> chunkedSource)
+        protected override void CollectChunks(
+            BlockingCollection<IReadOnlyList<EntityResolver<FlatFileEntity>>> chunkedSource)
         {
             const int chunkSize = 1000;
 
-            if(!File.Exists(_filePath))
+            if (!File.Exists(_filePath))
                 return;
 
             var rowNum = 0;
@@ -32,13 +33,14 @@ namespace Musoq.Schema.FlatFile
                     while (!reader.EndOfStream)
                     {
                         var line = reader.ReadLine();
-                        var entity = new FlatFileEntity()
+                        var entity = new FlatFileEntity
                         {
                             Line = line,
                             LineNumber = ++rowNum
                         };
 
-                        list.Add(new EntityResolver<FlatFileEntity>(entity, FlatFileHelper.FlatNameToIndexMap, FlatFileHelper.FlatIndexToMethodAccessMap));
+                        list.Add(new EntityResolver<FlatFileEntity>(entity, FlatFileHelper.FlatNameToIndexMap,
+                            FlatFileHelper.FlatIndexToMethodAccessMap));
 
                         if (rowNum <= chunkSize)
                             continue;

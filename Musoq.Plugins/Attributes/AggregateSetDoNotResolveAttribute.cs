@@ -3,5 +3,6 @@
 namespace Musoq.Plugins.Attributes
 {
     public class AggregateSetDoNotResolveAttribute : Attribute
-    { }
+    {
+    }
 }

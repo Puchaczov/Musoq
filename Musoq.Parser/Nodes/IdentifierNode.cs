@@ -9,14 +9,17 @@ namespace Musoq.Parser.Nodes
             Name = name;
             Id = $"{nameof(IdentifierNode)}{Name}";
         }
+
         public string Name { get; }
         public override Type ReturnType { get; }
+
+        public override string Id { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        public override string Id { get; }
         public override string ToString()
         {
             return Name;

@@ -14,18 +14,18 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType => Expression.ReturnType;
 
+        public override string Id { get; }
+
+        public static WhereNode Empty => new WhereNode(new PutTrueNode());
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        public override string Id { get; }
-
         public override string ToString()
         {
             return $"where {Expression.ToString()}";
         }
-
-        public static WhereNode Empty => new WhereNode(new PutTrueNode());
     }
 }

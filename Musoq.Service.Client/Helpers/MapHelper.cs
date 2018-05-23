@@ -8,9 +8,12 @@ namespace Musoq.Service.Client.Helpers
     {
         public static IReadOnlyList<T> MapToType<T>(ResultTable table)
             where T : new()
-            => MapToType<T>(table, new Dictionary<string, Func<object, object>>());
+        {
+            return MapToType<T>(table, new Dictionary<string, Func<object, object>>());
+        }
 
-        public static IReadOnlyList<T> MapToType<T>(ResultTable table, Dictionary<string, Func<object, object>> converters)
+        public static IReadOnlyList<T> MapToType<T>(ResultTable table,
+            Dictionary<string, Func<object, object>> converters)
             where T : new()
         {
             var items = new List<T>();
@@ -21,7 +24,7 @@ namespace Musoq.Service.Client.Helpers
             foreach (var row in table.Rows)
             {
                 var obj = new T();
-                for (int i = 0; i < row.Length; i++)
+                for (var i = 0; i < row.Length; i++)
                 {
                     var columnName = table.Columns[i];
                     var mapResult = row[i];

@@ -8,7 +8,7 @@ namespace Musoq.Schema.FlatFile
     {
         private const string SchemaName = "FlatFile";
 
-        public FlatFileSchema() 
+        public FlatFileSchema()
             : base(SchemaName, CreateLibrary())
         {
         }

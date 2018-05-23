@@ -2,7 +2,7 @@
 {
     public class ExpressionFromNode : FromNode
     {
-        public ExpressionFromNode(FromNode @from)
+        public ExpressionFromNode(FromNode from)
             : base(from.Alias)
         {
             Expression = from;
@@ -13,12 +13,13 @@
 
         public override string Alias => Expression.Alias;
 
+        public override string Id { get; }
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        public override string Id { get; }
         public override string ToString()
         {
             return $"from ({Expression.ToString()})";

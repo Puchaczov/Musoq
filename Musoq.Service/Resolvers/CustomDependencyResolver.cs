@@ -16,41 +16,20 @@ namespace Musoq.Service.Resolvers
     public class CustomDependencyResolver : IDependencyResolver
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
+
+        private readonly ICacheManager<IRunnable> _expressionsCache = CacheFactory.Build<IRunnable>(
+            "evaluatedExpressions",
+            settings => { settings.WithSystemRuntimeCacheHandle("exps"); });
+
         private readonly IDictionary<Guid, ExecutionState> _states;
 
         public IDictionary<string, Type> _loadedSchemas;
-
-        private readonly ICacheManager<IRunnable> _expressionsCache = CacheFactory.Build<IRunnable>("evaluatedExpressions",
-            settings => { settings.WithSystemRuntimeCacheHandle("exps"); });
 
         public CustomDependencyResolver()
         {
             _contexts = new ConcurrentDictionary<Guid, QueryContext>();
             _states = new ConcurrentDictionary<Guid, ExecutionState>();
             LoadSchemas();
-        }
-
-        private void LoadSchemas()
-        {
-            _loadedSchemas = new ConcurrentDictionary<string, Type>();
-
-            var types = new List<Type>();
-
-            types.AddRange(PluginsLoader.LoadDllBasedSchemas());
-
-            foreach (var type in types)
-            {
-                try
-                {
-                    ServiceLogger.Instance.Log($"Attempting to load plugin {type.Name}");
-                    var schema = (ISchema)Activator.CreateInstance(type);
-                    _loadedSchemas.Add($"#{schema.Name.ToLowerInvariant()}", type);
-                }
-                catch (Exception e)
-                {
-                    ServiceLogger.Instance.Log(e);
-                }
-            }
         }
 
         public void Dispose()
@@ -66,7 +45,8 @@ namespace Musoq.Service.Resolvers
                 case nameof(ContextController):
                     return new ContextController(_contexts, ServiceLogger.Instance);
                 case nameof(RuntimeController):
-                    return new RuntimeController(_contexts, _states, _expressionsCache, ServiceLogger.Instance, _loadedSchemas);
+                    return new RuntimeController(_contexts, _states, _expressionsCache, ServiceLogger.Instance,
+                        _loadedSchemas);
                 case nameof(SelfController):
                     return new SelfController();
             }
@@ -82,6 +62,27 @@ namespace Musoq.Service.Resolvers
         public IDependencyScope BeginScope()
         {
             return this;
+        }
+
+        private void LoadSchemas()
+        {
+            _loadedSchemas = new ConcurrentDictionary<string, Type>();
+
+            var types = new List<Type>();
+
+            types.AddRange(PluginsLoader.LoadDllBasedSchemas());
+
+            foreach (var type in types)
+                try
+                {
+                    ServiceLogger.Instance.Log($"Attempting to load plugin {type.Name}");
+                    var schema = (ISchema) Activator.CreateInstance(type);
+                    _loadedSchemas.Add($"#{schema.Name.ToLowerInvariant()}", type);
+                }
+                catch (Exception e)
+                {
+                    ServiceLogger.Instance.Log(e);
+                }
         }
     }
 }

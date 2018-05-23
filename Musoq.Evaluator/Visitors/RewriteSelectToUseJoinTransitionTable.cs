@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Musoq.Evaluator.Helpers;
-using Musoq.Parser;
+﻿using Musoq.Evaluator.Helpers;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors
@@ -20,17 +18,15 @@ namespace Musoq.Evaluator.Visitors
 
         public override void Visit(AccessColumnNode node)
         {
-            base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), _alias, node.ReturnType, node.Span));
+            base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), _alias, node.ReturnType,
+                node.Span));
         }
 
         public override void Visit(SelectNode node)
         {
             var fields = new FieldNode[node.Fields.Length];
 
-            for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--)
-            {
-                fields[j] = (FieldNode)Nodes.Pop();
-            }
+            for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode) Nodes.Pop();
 
             ChangedSelect = new SelectNode(fields);
         }
@@ -39,13 +35,10 @@ namespace Musoq.Evaluator.Visitors
         {
             var fields = new FieldNode[node.Fields.Length];
 
-            for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--)
-            {
-                fields[j] = (FieldNode)Nodes.Pop();
-            }
+            for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode) Nodes.Pop();
 
-            if(node.Having != null)
-                ChangedGroupBy = new GroupByNode(fields, (HavingNode)Nodes.Pop());
+            if (node.Having != null)
+                ChangedGroupBy = new GroupByNode(fields, (HavingNode) Nodes.Pop());
             else
                 ChangedGroupBy = new GroupByNode(fields, null);
         }

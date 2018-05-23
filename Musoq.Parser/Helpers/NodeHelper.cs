@@ -9,8 +9,6 @@ namespace Musoq.Parser.Helpers
 {
     public static class NodeHelper
     {
-        public static IReadOnlyDictionary<(Type, Type), Type> BinaryTypes { get; }
-
         static NodeHelper()
         {
             var dict = new Dictionary<(Type, Type), Type>();
@@ -45,8 +43,12 @@ namespace Musoq.Parser.Helpers
             dict.Add((typeof(object), typeof(object)), typeof(object));
         }
 
+        public static IReadOnlyDictionary<(Type, Type), Type> BinaryTypes { get; }
+
         public static Type GetReturnTypeMap(Type left, Type right)
-            => BinaryTypes[(left, right)];
+        {
+            return BinaryTypes[(left, right)];
+        }
 
         /// <summary>
         ///     Calculates unique identifier for accessed column.
@@ -71,10 +73,7 @@ namespace Musoq.Parser.Helpers
                 var hashedContent = hash.ComputeHash(stream);
 
                 var sb = new StringBuilder(hashedContent.Length * 2);
-                foreach (var b in hashedContent)
-                {
-                    sb.Append(b.ToString("X2"));
-                }
+                foreach (var b in hashedContent) sb.Append(b.ToString("X2"));
 
                 return sb.ToString();
             }

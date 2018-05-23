@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using IdentifierNode = Musoq.Parser.Nodes.IdentifierNode;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -199,10 +198,10 @@ namespace Musoq.Evaluator.Visitors
 
             if (joins.Count <= 0) return;
 
-            @join = joins.Pop();
-            @join.With.Accept(this);
-            @join.Expression.Accept(this);
-            @join.Accept(_visitor);
+            join = joins.Pop();
+            join.With.Accept(this);
+            join.Expression.Accept(this);
+            join.Accept(_visitor);
         }
 
         public void Visit(ExpressionFromNode node)
@@ -499,10 +498,7 @@ namespace Musoq.Evaluator.Visitors
             _walker = _walker.NextChild();
             _visitor.SetScope(_walker.Scope);
 
-            foreach (var exp in node.InnerExpression)
-            {
-                exp.Accept(this);
-            }
+            foreach (var exp in node.InnerExpression) exp.Accept(this);
             node.OuterExpression.Accept(this);
             node.Accept(_visitor);
 

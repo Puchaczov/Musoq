@@ -9,7 +9,8 @@ namespace Musoq.Parser.Nodes
     {
         public readonly FunctionToken FToken;
 
-        public AccessMethodNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraAggregateArguments, MethodInfo method = (MethodInfo) null, string alias = "")
+        public AccessMethodNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraAggregateArguments,
+            MethodInfo method = (MethodInfo) null, string alias = "")
         {
             FToken = fToken;
             Arguments = args;
@@ -27,12 +28,15 @@ namespace Musoq.Parser.Nodes
 
         public string Alias { get; }
 
-        public bool IsAggregateMethod => Method != null && Method.GetCustomAttribute<AggregationMethodAttribute>() != null;
+        public bool IsAggregateMethod =>
+            Method != null && Method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
         public ArgsListNode ExtraAggregateArguments { get; }
 
         public int ArgsCount => Arguments.Args.Length;
         public override Type ReturnType => Method != null ? Method.ReturnType : typeof(void);
+
+        public override string Id { get; }
 
         public override void Accept(IExpressionVisitor visitor)
         {
@@ -43,8 +47,6 @@ namespace Musoq.Parser.Nodes
         {
             Method = method;
         }
-
-        public override string Id { get; }
 
         public override string ToString()
         {

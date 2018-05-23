@@ -15,7 +15,14 @@ namespace Musoq.Evaluator.Tests
             var query = "select Name from #A.Entities() where Name like '%AA%'";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"), new BasicEntity("dadsqqAA")}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
+                        new BasicEntity("dadsqqAA")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -34,7 +41,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void ComplexWhere1Test()
         {
-            var query = "select Population from #A.Entities() where Population > 0 and Population - 100 > -1.5d and Population - 100 < 1.5d";
+            var query =
+                "select Population from #A.Entities() where Population > 0 and Population - 100 > -1.5d and Population - 100 < 1.5d";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -67,7 +75,14 @@ namespace Musoq.Evaluator.Tests
             var query = "select Name from #A.Entities() where Name not like '%AA%'";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"), new BasicEntity("dadsqqAA")}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
+                        new BasicEntity("dadsqqAA")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -84,10 +99,14 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void MultipleAndOperatorTest()
         {
-            var query = "select Name from #A.Entities() where IndexOf(Name, 'A') = 0 and IndexOf(Name, 'B') = 1 and IndexOf(Name, 'C') = 2";
+            var query =
+                "select Name from #A.Entities() where IndexOf(Name, 'A') = 0 and IndexOf(Name, 'B') = 1 and IndexOf(Name, 'C') = 2";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")}}
+                {
+                    "#A",
+                    new[] {new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")}
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -108,7 +127,10 @@ namespace Musoq.Evaluator.Tests
             var query = "select Name from #A.Entities() where Name = 'ABC' or Name = 'ABCD' or Name = 'A'";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")}}
+                {
+                    "#A",
+                    new[] {new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")}
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -150,7 +172,13 @@ namespace Musoq.Evaluator.Tests
             var query = "select Name from #A.Entities() where Name contains ('ABC', 'CdA', 'CDA', 'DDABC')";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("ABC"), new BasicEntity("XXX"), new BasicEntity("CDA"), new BasicEntity("DDABC")}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("ABC"), new BasicEntity("XXX"), new BasicEntity("CDA"), new BasicEntity("DDABC")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -172,7 +200,21 @@ namespace Musoq.Evaluator.Tests
             var query = "select NothingToDo(Self) from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"){ Name = "ABBA", Country = "POLAND", City = "CRACOV", Money = 1.23m, Month = "JANUARY", Population = 250}}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001")
+                        {
+                            Name = "ABBA",
+                            Country = "POLAND",
+                            City = "CRACOV",
+                            Money = 1.23m,
+                            Month = "JANUARY",
+                            Population = 250
+                        }
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -192,7 +234,21 @@ namespace Musoq.Evaluator.Tests
             var query = "select Self from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"){ Name = "ABBA", Country = "POLAND", City = "CRACOV", Money = 1.23m, Month = "JANUARY", Population = 250}}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001")
+                        {
+                            Name = "ABBA",
+                            Country = "POLAND",
+                            City = "CRACOV",
+                            Money = 1.23m,
+                            Month = "JANUARY",
+                            Population = 250
+                        }
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -229,7 +285,7 @@ namespace Musoq.Evaluator.Tests
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
             Assert.AreEqual("1", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual(typeof(Int64), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual(typeof(long), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual("Name", table.Columns.ElementAt(1).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
@@ -293,7 +349,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual("Self.Array[2]", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual(typeof(Int32), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual(2, table[0].Values[0]);
@@ -306,7 +362,7 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Self.Array from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001")} }
+                {"#A", new[] {new BasicEntity("001")}}
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -324,7 +380,7 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Self.Self.Array from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001")} }
+                {"#A", new[] {new BasicEntity("001")}}
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -349,7 +405,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual("Inc(Self.Array[2])", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual(typeof(Int64), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual(typeof(long), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual(Convert.ToInt64(3), table[0].Values[0]);
@@ -362,7 +418,7 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Name from #A.Entities() where Name = '001' or Name = '005'";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"),  new BasicEntity("002"), new BasicEntity("005")}},
+                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}}
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -396,7 +452,14 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Name from #A.Entities() skip 2";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
+                        new BasicEntity("005"), new BasicEntity("006")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -415,8 +478,9 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Name from #A.Entities() take 2";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A",
-                    new[] 
+                {
+                    "#A",
+                    new[]
                     {
                         new BasicEntity("001"),
                         new BasicEntity("002"),
@@ -442,7 +506,14 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Name from #A.Entities() skip 1 take 2";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
+                        new BasicEntity("005"), new BasicEntity("006")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -459,7 +530,14 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Name from #A.Entities() skip 100";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
+                        new BasicEntity("005"), new BasicEntity("006")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -474,7 +552,14 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Name from #A.Entities() take 100";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
+                        new BasicEntity("005"), new BasicEntity("006")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -495,7 +580,14 @@ namespace Musoq.Evaluator.Tests
             var query = @"select Name from #A.Entities() skip 100 take 100";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("005"), new BasicEntity("006")}}
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
+                        new BasicEntity("005"), new BasicEntity("006")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -507,7 +599,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void ColumnNamesSimpleTest()
         {
-            var query = @"select Name as TestName, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from #A.Entities()";
+            var query =
+                @"select Name as TestName, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new BasicEntity[] { }}
@@ -586,15 +679,17 @@ namespace Musoq.Evaluator.Tests
             var query = @"select RowNumber() from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                {"#A", new[]
                 {
-                    new BasicEntity("001"),
-                    new BasicEntity("002"),
-                    new BasicEntity("003"),
-                    new BasicEntity("004"),
-                    new BasicEntity("005"),
-                    new BasicEntity("006")
-                }}
+                    "#A", new[]
+                    {
+                        new BasicEntity("001"),
+                        new BasicEntity("002"),
+                        new BasicEntity("003"),
+                        new BasicEntity("004"),
+                        new BasicEntity("005"),
+                        new BasicEntity("006")
+                    }
+                }
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
@@ -619,7 +714,7 @@ namespace Musoq.Evaluator.Tests
                 {
                     "#A", new[]
                     {
-                        new BasicEntity("xX"),
+                        new BasicEntity("xX")
                     }
                 }
             };
@@ -648,7 +743,7 @@ namespace Musoq.Evaluator.Tests
                 {
                     "#A", new[]
                     {
-                        new BasicEntity("xX"),
+                        new BasicEntity("xX")
                     }
                 }
             };
@@ -704,11 +799,12 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(18, table[8][1]);
             Assert.AreEqual("Int32", table[8][2]);
         }
-        
+
         [TestMethod]
         public void SimpleJoinTest()
         {
-            var query = "select countries.Country, cities.City, population.Population from #A.entities() countries inner join #B.entities() cities on countries.Country = cities.Country inner join #C.entities() population on cities.City = population.City";
+            var query =
+                "select countries.Country, cities.City, population.Population from #A.entities() countries inner join #B.entities() cities on countries.Country = cities.Country inner join #C.entities() population on cities.City = population.City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -732,11 +828,11 @@ namespace Musoq.Evaluator.Tests
                 {
                     "#C", new[]
                     {
-                        new BasicEntity(){ City = "Krakow", Population = 400 },
-                        new BasicEntity(){ City = "Wroclaw", Population = 500 },
-                        new BasicEntity(){ City = "Warszawa", Population = 1000 },
-                        new BasicEntity(){ City = "Gdansk", Population = 200 },
-                        new BasicEntity(){ City = "Berlin", Population = 400 }
+                        new BasicEntity {City = "Krakow", Population = 400},
+                        new BasicEntity {City = "Wroclaw", Population = 500},
+                        new BasicEntity {City = "Warszawa", Population = 1000},
+                        new BasicEntity {City = "Gdansk", Population = 200},
+                        new BasicEntity {City = "Berlin", Population = 400}
                     }
                 }
             };
@@ -782,7 +878,8 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void JoinWithGroupByTest()
         {
-            var query = "select cities.Country, countries.Sum(population.Population) from #A.entities() countries inner join #B.entities() cities on countries.Country = cities.Country inner join #C.entities() population on cities.City = population.City group by cities.Country";
+            var query =
+                "select cities.Country, countries.Sum(population.Population) from #A.entities() countries inner join #B.entities() cities on countries.Country = cities.Country inner join #C.entities() population on cities.City = population.City group by cities.Country";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -806,11 +903,11 @@ namespace Musoq.Evaluator.Tests
                 {
                     "#C", new[]
                     {
-                        new BasicEntity(){ City = "Krakow", Population = 400 },
-                        new BasicEntity(){ City = "Wroclaw", Population = 500 },
-                        new BasicEntity(){ City = "Warszawa", Population = 1000 },
-                        new BasicEntity(){ City = "Gdansk", Population = 200 },
-                        new BasicEntity(){ City = "Berlin", Population = 400 }
+                        new BasicEntity {City = "Krakow", Population = 400},
+                        new BasicEntity {City = "Wroclaw", Population = 500},
+                        new BasicEntity {City = "Warszawa", Population = 1000},
+                        new BasicEntity {City = "Gdansk", Population = 200},
+                        new BasicEntity {City = "Berlin", Population = 400}
                     }
                 }
             };
@@ -846,7 +943,7 @@ namespace Musoq.Evaluator.Tests
                 {
                     "#A", new[]
                     {
-                        new BasicEntity("xX"),
+                        new BasicEntity("xX")
                     }
                 }
             };
