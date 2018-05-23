@@ -81,7 +81,6 @@
     <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop, Version=2.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Workspaces.Common.2.8.0\lib\net46\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.1.2.1\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
@@ -217,7 +216,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CsvTests.cs" />
-    <Compile Include="JsonSchemaProvider.cs" />
+    <Compile Include="CsvSchemaProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -239,10 +238,6 @@
     <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj">
       <Project>{38b5f6db-2dcb-46bf-a250-219d97b1c973}</Project>
       <Name>Musoq.Parser</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj">
-      <Project>{10775a77-bc60-47fd-a6ff-f02c3ea41944}</Project>
-      <Name>Musoq.Plugins</Name>
     </ProjectReference>
     <ProjectReference Include="..\Musoq.Schema.Csv\Musoq.Schema.Csv.csproj">
       <Project>{44d1d33f-600a-444c-969b-e3258f5b2fdd}</Project>

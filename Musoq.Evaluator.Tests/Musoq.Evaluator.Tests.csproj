@@ -206,10 +206,6 @@
       <HintPath>..\packages\System.Xml.XPath.4.3.0\lib\net46\System.Xml.XPath.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Xml.XPath.XDocument, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Xml.XPath.XDocument.4.3.0\lib\net46\System.Xml.XPath.XDocument.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArithmeticTests.cs" />
@@ -217,7 +213,7 @@
     <Compile Include="ComparsionsTests.cs" />
     <Compile Include="GroupByTests.cs" />
     <Compile Include="Schema\BasicEntity.cs" />
-    <Compile Include="Schema\BasicEntitySchema.cs" />
+    <Compile Include="Schema\BasicEntityTable.cs" />
     <Compile Include="BasicEvaluatorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Schema\SchemaProvider.cs" />

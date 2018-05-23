@@ -46,33 +46,4 @@ namespace Musoq.Parser.Nodes
             _returnType = returnType;
         }
     }
-
-    public class IdentifierNode : Node
-    {
-        public IdentifierNode(string name)
-        {
-            Name = name;
-            Id = $"{nameof(IdentifierNode)}{Name}";
-        }
-        public string Name { get; }
-        public override Type ReturnType { get; }
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
-
-        public override string Id { get; }
-        public override string ToString()
-        {
-            return Name;
-        }
-    }
-
-    public class TableReferenceNode : IdentifierNode
-    {
-        public TableReferenceNode(string name) 
-            : base(name)
-        {
-        }
-    }
 }

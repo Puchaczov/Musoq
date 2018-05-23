@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
-using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Utils.Symbols
@@ -150,46 +149,5 @@ namespace Musoq.Evaluator.Utils.Symbols
 
             return symbol;
         }
-    }
-
-    public class ColumnSymbol : Symbol
-    {
-        public ColumnSymbol(ISchemaColumn column)
-        {
-            Column = column;
-        }
-
-        public ISchemaColumn Column { get; }
-    }
-
-    public class TypeSymbol : Symbol
-    {
-        public TypeSymbol(Type type)
-        {
-            Type = type;
-        }
-
-        public Type Type { get; }
-    }
-
-    public class FieldsNamesSymbol : Symbol
-    {
-        public FieldsNamesSymbol(string[] names)
-        {
-            Names = names;
-        }
-
-        public string[] Names { get; }
-    }
-
-
-    public class RefreshMethodsSymbol : Symbol
-    {
-        public RefreshMethodsSymbol(IEnumerable<AccessMethodNode> refreshMethods)
-        {
-            RefreshMethods = refreshMethods.ToArray();
-        }
-
-        public IReadOnlyList<AccessMethodNode> RefreshMethods { get; }
     }
 }

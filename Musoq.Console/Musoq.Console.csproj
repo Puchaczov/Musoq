@@ -16,9 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
-    <ProjectReference Include="..\Musoq.Schema.Tcp.Core\Musoq.Schema.Tcp.Core.csproj" />
-    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
     <ProjectReference Include="..\Musoq.Service.Client\Musoq.Service.Client.csproj" />
   </ItemGroup>
 

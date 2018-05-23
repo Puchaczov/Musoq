@@ -96,8 +96,6 @@ namespace Musoq.Converter
                 }
             }
 #endif
-
-            throw new NotSupportedException();
         }
 
         public static IRunnable Create(string script, ISchemaProvider schemaProvider)

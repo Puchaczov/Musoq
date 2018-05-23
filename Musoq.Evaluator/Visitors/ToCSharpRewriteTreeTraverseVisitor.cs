@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Musoq.Evaluator.RuntimeScripts;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -27,8 +26,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(SelectNode node)
         {
             _visitor.TurnOnAggregateMethodsToColumnAcceess();
-
-            _code.Append(new Select().TransformText());
+            
             foreach (var field in node.Fields)
                 field.Accept(this);
             node.Accept(_visitor);
@@ -39,7 +37,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(GroupSelectNode node)
         {
-            _code.Append(new Select().TransformText());
             foreach (var field in node.Fields)
                 field.Accept(this);
             node.Accept(_visitor);
@@ -196,14 +193,6 @@ namespace Musoq.Evaluator.Visitors
             }
 
             _visitor.SetJoinsAmount(joins.Count + 1);
-
-            var nestedForeachesPattern = new NestedForeaches
-            {
-                Nesting = joins.Count + 1,
-                HasGroupBy = _hasGroupBy
-            };
-
-            _code.Append(nestedForeachesPattern.TransformText());
 
             join = joins.Pop();
 

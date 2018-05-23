@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.RuntimeScripts;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
@@ -555,20 +554,6 @@ namespace Musoq.Evaluator.Visitors
 
             if (_currentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
                 _currentScope.ScopeSymbolTable.UpdateSymbol(string.Empty, from.Alias);
-
-            _currentScope.Script.Append(new DeclarationStatements().TransformText());
-
-            if (_hasGroupByOrJoin)
-            {
-                _currentScope.Script.Append(new NestedForeaches() { HasGroupBy = _hasGroupBy, Nesting = _nesting }.TransformText());
-                _currentScope.Script.Append(new Select().TransformText());
-                _currentScope.Script.Replace("{pre_script_dependant}", "{skip}{take}{select_statements}");
-            }
-            else
-            {
-                _currentScope.Script.Append(new Select().TransformText());
-                _currentScope.Script.Replace("{pre_script_dependant}", "{where_statement}{skip}{take}{select_statements}");
-            }
 
             _nesting = 0;
             _hasGroupBy = false;

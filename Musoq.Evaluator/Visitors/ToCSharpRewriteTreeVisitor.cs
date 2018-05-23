@@ -27,11 +27,6 @@ using Musoq.Schema.Helpers;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public enum MethodAccessType
-    {
-        ResultQuery,
-        TransformingQuery
-    }
     public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     {
         private readonly IDictionary<string, int[]> _setOperatorFieldIndexes;

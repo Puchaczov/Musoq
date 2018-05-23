@@ -34,17 +34,4 @@ namespace Musoq.Parser.Nodes
             return string.IsNullOrEmpty(node.FieldName) ? node.Expression.ToString() : node.FieldName;
         }
     }
-
-    public class GroupSelectNode : SelectNode
-    {
-        public GroupSelectNode(FieldNode[] fields) 
-            : base(fields)
-        {
-        }
-
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
-    }
 }

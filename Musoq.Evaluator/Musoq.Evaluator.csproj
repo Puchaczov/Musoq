@@ -27,26 +27,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>MetaAttributes.resx</DependentUpon>
     </Compile>
-    <Compile Update="RuntimeScripts\DeclarationStatements.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DeclarationStatements.tt</DependentUpon>
-    </Compile>
-    <Compile Update="RuntimeScripts\Grouping.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Grouping.tt</DependentUpon>
-    </Compile>
-    <Compile Update="RuntimeScripts\NestedForeaches.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>NestedForeaches.tt</DependentUpon>
-    </Compile>
-    <Compile Update="RuntimeScripts\Select.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Select.tt</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -54,25 +34,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>MetaAttributes.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="RuntimeScripts\DeclarationStatements.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>DeclarationStatements.cs</LastGenOutput>
-    </None>
-    <None Update="RuntimeScripts\Grouping.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>Grouping.cs</LastGenOutput>
-    </None>
-    <None Update="RuntimeScripts\NestedForeaches.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>NestedForeaches.cs</LastGenOutput>
-    </None>
-    <None Update="RuntimeScripts\Select.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>Select.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,4 @@
 ﻿using System.Text;
-using Musoq.Evaluator.Utils;
-using Musoq.Parser;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -15,14 +13,7 @@ namespace Musoq.Evaluator.Visitors
         void SetJoinsAmount(int amount);
 
         void SetMethodAccessType(MethodAccessType type);
-        void SelectBegins();
-        void SelectEnds();
         void TurnOnAggregateMethodsToColumnAcceess();
         void TurnOffAggregateMethodsToColumnAcceess();
-    }
-
-    public interface IScopeAwareExpressionVisitor : IExpressionVisitor
-    {
-        void SetScope(Scope scope);
     }
 }
