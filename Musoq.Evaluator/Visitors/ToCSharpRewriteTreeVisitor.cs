@@ -43,7 +43,7 @@ namespace Musoq.Evaluator.Visitors
 
         private Stack<SyntaxNode> Nodes { get; }
 
-        private readonly List<SyntaxNode> _methods = new List<SyntaxNode>();
+        private readonly List<SyntaxNode> _members = new List<SyntaxNode>();
         private bool _hasGroupBy = false;
         private bool _hasJoin = false;
 
@@ -57,6 +57,9 @@ namespace Musoq.Evaluator.Visitors
         private string _transformedSourceTable;
 
         private readonly Dictionary<string, Type> _typesToInstantiate = new Dictionary<string, Type>();
+        private readonly Dictionary<string, int> _inMemoryTableIndexes = new Dictionary<string, int>();
+
+        private int _inMemoryTableIndex = 0;
         private bool _changeMethodAccessToColumnAccess;
         
         private VariableDeclarationSyntax _groupValues;
@@ -780,6 +783,25 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(InMemoryTableFromNode node)
         {
+            Statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
+                .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory
+                        .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
+                            SyntaxFactory.EqualsValueClause(SyntaxFactory
+                                .InvocationExpression(SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertTableToSource)))).WithArgumentList(
+                                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Argument(SyntaxFactory
+                                            .ElementAccessExpression(
+                                                SyntaxFactory.IdentifierName("_tableResults")).WithArgumentList(
+                                                SyntaxFactory.BracketedArgumentList(
+                                                    SyntaxFactory.SingletonSeparatedList(
+                                                        SyntaxFactory.Argument(
+                                                            SyntaxFactory.LiteralExpression(
+                                                                SyntaxKind.NumericLiteralExpression,
+                                                                SyntaxFactory.Literal(_inMemoryTableIndexes[node.VariableName]))))))))))))))));
         }
 
         public void Visit(JoinFromNode node)
@@ -1136,11 +1158,31 @@ namespace Musoq.Evaluator.Visitors
                 null, 
                 null);
 
-            _methods.Add(method);
-            _methods.Add(param);
+            _members.Add(method);
+            _members.Add(param);
+
+            var inMemoryTables = SyntaxFactory
+                .FieldDeclaration(SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.ArrayType(SyntaxFactory.IdentifierName(nameof(Table)))
+                        .WithRankSpecifiers(SyntaxFactory.SingletonList<ArrayRankSpecifierSyntax>(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                    SyntaxFactory.OmittedArraySizeExpression()))))).WithVariables(
+                        SyntaxFactory.SingletonSeparatedList<VariableDeclaratorSyntax>(SyntaxFactory
+                            .VariableDeclarator(SyntaxFactory.Identifier("_tableResults")).WithInitializer(
+                                SyntaxFactory.EqualsValueClause(SyntaxFactory.ArrayCreationExpression(SyntaxFactory
+                                    .ArrayType(SyntaxFactory.IdentifierName(nameof(Table))).WithRankSpecifiers(
+                                        SyntaxFactory.SingletonList<ArrayRankSpecifierSyntax>(
+                                            SyntaxFactory.ArrayRankSpecifier(
+                                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                                        SyntaxFactory.Literal(_inMemoryTableIndex))))))))))))
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)));
+
+            _members.Insert(0, inMemoryTables);
 
             var classDeclaration = Generator.ClassDeclaration("CompiledQuery", new string[0], Accessibility.Public, DeclarationModifiers.None,
-                null, new SyntaxNode[]{ SyntaxFactory.IdentifierName(nameof(BaseOperations)), SyntaxFactory.IdentifierName(nameof(IRunnable)) }, _methods);
+                null, new SyntaxNode[]{ SyntaxFactory.IdentifierName(nameof(BaseOperations)), SyntaxFactory.IdentifierName(nameof(IRunnable)) }, _members);
 
             var ns = SyntaxFactory.NamespaceDeclaration(
                 SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Query.Compiled")),
@@ -1210,7 +1252,7 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.Argument(
                             SyntaxFactory.IdentifierName("provider")))));
 
-            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Union), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
+            _members.Add(GenerateMethod(name, nameof(BaseOperations.Union), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
         }
 
         public void Visit(UnionAllNode node)
@@ -1234,7 +1276,7 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.Argument(
                             SyntaxFactory.IdentifierName("provider")))));
 
-            _methods.Add(GenerateMethod(name, nameof(BaseOperations.UnionAll), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
+            _members.Add(GenerateMethod(name, nameof(BaseOperations.UnionAll), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
         }
 
         public void Visit(ExceptNode node)
@@ -1258,7 +1300,7 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.Argument(
                             SyntaxFactory.IdentifierName("provider")))));
 
-            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Except), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
+            _members.Add(GenerateMethod(name, nameof(BaseOperations.Except), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
         }
 
         public void Visit(IntersectNode node)
@@ -1282,7 +1324,7 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.Argument(
                             SyntaxFactory.IdentifierName("provider")))));
 
-            _methods.Add(GenerateMethod(name, nameof(BaseOperations.Intersect), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
+            _members.Add(GenerateMethod(name, nameof(BaseOperations.Intersect), _scope[MetaAttributes.SetOperatorName], aInvocation, bInvocation));
         }
 
         public void Visit(RefreshNode node)
@@ -1421,7 +1463,11 @@ namespace Musoq.Evaluator.Visitors
                         nameof(AmendableQueryStats),
                         SyntaxFactory.ArgumentList()))));
 
-            _methodNames.Push(_scope[MetaAttributes.MethodName]);
+            var methodName = _scope[MetaAttributes.MethodName];
+            if (_scope.IsInsideNamedScope("CTE Inner Expression"))
+                methodName = $"{methodName}_Inner_Cte";
+            
+            _methodNames.Push(methodName);
 
             var method = SyntaxFactory.MethodDeclaration(
                 new SyntaxList<AttributeListSyntax>(),
@@ -1429,7 +1475,7 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
                 SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                 null,
-                SyntaxFactory.Identifier(_scope[MetaAttributes.MethodName]),
+                SyntaxFactory.Identifier(methodName),
                 null,
                 SyntaxFactory.ParameterList(
                     SyntaxFactory.SeparatedList(new[]
@@ -1445,16 +1491,74 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.Block(Statements),
                 null);
 
-            _methods.Add(method);
+            _members.Add(method);
             Statements.Clear();
         }
 
         public void Visit(CteExpressionNode node)
         {
+            var statements = new List<StatementSyntax>();
+
+            var resultCteMethodName = _methodNames.Pop();
+
+            foreach (var innerExpression in node.InnerExpression)
+            {
+                _methodNames.Pop();
+                statements.Add((StatementSyntax)Nodes.Pop());
+            }
+
+            statements.Reverse();
+
+            var methodName = "CteResultQuery";
+
+            statements.Add(
+                SyntaxFactory.ReturnStatement(SyntaxFactory
+                    .InvocationExpression(SyntaxFactory.IdentifierName(resultCteMethodName)).WithArgumentList(
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")))))));
+
+            var method = SyntaxFactory.MethodDeclaration(
+                new SyntaxList<AttributeListSyntax>(),
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                null,
+                SyntaxFactory.Identifier(methodName),
+                null,
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.IdentifierName(nameof(ISchemaProvider)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("provider"), null)
+                    })),
+                new SyntaxList<TypeParameterConstraintClauseSyntax>(),
+                SyntaxFactory.Block(statements),
+                null);
+
+            _members.Add(method);
+            _methodNames.Push(methodName);
         }
 
         public void Visit(CteInnerExpressionNode node)
         {
+            if (!_inMemoryTableIndexes.ContainsKey(node.Name))
+                _inMemoryTableIndexes.Add(node.Name, _inMemoryTableIndex++);
+
+            Nodes.Push(SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults")).WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))),
+                SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(_methodNames.Peek())).WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider"))))))));
         }
 
         public void Visit(JoinsNode node)

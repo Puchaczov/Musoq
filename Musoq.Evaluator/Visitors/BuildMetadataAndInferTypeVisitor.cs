@@ -32,9 +32,7 @@ namespace Musoq.Evaluator.Visitors
         private bool _insideSelect;
         private readonly ISchemaProvider _provider;
         public readonly List<AccessMethodNode> RefreshMethods = new List<AccessMethodNode>();
-        private Stack<string> _methods = new Stack<string>();
-        private int _inMemoryIndex = 0;
-
+        public Stack<string> Methods = new Stack<string>();
         public IDictionary<string, string> CteAliases { get; } = new Dictionary<string, string>();
         public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
@@ -448,12 +446,27 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(InMemoryTableFromNode node)
         {
-
             _queryAlias = CreateAliasIfEmpty(node.Alias);
-            var tableSymbol = _currentScope.Parent.ScopeSymbolTable.GetSymbol<TableSymbol>(_queryAlias);
-            _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
 
-            Nodes.Push(new InMemoryTableFromNode(node.VariableName));
+            TableSymbol tableSymbol;
+
+            if (_currentScope.Parent.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(node.VariableName))
+                tableSymbol = _currentScope.Parent.ScopeSymbolTable.GetSymbol<TableSymbol>(node.VariableName);
+            else
+            {
+                var scope = _currentScope;
+                while (scope != null && scope.Name != "CTE")
+                {
+                    scope = scope.Parent;
+                }
+
+                tableSymbol = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.VariableName);
+            }
+
+            var tableSchemaPair = tableSymbol.GetTableByAlias(node.VariableName);
+            _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, new TableSymbol(_queryAlias, tableSchemaPair.Schema, tableSchemaPair.Table, node.Alias == _queryAlias));
+
+            Nodes.Push(new InMemoryTableFromNode(node.VariableName, _queryAlias));
         }
 
         public void Visit(JoinFromNode node)
@@ -561,7 +574,7 @@ namespace Musoq.Evaluator.Visitors
             _nesting = 0;
             _hasGroupBy = false;
             _hasGroupByOrJoin = false;
-            _methods.Push(from.Alias);
+            Methods.Push(from.Alias);
             Nodes.Push(new QueryNode(select, from, where, groupBy, null, skip, take));
         }
 
@@ -599,11 +612,11 @@ namespace Musoq.Evaluator.Visitors
             var right = Nodes.Pop();
             var left = Nodes.Pop();
 
-            var rightMethodName = _methods.Pop();
-            var leftMethodName = _methods.Pop();
+            var rightMethodName = Methods.Pop();
+            var leftMethodName = Methods.Pop();
 
             var methodName = $"{leftMethodName}_Union_{rightMethodName}";
-            _methods.Push(methodName);
+            Methods.Push(methodName);
             _currentScope.ScopeSymbolTable.AddSymbol(methodName, _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode)left).From.Alias));
 
             Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
@@ -618,11 +631,11 @@ namespace Musoq.Evaluator.Visitors
             var right = Nodes.Pop();
             var left = Nodes.Pop();
 
-            var rightMethodName = _methods.Pop();
-            var leftMethodName = _methods.Pop();
+            var rightMethodName = Methods.Pop();
+            var leftMethodName = Methods.Pop();
 
             var methodName = $"{leftMethodName}_UnionAll_{rightMethodName}";
-            _methods.Push(methodName);
+            Methods.Push(methodName);
             _currentScope.ScopeSymbolTable.AddSymbol(methodName, _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode)left).From.Alias));
 
             Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
@@ -637,11 +650,11 @@ namespace Musoq.Evaluator.Visitors
             var right = Nodes.Pop();
             var left = Nodes.Pop();
 
-            var rightMethodName = _methods.Pop();
-            var leftMethodName = _methods.Pop();
+            var rightMethodName = Methods.Pop();
+            var leftMethodName = Methods.Pop();
 
             var methodName = $"{leftMethodName}_Except_{rightMethodName}";
-            _methods.Push(methodName);
+            Methods.Push(methodName);
             _currentScope.ScopeSymbolTable.AddSymbol(methodName, _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode)left).From.Alias));
 
             Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
@@ -656,11 +669,11 @@ namespace Musoq.Evaluator.Visitors
             var right = Nodes.Pop();
             var left = Nodes.Pop();
 
-            var rightMethodName = _methods.Pop();
-            var leftMethodName = _methods.Pop();
+            var rightMethodName = Methods.Pop();
+            var leftMethodName = Methods.Pop();
 
             var methodName = $"{leftMethodName}_Intersect_{rightMethodName}";
-            _methods.Push(methodName);
+            Methods.Push(methodName);
             _currentScope.ScopeSymbolTable.AddSymbol(methodName, _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode)left).From.Alias));
 
             Nodes.Push(new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
@@ -696,9 +709,14 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(CteInnerExpressionNode node)
         {
             var set = Nodes.Pop();
+            
+            var collector = new SelectFieldsCollectVisitor();
+            var traverser = new CloneTraverseVisitor(collector);
 
-            var tableSymbol = _currentScope.Child[0].ScopeSymbolTable.GetSymbol<TableSymbol>(_methods.Pop());
-            _currentScope.Parent.ScopeSymbolTable.AddSymbol(node.Name, new TableSymbol(node.Name, null, new VariableTable(tableSymbol.GetColumns()), false));
+            set.Accept(traverser);
+
+            var table = new VariableTable(collector.CollectedFieldNames);
+            _currentScope.Parent.ScopeSymbolTable.AddSymbol(node.Name, new TableSymbol(node.Name, new TransitionSchema(node.Name, table), table, false));
 
             Nodes.Push(new CteInnerExpressionNode(set, node.Name));
         }

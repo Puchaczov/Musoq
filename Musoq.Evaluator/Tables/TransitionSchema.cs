@@ -7,8 +7,6 @@ namespace Musoq.Evaluator.Tables
 {
     internal class TransitionSchema : SchemaBase
     {
-        private class EmptyLibrary : LibraryBase { }
-
         private readonly ISchemaTable _table;
 
         public TransitionSchema(string name, ISchemaTable table) 
@@ -32,7 +30,7 @@ namespace Musoq.Evaluator.Tables
             var methodsManager = new MethodsManager();
             var propertiesManager = new PropertiesManager();
 
-            var library = new EmptyLibrary();
+            var library = new TransitionLibrary();
 
             methodsManager.RegisterLibraries(library);
             propertiesManager.RegisterProperties(library);

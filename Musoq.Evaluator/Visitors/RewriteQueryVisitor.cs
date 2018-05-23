@@ -385,7 +385,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(InMemoryTableFromNode node)
         {
-            Nodes.Push(new InMemoryTableFromNode(node.VariableName));
+            Nodes.Push(new InMemoryTableFromNode(node.VariableName, node.Alias));
         }
 
         public void Visit(CreateTableNode node)
@@ -563,7 +563,7 @@ namespace Musoq.Evaluator.Visitors
 
             if (groupBy != null)
             {
-                var nestedFrom = splittedNodes.Count > 0 ? new ExpressionFromNode(new InMemoryTableFromNode(lastJoinQuery.From.Alias)) : @from;
+                var nestedFrom = splittedNodes.Count > 0 ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias)) : @from;
 
                 var splitted = SplitBetweenAggreateAndNonAggreagate(select.Fields, groupBy.Fields, true);
                 var refreshMethods = CreateRefreshMethods(usedRefreshMethods);
@@ -623,7 +623,7 @@ namespace Musoq.Evaluator.Visitors
                 query = new DetailedQueryNode(
                     outSelect, 
                     new ExpressionFromNode(
-                        new InMemoryTableFromNode(returnScore)),
+                        new InMemoryGroupedFromNode(returnScore)),
                     new WhereNode(new PutTrueNode()),
                     null, 
                     null, 
@@ -681,7 +681,7 @@ namespace Musoq.Evaluator.Visitors
                     scopeResultQuery[MetaAttributes.SourceName] = source;
 
                     var newFrom = lastJoinQuery != null
-                        ? new ExpressionFromNode(new InMemoryTableFromNode(lastJoinQuery.From.Alias))
+                        ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                         : from; 
 
                     splittedNodes.Add(new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], new string[0], select.Fields));

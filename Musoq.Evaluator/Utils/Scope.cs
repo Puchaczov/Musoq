@@ -66,6 +66,16 @@ namespace Musoq.Evaluator.Utils
         {
             return _attributes.ContainsKey(attributeName) || (Parent!= null && Parent.ContainsAttribute(attributeName));
         }
+
+        public bool IsInsideNamedScope(string name)
+        {
+            var scope = this;
+            while (scope != null && scope.Name != name)
+            {
+                scope = scope.Parent;
+            }
+            return scope != null && scope.Name == name;
+        }
     }
 
     public class ScopeWalker

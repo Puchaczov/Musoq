@@ -434,12 +434,13 @@ namespace Musoq.Parser
             if(fromBefore)
                 Consume(TokenType.From);
 
+            string alias;
             if (Current.TokenType == TokenType.Word)
             {
                 var name = ComposeWord();
                 Consume(TokenType.Dot);
                 var accessMethod = ComposeAccessMethod(string.Empty);
-                var alias = ComposeAlias();
+                alias = ComposeAlias();
 
                 var fromNode = new SchemaFromNode(name.Value, accessMethod.Name,
                     accessMethod.Arguments.Args.Select(GetValueOfBasicType).ToArray(), alias);
@@ -447,7 +448,8 @@ namespace Musoq.Parser
             }
 
             var column = (IdentifierNode)ComposeBaseTypes();
-            return new InMemoryTableFromNode(column.Name);
+            alias = ComposeAlias();
+            return new InMemoryTableFromNode(column.Name, alias);
         }
 
         private static string GetValueOfBasicType(Node node)

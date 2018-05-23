@@ -414,7 +414,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(Node node)
         {
-            throw new NotSupportedException();
+            node.Accept(_visitor);
         }
 
         public void Visit(DescNode node)

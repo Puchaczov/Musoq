@@ -357,7 +357,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(InMemoryTableFromNode node)
         {
-            Nodes.Push(new InMemoryTableFromNode(node.VariableName));
+            Nodes.Push(new InMemoryTableFromNode(node.VariableName, node.Alias));
         }
 
         public virtual void Visit(JoinFromNode node)
