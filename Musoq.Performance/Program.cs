@@ -9,18 +9,18 @@ namespace Musoq.Performance
     {
         static void Main(string[] args)
         {
-            for (int i = 0; i < 1000; i++)
-            {
-                CompileQuery(@"select Extension, Count(Extension) from #disk.files('C:\Users\jpuchala\Documents', 'true') group by Extension");
-            }
+            //for (int i = 0; i < 1000; i++)
+            //{
+            //    CompileQuery(@"select Extension, Count(Extension) from #disk.files('C:\Users\jpuchala\Documents', 'true') group by Extension");
+            //}
 
-            //ExecuteQuery(
-            //@"select
-            //    AgencyName,
-            //    Count(AgencyName),
-            //    Sum(ToDecimal(Amount))
-            //from #csv.file('C:\Users\Puchacz\Downloads\cards\res_purchase_card_(pcard)_fiscal_year_2014_3pcd-aiuu.csv', ',')
-            //group by AgencyName");
+            ExecuteQuery(
+            @"select
+                AgencyName,
+                Count(AgencyName),
+                Sum(ToDecimal(Amount))
+            from #csv.file('C:\Users\Puchacz\Downloads\cards\res_purchase_card_(pcard)_fiscal_year_2014_3pcd-aiuu.csv', ',')
+            group by AgencyName");
 
             Console.WriteLine();
             Console.WriteLine("Press any key to close.");

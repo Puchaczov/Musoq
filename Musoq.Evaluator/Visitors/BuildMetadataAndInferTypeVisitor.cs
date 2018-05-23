@@ -29,6 +29,7 @@ namespace Musoq.Evaluator.Visitors
         private int _nesting;
         private string _queryAlias;
         private FieldNode[] _generatedColumns = new FieldNode[0];
+        private List<string> _generatedAliases = new List<string>();
         private bool _insideSelect;
         private readonly ISchemaProvider _provider;
         public readonly List<AccessMethodNode> RefreshMethods = new List<AccessMethodNode>();
@@ -422,17 +423,14 @@ namespace Musoq.Evaluator.Visitors
 
             AddAssembly(schema.GetType().Assembly);
 
-            _queryAlias = CreateAliasIfEmpty(node.Alias);
+            _queryAlias = StringHelpers.CreateAliasIfEmpty(node.Alias, _generatedAliases);
+            _generatedAliases.Add(_queryAlias);
+
             var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
 
             _nesting += 1;
             Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, _queryAlias));
-        }
-
-        private string CreateAliasIfEmpty(string alias)
-        {
-            return string.IsNullOrEmpty(alias) ? new string(Guid.NewGuid().ToString("N").Where(char.IsLetter).ToArray()).Substring(0, 4) : alias;
         }
 
         public void Visit(JoinSourcesTableFromNode node)
@@ -446,7 +444,8 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(InMemoryTableFromNode node)
         {
-            _queryAlias = CreateAliasIfEmpty(node.Alias);
+            _queryAlias = StringHelpers.CreateAliasIfEmpty(node.Alias, _generatedAliases);
+            _generatedAliases.Add(_queryAlias);
 
             TableSymbol tableSymbol;
 
