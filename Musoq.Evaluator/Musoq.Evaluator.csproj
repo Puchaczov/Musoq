@@ -22,6 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Resources\Compilation.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Compilation.resx</DependentUpon>
+    </Compile>
     <Compile Update="Resources\MetaAttributes.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -30,6 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Resources\Compilation.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Compilation.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Resources\MetaAttributes.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>MetaAttributes.Designer.cs</LastGenOutput>

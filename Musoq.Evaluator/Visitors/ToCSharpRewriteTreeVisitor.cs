@@ -40,26 +40,19 @@ namespace Musoq.Evaluator.Visitors
         private readonly string _sourcePath;
 
         private readonly Dictionary<string, Type> _typesToInstantiate = new Dictionary<string, Type>();
-        private bool _changeMethodAccessToColumnAccess;
         private BlockSyntax _emptyBlock;
         private SyntaxNode _groupHaving;
         private VariableDeclarationSyntax _groupKeys;
 
         private VariableDeclarationSyntax _groupValues;
-        private bool _hasGroupBy;
-        private bool _hasJoin;
 
         private int _inMemoryTableIndex;
         private int _setOperatorMethodIdentifier;
 
         private BlockSyntax _joinBlock;
-        private int _joins;
-        private int _names;
         private string _queryAlias;
         private Scope _scope;
         private BlockSyntax _selectBlock;
-        private int _sources;
-        private string _transformedSourceTable;
         private MethodAccessType _type;
 
         public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies,
@@ -114,6 +107,8 @@ namespace Musoq.Evaluator.Visitors
                     .WithConcurrentBuild(true)
                     .WithMetadataImportOptions(MetadataImportOptions.Public));
 
+            AccessToClassPath = $"{Namespace}.{ClassName}";
+
             AddNamespace("System");
             AddNamespace("System.Collections.Generic");
             AddNamespace("Musoq.Plugins");
@@ -122,6 +117,12 @@ namespace Musoq.Evaluator.Visitors
             AddNamespace("Musoq.Evaluator.Tables");
             AddNamespace("Musoq.Evaluator.Helpers");
         }
+
+        public string Namespace { get; } = $"{Resources.Compilation.NamespaceConstantPart}_{StringHelpers.GenerateNamespaceIdentifier()}";
+
+        public string ClassName { get; } = "CompiledQuery";
+
+        public string AccessToClassPath { get; }
 
         public AdhocWorkspace Workspace { get; }
 
@@ -584,8 +585,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(GroupByNode node)
         {
-            _hasGroupBy = true;
-
             var args = new SyntaxNode[node.Fields.Length];
 
             SyntaxNode having = null;
@@ -804,7 +803,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinFromNode node)
         {
-            _hasJoin = true;
         }
 
         public void Visit(ExpressionFromNode node)
@@ -1036,7 +1034,7 @@ namespace Musoq.Evaluator.Visitors
 
             _members.Insert(0, inMemoryTables);
 
-            var classDeclaration = Generator.ClassDeclaration("CompiledQuery", new string[0], Accessibility.Public,
+            var classDeclaration = Generator.ClassDeclaration(ClassName, new string[0], Accessibility.Public,
                 DeclarationModifiers.None,
                 null,
                 new SyntaxNode[]
@@ -1046,7 +1044,7 @@ namespace Musoq.Evaluator.Visitors
                 }, _members);
 
             var ns = SyntaxFactory.NamespaceDeclaration(
-                SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Query.Compiled")),
+                SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(Namespace)),
                 SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
                 SyntaxFactory.List(
                     _namespaces.Select(
@@ -1302,12 +1300,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinsNode node)
         {
-            _hasJoin = true;
         }
 
         public void Visit(JoinNode node)
         {
-            _hasJoin = true;
         }
 
         public void SetScope(Scope scope)

@@ -53,6 +53,21 @@ namespace Musoq.Evaluator.Helpers
             return EscapeMapping[Regex.Escape(m.Value)];
         }
 
+        private static readonly object NamespaceIdentifierGuard = new object();
+        private static long _namespaceUniqueId = 0;
+
+        public static long GenerateNamespaceIdentifier()
+        {
+            long value;
+
+            lock (NamespaceIdentifierGuard)
+            {
+                value = _namespaceUniqueId++;
+            }
+
+            return value;
+        }
+
         /// <summary>
         ///     Code found here:
         ///     https://stackoverflow.com/questions/730268/unique-random-string-generation?utm_medium=organic&amp;

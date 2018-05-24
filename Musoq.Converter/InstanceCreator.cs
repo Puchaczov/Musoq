@@ -84,7 +84,7 @@ namespace Musoq.Converter
                 
                 var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
 
-                var type = assembly.GetType("Query.Compiled.CompiledQuery");
+                var type = assembly.GetType(csharpRewriter.AccessToClassPath);
 
                 var runnable = (IRunnable)Activator.CreateInstance(type);
                 runnable.Provider = schemaProvider;
@@ -131,7 +131,7 @@ namespace Musoq.Converter
 
                 var assembly = Assembly.Load(stream.ToArray(), pdbStream.ToArray());
 
-                var type = assembly.GetType("Query.Compiled.CompiledQuery");
+                var type = assembly.GetType(csharpRewriter.AccessToClassPath);
 
                 var runnable = (IRunnable)Activator.CreateInstance(type);
                 runnable.Provider = schemaProvider;
