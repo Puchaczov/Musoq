@@ -671,6 +671,8 @@ namespace Musoq.Evaluator.Visitors
                             null));
                 }
             }
+
+            _joinedTables.Clear();
         }
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)

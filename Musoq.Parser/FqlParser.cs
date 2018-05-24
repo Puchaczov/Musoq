@@ -137,20 +137,34 @@ namespace Musoq.Parser
         private string[] ComposeSetOperatorKeys()
         {
             var keys = new List<string>();
-            if (Current.TokenType == TokenType.LeftParenthesis)
-            {
-                Consume(TokenType.LeftParenthesis);
-                keys.Add(Current.Value);
-                Consume(Current.TokenType);
-                while (Current.TokenType == TokenType.Comma)
-                {
-                    Consume(TokenType.Comma);
-                    keys.Add(Current.Value);
-                    Consume(TokenType.Identifier);
-                }
 
-                Consume(TokenType.RightParenthesis);
+            if (Current.TokenType != TokenType.LeftParenthesis) return keys.ToArray();
+
+            Consume(TokenType.LeftParenthesis);
+            var value = Current.Value;
+            Consume(Current.TokenType);
+            if (Current.TokenType == TokenType.Dot)
+            {
+                Consume(Current.TokenType);
+                value = $"{value}.{Current.Value}";
+                Consume(Current.TokenType);
             }
+            keys.Add(value);
+            while (Current.TokenType == TokenType.Comma)
+            {
+                Consume(TokenType.Comma);
+                value = Current.Value;
+                Consume(Current.TokenType);
+                if (Current.TokenType == TokenType.Dot)
+                {
+                    Consume(Current.TokenType);
+                    value = $"{value}.{Current.Value}";
+                    Consume(Current.TokenType);
+                }
+                keys.Add(value);
+            }
+
+            Consume(TokenType.RightParenthesis);
 
             return keys.ToArray();
         }

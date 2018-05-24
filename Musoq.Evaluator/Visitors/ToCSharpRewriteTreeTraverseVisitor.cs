@@ -23,14 +23,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SelectNode node)
         {
-            _visitor.TurnOnAggregateMethodsToColumnAcceess();
-
             foreach (var field in node.Fields)
                 field.Accept(this);
             node.Accept(_visitor);
-
-
-            _visitor.TurnOffAggregateMethodsToColumnAcceess();
         }
 
         public void Visit(GroupSelectNode node)
@@ -190,8 +185,6 @@ namespace Musoq.Evaluator.Visitors
                 join = join.Source as JoinFromNode;
             }
 
-            _visitor.SetJoinsAmount(joins.Count + 1);
-
             join = joins.Pop();
 
             join.Source.Accept(this);
@@ -278,7 +271,6 @@ namespace Musoq.Evaluator.Visitors
 
             _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
             _visitor.SetQueryIdentifier(node.From.Alias);
-            _visitor.QueryBegins();
 
             node.From.Accept(this);
             node.Where.Accept(this);
@@ -288,8 +280,6 @@ namespace Musoq.Evaluator.Visitors
             node.Skip?.Accept(this);
             node.GroupBy?.Accept(this);
             node.Accept(_visitor);
-
-            _visitor.QueryEnds();
             _walker = _walker.Parent();
         }
 
@@ -573,6 +563,7 @@ namespace Musoq.Evaluator.Visitors
                 nodes.Push(node);
 
                 node.Left.Accept(this);
+                _visitor.IncrementMethodIdentifier();
 
                 while (nodes.Count > 0)
                 {
@@ -586,12 +577,15 @@ namespace Musoq.Evaluator.Visitors
                         _visitor.SetScope(_walker.Scope);
 
                         operatorNode.Left.Accept(this);
+                        _visitor.IncrementMethodIdentifier();
 
                         current.Accept(_visitor);
                     }
                     else
                     {
                         current.Right.Accept(this);
+                        _visitor.IncrementMethodIdentifier();
+
                         current.Accept(_visitor);
                     }
                 }
@@ -599,6 +593,9 @@ namespace Musoq.Evaluator.Visitors
             else
             {
                 node.Left.Accept(this);
+
+                _visitor.IncrementMethodIdentifier();
+
                 node.Right.Accept(this);
 
                 node.Accept(_visitor);

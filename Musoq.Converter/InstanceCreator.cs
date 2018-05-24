@@ -60,12 +60,24 @@ namespace Musoq.Converter
             {
                 var result = csharpRewriter.Compilation.Emit(stream, pdbStream);
 
+                var builder = new StringBuilder();
                 if (!result.Success)
                 {
                     var all = new StringBuilder();
 
                     foreach (var diagnostic in result.Diagnostics)
                         all.Append(diagnostic);
+
+                    builder = new StringBuilder();
+                    using (var writer = new StringWriter(builder))
+                    {
+                        csharpRewriter.Compilation.SyntaxTrees[0].GetRoot().WriteTo(writer);
+                    }
+
+                    using (var file = new StreamWriter(File.OpenWrite(csPath)))
+                    {
+                        file.Write(builder.ToString());
+                    }
 
                     throw new NotSupportedException(all.ToString());
                 }
@@ -79,7 +91,7 @@ namespace Musoq.Converter
 
                 if (!Debugger.IsAttached) return runnable;
 
-                var builder = new StringBuilder();
+                builder = new StringBuilder();
                 using (var writer = new StringWriter(builder))
                 {
                     csharpRewriter.Compilation.SyntaxTrees[0].GetRoot().WriteTo(writer);

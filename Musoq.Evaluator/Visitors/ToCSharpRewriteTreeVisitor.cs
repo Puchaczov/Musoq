@@ -50,6 +50,7 @@ namespace Musoq.Evaluator.Visitors
         private bool _hasJoin;
 
         private int _inMemoryTableIndex;
+        private int _setOperatorMethodIdentifier;
 
         private BlockSyntax _joinBlock;
         private int _joins;
@@ -1199,7 +1200,7 @@ namespace Musoq.Evaluator.Visitors
                         nameof(AmendableQueryStats),
                         SyntaxFactory.ArgumentList()))));
 
-            var methodName = _scope[MetaAttributes.MethodName];
+            var methodName = $"{_scope[MetaAttributes.MethodName]}_{_setOperatorMethodIdentifier}";
             if (_scope.IsInsideNamedScope("CTE Inner Expression"))
                 methodName = $"{methodName}_Inner_Cte";
 
@@ -1309,14 +1310,6 @@ namespace Musoq.Evaluator.Visitors
             _hasJoin = true;
         }
 
-        public void QueryBegins()
-        {
-        }
-
-        public void QueryEnds()
-        {
-        }
-
         public void SetScope(Scope scope)
         {
             _scope = scope;
@@ -1327,27 +1320,14 @@ namespace Musoq.Evaluator.Visitors
             _queryAlias = identifier;
         }
 
-        public void SetCodePattern()
-        {
-        }
-
-        public void SetJoinsAmount(int amount)
-        {
-        }
-
         public void SetMethodAccessType(MethodAccessType type)
         {
             _type = type;
         }
 
-        public void TurnOnAggregateMethodsToColumnAcceess()
+        public void IncrementMethodIdentifier()
         {
-            _changeMethodAccessToColumnAccess = true;
-        }
-
-        public void TurnOffAggregateMethodsToColumnAcceess()
-        {
-            _changeMethodAccessToColumnAccess = false;
+            _setOperatorMethodIdentifier += 1;
         }
 
         private void AddNamespace(string columnTypeNamespace)
