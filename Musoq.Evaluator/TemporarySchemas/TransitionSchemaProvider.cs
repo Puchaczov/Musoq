@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Musoq.Schema;
 
-namespace Musoq.Parser
+namespace Musoq.Evaluator.TemporarySchemas
 {
     public class TransitionSchemaProvider : ISchemaProvider
     {

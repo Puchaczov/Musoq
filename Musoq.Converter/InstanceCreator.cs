@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Musoq.Evaluator;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser;

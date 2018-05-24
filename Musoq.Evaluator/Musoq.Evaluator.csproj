@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="MetaAttributes.Designer.cs">
+    <Compile Update="Resources\MetaAttributes.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>MetaAttributes.resx</DependentUpon>
@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="MetaAttributes.resx">
+    <EmbeddedResource Update="Resources\MetaAttributes.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>MetaAttributes.Designer.cs</LastGenOutput>
     </EmbeddedResource>

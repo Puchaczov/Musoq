@@ -212,6 +212,7 @@
     <Compile Include="ChunkEnumeratorTests.cs" />
     <Compile Include="ComparsionsTests.cs" />
     <Compile Include="GroupByTests.cs" />
+    <Compile Include="JoinTests.cs" />
     <Compile Include="Schema\BasicEntity.cs" />
     <Compile Include="Schema\BasicEntityTable.cs" />
     <Compile Include="BasicEvaluatorTests.cs" />

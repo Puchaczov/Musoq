@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -19,17 +20,8 @@ namespace Musoq.Evaluator.Visitors
         private readonly List<JoinFromNode> _joinedTables = new List<JoinFromNode>();
         private readonly TransitionSchemaProvider _schemaProvider;
 
-        private CtePart _ctePart = CtePart.None;
-        private string _currentCte;
-
-        private string _currentSchema;
-
         private FieldNode[] _generatedColumns = new FieldNode[0];
-
-        private ISchema _schema;
-
         private Scope _scope;
-        private InternalQueryNode _setLeftNode;
 
         public RewriteQueryVisitor(TransitionSchemaProvider schemaProvider)
         {

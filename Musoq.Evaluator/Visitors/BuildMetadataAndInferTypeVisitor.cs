@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -18,20 +19,17 @@ namespace Musoq.Evaluator.Visitors
     public class BuildMetadataAndInferTypeVisitor : IScopeAwareExpressionVisitor
     {
         private readonly ISchemaProvider _provider;
+
         public readonly List<AccessMethodNode> RefreshMethods = new List<AccessMethodNode>();
 
         private Scope _currentScope;
         private readonly List<string> _generatedAliases = new List<string>();
         private FieldNode[] _generatedColumns = new FieldNode[0];
-        private bool _hasGroupBy;
-        private bool _hasGroupByOrJoin;
         private string _identifier;
-        private bool _insideSelect;
-        private int _nesting;
         private string _queryAlias;
 
         private int _setKey;
-        public Stack<string> Methods = new Stack<string>();
+        private Stack<string> Methods { get; } = new Stack<string>();
 
         public BuildMetadataAndInferTypeVisitor(ISchemaProvider provider)
         {
@@ -383,9 +381,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(GroupByNode node)
         {
-            _hasGroupByOrJoin = true;
-            _hasGroupBy = true;
-
             var having = Nodes.Peek() as HavingNode;
 
             if (having != null)
@@ -426,7 +421,6 @@ namespace Musoq.Evaluator.Visitors
             var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
 
-            _nesting += 1;
             Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, _queryAlias));
         }
 
@@ -467,7 +461,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinFromNode node)
         {
-            _hasGroupByOrJoin = true;
             var expression = Nodes.Pop();
             var joinedTable = (FromNode) Nodes.Pop();
             var source = (FromNode) Nodes.Pop();
@@ -552,9 +545,6 @@ namespace Musoq.Evaluator.Visitors
             if (_currentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
                 _currentScope.ScopeSymbolTable.UpdateSymbol(string.Empty, from.Alias);
 
-            _nesting = 0;
-            _hasGroupBy = false;
-            _hasGroupByOrJoin = false;
             Methods.Push(from.Alias);
             Nodes.Push(new QueryNode(select, from, where, groupBy, null, skip, take));
         }
