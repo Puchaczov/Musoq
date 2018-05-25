@@ -101,7 +101,8 @@ namespace Musoq.Evaluator.Visitors
             AddReference(typeof(SyntaxFactory));
             AddReference(assemblies.ToArray());
 
-            Compilation = Compilation.WithOptions(
+            
+Compilation = Compilation.WithOptions(
                 new CSharpCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary,
                         optimizationLevel: OptimizationLevel.Release,
@@ -708,15 +709,21 @@ namespace Musoq.Evaluator.Visitors
 
             _emptyBlock = SyntaxFactory.Block();
 
-            var foreaches = SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
-                    SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
-                    SyntaxFactory.IdentifierName(
-                        $"EvaluationHelper.ConvertTableToSource({node.InMemoryTableAlias}TransitionTable).Rows"),
-                    SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ForEachStatement(
-                        SyntaxFactory.IdentifierName("var"), SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
-                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
-                        SyntaxFactory.Block((StatementSyntax) ifStatement, _emptyBlock)))))
-                .NormalizeWhitespace();
+            var foreaches = SyntaxFactory.ForEachStatement(
+                SyntaxFactory.IdentifierName("var"),
+                SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
+                SyntaxFactory.IdentifierName(
+                    $"EvaluationHelper.ConvertTableToSource({node.InMemoryTableAlias}TransitionTable).Rows"),
+                SyntaxFactory.Block(
+                    SyntaxFactory.SingletonList<StatementSyntax>(
+                        SyntaxFactory.ForEachStatement(
+                            SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
+                            SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
+                            SyntaxFactory.Block(
+                                GenerateCancellationExpression(),
+                                (StatementSyntax) ifStatement,
+                                _emptyBlock)))));
 
             _joinBlock = SyntaxFactory.Block(foreaches);
         }
@@ -767,13 +774,15 @@ namespace Musoq.Evaluator.Visitors
             _emptyBlock = SyntaxFactory.Block();
 
             var foreaches = SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
-                    SyntaxFactory.Identifier($"{node.First.Alias}Row"),
-                    SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
-                    SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ForEachStatement(
-                        SyntaxFactory.IdentifierName("var"), SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
-                        SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
-                        SyntaxFactory.Block((StatementSyntax) ifStatement, _emptyBlock)))))
-                .NormalizeWhitespace();
+                SyntaxFactory.Identifier($"{node.First.Alias}Row"),
+                SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
+                SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ForEachStatement(
+                    SyntaxFactory.IdentifierName("var"), SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
+                    SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
+                    SyntaxFactory.Block(
+                        GenerateCancellationExpression(),
+                        (StatementSyntax) ifStatement, 
+                        _emptyBlock)))));
 
             _joinBlock = SyntaxFactory.Block(foreaches);
         }
@@ -889,6 +898,8 @@ namespace Musoq.Evaluator.Visitors
             var where = Nodes.Pop() as StatementSyntax;
 
             var block = (BlockSyntax) Nodes.Pop();
+
+            block = block.AddStatements(GenerateCancellationExpression());
             block = block.AddStatements(where);
 
             if (skip != null)
@@ -927,6 +938,7 @@ namespace Musoq.Evaluator.Visitors
                 Statements.Add(SyntaxFactory.ParseStatement("var groups = new Dictionary<GroupKey, Group>();")
                     .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)));
 
+                block = block.AddStatements(GenerateCancellationExpression());
                 block = block.AddStatements(where);
                 block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(_groupKeys));
                 block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(_groupValues));
@@ -982,6 +994,17 @@ namespace Musoq.Evaluator.Visitors
             }
         }
 
+        private StatementSyntax GenerateCancellationExpression()
+        {
+            return SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("token"),
+                    SyntaxFactory.IdentifierName(
+                        nameof(CancellationToken.ThrowIfCancellationRequested)))));
+        }
+
         public void Visit(RootNode node)
         {
             var method = SyntaxFactory.MethodDeclaration(
@@ -1004,7 +1027,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.Identifier("token"), null)
                     })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
-                SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {_methodNames.Pop()}(Provider, CancellationToken.None);")),
+                SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {_methodNames.Pop()}(Provider, token);")),
                 null);
 
             var param = SyntaxFactory.PropertyDeclaration(
@@ -1462,8 +1485,11 @@ namespace Musoq.Evaluator.Visitors
 
         private BlockSyntax GroupByForeach(BlockSyntax foreachInstructions, string variableName, string tableVariable)
         {
-            return SyntaxFactory.Block(SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
-                SyntaxFactory.Identifier(variableName), SyntaxFactory.IdentifierName(tableVariable),
+            return SyntaxFactory.Block(
+                SyntaxFactory.ForEachStatement(
+                    SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.Identifier(variableName), 
+                    SyntaxFactory.IdentifierName(tableVariable),
                 foreachInstructions).NormalizeWhitespace());
         }
 
@@ -1514,15 +1540,26 @@ namespace Musoq.Evaluator.Visitors
         {
             return
                 SyntaxFactory.ForStatement(SyntaxFactory.Block(
-                        SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
-                            .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
-                                SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                                    .VariableDeclarator(SyntaxFactory.Identifier("key"))
-                                    .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory
-                                        .ElementAccessExpression(SyntaxFactory.IdentifierName("keys"))
-                                        .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i")))))))))),
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression, 
+                                SyntaxFactory.IdentifierName("token"), 
+                                SyntaxFactory.IdentifierName(nameof(CancellationToken.ThrowIfCancellationRequested))))),
+                    SyntaxFactory.LocalDeclarationStatement(
+                        SyntaxFactory.VariableDeclaration(
+                            SyntaxFactory.IdentifierName("var"))
+                            .WithVariables(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.VariableDeclarator(
+                                            SyntaxFactory.Identifier("key"))
+                                        .WithInitializer(
+                                            SyntaxFactory.EqualsValueClause(
+                                                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("keys"))
+                                                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                                                        SyntaxFactory.SingletonSeparatedList(
+                                                            SyntaxFactory.Argument(
+                                                                SyntaxFactory.IdentifierName("i")))))))))),
                         SyntaxFactory.IfStatement(
                                 SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
