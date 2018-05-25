@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -93,6 +94,7 @@ namespace Musoq.Evaluator.Visitors
                     "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\2.0.0\\netstandard.dll"));
 
             AddReference(typeof(object));
+            AddReference(typeof(CancellationToken));
             AddReference(typeof(ISchema));
             AddReference(typeof(LibraryBase));
             AddReference(typeof(Table));
@@ -110,6 +112,7 @@ namespace Musoq.Evaluator.Visitors
             AccessToClassPath = $"{Namespace}.{ClassName}";
 
             AddNamespace("System");
+            AddNamespace(typeof(CancellationToken).Namespace);
             AddNamespace("System.Collections.Generic");
             AddNamespace("Musoq.Plugins");
             AddNamespace("Musoq.Schema");
@@ -992,7 +995,7 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.ParameterList(
                     SyntaxFactory.SeparatedList(new ParameterSyntax[0])),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
-                SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {_methodNames.Pop()}(Provider);")),
+                SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {_methodNames.Pop()}(Provider, CancellationToken.None);")),
                 null);
 
             var param = SyntaxFactory.PropertyDeclaration(
@@ -1080,17 +1083,31 @@ namespace Musoq.Evaluator.Visitors
 
             var aInvocation = SyntaxFactory
                 .InvocationExpression(SyntaxFactory.IdentifierName(a))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("provider")))));
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new SyntaxNode[]
+                            {
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("token"))
+                            }
+                            )));
 
             var bInvocation = SyntaxFactory
                 .InvocationExpression(SyntaxFactory.IdentifierName(b))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("provider")))));
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new SyntaxNode[]
+                            {
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("token"))
+                            }
+                        )));
 
             _members.Add(GenerateMethod(name, nameof(BaseOperations.Union), _scope[MetaAttributes.SetOperatorName],
                 aInvocation, bInvocation));
@@ -1105,17 +1122,31 @@ namespace Musoq.Evaluator.Visitors
 
             var aInvocation = SyntaxFactory
                 .InvocationExpression(SyntaxFactory.IdentifierName(a))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("provider")))));
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new SyntaxNode[]
+                            {
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("token"))
+                            }
+                        )));
 
             var bInvocation = SyntaxFactory
                 .InvocationExpression(SyntaxFactory.IdentifierName(b))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("provider")))));
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new SyntaxNode[]
+                            {
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("token"))
+                            }
+                        )));
 
             _members.Add(GenerateMethod(name, nameof(BaseOperations.UnionAll), _scope[MetaAttributes.SetOperatorName],
                 aInvocation, bInvocation));
@@ -1130,17 +1161,31 @@ namespace Musoq.Evaluator.Visitors
 
             var aInvocation = SyntaxFactory
                 .InvocationExpression(SyntaxFactory.IdentifierName(a))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("provider")))));
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new SyntaxNode[]
+                            {
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("token"))
+                            }
+                        )));
 
             var bInvocation = SyntaxFactory
                 .InvocationExpression(SyntaxFactory.IdentifierName(b))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("provider")))));
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new SyntaxNode[]
+                            {
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("token"))
+                            }
+                        )));
 
             _members.Add(GenerateMethod(name, nameof(BaseOperations.Except), _scope[MetaAttributes.SetOperatorName],
                 aInvocation, bInvocation));
@@ -1155,17 +1200,31 @@ namespace Musoq.Evaluator.Visitors
 
             var aInvocation = SyntaxFactory
                 .InvocationExpression(SyntaxFactory.IdentifierName(a))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("provider")))));
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new SyntaxNode[]
+                            {
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("token"))
+                            }
+                        )));
 
             var bInvocation = SyntaxFactory
                 .InvocationExpression(SyntaxFactory.IdentifierName(b))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("provider")))));
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new SyntaxNode[]
+                            {
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("token"))
+                            }
+                        )));
 
             _members.Add(GenerateMethod(name, nameof(BaseOperations.Intersect), _scope[MetaAttributes.SetOperatorName],
                 aInvocation, bInvocation));
@@ -1221,7 +1280,15 @@ namespace Musoq.Evaluator.Visitors
                                 new SyntaxToken()),
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                            SyntaxFactory.Identifier("provider"), null)
+                            SyntaxFactory.Identifier("provider"), null),
+
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.IdentifierName(nameof(CancellationToken))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("token"), null)
                     })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
                 SyntaxFactory.Block(Statements),
@@ -1251,8 +1318,11 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.ReturnStatement(SyntaxFactory
                     .InvocationExpression(SyntaxFactory.IdentifierName(resultCteMethodName)).WithArgumentList(
                         SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")))))));
+                            SyntaxFactory.SeparatedList(new[]
+                            {
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
+                            })))));
 
             var method = SyntaxFactory.MethodDeclaration(
                 new SyntaxList<AttributeListSyntax>(),
@@ -1271,7 +1341,15 @@ namespace Musoq.Evaluator.Visitors
                                 new SyntaxToken()),
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                            SyntaxFactory.Identifier("provider"), null)
+                            SyntaxFactory.Identifier("provider"), null),
+
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.IdentifierName(nameof(CancellationToken))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("token"), null)
                     })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
                 SyntaxFactory.Block(statements),
@@ -1294,8 +1372,12 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))),
                 SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(_methodNames.Peek())).WithArgumentList(
                     SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider"))))))));
+                        SyntaxFactory.SeparatedList(
+                            new []
+                            {
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
+                            }))))));
         }
 
         public void Visit(JoinsNode node)
@@ -1518,9 +1600,12 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.Identifier(methodName))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                 .WithParameterList(SyntaxFactory.ParameterList(
-                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                        .Parameter(SyntaxFactory.Identifier("provider"))
-                        .WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider)))))).WithBody(
+                    SyntaxFactory.SeparatedList(
+                        new []
+                        {
+                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("provider")).WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider))),
+                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("token")).WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken)))
+                        }))).WithBody(
                     SyntaxFactory.Block(
                         SyntaxFactory.SingletonList<StatementSyntax>(
                             SyntaxFactory.ReturnStatement(
