@@ -4,7 +4,7 @@ using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Schema.FlatFile;
 
-namespace Musoq.Schema.FlatFileTests
+namespace Musoq.Schema.FlatFileTests.Core
 {
     [TestClass]
     public class FlatFileTests

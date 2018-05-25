@@ -21,14 +21,14 @@ namespace Musoq.Service.Controllers
     public class RuntimeController : ApiController
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
-        private readonly ICacheManager<IRunnable> _expressionsCache;
+        private readonly ICacheManager<CompiledQuery> _expressionsCache;
         private readonly IServiceLogger _logger;
         private readonly IDictionary<Guid, ExecutionState> _runetimeState;
         private readonly IDictionary<string, Type> _schemas;
 
         public RuntimeController(IDictionary<Guid, QueryContext> contexts,
             IDictionary<Guid, ExecutionState> runetimeState,
-            ICacheManager<IRunnable> expressionsCache, IServiceLogger logger,
+            ICacheManager<CompiledQuery> expressionsCache, IServiceLogger logger,
             IDictionary<string, Type> schemas)
         {
             _contexts = contexts;

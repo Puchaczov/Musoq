@@ -2,7 +2,7 @@
 using Musoq.Converter;
 using Musoq.Evaluator;
 
-namespace Musoq.Schema.Time.Tests
+namespace Musoq.Schema.Time.Tests.Core
 {
     [TestClass]
     public class TimeTests

@@ -19,7 +19,7 @@ namespace Musoq.Converter
 {
     public static class InstanceCreator
     {
-        public static IRunnable Create(RootNode root, ISchemaProvider schemaProvider)
+        public static CompiledQuery Create(RootNode root, ISchemaProvider schemaProvider)
         {
             schemaProvider = new TransitionSchemaProvider(schemaProvider);
 
@@ -89,7 +89,7 @@ namespace Musoq.Converter
                 var runnable = (IRunnable)Activator.CreateInstance(type);
                 runnable.Provider = schemaProvider;
 
-                if (!Debugger.IsAttached) return runnable;
+                if (!Debugger.IsAttached) return new CompiledQuery(runnable);
 
                 builder = new StringBuilder();
                 using (var writer = new StringWriter(builder))
@@ -104,7 +104,7 @@ namespace Musoq.Converter
 
                 runnable = new RunnableDebugDecorator(runnable, csPath);
 
-                return runnable;
+                return new CompiledQuery(runnable);
             }
 #else
             var csharpRewriter =
@@ -135,12 +135,13 @@ namespace Musoq.Converter
 
                 var runnable = (IRunnable)Activator.CreateInstance(type);
                 runnable.Provider = schemaProvider;
-                return runnable;
+
+                return new CompiledQuery(runnable);
             }
 #endif
         }
 
-        public static IRunnable Create(string script, ISchemaProvider schemaProvider)
+        public static CompiledQuery Create(string script, ISchemaProvider schemaProvider)
         {
             return Create(CreateTree(script), schemaProvider);
         }

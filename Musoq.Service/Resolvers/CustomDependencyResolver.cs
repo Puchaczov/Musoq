@@ -17,7 +17,7 @@ namespace Musoq.Service.Resolvers
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
 
-        private readonly ICacheManager<IRunnable> _expressionsCache = CacheFactory.Build<IRunnable>(
+        private readonly ICacheManager<CompiledQuery> _expressionsCache = CacheFactory.Build<CompiledQuery>(
             "evaluatedExpressions",
             settings => { settings.WithSystemRuntimeCacheHandle("exps"); });
 

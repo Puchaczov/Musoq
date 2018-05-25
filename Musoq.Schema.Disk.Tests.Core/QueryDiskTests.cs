@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 
-namespace Musoq.Schema.Disk.Tests
+namespace Musoq.Schema.Disk.Tests.Core
 {
     [TestClass]
     public class QueryDiskTests

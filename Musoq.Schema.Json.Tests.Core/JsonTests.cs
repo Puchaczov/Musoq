@@ -4,7 +4,7 @@ using Musoq.Converter;
 using Musoq.Evaluator;
 using Newtonsoft.Json.Linq;
 
-namespace Musoq.Schema.Json.Tests
+namespace Musoq.Schema.Json.Tests.Core
 {
     [TestClass]
     public class JsonTests

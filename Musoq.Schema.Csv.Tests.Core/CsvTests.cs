@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 
-namespace Musoq.Schema.Csv.Tests
+namespace Musoq.Schema.Csv.Tests.Core
 {
     [TestClass]
     public class CsvTests

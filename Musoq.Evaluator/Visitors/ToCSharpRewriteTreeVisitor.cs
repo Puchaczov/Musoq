@@ -993,7 +993,16 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.Identifier(nameof(IRunnable.Run)),
                 null,
                 SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(new ParameterSyntax[0])),
+                    SyntaxFactory.SeparatedList(new []
+                    {
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.IdentifierName(nameof(CancellationToken))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("token"), null)
+                    })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
                 SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {_methodNames.Pop()}(Provider, CancellationToken.None);")),
                 null);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
 
@@ -24,9 +25,9 @@ namespace Musoq.Evaluator
             set => _runnable.Provider = value;
         }
 
-        public Table Run()
+        public Table Run(CancellationToken token)
         {
-            var table = _runnable.Run();
+            var table = _runnable.Run(token);
 
             foreach (var path in _filesToDelete)
             {
