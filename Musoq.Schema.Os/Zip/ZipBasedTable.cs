@@ -1,4 +1,4 @@
-﻿namespace Musoq.Schema.Disk.Zip
+﻿namespace Musoq.Schema.Os.Zip
 {
     public class ZipBasedTable : ISchemaTable
     {

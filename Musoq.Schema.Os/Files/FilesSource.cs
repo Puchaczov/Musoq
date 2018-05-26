@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Musoq.Schema.DataSources;
 
-namespace Musoq.Schema.Disk.Files
+namespace Musoq.Schema.Os.Files
 {
     public class FilesSource : RowSourceBase<FileInfo>
     {

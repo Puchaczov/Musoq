@@ -107,7 +107,7 @@ namespace Musoq.Converter
                     file.Write(stream.ToArray());
                 }
 
-                runnable = new RunnableDebugDecorator(runnable, csPath);
+                runnable = new RunnableDebugDecorator(runnable, csPath, assemblyPath);
 
                 return new CompiledQuery(runnable);
             }

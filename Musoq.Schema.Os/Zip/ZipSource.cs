@@ -3,7 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using Musoq.Schema.DataSources;
 
-namespace Musoq.Schema.Disk.Zip
+namespace Musoq.Schema.Os.Zip
 {
     public class ZipSource : RowSource
     {

@@ -1,22 +1,22 @@
 ﻿using System;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Disk.Directories;
-using Musoq.Schema.Disk.Files;
-using Musoq.Schema.Disk.Process;
-using Musoq.Schema.Disk.Zip;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Os.Directories;
+using Musoq.Schema.Os.Files;
+using Musoq.Schema.Os.Process;
+using Musoq.Schema.Os.Zip;
 
-namespace Musoq.Schema.Disk
+namespace Musoq.Schema.Os
 {
-    public class DiskSchema : SchemaBase
+    public class OsSchema : SchemaBase
     {
         private const string DirectoriesTable = "directories";
         private const string FilesTable = "files";
         private const string ZipTable = "zip";
-        private const string SchemaName = "disk";
+        private const string SchemaName = "os";
         private const string ProcessesName = "process";
 
-        public DiskSchema()
+        public OsSchema()
             : base(SchemaName, CreateLibrary())
         {
         }

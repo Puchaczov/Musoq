@@ -5,11 +5,18 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 
-namespace Musoq.Schema.Disk.Tests.Core
+namespace Musoq.Schema.Os.Tests.Core
 {
     [TestClass]
     public class QueryDiskTests
     {
+        [TestInitialize]
+        public void Initialize()
+        {
+            if (!Directory.Exists("./Results"))
+                Directory.CreateDirectory("./Results");
+        }
+
         [TestMethod]
         public void CompressFilesTest()
         {
@@ -83,7 +90,7 @@ namespace Musoq.Schema.Disk.Tests.Core
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.Create(script, new DiskSchemaProvider());
+            return InstanceCreator.Create(script, new OsSchemaProvider());
         }
     }
 }

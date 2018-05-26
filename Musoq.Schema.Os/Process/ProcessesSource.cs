@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Musoq.Schema.DataSources;
 
-namespace Musoq.Schema.Disk.Process
+namespace Musoq.Schema.Os.Process
 {
     public class ProcessesSource : RowSourceBase<System.Diagnostics.Process>
     {

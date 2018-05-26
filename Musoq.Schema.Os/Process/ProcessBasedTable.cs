@@ -1,4 +1,4 @@
-﻿namespace Musoq.Schema.Disk.Process
+﻿namespace Musoq.Schema.Os.Process
 {
     public class ProcessBasedTable : ISchemaTable
     {

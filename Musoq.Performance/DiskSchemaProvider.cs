@@ -1,5 +1,5 @@
 ﻿using Musoq.Schema;
-using Musoq.Schema.Disk;
+using Musoq.Schema.Os;
 
 namespace Musoq.Performance
 {
@@ -7,7 +7,7 @@ namespace Musoq.Performance
     {
         public ISchema GetSchema(string schema)
         {
-            return new DiskSchema();
+            return new OsSchema();
         }
     }
 }

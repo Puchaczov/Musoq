@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Musoq.Schema.DataSources;
 
-namespace Musoq.Schema.Disk.Directories
+namespace Musoq.Schema.Os.Directories
 {
     public static class SchemaDirectoriesHelper
     {

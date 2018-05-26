@@ -1,4 +1,4 @@
-﻿namespace Musoq.Schema.Disk.Files
+﻿namespace Musoq.Schema.Os.Files
 {
     public class FilesBasedTable : ISchemaTable
     {

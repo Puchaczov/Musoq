@@ -13,7 +13,7 @@ using Musoq.Plugins.Attributes;
 using Musoq.Plugins.Helpers;
 using Group = Musoq.Plugins.Group;
 
-namespace Musoq.Schema.Disk
+namespace Musoq.Schema.Os
 {
     [BindableClass]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Musoq.Schema.DataSources;
 
-namespace Musoq.Schema.Disk.Process
+namespace Musoq.Schema.Os.Process
 {
     public static class ProcessHelper
     {

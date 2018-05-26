@@ -1,4 +1,4 @@
-﻿namespace Musoq.Schema.Disk
+﻿namespace Musoq.Schema.Os
 {
     public class DirectorySourceSearchOptions
     {

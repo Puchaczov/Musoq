@@ -233,9 +233,9 @@
       <Project>{44D1D33F-600A-444C-969B-E3258F5B2FDD}</Project>
       <Name>Musoq.Schema.Csv</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Musoq.Schema.Disk\Musoq.Schema.Disk.csproj">
-      <Project>{e4945f2f-34a6-40e3-81aa-c234e44f5893}</Project>
-      <Name>Musoq.Schema.Disk</Name>
+    <ProjectReference Include="..\Musoq.Schema.Os\Musoq.Schema.Os.csproj">
+      <Project>{00d67436-7811-4c13-bc66-7bc830c4ef4b}</Project>
+      <Name>Musoq.Schema.Os</Name>
     </ProjectReference>
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj">
       <Project>{1B7D2E6C-05A9-42E1-BE32-9A6821E390CA}</Project>
