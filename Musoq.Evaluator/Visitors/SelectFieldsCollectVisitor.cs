@@ -119,7 +119,7 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
-        public void Visit(GroupByAccessMethodNode node)
+        public void Visit(IsNullNode node)
         {
         }
 

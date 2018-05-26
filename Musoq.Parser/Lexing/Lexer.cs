@@ -99,6 +99,10 @@ namespace Musoq.Parser.Lexing
                     return TokenType.With;
                 case OnToken.TokenText:
                     return TokenType.On;
+                case IsToken.TokenText:
+                    return TokenType.Is;
+                case NullToken.TokenText:
+                    return TokenType.Null;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -161,6 +165,8 @@ namespace Musoq.Parser.Lexing
             public static readonly string KOr = string.Format(Keyword, OrToken.TokenText);
             public static readonly string KPlus = $@"\{PlusToken.TokenText}";
             public static readonly string KRightParenthesis = $@"\{RightParenthesisToken.TokenText}";
+            public static readonly string KIs = string.Format(Keyword, IsToken.TokenText);
+            public static readonly string KNull = string.Format(Keyword, NullToken.TokenText);
             public static readonly string KStar = string.Format(Keyword, $@"\{StarToken.TokenText}");
             public static readonly string KWhere = string.Format(Keyword, WhereToken.TokenText);
             public static readonly string KWhiteSpace = @"[\s]{1,}";
@@ -234,6 +240,8 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KOr),
                 new TokenDefinition(TokenRegexDefinition.KPlus),
                 new TokenDefinition(TokenRegexDefinition.KStar),
+                new TokenDefinition(TokenRegexDefinition.KIs),
+                new TokenDefinition(TokenRegexDefinition.KNull),
                 new TokenDefinition(TokenRegexDefinition.KWith, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KContains, RegexOptions.IgnoreCase),
@@ -402,6 +410,10 @@ namespace Musoq.Parser.Lexing
                 case TokenType.MethodAccess:
                     return new MethodAccessToken(match.Groups[1].Value,
                         new TextSpan(Position, match.Groups[1].Value.Length));
+                case TokenType.Is:
+                    return new IsToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Null:
+                    return new NullToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

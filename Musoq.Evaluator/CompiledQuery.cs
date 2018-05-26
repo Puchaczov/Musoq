@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator
 {
+    [DebuggerStepThrough]
     public class CompiledQuery
     {
         private readonly IRunnable _runnable;

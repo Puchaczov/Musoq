@@ -414,8 +414,28 @@ Compilation = Compilation.WithOptions(
                     args));
         }
 
-        public void Visit(GroupByAccessMethodNode node)
+        public void Visit(IsNullNode node)
         {
+            if (node.Expression.ReturnType.IsValueType)
+            {
+                Nodes.Pop();
+                Nodes.Push(
+                    node.IsNegated ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression) : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+                return;
+            }
+
+            if (node.IsNegated)
+                Nodes.Push(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.NotEqualsExpression,
+                        (ExpressionSyntax) Nodes.Pop(),
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+            else
+                Nodes.Push(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.EqualsExpression,
+                        (ExpressionSyntax)Nodes.Pop(),
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
         }
 
         public void Visit(AccessRefreshAggreationScoreNode node)
@@ -580,8 +600,13 @@ Compilation = Compilation.WithOptions(
 
         public void Visit(WhereNode node)
         {
-            var ifStatement = Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
-                    new SyntaxNode[] {SyntaxFactory.ContinueStatement()})
+            var ifStatement = 
+                Generator.IfStatement(
+                        Generator.LogicalNotExpression(Nodes.Pop()),
+                        new SyntaxNode[]
+                        {
+                            SyntaxFactory.ContinueStatement()
+                        })
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
 
             Nodes.Push(ifStatement);

@@ -35,6 +35,8 @@
         Like,
         NotLike,
         As,
+        Is,
+        Null,
         Union,
         UnionAll,
         Except,

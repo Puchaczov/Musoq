@@ -193,8 +193,9 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new AccessMethodNode(node.FToken, (ArgsListNode) Nodes.Pop(), null, node.Method, node.Alias));
         }
 
-        public virtual void Visit(GroupByAccessMethodNode node)
+        public virtual void Visit(IsNullNode node)
         {
+            Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
         }
 
         public virtual void Visit(AccessRefreshAggreationScoreNode node)

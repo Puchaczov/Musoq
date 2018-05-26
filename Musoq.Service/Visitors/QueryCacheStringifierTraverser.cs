@@ -58,10 +58,9 @@ namespace Musoq.Service.Visitors
             node.Arguments.Accept(this);
         }
 
-        public void Visit(GroupByAccessMethodNode node)
+        public void Visit(IsNullNode node)
         {
             node.Accept(_visitor);
-            node.Arguments.Accept(this);
         }
 
         public void Visit(AccessRefreshAggreationScoreNode node)

@@ -800,5 +800,106 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual(18, table[8][1]);
             Assert.AreEqual("Int32", table[8][2]);
         }
+
+
+        [TestMethod]
+        public void IsNotNullReferenceTypeTest()
+        {
+            var query = @"select Name from #A.Entities() where Name is not null";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"), new BasicEntity(null), new BasicEntity("003"), new BasicEntity(null),
+                        new BasicEntity("005"), new BasicEntity("006")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(4, table.Count);
+            Assert.AreEqual("001", table[0].Values[0]);
+            Assert.AreEqual("003", table[1].Values[0]);
+            Assert.AreEqual("005", table[2].Values[0]);
+            Assert.AreEqual("006", table[3].Values[0]);
+        }
+
+        [TestMethod]
+        public void IsNullReferenceTypeTest()
+        {
+            var query = @"select City from #A.Entities() where Country is null";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("Poland", "Gdansk"), new BasicEntity(null, "Warsaw"), new BasicEntity("France", "Paris"), new BasicEntity(null, "Bratislava")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual("Warsaw", table[0].Values[0]);
+            Assert.AreEqual("Bratislava", table[1].Values[0]);
+        }
+
+
+        [TestMethod]
+        public void IsNotNullValueTypeTest()
+        {
+            var query = @"select Population from #A.Entities() where Population is not null";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("ABC", 100), new BasicEntity("CBA", 200), new BasicEntity("aaa")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(3, table.Count);
+
+            Assert.AreEqual(100m, table[0].Values[0]);
+            Assert.AreEqual(200m, table[1].Values[0]);
+            Assert.AreEqual(0m, table[2].Values[0]);
+        }
+
+        [TestMethod]
+        public void IsNullValueTypeTest()
+        {
+            var query = @"select Population from #A.Entities() where Population is null";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("ABC", 100), new BasicEntity("CBA", 200), new BasicEntity("aaa")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(0, table.Count);
+        }
     }
 }

@@ -60,9 +60,9 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(GroupByAccessMethodNode node)
+        public void Visit(IsNullNode node)
         {
-            node.Arguments.Accept(this);
+            node.Expression.Accept(this);
             node.Accept(_visitor);
         }
 

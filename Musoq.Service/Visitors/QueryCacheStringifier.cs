@@ -137,7 +137,7 @@ namespace Musoq.Service.Visitors
             _script.Append(node.Name);
         }
 
-        public void Visit(GroupByAccessMethodNode node)
+        public void Visit(IsNullNode node)
         {
             _script.Append("group by");
         }

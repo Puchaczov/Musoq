@@ -222,11 +222,9 @@ namespace Musoq.Evaluator.Visitors
                     new AccessMethodNode(token, node1 as ArgsListNode, exargs, arg3, alias));
         }
 
-        public void Visit(GroupByAccessMethodNode node)
+        public void Visit(IsNullNode node)
         {
-            VisitAccessMethod(node,
-                (token, node1, exargs, arg3, alias) =>
-                    new GroupByAccessMethodNode(token, node1 as ArgsListNode, exargs, arg3, alias));
+            Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
         }
 
         public void Visit(AccessRefreshAggreationScoreNode node)
