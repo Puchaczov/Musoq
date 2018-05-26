@@ -409,7 +409,7 @@ namespace Musoq.Evaluator.Visitors
 
 
             var select = Nodes.Pop() as SelectNode;
-            var where = Nodes.Pop() as WhereNode;
+            var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
             var from = Nodes.Pop() as ExpressionFromNode;
 
             var scoreSelect = select;

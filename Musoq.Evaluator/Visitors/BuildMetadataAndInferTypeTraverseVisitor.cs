@@ -303,7 +303,7 @@ namespace Musoq.Evaluator.Visitors
         {
             LoadScope("Query");
             node.From.Accept(this);
-            node.Where.Accept(this);
+            node.Where?.Accept(this);
             node.Select.Accept(this);
             node.Take?.Accept(this);
             node.Skip?.Accept(this);

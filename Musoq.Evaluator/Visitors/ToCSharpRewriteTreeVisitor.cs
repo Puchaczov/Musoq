@@ -948,12 +948,14 @@ Compilation = Compilation.WithOptions(
             var take = node.Take != null ? Nodes.Pop() as BlockSyntax : null;
 
             var select = _selectBlock;
-            var where = Nodes.Pop() as StatementSyntax;
+            var where = node.Where != null ? Nodes.Pop() as StatementSyntax : null;
 
             var block = (BlockSyntax) Nodes.Pop();
 
             block = block.AddStatements(GenerateCancellationExpression());
-            block = block.AddStatements(where);
+
+            if (where != null)
+                block = block.AddStatements(where);
 
             if (skip != null)
                 block = block.AddStatements(skip);
@@ -977,7 +979,7 @@ Compilation = Compilation.WithOptions(
         public void Visit(InternalQueryNode node)
         {
             var select = _selectBlock;
-            var where = Nodes.Pop() as StatementSyntax;
+            var where = node.Where != null ? Nodes.Pop() as StatementSyntax : null;
 
             var block = (BlockSyntax) Nodes.Pop();
 
@@ -992,7 +994,10 @@ Compilation = Compilation.WithOptions(
                     .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturnLineFeed)));
 
                 block = block.AddStatements(GenerateCancellationExpression());
-                block = block.AddStatements(where);
+
+                if(where != null)
+                    block = block.AddStatements(where);
+
                 block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(_groupKeys));
                 block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(_groupValues));
 

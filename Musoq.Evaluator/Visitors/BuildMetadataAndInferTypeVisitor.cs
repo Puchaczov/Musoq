@@ -533,7 +533,7 @@ namespace Musoq.Evaluator.Visitors
             var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
 
             var select = Nodes.Pop() as SelectNode;
-            var where = Nodes.Pop() as WhereNode;
+            var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
             var from = Nodes.Pop() as FromNode;
 
             _currentScope.ScopeSymbolTable.AddSymbol(from.Alias.ToRefreshMethodsSymbolName(),

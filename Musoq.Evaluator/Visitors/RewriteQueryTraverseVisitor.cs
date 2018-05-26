@@ -261,7 +261,7 @@ namespace Musoq.Evaluator.Visitors
             _visitor.SetScope(_walker.Scope);
 
             node.From.Accept(this);
-            node.Where.Accept(this);
+            node.Where?.Accept(this);
             node.Select.Accept(this);
 
             node.Take?.Accept(this);

@@ -501,7 +501,7 @@ namespace Musoq.Parser
             if (withoutWhereToken)
                 return new WhereNode(ComposeOperations());
 
-            return new WhereNode(new PutTrueNode());
+            return null;
         }
 
         private void Consume(TokenType tokenType)

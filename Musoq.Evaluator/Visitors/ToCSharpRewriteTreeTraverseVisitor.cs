@@ -273,7 +273,7 @@ namespace Musoq.Evaluator.Visitors
             _visitor.SetQueryIdentifier(node.From.Alias);
 
             node.From.Accept(this);
-            node.Where.Accept(this);
+            node.Where?.Accept(this);
             node.Select.Accept(this);
 
             node.Take?.Accept(this);
@@ -441,7 +441,7 @@ namespace Musoq.Evaluator.Visitors
             _visitor.SetQueryIdentifier(node.From.Alias);
             node.Refresh?.Accept(this);
             node.From.Accept(this);
-            node.Where.Accept(this);
+            node.Where?.Accept(this);
             node.Select.Accept(this);
             node.Take?.Accept(this);
             node.Skip?.Accept(this);

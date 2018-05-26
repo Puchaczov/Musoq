@@ -102,6 +102,11 @@ namespace Musoq.Converter
                     file.Write(builder.ToString());
                 }
 
+                using (var file = new BinaryWriter(File.OpenWrite(assemblyPath)))
+                {
+                    file.Write(stream.ToArray());
+                }
+
                 runnable = new RunnableDebugDecorator(runnable, csPath);
 
                 return new CompiledQuery(runnable);
