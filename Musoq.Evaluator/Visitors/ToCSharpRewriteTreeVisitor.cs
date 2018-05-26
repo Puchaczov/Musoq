@@ -137,6 +137,7 @@ Compilation = Compilation.WithOptions(
         private Stack<SyntaxNode> Nodes { get; }
 
         private List<StatementSyntax> Statements { get; } = new List<StatementSyntax>();
+        private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new Stack<SyntaxNode>();
 
         public void Visit(Node node)
         {
@@ -207,42 +208,66 @@ Compilation = Compilation.WithOptions(
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.ValueEqualsExpression(a, b));
+
+            var rawSyntax = Generator.ValueEqualsExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(GreaterOrEqualNode node)
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.GreaterThanOrEqualExpression(a, b));
+
+            var rawSyntax = Generator.GreaterThanOrEqualExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(LessOrEqualNode node)
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.LessThanOrEqualExpression(a, b));
+
+            var rawSyntax = Generator.LessThanOrEqualExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(GreaterNode node)
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.GreaterThanExpression(a, b));
+
+            var rawSyntax = Generator.GreaterThanExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(LessNode node)
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.LessThanExpression(a, b));
+
+            var rawSyntax = Generator.LessThanExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(DiffNode node)
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.ValueNotEqualsExpression(a, b));
+
+            var rawSyntax = Generator.ValueNotEqualsExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(NotNode node)
@@ -470,6 +495,9 @@ Compilation = Compilation.WithOptions(
             sNode = Generator.CastExpression(
                 SyntaxFactory.IdentifierName(
                     EvaluationHelper.GetCastableType(node.ReturnType)), sNode);
+
+            if (!node.ReturnType.IsValueType)
+                NullSuspiciousNodes.Push(sNode);
 
             Nodes.Push(sNode);
         }
@@ -1755,6 +1783,41 @@ Compilation = Compilation.WithOptions(
             }
 
             return subExpressions.Pop();
+        }
+
+        private SyntaxNode GenerateNullGuards(SyntaxNode rawNode)
+        {
+            if (NullSuspiciousNodes.Count > 1)
+            {
+                rawNode = SyntaxFactory.ParenthesizedExpression(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.LogicalAndExpression,
+                        SyntaxFactory.BinaryExpression(
+                            SyntaxKind.LogicalAndExpression,
+                            SyntaxFactory.BinaryExpression(
+                                SyntaxKind.NotEqualsExpression,
+                                (ExpressionSyntax)NullSuspiciousNodes.Pop(),
+                                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                            SyntaxFactory.BinaryExpression(
+                                SyntaxKind.NotEqualsExpression,
+                                (ExpressionSyntax)NullSuspiciousNodes.Pop(),
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NullLiteralExpression))),
+                        (BinaryExpressionSyntax)rawNode));
+            }
+            else if (NullSuspiciousNodes.Count == 1)
+            {
+                rawNode = SyntaxFactory.ParenthesizedExpression(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.LogicalAndExpression,
+                        SyntaxFactory.BinaryExpression(
+                            SyntaxKind.NotEqualsExpression,
+                            (ExpressionSyntax)NullSuspiciousNodes.Pop(),
+                            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                        (BinaryExpressionSyntax)rawNode));
+            }
+
+            return rawNode;
         }
     }
 }

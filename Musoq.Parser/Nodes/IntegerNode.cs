@@ -2,7 +2,7 @@
 
 namespace Musoq.Parser.Nodes
 {
-    public class IntegerNode : Node
+    public class IntegerNode : ConstantValueNode
     {
         public IntegerNode(string value)
         {
