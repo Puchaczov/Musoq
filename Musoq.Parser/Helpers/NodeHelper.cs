@@ -4,6 +4,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using Musoq.Parser.Nodes;
+using Musoq.Schema.Helpers;
 
 namespace Musoq.Parser.Helpers
 {
@@ -47,7 +48,7 @@ namespace Musoq.Parser.Helpers
 
         public static Type GetReturnTypeMap(Type left, Type right)
         {
-            return BinaryTypes[(left, right)];
+            return BinaryTypes[(left.GetUnderlyingNullable(), right.GetUnderlyingNullable())];
         }
 
         /// <summary>

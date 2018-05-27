@@ -31,6 +31,26 @@ namespace Musoq.Schema.Helpers
         }
 
         /// <summary>
+        /// Checks if the can be considered as contextual value type.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>True if is pure value type. False if is Nullable[T] type or is reference type.</returns>
+        public static bool IsTrueValueType(this Type type)
+        {
+            var isValueType = type.IsValueType;
+
+            if (!isValueType)
+                return false;
+
+            var isNullableType = Nullable.GetUnderlyingType(type) != null;
+
+            if (isNullableType)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
         ///     Gets the optional parameters count.
         /// </summary>
         /// <param name="parameters"></param>

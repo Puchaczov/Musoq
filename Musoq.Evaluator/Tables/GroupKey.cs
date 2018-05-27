@@ -56,7 +56,15 @@ namespace Musoq.Evaluator.Tables
             unchecked
             {
                 var hash = 0;
-                for (var i = 0; i < Values.Length; ++i) hash += Values[i].GetHashCode();
+                for (var i = 0; i < Values.Length; ++i)
+                {
+                    var val = Values[i];
+
+                    if(val == null)
+                        continue;
+
+                    hash += val.GetHashCode();
+                }
 
                 return hash;
             }
@@ -69,7 +77,28 @@ namespace Musoq.Evaluator.Tables
 
             var areEqual = true;
 
-            for (var i = 0; i < first.Count; i++) areEqual &= first[i].Equals(second[i]);
+            for (var i = 0; i < first.Count && areEqual; i++)
+            {
+                var f = first[i];
+                var s = second[i];
+
+                if (f == null && s == null)
+                    continue;
+
+                if (f != null && s == null)
+                {
+                    areEqual = false;
+                    continue;
+                }
+
+                if (f == null && s != null)
+                {
+                    areEqual = false;
+                    continue;
+                }
+
+                areEqual &= f.Equals(s);
+            }
 
             return areEqual;
         }

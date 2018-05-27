@@ -40,25 +40,28 @@ namespace Musoq.Plugins
         [AggregationSetMethod]
         public void SetAggregateValue([InjectGroup] Group group, string name, string value)
         {
+            if(value == null)
+                return;
+
             AggregateAdd(group, name, value);
         }
 
         [AggregationSetMethod]
-        public void SetAggregateValue([InjectGroup] Group group, string name, decimal value)
+        public void SetAggregateValue([InjectGroup] Group group, string name, decimal? value)
         {
-            AggregateAdd(group, name, value.ToString(CultureInfo.InvariantCulture));
+            if(!value.HasValue)
+                return;
+
+            AggregateAdd(group, name, value.Value.ToString(CultureInfo.InvariantCulture));
         }
 
         [AggregationSetMethod]
-        public void SetAggregateValue([InjectGroup] Group group, string name, long value)
+        public void SetAggregateValue([InjectGroup] Group group, string name, long? value)
         {
-            AggregateAdd(group, name, value.ToString(CultureInfo.InvariantCulture));
-        }
+            if (!value.HasValue)
+                return;
 
-        private static void AggregateAdd<TType>(Group group, string name, TType value)
-        {
-            var values = group.GetOrCreateValue(name, new List<TType>());
-            values.Add(value);
+            AggregateAdd(group, name, value.Value.ToString(CultureInfo.InvariantCulture));
         }
 
         [AggregationGetMethod]
@@ -75,49 +78,49 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, decimal value)
+        public void SetCount([InjectGroup] Group group, string name, decimal? value)
         {
             var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, DateTimeOffset value)
+        public void SetCount([InjectGroup] Group group, string name, DateTimeOffset? value)
         {
             var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, DateTime value)
+        public void SetCount([InjectGroup] Group group, string name, DateTime? value)
         {
             var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, long value)
+        public void SetCount([InjectGroup] Group group, string name, long? value)
         {
             var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, int value)
+        public void SetCount([InjectGroup] Group group, string name, int? value)
         {
             var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, short value)
+        public void SetCount([InjectGroup] Group group, string name, short? value)
         {
             var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
         }
 
         [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, bool value)
+        public void SetCount([InjectGroup] Group group, string name, bool? value)
         {
             var values = group.GetOrCreateValue<int>(name);
             group.SetValue(name, values + 1);
@@ -147,16 +150,28 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetSum([InjectGroup] Group group, string name, decimal number)
+        public void SetSum([InjectGroup] Group group, string name, decimal? number)
         {
+            if (!number.HasValue)
+            {
+                group.GetOrCreateValue<decimal>(name);
+                return;
+            }
+
             var value = group.GetOrCreateValue<decimal>(name);
             group.SetValue(name, value + number);
         }
 
         [AggregationSetMethod]
-        public void SetSum([InjectGroup] Group group, string name, long number)
+        public void SetSum([InjectGroup] Group group, string name, long? number)
         {
-            var value = group.GetOrCreateValue<decimal>(name);
+            if (!number.HasValue)
+            {
+                group.GetOrCreateValue<long>(name);
+                return;
+            }
+
+            var value = group.GetOrCreateValue<long>(name);
             group.SetValue(name, value + number);
         }
 
@@ -167,8 +182,14 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetSumIncome([InjectGroup] Group group, string name, decimal number)
+        public void SetSumIncome([InjectGroup] Group group, string name, decimal? number)
         {
+            if (!number.HasValue)
+            {
+                group.GetOrCreateValue<decimal>(name);
+                return;
+            }
+
             var value = group.GetOrCreateValue<decimal>(name);
 
             if (number >= 0)
@@ -182,8 +203,14 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetSumOutcome([InjectGroup] Group group, string name, decimal number)
+        public void SetSumOutcome([InjectGroup] Group group, string name, decimal? number)
         {
+            if (!number.HasValue)
+            {
+                group.GetOrCreateValue<decimal>(name);
+                return;
+            }
+
             var value = group.GetOrCreateValue<decimal>(name);
 
             if (number < 0)
@@ -210,8 +237,14 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetMax([InjectGroup] Group group, string name, decimal value)
+        public void SetMax([InjectGroup] Group group, string name, decimal? value)
         {
+            if (!value.HasValue)
+            {
+                group.GetOrCreateValue<decimal>(name);
+                return;
+            }
+
             var storedValue = group.GetOrCreateValue<decimal>(name);
 
             if (storedValue < value)
@@ -225,8 +258,14 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetMin([InjectGroup] Group group, string name, decimal value)
+        public void SetMin([InjectGroup] Group group, string name, decimal? value)
         {
+            if (!value.HasValue)
+            {
+                group.GetOrCreateValue<decimal>(name);
+                return;
+            }
+
             var storedValue = group.GetOrCreateValue<decimal>(name);
 
             if (storedValue > value)
@@ -240,7 +279,7 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetAvg([InjectGroup] Group group, string name, decimal value)
+        public void SetAvg([InjectGroup] Group group, string name, decimal? value)
         {
             SetSum(group, name, value);
         }
@@ -254,14 +293,20 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetDominant([InjectGroup] Group group, string name, decimal value)
+        public void SetDominant([InjectGroup] Group group, string name, decimal? value)
         {
+            if (!value.HasValue)
+            {
+                group.GetOrCreateValue<decimal>(name);
+                return;
+            }
+
             var dict = group.GetOrCreateValue(name, new SortedDictionary<decimal, Occurence>());
 
-            if (!dict.TryGetValue(value, out var occur))
+            if (!dict.TryGetValue(value.Value, out var occur))
             {
                 occur = new Occurence();
-                dict.Add(value, occur);
+                dict.Add(value.Value, occur);
             }
 
             occur.Increment();
@@ -276,7 +321,7 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetSumIncome([InjectGroup] Group group, string name, long number, decimal value)
+        public void SetSumIncome([InjectGroup] Group group, string name, long number, decimal? value)
         {
             var parent = GetParentGroup(group, number);
             SetSumIncome(parent, name, value);
@@ -293,7 +338,7 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetSumOutcome([InjectGroup] Group group, string name, long number, decimal value)
+        public void SetSumOutcome([InjectGroup] Group group, string name, long number, decimal? value)
         {
             var parent = GetParentGroup(group, number);
             SetSumOutcome(parent, name, value);
@@ -308,8 +353,14 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public decimal PercentOf(decimal value, decimal max)
+        public decimal? PercentOf(decimal? value, decimal? max)
         {
+            if (!value.HasValue)
+                return null;
+
+            if (!max.HasValue)
+                return null;
+
             return value * 100 / max;
         }
 
@@ -331,7 +382,7 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public string ClusterIfLesserThan(decimal value, decimal edgeValue)
+        public string ClusterIfLesserThan(decimal? value, decimal? edgeValue)
         {
             if (value >= 0)
                 return "none";
@@ -419,10 +470,8 @@ namespace Musoq.Plugins
                 return exp1;
             if (!string.IsNullOrEmpty(exp2))
                 return exp2;
-            if (!string.IsNullOrEmpty(exp3))
-                return exp3;
 
-            return string.Empty;
+            return !string.IsNullOrEmpty(exp3) ? exp3 : string.Empty;
         }
 
         [BindableMethod]
@@ -493,15 +542,21 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public decimal Round(decimal value, long precision)
+        public decimal? Round(decimal? value, long precision)
         {
-            return Math.Round(value, (int) precision);
+            if (!value.HasValue)
+                return null;
+
+            return Math.Round(value.Value, (int) precision);
         }
 
         [BindableMethod]
-        public decimal Round(decimal value, int precision)
+        public decimal? Round(decimal? value, int precision)
         {
-            return Math.Round(value, precision);
+            if (!value.HasValue)
+                return null;
+
+            return Math.Round(value.Value, precision);
         }
 
         [BindableMethod]
@@ -517,49 +572,52 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public decimal ToDecimal(long value)
+        public decimal? ToDecimal(long? value)
         {
             return value;
         }
 
         [BindableMethod]
-        public decimal ToDecimal(decimal value)
+        public decimal? ToDecimal(decimal? value)
         {
             return value;
         }
 
         [BindableMethod]
-        public long ToLong(string value)
+        public long? ToLong(string value)
         {
             return long.Parse(value);
         }
 
         [BindableMethod]
-        public string ToString(DateTimeOffset date)
+        public string ToString(DateTimeOffset? date)
         {
+            if (!date.HasValue)
+                return null;
+
             return date.ToString();
         }
 
         [BindableMethod]
-        public string ToString(DateTime date)
+        public string ToString(DateTime? date)
         {
-            return date.ToString(CultureInfo.InvariantCulture);
+            return date?.ToString(CultureInfo.InvariantCulture);
         }
 
         [BindableMethod]
-        public string ToString(decimal value)
+        public string ToString(decimal? value)
         {
-            return value.ToString(CultureInfo.InvariantCulture);
+            return value?.ToString(CultureInfo.InvariantCulture);
         }
 
         [BindableMethod]
-        public string ToString(long value)
+        public string ToString(long? value)
         {
-            return value.ToString(CultureInfo.InvariantCulture);
+            return value?.ToString(CultureInfo.InvariantCulture);
         }
 
         [BindableMethod]
-        public TimeSpan DateDiff(DateTimeOffset first, DateTimeOffset second)
+        public TimeSpan? DateDiff(DateTimeOffset? first, DateTimeOffset? second)
         {
             return second - first;
         }
@@ -588,43 +646,61 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string Sha256(string content)
         {
+            if (content == null)
+                return null;
+
             return HashHelper.ComputeHash<SHA256Managed>(content);
         }
 
         [BindableMethod]
         public string Md5(string content)
         {
+            if (content == null)
+                return null;
+
             return HashHelper.ComputeHash<MD5CryptoServiceProvider>(content);
         }
 
         [BindableMethod]
-        public decimal Abs(decimal value)
+        public decimal? Abs(decimal? value)
         {
-            return Math.Abs(value);
+            if (!value.HasValue)
+                return null;
+
+            return Math.Abs(value.Value);
         }
 
         [BindableMethod]
-        public long Abs(long value)
+        public long? Abs(long? value)
         {
-            return Math.Abs(value);
+            if (!value.HasValue)
+                return null;
+
+            return Math.Abs(value.Value);
         }
 
         [BindableMethod]
-        public int Abs(int value)
+        public int? Abs(int? value)
         {
-            return Math.Abs(value);
+            if (!value.HasValue)
+                return null;
+
+            return Math.Abs(value.Value);
         }
 
         [BindableMethod]
-        public short Abs(short value)
+        public short? Abs(short? value)
         {
-            return Math.Abs(value);
+            if (!value.HasValue)
+                return null;
+
+            return Math.Abs(value.Value);
         }
 
         [BindableMethod]
         public string ToString(object obj)
         {
-            return obj.ToString();
+            return obj?.ToString();
         }
 
         private static Group GetParentGroup(Group group, long number)
@@ -639,6 +715,12 @@ namespace Musoq.Plugins
             }
 
             return parent;
+        }
+
+        private static void AggregateAdd<TType>(Group group, string name, TType value)
+        {
+            var values = group.GetOrCreateValue(name, new List<TType>());
+            values.Add(value);
         }
 
         private class Occurence

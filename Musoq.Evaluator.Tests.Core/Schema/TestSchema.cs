@@ -26,7 +26,8 @@ namespace Musoq.Evaluator.Tests.Core.Schema
                 {nameof(BasicEntity.Money), 15},
                 {nameof(BasicEntity.Month), 16},
                 {nameof(BasicEntity.Time), 17},
-                {nameof(BasicEntity.Id), 18}
+                {nameof(BasicEntity.Id), 18},
+                {nameof(BasicEntity.NullableValue), 19}
             };
 
             TestIndexToObjectAccessMap = new Dictionary<int, Func<T, object>>
@@ -39,7 +40,8 @@ namespace Musoq.Evaluator.Tests.Core.Schema
                 {15, arg => arg.Money},
                 {16, arg => arg.Month},
                 {17, arg => arg.Time},
-                {18, arg => arg.Id}
+                {18, arg => arg.Id},
+                {19, arg => arg.NullableValue},
             };
         }
 

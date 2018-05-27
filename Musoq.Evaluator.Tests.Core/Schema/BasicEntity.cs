@@ -65,6 +65,8 @@ namespace Musoq.Evaluator.Tests.Core.Schema
 
         public int[] Array => new[] {0, 1, 2};
 
+        public int? NullableValue { get; set; }
+
         public override string ToString()
         {
             return "TEST STRING";

@@ -62,6 +62,12 @@ namespace Musoq.Evaluator.Tests.Core.Schema
             return entity;
         }
 
+        [BindableMethod]
+        public int? NullableMethod(int? value)
+        {
+            return value;
+        }
+
         public new string ToString(object obj)
         {
             return obj.ToString();

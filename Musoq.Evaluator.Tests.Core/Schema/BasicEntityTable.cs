@@ -26,7 +26,9 @@ namespace Musoq.Evaluator.Tests.Core.Schema
                 new SchemaColumn(nameof(BasicEntity.Time), 17,
                     typeof(BasicEntity).GetProperty(nameof(BasicEntity.Time)).PropertyType),
                 new SchemaColumn(nameof(BasicEntity.Id), 18,
-                    typeof(BasicEntity).GetProperty(nameof(BasicEntity.Id)).PropertyType)
+                    typeof(BasicEntity).GetProperty(nameof(BasicEntity.Id)).PropertyType),
+                new SchemaColumn(nameof(BasicEntity.NullableValue), 19,
+                    typeof(BasicEntity).GetProperty(nameof(BasicEntity.NullableValue)).PropertyType)
             };
         }
 

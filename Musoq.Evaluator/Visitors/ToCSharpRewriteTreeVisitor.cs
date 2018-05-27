@@ -431,17 +431,21 @@ Compilation = Compilation.WithOptions(
                 args.Add(item);
             }
 
-            Nodes.Push(
-                Generator.InvocationExpression(
-                    Generator.MemberAccessExpression(
-                        Generator.IdentifierName(variableName),
-                        Generator.IdentifierName(node.Name)),
-                    args));
+            var accessMethodExpr = Generator.InvocationExpression(
+                Generator.MemberAccessExpression(
+                    Generator.IdentifierName(variableName),
+                    Generator.IdentifierName(node.Name)),
+                args);
+
+            if (!node.ReturnType.IsTrueValueType())
+                NullSuspiciousNodes.Push(accessMethodExpr);
+
+            Nodes.Push(accessMethodExpr);
         }
 
         public void Visit(IsNullNode node)
         {
-            if (node.Expression.ReturnType.IsValueType)
+            if (node.Expression.ReturnType.IsTrueValueType())
             {
                 Nodes.Pop();
                 Nodes.Push(
@@ -496,7 +500,7 @@ Compilation = Compilation.WithOptions(
                 SyntaxFactory.IdentifierName(
                     EvaluationHelper.GetCastableType(node.ReturnType)), sNode);
 
-            if (!node.ReturnType.IsValueType)
+            if (!node.ReturnType.IsTrueValueType())
                 NullSuspiciousNodes.Push(sNode);
 
             Nodes.Push(sNode);
