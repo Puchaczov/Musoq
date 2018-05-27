@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Schema.DataSources;
-using Musoq.Service.Environment;
 
 namespace Musoq.Schema.Plugins
 {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -71,7 +72,7 @@ namespace Musoq.Converter
                     builder = new StringBuilder();
                     using (var writer = new StringWriter(builder))
                     {
-                        csharpRewriter.Compilation.SyntaxTrees[0].GetRoot().WriteTo(writer);
+                        csharpRewriter.Compilation.SyntaxTrees.ElementAt(0).GetRoot().WriteTo(writer);
                     }
 
                     using (var file = new StreamWriter(File.OpenWrite(csPath)))
@@ -94,7 +95,7 @@ namespace Musoq.Converter
                 builder = new StringBuilder();
                 using (var writer = new StringWriter(builder))
                 {
-                    csharpRewriter.Compilation.SyntaxTrees[0].GetRoot().WriteTo(writer);
+                    csharpRewriter.Compilation.SyntaxTrees.ElementAt(0).GetRoot().WriteTo(writer);
                 }
 
                 using (var file = new StreamWriter(File.OpenWrite(csPath)))

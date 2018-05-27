@@ -3,8 +3,8 @@ using System.IO;
 using System.Linq;
 using CommandLine;
 using Musoq.Console.Helpers;
-using Musoq.Service.Client;
-using Musoq.Service.Client.Helpers;
+using Musoq.Service.Client.Core;
+using Musoq.Service.Client.Core.Helpers;
 
 namespace Musoq.Console
 {

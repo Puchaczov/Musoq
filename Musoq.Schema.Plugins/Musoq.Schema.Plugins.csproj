@@ -75,9 +75,9 @@
       <Project>{1b7d2e6c-05a9-42e1-be32-9a6821e390ca}</Project>
       <Name>Musoq.Schema</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Musoq.Service.Environment\Musoq.Service.Environment.csproj">
-      <Project>{6d8072f6-1974-475f-81bb-9bd6506fd059}</Project>
-      <Name>Musoq.Service.Environment</Name>
+    <ProjectReference Include="..\Musoq.Service.Environment.Core\Musoq.Service.Environment.Core.csproj">
+      <Project>{44f19fec-4ef9-410e-9796-0295ecff4077}</Project>
+      <Name>Musoq.Service.Environment.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

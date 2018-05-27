@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Musoq.Service.Client\Musoq.Service.Client.csproj" />
+    <ProjectReference Include="..\Musoq.Service.Client.Core\Musoq.Service.Client.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
