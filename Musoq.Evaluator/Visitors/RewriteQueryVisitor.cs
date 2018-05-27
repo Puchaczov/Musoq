@@ -458,7 +458,7 @@ namespace Musoq.Evaluator.Visitors
                     new SelectNode(bothForSelect),
                     new ExpressionFromNode(new JoinSourcesTableFromNode(current.Source, current.With,
                         current.Expression)),
-                    new WhereNode(new PutTrueNode()),
+                    null,
                     null,
                     null,
                     null,
@@ -470,7 +470,8 @@ namespace Musoq.Evaluator.Visitors
                 splittedNodes.Add(targetTable);
                 splittedNodes.Add(joinedQuery);
 
-                source = targetTableName.ToRowsSource();
+                lastJoinQuery = joinedQuery;
+                source = targetTableName.ToTransitionTable().ToTransformedRowsSource();
 
                 var usedTables = new Dictionary<string, string>
                 {
@@ -524,7 +525,7 @@ namespace Musoq.Evaluator.Visitors
                         new SelectNode(bothForSelect),
                         new ExpressionFromNode(new JoinInMemoryWithSourceTableFromNode(current.Source.Alias,
                             current.With, expressionUpdater.Where.Expression)),
-                        new WhereNode(new PutTrueNode()),
+                        null,
                         null,
                         null,
                         null,
