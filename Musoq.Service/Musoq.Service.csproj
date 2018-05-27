@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Musoq.Service</RootNamespace>
     <AssemblyName>Musoq.Service</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -323,8 +323,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if not exist "$(TargetDir)\Plugins\Disk\" mkdir "$(TargetDir)\Plugins\Disk\"
-Copy /Y "$(SolutionDir)Musoq.Schema.Disk\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\Disk\"
+    <PostBuildEvent>if not exist "$(TargetDir)\Plugins\Os\" mkdir "$(TargetDir)\Plugins\Os\"
+Copy /Y "$(SolutionDir)Musoq.Schema.Os\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\Os\"
 if not exist "$(TargetDir)\Plugins\Json\" mkdir "$(TargetDir)\Plugins\Json\"
 Copy /Y "$(SolutionDir)Musoq.Schema.Json\bin\$(ConfigurationName)\netstandard2.0\" "$(TargetDir)\Plugins\Json\"
 if not exist "$(TargetDir)\Plugins\Csv\" mkdir "$(TargetDir)\Plugins\Csv\"
