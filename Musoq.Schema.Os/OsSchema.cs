@@ -4,6 +4,7 @@ using Musoq.Schema.Managers;
 using Musoq.Schema.Os.Directories;
 using Musoq.Schema.Os.Files;
 using Musoq.Schema.Os.Process;
+using Musoq.Schema.Os.Self;
 using Musoq.Schema.Os.Zip;
 
 namespace Musoq.Schema.Os
@@ -13,6 +14,7 @@ namespace Musoq.Schema.Os
         private const string DirectoriesTable = "directories";
         private const string FilesTable = "files";
         private const string ZipTable = "zip";
+        private const string Self = "self";
         private const string SchemaName = "os";
         private const string ProcessesName = "process";
 
@@ -33,6 +35,8 @@ namespace Musoq.Schema.Os
                     return new ZipBasedTable();
                 case ProcessesName:
                     return new ProcessBasedTable();
+                case Self:
+                    return new OsBasedTable();
             }
 
             throw new NotSupportedException();
@@ -50,6 +54,8 @@ namespace Musoq.Schema.Os
                     return new ZipSource(parameters[0]);
                 case ProcessesName:
                     return new ProcessesSource();
+                case Self:
+                    return new OsSource();
             }
 
             throw new NotSupportedException();
