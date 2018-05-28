@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Schema.Time;
 
 namespace Musoq.Schema.Time.Tests.Core
 {

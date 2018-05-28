@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Web.Http;
+using Microsoft.AspNetCore.Mvc;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Service.Client;
@@ -11,12 +11,12 @@ using Musoq.Service.Core.Logging;
 
 namespace Musoq.Service.Core.Controllers
 {
-    public class ContextController : ApiController
+    public class ContextController : ControllerBase
     {
-        private readonly IDictionary<Guid, QueryContext> _contexts;
+        private readonly QueryContextDictionary _contexts;
         private readonly IServiceLogger _logger;
 
-        public ContextController(IDictionary<Guid, QueryContext> contexts, IServiceLogger logger)
+        public ContextController(QueryContextDictionary contexts, IServiceLogger logger)
         {
             _contexts = contexts;
             _logger = logger;
@@ -27,7 +27,7 @@ namespace Musoq.Service.Core.Controllers
         {
             _logger.Log($"Creating context ({context.Query}).");
             var id = Guid.NewGuid();
-            _contexts.Add(id, context);
+            _contexts.TryAdd(id, context);
             return id;
         }
 

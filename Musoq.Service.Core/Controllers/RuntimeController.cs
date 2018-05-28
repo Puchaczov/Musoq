@@ -5,8 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using System.Web.Http;
 using CacheManager.Core;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins.Helpers;
@@ -18,18 +19,19 @@ using Musoq.Service.Environment.Core;
 
 namespace Musoq.Service.Core.Controllers
 {
-    public class RuntimeController : ApiController
+    public class RuntimeController : ControllerBase
     {
         private readonly IDictionary<Guid, QueryContext> _contexts;
-        private readonly ICacheManager<CompiledQuery> _expressionsCache;
+        private readonly IMemoryCache _expressionsCache;
         private readonly IServiceLogger _logger;
         private readonly IDictionary<Guid, ExecutionState> _runetimeState;
         private readonly IDictionary<string, Type> _schemas;
 
-        public RuntimeController(IDictionary<Guid, QueryContext> contexts,
-            IDictionary<Guid, ExecutionState> runetimeState,
-            ICacheManager<CompiledQuery> expressionsCache, IServiceLogger logger,
-            IDictionary<string, Type> schemas)
+        public RuntimeController(
+            QueryContextDictionary contexts,
+            ExecutionStateDictionary runetimeState,
+            IMemoryCache expressionsCache, IServiceLogger logger,
+            LoadedSchemasDictionary schemas)
         {
             _contexts = contexts;
             _runetimeState = runetimeState;
@@ -39,7 +41,7 @@ namespace Musoq.Service.Core.Controllers
         }
 
         [HttpPost]
-        public Guid Execute([FromUri] Guid id)
+        public Guid Execute(Guid id)
         {
             if (!_contexts.TryGetValue(id, out var context))
                 return Guid.Empty;
@@ -70,18 +72,12 @@ namespace Musoq.Service.Core.Controllers
                     watch.Start();
 
                     var root = InstanceCreator.CreateTree(query);
+                    var hash = HashHelper.ComputeHash<MD5CryptoServiceProvider>(query);
 
-                    var cacheKeyCreator = new QueryCacheStringifier();
-                    var traverser = new QueryCacheStringifierTraverser(cacheKeyCreator);
-
-                    root.Accept(traverser);
-
-                    var key = cacheKeyCreator.CacheKey;
-                    var hash = HashHelper.ComputeHash<MD5CryptoServiceProvider>(key);
-
-                    if (!_expressionsCache.TryGetOrAdd(hash,
-                        s => InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas)), out var vm))
+                    if (!_expressionsCache.TryGetValue(hash, out CompiledQuery vm))
                         vm = InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas));
+
+                    _expressionsCache.Set(hash, vm);
 
                     var compiledTime = watch.Elapsed;
                     state.Result = vm.Run();
@@ -114,7 +110,7 @@ namespace Musoq.Service.Core.Controllers
         }
 
         [HttpGet]
-        public ResultTable Result([FromUri] Guid id)
+        public ResultTable Result(Guid id)
         {
             _logger.Log($"Returning result for: {id}.");
 
@@ -130,7 +126,7 @@ namespace Musoq.Service.Core.Controllers
         }
 
         [HttpGet]
-        public (bool HasContext, ExecutionStatus Status) Status([FromUri] Guid id)
+        public (bool HasContext, ExecutionStatus Status) Status(Guid id)
         {
             _logger.Log($"Checking status for: {id}.");
 

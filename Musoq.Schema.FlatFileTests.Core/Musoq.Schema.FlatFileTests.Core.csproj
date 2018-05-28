@@ -26,7 +26,6 @@
     <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
     <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
     <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
-    <ProjectReference Include="..\Musoq.Performance\Musoq.Performance.csproj" />
     <ProjectReference Include="..\Musoq.Schema.FlatFile\Musoq.Schema.FlatFile.csproj" />
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
   </ItemGroup>

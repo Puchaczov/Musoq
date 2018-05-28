@@ -5,13 +5,13 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
-using System.Web.Http;
+using Microsoft.AspNetCore.Mvc;
 using Musoq.Service.Client.Core;
 using Musoq.Service.Client.Core.Helpers;
 
 namespace Musoq.Service.Core.Controllers
 {
-    public class SelfController : ApiController
+    public class SelfController : ControllerBase
     {
         private const string Query = "select FullName, Sha256File() from #disk.directory('{0}', 'true')";
 
@@ -37,34 +37,6 @@ namespace Musoq.Service.Core.Controllers
         public IEnumerable<string> Plugins()
         {
             return Directory.GetDirectories(PluginsDir);
-        }
-
-        [HttpPost]
-        public HttpResponseMessage UploadPlugin()
-        {
-            if (!Request.Content.IsMimeMultipartContent())
-                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
-
-            try
-            {
-                var provider = new MultipartFormDataStreamProvider(Path.GetTempPath());
-
-                foreach (var file in provider.FileData)
-                {
-                    var pluginSpecificDir = Path.Combine(PluginsDir, file.Headers.ContentDisposition.FileName);
-
-                    if (!Directory.Exists(pluginSpecificDir))
-                        Directory.CreateDirectory(pluginSpecificDir);
-
-                    ZipFile.ExtractToDirectory(file.LocalFileName, pluginSpecificDir);
-                }
-
-                return Request.CreateResponse(HttpStatusCode.OK);
-            }
-            catch (Exception exc)
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, exc);
-            }
         }
     }
 }
