@@ -41,15 +41,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Service.Core", "Musoq
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Service.Client.Core", "Musoq.Service.Client.Core\Musoq.Service.Client.Core.csproj", "{1147639E-465B-42AE-BF84-D56C7E688B15}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Service.Client.Core.Tests", "Musoq.Service.Client.Core.Tests\Musoq.Service.Client.Core.Tests.csproj", "{AD696593-ED98-463D-B195-2C6924A68CD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Service.Client.Tests.Core", "Musoq.Service.Client.Tests.Core\Musoq.Service.Client.Tests.Core.csproj", "{AD696593-ED98-463D-B195-2C6924A68CD0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Service.Environment.Core", "Musoq.Service.Environment.Core\Musoq.Service.Environment.Core.csproj", "{44F19FEC-4EF9-410E-9796-0295ECFF4077}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Service.Core.Windows", "Musoq.Service.Core.Windows\Musoq.Service.Core.Windows.csproj", "{6C132C12-0FC9-4376-A576-A5FCD216AA68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Time", "Musoq.Schema.Time.Core\Musoq.Schema.Time.csproj", "{743F46C5-1849-488E-AE3B-79507DB26D4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Time", "Musoq.Schema.Time.Core\Musoq.Schema.Time.csproj", "{743F46C5-1849-488E-AE3B-79507DB26D4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Performance.Core", "Musoq.Performance.Core\Musoq.Performance.Core.csproj", "{39374145-4CB5-41D9-989F-E65EB275EBD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Performance.Core", "Musoq.Performance.Core\Musoq.Performance.Core.csproj", "{39374145-4CB5-41D9-989F-E65EB275EBD0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

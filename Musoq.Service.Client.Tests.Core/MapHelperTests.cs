@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Service.Client.Core;
 using Musoq.Service.Client.Core.Helpers;
 
-namespace Musoq.Service.Client.Core.Tests
+namespace Musoq.Service.Client.Tests.Core
 {
     [TestClass]
     public class MapHelperTests
