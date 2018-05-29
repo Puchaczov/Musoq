@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using CacheManager.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.DependencyInjection;
 using Musoq.Evaluator;
 using Musoq.Schema;
