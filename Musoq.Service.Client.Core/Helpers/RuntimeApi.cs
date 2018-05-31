@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Musoq.Service.Client.Core.Helpers
             _address = address;
         }
 
-        public async Task<Guid> Execute(Guid id)
+        public async Task<HttpStatusCode> Execute(Guid id)
         {
             var client = new HttpClient
             {
@@ -24,7 +25,19 @@ namespace Musoq.Service.Client.Core.Helpers
             var content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
             var response = await client.PostAsync($"api/runtime/execute?id={id.ToString()}", content);
             var contResponse = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<Guid>(contResponse);
+            return response.StatusCode;
+        }
+
+        public async Task<HttpStatusCode> Compile(QueryContext query)
+        {
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri(_address)
+            };
+            var serializedObject = JsonConvert.SerializeObject(query);
+            var content = new StringContent(serializedObject, Encoding.UTF8, "application/json");
+            var response = await client.PostAsync($"api/runtime/compile", content);
+            return response.StatusCode;
         }
 
         public async Task<ResultTable> Result(Guid id)

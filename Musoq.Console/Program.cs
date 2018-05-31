@@ -28,10 +28,7 @@ namespace Musoq.Console
                 ? Configuration.Address
                 : appArgs.Address);
 
-            var result = api.RunQueryAsync(new QueryContext
-            {
-                Query = query
-            }).Result;
+            var result = api.RunQueryAsync(QueryContext.FromQueryText(query)).Result;
 
             var dt = new DataTable(result.Name);
 
