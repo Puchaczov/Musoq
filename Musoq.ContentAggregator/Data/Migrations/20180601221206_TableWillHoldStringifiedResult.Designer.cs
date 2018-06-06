@@ -12,9 +12,10 @@ using System;
 namespace Musoq.ContentAggregator.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180601221206_TableWillHoldStringifiedResult")]
+    partial class TableWillHoldStringifiedResult
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,17 +154,9 @@ namespace Musoq.ContentAggregator.Data.Migrations
                     b.Property<Guid>("TableId")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<Guid>("BatchId");
-
-                    b.Property<DateTimeOffset>("InsertedAt");
-
                     b.Property<string>("Json");
 
-                    b.Property<Guid>("ScriptId");
-
                     b.HasKey("TableId");
-
-                    b.HasIndex("ScriptId");
 
                     b.ToTable("Tables");
                 });
@@ -299,7 +292,7 @@ namespace Musoq.ContentAggregator.Data.Migrations
                 {
                     b.HasOne("Musoq.ContentAggregator.Data.Script", "Script")
                         .WithMany()
-                        .HasForeignKey("ScriptId")
+                        .HasForeignKey("TableId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

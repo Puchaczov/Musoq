@@ -23,6 +23,8 @@ namespace Musoq.ContentAggregator.Data
 
         public DbSet<MusoqQueryScript> QueryScripts { get; set; }
 
+        public DbSet<Table> Tables { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -40,6 +42,12 @@ namespace Musoq.ContentAggregator.Data
         public string ManagingName { get; set; }
     }
 
+    public enum ShowAt {
+        None,
+        MainPage,
+        UserMainPage
+    }
+
     public class UserScripts
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -49,7 +57,12 @@ namespace Musoq.ContentAggregator.Data
 
         [ForeignKey(nameof(Script))]
         public Guid ScriptId { get; set; }
+
         public Script Script { get; set; }
+
+        public ShowAt ShowAt { get; set; }
+
+        public DateTimeOffset RefreshedAt { get; set; }
     }
 
     public enum ScriptType
@@ -62,5 +75,22 @@ namespace Musoq.ContentAggregator.Data
         public override ScriptType Type => ScriptType.MusoqQuery;
 
         public string Query { get; set; }
+    }
+
+    public class Table
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public Guid TableId { get; set; }
+
+        [ForeignKey(nameof(Script))]
+        public Guid ScriptId { get; set; }
+
+        public Script Script { get; set; }
+
+        public string Json { get; set; }
+
+        public Guid BatchId { get; set; }
+
+        public DateTimeOffset InsertedAt { get; set; }
     }
 }

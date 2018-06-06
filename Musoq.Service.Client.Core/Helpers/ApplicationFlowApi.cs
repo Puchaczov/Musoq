@@ -20,6 +20,35 @@ namespace Musoq.Service.Client.Core.Helpers
             _contextApi = new ContextApi(address);
         }
 
+        public async Task<bool> Compile(QueryContext context)
+        {
+            var status = await _runtimeApi.Compile(context);
+
+            return status != System.Net.HttpStatusCode.OK;
+        }
+
+        public async Task<bool> Execute(Guid id)
+        {
+            var status = await _runtimeApi.Execute(id);
+
+            return status != System.Net.HttpStatusCode.OK;
+        }
+
+        public async Task<ResultTable> GetResult(Guid id)
+        {
+            return await _runtimeApi.Result(id);
+        }
+
+        public async Task<ExecutionStatus> Status(Guid id)
+        {
+            var status = await _runtimeApi.Status(id);
+
+            if (!status.HasContext)
+                return ExecutionStatus.Unknown;
+
+            return status.Status;
+        }
+
         public async Task<ResultTable> WaitForQuery(QueryContext context)
         {
             var status = await _runtimeApi.Compile(context);

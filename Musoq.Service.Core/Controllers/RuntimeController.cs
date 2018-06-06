@@ -119,6 +119,9 @@ namespace Musoq.Service.Core.Controllers
             if (!state.MakeActionedOrFalse())
                 return StatusCode((int)HttpStatusCode.Conflict);
 
+            if (state.Status != ExecutionStatus.Compiled)
+                return StatusCode((int)HttpStatusCode.Conflict);
+
             state.Task = Task.Factory.StartNew(() =>
             {
                 state.Status = ExecutionStatus.Running;
@@ -174,16 +177,32 @@ namespace Musoq.Service.Core.Controllers
 
             if (!_runetimeState.TryGetValue(id, out var state))
                 throw new NotSupportedException();
-            
-            var table = state.Result;
-            var computationTime = state.ExecutionTime;
-            var columns = table.Columns.Select(f => f.Name).ToArray();
-            var rows = table.Select(f => f.Values).ToArray();
 
-            state.Result = null;
-            state.Status = ExecutionStatus.Compiled;
+            if(!state.MakeActionedOrFalse())
+                throw new NotSupportedException();
 
-            return new ResultTable(table.Name, columns, rows, computationTime);
+            lock (state)
+            {
+
+                var table = state.Result;
+                var computationTime = state.ExecutionTime;
+                var columns = table.Columns.Select(f => f.Name).ToArray();
+                var rows = table.Select(f => f.Values).ToArray();
+
+                try
+                {
+                    state.MakeActioned();
+
+                    state.Result = null;
+                    state.Status = ExecutionStatus.Compiled;
+                }
+                finally
+                {
+                    state.MakeUnactioned();
+                }
+
+                return new ResultTable(table.Name, columns, rows, computationTime);
+            }
         }
 
         [HttpGet]

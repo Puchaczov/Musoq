@@ -12,9 +12,10 @@ using System;
 namespace Musoq.ContentAggregator.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180601184644_AddShowAtAndTableKeys")]
+    partial class AddShowAtAndTableKeys
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,6 +130,38 @@ namespace Musoq.ContentAggregator.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("Musoq.ContentAggregator.Data.Column", b =>
+                {
+                    b.Property<Guid>("ColumnId")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Name");
+
+                    b.Property<Guid>("TableId");
+
+                    b.HasKey("ColumnId");
+
+                    b.HasIndex("TableId");
+
+                    b.ToTable("Columns");
+                });
+
+            modelBuilder.Entity("Musoq.ContentAggregator.Data.Row", b =>
+                {
+                    b.Property<Guid>("RowId")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<Guid>("ColumnId");
+
+                    b.Property<string>("Value");
+
+                    b.HasKey("RowId");
+
+                    b.HasIndex("ColumnId");
+
+                    b.ToTable("Rows");
+                });
+
             modelBuilder.Entity("Musoq.ContentAggregator.Data.Script", b =>
                 {
                     b.Property<Guid>("ScriptId")
@@ -153,17 +186,11 @@ namespace Musoq.ContentAggregator.Data.Migrations
                     b.Property<Guid>("TableId")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<Guid>("BatchId");
-
-                    b.Property<DateTimeOffset>("InsertedAt");
-
-                    b.Property<string>("Json");
+                    b.Property<string>("Name");
 
                     b.Property<Guid>("ScriptId");
 
                     b.HasKey("TableId");
-
-                    b.HasIndex("ScriptId");
 
                     b.ToTable("Tables");
                 });
@@ -172,8 +199,6 @@ namespace Musoq.ContentAggregator.Data.Migrations
                 {
                     b.Property<Guid>("UserScriptId")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<DateTimeOffset>("RefreshedAt");
 
                     b.Property<Guid>("ScriptId");
 
@@ -295,11 +320,19 @@ namespace Musoq.ContentAggregator.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("Musoq.ContentAggregator.Data.Table", b =>
+            modelBuilder.Entity("Musoq.ContentAggregator.Data.Column", b =>
                 {
-                    b.HasOne("Musoq.ContentAggregator.Data.Script", "Script")
+                    b.HasOne("Musoq.ContentAggregator.Data.Table", "Table")
                         .WithMany()
-                        .HasForeignKey("ScriptId")
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Musoq.ContentAggregator.Data.Row", b =>
+                {
+                    b.HasOne("Musoq.ContentAggregator.Data.Column", "Column")
+                        .WithMany()
+                        .HasForeignKey("ColumnId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

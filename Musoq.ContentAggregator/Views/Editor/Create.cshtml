@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Update">
+        <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
@@ -21,6 +21,14 @@
                 <label asp-for="Text" class="control-label"></label>
                 <input asp-for="Text" class="form-control" />
                 <span asp-validation-for="Text" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                Main Page:
+                @Html.RadioButtonFor(f => f.ShowAt, Musoq.ContentAggregator.Data.ShowAt.MainPage)
+                User Main Page:
+                @Html.RadioButtonFor(f => f.ShowAt, Musoq.ContentAggregator.Data.ShowAt.UserMainPage)
+                None:
+                @Html.RadioButtonFor(f => f.ShowAt, Musoq.ContentAggregator.Data.ShowAt.None)
             </div>
             @Html.HiddenFor(f => f.ScriptId)
             <div class="form-group">

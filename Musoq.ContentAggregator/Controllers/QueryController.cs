@@ -5,10 +5,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Musoq.ContentAggregator.Data;
 using Musoq.ContentAggregator.Models;
+using Musoq.ContentAggregator.Services;
 using Musoq.Service.Client.Core;
 using Musoq.Service.Client.Core.Helpers;
+using Newtonsoft.Json;
 
 namespace Musoq.ContentAggregator.Controllers
 {
@@ -18,13 +21,19 @@ namespace Musoq.ContentAggregator.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IBackgroundTaskQueue _queue;
+        private readonly IServiceScopeFactory _services;
 
         public QueryController(
           UserManager<ApplicationUser> userManager,
-          ApplicationDbContext context)
+          ApplicationDbContext context, 
+          IBackgroundTaskQueue queue,
+          IServiceScopeFactory serviceScopeFactory)
         {
             _userManager = userManager;
             _context = context;
+            _queue = queue;
+            _services = serviceScopeFactory;
         }
 
         public async Task<IActionResult> Delete(QueryModel model)
@@ -53,60 +62,14 @@ namespace Musoq.ContentAggregator.Controllers
             return View(userScripts);
         }
 
-        public IActionResult Update(Guid scriptId)
-        {
-            var script = _context.QueryScripts.Single(f => f.ScriptId == scriptId);
-            return View(new QueryModel { ScriptId = scriptId, Name = script.ManagingName, Text = script.Query });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Update(QueryModel model)
-        {
-            var user = await _userManager.GetUserAsync(HttpContext.User);
-            var userScript = _context.UserScripts.Single(s => s.ScriptId == model.ScriptId && s.UserId == user.Id);
-            var queryScript = _context.QueryScripts.Single(s => s.ScriptId == userScript.ScriptId);
-
-            queryScript.Query = model.Text;
-            queryScript.ManagingName = model.Name;
-
-            _context.QueryScripts.Update(queryScript);
-
-            _context.SaveChanges();
-
-            return RedirectToAction(nameof(Index));
-        }
-
         public IActionResult Create()
         {
-            return View();
+            return RedirectToAction(nameof(EditorController.Create), "Editor");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(QueryModel model)
+        public IActionResult Update(Guid scriptId)
         {
-            var script = new MusoqQueryScript { Query = model.Text, ManagingName = model.Name };
-
-            _context.QueryScripts.Add(script);
-
-            var user = await _userManager.GetUserAsync(HttpContext.User);
-
-            _context.UserScripts.Add(new UserScripts { ScriptId = script.ScriptId, UserId = user.Id });
-
-            await _context.SaveChangesAsync();
-
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Compile(Guid scriptId)
-        {
-            var script = _context.QueryScripts.Single(f => f.ScriptId == scriptId);
-
-            var api = new ApplicationFlowApi("");
-
-            await api.RunQueryAsync(QueryContext.FromQueryText(script.ScriptId, script.Query));
-
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(EditorController.Update), "Editor", new { ScriptId = scriptId });
         }
     }
 }
