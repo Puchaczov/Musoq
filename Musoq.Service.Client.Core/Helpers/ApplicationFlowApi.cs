@@ -54,11 +54,11 @@ namespace Musoq.Service.Client.Core.Helpers
             var status = await _runtimeApi.Compile(context);
 
             if(status != System.Net.HttpStatusCode.OK)
-                return new ResultTable(string.Empty, new string[0], new object[0][], TimeSpan.Zero);
+                return new ResultTable(string.Empty, new string[0], new object[0][], new string[] { "Status not OK" }, TimeSpan.Zero);
             
             var currentState = await _runtimeApi.Status(context.QueryId);
 
-            while (currentState.HasContext && (currentState.Status != ExecutionStatus.Compiled && currentState.Status != ExecutionStatus.Failure))
+            while (currentState.HasContext && (currentState.Status != ExecutionStatus.Compiled && currentState.Status != ExecutionStatus.Failure && currentState.Status != ExecutionStatus.ExecutionFailed))
             {
                 currentState = await _runtimeApi.Status(context.QueryId);
                 await Task.Delay(TimeSpan.FromMilliseconds(100));
@@ -67,11 +67,11 @@ namespace Musoq.Service.Client.Core.Helpers
             status = await _runtimeApi.Execute(context.QueryId);
 
             if (status != System.Net.HttpStatusCode.OK)
-                return new ResultTable(string.Empty, new string[0], new object[0][], TimeSpan.Zero);
+                return new ResultTable(string.Empty, new string[0], new object[0][], new string[] { "Status not OK" }, TimeSpan.Zero);
 
             currentState = await _runtimeApi.Status(context.QueryId);
 
-            while (currentState.HasContext && (currentState.Status != ExecutionStatus.Success && currentState.Status != ExecutionStatus.Failure))
+            while (currentState.HasContext && (currentState.Status != ExecutionStatus.Success && currentState.Status != ExecutionStatus.Failure && currentState.Status != ExecutionStatus.ExecutionFailed))
             {
                 currentState = await _runtimeApi.Status(context.QueryId);
                 await Task.Delay(TimeSpan.FromMilliseconds(100));
@@ -80,7 +80,7 @@ namespace Musoq.Service.Client.Core.Helpers
             if (currentState.Status == ExecutionStatus.Success)
                 return await _runtimeApi.Result(context.QueryId);
 
-            return new ResultTable(string.Empty, new string[0], new object[0][], TimeSpan.Zero);
+            return new ResultTable(string.Empty, new string[0], new object[0][], new string[] { "Status not OK" }, TimeSpan.Zero);
         }
 
         public async Task<ResultTable> RunQueryAsync(QueryContext context)
@@ -95,7 +95,7 @@ namespace Musoq.Service.Client.Core.Helpers
                     Debug.Write(e);
             }
 
-            return new ResultTable(string.Empty, new string[0], new object[0][], TimeSpan.Zero);
+            return new ResultTable(string.Empty, new string[0], new object[0][], new string[] { "Status not OK" }, TimeSpan.Zero);
         }
 
         public async Task<IReadOnlyList<T>> RunQueryAsync<T>(QueryContext context)

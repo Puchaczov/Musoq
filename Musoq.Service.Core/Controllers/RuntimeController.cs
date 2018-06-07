@@ -68,10 +68,13 @@ namespace Musoq.Service.Core.Controllers
                 }
             }
 
-            if (!state.MakeActionedOrFalse())
-                return StatusCode((int)HttpStatusCode.NotModified);
+            lock (state)
+            {
+                if (!state.MakeActionedOrFalse())
+                    return StatusCode((int)HttpStatusCode.NotModified);
 
-            state.Status = ExecutionStatus.WaitingToStart;
+                state.Status = ExecutionStatus.WaitingToStart;
+            }
 
             state.Task = Task.Factory.StartNew(() =>
             {
@@ -96,7 +99,7 @@ namespace Musoq.Service.Core.Controllers
                 catch (Exception exc)
                 {
                     state.Status = ExecutionStatus.Failure;
-                    state.FailureMessage = exc.ToString();
+                    state.FailureMessages = new string[] { exc.ToString() };
                     _logger.Log(exc);
                 }
                 finally
@@ -119,12 +122,16 @@ namespace Musoq.Service.Core.Controllers
             if (!state.MakeActionedOrFalse())
                 return StatusCode((int)HttpStatusCode.Conflict);
 
-            if (state.Status != ExecutionStatus.Compiled)
-                return StatusCode((int)HttpStatusCode.Conflict);
+            lock (state)
+            {
+                if (state.Status != ExecutionStatus.Compiled && state.Status != ExecutionStatus.ExecutionFailed)
+                    return StatusCode((int)HttpStatusCode.Conflict);
+
+                state.Status = ExecutionStatus.Running;
+            }
 
             state.Task = Task.Factory.StartNew(() =>
             {
-                state.Status = ExecutionStatus.Running;
 
                 var env = new Plugins.Environment();
 
@@ -151,18 +158,17 @@ namespace Musoq.Service.Core.Controllers
                 }
                 catch (Exception exc)
                 {
-                    state.Status = ExecutionStatus.Failure;
-                    state.FailureMessage = exc.ToString();
+                    state.Status = ExecutionStatus.ExecutionFailed;
+                    state.FailureMessages = new string[] { exc.ToString() };
                     _logger.Log(exc);
                 }
                 finally
                 {
+                    state.MakeUnactioned();
                     var dirInfo = new DirectoryInfo(env.Value<string>(EnvironmentServiceHelper.TempFolderKey));
 
                     if (dirInfo.Exists)
                         dirInfo.Delete();
-
-                    state.MakeUnactioned();
                     _logger.Log("Query processed.");
                 }
             });
@@ -188,11 +194,10 @@ namespace Musoq.Service.Core.Controllers
                 var computationTime = state.ExecutionTime;
                 var columns = table.Columns.Select(f => f.Name).ToArray();
                 var rows = table.Select(f => f.Values).ToArray();
+                var errors = state.FailureMessages;
 
                 try
                 {
-                    state.MakeActioned();
-
                     state.Result = null;
                     state.Status = ExecutionStatus.Compiled;
                 }
@@ -201,7 +206,7 @@ namespace Musoq.Service.Core.Controllers
                     state.MakeUnactioned();
                 }
 
-                return new ResultTable(table.Name, columns, rows, computationTime);
+                return new ResultTable(table.Name, columns, rows, state.FailureMessages, computationTime);
             }
         }
 

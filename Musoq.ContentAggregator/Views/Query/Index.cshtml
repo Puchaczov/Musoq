@@ -27,8 +27,8 @@
             <td>
                 @Html.ActionLink("Edit", "Update", new { ScriptId = item.ScriptId, text = item.Text, name = item.Name }) |
                 @Html.ActionLink("Delete", "Delete", new { ScriptId = item.ScriptId, text = item.Text, name = item.Name }) |
-                @Html.ActionLink("Compile", "Compile", new { ScriptId = item.ScriptId, text = item.Text, name = item.Name }) |
-                @Html.ActionLink("Run", "Run", new { ScriptId = item.ScriptId, text = item.Text, name = item.Name })
+                @Html.ActionLink("Compile", "Compile", "Editor", new { ScriptId = item.ScriptId }) |
+                @Html.ActionLink("Run", "Run", "Editor", new { ScriptId = item.ScriptId })
             </td>
         </tr>
 }

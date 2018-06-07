@@ -69,6 +69,20 @@ namespace Musoq.ContentAggregator.Controllers
             return RedirectToAction(nameof(Index), new QueryModel { ScriptId = scriptId, Name = script.QueryScript.ManagingName, Text = script.QueryScript.Query, ShowAt = script.UserScript.ShowAt });
         }
 
+        public IActionResult HasBatch(Guid batchId)
+        {
+            var hasBatch = _context.Tables.Any(f => f.BatchId == batchId);
+
+            return Json(new { HasBatch = hasBatch });
+        }
+
+        public IActionResult Table(Guid batchId)
+        {
+            var table = _context.Tables.Single(t => t.BatchId == batchId);
+
+            return Json(JsonConvert.DeserializeObject<ResultTable>(table.Json));
+        }
+
         public IActionResult Compile(Guid scriptId)
         {
             _queue.QueueBackgroundWorkItem(async token => {

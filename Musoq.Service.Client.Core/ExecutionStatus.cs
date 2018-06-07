@@ -8,6 +8,7 @@
         Compiled,
         Running,
         Success,
-        Failure
+        Failure,
+        ExecutionFailed
     }
 }

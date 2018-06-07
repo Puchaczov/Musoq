@@ -12,7 +12,7 @@ namespace Musoq.Service.Core.Models
         public Table Result { get; set; }
         public TimeSpan CompilationTime { get; set; }
         public TimeSpan ExecutionTime { get; set; }
-        public string FailureMessage { get; set; }
+        public string[] FailureMessages { get; set; }
         public Task Task { get; set; }
 
         public bool IsActioned {
