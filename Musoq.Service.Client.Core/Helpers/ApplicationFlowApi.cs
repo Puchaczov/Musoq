@@ -9,7 +9,6 @@ namespace Musoq.Service.Client.Core.Helpers
     {
         private readonly ContextApi _contextApi;
         private readonly RuntimeApi _runtimeApi;
-        private readonly SelfApi _selfApi;
 
         public ApplicationFlowApi(string address)
         {
@@ -19,41 +18,76 @@ namespace Musoq.Service.Client.Core.Helpers
             address = $"http://{address}";
             _runtimeApi = new RuntimeApi(address);
             _contextApi = new ContextApi(address);
-            _selfApi = new SelfApi(address);
         }
 
-        public async Task<ResultTable> WaitForQuery(Guid taskId)
+        public async Task<bool> Compile(QueryContext context)
         {
-            var resultId = await _runtimeApi.Execute(taskId);
+            var status = await _runtimeApi.Compile(context);
 
-            if (resultId == Guid.Empty)
-                return new ResultTable(string.Empty, new string[0], new object[0][], TimeSpan.Zero);
+            return status != System.Net.HttpStatusCode.OK;
+        }
 
-            var currentState = await _runtimeApi.Status(resultId);
+        public async Task<bool> Execute(Guid id)
+        {
+            var status = await _runtimeApi.Execute(id);
 
-            while (currentState.HasContext && (currentState.Status == ExecutionStatus.Running ||
-                                               currentState.Status == ExecutionStatus.WaitingToStart))
+            return status != System.Net.HttpStatusCode.OK;
+        }
+
+        public async Task<ResultTable> GetResult(Guid id)
+        {
+            return await _runtimeApi.Result(id);
+        }
+
+        public async Task<ExecutionStatus> Status(Guid id)
+        {
+            var status = await _runtimeApi.Status(id);
+
+            if (!status.HasContext)
+                return ExecutionStatus.Unknown;
+
+            return status.Status;
+        }
+
+        public async Task<ResultTable> WaitForQuery(QueryContext context)
+        {
+            var status = await _runtimeApi.Compile(context);
+
+            if(status != System.Net.HttpStatusCode.OK)
+                return new ResultTable(string.Empty, new string[0], new object[0][], new string[] { "Status not OK" }, TimeSpan.Zero);
+            
+            var currentState = await _runtimeApi.Status(context.QueryId);
+
+            while (currentState.HasContext && (currentState.Status != ExecutionStatus.Compiled && currentState.Status != ExecutionStatus.Failure && currentState.Status != ExecutionStatus.ExecutionFailed))
             {
-                currentState = await _runtimeApi.Status(resultId);
+                currentState = await _runtimeApi.Status(context.QueryId);
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
+            }
+
+            status = await _runtimeApi.Execute(context.QueryId);
+
+            if (status != System.Net.HttpStatusCode.OK)
+                return new ResultTable(string.Empty, new string[0], new object[0][], new string[] { "Status not OK" }, TimeSpan.Zero);
+
+            currentState = await _runtimeApi.Status(context.QueryId);
+
+            while (currentState.HasContext && (currentState.Status != ExecutionStatus.Success && currentState.Status != ExecutionStatus.Failure && currentState.Status != ExecutionStatus.ExecutionFailed))
+            {
+                currentState = await _runtimeApi.Status(context.QueryId);
                 await Task.Delay(TimeSpan.FromMilliseconds(100));
             }
 
             if (currentState.Status == ExecutionStatus.Success)
-                return await _runtimeApi.Result(resultId);
+                return await _runtimeApi.Result(context.QueryId);
 
-            return new ResultTable(string.Empty, new string[0], new object[0][], TimeSpan.Zero);
+            return new ResultTable(string.Empty, new string[0], new object[0][], new string[] { "Status not OK" }, TimeSpan.Zero);
         }
 
         public async Task<ResultTable> RunQueryAsync(QueryContext context)
         {
             try
             {
-                var registeredId = await _contextApi.Create(context);
-
-                if (registeredId == Guid.Empty)
-                    return new ResultTable(string.Empty, new string[0], new object[0][], TimeSpan.Zero);
-
-                return WaitForQuery(registeredId).Result;
+                return await WaitForQuery(context);
             }
             catch (Exception e)
             {
@@ -61,18 +95,13 @@ namespace Musoq.Service.Client.Core.Helpers
                     Debug.Write(e);
             }
 
-            return new ResultTable(string.Empty, new string[0], new object[0][], TimeSpan.Zero);
+            return new ResultTable(string.Empty, new string[0], new object[0][], new string[] { "Status not OK" }, TimeSpan.Zero);
         }
 
         public async Task<IReadOnlyList<T>> RunQueryAsync<T>(QueryContext context)
             where T : new()
         {
             return MapHelper.MapToType<T>(await RunQueryAsync(context));
-        }
-
-        public async Task<ResultTable> GetSelfFiles()
-        {
-            return await WaitForQuery(await _selfApi.UsedFiles());
         }
     }
 }

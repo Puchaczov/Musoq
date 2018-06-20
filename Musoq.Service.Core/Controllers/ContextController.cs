@@ -26,8 +26,16 @@ namespace Musoq.Service.Core.Controllers
         public Guid Create([FromBody] QueryContext context)
         {
             _logger.Log($"Creating context ({context.Query}).");
-            var id = Guid.NewGuid();
-            _contexts.TryAdd(id, context);
+
+            var id = context.QueryId != Guid.Empty ? context.QueryId : Guid.NewGuid();
+
+            if(_contexts.TryGetValue(id, out QueryContext ctx))
+            {
+            }
+
+            if (!_contexts.TryAdd(id, context))
+                return Guid.Empty;
+
             return id;
         }
 

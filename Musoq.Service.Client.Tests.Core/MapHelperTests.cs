@@ -25,7 +25,7 @@ namespace Musoq.Service.Client.Tests.Core
                 {
                     2, false, "xcd"
                 }
-            }, TimeSpan.Zero);
+            }, new string[0], TimeSpan.Zero);
 
             var list = MapHelper.MapToType<TestClass>(_table);
 
@@ -53,7 +53,7 @@ namespace Musoq.Service.Client.Tests.Core
                 {
                     1, true, "abc,ff"
                 }
-            }, TimeSpan.Zero);
+            }, new string[0], TimeSpan.Zero);
 
             var converters = new Dictionary<string, Func<object, object>>
             {

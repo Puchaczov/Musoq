@@ -1,0 +1,24 @@
+﻿@model Musoq.ContentAggregator.Models.QueryModel
+
+@{
+    ViewData["Title"] = "Editor";
+    Layout = "_LayoutEditor";
+}
+
+<div id="editor"></div>
+<link href="~/node_modules/codemirror/lib/codemirror.css" rel="stylesheet" />
+<script src="~/node_modules/codemirror/lib/codemirror.js"></script>
+
+<script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+
+
+<script src="@Url.Content("~/js/main.jsx")"></script>
+
+@Html.React("EditorWindow", new { initialData = Model }, serverOnly: false, containerClass: "react-generated")
+
+@Html.ReactInitJavaScript()
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

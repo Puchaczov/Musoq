@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using CacheManager.Core;
@@ -41,23 +42,101 @@ namespace Musoq.Service.Core.Controllers
         }
 
         [HttpPost]
-        public Guid Execute(Guid id)
+        public IActionResult Compile([FromBody] QueryContext context)
         {
-            if (!_contexts.TryGetValue(id, out var context))
-                return Guid.Empty;
-
-            _logger.Log($"Executing task: {id}.");
-
             var query = context.Query;
-            var state = new ExecutionState
+            var id = context.QueryId;
+
+            ExecutionState state;
+            var hash = HashHelper.ComputeHash<MD5CryptoServiceProvider>(query);
+
+            lock (_runetimeState)
             {
-                Status = ExecutionStatus.WaitingToStart
-            };
-            var taskId = Guid.NewGuid();
-            _runetimeState.Add(taskId, state);
+                if (_runetimeState.TryGetValue(id, out var runtimeState))
+                {
+                    if (hash == runtimeState.HashedQuery)
+                        return Ok();
+
+                    _expressionsCache.Remove(hash);
+                    state = runtimeState;
+
+                }
+                else
+                {
+                    state = new ExecutionState();
+                    _runetimeState.Add(id, state);
+                }
+            }
+
+            lock (state)
+            {
+                if (!state.MakeActioned())
+                    return StatusCode((int)HttpStatusCode.NotModified);
+
+                state.Status = ExecutionStatus.WaitingToStart;
+            }
+
             state.Task = Task.Factory.StartNew(() =>
             {
+                state.Status = ExecutionStatus.Compiling;
+
+                try
+                {
+                    var watch = new Stopwatch();
+                    watch.Start();
+
+                    var root = InstanceCreator.CreateTree(query);
+
+                    if (!_expressionsCache.TryGetValue(hash, out CompiledQuery vm))
+                        vm = InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas));
+
+                    _expressionsCache.Set(hash, vm);
+
+                    state.HashedQuery = hash;
+                    state.CompilationTime = watch.Elapsed;
+                    state.Status = ExecutionStatus.Compiled;
+                }
+                catch (Exception exc)
+                {
+                    state.Status = ExecutionStatus.Failure;
+                    state.FailureMessages = new string[] { exc.ToString() };
+                    _logger.Log(exc);
+                }
+                finally
+                {
+                    lock(state)
+                        state.MakeUnactioned();
+                }
+            });
+
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult Execute(Guid id)
+        {
+            _logger.Log($"Executing task: {id}.");
+
+            ExecutionState state;
+            lock (_runetimeState)
+            {
+                if (!_runetimeState.TryGetValue(id, out state))
+                    return NotFound();
+            }
+
+            lock (state)
+            {
+                if (!state.MakeActioned())
+                    return StatusCode((int)HttpStatusCode.Conflict);
+
+                if (state.Status != ExecutionStatus.Compiled && state.Status != ExecutionStatus.ExecutionFailed)
+                    return StatusCode((int)HttpStatusCode.Conflict);
+
                 state.Status = ExecutionStatus.Running;
+            }
+
+            state.Task = Task.Factory.StartNew(() =>
+            {
 
                 var env = new Plugins.Environment();
 
@@ -71,42 +150,37 @@ namespace Musoq.Service.Core.Controllers
                     var watch = new Stopwatch();
                     watch.Start();
 
-                    var root = InstanceCreator.CreateTree(query);
-                    var hash = HashHelper.ComputeHash<MD5CryptoServiceProvider>(query);
-
-                    if (!_expressionsCache.TryGetValue(hash, out CompiledQuery vm))
-                        vm = InstanceCreator.Create(root, new DynamicSchemaProvider(_schemas));
-
-                    _expressionsCache.Set(hash, vm);
-
-                    var compiledTime = watch.Elapsed;
+                    if (!_expressionsCache.TryGetValue(state.HashedQuery, out CompiledQuery vm))
+                        throw new NotSupportedException();
+                    
                     state.Result = vm.Run();
                     var executionTime = watch.Elapsed;
 
                     watch.Stop();
-
-                    state.CompilationTime = compiledTime;
+                    
                     state.ExecutionTime = executionTime;
                     state.Status = ExecutionStatus.Success;
                 }
                 catch (Exception exc)
                 {
-                    state.Status = ExecutionStatus.Failure;
-                    state.FailureMessage = exc.ToString();
+                    state.Status = ExecutionStatus.ExecutionFailed;
+                    state.FailureMessages = new string[] { exc.ToString() };
                     _logger.Log(exc);
                 }
                 finally
                 {
+                    lock(state)
+                        state.MakeUnactioned();
+
                     var dirInfo = new DirectoryInfo(env.Value<string>(EnvironmentServiceHelper.TempFolderKey));
 
                     if (dirInfo.Exists)
                         dirInfo.Delete();
-
                     _logger.Log("Query processed.");
                 }
             });
 
-            return taskId;
+            return Ok();
         }
 
         [HttpGet]
@@ -114,15 +188,36 @@ namespace Musoq.Service.Core.Controllers
         {
             _logger.Log($"Returning result for: {id}.");
 
-            var state = _runetimeState[id];
-            var table = state.Result;
-            var computationTime = state.ExecutionTime;
-            var columns = table.Columns.Select(f => f.Name).ToArray();
-            var rows = table.Select(f => f.Values).ToArray();
+            ExecutionState state;
+            lock (_runetimeState)
+            {
+                if (!_runetimeState.TryGetValue(id, out state))
+                    throw new NotSupportedException();
+            }
 
-            _runetimeState.Remove(id);
+            lock (state)
+            {
+                if (!state.MakeActioned())
+                    throw new NotSupportedException();
 
-            return new ResultTable(table.Name, columns, rows, computationTime);
+                var table = state.Result;
+                var computationTime = state.ExecutionTime;
+                var columns = table.Columns.Select(f => f.Name).ToArray();
+                var rows = table.Select(f => f.Values).ToArray();
+                var errors = state.FailureMessages;
+
+                try
+                {
+                    state.Result = null;
+                    state.Status = ExecutionStatus.Compiled;
+                }
+                finally
+                {
+                    state.MakeUnactioned();
+                }
+
+                return new ResultTable(table.Name, columns, rows, state.FailureMessages, computationTime);
+            }
         }
 
         [HttpGet]
@@ -130,10 +225,10 @@ namespace Musoq.Service.Core.Controllers
         {
             _logger.Log($"Checking status for: {id}.");
 
-            if (!_runetimeState.ContainsKey(id))
+            if (!_runetimeState.TryGetValue(id, out var state))
                 return (false, ExecutionStatus.WaitingToStart);
 
-            return (true, _runetimeState[id].Status);
+            return (true, state.Status);
         }
     }
 }

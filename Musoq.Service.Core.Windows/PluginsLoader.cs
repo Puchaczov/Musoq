@@ -14,8 +14,7 @@ namespace Musoq.Service.Core.Windows.Helpers
                 return _plugins;
 
             var assemblies = PluginsHelper.GetReferencingAssemblies(ApplicationConfiguration.PluginsFolder);
-            var assemblyTypes = assemblies.SelectMany(assembly =>
-                assembly.GetTypes());
+            var assemblyTypes = assemblies.SelectMany(assembly => assembly.GetTypes());
 
             var interfaceType = typeof(ISchema);
 

@@ -11,10 +11,6 @@ namespace Musoq.Schema.DataSources
     {
         private readonly BlockingCollection<IReadOnlyList<EntityResolver<T>>> _readedRows;
 
-#if DEBUG
-        private readonly Stopwatch _watcher = new Stopwatch();
-#endif
-
         private IReadOnlyList<EntityResolver<T>> _currentChunk;
         private int _currentIndex = -1;
         private readonly CancellationToken _token;
@@ -23,22 +19,11 @@ namespace Musoq.Schema.DataSources
         {
             _readedRows = readedRows;
             _token = token;
-            _currentChunk = _readedRows.Take();
-
-#if DEBUG
-            if (_currentChunk == null && Debugger.IsAttached)
-                Debugger.Break();
-
-            _watcher.Start();
-#endif
         }
 
         public bool MoveNext()
         {
-            if (_readedRows.Count == 0 && _token.IsCancellationRequested && _currentIndex == _currentChunk.Count)
-                return false;
-
-            if (_currentIndex++ < _currentChunk.Count - 1)
+            if (_currentChunk != null && _currentIndex++ < _currentChunk.Count - 1)
                 return true;
 
             try
@@ -46,7 +31,7 @@ namespace Musoq.Schema.DataSources
                 var wasTaken = false;
                 for (var i = 0; i < 10; i++)
                 {
-                    if (!_readedRows.TryTake(out _currentChunk) || _currentChunk.Count == 0) continue;
+                    if (!_readedRows.TryTake(out _currentChunk) || _currentChunk == null || _currentChunk.Count == 0) continue;
 
                     wasTaken = true;
                     break;
@@ -54,34 +39,35 @@ namespace Musoq.Schema.DataSources
 
                 if (!wasTaken)
                 {
-#if DEBUG
-                    _watcher.Start();
-                    var started = _watcher.Elapsed;
-#endif
                     IReadOnlyList<EntityResolver<T>> newChunk = null;
                     while (newChunk == null || newChunk.Count == 0)
                         newChunk = _readedRows.Count > 0 ? _readedRows.Take() : _readedRows.Take(_token);
 
                     _currentChunk = newChunk;
-#if DEBUG
-                    var stopped = _watcher.Elapsed;
-                    Console.WriteLine($"WAITED FOR {stopped - started}");
-#endif
                 }
-
-#if DEBUG
-                if (_currentChunk == null && Debugger.IsAttached)
-                    Debugger.Break();
-#endif
 
                 _currentIndex = 0;
                 return true;
             }
             catch (OperationCanceledException)
             {
+                if (_readedRows.Count > 0)
+                {
+                    _currentChunk = _readedRows.Take();
+                    while (_readedRows.Count > 0 && _currentChunk.Count == 0)
+                        _currentChunk = _readedRows.Take();
+
+                    _currentIndex = 0;
+                    return _currentChunk.Count > 0;
+                }
+
                 return false;
             }
             catch (NullReferenceException)
+            {
+                return false;
+            }
+            catch (ArgumentOutOfRangeException)
             {
                 return false;
             }

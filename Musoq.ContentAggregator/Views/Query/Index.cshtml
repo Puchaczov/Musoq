@@ -1,0 +1,35 @@
+﻿@model IEnumerable<Musoq.ContentAggregator.Models.QueryModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    <a asp-action="Create" asp-controller="Editor">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.ActionLink(item.Name, "Update", new { ScriptId = item.ScriptId, text = item.Text, name = item.Name })
+            </td>
+            <td>
+                @Html.ActionLink("Delete", "Delete", new { ScriptId = item.ScriptId, text = item.Text, name = item.Name }) |
+                @Html.ActionLink("Compile", "Compile", "Editor", new { ScriptId = item.ScriptId, text = item.Text, name = item.Name }) |
+                @Html.ActionLink("Run", "Run", "Editor", new { ScriptId = item.ScriptId, text = item.Text, name = item.Name })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

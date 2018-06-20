@@ -4,7 +4,7 @@ namespace Musoq.Service.Client.Core
 {
     public class ResultTable
     {
-        public ResultTable(string name, string[] columns, object[][] rows, TimeSpan computationTime)
+        public ResultTable(string name, string[] columns, object[][] rows, string[] errors, TimeSpan computationTime)
         {
             Name = name;
             Columns = columns;
@@ -15,6 +15,8 @@ namespace Musoq.Service.Client.Core
         public string[] Columns { get; }
 
         public object[][] Rows { get; }
+
+        public string[] Errors { get; }
 
         public string Name { get; }
 
