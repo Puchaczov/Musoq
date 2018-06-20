@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Musoq.Console": {
-      "commandName": "Project",
-      "commandLineArgs": "--qs \"C:\\Users\\Puchacz\\Downloads\\konto_bank\\group_by_activity.fql\""
-    }
-  }
-}

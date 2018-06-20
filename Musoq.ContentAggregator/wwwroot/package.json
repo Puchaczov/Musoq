@@ -1,9 +1,0 @@
-{
-  "version": "1.0.0",
-  "name": "asp.net",
-  "private": true,
-  "devDependencies": {
-    "codemirror": "5.38.0",
-    "react": "16.4.0"
-  }
-}
