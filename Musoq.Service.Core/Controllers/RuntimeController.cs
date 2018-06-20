@@ -70,7 +70,7 @@ namespace Musoq.Service.Core.Controllers
 
             lock (state)
             {
-                if (!state.MakeActionedOrFalse())
+                if (!state.MakeActioned())
                     return StatusCode((int)HttpStatusCode.NotModified);
 
                 state.Status = ExecutionStatus.WaitingToStart;
@@ -104,7 +104,8 @@ namespace Musoq.Service.Core.Controllers
                 }
                 finally
                 {
-                    state.MakeUnactioned();
+                    lock(state)
+                        state.MakeUnactioned();
                 }
             });
 
@@ -116,14 +117,18 @@ namespace Musoq.Service.Core.Controllers
         {
             _logger.Log($"Executing task: {id}.");
 
-            if (!_runetimeState.TryGetValue(id, out var state))
-                return NotFound();
-
-            if (!state.MakeActionedOrFalse())
-                return StatusCode((int)HttpStatusCode.Conflict);
+            ExecutionState state;
+            lock (_runetimeState)
+            {
+                if (!_runetimeState.TryGetValue(id, out state))
+                    return NotFound();
+            }
 
             lock (state)
             {
+                if (!state.MakeActioned())
+                    return StatusCode((int)HttpStatusCode.Conflict);
+
                 if (state.Status != ExecutionStatus.Compiled && state.Status != ExecutionStatus.ExecutionFailed)
                     return StatusCode((int)HttpStatusCode.Conflict);
 
@@ -164,7 +169,9 @@ namespace Musoq.Service.Core.Controllers
                 }
                 finally
                 {
-                    state.MakeUnactioned();
+                    lock(state)
+                        state.MakeUnactioned();
+
                     var dirInfo = new DirectoryInfo(env.Value<string>(EnvironmentServiceHelper.TempFolderKey));
 
                     if (dirInfo.Exists)
@@ -181,14 +188,17 @@ namespace Musoq.Service.Core.Controllers
         {
             _logger.Log($"Returning result for: {id}.");
 
-            if (!_runetimeState.TryGetValue(id, out var state))
-                throw new NotSupportedException();
-
-            if(!state.MakeActionedOrFalse())
-                throw new NotSupportedException();
+            ExecutionState state;
+            lock (_runetimeState)
+            {
+                if (!_runetimeState.TryGetValue(id, out state))
+                    throw new NotSupportedException();
+            }
 
             lock (state)
             {
+                if (!state.MakeActioned())
+                    throw new NotSupportedException();
 
                 var table = state.Result;
                 var computationTime = state.ExecutionTime;

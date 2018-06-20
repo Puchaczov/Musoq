@@ -14,11 +14,23 @@ class EditorMenu extends React.Component {
 
     render() {
         return (
-            <div className="menu">
-                <input type="text" ref="queryName"/>
-                <input type="submit" value="Save" onClick={this.props.onSave} />
-                <input type="submit" value="Compile" onClick={this.props.onCompile} />
-                <input type="submit" value="Run" onClick={this.props.onRun} />
+            <div className="menu btn-toolbar mb-3" role="toolbar">
+                <div class="btn-group mr-1" role="group" aria-label="First group">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">File Name</span>
+                        </div>
+                        <input type="text" ref="queryName" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" />
+                    </div>
+                </div>
+                <div class="btn-group mr-1" role="group" aria-label="First group">
+                    <button type="button" class="btn btn-secondary" onClick={this.props.onSave}>Save</button>
+                    <button type="button" class="btn btn-secondary" onClick={this.props.onCompile}>Compile</button>
+                    <button type="button" class="btn btn-secondary" onClick={this.props.onRun}>Run</button>
+                </div>
+                <div class="btn-group mr-1" role="group" aria-label="Second group">
+                    <button type="button" class="btn btn-secondary" onClick={this.props.onExit}>Exit</button>
+                </div>
             </div>);
     }
 }
@@ -30,8 +42,11 @@ class CodeMirrorEditor extends React.Component {
     }
 
     componentDidMount() {
-        this.codeMirror = CodeMirror.fromTextArea(this.refs.textAreaNode);
+        this.codeMirror = CodeMirror.fromTextArea(this.refs.textAreaNode, {
+            lineNumbers: true
+        });
         this.codeMirror.setValue(this.props.text);
+        this.codeMirror.setSize("100%", "100%");
     }
 
     getText() {
@@ -95,20 +110,19 @@ class ResultContent extends React.Component {
         }
 
         return (
-            <div>
-                <div>{this.state.Name}</div>
-                <button onClick={this.props.onClick}>x</button>
-                
-                <table>
-                    <thead>
-                        <tr>
-                            {header}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows}
-                    </tbody>
-                </table>
+            <div class="table-feature">
+                <div class="table-content">
+                    <table>
+                        <thead>
+                            <tr>
+                                {header}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         );
     }
@@ -117,7 +131,9 @@ class ResultContent extends React.Component {
 class Editor extends React.Component {
 
     constructor(props) {
+
         super(props);
+
         this.state = { showResults: false };
 
         if (this.props.initialData.text === null || this.props.initialData.text === undefined) {
@@ -130,11 +146,7 @@ class Editor extends React.Component {
     }
 
     handleSave() {
-        var modifiedQuery = {
-            Text: this.refs.editorContent.getEditorText(),
-            Name: this.refs.editorMenu.getQueryName(),
-            ScriptId: this.props.initialData.scriptId
-        };
+        var modifiedQuery = this.getModifiedQuery();
 
         console.log(modifiedQuery);
 
@@ -152,11 +164,13 @@ class Editor extends React.Component {
     }
 
     handleRun() {
-        console.log('running');
+        var modifiedQuery = this.getModifiedQuery();
 
         const data = new FormData();
 
-        data.set('scriptId', this.props.initialData.scriptId);
+        data.set('text', modifiedQuery.Text);
+        data.set('name', modifiedQuery.Name);
+        data.set('scriptId', modifiedQuery.ScriptId);
 
         fetch('/editor/run', {
             credentials: 'include',
@@ -170,6 +184,18 @@ class Editor extends React.Component {
         });
 
         this.setState({ showResults: true });
+    }
+
+    handleExit() {
+        window.location.href = "/Query/Index";
+    }
+
+    getModifiedQuery() {
+        return {
+            Text: this.refs.editorContent.getEditorText(),
+            Name: this.refs.editorMenu.getQueryName(),
+            ScriptId: this.props.initialData.scriptId
+        };
     }
 
     getTableScore() {
@@ -196,7 +222,8 @@ class Editor extends React.Component {
                         body: data
                     }).then(tr => {
                         tr.json().then(j => {
-                            this.refs.resultContent.updateResutSet(j);
+                            console.log('updated');
+                            this.props.onScoreAppeared(j);
                         });
                     });
                 }
@@ -209,11 +236,13 @@ class Editor extends React.Component {
     }
 
     handleCompile() {
-        console.log('compile');
+        var modifiedQuery = this.getModifiedQuery();
 
         const data = new FormData();
 
-        data.set('scriptId', this.props.initialData.scriptId);
+        data.set('text', modifiedQuery.Text);
+        data.set('name', modifiedQuery.Name);
+        data.set('scriptId', modifiedQuery.ScriptId);
 
         fetch('/editor/compile', {
             credentials: 'include',
@@ -233,10 +262,23 @@ class Editor extends React.Component {
     render() {
         return (
             <div>
-                <EditorMenu ref="editorMenu" fileName={this.props.initialData.name} onSave={() => this.handleSave()} onCompile={() => this.handleCompile()} onRun={() => this.handleRun()} />
+                <EditorMenu ref="editorMenu" fileName={this.props.initialData.name} onSave={() => this.handleSave()} onCompile={() => this.handleCompile()} onRun={() => this.handleRun()} onExit={() => this.handleExit()} />
                 <EditorContent ref="editorContent" text={this.props.initialData.text} />
-                {this.state.showResults ? <ResultContent ref="resultContent" onClick={() => this.handleCloseResultWindow()} /> : null}
             </div>
         );
+    }
+}
+
+class EditorWindow extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <div>
+                <Editor ref="editor" initialData={this.props.initialData} onScoreAppeared={(set) => this.refs.results.updateResutSet(set)} />
+                <ResultContent ref="results" />
+            </div>);
     }
 }

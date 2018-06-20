@@ -1,0 +1,76 @@
+﻿html, body, .react-generated, .react-generated > div {
+    height: 100%;
+}
+
+/* Wrapping element */
+/* Set some basic padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Carousel */
+.carousel-caption p {
+    font-size: 20px;
+    line-height: 1.4;
+}
+
+/* Make .svg files in the carousel display properly in older browsers */
+.carousel-inner .item img[src$=".svg"] {
+    width: 100%;
+}
+
+/* QR code generator */
+#qrCode {
+    margin: 15px;
+}
+
+/* Hide/rearrange for smaller screens */
+@media screen and (max-width: 767px) {
+    /* Hide captions */
+    .carousel-caption {
+        display: none;
+    }
+}
+
+.containerEditor {
+    height: 100%;
+}
+
+.react-generated > div > div:nth-child(1) {
+    height: 70%;
+}
+
+.react-generated > div > div:nth-child(2) {
+    height: 30%;
+    overflow:hidden;
+    position: relative;
+    border-top: 1px solid #ddd;
+}
+
+.table-content{
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    overflow-y: auto;
+    width:100%;
+}
+
+.table-feature{
+    height: 100%;
+}
+
+.table-content > table{
+    width: 100%;
+}
+
+.menu {
+    height: 50px;
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #ddd;
+}
+
+.musoq{
+    overflow-y:auto;
+    height: calc(100% - 50px);
+}

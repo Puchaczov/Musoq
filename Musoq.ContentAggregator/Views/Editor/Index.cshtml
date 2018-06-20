@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Editor";
+    Layout = "_LayoutEditor";
 }
 
 <div id="editor"></div>
@@ -14,7 +15,7 @@
 
 <script src="@Url.Content("~/js/main.jsx")"></script>
 
-@Html.React("Editor", new { initialData = Model }, serverOnly: false)
+@Html.React("EditorWindow", new { initialData = Model }, serverOnly: false, containerClass: "react-generated")
 
 @Html.ReactInitJavaScript()
 

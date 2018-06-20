@@ -83,51 +83,47 @@ namespace Musoq.ContentAggregator.Controllers
             return Json(JsonConvert.DeserializeObject<ResultTable>(table.Json));
         }
 
-        public IActionResult Compile(Guid scriptId)
+        public IActionResult Compile(QueryModel model)
         {
             _queue.QueueBackgroundWorkItem(async token => {
                 using (var service = _services.CreateScope())
                 {
                     var context = service.ServiceProvider.GetService<ApplicationDbContext>();
                     var api = new ApplicationFlowApi("127.0.0.1:9001");
-                    var script = context.QueryScripts.Single(f => f.ScriptId == scriptId);
-                    await api.Compile(QueryContext.FromQueryText(script.ScriptId, script.Query));
+                    var script = context.QueryScripts.Single(f => f.ScriptId == model.ScriptId);
+                    await api.Compile(QueryContext.FromQueryText(model.ScriptId, model.Text));
                 }
             });
 
             return Ok();
         }
 
-        public IActionResult Run(Guid scriptId)
+        public async Task<IActionResult> Run(QueryModel model)
         {
             var batchId = Guid.NewGuid();
+            var user = await _userManager.GetUserAsync(HttpContext.User);
 
             _queue.QueueBackgroundWorkItem(async token => {
                 using (var service = _services.CreateScope())
                 {
                     var context = service.ServiceProvider.GetService<ApplicationDbContext>();
                     var api = new ApplicationFlowApi("127.0.0.1:9001");
-                    var script = context.QueryScripts.Single(f => f.ScriptId == scriptId);
-                    var tableResult = await api.RunQueryAsync(QueryContext.FromQueryText(script.ScriptId, script.Query));
+
+                    if (!context.QueryScripts.Any(f => f.ScriptId == model.ScriptId))
+                        return;
+
+                    var tableResult = await api.RunQueryAsync(QueryContext.FromQueryText(model.ScriptId, model.Text));
 
                     var table = new Table
                     {
-                        ScriptId = scriptId,
+                        ScriptId = model.ScriptId,
                         Json = JsonConvert.SerializeObject(tableResult),
                         InsertedAt = DateTimeOffset.UtcNow,
                         BatchId = batchId
                     };
 
                     context.Tables.Add(table);
-
-                    try
-                    {
-                        context.SaveChanges();
-                    }
-                    catch(Exception ex)
-                    {
-
-                    }
+                    context.SaveChanges();
                 }
             });
 
