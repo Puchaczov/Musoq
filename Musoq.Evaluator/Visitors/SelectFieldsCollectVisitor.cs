@@ -95,6 +95,10 @@ namespace Musoq.Evaluator.Visitors
                 _collectedFieldNames.Add(new SchemaColumn(node.FieldName, _collectedFieldNames.Count, node.ReturnType));
         }
 
+        public void Visit(FieldOrderedNode node)
+        {
+        }
+
         public void Visit(StringNode node)
         {
         }
@@ -300,6 +304,10 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(JoinNode node)
+        {
+        }
+
+        public void Visit(OrderByNode node)
         {
         }
     }

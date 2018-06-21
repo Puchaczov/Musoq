@@ -31,6 +31,8 @@ namespace Musoq.Parser.Lexing
             {
                 case DescToken.TokenText:
                     return TokenType.Desc;
+                case AscToken.TokenText:
+                    return TokenType.Asc;
                 case AndToken.TokenText:
                     return TokenType.And;
                 case CommaToken.TokenText:
@@ -125,6 +127,8 @@ namespace Musoq.Parser.Lexing
                 return TokenType.GroupBy;
             if (regex == TokenRegexDefinition.KUnionAll)
                 return TokenType.UnionAll;
+            if (regex == TokenRegexDefinition.KOrderBy)
+                return TokenType.OrderBy;
             if (regex == TokenRegexDefinition.Function)
                 return TokenType.Function;
             var last = Current();
@@ -205,6 +209,7 @@ namespace Musoq.Parser.Lexing
 
             public static readonly string KOn = string.Format(Keyword, OnToken.TokenText);
             public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
+            public static readonly string KAsc = string.Format(Keyword, AscToken.TokenText);
             public static readonly string KDesc = string.Format(Keyword, DescToken.TokenText);
         }
 
@@ -219,6 +224,7 @@ namespace Musoq.Parser.Lexing
             public static TokenDefinition[] General => new[]
             {
                 new TokenDefinition(TokenRegexDefinition.KDesc),
+                new TokenDefinition(TokenRegexDefinition.KAsc),
                 new TokenDefinition(TokenRegexDefinition.KLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNotLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KDecimal),
@@ -263,11 +269,11 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccess),
                 new TokenDefinition(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KOrderBy, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KColumn),
                 new TokenDefinition(TokenRegexDefinition.KHFrom),
                 new TokenDefinition(TokenRegexDefinition.KDot),
-                new TokenDefinition(TokenRegexDefinition.KOn),
-                new TokenDefinition(TokenRegexDefinition.KOrderBy)
+                new TokenDefinition(TokenRegexDefinition.KOn)
             };
         }
 
@@ -309,6 +315,8 @@ namespace Musoq.Parser.Lexing
             {
                 case TokenType.Desc:
                     return new DescToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Asc:
+                    return new AscToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.And:
                     return new AndToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Comma:
@@ -414,6 +422,8 @@ namespace Musoq.Parser.Lexing
                     return new IsToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Null:
                     return new NullToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.OrderBy:
+                    return new OrderByToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

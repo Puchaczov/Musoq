@@ -198,6 +198,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));
         }
 
+        public void Visit(FieldOrderedNode node)
+        {
+            Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.Order));
+        }
+
         public virtual void Visit(SelectNode node)
         {
             var fields = CreateFields(node.Fields);
@@ -402,11 +407,11 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
+            var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
             var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
 
             var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
             var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
-
 
             var select = Nodes.Pop() as SelectNode;
             var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
@@ -775,6 +780,16 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinNode node)
         {
+        }
+
+        public void Visit(OrderByNode node)
+        {
+            var fields = new FieldOrderedNode[node.Fields.Length];
+
+            for (var i = node.Fields.Length - 1; i >= 0; --i)
+                fields[i] = (FieldOrderedNode)Nodes.Pop();
+
+            Nodes.Push(new OrderByNode(fields));
         }
 
         public void SetScope(Scope scope)

@@ -24,6 +24,7 @@ namespace Musoq.Parser
         void Visit(NotNode node);
         void Visit(LikeNode node);
         void Visit(FieldNode node);
+        void Visit(FieldOrderedNode node);
         void Visit(StringNode node);
         void Visit(DecimalNode node);
         void Visit(IntegerNode node);
@@ -76,5 +77,6 @@ namespace Musoq.Parser
         void Visit(CteInnerExpressionNode node);
         void Visit(JoinsNode node);
         void Visit(JoinNode node);
+        void Visit(OrderByNode node);
     }
 }

@@ -307,6 +307,17 @@ Compilation = Compilation.WithOptions(
             Nodes.Push(castedExpression);
         }
 
+        public void Visit(FieldOrderedNode node)
+        {
+            var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
+            AddReference(types);
+            AddNamespace(types);
+            var castedExpression = Generator.CastExpression(
+                SyntaxFactory.IdentifierName(
+                    EvaluationHelper.GetCastableType(node.ReturnType)), Nodes.Pop());
+            Nodes.Push(castedExpression);
+        }
+
         public void Visit(StringNode node)
         {
             Nodes.Push(Generator.LiteralExpression(node.Value));
@@ -1827,6 +1838,18 @@ Compilation = Compilation.WithOptions(
             }
 
             return rawNode;
+        }
+
+        private List<ExpressionStatementSyntax> orderByStatements = new List<ExpressionStatementSyntax>();
+
+        public void Visit(OrderByNode node)
+        {
+            AddNamespace("System.Linq");
+
+            foreach(var column in node.Fields)
+            {
+
+            }
         }
     }
 }

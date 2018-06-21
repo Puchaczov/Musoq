@@ -57,6 +57,7 @@
         OuterJoin,
         On,
         OrderBy,
+        Asc,
         Desc
     }
 }

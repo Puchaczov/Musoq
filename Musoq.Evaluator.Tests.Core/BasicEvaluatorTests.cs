@@ -177,7 +177,10 @@ namespace Musoq.Evaluator.Tests.Core
                     "#A",
                     new[]
                     {
-                        new BasicEntity("ABC"), new BasicEntity("XXX"), new BasicEntity("CDA"), new BasicEntity("DDABC")
+                        new BasicEntity("ABC"),
+                        new BasicEntity("XXX"),
+                        new BasicEntity("CDA"),
+                        new BasicEntity("DDABC")
                     }
                 }
             };

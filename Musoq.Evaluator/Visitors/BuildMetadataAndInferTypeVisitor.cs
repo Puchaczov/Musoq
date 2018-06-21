@@ -170,6 +170,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));
         }
 
+        public void Visit(FieldOrderedNode node)
+        {
+            Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.Order));
+        }
+
         public void Visit(SelectNode node)
         {
             var fields = CreateFields(node.Fields);
@@ -520,6 +525,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
+            var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
             var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
 
             if (groupBy == null && RefreshMethods.Count > 0)
@@ -544,7 +550,7 @@ namespace Musoq.Evaluator.Visitors
                 _currentScope.ScopeSymbolTable.UpdateSymbol(string.Empty, from.Alias);
 
             Methods.Push(from.Alias);
-            Nodes.Push(new QueryNode(select, from, where, groupBy, null, skip, take));
+            Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
         }
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
@@ -831,6 +837,16 @@ namespace Musoq.Evaluator.Visitors
         {
             var key = _setKey++;
             return key.ToString().ToSetOperatorKey(key.ToString());
+        }
+
+        public void Visit(OrderByNode node)
+        {
+            var fields = new FieldOrderedNode[node.Fields.Length];
+
+            for (var i = node.Fields.Length - 1; i >= 0; --i)
+                fields[i] = (FieldOrderedNode)Nodes.Pop();
+
+            Nodes.Push(new OrderByNode(fields));
         }
     }
 }

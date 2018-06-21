@@ -267,6 +267,7 @@ namespace Musoq.Evaluator.Visitors
             node.Take?.Accept(this);
             node.Skip?.Accept(this);
             node.GroupBy?.Accept(this);
+            node.OrderBy?.Accept(this);
             node.Accept(_visitor);
 
             _walker = _walker.Parent();
@@ -362,6 +363,12 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(FieldNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(FieldOrderedNode node)
         {
             node.Expression.Accept(this);
             node.Accept(_visitor);
@@ -533,6 +540,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(FromNode node)
         {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(OrderByNode node)
+        {
+            foreach (var field in node.Fields)
+                field.Accept(this);
+
             node.Accept(_visitor);
         }
 

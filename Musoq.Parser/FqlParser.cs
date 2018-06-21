@@ -229,7 +229,7 @@ namespace Musoq.Parser
             if (Current.TokenType != TokenType.OrderBy) return null;
 
             Consume(TokenType.OrderBy);
-            return new OrderByNode(ComposeFields());
+            return new OrderByNode(ComposeOrderedFields());
         }
 
         private TakeNode ComposeTake()
@@ -302,11 +302,33 @@ namespace Musoq.Parser
             return fields.ToArray();
         }
 
+        private FieldOrderedNode[] ComposeOrderedFields()
+        {
+            var fields = new List<FieldOrderedNode>();
+            var i = 0;
+
+            do
+            {
+                fields.Add(ConsumeFieldOrdered(i++));
+            } while (!IsSetOperator(Current.TokenType) && Current.TokenType != TokenType.RightParenthesis &&
+                     Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
+                     ConsumeAndGetToken().TokenType == TokenType.Comma);
+
+            return fields.ToArray();
+        }
+
         private FieldNode ConsumeField(int order)
         {
             var fieldExpression = ComposeOperations();
             var alias = ComposeAlias();
             return new FieldNode(fieldExpression, order, alias);
+        }
+
+        private FieldOrderedNode ConsumeFieldOrdered(int level)
+        {
+            var fieldExpression = ComposeOperations();
+            var order = ComposeOrder();
+            return new FieldOrderedNode(fieldExpression, level, string.Empty, order);
         }
 
         private string ComposeAlias()
@@ -325,6 +347,25 @@ namespace Musoq.Parser
             }
 
             return string.Empty;
+        }
+
+        private Order ComposeOrder()
+        {
+            switch (Current.TokenType)
+            {
+                case TokenType.Asc:
+                    Consume(TokenType.Asc);
+                    return Order.Ascending;
+                case TokenType.Desc:
+                    Consume(TokenType.Desc);
+                    return Order.Descending;
+                case TokenType.Comma:
+                    return Order.Ascending;
+                case TokenType.EndOfFile:
+                    return Order.Ascending;
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         private Node ComposeOperations()

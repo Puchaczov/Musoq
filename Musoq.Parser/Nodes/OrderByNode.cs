@@ -5,14 +5,14 @@ namespace Musoq.Parser.Nodes
 {
     public class OrderByNode : Node
     {
-        public OrderByNode(FieldNode[] fields)
+        public OrderByNode(FieldOrderedNode[] fields)
         {
             Fields = fields;
             var fieldsId = fields.Length == 0 ? string.Empty : fields.Select(f => f.Id).Aggregate((a, b) => a + b);
             Id = $"{nameof(OrderByNode)}{fieldsId}";
         }
 
-        public FieldNode[] Fields { get; }
+        public FieldOrderedNode[] Fields { get; }
 
         public override Type ReturnType { get; }
 
