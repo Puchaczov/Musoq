@@ -21,7 +21,7 @@ namespace Musoq.Schema.Os.Tests.Core
         public void CompressFilesTest()
         {
             var query =
-                $"select Compress(AggregateFiles(), './Results/{nameof(CompressFilesTest)}.zip', 'fastest') from #disk.files('./Files', 'false')";
+                $"select Compress(AggregateFiles(), './Results/{nameof(CompressFilesTest)}.zip', 'fastest') from #disk.files('./Files', false)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -43,7 +43,7 @@ namespace Musoq.Schema.Os.Tests.Core
             var resultName = $"./Results/{nameof(CompressDirectoriesTest)}.zip";
 
             var query =
-                $"select Compress(AggregateDirectories(), '{resultName}', 'fastest') from #disk.directories('./Directories', 'false')";
+                $"select Compress(AggregateDirectories(), '{resultName}', 'fastest') from #disk.directories('./Directories', false)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -74,7 +74,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void ComplexObjectPropertyTest()
         {
-            var query = "select Parent.Name from #disk.directories('./Directories', 'false')";
+            var query = "select Parent.Name from #disk.directories('./Directories', false)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();

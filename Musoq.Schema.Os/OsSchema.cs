@@ -23,7 +23,7 @@ namespace Musoq.Schema.Os
         {
         }
 
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
+        public override ISchemaTable GetTableByName(string name, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
@@ -42,16 +42,16 @@ namespace Musoq.Schema.Os
             throw new NotSupportedException();
         }
 
-        public override RowSource GetRowSource(string name, string[] parameters)
+        public override RowSource GetRowSource(string name, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
                 case FilesTable:
-                    return new FilesSource(parameters[0], TryRecognizeBoolean(parameters[1]));
+                    return new FilesSource((string)parameters[0], (bool)parameters[1]);
                 case DirectoriesTable:
-                    return new DirectoriesSource(parameters[0], TryRecognizeBoolean(parameters[1]));
+                    return new DirectoriesSource((string)parameters[0], (bool)parameters[1]);
                 case ZipTable:
-                    return new ZipSource(parameters[0]);
+                    return new ZipSource((string)parameters[0]);
                 case ProcessesName:
                     return new ProcessesSource();
                 case Self:

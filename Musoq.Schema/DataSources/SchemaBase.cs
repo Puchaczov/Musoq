@@ -17,9 +17,9 @@ namespace Musoq.Schema.DataSources
 
         public string Name { get; }
 
-        public abstract ISchemaTable GetTableByName(string name, string[] parameters);
+        public abstract ISchemaTable GetTableByName(string name, params object[] parameters);
 
-        public abstract RowSource GetRowSource(string name, string[] parameters);
+        public abstract RowSource GetRowSource(string name, params object[] parameters);
 
         public bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo)
         {

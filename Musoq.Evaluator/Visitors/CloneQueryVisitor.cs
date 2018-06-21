@@ -181,6 +181,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new IntegerNode(node.Value.ToString()));
         }
 
+        public void Visit(BooleanNode node)
+        {
+            Nodes.Push(new BooleanNode(node.Value));
+        }
+
         public virtual void Visit(WordNode node)
         {
             Nodes.Push(new WordNode(node.Value));
@@ -299,7 +304,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(SchemaFromNode node)
         {
-            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, node.Alias));
+            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias));
         }
 
         public virtual void Visit(JoinSourcesTableFromNode node)

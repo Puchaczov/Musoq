@@ -105,6 +105,10 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Is;
                 case NullToken.TokenText:
                     return TokenType.Null;
+                case TrueToken.TokenText:
+                    return TokenType.True;
+                case FalseToken.TokenText:
+                    return TokenType.False;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -211,6 +215,8 @@ namespace Musoq.Parser.Lexing
             public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
             public static readonly string KAsc = string.Format(Keyword, AscToken.TokenText);
             public static readonly string KDesc = string.Format(Keyword, DescToken.TokenText);
+            public static readonly string KTrue = string.Format(Keyword, DescToken.TokenText);
+            public static readonly string KFalse = string.Format(Keyword, DescToken.TokenText);
         }
 
         /// <summary>
@@ -270,6 +276,8 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KOrderBy, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KTrue, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KFalse, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KColumn),
                 new TokenDefinition(TokenRegexDefinition.KHFrom),
                 new TokenDefinition(TokenRegexDefinition.KDot),
@@ -424,6 +432,10 @@ namespace Musoq.Parser.Lexing
                     return new NullToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.OrderBy:
                     return new OrderByToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.True:
+                    return new TrueToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.False:
+                    return new FalseToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

@@ -10,7 +10,7 @@ namespace Musoq.Schema.Time
         {
         }
 
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
+        public override ISchemaTable GetTableByName(string name, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
@@ -21,13 +21,13 @@ namespace Musoq.Schema.Time
             throw new NotSupportedException($"Table {name} not found.");
         }
 
-        public override RowSource GetRowSource(string name, string[] parameters)
+        public override RowSource GetRowSource(string name, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
                 case "interval":
-                    return new TimeSource(DateTimeOffset.Parse(parameters[0]), DateTimeOffset.Parse(parameters[1]),
-                        parameters[2]);
+                    return new TimeSource(DateTimeOffset.Parse((string)parameters[0]), DateTimeOffset.Parse((string)parameters[1]),
+                        (string)parameters[2]);
             }
 
             throw new NotSupportedException($"Table {name} not found.");

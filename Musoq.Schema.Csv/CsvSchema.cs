@@ -14,20 +14,20 @@ namespace Musoq.Schema.Csv
         {
         }
 
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
+        public override ISchemaTable GetTableByName(string name, params object[] parameters)
         {
             if (name.ToLowerInvariant() == FileTable)
-                return new CsvBasedTable(parameters[0], parameters[1]);
+                return new CsvBasedTable((string)parameters[0], (string)parameters[1]);
 
             throw new NotSupportedException();
         }
 
-        public override RowSource GetRowSource(string name, string[] parameters)
+        public override RowSource GetRowSource(string name, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
                 case FileTable:
-                    return new CsvSource(parameters[0], parameters[1]);
+                    return new CsvSource((string)parameters[0], (string)parameters[1]);
             }
 
             throw new NotSupportedException();

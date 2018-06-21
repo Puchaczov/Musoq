@@ -6,11 +6,6 @@ using System.Text.RegularExpressions;
 
 namespace Musoq.Evaluator.Helpers
 {
-    /// <summary>
-    ///     Found here:
-    ///     https://stackoverflow.com/questions/323640/can-i-convert-a-c-sharp-string-value-to-an-escaped-string-literal?utm_medium=organic
-    ///     &utm_source=google_rich_qa&utm_campaign=google_rich_qa
-    /// </summary>
     public static class StringHelpers
     {
         private static readonly Dictionary<string, string> EscapeMapping = new Dictionary<string, string>
@@ -29,6 +24,11 @@ namespace Musoq.Evaluator.Helpers
 
         private static readonly Regex EscapeRegex = new Regex(string.Join("|", EscapeMapping.Keys.ToArray()));
 
+        /// <summary>
+        ///     Found here:
+        ///     https://stackoverflow.com/questions/323640/can-i-convert-a-c-sharp-string-value-to-an-escaped-string-literal?utm_medium=organic
+        ///     &utm_source=google_rich_qa&utm_campaign=google_rich_qa
+        /// </summary>
         public static string Escape(this string s)
         {
             return EscapeRegex.Replace(s, EscapeMatchEval);

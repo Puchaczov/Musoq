@@ -13,7 +13,7 @@ namespace Musoq.Schema.FlatFile
         {
         }
 
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
+        public override ISchemaTable GetTableByName(string name, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
@@ -24,12 +24,12 @@ namespace Musoq.Schema.FlatFile
             throw new TableNotFoundException(nameof(name));
         }
 
-        public override RowSource GetRowSource(string name, string[] parameters)
+        public override RowSource GetRowSource(string name, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
                 case "file":
-                    return new FlatFileSource(parameters[0]);
+                    return new FlatFileSource((string)parameters[0]);
             }
 
             throw new SourceNotFoundException(nameof(name));

@@ -35,6 +35,11 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(BooleanNode node)
+        {
+            node.Accept(_visitor);
+        }
+
         public void Visit(WordNode node)
         {
             node.Accept(_visitor);
@@ -147,6 +152,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
+            node.Parameters.Accept(this);
             node.Accept(_visitor);
         }
 

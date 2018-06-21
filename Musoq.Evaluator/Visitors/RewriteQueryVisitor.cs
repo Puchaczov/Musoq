@@ -62,14 +62,13 @@ namespace Musoq.Evaluator.Visitors
 
             var schemaName = $"{from.Schema}.desc";
             const string method = "notimportant";
-            var parameters = new string[0];
 
             var schema = _schemaProvider.GetSchema(from.Schema);
             var schemaTable = schema.GetTableByName(from.Method, from.Parameters);
 
             _schemaProvider.AddTransitionSchema(new DescSchema(schemaName, table, schemaTable.Columns));
             var select = new SelectNode(fields.ToArray());
-            var newFrom = new SchemaFromNode(schemaName, method, parameters, "desc");
+            var newFrom = new SchemaFromNode(schemaName, method, from.Parameters, "desc");
 
             var newQuery = new QueryNode(select, newFrom, new WhereNode(new PutTrueNode()), null, null, null, null);
 
@@ -229,6 +228,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new IntegerNode(node.Value.ToString()));
         }
 
+        public void Visit(BooleanNode node)
+        {
+            Nodes.Push(new BooleanNode(node.Value));
+        }
+
         public void Visit(WordNode node)
         {
             Nodes.Push(new WordNode(node.Value));
@@ -345,7 +349,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
-            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, node.Alias));
+            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias));
         }
 
         public void Visit(JoinSourcesTableFromNode node)

@@ -64,12 +64,12 @@ namespace Musoq.Evaluator.Tests.Core.Schema
             return new MethodsAggregator(methodManager, propertiesManager);
         }
 
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
+        public override ISchemaTable GetTableByName(string name, params object[] parameters)
         {
             return new BasicEntityTable();
         }
 
-        public override RowSource GetRowSource(string name, string[] parameters)
+        public override RowSource GetRowSource(string name, params object[] parameters)
         {
             return new EntitySource<T>(_sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
         }

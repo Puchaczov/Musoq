@@ -3,18 +3,17 @@ using System.Globalization;
 
 namespace Musoq.Parser.Nodes
 {
-
-    public class DecimalNode : ConstantValueNode
+    public class BooleanNode : ConstantValueNode
     {
-        public DecimalNode(string value)
+        public BooleanNode(bool value)
         {
-            Value = Convert.ToDecimal(value);
-            Id = $"{nameof(DecimalNode)}{value}{ReturnType.Name}";
+            Value = value;
+            Id = $"{nameof(BooleanNode)}{value}{ReturnType.Name}";
         }
 
-        public decimal Value { get; }
+        public bool Value { get; }
 
-        public override Type ReturnType => typeof(decimal);
+        public override Type ReturnType => typeof(bool);
 
         public override string Id { get; }
 

@@ -13,14 +13,14 @@ namespace Musoq.Schema.Json
         {
         }
 
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
+        public override ISchemaTable GetTableByName(string name, params object[] parameters)
         {
-            return new JsonBasedTable(parameters[1], parameters[2]);
+            return new JsonBasedTable((string)parameters[1], (string)parameters[2]);
         }
 
-        public override RowSource GetRowSource(string name, string[] parameters)
+        public override RowSource GetRowSource(string name, params object[] parameters)
         {
-            return new JsonSource(parameters[0]);
+            return new JsonSource((string)parameters[0]);
         }
 
         private static MethodsAggregator CreateLibrary()

@@ -13,7 +13,7 @@ namespace Musoq.Schema.Git
         {
         }
 
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
+        public override ISchemaTable GetTableByName(string name, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
@@ -28,18 +28,18 @@ namespace Musoq.Schema.Git
             throw new NotSupportedException(name);
         }
 
-        public override RowSource GetRowSource(string name, string[] parameters)
+        public override RowSource GetRowSource(string name, params object[] parameters)
         {
             switch (name)
             {
                 case "commits":
-                    return new CommitsSource(parameters[0], SchemaGitHelper.CommitsNameToIndexMap,
+                    return new CommitsSource((string)parameters[0], SchemaGitHelper.CommitsNameToIndexMap,
                         SchemaGitHelper.CommitsIndexToMethodAccessMap);
                 case "tags":
-                    return new TagsSource(parameters[0], SchemaGitHelper.TagsNameToIndexMap,
+                    return new TagsSource((string)parameters[0], SchemaGitHelper.TagsNameToIndexMap,
                         SchemaGitHelper.TagsIndexToMethodAccessMap);
                 case "branches":
-                    return new BranchesSource(parameters[0], SchemaGitHelper.BranchesNameToIndexMap,
+                    return new BranchesSource((string)parameters[0], SchemaGitHelper.BranchesNameToIndexMap,
                         SchemaGitHelper.BranchesIndexToMethodAccessMap);
             }
 

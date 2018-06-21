@@ -60,8 +60,7 @@ namespace Musoq.Parser
             Consume(TokenType.Dot);
             var accessMethod = ComposeAccessMethod(string.Empty);
 
-            var fromNode = new SchemaFromNode(name.Value, accessMethod.Name,
-                accessMethod.Arguments.Args.Select(GetValueOfBasicType).ToArray(), string.Empty);
+            var fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, string.Empty);
 
             return new DescNode(fromNode);
         }
@@ -500,29 +499,13 @@ namespace Musoq.Parser
                 var accessMethod = ComposeAccessMethod(string.Empty);
                 alias = ComposeAlias();
 
-                var fromNode = new SchemaFromNode(name.Value, accessMethod.Name,
-                    accessMethod.Arguments.Args.Select(GetValueOfBasicType).ToArray(), alias);
+                var fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, alias);
                 return fromNode;
             }
 
             var column = (IdentifierNode) ComposeBaseTypes();
             alias = ComposeAlias();
             return new InMemoryTableFromNode(column.Name, alias);
-        }
-
-        private static string GetValueOfBasicType(Node node)
-        {
-            switch (node)
-            {
-                case WordNode word:
-                    return word.Value;
-                case DecimalNode numeric:
-                    return numeric.Value.ToString(CultureInfo.InvariantCulture);
-                case IntegerNode integer:
-                    return integer.Value.ToString();
-            }
-
-            throw new NotSupportedException();
         }
 
         private void ConsumeWhiteSpaces()
@@ -568,7 +551,7 @@ namespace Musoq.Parser
                     if (Current.TokenType == TokenType.Comma)
                         Consume(Current.TokenType);
 
-                    args.Add(ComposeOperations());
+                    args.Add(ComposeEqualityOperators());
                 } while (Current.TokenType == TokenType.Comma);
 
             Consume(TokenType.RightParenthesis);
@@ -616,6 +599,12 @@ namespace Musoq.Parser
                 case TokenType.Star:
                     Consume(TokenType.Star);
                     return new AllColumnsNode();
+                case TokenType.True:
+                    Consume(TokenType.True);
+                    return new BooleanNode(true);
+                case TokenType.False:
+                    Consume(TokenType.False);
+                    return new BooleanNode(false);
                 case TokenType.LeftParenthesis:
                     return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeOperations(),
                         TokenType.RightParenthesis);

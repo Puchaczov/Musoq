@@ -8,9 +8,9 @@ namespace Musoq.Schema
     {
         string Name { get; }
 
-        ISchemaTable GetTableByName(string name, string[] parameters);
+        ISchemaTable GetTableByName(string name, params object[] parameters);
 
-        RowSource GetRowSource(string name, string[] parameters);
+        RowSource GetRowSource(string name, params object[] parameters);
 
         MethodInfo ResolveMethod(string method, Type[] parameters);
 

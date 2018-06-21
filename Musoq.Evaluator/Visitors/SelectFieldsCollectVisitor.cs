@@ -111,6 +111,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(BooleanNode node)
+        {
+        }
+
         public void Visit(WordNode node)
         {
         }

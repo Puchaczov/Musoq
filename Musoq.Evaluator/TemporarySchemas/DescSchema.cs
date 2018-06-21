@@ -15,12 +15,12 @@ namespace Musoq.Evaluator.TemporarySchemas
             _columns = columns;
         }
 
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
+        public override ISchemaTable GetTableByName(string name, params object[] parameters)
         {
             return _table;
         }
 
-        public override RowSource GetRowSource(string name, string[] parameters)
+        public override RowSource GetRowSource(string name, params object[] parameters)
         {
             return new TableMetadataSource(_columns);
         }

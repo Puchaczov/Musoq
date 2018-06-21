@@ -58,6 +58,8 @@
         On,
         OrderBy,
         Asc,
-        Desc
+        Desc,
+        True,
+        False
     }
 }

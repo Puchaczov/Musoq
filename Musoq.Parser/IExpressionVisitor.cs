@@ -28,6 +28,7 @@ namespace Musoq.Parser
         void Visit(StringNode node);
         void Visit(DecimalNode node);
         void Visit(IntegerNode node);
+        void Visit(BooleanNode node);
         void Visit(WordNode node);
         void Visit(ContainsNode node);
         void Visit(AccessMethodNode node);

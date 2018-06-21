@@ -333,6 +333,11 @@ Compilation = Compilation.WithOptions(
             Nodes.Push(Generator.LiteralExpression(node.Value));
         }
 
+        public void Visit(BooleanNode node)
+        {
+            Nodes.Push(Generator.LiteralExpression(node.Value));
+        }
+
         public void Visit(WordNode node)
         {
             Nodes.Push(Generator.LiteralExpression(node.Value));
@@ -523,6 +528,11 @@ Compilation = Compilation.WithOptions(
 
         public void Visit(IdentifierNode node)
         {
+            Nodes.Push(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults"))
+                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                    SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(SyntaxFactory.Argument(
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
         }
 
         public void Visit(AccessObjectArrayNode node)
@@ -812,7 +822,9 @@ Compilation = Compilation.WithOptions(
                 )
             );
 
-            var args = node.Parameters.Select(f => SyntaxHelper.StringLiteral(f.Escape())).Cast<ExpressionSyntax>();
+            var args = new List<ExpressionSyntax>();
+            var argList = (ArgumentListSyntax) Nodes.Pop();
+            args.AddRange(argList.Arguments.Select(arg => arg.Expression));
 
             var createdSchemaRows = SyntaxHelper.CreateAssignmentByMethodCall(
                 $"{node.Alias}Rows",
@@ -824,7 +836,7 @@ Compilation = Compilation.WithOptions(
                         SyntaxHelper.StringLiteralArgument(node.Method),
                         SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(
-                                nameof(String),
+                                nameof(Object),
                                 args.ToArray()))
                     })
                 ));

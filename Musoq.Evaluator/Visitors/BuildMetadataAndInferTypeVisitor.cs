@@ -21,6 +21,7 @@ namespace Musoq.Evaluator.Visitors
         private readonly ISchemaProvider _provider;
 
         public readonly List<AccessMethodNode> RefreshMethods = new List<AccessMethodNode>();
+        private List<object> _schemaFromArgs = new List<object>();
 
         private Scope _currentScope;
         private readonly List<string> _generatedAliases = new List<string>();
@@ -193,24 +194,35 @@ namespace Musoq.Evaluator.Visitors
         {
             AddAssembly(typeof(string).Assembly);
             Nodes.Push(new StringNode(node.Value));
+            _schemaFromArgs.Add(node.Value);
         }
 
         public void Visit(DecimalNode node)
         {
             AddAssembly(typeof(decimal).Assembly);
             Nodes.Push(new DecimalNode(node.Value.ToString(CultureInfo.InvariantCulture)));
+            _schemaFromArgs.Add(node.Value);
         }
 
         public void Visit(IntegerNode node)
         {
             AddAssembly(typeof(int).Assembly);
             Nodes.Push(new IntegerNode(node.Value.ToString()));
+            _schemaFromArgs.Add(node.Value);
+        }
+
+        public void Visit(BooleanNode node)
+        {
+            AddAssembly(typeof(bool).Assembly);
+            Nodes.Push(new BooleanNode(node.Value));
+            _schemaFromArgs.Add(node.Value);
         }
 
         public void Visit(WordNode node)
         {
             AddAssembly(typeof(string).Assembly);
             Nodes.Push(new WordNode(node.Value));
+            _schemaFromArgs.Add(node.Value);
         }
 
         public void Visit(ContainsNode node)
@@ -289,6 +301,7 @@ namespace Musoq.Evaluator.Visitors
             {
                 var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
                 var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                _schemaFromArgs.Add(new Table(node.Name, new Column[0]));
                 Visit(new AccessColumnNode(node.Name, string.Empty, column.ColumnType, TextSpan.Empty));
                 return;
             }
@@ -414,7 +427,8 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(SchemaFromNode node)
         {
             var schema = _provider.GetSchema(node.Schema);
-            var table = schema.GetTableByName(node.Method, node.Parameters);
+            var table = schema.GetTableByName(node.Method, _schemaFromArgs.ToArray());
+            _schemaFromArgs.Clear();
 
             AddAssembly(schema.GetType().Assembly);
 
@@ -424,7 +438,7 @@ namespace Musoq.Evaluator.Visitors
             var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
 
-            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, node.Parameters, _queryAlias));
+            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias));
         }
 
         public void Visit(JoinSourcesTableFromNode node)
@@ -551,6 +565,8 @@ namespace Musoq.Evaluator.Visitors
 
             Methods.Push(from.Alias);
             Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
+
+            _schemaFromArgs.Clear();
         }
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
