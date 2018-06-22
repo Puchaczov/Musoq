@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
@@ -71,6 +72,17 @@ namespace Musoq.Evaluator.Tests.Core.Schema
         public new string ToString(object obj)
         {
             return obj.ToString();
+        }
+
+        [BindableMethod]
+        public int PrimitiveArgumentsMethod(long a, decimal b, bool tr, bool fl, string text)
+        {
+            Assert.AreEqual(1L, a);
+            Assert.AreEqual(2m, b);
+            Assert.AreEqual(true, tr);
+            Assert.AreEqual(false, fl);
+            Assert.AreEqual("text", text);
+            return 1;
         }
     }
 }
