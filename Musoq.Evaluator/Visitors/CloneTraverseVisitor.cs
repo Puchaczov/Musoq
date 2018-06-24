@@ -329,6 +329,13 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(InNode node)
+        {
+            node.Left.Accept(this);
+            node.Right.Accept(this);
+            node.Accept(_visitor);
+        }
+
         public void Visit(FieldNode node)
         {
             node.Expression.Accept(this);

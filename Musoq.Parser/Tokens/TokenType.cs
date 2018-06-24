@@ -60,6 +60,8 @@
         Asc,
         Desc,
         True,
-        False
+        False,
+        In,
+        NotIn
     }
 }

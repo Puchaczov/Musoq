@@ -166,6 +166,13 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new LikeNode(left, right));
         }
 
+        public void Visit(InNode node)
+        {
+            var right = Nodes.Pop();
+            var left = Nodes.Pop();
+            Nodes.Push(new InNode(left, (ArgsListNode)right));
+        }
+
         public virtual void Visit(FieldNode node)
         {
             Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));

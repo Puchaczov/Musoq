@@ -109,6 +109,10 @@ namespace Musoq.Parser.Lexing
                     return TokenType.True;
                 case FalseToken.TokenText:
                     return TokenType.False;
+                case InToken.TokenText:
+                    return TokenType.In;
+                case NotInToken.TokenText:
+                    return TokenType.NotIn;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -217,6 +221,8 @@ namespace Musoq.Parser.Lexing
             public static readonly string KDesc = string.Format(Keyword, DescToken.TokenText);
             public static readonly string KTrue = string.Format(Keyword, DescToken.TokenText);
             public static readonly string KFalse = string.Format(Keyword, DescToken.TokenText);
+            public static readonly string KIn = string.Format(Keyword, InToken.TokenText);
+            public static readonly string KNotIn = @"(?<=[\s]{1,}|^)not[\s]{1,}in(?=[\s]{1,}|$)";
         }
 
         /// <summary>
@@ -233,6 +239,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KAsc),
                 new TokenDefinition(TokenRegexDefinition.KLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNotLike, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KNotIn, RegexOptions.IgnoreCase), 
                 new TokenDefinition(TokenRegexDefinition.KDecimal),
                 new TokenDefinition(TokenRegexDefinition.KAs, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KAnd, RegexOptions.IgnoreCase),
@@ -253,6 +260,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KPlus),
                 new TokenDefinition(TokenRegexDefinition.KStar),
                 new TokenDefinition(TokenRegexDefinition.KIs),
+                new TokenDefinition(TokenRegexDefinition.KIn), 
                 new TokenDefinition(TokenRegexDefinition.KNull),
                 new TokenDefinition(TokenRegexDefinition.KWith, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
@@ -436,6 +444,10 @@ namespace Musoq.Parser.Lexing
                     return new TrueToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.False:
                     return new FalseToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.In:
+                    return new InToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.NotIn:
+                    return new NotInToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

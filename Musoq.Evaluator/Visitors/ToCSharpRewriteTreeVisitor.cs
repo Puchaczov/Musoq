@@ -101,8 +101,7 @@ namespace Musoq.Evaluator.Visitors
             AddReference(typeof(SyntaxFactory));
             AddReference(assemblies.ToArray());
 
-            
-Compilation = Compilation.WithOptions(
+            Compilation = Compilation.WithOptions(
                 new CSharpCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary,
                         optimizationLevel: OptimizationLevel.Release,
@@ -294,6 +293,10 @@ Compilation = Compilation.WithOptions(
                 new FunctionToken(nameof(Operators.Like), TextSpan.Empty),
                 new ArgsListNode(new[] {node.Left, node.Right}), null,
                 typeof(Operators).GetMethod(nameof(Operators.Like))));
+        }
+
+        public void Visit(InNode node)
+        {
         }
 
         public void Visit(FieldNode node)

@@ -476,9 +476,18 @@ namespace Musoq.Parser
                         break;
                     case TokenType.Is:
                         Consume(TokenType.Is);
-                        if (Current.TokenType == TokenType.Not)
-                            return SkipComposeSkip(TokenType.Not, parser => new IsNullNode(node, true), TokenType.Null);
-                        return ComposeAndSkip(parser => new IsNullNode(node, false), TokenType.Null);
+                        node = Current.TokenType == TokenType.Not ? 
+                            SkipComposeSkip(TokenType.Not, parser => new IsNullNode(node, true), TokenType.Null) : 
+                            ComposeAndSkip(parser => new IsNullNode(node, false), TokenType.Null);
+                        break;
+                    case TokenType.In:
+                        Consume(TokenType.In);
+                        node = new InNode(node, ComposeArgs());
+                        break;
+                    case TokenType.NotIn:
+                        Consume(TokenType.NotIn);
+                        node = new NotNode(new InNode(node, ComposeArgs()));
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
@@ -696,7 +705,9 @@ namespace Musoq.Parser
                    currentToken.TokenType == TokenType.Like ||
                    currentToken.TokenType == TokenType.NotLike ||
                    currentToken.TokenType == TokenType.Contains ||
-                   currentToken.TokenType == TokenType.Is;
+                   currentToken.TokenType == TokenType.Is ||
+                   currentToken.TokenType == TokenType.In ||
+                   currentToken.TokenType == TokenType.NotIn;
         }
 
         private static bool IsQueryOperator(Token currentToken)

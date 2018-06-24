@@ -89,6 +89,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(InNode node)
+        {
+        }
+
         public void Visit(FieldNode node)
         {
             if (_collectedFieldNames.All(field => field.ColumnName != node.FieldName))
