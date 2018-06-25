@@ -27,7 +27,7 @@ namespace Musoq.Schema.FlatFile
             FlatColumns = new ISchemaColumn[]
             {
                 new SchemaColumn(nameof(FlatFileEntity.LineNumber), 0, typeof(int)),
-                new SchemaColumn(nameof(FlatFileEntity.Line), 0, typeof(string))
+                new SchemaColumn(nameof(FlatFileEntity.Line), 1, typeof(string))
             };
         }
     }

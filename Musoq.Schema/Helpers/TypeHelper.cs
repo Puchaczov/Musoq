@@ -1,6 +1,12 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using Musoq.Plugins.Attributes;
+using Musoq.Schema.Attributes;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Helpers
 {
@@ -94,6 +100,42 @@ namespace Musoq.Schema.Helpers
             where TType : Attribute
         {
             return parameters.Where(f => f.GetCustomAttribute<TType>() != null).ToArray();
+        }
+
+        /// <summary>
+        ///     Gets the dictionaries describing the type.
+        /// </summary>
+        /// <typeparam name="TType">Type to describe.</typeparam>
+        /// <returns>Mapped entity.</returns>
+        public static (IDictionary<string, int> NameToIndexMap, IDictionary<int, Func<TType, object>> IndexToMethodAccessMap, ISchemaColumn[] Columns) GetEntityMap<TType>()
+        {
+            var columnIndex = 0;
+
+            var nameToIndexMap = new Dictionary<string, int>();
+            var indexToMethodAccess = new Dictionary<int, Func<TType, object>>();
+            var columns = new List<ISchemaColumn>();
+
+            var type = typeof(TType);
+            foreach (var member in type.GetMembers())
+            {
+                if (member.GetCustomAttribute<EntityPropertyAttribute>() == null)
+                    continue;
+
+                if(member.MemberType != MemberTypes.Property)
+                    continue;
+
+                var property = (PropertyInfo)member;
+
+                Func<object, object> del = property.GetValue;
+
+                nameToIndexMap.Add(property.Name, columnIndex);
+                indexToMethodAccess.Add(columnIndex, (instance) => del(instance));
+                columns.Add(new SchemaColumn(property.Name, columnIndex, property.PropertyType));
+
+                columnIndex += 1;
+            }
+
+            return (nameToIndexMap, indexToMethodAccess, columns.ToArray());
         }
     }
 }

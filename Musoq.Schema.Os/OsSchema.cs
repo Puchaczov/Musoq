@@ -61,21 +61,6 @@ namespace Musoq.Schema.Os
             throw new NotSupportedException();
         }
 
-        private bool TryRecognizeBoolean(string str)
-        {
-            str = str.Trim().ToLowerInvariant();
-            if (str == "1")
-                return true;
-            if (str == "0")
-                return false;
-            if (str == "true")
-                return true;
-            if (str == "false")
-                return false;
-
-            throw new NotSupportedException($"value('{str}') as {nameof(Boolean)}");
-        }
-
         private static MethodsAggregator CreateLibrary()
         {
             var methodsManager = new MethodsManager();
