@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Attributes;
 using Musoq.Schema.DataSources;
@@ -126,7 +127,22 @@ namespace Musoq.Schema.Helpers
 
                 var property = (PropertyInfo)member;
 
-                Func<object, object> del = property.GetValue;
+                Func<TType, object> del;
+                if (property.PropertyType.IsValueType)
+                {
+                    var dynMethod = new DynamicMethod($"Dynamic_Get_{typeof(TType).Name}_{property.Name}", typeof(object), new[] { typeof(TType) }, typeof(TType).Module);
+                    var ilGen = dynMethod.GetILGenerator();
+                    ilGen.Emit(OpCodes.Ldarg_0);
+                    ilGen.Emit(OpCodes.Callvirt, property.GetGetMethod());
+                    ilGen.Emit(OpCodes.Box, property.PropertyType);
+                    ilGen.Emit(OpCodes.Ret);
+
+                    del = (Func<TType, object>)dynMethod.CreateDelegate(typeof(Func<TType, object>));
+                }
+                else
+                {
+                    del = (Func<TType, object>)Delegate.CreateDelegate(typeof(Func<TType, object>), null, property.GetGetMethod());
+                }
 
                 nameToIndexMap.Add(property.Name, columnIndex);
                 indexToMethodAccess.Add(columnIndex, (instance) => del(instance));
