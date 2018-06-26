@@ -77,8 +77,8 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Equality;
                 case LikeToken.TokenText:
                     return TokenType.Like;
-                case NotLikeToken.TokenText:
-                    return TokenType.NotLike;
+                case RLikeToken.TokenText:
+                    return TokenType.RLike;
                 case ContainsToken.TokenText:
                     return TokenType.Contains;
                 case AsToken.TokenText:
@@ -111,8 +111,6 @@ namespace Musoq.Parser.Lexing
                     return TokenType.False;
                 case InToken.TokenText:
                     return TokenType.In;
-                case NotInToken.TokenText:
-                    return TokenType.NotIn;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -123,6 +121,12 @@ namespace Musoq.Parser.Lexing
 
             var regex = matchedDefinition.Regex.ToString();
 
+            if (regex == TokenRegexDefinition.KNotIn)
+                return TokenType.NotIn;
+            if (regex == TokenRegexDefinition.KNotLike)
+                return TokenType.NotLike;
+            if (regex == TokenRegexDefinition.KRNotLike)
+                return TokenType.NotRLike;
             if (regex == TokenRegexDefinition.KMethodAccess)
                 return TokenType.MethodAccess;
             if (regex == TokenRegexDefinition.KKeyObjectAccess)
@@ -189,7 +193,9 @@ namespace Musoq.Parser.Lexing
             public static readonly string KColumn = @"[\w*?_]{1,}";
             public static readonly string KHFrom = @"#[\w*?_]{1,}";
             public static readonly string KLike = string.Format(Keyword, LikeToken.TokenText);
-            public static readonly string KNotLike = string.Format(Keyword, NotLikeToken.TokenText);
+            public static readonly string KNotLike = @"(?<=[\s]{1,}|^)not[\s]{1,}like(?=[\s]{1,}|$)";
+            public static readonly string KRLike = string.Format(Keyword, RLikeToken.TokenText);
+            public static readonly string KRNotLike = @"(?<=[\s]{1,}|^)not[\s]{1,}rlike(?=[\s]{1,}|$)";
             public static readonly string KAs = string.Format(Keyword, AsToken.TokenText);
             public static readonly string KUnion = string.Format(Keyword, SetOperatorToken.UnionOperatorText);
             public static readonly string KDot = "\\.";
@@ -239,6 +245,8 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KAsc),
                 new TokenDefinition(TokenRegexDefinition.KLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNotLike, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KRLike, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.KRNotLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNotIn, RegexOptions.IgnoreCase), 
                 new TokenDefinition(TokenRegexDefinition.KDecimal),
                 new TokenDefinition(TokenRegexDefinition.KAs, RegexOptions.IgnoreCase),
@@ -389,6 +397,10 @@ namespace Musoq.Parser.Lexing
                     return new LikeToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.NotLike:
                     return new NotLikeToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.RLike:
+                    return new RLikeToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.NotRLike:
+                    return new NotRLikeToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.As:
                     return new AsToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Except:

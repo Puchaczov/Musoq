@@ -89,6 +89,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(RLikeNode node)
+        {
+        }
+
         public void Visit(InNode node)
         {
         }

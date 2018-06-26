@@ -295,6 +295,26 @@ namespace Musoq.Evaluator.Visitors
                 typeof(Operators).GetMethod(nameof(Operators.Like))));
         }
 
+        public void Visit(RLikeNode node)
+        {
+            var b = Nodes.Pop();
+            var a = Nodes.Pop();
+
+            var arg = SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList(new[]
+                {
+                    SyntaxFactory.Argument((ExpressionSyntax) a),
+                    SyntaxFactory.Argument((ExpressionSyntax) b)
+                }));
+
+            Nodes.Push(arg);
+
+            Visit(new AccessMethodNode(
+                new FunctionToken(nameof(Operators.RLike), TextSpan.Empty),
+                new ArgsListNode(new[] { node.Left, node.Right }), null,
+                typeof(Operators).GetMethod(nameof(Operators.RLike))));
+        }
+
         public void Visit(InNode node)
         {
         }

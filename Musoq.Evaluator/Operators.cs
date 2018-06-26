@@ -13,6 +13,11 @@ namespace Musoq.Evaluator
                               .Replace("%", ".*") + @"\z", RegexOptions.Singleline).IsMatch(content);
         }
 
+        public bool RLike(string content, string pattern)
+        {
+            return new Regex(pattern).IsMatch(content);
+        }
+
         public bool Constains(string value, string[] values)
         {
             return Contains(value, values);

@@ -26,8 +26,6 @@ namespace Musoq.Parser
                 {TokenType.Dot, (1, Associativity.Left)}
             };
 
-        private bool _isInGroupBySection;
-
         public FqlParser(Lexer lexer)
         {
             _lexer = lexer;
@@ -264,10 +262,8 @@ namespace Musoq.Parser
                 if (Current.TokenType != TokenType.Having) return new GroupByNode(fields, null);
 
                 Consume(TokenType.Having);
-
-                _isInGroupBySection = true;
+                
                 var having = new HavingNode(ComposeOperations());
-                _isInGroupBySection = false;
 
                 return new GroupByNode(fields, having);
             }
@@ -469,6 +465,14 @@ namespace Musoq.Parser
                     case TokenType.NotLike:
                         Consume(TokenType.NotLike);
                         node = new NotNode(new LikeNode(node, ComposeBaseTypes()));
+                        break;
+                    case TokenType.RLike:
+                        Consume(TokenType.RLike);
+                        node = new RLikeNode(node, ComposeBaseTypes());
+                        break;
+                    case TokenType.NotRLike:
+                        Consume(TokenType.NotRLike);
+                        node = new NotNode(new RLikeNode(node, ComposeBaseTypes()));
                         break;
                     case TokenType.Contains:
                         Consume(TokenType.Contains);
@@ -707,7 +711,9 @@ namespace Musoq.Parser
                    currentToken.TokenType == TokenType.Contains ||
                    currentToken.TokenType == TokenType.Is ||
                    currentToken.TokenType == TokenType.In ||
-                   currentToken.TokenType == TokenType.NotIn;
+                   currentToken.TokenType == TokenType.NotIn ||
+                   currentToken.TokenType == TokenType.RLike ||
+                   currentToken.TokenType == TokenType.NotRLike;
         }
 
         private static bool IsQueryOperator(Token currentToken)

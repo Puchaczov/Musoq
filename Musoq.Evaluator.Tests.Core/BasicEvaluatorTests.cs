@@ -40,6 +40,93 @@ namespace Musoq.Evaluator.Tests.Core
         }
 
         [TestMethod]
+        public void NotLikeOperatorTest()
+        {
+            var query = "select Name from #A.Entities() where Name not like '%AA%'";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
+                        new BasicEntity("dadsqqAA")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("XXX", table[0].Values[0]);
+        }
+
+        [TestMethod]
+        public void RLikeOperatorTest()
+        {
+            var query = @"select Name from #A.Entities() where Name rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("12@hostname.com"),
+                        new BasicEntity("ma@hostname.comcom"),
+                        new BasicEntity("david.jones@proseware.com"),
+                        new BasicEntity("ma@hostname.com")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual("12@hostname.com", table[0].Values[0]);
+            Assert.AreEqual("david.jones@proseware.com", table[1].Values[0]);
+            Assert.AreEqual("ma@hostname.com", table[2].Values[0]);
+        }
+
+        [TestMethod]
+        public void NotRLikeOperatorTest()
+        {
+            var query = @"select Name from #A.Entities() where Name not rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("12@hostname.com"),
+                        new BasicEntity("ma@hostname.comcom"),
+                        new BasicEntity("david.jones@proseware.com"),
+                        new BasicEntity("ma@hostname.com")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("ma@hostname.comcom", table[0].Values[0]);
+        }
+
+        [TestMethod]
         public void ComplexWhere1Test()
         {
             var query =
@@ -68,33 +155,6 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual(99m, table[0].Values[0]);
             Assert.AreEqual(101m, table[1].Values[0]);
-        }
-
-        [TestMethod]
-        public void NotLikeOperatorTest()
-        {
-            var query = "select Name from #A.Entities() where Name not like '%AA%'";
-            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                {
-                    "#A",
-                    new[]
-                    {
-                        new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
-                        new BasicEntity("dadsqqAA")
-                    }
-                }
-            };
-
-            var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
-
-            Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-            Assert.AreEqual(1, table.Count);
-            Assert.AreEqual("XXX", table[0].Values[0]);
         }
 
         [TestMethod]

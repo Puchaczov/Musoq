@@ -34,6 +34,8 @@
         From,
         Like,
         NotLike,
+        RLike,
+        NotRLike,
         As,
         Is,
         Null,

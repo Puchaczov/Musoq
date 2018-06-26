@@ -192,6 +192,13 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new LikeNode(left, right));
         }
 
+        public void Visit(RLikeNode node)
+        {
+            var right = Nodes.Pop();
+            var left = Nodes.Pop();
+            Nodes.Push(new RLikeNode(left, right));
+        }
+
         public void Visit(InNode node)
         {
             var right = (ArgsListNode)Nodes.Pop();

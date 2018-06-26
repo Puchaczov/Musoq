@@ -23,6 +23,7 @@ namespace Musoq.Parser
         void Visit(DiffNode node);
         void Visit(NotNode node);
         void Visit(LikeNode node);
+        void Visit(RLikeNode node);
         void Visit(InNode node);
         void Visit(FieldNode node);
         void Visit(FieldOrderedNode node);
