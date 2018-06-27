@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Musoq.Parser.Tokens
+﻿namespace Musoq.Parser.Tokens
 {
     public class OrderByToken : Token
     {

@@ -2,8 +2,8 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
+using System.Diagnostics;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Csv

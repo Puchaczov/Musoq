@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Musoq.Parser.Nodes
+﻿namespace Musoq.Parser.Nodes
 {
     public class FieldOrderedNode : FieldNode
     {

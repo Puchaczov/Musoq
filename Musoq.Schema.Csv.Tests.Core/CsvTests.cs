@@ -235,7 +235,7 @@ namespace Musoq.Schema.Csv.Tests.Core
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.Create(script, new CsvSchemaProvider());
+            return InstanceCreator.CompileForExecution(script, new CsvSchemaProvider());
         }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Core.Schema;
@@ -125,7 +123,7 @@ namespace Musoq.Evaluator.Tests.Core
 
         private CompiledQuery CreateAndRunVirtualMachine(string script, IEnumerable<TestEntity> source, Action<object[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
         {
-            return InstanceCreator.Create(script, new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked));
+            return InstanceCreator.CompileForExecution(script, new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked));
         }
     }
 }

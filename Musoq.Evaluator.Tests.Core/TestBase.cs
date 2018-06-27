@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Tests.Core
             IDictionary<string, IEnumerable<T>> sources)
             where T : BasicEntity
         {
-            return InstanceCreator.Create(script, new SchemaProvider<T>(sources));
+            return InstanceCreator.CompileForExecution(script, new SchemaProvider<T>(sources));
         }
     }
 }

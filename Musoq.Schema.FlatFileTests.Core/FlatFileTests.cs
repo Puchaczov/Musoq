@@ -46,7 +46,7 @@ namespace Musoq.Schema.FlatFileTests.Core
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.Create(script, new FlatFileSchemaProvider());
+            return InstanceCreator.CompileForExecution(script, new FlatFileSchemaProvider());
         }
     }
 }

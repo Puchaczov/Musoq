@@ -83,7 +83,7 @@ namespace Musoq.Schema.Os.Tests.Core
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.Create(script, new OsSchemaProvider());
+            return InstanceCreator.CompileForExecution(script, new OsSchemaProvider());
         }
     }
 }

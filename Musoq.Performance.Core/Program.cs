@@ -32,7 +32,7 @@ namespace Musoq.Performance
             var watch = new Stopwatch();
 
             watch.Start();
-            var vm = InstanceCreator.Create(query, CreateCsvSchema());
+            var vm = InstanceCreator.CompileForExecution(query, CreateCsvSchema());
             var compiledTime = watch.Elapsed;
             var table = vm.Run();
             watch.Stop();
@@ -47,7 +47,7 @@ namespace Musoq.Performance
         {
             var watch = new Stopwatch();
             watch.Start();
-            InstanceCreator.Create(query, CreateDiskSchema());
+            InstanceCreator.CompileForExecution(query, CreateDiskSchema());
             var compiledTime = watch.Elapsed;
             watch.Stop();
 

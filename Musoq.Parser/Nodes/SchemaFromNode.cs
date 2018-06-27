@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace Musoq.Parser.Nodes
+﻿namespace Musoq.Parser.Nodes
 {
     public class SchemaFromNode : FromNode
     {
