@@ -14,6 +14,8 @@ namespace Musoq.Parser.Nodes
 
         public decimal Value { get; }
 
+        public override object ObjValue => Value;
+
         public override Type ReturnType => typeof(decimal);
 
         public override string Id { get; }

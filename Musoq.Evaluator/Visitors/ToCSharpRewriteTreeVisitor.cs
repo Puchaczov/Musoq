@@ -72,6 +72,7 @@ namespace Musoq.Evaluator.Visitors
             Compilation = CSharpCompilation.Create("InMemoryAssembly");
 
             foreach (var file in directory.GetFiles("System*.dll"))
+            {
                 try
                 {
                     AssemblyName.GetAssemblyName(file.FullName);
@@ -79,7 +80,6 @@ namespace Musoq.Evaluator.Visitors
                 }
                 catch (FileNotFoundException)
                 {
-                    Console.WriteLine("The file cannot be found.");
                 }
                 catch (BadImageFormatException)
                 {
@@ -87,6 +87,7 @@ namespace Musoq.Evaluator.Visitors
                 catch (FileLoadException)
                 {
                 }
+            }
 
             Compilation = Compilation
                 .AddReferences(MetadataReference.CreateFromFile(
@@ -160,6 +161,8 @@ namespace Musoq.Evaluator.Visitors
                 )
             );
 
+            var args = schemaNode.Parameters.Args.Select(arg => (ExpressionSyntax) Generator.LiteralExpression(((ConstantValueNode)arg).ObjValue)).ToArray();
+
             var gettedTable = SyntaxHelper.CreateAssignmentByMethodCall(
                 "schemaTable",
                 "desc",
@@ -169,7 +172,7 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.SeparatedList(new[]
                     {
                         SyntaxHelper.StringLiteralArgument(schemaNode.Method),
-                        SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), new ExpressionSyntax[0]))
+                        SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args))
                     }),
                     SyntaxFactory.Token(SyntaxKind.CloseParenToken)
                 )
@@ -596,8 +599,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessColumnNode node)
         {
-            SyntaxNode sNode;
-
             string variableName;
             switch (_type)
             {
@@ -611,7 +612,7 @@ namespace Musoq.Evaluator.Visitors
                     throw new NotSupportedException();
             }
 
-            sNode = Generator.ElementAccessExpression(
+            var sNode = Generator.ElementAccessExpression(
                 Generator.IdentifierName(variableName),
                 SyntaxHelper.StringLiteralArgument(node.Name));
 

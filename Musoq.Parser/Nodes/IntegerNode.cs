@@ -12,6 +12,8 @@ namespace Musoq.Parser.Nodes
 
         public long Value { get; }
 
+        public override object ObjValue => Value;
+
         public override Type ReturnType => typeof(long);
 
         public override string Id { get; }

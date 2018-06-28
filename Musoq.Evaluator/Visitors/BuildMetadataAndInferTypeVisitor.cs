@@ -39,7 +39,6 @@ namespace Musoq.Evaluator.Visitors
 
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
         public List<Assembly> Assemblies { get; } = new List<Assembly>();
-        public IDictionary<string, string> CteAliases { get; } = new Dictionary<string, string>();
         public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
         public RootNode Root => (RootNode) Nodes.Peek();
@@ -315,7 +314,6 @@ namespace Musoq.Evaluator.Visitors
             {
                 var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
                 var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
-                SchemaFromArgs.Add(new Table(node.Name, new Column[0]));
                 Visit(new AccessColumnNode(node.Name, string.Empty, column.ColumnType, TextSpan.Empty));
                 return;
             }
@@ -368,7 +366,6 @@ namespace Musoq.Evaluator.Visitors
                     dotNode = dot.Root;
                 }
 
-                var column = (AccessColumnNode) dotNode;
                 dotNode = theMostInnerDotNode;
                 var props = new List<(PropertyInfo, object)>();
 
