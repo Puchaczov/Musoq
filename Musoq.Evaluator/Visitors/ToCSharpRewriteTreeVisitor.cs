@@ -143,6 +143,91 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DescNode node)
         {
+            AddNamespace(typeof(EvaluationHelper).Namespace);
+
+            var schemaNode = (SchemaFromNode) node.From;
+            var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
+                "desc",
+                "provider",
+                nameof(ISchemaProvider.GetSchema),
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxHelper.StringLiteralArgument(schemaNode.Schema)
+                    }),
+                    SyntaxFactory.Token(SyntaxKind.CloseParenToken)
+                )
+            );
+
+            var gettedTable = SyntaxHelper.CreateAssignmentByMethodCall(
+                "schemaTable",
+                "desc",
+                nameof(ISchema.GetTableByName),
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxHelper.StringLiteralArgument(schemaNode.Method),
+                        SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), new ExpressionSyntax[0]))
+                    }),
+                    SyntaxFactory.Token(SyntaxKind.CloseParenToken)
+                )
+            );
+
+            var returnStatement = SyntaxFactory.ReturnStatement(SyntaxFactory
+                .InvocationExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSchemaDescription)))).WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable"))))));
+            
+            Statements.AddRange(new StatementSyntax[]
+            {
+                SyntaxFactory.LocalDeclarationStatement(createdSchema),
+                SyntaxFactory.LocalDeclarationStatement(gettedTable),
+                returnStatement
+            });
+
+            var methodName = "GetTableDesc";
+
+            var method = SyntaxFactory.MethodDeclaration(
+                new SyntaxList<AttributeListSyntax>(),
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                null,
+                SyntaxFactory.Identifier(methodName),
+                null,
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("provider"), null),
+
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.IdentifierName(nameof(CancellationToken))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("token"), null)
+                    })),
+                new SyntaxList<TypeParameterConstraintClauseSyntax>(),
+                SyntaxFactory.Block(Statements),
+                null);
+
+            _members.Add(method);
+
+            _methodNames.Push(methodName);
+
+            Statements.Clear();
         }
 
         public void Visit(StarNode node)

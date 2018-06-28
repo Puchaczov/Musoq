@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Musoq.Converter.Build;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Schema;
 
@@ -20,7 +21,7 @@ namespace Musoq.Converter
             };
 
             var chain = new CreateTree(
-                new TranformTree(
+                new TransformTree(
                     new TurnQueryIntoRunnableCode(null)));
 
             chain.Build(items);
@@ -36,13 +37,25 @@ namespace Musoq.Converter
                 RawQuery = script
             };
 
-            var chain = new CreateTree(
-                new TranformTree(
-                    new TurnQueryIntoRunnableCode(null)));
+            var compiled = true;
 
-            chain.Build(items);
+            BuildChain chain = 
+                new CreateTree(
+                    new TransformTree(
+                        new TurnQueryIntoRunnableCode(null)));
 
-            if (!Debugger.IsAttached) return new CompiledQuery(items.CompiledQuery);
+            CompilationException compilationError = null;
+            try
+            {
+                chain.Build(items);
+            }
+            catch (CompilationException ce)
+            {
+                compilationError = ce;
+                compiled = false;
+            }
+
+            if (compiled && !Debugger.IsAttached) return new CompiledQuery(items.CompiledQuery);
 
             var tempPath = Path.GetTempPath();
             var tempFileName = $"{Guid.NewGuid().ToString()}";
@@ -61,17 +74,26 @@ namespace Musoq.Converter
                 file.Write(builder.ToString());
             }
 
-            using (var file = new BinaryWriter(File.OpenWrite(assemblyPath)))
+            if (items.DllFile != null && items.DllFile.Length > 0)
             {
-                if(items.DllFile != null)
-                    file.Write(items.DllFile);
+                using (var file = new BinaryWriter(File.OpenWrite(assemblyPath)))
+                {
+                    if (items.DllFile != null)
+                        file.Write(items.DllFile);
+                }
             }
 
-            using (var file = new BinaryWriter(File.OpenWrite(pdbPath)))
+            if (items.PdbFile != null && items.PdbFile.Length > 0)
             {
-                if (items.PdbFile != null)
-                    file.Write(items.PdbFile);
+                using (var file = new BinaryWriter(File.OpenWrite(pdbPath)))
+                {
+                    if (items.PdbFile != null)
+                        file.Write(items.PdbFile);
+                }
             }
+
+            if (!compiled && compilationError != null)
+                throw compilationError;
 
             var runnable = new RunnableDebugDecorator(items.CompiledQuery, csPath, assemblyPath, pdbPath);
 

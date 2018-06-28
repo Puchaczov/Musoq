@@ -18,15 +18,9 @@ namespace Musoq.Evaluator.Visitors
     public class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         private readonly List<JoinFromNode> _joinedTables = new List<JoinFromNode>();
-        private readonly TransitionSchemaProvider _schemaProvider;
 
         private FieldNode[] _generatedColumns = new FieldNode[0];
         private Scope _scope;
-
-        public RewriteQueryVisitor(TransitionSchemaProvider schemaProvider)
-        {
-            _schemaProvider = schemaProvider;
-        }
 
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
 
@@ -39,44 +33,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(DescNode node)
         {
             var from = (SchemaFromNode) Nodes.Pop();
-
-            var fields = new List<FieldNode>
-            {
-                new FieldNode(
-                    new AccessColumnNode(nameof(ISchemaColumn.ColumnName), string.Empty, typeof(string),
-                        TextSpan.Empty), 0, "Name"),
-                new FieldNode(
-                    new AccessColumnNode(nameof(ISchemaColumn.ColumnIndex), string.Empty, typeof(int), TextSpan.Empty),
-                    1, "Index"),
-                new FieldNode(
-                    new AccessColumnNode(nameof(ISchemaColumn.ColumnType), string.Empty, typeof(string),
-                        TextSpan.Empty), 2, "Type")
-            };
-
-            var table = new DynamicTable(new ISchemaColumn[]
-            {
-                new SchemaColumn(nameof(ISchemaColumn.ColumnName), 0, typeof(string)),
-                new SchemaColumn(nameof(ISchemaColumn.ColumnIndex), 1, typeof(int)),
-                new SchemaColumn(nameof(ISchemaColumn.ColumnType), 2, typeof(string))
-            });
-
-            var schemaName = $"{from.Schema}.desc";
-            const string method = "notimportant";
-
-            var schema = _schemaProvider.GetSchema(from.Schema);
-            var schemaTable = schema.GetTableByName(from.Method, from.Parameters);
-
-            _schemaProvider.AddTransitionSchema(new DescSchema(schemaName, table, schemaTable.Columns));
-            var select = new SelectNode(fields.ToArray());
-            var newFrom = new SchemaFromNode(schemaName, method, from.Parameters, "desc");
-
-            var newQuery = new QueryNode(select, newFrom, new WhereNode(new PutTrueNode()), null, null, null, null);
-
-            Nodes.Push(new ExpressionFromNode(newFrom));
-            Nodes.Push(new WhereNode(new PutTrueNode()));
-            Nodes.Push(select);
-
-            Visit(newQuery);
+            Nodes.Push(new DescNode(from));
         }
 
         public void Visit(StarNode node)
@@ -899,11 +856,6 @@ namespace Musoq.Evaluator.Visitors
                         subNodes.Push(binary.Left);
                         subNodes.Push(binary.Right);
                     }
-
-                    //else if (subNode is UnaryNode unary && !(subNode is AccessPropertyNode))
-                    //{
-                    //    subNodes.Push(unary);
-                    //}
                 }
 
                 if (!useOuterFields)

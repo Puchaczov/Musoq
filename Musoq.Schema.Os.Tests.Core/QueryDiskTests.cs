@@ -88,6 +88,15 @@ namespace Musoq.Schema.Os.Tests.Core
             Assert.AreEqual("Directories", table[1].Values[0]);
         }
 
+        [TestMethod]
+        public void TestDesc()
+        {
+            var query = "desc #os.files('C:/','false')";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+        }
+
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new OsSchemaProvider());

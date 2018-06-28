@@ -4,9 +4,9 @@ using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Converter.Build
 {
-    public class TranformTree : BuildChain
+    public class TransformTree : BuildChain
     {
-        public TranformTree(BuildChain successor) 
+        public TransformTree(BuildChain successor) 
             : base(successor)
         {
         }
@@ -24,7 +24,7 @@ namespace Musoq.Converter.Build
 
             queryTree = metadataInferer.Root;
 
-            var rewriter = new RewriteQueryVisitor((TransitionSchemaProvider)items.SchemaProvider);
+            var rewriter = new RewriteQueryVisitor();
             var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataInfererTraverser.Scope));
 
             queryTree.Accept(rewriteTraverser);

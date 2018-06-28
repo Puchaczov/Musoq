@@ -424,8 +424,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(DescNode node)
         {
             _walker = _walker.NextChild();
-
-            node.From.Accept(this);
+            
             node.Accept(_visitor);
 
             _walker = _walker.Parent();

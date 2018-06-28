@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 
 namespace Musoq.Converter.Build
@@ -28,7 +29,11 @@ namespace Musoq.Converter.Build
                         foreach (var diagnostic in result.Diagnostics)
                             all.Append(diagnostic);
 
-                        throw new NotSupportedException(all.ToString());
+                        items.CompiledQuery = null;
+                        items.DllFile = null;
+                        items.PdbFile = null;
+
+                        throw new CompilationException(all.ToString());
                     }
 
                     var dllBytesArray = dllStream.ToArray();

@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.TemporarySchemas;
+using Musoq.Schema;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Helpers
 {
@@ -10,6 +14,23 @@ namespace Musoq.Evaluator.Helpers
         public static TableRowSource ConvertTableToSource(Table table)
         {
             return new TableRowSource(table);
+        }
+
+        public static Table GetSchemaDescription(ISchemaTable table)
+        {
+            var newTable = new Table("desc", new[]
+            {
+                new Column("Name", typeof(string), 0),
+                new Column("Index", typeof(int), 1),
+                new Column("Type", typeof(string), 2)
+            });
+
+            foreach (var column in table.Columns)
+            {
+                newTable.Add(new ObjectsRow(new object[] { column.ColumnName, column.ColumnIndex, column.ColumnType.Name }));
+            }
+
+            return newTable;
         }
 
         public static string GetCastableType(Type type)
@@ -42,12 +63,6 @@ namespace Musoq.Evaluator.Helpers
             return finalTypes.ToArray();
         }
 
-        /// <summary>
-        ///     From
-        ///     http://stackoverflow.com/questions/401681/how-can-i-get-the-correct-text-definition-of-a-generic-type-using-reflection
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
         private static string GetFriendlyTypeName(Type type)
         {
             if (type.IsGenericParameter) return type.Name;
@@ -56,7 +71,7 @@ namespace Musoq.Evaluator.Helpers
 
             var builder = new StringBuilder();
             var name = type.Name;
-            var index = name.IndexOf("`");
+            var index = name.IndexOf("`", StringComparison.Ordinal);
             builder.AppendFormat("{0}.{1}", type.Namespace, name.Substring(0, index));
             builder.Append('<');
             var first = true;
