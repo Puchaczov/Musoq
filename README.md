@@ -1,8 +1,8 @@
 # Musoq
-Musoq is handy tool that allows querying everything that can be treated as queryable source.
+Musoq is handy tool that allows using SQL for querying various data sources.
 
 # What is Musoq? 
-Musoq exposes raw datas as queryable source. This allows you to write SQL-like queries and ask questions for those sources. Musoq uses concepts of schemas and tables. Those allows you to logically group your tables. What would be used as query source? Virtually anything! Those below are just ideas but some of them had been already implemented!
+Musoq exposes raw data sets as queryable sources. This allows you to write queries and ask questions for those sources. It uses concepts of schemas and tables to logically group your tables. What would be used as query source? Virtually anything! Those below are just ideas but some of them had been already implemented.
 
 - Directories
 - Files
@@ -13,6 +13,11 @@ Musoq exposes raw datas as queryable source. This allows you to write SQL-like q
 - Websites (tables, lists)
 - Processes
 - Time
+
+# Whats was the reason for creating it
+This tool was created because of my own lazyness. On the one hand, I needed something that allows me performing queries on my own bank account file, on the other hand something that simultaneously filters with respect to file names and their content. For some reason, I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. 
+
+Wszystko to co udostępnia Musoq, możesz osiągnąć za pomocną własnoręcznie napisanych skryptów jednak ja chciałem uniknąć pisania jakichkolwiek skryptów, nie chciałem tracić czasu na ich tworzenie. Większość z nich to strata czasu. Chciałem szybko odpytać o coś i zapomnieć. Gdy przyjrzysz się jak działa Musoq, to on tak naprawdę tworzy skrypt za Ciebie poprzez transpilacje kodu SQL do C# następnie kompiluje go za pomocą Roslyn'a i wykonuje. Już nie musisz pisać skryptu, wystarczy napisać zapytanie a ono magicznie zmieni się w kod i wykona na twoim źródle danych.
 
 ![alt text](https://raw.githubusercontent.com/Puchaczov/Musoq/master/query_res.png)
 
@@ -30,6 +35,7 @@ Musoq exposes raw datas as queryable source. This allows you to write SQL-like q
 - CTE expressions
 - Skip & Take operators
 - Desc syntax
+- In syntax
 
 ## Features considered to be explored / implemented
 
