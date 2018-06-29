@@ -15,45 +15,46 @@ Musoq exposes raw data sets as queryable sources. This allows you to write queri
 - Time
 
 # Whats was the reason for creating it
-This tool was created because of my own lazyness. On the one hand, I needed something that allows me performing queries on my own bank account file, on the other hand something that simultaneously filters with respect to file names and their content. For some reason, I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. 
 
-Wszystko to co udostępnia Musoq, możesz osiągnąć za pomocną własnoręcznie napisanych skryptów jednak ja chciałem uniknąć pisania jakichkolwiek skryptów, nie chciałem tracić czasu na ich tworzenie. Większość z nich to strata czasu. Chciałem szybko odpytać o coś i zapomnieć. Gdy przyjrzysz się jak działa Musoq, to on tak naprawdę tworzy skrypt za Ciebie poprzez transpilacje kodu SQL do C# następnie kompiluje go za pomocą Roslyn'a i wykonuje. Już nie musisz pisać skryptu, wystarczy napisać zapytanie a ono magicznie zmieni się w kod i wykona na twoim źródle danych.
+This tool was created because of my own lazyness. On the one hand, I needed something that allows me performing queries on my own bank account file, on the other hand something that simultaneously filters with respect to file names and their content. For some reason, I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writting" all scripts manually however I found it usefull to automate this process and as a result avoid wasting time to create it. Fast querying was my goal. At a second glance, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing script is redundant and all you have to do is to write a query and it will do the magic with your data source.
 
 ![alt text](https://raw.githubusercontent.com/Puchaczov/Musoq/master/query_res.png)
 
-## Currently implemented features
+## What features does the Musoq implements
 
 - Use of `*` to select all columns.
-- Group by
+- Group by operator.
+- Having operator.
+- Skip & Take operators.
+- Complex object accessing ability like `column.Name`.
 - User defined functions and aggregation functions.
-- Plugin API
-- Set operators (non sql-like usage) (union, union all, except, intersect)
-- Complex object arrays and properties accessing
-- Parametrizable source
-- Like / not like operator
-- Contains operator (Doesn't support nested queries yet)
-- CTE expressions
-- Skip & Take operators
-- Desc syntax
-- In syntax
+- Plugin API (for those who wants to create own data source).
+- Set operators (non sql-like usage) (union, union all, except, intersect).
+- Parametrizable sources.
+- Like / not Like operator.
+- RLike / not RLike operator (regex like operator).
+- Contains operator (Doesn't support nested queries yet).
+- CTE expressions.
+- Desc syntax.
+- In syntax.
+- Inner join syntax.
 
 ## Features considered to be explored / implemented
 
 - Query parallelization
 - Case when syntax
 - Order by syntax
-- Joins multiple tables
 - Nested queries (corellated and uncorellated)
 
 ## Pluggable architecture
 
-You can easily write your own data source. There is fairly simple plugin api that all plugins uses. To read in details how to do it, jump into wiki of this repo ![click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
+You can easily plug-in your own data source. There is fairly simple plugin api that all sources uses. To read in details how to do it, jump into wiki section of this repo ![click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
 
 ## Plugins
 
 <table>
       <thead>
-            <tr><td>#Disk</td><td>Exposes files and directories from the hard disk as queryable source.</td></tr>
+            <tr><td>#Os</td><td>Exposes operating system tables. One of them are disk and files sources</td></tr>
             <tr><td>#Zip</td><td>Exposes compressed (.zip) files from the hard disk so that you can decompress files that fits sophisticated conditions.</td></tr>
             <tr><td>#Json</td><td>Exposes json file as queryable source.</td></tr>
             <tr><td>#Csv</td><td>Exposes csv file as queryable source.</td></tr>
@@ -144,7 +145,7 @@ and file to be queried is:
       }
     ]
     
-## How do I know what columns does my source have?
+## How do I know what columns does the source have?
 
 You can easily check it by typing a query that asks the source about columns it has. It's super easy and looks like `desc #git.commits('path/to/repo')`. All plugins supports it out of the box!
 
@@ -154,7 +155,6 @@ As the language looks like sql, it doesn't mean it is fully SQL compliant. It us
 
 Hopefully, I will list the incompatibilities here:
 
-- `Currently, there is no support for NULL values (it implies grouping operators behave slightly different in some aspects than in DB-engines)`
 - `Parent group aggregations`
 - `Non standard set operators based on keys rather than rows.`
 
