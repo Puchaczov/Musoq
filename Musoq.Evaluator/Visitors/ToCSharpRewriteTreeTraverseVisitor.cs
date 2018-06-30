@@ -9,10 +9,7 @@ namespace Musoq.Evaluator.Visitors
 {
     public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     {
-        private readonly StringBuilder _code = new StringBuilder();
         private readonly IToCSharpTranslationExpressionVisitor _visitor;
-        private bool _hasGroupBy;
-        private bool _hasJoin;
         private ScopeWalker _walker;
 
         public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor, ScopeWalker walker)
@@ -212,8 +209,6 @@ namespace Musoq.Evaluator.Visitors
             }
 
             join.Accept(_visitor);
-
-            _hasJoin = true;
         }
 
         public void Visit(ExpressionFromNode node)

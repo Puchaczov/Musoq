@@ -42,8 +42,8 @@ namespace Musoq.Evaluator.Visitors
         private readonly Dictionary<string, Type> _typesToInstantiate = new Dictionary<string, Type>();
         private BlockSyntax _emptyBlock;
         private SyntaxNode _groupHaving;
-        private VariableDeclarationSyntax _groupKeys;
 
+        private VariableDeclarationSyntax _groupKeys;
         private VariableDeclarationSyntax _groupValues;
 
         private int _inMemoryTableIndex;
@@ -840,19 +840,21 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SkipNode node)
         {
+            var identifier = "skipAmount";
+
             var skip = SyntaxFactory.LocalDeclarationStatement(
-                    SyntaxHelper.CreateAssignment("skipAmount", (ExpressionSyntax) Generator.LiteralExpression(1)))
+                    SyntaxHelper.CreateAssignment(identifier, (ExpressionSyntax) Generator.LiteralExpression(1)))
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
 
             var ifStatement = Generator.IfStatement(
                 Generator.LessThanOrEqualExpression(
-                    SyntaxFactory.IdentifierName("skipAmount"),
+                    SyntaxFactory.IdentifierName(identifier),
                     Generator.LiteralExpression(node.Value)),
                 new SyntaxNode[]
                 {
                     SyntaxFactory.PostfixUnaryExpression(
                         SyntaxKind.PostIncrementExpression,
-                        SyntaxFactory.IdentifierName("skipAmount")),
+                        SyntaxFactory.IdentifierName(identifier)),
                     SyntaxFactory.ContinueStatement()
                 });
 
@@ -863,13 +865,15 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(TakeNode node)
         {
+            var identifier = "tookAmount";
+
             var take = SyntaxFactory.LocalDeclarationStatement(
-                SyntaxHelper.CreateAssignment("tookAmount", (ExpressionSyntax) Generator.LiteralExpression(0)));
+                SyntaxHelper.CreateAssignment(identifier, (ExpressionSyntax) Generator.LiteralExpression(0)));
 
             var ifStatement =
                 (StatementSyntax) Generator.IfStatement(
                     Generator.ValueEqualsExpression(
-                        SyntaxFactory.IdentifierName("tookAmount"),
+                        SyntaxFactory.IdentifierName(identifier),
                         Generator.LiteralExpression(node.Value)),
                     new SyntaxNode[]
                     {
@@ -880,7 +884,7 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.ExpressionStatement(
                     SyntaxFactory.PostfixUnaryExpression(
                         SyntaxKind.PostIncrementExpression,
-                        SyntaxFactory.IdentifierName("tookAmount")));
+                        SyntaxFactory.IdentifierName(identifier)));
 
             Statements.Add(take);
 
@@ -899,7 +903,7 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
                 SyntaxFactory.IdentifierName(
-                    $"EvaluationHelper.ConvertTableToSource({node.InMemoryTableAlias}TransitionTable).Rows"),
+                    $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
                 SyntaxFactory.Block(
                     SyntaxFactory.SingletonList<StatementSyntax>(
                         SyntaxFactory.ForEachStatement(
@@ -1689,70 +1693,71 @@ namespace Musoq.Evaluator.Visitors
         private StatementSyntax AddGroupStatement(string scoreTable, string indexToColumnVariableName)
         {
             return SyntaxFactory.IfStatement(
-                    SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
+                SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
+                    SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("usedGroups"), SyntaxFactory.IdentifierName("Contains")))
+                        .WithArgumentList(
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")))))),
+                SyntaxFactory.Block(
+                    SyntaxFactory.ExpressionStatement(
                         SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.IdentifierName("usedGroups"), SyntaxFactory.IdentifierName("Contains")))
+                                SyntaxFactory.IdentifierName(scoreTable),
+                                SyntaxFactory.IdentifierName("Add")))
                             .WithArgumentList(
                                 SyntaxFactory.ArgumentList(
                                     SyntaxFactory.SingletonSeparatedList(
-                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")))))),
-                    SyntaxFactory.Block(
-                        SyntaxFactory.ExpressionStatement(
-                            SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    SyntaxFactory.IdentifierName(scoreTable),
-                                    SyntaxFactory.IdentifierName("Add")))
-                                .WithArgumentList(
-                                    SyntaxFactory.ArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument(
-                                                SyntaxHelper.CreateObjectOf(nameof(GroupRow),
-                                                    SyntaxFactory.ArgumentList(
-                                                        SyntaxFactory.SeparatedList(
-                                                            new[]
-                                                            {
-                                                                SyntaxFactory.Argument(
-                                                                    SyntaxFactory.IdentifierName("group")),
-                                                                SyntaxFactory.Argument(
-                                                                    SyntaxFactory.IdentifierName(
-                                                                        indexToColumnVariableName))
-                                                            })))))))),
-                        SyntaxFactory.ExpressionStatement(
-                            SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    SyntaxFactory.IdentifierName("usedGroups"), SyntaxFactory.IdentifierName("Add")))
-                                .WithArgumentList(
-                                    SyntaxFactory.ArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group"))))))))
-                .NormalizeWhitespace();
+                                        SyntaxFactory.Argument(
+                                            SyntaxHelper.CreateObjectOf(nameof(GroupRow),
+                                                SyntaxFactory.ArgumentList(
+                                                    SyntaxFactory.SeparatedList(
+                                                        new[]
+                                                        {
+                                                            SyntaxFactory.Argument(
+                                                                SyntaxFactory.IdentifierName("group")),
+                                                            SyntaxFactory.Argument(
+                                                                SyntaxFactory.IdentifierName(
+                                                                    indexToColumnVariableName))
+                                                        })))))))),
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName("usedGroups"), SyntaxFactory.IdentifierName("Add")))
+                            .WithArgumentList(
+                                SyntaxFactory.ArgumentList(
+                                    SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group"))))))));
         }
 
         private StatementSyntax GroupForStatement()
         {
             return
                 SyntaxFactory.ForStatement(SyntaxFactory.Block(
-                    SyntaxFactory.ExpressionStatement(
-                        SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression, 
-                                SyntaxFactory.IdentifierName("token"), 
-                                SyntaxFactory.IdentifierName(nameof(CancellationToken.ThrowIfCancellationRequested))))),
-                    SyntaxFactory.LocalDeclarationStatement(
-                        SyntaxFactory.VariableDeclaration(
-                            SyntaxFactory.IdentifierName("var"))
-                            .WithVariables(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.VariableDeclarator(
-                                            SyntaxFactory.Identifier("key"))
-                                        .WithInitializer(
-                                            SyntaxFactory.EqualsValueClause(
-                                                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("keys"))
-                                                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                                        SyntaxFactory.SingletonSeparatedList(
-                                                            SyntaxFactory.Argument(
-                                                                SyntaxFactory.IdentifierName("i")))))))))),
+                        SyntaxFactory.ExpressionStatement(
+                            SyntaxFactory.InvocationExpression(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName("token"),
+                                    SyntaxFactory.IdentifierName(nameof(CancellationToken
+                                        .ThrowIfCancellationRequested))))),
+                        SyntaxFactory.LocalDeclarationStatement(
+                            SyntaxFactory.VariableDeclaration(
+                                    SyntaxFactory.IdentifierName("var"))
+                                .WithVariables(
+                                    SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.VariableDeclarator(
+                                                SyntaxFactory.Identifier("key"))
+                                            .WithInitializer(
+                                                SyntaxFactory.EqualsValueClause(
+                                                    SyntaxFactory
+                                                        .ElementAccessExpression(SyntaxFactory.IdentifierName("keys"))
+                                                        .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                                                            SyntaxFactory.SingletonSeparatedList(
+                                                                SyntaxFactory.Argument(
+                                                                    SyntaxFactory.IdentifierName("i")))))))))),
                         SyntaxFactory.IfStatement(
                                 SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
@@ -1827,8 +1832,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName("Length"))))
                     .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                         SyntaxFactory.PrefixUnaryExpression(SyntaxKind.PreIncrementExpression,
-                            SyntaxFactory.IdentifierName("i"))))
-                    .NormalizeWhitespace();
+                            SyntaxFactory.IdentifierName("i"))));
         }
 
         private MethodDeclarationSyntax GenerateMethod(string methodName, string setOperator, string key,
@@ -1959,8 +1963,6 @@ namespace Musoq.Evaluator.Visitors
 
             return rawNode;
         }
-
-        private List<ExpressionStatementSyntax> orderByStatements = new List<ExpressionStatementSyntax>();
 
         public void Visit(OrderByNode node)
         {

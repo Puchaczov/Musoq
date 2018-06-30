@@ -398,7 +398,7 @@ namespace Musoq.Evaluator.Visitors
             var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
             var from = Nodes.Pop() as FromNode;
 
-            Nodes.Push(new QueryNode(select, from, where, groupBy, null, skip, take));
+            Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
         }
 
         public virtual void Visit(JoinInMemoryWithSourceTableFromNode node)

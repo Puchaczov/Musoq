@@ -9,11 +9,8 @@ namespace Musoq.Evaluator.Visitors
     {
         private readonly FieldNode[] _fields;
 
-        private int _fieldOrder;
-
-        public RewriteFieldWithGroupMethodCall(int fieldOrder, FieldNode[] fields)
+        public RewriteFieldWithGroupMethodCall(FieldNode[] fields)
         {
-            _fieldOrder = fieldOrder;
             _fields = fields;
         }
 

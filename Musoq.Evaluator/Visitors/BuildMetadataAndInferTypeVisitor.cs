@@ -20,8 +20,8 @@ namespace Musoq.Evaluator.Visitors
     {
         private readonly ISchemaProvider _provider;
 
-        public readonly List<AccessMethodNode> RefreshMethods = new List<AccessMethodNode>();
-        public readonly List<object> SchemaFromArgs = new List<object>();
+        private readonly List<AccessMethodNode> _refreshMethods = new List<AccessMethodNode>();
+        private readonly List<object> _schemaFromArgs = new List<object>();
 
         private Scope _currentScope;
         private readonly List<string> _generatedAliases = new List<string>();
@@ -207,35 +207,35 @@ namespace Musoq.Evaluator.Visitors
         {
             AddAssembly(typeof(string).Assembly);
             Nodes.Push(new StringNode(node.Value));
-            SchemaFromArgs.Add(node.Value);
+            _schemaFromArgs.Add(node.Value);
         }
 
         public void Visit(DecimalNode node)
         {
             AddAssembly(typeof(decimal).Assembly);
             Nodes.Push(new DecimalNode(node.Value.ToString(CultureInfo.InvariantCulture)));
-            SchemaFromArgs.Add(node.Value);
+            _schemaFromArgs.Add(node.Value);
         }
 
         public void Visit(IntegerNode node)
         {
             AddAssembly(typeof(int).Assembly);
             Nodes.Push(new IntegerNode(node.Value.ToString()));
-            SchemaFromArgs.Add(node.Value);
+            _schemaFromArgs.Add(node.Value);
         }
 
         public void Visit(BooleanNode node)
         {
             AddAssembly(typeof(bool).Assembly);
             Nodes.Push(new BooleanNode(node.Value));
-            SchemaFromArgs.Add(node.Value);
+            _schemaFromArgs.Add(node.Value);
         }
 
         public void Visit(WordNode node)
         {
             AddAssembly(typeof(string).Assembly);
             Nodes.Push(new WordNode(node.Value));
-            SchemaFromArgs.Add(node.Value);
+            _schemaFromArgs.Add(node.Value);
         }
 
         public void Visit(ContainsNode node)
@@ -438,8 +438,8 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(SchemaFromNode node)
         {
             var schema = _provider.GetSchema(node.Schema);
-            var table = schema.GetTableByName(node.Method, SchemaFromArgs.ToArray());
-            SchemaFromArgs.Clear();
+            var table = schema.GetTableByName(node.Method, _schemaFromArgs.ToArray());
+            _schemaFromArgs.Clear();
 
             AddAssembly(schema.GetType().Assembly);
 
@@ -553,7 +553,7 @@ namespace Musoq.Evaluator.Visitors
             var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
             var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
 
-            if (groupBy == null && RefreshMethods.Count > 0)
+            if (groupBy == null && _refreshMethods.Count > 0)
                 groupBy = new GroupByNode(
                     new[]
                     {
@@ -568,8 +568,8 @@ namespace Musoq.Evaluator.Visitors
             var from = Nodes.Pop() as FromNode;
 
             _currentScope.ScopeSymbolTable.AddSymbol(from.Alias.ToRefreshMethodsSymbolName(),
-                new RefreshMethodsSymbol(RefreshMethods));
-            RefreshMethods.Clear();
+                new RefreshMethodsSymbol(_refreshMethods));
+            _refreshMethods.Clear();
 
             if (_currentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
                 _currentScope.ScopeSymbolTable.UpdateSymbol(string.Empty, from.Alias);
@@ -577,7 +577,7 @@ namespace Musoq.Evaluator.Visitors
             Methods.Push(from.Alias);
             Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
 
-            SchemaFromArgs.Clear();
+            _schemaFromArgs.Clear();
         }
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
@@ -825,7 +825,7 @@ namespace Musoq.Evaluator.Visitors
                     new ArgsListNode(newSetArgs.ToArray()), null, setMethod,
                     alias);
 
-                RefreshMethods.Add(setMethodNode);
+                _refreshMethods.Add(setMethodNode);
 
                 accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), null, method, alias);
             }

@@ -18,8 +18,6 @@ namespace Musoq.Evaluator.Visitors
     public class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         private readonly List<JoinFromNode> _joinedTables = new List<JoinFromNode>();
-
-        private FieldNode[] _generatedColumns = new FieldNode[0];
         private Scope _scope;
 
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
@@ -861,7 +859,7 @@ namespace Musoq.Evaluator.Visitors
                 if (!useOuterFields)
                     continue;
 
-                var rewriter = new RewriteFieldWithGroupMethodCall(0, groupByFields);
+                var rewriter = new RewriteFieldWithGroupMethodCall(groupByFields);
                 var traverser = new CloneTraverseVisitor(rewriter);
 
                 root.Accept(traverser);
@@ -892,8 +890,7 @@ namespace Musoq.Evaluator.Visitors
 
                 if (field.Expression is AllColumnsNode)
                 {
-                    fields.AddRange(_generatedColumns.Select(column =>
-                        new FieldNode(column.Expression, p++, column.FieldName)));
+                    fields.AddRange(new FieldNode[0]);
                     continue;
                 }
 
