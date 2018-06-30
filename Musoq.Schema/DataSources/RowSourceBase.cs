@@ -21,11 +21,6 @@ namespace Musoq.Schema.DataSources
                     {
                         CollectChunks(chunkedSource);
                     }
-                    catch (Exception exc)
-                    {
-                        if (Debugger.IsAttached)
-                            Debug.WriteLine(exc);
-                    }
                     finally
                     {
                         chunkedSource.Add(new List<EntityResolver<T>>());

@@ -216,25 +216,20 @@ namespace Musoq.Schema.Os
                         var dirs = new Stack<DirectoryinfoPosition>();
 
                         foreach (var dir in directories)
-                            dirs.Push(new DirectoryinfoPosition(dir, true));
+                            dirs.Push(new DirectoryinfoPosition(dir, dir.Parent));
 
                         while (dirs.Count > 0)
                         {
                             var dir = dirs.Pop();
 
-                            DirectoryInfo root = null;
-
-                            if (dir.IsRoot)
-                                root = dir.Directory.Parent;
-
                             foreach (var file in dir.Directory.GetFiles())
                             {
-                                var entryName = file.FullName.Substring(root.FullName.Length);
+                                var entryName = file.FullName.Substring(dir.RootDirectory.FullName.Length);
                                 zip.CreateEntryFromFile(file.FullName, entryName.Trim('\\'), level);
                             }
 
                             foreach (var subDir in dir.Directory.GetDirectories())
-                                dirs.Push(new DirectoryinfoPosition(subDir, false));
+                                dirs.Push(new DirectoryinfoPosition(subDir, dir.RootDirectory));
                         }
                     }
                 }
@@ -384,14 +379,16 @@ namespace Musoq.Schema.Os
 
         private class DirectoryinfoPosition
         {
-            public DirectoryinfoPosition(DirectoryInfo dir, bool isRoot)
+            public DirectoryinfoPosition(DirectoryInfo dir, DirectoryInfo root)
             {
                 Directory = dir;
-                IsRoot = isRoot;
+                RootDirectory = root;
             }
 
             public DirectoryInfo Directory { get; }
-            public bool IsRoot { get; }
+
+            public DirectoryInfo RootDirectory { get; }
+            public bool IsRoot => RootDirectory == null;
         }
     }
 }

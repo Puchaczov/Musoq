@@ -4,6 +4,9 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Os.Files;
+using Musoq.Schema.Os.Tests.Core.Utils;
 
 namespace Musoq.Schema.Os.Tests.Core
 {
@@ -54,7 +57,7 @@ namespace Musoq.Schema.Os.Tests.Core
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
-            Assert.AreEqual(resultName, table[0].Values[0]);
+            Assert.AreEqual(resultName, table[0][0]);
 
             using (var zipFile = File.OpenRead(resultName))
             {
@@ -62,7 +65,8 @@ namespace Musoq.Schema.Os.Tests.Core
                 {
                     Assert.IsTrue(zipArchive.Entries.Any(f => f.FullName == "Directory1\\TextFile1.txt"));
                     Assert.IsTrue(zipArchive.Entries.Any(f => f.FullName == "Directory2\\TextFile2.txt"));
-                    Assert.AreEqual(2, zipArchive.Entries.Count);
+                    Assert.IsTrue(zipArchive.Entries.Any(f => f.FullName == "Directory2\\Directory3\\TextFile3.txt"));
+                    Assert.AreEqual(3, zipArchive.Entries.Count);
                 }
             }
 
@@ -95,6 +99,60 @@ namespace Musoq.Schema.Os.Tests.Core
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
+        }
+
+        [TestMethod]
+        public void TestFilesSourceIterateDirectories()
+        {
+            var source = new TestFilesSource("./Directories", false);
+
+            var folders = source.GetFolders();
+
+            Assert.AreEqual(1, folders.Count);
+
+            Assert.AreEqual("TestFile1.txt", ((FileInfo)folders[0].Context).Name);
+        }
+
+        [TestMethod]
+        public void TestFilesSourceIterateWithNestedDirectories()
+        {
+            var source = new TestFilesSource("./Directories", true);
+
+            var folders = source.GetFolders();
+
+            Assert.AreEqual(4, folders.Count);
+
+            Assert.AreEqual("TestFile1.txt", ((FileInfo)folders[0].Context).Name);
+            Assert.AreEqual("TextFile2.txt", ((FileInfo)folders[1].Context).Name);
+            Assert.AreEqual("TextFile3.txt", ((FileInfo)folders[2].Context).Name);
+            Assert.AreEqual("TextFile1.txt", ((FileInfo)folders[3].Context).Name);
+        }
+
+        [TestMethod]
+        public void TestDirectoriesSourceIterateDirectories()
+        {
+            var source = new TestDirectoriesSource("./Directories", false);
+
+            var directories = source.GetDirectories();
+
+            Assert.AreEqual(2, directories.Count);
+
+            Assert.AreEqual("Directory1", ((DirectoryInfo)directories[0].Context).Name);
+            Assert.AreEqual("Directory2", ((DirectoryInfo)directories[1].Context).Name);
+        }
+
+        [TestMethod]
+        public void TestDirectoriesSourceIterateWithNestedDirectories()
+        {
+            var source = new TestDirectoriesSource("./Directories", true);
+
+            var directories = source.GetDirectories();
+
+            Assert.AreEqual(3, directories.Count);
+
+            Assert.AreEqual("Directory1", ((DirectoryInfo) directories[0].Context).Name);
+            Assert.AreEqual("Directory2", ((DirectoryInfo) directories[1].Context).Name);
+            Assert.AreEqual("Directory3", ((DirectoryInfo) directories[2].Context).Name);
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
