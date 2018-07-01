@@ -18,6 +18,10 @@ namespace Musoq.Schema.Os.Directories
             BlockingCollection<IReadOnlyList<EntityResolver<DirectoryInfo>>> chunkedSource)
         {
             var sources = new Stack<DirectorySourceSearchOptions>();
+
+            if(!Directory.Exists(_source.Path))
+                return;
+
             sources.Push(_source);
 
             while (sources.Count > 0)

@@ -802,7 +802,7 @@ namespace Musoq.Evaluator.Tests.Core
         }
 
         [TestMethod]
-        public void DescPlugin()
+        public void DescEntityTest()
         {
             var query = "desc #A.entities()";
 

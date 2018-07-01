@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using Musoq.Schema.DataSources;
@@ -17,6 +18,10 @@ namespace Musoq.Schema.Os.Files
         protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<FileInfo>>> chunkedSource)
         {
             var sources = new Stack<DirectorySourceSearchOptions>();
+
+            if(!Directory.Exists(_source.Path))
+                return;
+
             sources.Push(_source);
 
             while (sources.Count > 0)
@@ -26,9 +31,16 @@ namespace Musoq.Schema.Os.Files
 
                 var dirFiles = new List<EntityResolver<FileInfo>>();
 
-                foreach (var file in dir.GetFiles())
-                    dirFiles.Add(new EntityResolver<FileInfo>(file, SchemaFilesHelper.FilesNameToIndexMap,
-                        SchemaFilesHelper.FilesIndexToMethodAccessMap));
+                try
+                {
+                    foreach (var file in dir.GetFiles())
+                        dirFiles.Add(new EntityResolver<FileInfo>(file, SchemaFilesHelper.FilesNameToIndexMap,
+                            SchemaFilesHelper.FilesIndexToMethodAccessMap));
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    continue;
+                }
 
                 chunkedSource.Add(dirFiles);
 

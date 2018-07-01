@@ -15,7 +15,7 @@ namespace Musoq.Schema.Os.Tests.Core.Utils
         {
         }
 
-        public IReadOnlyList<EntityResolver<FileInfo>> GetFolders()
+        public IReadOnlyList<EntityResolver<FileInfo>> GetFiles()
         {
             var collection = new BlockingCollection<IReadOnlyList<EntityResolver<FileInfo>>>();
             CollectChunks(collection);

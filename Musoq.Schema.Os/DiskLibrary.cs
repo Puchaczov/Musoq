@@ -388,7 +388,6 @@ namespace Musoq.Schema.Os
             public DirectoryInfo Directory { get; }
 
             public DirectoryInfo RootDirectory { get; }
-            public bool IsRoot => RootDirectory == null;
         }
     }
 }
