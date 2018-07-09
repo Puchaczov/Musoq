@@ -15,11 +15,13 @@ namespace Musoq.Schema.Csv
     {
         private readonly string _filePath;
         private readonly string _separator;
+        private readonly bool _hasHeader;
 
-        public CsvSource(string filePath, string separator)
+        public CsvSource(string filePath, string separator, bool hasHeader)
         {
             _filePath = filePath;
             _separator = separator;
+            _hasHeader = hasHeader;
         }
 
         public override IEnumerable<IObjectResolver> Rows
@@ -54,7 +56,8 @@ namespace Musoq.Schema.Csv
                             var rowsToRead = 1000;
                             const int rowsToReadBase = 100;
 
-                            reader.Read(); //skip header.
+                            if(_hasHeader)
+                                reader.Read(); //skip header.
 
                             while (reader.Read())
                             {
@@ -99,7 +102,7 @@ namespace Musoq.Schema.Csv
 
                     for (var i = 0; i < header.Length; ++i)
                     {
-                        nameToIndexMap.Add(header[i], i);
+                        nameToIndexMap.Add(_hasHeader ? header[i] : string.Format(CsvHelper.AutoColumnName, i + 1), i);
 
                         var i1 = i;
                         indexToMethodAccess.Add(i, row => row[i1]);

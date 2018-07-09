@@ -7,7 +7,7 @@ namespace Musoq.Schema.Csv
 {
     public class CsvBasedTable : ISchemaTable
     {
-        public CsvBasedTable(string fileName, string separator)
+        public CsvBasedTable(string fileName, string separator, bool hasHeader)
         {
             var file = new FileInfo(fileName);
             using (var stream = new StreamReader(file.OpenRead()))
@@ -19,7 +19,14 @@ namespace Musoq.Schema.Csv
 
                 var columns = line.Split(new[] {separator}, StringSplitOptions.None);
 
-                Columns = columns.Select((f, i) => (ISchemaColumn) new SchemaColumn(f, i, typeof(string))).ToArray();
+                if (hasHeader)
+                    Columns = columns
+                        .Select((f, i) => (ISchemaColumn) new SchemaColumn(f, i, typeof(string)))
+                        .ToArray();
+                else
+                    Columns = columns
+                        .Select((f, i) => (ISchemaColumn) new SchemaColumn(string.Format(CsvHelper.AutoColumnName, i + 1), i, typeof(string)))
+                        .ToArray();
             }
         }
 
