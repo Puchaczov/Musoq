@@ -18,6 +18,7 @@ namespace Musoq.Schema.Csv
         {
             if (name.ToLowerInvariant() == FileTable)
             {
+                parameters[3] = Convert.ToInt32(parameters[3]);
                 return (CsvBasedTable)Activator.CreateInstance(typeof(CsvBasedTable), parameters);
             }
 
@@ -29,6 +30,7 @@ namespace Musoq.Schema.Csv
             switch (name.ToLowerInvariant())
             {
                 case FileTable:
+                    parameters[3] = Convert.ToInt32(parameters[3]);
                     return (CsvSource) Activator.CreateInstance(typeof(CsvSource), parameters);
             }
 

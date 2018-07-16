@@ -448,6 +448,7 @@ namespace Musoq.Evaluator.Visitors
 
             var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
+            _currentScope[node.Id] = _queryAlias;
 
             Nodes.Push(new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias));
         }
@@ -463,7 +464,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(InMemoryTableFromNode node)
         {
-            _queryAlias = StringHelpers.CreateAliasIfEmpty(node.Alias, _generatedAliases);
+            _queryAlias = string.IsNullOrEmpty(node.Alias) ? node.VariableName : node.Alias;
             _generatedAliases.Add(_queryAlias);
 
             TableSymbol tableSymbol;
@@ -483,6 +484,7 @@ namespace Musoq.Evaluator.Visitors
             var tableSchemaPair = tableSymbol.GetTableByAlias(node.VariableName);
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias,
                 new TableSymbol(_queryAlias, tableSchemaPair.Schema, tableSchemaPair.Table, node.Alias == _queryAlias));
+            _currentScope[node.Id] = _queryAlias;
 
             Nodes.Push(new InMemoryTableFromNode(node.VariableName, _queryAlias));
         }

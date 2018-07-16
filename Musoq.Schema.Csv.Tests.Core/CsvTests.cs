@@ -9,9 +9,43 @@ namespace Musoq.Schema.Csv.Tests.Core
     public class CsvTests
     {
         [TestMethod]
+        public void ReplaceNotValidCharacters()
+        {
+            var columnName = CsvHelper.MakeHeaderNameValidColumnName("#Column name 123 22@");
+
+            Assert.AreEqual("ColumnName12322", columnName);
+        }
+
+        [TestMethod]
+        public void SimpleSelectWithSkipLinesTest()
+        {
+            var query = "SELECT Name FROM #csv.file('./Files/BankingTransactionsWithSkippedLines.csv', ',', true, 2)";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(11, table.Count);
+            Assert.AreEqual("Salary", table[0].Values[0]);
+            Assert.AreEqual("Restaurant A", table[1].Values[0]);
+            Assert.AreEqual("Bus ticket", table[2].Values[0]);
+            Assert.AreEqual("Tesco", table[3].Values[0]);
+            Assert.AreEqual("Restaurant B", table[4].Values[0]);
+            Assert.AreEqual("Service", table[5].Values[0]);
+            Assert.AreEqual("Salary", table[6].Values[0]);
+            Assert.AreEqual("Restaurant A", table[7].Values[0]);
+            Assert.AreEqual("Bus ticket", table[8].Values[0]);
+            Assert.AreEqual("Tesco", table[9].Values[0]);
+            Assert.AreEqual("Restaurant B", table[10].Values[0]);
+        }
+
+        [TestMethod]
         public void SimpleSelectTest()
         {
-            var query = "SELECT Name FROM #csv.file('./Files/BankingTransactions.csv', ',', true)";
+            var query = "SELECT Name FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -37,7 +71,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         [TestMethod]
         public void SimpleSelectNoHeaderTest()
         {
-            var query = "SELECT Column3 FROM #csv.file('./Files/BankingTransactionsNoHeader.csv', ',', false)";
+            var query = "SELECT Column3 FROM #csv.file('./Files/BankingTransactionsNoHeader.csv', ',', false, 0)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -63,7 +97,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         [TestMethod]
         public void SimpleCountTest()
         {
-            var query = "SELECT Count(OperationDate) FROM #csv.file('./Files/BankingTransactions.csv', ',', true)";
+            var query = "SELECT Count(OperationDate) FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -80,7 +114,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         public void SimpleGroupByWithSum()
         {
             var query =
-                "SELECT ParentCount(1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv', ',', true) group by ExtractFromDate(OperationDate, 'month')";
+                "SELECT ParentCount(1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0) group by ExtractFromDate(OperationDate, 'month')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -120,7 +154,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         [TestMethod]
         public void InneJoinTest()
         {
-            var query = "select persons.Name, persons.Surname, grades.Subject, grades.ToDecimal(grades.Grade) from #csv.file('./Files/Persons.csv', ',', true) persons inner join #csv.file('./Files/Gradebook.csv', ',', true) grades on persons.Id = grades.PersonId";
+            var query = "select persons.Name, persons.Surname, grades.Subject, grades.ToDecimal(grades.Grade) from #csv.file('./Files/Persons.csv', ',', true, 0) persons inner join #csv.file('./Files/Gradebook.csv', ',', true, 0) grades on persons.Id = grades.PersonId";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();

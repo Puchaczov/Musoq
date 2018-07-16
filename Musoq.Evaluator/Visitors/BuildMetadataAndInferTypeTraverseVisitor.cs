@@ -225,10 +225,10 @@ namespace Musoq.Evaluator.Visitors
             join.Source.Accept(this);
             join.With.Accept(this);
 
-            var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(join.Source.Alias);
-            var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(join.With.Alias);
+            var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.Source.Id]);
+            var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
 
-            var id = $"{join.Source.Alias}{join.With.Alias}";
+            var id = $"{Scope[join.Source.Id]}{Scope[join.With.Id]}";
 
             Scope.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
             Scope[MetaAttributes.ProcessedQueryId] = id;
@@ -241,10 +241,10 @@ namespace Musoq.Evaluator.Visitors
                 join = joins.Pop();
                 join.With.Accept(this);
 
-                var currentTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(join.With.Alias);
+                var currentTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
                 var previousTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(id);
 
-                id = $"{id}{join.With.Alias}";
+                id = $"{id}{Scope[join.With.Id]}";
 
                 Scope.ScopeSymbolTable.AddSymbol(id, previousTableSymbol.MergeSymbols(currentTableSymbol));
                 Scope[MetaAttributes.ProcessedQueryId] = id;

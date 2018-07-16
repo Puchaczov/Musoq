@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using CsvHelper;
 using Musoq.Schema.DataSources;
 using IObjectResolver = Musoq.Schema.DataSources.IObjectResolver;
@@ -16,74 +16,76 @@ namespace Musoq.Schema.Csv
         private readonly string _filePath;
         private readonly string _separator;
         private readonly bool _hasHeader;
+        private readonly int _skipLines;
 
-        public CsvSource(string filePath, string separator, bool hasHeader)
+        public CsvSource(string filePath, string separator, bool hasHeader, int skipLines)
         {
             _filePath = filePath;
             _separator = separator;
             _hasHeader = hasHeader;
+            _skipLines = skipLines;
         }
 
         public override IEnumerable<IObjectResolver> Rows
         {
             get
             {
+                var tokenSource = new CancellationTokenSource();
                 var file = new FileInfo(_filePath);
+
+                if(!file.Exists)
+                    return new ChunkedFile(new BlockingCollection<List<EntityResolver<string[]>>>(), tokenSource.Token);
 
                 var nameToIndexMap = new Dictionary<string, int>();
                 var indexToMethodAccess = new Dictionary<int, Func<string[], object>>();
 
-                Stream stream;
-                if (SizeConverter.ToMegabytes(file.Length) > Performance.FreeMemoryInMegabytes())
-                    stream = file.OpenRead();
-                else
-                    stream = new MemoryStream(Encoding.UTF8.GetBytes(file.OpenText().ReadToEnd()));
-
                 var readedRows = new BlockingCollection<List<EntityResolver<string[]>>>();
-                var tokenSource = new CancellationTokenSource();
 
-                var thread = new Thread(() =>
+                Task.Factory.StartNew(async () =>
                 {
                     try
                     {
-                        using (var reader = new CsvReader(new StreamReader(stream)))
+                        using(var stream = CreateStreamFromFile(file))
                         {
-                            reader.Configuration.BadDataFound = context => { };
-                            reader.Configuration.Delimiter = _separator;
-
-                            int i = 1, j = 11;
-                            var list = new List<EntityResolver<string[]>>(100);
-                            var rowsToRead = 1000;
-                            const int rowsToReadBase = 100;
-
-                            if(_hasHeader)
-                                reader.Read(); //skip header.
-
-                            while (reader.Read())
+                            using (var reader = new StreamReader(stream))
                             {
-                                var rawRow = reader.Context.Record;
-                                list.Add(new EntityResolver<string[]>(rawRow, nameToIndexMap, indexToMethodAccess));
+                                SkipLines(reader);
 
-                                if (i++ < rowsToRead) continue;
+                                using (var csvReader = new CsvReader(reader))
+                                {
+                                    csvReader.Configuration.BadDataFound = context => { };
+                                    csvReader.Configuration.Delimiter = _separator;
 
-                                i = 1;
+                                    int i = 1, j = 11;
+                                    var list = new List<EntityResolver<string[]>>(100);
+                                    var rowsToRead = 1000;
+                                    const int rowsToReadBase = 100;
 
-                                if (j > 1)
-                                    j -= 1;
+                                    if (_hasHeader)
+                                        await csvReader.ReadAsync(); //skip header.
 
-                                rowsToRead = rowsToReadBase * j;
+                                    while (await csvReader.ReadAsync())
+                                    {
+                                        var rawRow = csvReader.Context.Record;
+                                        list.Add(new EntityResolver<string[]>(rawRow, nameToIndexMap, indexToMethodAccess));
 
-                                readedRows.Add(list);
-                                list = new List<EntityResolver<string[]>>(rowsToRead);
+                                        if (i++ < rowsToRead) continue;
+
+                                        i = 1;
+
+                                        if (j > 1)
+                                            j -= 1;
+
+                                        rowsToRead = rowsToReadBase * j;
+
+                                        readedRows.Add(list);
+                                        list = new List<EntityResolver<string[]>>(rowsToRead);
+                                    }
+
+                                    readedRows.Add(list);
+                                }
                             }
-
-                            readedRows.Add(list);
                         }
-                    }
-                    catch (Exception exc)
-                    {
-                        if (Debugger.IsAttached)
-                            Debug.WriteLine(exc);
                     }
                     finally
                     {
@@ -91,26 +93,55 @@ namespace Musoq.Schema.Csv
                     }
                 });
 
-                thread.Start();
-
-                using (var reader = new CsvReader(file.OpenText()))
+                using (var stream = CreateStreamFromFile(file))
                 {
-                    reader.Configuration.Delimiter = _separator;
-                    reader.Read();
-
-                    var header = reader.Context.Record;
-
-                    for (var i = 0; i < header.Length; ++i)
+                    using (var reader = new StreamReader(stream))
                     {
-                        nameToIndexMap.Add(_hasHeader ? header[i] : string.Format(CsvHelper.AutoColumnName, i + 1), i);
+                        SkipLines(reader);
 
-                        var i1 = i;
-                        indexToMethodAccess.Add(i, row => row[i1]);
+                        using (var csvReader = new CsvReader(reader))
+                        {
+                            csvReader.Configuration.Delimiter = _separator;
+                            csvReader.Read();
+
+                            var header = csvReader.Context.Record;
+
+                            for (var i = 0; i < header.Length; ++i)
+                            {
+                                nameToIndexMap.Add(_hasHeader ? CsvHelper.MakeHeaderNameValidColumnName(header[i]) : string.Format(CsvHelper.AutoColumnName, i + 1), i);
+
+                                var i1 = i;
+                                indexToMethodAccess.Add(i, row => row[i1]);
+                            }
+                        }
                     }
                 }
 
                 return new ChunkedFile(readedRows, tokenSource.Token);
             }
+        }
+
+        private void SkipLines(TextReader reader)
+        {
+            if (_skipLines <= 0) return;
+
+            var skippedLines = 0;
+            while (skippedLines < _skipLines)
+            {
+                reader.ReadLine();
+                skippedLines += 1;
+            }
+        }
+
+        private Stream CreateStreamFromFile(FileInfo file)
+        {
+            Stream stream;
+            if (SizeConverter.ToMegabytes(file.Length) > Performance.FreeMemoryInMegabytes())
+                stream = file.OpenRead();
+            else
+                stream = new MemoryStream(Encoding.UTF8.GetBytes(file.OpenText().ReadToEnd()));
+
+            return stream;
         }
     }
 }

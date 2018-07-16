@@ -405,6 +405,61 @@ inner join #C.entities() population on cities.City = population.City";
             Assert.AreEqual(400m, table[9][2]);
         }
 
+        [TestMethod]
+        public void InnerJoinCteTablesTest()
+        {
+            var query = @"
+with p as (
+    select Country, City, Id from #A.entities()
+), x as (
+    select Country, City, Id from #B.entities()
+)
+select p.Id, x.Id from p inner join x on p.Country = x.Country";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("Poland", "Krakow") {Id = 0},
+                        new BasicEntity("Germany", "Berlin") {Id = 1},
+                        new BasicEntity("Russia", "Moscow") {Id = 2}
+                    }
+                },
+                {
+                    "#B", new[]
+                    {
+                        new BasicEntity("Poland", "Krakow") {Id = 0},
+                        new BasicEntity("Poland", "Wroclaw") {Id = 1},
+                        new BasicEntity("Poland", "Warszawa") {Id = 2},
+                        new BasicEntity("Poland", "Gdansk") {Id = 3},
+                        new BasicEntity("Germany", "Berlin") {Id = 4}
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(5, table.Count);
+            Assert.AreEqual(2, table.Columns.Count());
+
+            Assert.AreEqual(0, table[0][0]);
+            Assert.AreEqual(0, table[0][1]);
+
+            Assert.AreEqual(0, table[1][0]);
+            Assert.AreEqual(1, table[1][1]);
+
+            Assert.AreEqual(0, table[2][0]);
+            Assert.AreEqual(2, table[2][1]);
+
+            Assert.AreEqual(0, table[3][0]);
+            Assert.AreEqual(3, table[3][1]);
+
+            Assert.AreEqual(1, table[4][0]);
+            Assert.AreEqual(4, table[4][1]);
+        }
+
         [Ignore]
         [TestMethod]
         public void SimpleLeftJoinTest()

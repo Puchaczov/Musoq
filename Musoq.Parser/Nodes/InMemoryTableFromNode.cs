@@ -10,7 +10,7 @@
 
         public string VariableName { get; }
 
-        public override string Id => $"{nameof(InMemoryTableFromNode)}{VariableName}";
+        public override string Id => $"{nameof(InMemoryTableFromNode)}{VariableName}{Alias}";
 
         public override void Accept(IExpressionVisitor visitor)
         {

@@ -3,7 +3,7 @@
     public class JoinFromNode : FromNode
     {
         public JoinFromNode(FromNode joinFrom, FromNode from, Node expression, JoinType joinType)
-            : base(string.Empty)
+            : base($"{joinFrom.Alias}{from.Alias}")
         {
             Source = joinFrom;
             With = from;
@@ -15,9 +15,6 @@
         public FromNode With { get; }
         public Node Expression { get; }
         public JoinType JoinType { get; }
-
-        public override string Alias => $"{Source.Alias}{With.Alias}";
-
         public override string Id => $"{typeof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}";
 
         public override void Accept(IExpressionVisitor visitor)
