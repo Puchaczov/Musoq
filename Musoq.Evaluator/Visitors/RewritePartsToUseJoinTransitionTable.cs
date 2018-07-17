@@ -3,17 +3,19 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class RewriteSelectToUseJoinTransitionTable : CloneQueryVisitor
+    public class RewritePartsToUseJoinTransitionTable : CloneQueryVisitor
     {
         private readonly string _alias;
 
-        public RewriteSelectToUseJoinTransitionTable(string alias = "")
+        public RewritePartsToUseJoinTransitionTable(string alias = "")
         {
             _alias = alias;
         }
 
         public SelectNode ChangedSelect { get; private set; }
         public GroupByNode ChangedGroupBy { get; private set; }
+
+        public WhereNode ChangedWhere { get; private set; }
         public Node RewrittenNode => Nodes.Pop();
 
         public override void Visit(AccessColumnNode node)
@@ -35,12 +37,18 @@ namespace Musoq.Evaluator.Visitors
         {
             var fields = new FieldNode[node.Fields.Length];
 
-            for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode) Nodes.Pop();
-
+            HavingNode having = null;
             if (node.Having != null)
-                ChangedGroupBy = new GroupByNode(fields, (HavingNode) Nodes.Pop());
-            else
-                ChangedGroupBy = new GroupByNode(fields, null);
+                having = (HavingNode) Nodes.Pop();
+
+            for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode) Nodes.Pop();
+            
+            ChangedGroupBy = new GroupByNode(fields, having);
+        }
+
+        public override void Visit(WhereNode node)
+        {
+            ChangedWhere = new WhereNode(Nodes.Pop());
         }
     }
 }

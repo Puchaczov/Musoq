@@ -460,6 +460,122 @@ select p.Id, x.Id from p inner join x on p.Country = x.Country";
             Assert.AreEqual(4, table[4][1]);
         }
 
+        [TestMethod]
+        public void InnerJoinCteSelfJoinTest()
+        {
+            var query = @"
+with p as (
+    select Country, City, Id from #A.entities()
+), x as (
+    select Country, City, Id from p
+)
+select p.Id, x.Id from p inner join x on p.Country = x.Country";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("Poland", "Krakow") {Id = 0},
+                        new BasicEntity("Germany", "Berlin") {Id = 1},
+                        new BasicEntity("Russia", "Moscow") {Id = 2}
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual(2, table.Columns.Count());
+
+            Assert.AreEqual(0, table[0][0]);
+            Assert.AreEqual(0, table[0][1]);
+
+            Assert.AreEqual(1, table[1][0]);
+            Assert.AreEqual(1, table[1][1]);
+
+            Assert.AreEqual(2, table[2][0]);
+            Assert.AreEqual(2, table[2][1]);
+        }
+
+        [TestMethod]
+        public void ComplexCteIssue1Test()
+        {
+            var query = @"
+with p as (
+	select 
+        Country
+	from #A.entities()
+), x as (
+	select 
+		Country
+	from p group by Country 
+)
+select p.Country, x.Country from p inner join x on p.Country = x.Country where p.Country = 'Poland'
+";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("Poland", "Krakow") {Id = 0},
+                        new BasicEntity("Germany", "Berlin") {Id = 1},
+                        new BasicEntity("Russia", "Moscow") {Id = 2}
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(2, table.Columns.Count());
+
+            Assert.AreEqual("Poland", table[0][0]);
+            Assert.AreEqual("Poland", table[0][1]);
+        }
+
+        [TestMethod]
+        public void ComplexCteIssue1WithGroupByTest()
+        {
+            var query = @"
+with p as (
+	select 
+        Country
+	from #A.entities()
+), x as (
+	select 
+		Country
+	from p group by Country 
+)
+select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country group by p.Country having Count(p.Country) > 1
+";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("Poland", "Krakow") {Id = 0},
+                        new BasicEntity("Poland", "Krakow") {Id = 0},
+                        new BasicEntity("Germany", "Berlin") {Id = 1},
+                        new BasicEntity("Russia", "Moscow") {Id = 2}
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(2, table.Columns.Count());
+
+            Assert.AreEqual("Poland", table[0][0]);
+            Assert.AreEqual(2, table[0][1]);
+        }
+
         [Ignore]
         [TestMethod]
         public void SimpleLeftJoinTest()

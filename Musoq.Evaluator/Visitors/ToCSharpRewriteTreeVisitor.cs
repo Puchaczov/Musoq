@@ -752,6 +752,7 @@ namespace Musoq.Evaluator.Visitors
             var a2 = SyntaxFactory.ExpressionStatement(invocation)
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
 
+            NullSuspiciousNodes.Clear();
             _selectBlock = SyntaxFactory.Block(a1, a2);
         }
 
@@ -770,6 +771,7 @@ namespace Musoq.Evaluator.Visitors
                         })
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
 
+            NullSuspiciousNodes.Clear();
             Nodes.Push(ifStatement);
         }
 
@@ -827,12 +829,14 @@ namespace Musoq.Evaluator.Visitors
             fieldNames.Append("};");
 
             Statements.Add(SyntaxFactory.ParseStatement(fieldNames.ToString()));
+            NullSuspiciousNodes.Clear();
 
             AddNamespace(typeof(GroupKey).Namespace);
         }
 
         public void Visit(HavingNode node)
         {
+            NullSuspiciousNodes.Clear();
             Nodes.Push(Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
                     new SyntaxNode[] {SyntaxFactory.ContinueStatement()})
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
@@ -915,6 +919,7 @@ namespace Musoq.Evaluator.Visitors
                                 (StatementSyntax) ifStatement,
                                 _emptyBlock)))));
 
+            NullSuspiciousNodes.Clear();
             _joinBlock = SyntaxFactory.Block(foreaches);
         }
 
@@ -976,6 +981,7 @@ namespace Musoq.Evaluator.Visitors
                         (StatementSyntax) ifStatement, 
                         _emptyBlock)))));
 
+            NullSuspiciousNodes.Clear();
             _joinBlock = SyntaxFactory.Block(foreaches);
         }
 
@@ -1051,7 +1057,7 @@ namespace Musoq.Evaluator.Visitors
                                         nameof(Column),
                                         cols.ToArray()))
                             }))));
-
+            NullSuspiciousNodes.Clear();
             Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
         }
 
@@ -1113,6 +1119,8 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName)));
 
             Statements.AddRange(fullBlock.Statements);
+
+            NullSuspiciousNodes.Clear();
         }
 
         public void Visit(InternalQueryNode node)
@@ -1189,6 +1197,8 @@ namespace Musoq.Evaluator.Visitors
                 _joinBlock = _joinBlock.ReplaceNode(_emptyBlock, select.Statements);
                 Statements.AddRange(_joinBlock.Statements);
             }
+
+            NullSuspiciousNodes.Clear();
         }
 
         private StatementSyntax GenerateCancellationExpression()

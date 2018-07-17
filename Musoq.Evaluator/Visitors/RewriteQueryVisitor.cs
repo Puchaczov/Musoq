@@ -399,6 +399,7 @@ namespace Musoq.Evaluator.Visitors
             var from = Nodes.Pop() as ExpressionFromNode;
 
             var scoreSelect = select;
+            var scoreWhere = where;
 
             QueryNode query;
 
@@ -527,11 +528,14 @@ namespace Musoq.Evaluator.Visitors
                     source = targetTableName.ToTransitionTable().ToTransformedRowsSource();
                 }
 
-                var selectRewriter = new RewriteSelectToUseJoinTransitionTable();
-                var selectTranverser = new CloneTraverseVisitor(selectRewriter);
+                var rewriter = new RewritePartsToUseJoinTransitionTable();
+                var partsTraverser = new CloneTraverseVisitor(rewriter);
 
-                select.Accept(selectTranverser);
-                scoreSelect = selectRewriter.ChangedSelect;
+                select.Accept(partsTraverser);
+                where?.Accept(partsTraverser);
+
+                scoreSelect = rewriter.ChangedSelect;
+                scoreWhere = rewriter.ChangedWhere;
             }
 
             if (groupBy != null)
@@ -565,7 +569,7 @@ namespace Musoq.Evaluator.Visitors
 
                 if (splittedNodes.Count > 0)
                 {
-                    var selectRewriter = new RewriteSelectToUseJoinTransitionTable(nestedFrom.Alias);
+                    var selectRewriter = new RewritePartsToUseJoinTransitionTable(nestedFrom.Alias);
                     var selectTraverser = new CloneTraverseVisitor(selectRewriter);
 
                     groupBy.Accept(selectTraverser);
@@ -649,7 +653,7 @@ namespace Musoq.Evaluator.Visitors
 
                     splittedNodes.Add(new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName],
                         new string[0], select.Fields));
-                    splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, where, null, null, skip, take,
+                    splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, null, skip, take,
                         scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
 
                     Nodes.Push(

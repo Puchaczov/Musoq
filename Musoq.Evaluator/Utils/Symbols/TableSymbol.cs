@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Utils.Symbols
@@ -12,11 +14,20 @@ namespace Musoq.Evaluator.Utils.Symbols
         private readonly Dictionary<string, Tuple<ISchema, ISchemaTable>> _tables =
             new Dictionary<string, Tuple<ISchema, ISchemaTable>>();
 
+        private string _fullTableName;
+
+        private ISchemaTable _fullTable;
+        private ISchema _fullSchema;
+
         public TableSymbol(string alias, ISchema schema, ISchemaTable table, bool hasAlias)
         {
             _tables.Add(alias, new Tuple<ISchema, ISchemaTable>(schema, table));
             _orders.Add(alias);
             HasAlias = hasAlias;
+            _fullTableName = alias;
+
+            _fullSchema = schema;
+            _fullTable = table;
         }
 
         private TableSymbol()
@@ -47,6 +58,8 @@ namespace Musoq.Evaluator.Utils.Symbols
 
         public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByAlias(string alias)
         {
+            if (_fullTableName == alias)
+                return (_fullSchema, _fullTable, alias);
             return (_tables[alias].Item1, _tables[alias].Item2, alias);
         }
 
@@ -113,17 +126,27 @@ namespace Musoq.Evaluator.Utils.Symbols
         {
             var symbol = new TableSymbol();
 
+            var compundTableColumns = new List<ISchemaColumn>();
+
             foreach (var item in _tables)
             {
                 symbol._tables.Add(item.Key, item.Value);
                 symbol._orders.Add(item.Key);
+
+                compundTableColumns.AddRange(item.Value.Item2.Columns);
             }
 
             foreach (var item in other._tables)
             {
                 symbol._tables.Add(item.Key, item.Value);
                 symbol._orders.Add(item.Key);
+
+                compundTableColumns.AddRange(item.Value.Item2.Columns);
             }
+
+            symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
+            symbol._fullTable = new DynamicTable(compundTableColumns.ToArray());
+            symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol._fullTable);
 
             return symbol;
         }
