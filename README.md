@@ -1,7 +1,7 @@
-# Musoq
+# Shortly about Musoq
 Musoq is handy tool that allows using SQL for querying various data sources.
 
-# What is Musoq? 
+# What is Musoq (more detailed)? 
 Musoq exposes raw data sets as queryable sources. This allows you to write queries to those sources. It uses concepts of schemas and tables to logically group your tables. What would be used as query source? Virtually anything! Those below are just ideas but some of them had been already implemented.
 
 - Directories
@@ -18,7 +18,7 @@ You can also mix sources between each other.
 
 ## How does the query looks like?
 
-  `select * from #os.files('path/to/foder', 'false') where Extension = '.exe' or Extension = '.png'`
+  `select * from #os.files('path/to/folder', false) where Extension = '.exe' or Extension = '.png'`
  
 ## How to run it?
 
