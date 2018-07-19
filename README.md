@@ -14,11 +14,9 @@ Musoq exposes raw data sets as queryable sources. This allows you to write queri
 - Processes
 - Time
 
-# Whats was the reason for creating it
+## How does the query looks like?
 
-This tool was created because of my own lazyness. On the one hand, I needed something that allows me performing queries on my own bank account file, on the other hand something that simultaneously filters with respect to file names and their content. For some reason, I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writting" all scripts manually however I found it usefull to automate this process and as a result avoid wasting time to create it. Fast querying was my goal. At a second glance, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing script is redundant and all you have to do is to write a query and it will do the magic with your data source.
-
-![alt text](https://raw.githubusercontent.com/Puchaczov/Musoq/master/query_res.png)
+  `select * from #os.files('path/to/foder', 'false') where Extension = '.exe' or Extension = '.png'`
 
 ## What features does the Musoq implements
 
@@ -26,7 +24,7 @@ This tool was created because of my own lazyness. On the one hand, I needed some
 - Group by operator.
 - Having operator.
 - Skip & Take operators.
-- Complex object accessing ability like `column.Name`.
+- Complex object accessing ability `column.Name`.
 - User defined functions and aggregation functions.
 - Plugin API (for those who wants to create own data source).
 - Set operators (non sql-like usage) (union, union all, except, intersect).
@@ -38,13 +36,6 @@ This tool was created because of my own lazyness. On the one hand, I needed some
 - Desc syntax.
 - In syntax.
 - Inner join syntax.
-
-## Features considered to be explored / implemented
-
-- Query parallelization
-- Case when syntax
-- Order by syntax
-- Nested queries (corellated and uncorellated)
 
 ## Pluggable architecture
 
@@ -59,20 +50,15 @@ You can easily plug-in your own data source. There is fairly simple plugin api t
             <tr><td>#Json</td><td>Exposes json file as queryable source.</td></tr>
             <tr><td>#Csv</td><td>Exposes csv file as queryable source.</td></tr>
             <tr><td>#FlatFile</td><td>Exposes FlatFile file as queryable source.</td></tr>
-            <tr><td>#Git</td><td>Exposes git repository as queryable source.</td></tr>
             <tr><td>#Time</td><td>Exposes time as queryable source.</td></tr>
       </thead>
 </table>
 
 ## Query examples
 
-- Gets all commits from repo
-
-      select * from #git.commits('path/to/repo')
-
 - Gets all files from folder that has extension `.exe` or `.png`
 
-      select * from #disk.files('path/to/foder', 'false') where Extension = '.exe' or Extension = '.png'
+      select * from #os.files('path/to/foder', 'false') where Extension = '.exe' or Extension = '.png'
       
 - Gets all hours from 7 to 12 (excludingly) for all saturday and sundays from `01.04.2018 00:00:00` to `30.04.2018 00:00:00`
 
@@ -148,6 +134,17 @@ and file to be queried is:
 ## How do I know what columns does the source have?
 
 You can easily check it by typing a query that asks the source about columns it has. It's super easy and looks like `desc #git.commits('path/to/repo')`. All plugins supports it out of the box!
+
+# Whats was the reason for creating it
+
+On the one hand, I needed something that allows me performing queries on my own bank account file, on the other hand something that simultaneously filters with respect to file names and their content. For some reason, I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writting" all scripts manually however I found it usefull to automate this process and as a result avoid wasting time to create it. Fast querying was my goal. At a second glance, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing script is redundant and all you have to do is to write a query and it will do the magic with your data source.
+
+## Features considered to be explored / implemented
+
+- Query parallelization
+- Case when syntax
+- Order by syntax
+- Nested queries (corellated and uncorellated)
 
 ## Please, be aware of
 
