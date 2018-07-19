@@ -19,6 +19,14 @@ You can also mix sources between each other.
 ## How does the query looks like?
 
   `select * from #os.files('path/to/foder', 'false') where Extension = '.exe' or Extension = '.png'`
+ 
+## How to run it?
+
+To run it, you need `.NET Core 2.1` runtime. You can find it ![here](https://www.microsoft.com/net/download/dotnet-core/2.1). If you've got it, then download **![Musoq Simple Client](https://github.com/Puchaczov/Musoq.Console)**. You can find latest releases here.
+
+## Will it work on Linux?
+
+Never tried it (I definitively have to). It was written to runs everywhere, there is no any OS Specific code however I'm almost sure that current version will need some tweaks to sucessfully run on different platforms.
 
 ## What features does the Musoq implements
 
