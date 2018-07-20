@@ -170,7 +170,7 @@ and file to be queried is:
 
 You can easily check it by typing a query that asks the source about columns it has. It's super easy and looks like `desc #git.commits('path/to/repo')`. All plugins supports it out of the box!
 
-# Whats was the reason for creating it
+## Whats was the reason for creating it
 
 On the one hand, I needed something that allows me performing queries on my own bank account file, on the other hand something that simultaneously filters with respect to file names and their content. For some reason, I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writting" all scripts manually however I found it usefull to automate this process and as a result avoid wasting time to create it. Fast querying was my goal. At a second glance, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing script is redundant and all you have to do is to write a query and it will do the magic with your data source.
 
