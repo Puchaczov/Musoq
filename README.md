@@ -47,7 +47,32 @@ Never tried it (I definitively have to). It was written to runs everywhere, ther
 - In syntax.
 - Inner join syntax.
 
-## Pluggable architecture
+## Roadmap
+
+- Dynamic Query parameters like: `select * from #schema.table(@Arg2, ...) where ColumnName = @Arg1`
+- Query as data source (views)
+- Optional query reordering `FROM ... WHERE ... SELECT...`
+- Ability to use query as a source of next query like `with p as (select 1 from #source) select 2 from #source.method(p)`
+- Syntax to query constructors about it's parameters (desc for constructors).
+- Syntax to query plugins about it's methods and parameters (desc for methods).
+- Rethink and design mechanism to dispose unmanaged resources.
+- Further project cleanups and more robust tests.
+
+## Long term goals
+
+- Order by further implementation.
+- Translated code optimisations.
+- Rethink how `LibraryBase` works in mixed sources context.
+- Left and right join syntax.
+- betwen ... and ... syntax.
+
+## Current known vital issues
+
+- Chunks loader will greedly load datas until memory ends (important for huge files).
+- Unmanaged resources are disposed too fast.
+- There is no any kind of framework that allows plugin communicate with runtime about the issues occured internally.
+
+## Architecture for plugins
 
 You can easily plug-in your own data source. There is fairly simple plugin api that all sources uses. To read in details how to do it, jump into wiki section of this repo ![click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
 
@@ -68,7 +93,7 @@ You can easily plug-in your own data source. There is fairly simple plugin api t
 
 - Gets all files from folder that has extension `.exe` or `.png`
 
-      select * from #os.files('path/to/foder', 'false') where Extension = '.exe' or Extension = '.png'
+      select * from #os.files('path/to/foder', false) where Extension = '.exe' or Extension = '.png'
       
 - Gets all hours from 7 to 12 (excludingly) for all saturday and sundays from `01.04.2018 00:00:00` to `30.04.2018 00:00:00`
 
@@ -76,13 +101,13 @@ You can easily plug-in your own data source. There is fairly simple plugin api t
 
 - Shows `.cs` files from folders `some_path_to_dir_1`, `some_path_to_dir_2`, `some_path_to_dir` and their subfolders (uses disk plugin).
 
-      select Name, Sha256File(), CreationTime, Length from #disk.directory('some_path_to_dir_1', 'true')
+      select Name, Sha256File(), CreationTime, Length from #os.directory('some_path_to_dir_1', true)
       where Extension = '.cs' take 3
       union all (Name)
-      select Name, Sha256File(), CreationTime, Length from #disk.directory('some_path_to_dir_2', 'true')
+      select Name, Sha256File(), CreationTime, Length from #os.directory('some_path_to_dir_2', true)
       where Extension = '.cs' take 4
       union all (Name)
-      select Name, Sha256File(), CreationTime, Length from #disk.directory('some_path_to_dir', 'true')
+      select Name, Sha256File(), CreationTime, Length from #os.directory('some_path_to_dir', true)
       where Extension = '.cs' take 5
 
 - Groups by `Country` and `City`.
@@ -95,7 +120,7 @@ You can easily plug-in your own data source. There is fairly simple plugin api t
       
 - Compressing files from folder (uses `AggregateFiles` grouping method)
 
-      select Compress(AggregateFiles(), './Results/some_out_name.zip', 'fastest') from #disk.directory('./Files', 'false')
+      select Compress(AggregateFiles(), './Results/some_out_name.zip', 'fastest') from #os.directory('./Files', false)
       
 - Decompresses only those files that fits the condition. Files are extracted to directory `./Results/DecompressWithFilterTest` 
 
@@ -164,6 +189,7 @@ Hopefully, I will list the incompatibilities here:
 
 - `Parent group aggregations`
 - `Non standard set operators based on keys rather than rows.`
+- `There is no support for huge sources exceeds memory`
 
 ## License
 
