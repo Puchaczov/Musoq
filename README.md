@@ -26,7 +26,7 @@ To run it, you need `.NET Core 2.1` runtime. You can find it ![here](https://www
 
 ## Will it work on Linux?
 
-Never tried it (I definitively have to). It was written to runs everywhere, there is no any OS Specific code however I'm almost sure that current version will need some tweaks to sucessfully run on different platforms.
+Never tried it (I definitively have to). It was written to run everywhere, there is no any OS Specific code, however I'm almost sure that the current version will need some tweaks to sucessfully run on different platforms.
 
 ## What features does the Musoq implements
 
