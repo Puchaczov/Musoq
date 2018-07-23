@@ -40,17 +40,17 @@ namespace Musoq.Plugins
         [AggregationSetMethod]
         public void SetAggregateValue([InjectGroup] Group group, string name, string value)
         {
-            if(value == null)
-                return;
-
-            AggregateAdd(group, name, value);
+            AggregateAdd(group, name, value == null ? string.Empty : value);
         }
 
         [AggregationSetMethod]
         public void SetAggregateValue([InjectGroup] Group group, string name, decimal? value)
         {
-            if(!value.HasValue)
+            if (!value.HasValue)
+            {
+                AggregateAdd(group, name, string.Empty);
                 return;
+            }
 
             AggregateAdd(group, name, value.Value.ToString(CultureInfo.InvariantCulture));
         }
@@ -59,7 +59,10 @@ namespace Musoq.Plugins
         public void SetAggregateValue([InjectGroup] Group group, string name, long? value)
         {
             if (!value.HasValue)
+            {
+                AggregateAdd(group, name, string.Empty);
                 return;
+            }
 
             AggregateAdd(group, name, value.Value.ToString(CultureInfo.InvariantCulture));
         }
@@ -719,8 +722,13 @@ namespace Musoq.Plugins
 
         private static void AggregateAdd<TType>(Group group, string name, TType value)
         {
-            var values = group.GetOrCreateValue(name, new List<TType>());
-            values.Add(value);
+            var list = group.GetOrCreateValue(name, new List<string>());
+            list.Add(value.ToString());
+
+            group.GetOrCreateValueWithConverter<List<string>, string>(name, new List<string>(), (lst) => {
+                var rawList = (List<string>)lst;
+                return list.Count == 0 ? string.Empty : list.Aggregate((a, b) => a.ToString() + b.ToString());
+            });
         }
 
         private class Occurence

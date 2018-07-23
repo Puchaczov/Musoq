@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
@@ -55,10 +57,10 @@ namespace Musoq.Converter
                 compiled = false;
             }
 
-            if (compiled && !Debugger.IsAttached) return new CompiledQuery(items.CompiledQuery);
+            if (compiled && !Debugger.IsAttached) return new CompiledQuery(CreateRunnable(items));
 
-            var tempPath = Path.GetTempPath();
-            var tempFileName = $"{Guid.NewGuid().ToString()}";
+            var tempPath = Path.Combine(Path.GetTempPath(), "Musoq");
+            var tempFileName = $"InMemoryAssembly";
             var assemblyPath = Path.Combine(tempPath, $"{tempFileName}.dll");
             var pdbPath = Path.Combine(tempPath, $"{tempFileName}.pdb");
             var csPath = Path.Combine(tempPath, $"{tempFileName}.cs");
@@ -95,9 +97,33 @@ namespace Musoq.Converter
             if (!compiled && compilationError != null)
                 throw compilationError;
 
-            var runnable = new RunnableDebugDecorator(items.CompiledQuery, csPath, assemblyPath, pdbPath);
+            var runnable = new RunnableDebugDecorator(CreateRunnable(items), csPath, assemblyPath, pdbPath);
 
             return new CompiledQuery(runnable);
+        }
+
+        private static IRunnable CreateRunnable(BuildItems items, string assemblyPath)
+        {
+            return CreateRunnable(items, () => {
+               return Assembly.LoadFrom(assemblyPath);
+            });
+        }
+
+        private static IRunnable CreateRunnable(BuildItems items)
+        {
+            return CreateRunnable(items, () => Assembly.Load(items.DllFile, items.PdbFile));
+        }
+
+        private static IRunnable CreateRunnable(BuildItems items, Func<Assembly> createAssembly)
+        {
+            var assembly = createAssembly();
+
+            var type = assembly.GetType(items.AccessToClassPath);
+
+            var runnable = (IRunnable)Activator.CreateInstance(type);
+            runnable.Provider = items.SchemaProvider;
+
+            return runnable;
         }
     }
 }

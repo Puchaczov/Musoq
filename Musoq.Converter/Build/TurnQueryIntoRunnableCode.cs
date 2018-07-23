@@ -19,7 +19,11 @@ namespace Musoq.Converter.Build
             {
                 using (var pdbStream = new MemoryStream())
                 {
+#if DEBUG
+                    var result = items.Compilation.Emit(dllStream, pdbStream, options: new Microsoft.CodeAnalysis.Emit.EmitOptions(false, Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb));
+#else
                     var result = items.Compilation.Emit(dllStream, pdbStream);
+#endif
 
                     items.EmitResult = result;
                     if (!result.Success)
@@ -29,26 +33,14 @@ namespace Musoq.Converter.Build
                         foreach (var diagnostic in result.Diagnostics)
                             all.Append(diagnostic);
 
-                        items.CompiledQuery = null;
                         items.DllFile = null;
                         items.PdbFile = null;
 
                         throw new CompilationException(all.ToString());
                     }
 
-                    var dllBytesArray = dllStream.ToArray();
-                    var pdbBytesArray = pdbStream.ToArray();
-
-                    var assembly = Assembly.Load(dllBytesArray, pdbBytesArray);
-
-                    var type = assembly.GetType(items.AccessToClassPath);
-
-                    var runnable = (IRunnable)Activator.CreateInstance(type);
-                    runnable.Provider = items.SchemaProvider;
-
-                    items.CompiledQuery = runnable;
-                    items.DllFile = dllBytesArray;
-                    items.PdbFile = pdbBytesArray;
+                    items.DllFile = dllStream.ToArray();
+                    items.PdbFile = pdbStream.ToArray();
                 }
             }
 

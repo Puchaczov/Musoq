@@ -104,10 +104,14 @@ namespace Musoq.Evaluator.Visitors
             Compilation = Compilation.WithOptions(
                 new CSharpCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary,
+#if DEBUG
+                        optimizationLevel: OptimizationLevel.Debug,
+#else
                         optimizationLevel: OptimizationLevel.Release,
+#endif
                         assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default)
                     .WithConcurrentBuild(true)
-                    .WithMetadataImportOptions(MetadataImportOptions.Public));
+                    .WithMetadataImportOptions(MetadataImportOptions.All));
 
             AccessToClassPath = $"{Namespace}.{ClassName}";
 
@@ -1306,7 +1310,7 @@ namespace Musoq.Evaluator.Visitors
             var formatted = Formatter.Format(compilationUnit, Workspace);
 
             Compilation = Compilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(formatted.ToFullString(),
-                new CSharpParseOptions(LanguageVersion.CSharp7_3), _sourcePath, Encoding.ASCII));
+                new CSharpParseOptions(LanguageVersion.CSharp7_3), null, Encoding.ASCII));
         }
 
         public void Visit(SingleSetNode node)

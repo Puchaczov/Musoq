@@ -51,12 +51,6 @@ namespace Musoq.Converter.Build
             set => this["COMPILATION"] = value;
         }
 
-        public IRunnable CompiledQuery
-        {
-            get => (IRunnable) this["COMPILED_QUERY"];
-            set => this["COMPILED_QUERY"] = value;
-        }
-
         public string AccessToClassPath
         {
             get => (string) this["ACCESS_TO_CLASS_PATH"];

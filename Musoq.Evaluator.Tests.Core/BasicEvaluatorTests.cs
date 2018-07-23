@@ -871,5 +871,27 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual(19, table[9][1]);
             Assert.AreEqual("Nullable`1", table[9][2]);
         }
+
+        [TestMethod]
+        public void AggregateValuesTest()
+        {
+            var query = @"select AggregateValue(Name) from #A.entites() a";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("A"),
+                        new BasicEntity("B")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("AB", table[0][0]);
+        }
     }
 }
