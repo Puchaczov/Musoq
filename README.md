@@ -1,6 +1,8 @@
 # Shortly about Musoq
 Musoq is handy tool that allows using SQL on various data sources.
 
+![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
+
 # What is Musoq (more detailed)? 
 Musoq exposes raw data sets as queryable sources. This allows you to write queries to those sources. It uses concepts of schemas and tables to logically group your tables. What would be used as query source? Virtually anything! Those below are just ideas but some of them had been already implemented.
 
