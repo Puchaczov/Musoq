@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Plugins;
 
 namespace Musoq.Schema.Os.Tests.Core
 {
@@ -84,6 +85,11 @@ namespace Musoq.Schema.Os.Tests.Core
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new OsSchemaProvider());
+        }
+
+        static ZipTests()
+        {
+            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }

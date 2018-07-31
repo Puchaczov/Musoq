@@ -89,9 +89,9 @@ namespace Musoq.Evaluator.Visitors
                 }
             }
 
+            var env = new Plugins.Environment();
             Compilation = Compilation
-                .AddReferences(MetadataReference.CreateFromFile(
-                    "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\2.0.0\\netstandard.dll"));
+                .AddReferences(MetadataReference.CreateFromFile(env.Value<string>(Constants.NetStandardDllEnvironmentName)));
 
             AddReference(typeof(object));
             AddReference(typeof(CancellationToken));

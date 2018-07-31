@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Plugins;
 
 namespace Musoq.Schema.Time.Tests.Core
 {
@@ -21,6 +22,11 @@ namespace Musoq.Schema.Time.Tests.Core
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new TimeSchemaProvider());
+        }
+
+        static TimeTests()
+        {
+            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }

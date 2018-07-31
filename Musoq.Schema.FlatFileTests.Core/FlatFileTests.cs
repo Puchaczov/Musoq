@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Plugins;
 using Musoq.Schema.FlatFile;
 
 namespace Musoq.Schema.FlatFileTests.Core
@@ -47,6 +48,11 @@ namespace Musoq.Schema.FlatFileTests.Core
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new FlatFileSchemaProvider());
+        }
+
+        static FlatFileTests()
+        {
+            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }

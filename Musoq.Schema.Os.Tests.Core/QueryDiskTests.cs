@@ -5,9 +5,11 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Plugins;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Os.Files;
 using Musoq.Schema.Os.Tests.Core.Utils;
+using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.Os.Tests.Core
 {
@@ -218,6 +220,11 @@ namespace Musoq.Schema.Os.Tests.Core
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new OsSchemaProvider());
+        }
+
+        static QueryDiskTests()
+        {
+            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }

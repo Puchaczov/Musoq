@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
+using Musoq.Plugins;
 using Musoq.Schema.System;
 
 namespace Musoq.Converter.Tests
@@ -24,6 +25,11 @@ namespace Musoq.Converter.Tests
         private (byte[] DllFile, byte[] PdbFile) CreateForStore(string script)
         {
             return InstanceCreator.CompileForStore(script, new SystemSchemaProvider());
+        }
+
+        static BuildTests()
+        {
+            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }

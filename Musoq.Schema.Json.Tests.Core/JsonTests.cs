@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Plugins;
 using Newtonsoft.Json.Linq;
 
 namespace Musoq.Schema.Json.Tests.Core
@@ -96,6 +97,11 @@ namespace Musoq.Schema.Json.Tests.Core
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new JsonSchemaProvider());
+        }
+
+        static JsonTests()
+        {
+            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }
