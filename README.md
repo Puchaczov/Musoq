@@ -26,9 +26,9 @@ You can also mix sources between each other.
 
 To run it, you need `.NET Core 2.1` runtime. You can find it ![here](https://www.microsoft.com/net/download/dotnet-core/2.1). If you've got it, then download **![Musoq Simple Client](https://github.com/Puchaczov/Musoq.Console)**. You can find latest releases here.
 
-## Will it work on Linux?
+## Does it work on Linux?
 
-Never tried it (I definitively have to). It was written to run everywhere, there is no any OS Specific code, however I'm almost sure that the current version will need some tweaks to sucessfully run on different platforms.
+Yes, it does. I was testing it on Ubuntu 18.04. If you tried to run it on different distro or version, I will be grateful when you post an issue wherever you success or fail
 
 ## What features does the Musoq implements
 
