@@ -65,6 +65,9 @@ namespace Musoq.Evaluator.Utils.Symbols
 
         public ISchemaColumn GetColumnByAliasAndName(string alias, string columnName)
         {
+            if (_fullTableName == alias)
+                return _fullTable.Columns.Single(c => c.ColumnName == columnName);
+
             return _tables[alias].Item2.Columns.Single(c => c.ColumnName == columnName);
         }
 

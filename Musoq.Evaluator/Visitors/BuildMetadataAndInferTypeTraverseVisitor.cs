@@ -8,12 +8,12 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class BuildMetadataAndInferTypeTraverseVisitor : IExpressionVisitor
+    public class BuildMetadataAndInferTypeTraverseVisitor : IQueryPartAwareExpressionVisitor
     {
         private readonly Stack<Scope> _scopes = new Stack<Scope>();
-        private readonly IScopeAwareExpressionVisitor _visitor;
+        private readonly IAwareExpressionVisitor _visitor;
 
-        public BuildMetadataAndInferTypeTraverseVisitor(IScopeAwareExpressionVisitor visitor)
+        public BuildMetadataAndInferTypeTraverseVisitor(IAwareExpressionVisitor visitor)
         {
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         }
@@ -22,6 +22,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SelectNode node)
         {
+            SetQueryPart(QueryPart.Select);
             foreach (var field in node.Fields)
                 field.Accept(this);
             node.Accept(_visitor);
@@ -154,12 +155,15 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(WhereNode node)
         {
+            SetQueryPart(QueryPart.Where);
             node.Expression.Accept(this);
             node.Accept(_visitor);
         }
 
         public void Visit(GroupByNode node)
         {
+            SetQueryPart(QueryPart.GroupBy);
+
             foreach (var field in node.Fields)
                 field.Accept(this);
 
@@ -169,6 +173,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(HavingNode node)
         {
+            SetQueryPart(QueryPart.Having);
             node.Expression.Accept(this);
             node.Accept(_visitor);
         }
@@ -185,6 +190,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
+            SetQueryPart(QueryPart.From);
             node.SourceTable.Accept(this);
             node.Expression.Accept(this);
             node.Accept(_visitor);
@@ -192,12 +198,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
+            SetQueryPart(QueryPart.From);
             node.Parameters.Accept(this);
             node.Accept(_visitor);
         }
 
         public void Visit(JoinSourcesTableFromNode node)
         {
+            SetQueryPart(QueryPart.From);
             node.Expression.Accept(this);
             node.First.Accept(this);
             node.Second.Accept(this);
@@ -207,11 +215,13 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(InMemoryTableFromNode node)
         {
+            SetQueryPart(QueryPart.From);
             node.Accept(_visitor);
         }
 
         public void Visit(JoinFromNode node)
         {
+            SetQueryPart(QueryPart.From);
             var joins = new Stack<JoinFromNode>();
 
             var join = node;
@@ -256,12 +266,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(ExpressionFromNode node)
         {
+            SetQueryPart(QueryPart.From);
             node.Expression.Accept(this);
             node.Accept(_visitor);
         }
 
         public void Visit(CreateTableNode node)
         {
+            SetQueryPart(QueryPart.None);
             foreach (var item in node.Fields)
                 item.Accept(this);
 
@@ -317,6 +329,7 @@ namespace Musoq.Evaluator.Visitors
             node.OrderBy?.Accept(this);
             node.Accept(_visitor);
             RestoreScope();
+            SetQueryPart(QueryPart.None);
         }
 
         public void Visit(OrNode node)
@@ -611,6 +624,11 @@ namespace Musoq.Evaluator.Visitors
             node.Right.Accept(this);
             node.Accept(_visitor);
             RestoreScope();
+        }
+
+        public void SetQueryPart(QueryPart part)
+        {
+            _visitor.SetQueryPart(part);
         }
     }
 }

@@ -16,7 +16,7 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class BuildMetadataAndInferTypeVisitor : IScopeAwareExpressionVisitor
+    public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     {
         private readonly ISchemaProvider _provider;
 
@@ -30,6 +30,8 @@ namespace Musoq.Evaluator.Visitors
         private string _queryAlias;
 
         private int _setKey;
+        private QueryPart _queryPart;
+
         private Stack<string> Methods { get; } = new Stack<string>();
 
         public BuildMetadataAndInferTypeVisitor(ISchemaProvider provider)
@@ -720,8 +722,8 @@ namespace Musoq.Evaluator.Visitors
         {
             var set = Nodes.Pop();
 
-            var collector = new SelectFieldsCollectVisitor();
-            var traverser = new CloneTraverseVisitor(collector);
+            var collector = new GetSelectFieldsVisitor();
+            var traverser = new GetSelectFieldsTraverseVisitor(collector);
 
             set.Accept(traverser);
 
@@ -876,6 +878,11 @@ namespace Musoq.Evaluator.Visitors
                 fields[i] = (FieldOrderedNode)Nodes.Pop();
 
             Nodes.Push(new OrderByNode(fields));
+        }
+
+        public void SetQueryPart(QueryPart part)
+        {
+            _queryPart = part;
         }
     }
 }

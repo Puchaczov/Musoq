@@ -21,7 +21,20 @@ namespace Musoq.Evaluator.Tables
             return _nameToIndexMap.ContainsKey(name);
         }
 
-        object IObjectResolver.this[string name] => _row[_nameToIndexMap[name]];
+        object IObjectResolver.this[string name]
+        {
+            get
+            {
+#if DEBUG
+                if (!_nameToIndexMap.ContainsKey(name))
+                    throw new System.Exception(name);
+                
+                return _row[_nameToIndexMap[name]];
+#else
+                return _row[_nameToIndexMap[name]];
+#endif
+            }
+        }
 
         object IObjectResolver.this[int index] => _row[index];
     }

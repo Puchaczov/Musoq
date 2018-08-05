@@ -18,11 +18,6 @@ namespace Musoq.Evaluator
             return new Regex(pattern).IsMatch(content);
         }
 
-        public bool Constains(string value, string[] values)
-        {
-            return Contains(value, values);
-        }
-
         public bool Contains<T>(T value, T[] values)
         {
             return values.Contains(value);

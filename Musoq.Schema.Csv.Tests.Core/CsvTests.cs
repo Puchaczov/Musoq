@@ -294,6 +294,172 @@ namespace Musoq.Schema.Csv.Tests.Core
             Assert.AreEqual(4m, table[23][3]);
         }
 
+        [TestMethod]
+        public void RichStatsFakeBankFile1Test()
+        {
+            var query = @"
+with BasicIndicators as (
+	select 
+		ExtractFromDate(DateTime, 'month') as 'Month', 
+		ClusteredByContainsKey('./Files/Categories.txt', ChargeName) as 'Category', 
+		SumIncome(ToDecimal(Amount)) as Income, 
+		SumIncome(1, ToDecimal(Amount)) as 'MonthlyIncome',
+		Round(PercentOf(Abs(SumOutcome(ToDecimal(Amount))), SumIncome(1, ToDecimal(Amount))), 2) as 'PercOfOutForOvInc',	
+		SumOutcome(ToDecimal(Amount)) as Outcome, 
+		SumOutcome(1, ToDecimal(Amount)) as 'MonthlyOutcome',
+		SumIncome(1, ToDecimal(Amount)) + SumOutcome(1, ToDecimal(Amount)) as 'MoneysLeft',
+		SumIncome(2, ToDecimal(Amount)) + SumOutcome(2, ToDecimal(Amount)) as 'OvMoneysLeft'
+	from #csv.file('./Files/FakeBankingTransactions.csv', ',', true, 0) as csv
+	group by 
+		ExtractFromDate(DateTime, 'month'), 
+		ClusteredByContainsKey('./Files/Categories.txt', ChargeName)
+), AggregatedCategories as (
+	select Category, Sum(Outcome) as 'CategoryOutcome' from BasicIndicators group by Category
+)
+select
+	bi.Month as Month,
+	bi.Category as Category,
+	bi.Income as Income,
+	bi.MonthlyIncome as 'Monthly Income',
+	bi.PercOfOutForOvInc as '% Of Out. for ov. inc.',
+	bi.Outcome as Outcome,
+	bi.MonthlyOutcome as 'Monthly Outcome',
+	bi.MoneysLeft as 'Moneys Left',
+	bi.OvMoneysLeft as 'Ov. Moneys Left',
+	ac.CategoryOutcome as 'Ov. Categ. Outcome'
+from BasicIndicators bi inner join AggregatedCategories ac on bi.Category = ac.Category";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(10, table.Columns.Count());
+
+            Assert.AreEqual("Month", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnOrder);
+
+            Assert.AreEqual("Category", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnOrder);
+
+            Assert.AreEqual("Income", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
+            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnOrder);
+
+            Assert.AreEqual("Monthly Income", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(3).ColumnType);
+            Assert.AreEqual(3, table.Columns.ElementAt(3).ColumnOrder);
+
+            Assert.AreEqual("% Of Out. for ov. inc.", table.Columns.ElementAt(4).Name);
+            Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(4).ColumnType);
+            Assert.AreEqual(4, table.Columns.ElementAt(4).ColumnOrder);
+
+            Assert.AreEqual("Outcome", table.Columns.ElementAt(5).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(5).ColumnType);
+            Assert.AreEqual(5, table.Columns.ElementAt(5).ColumnOrder);
+
+            Assert.AreEqual("Monthly Outcome", table.Columns.ElementAt(6).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(6).ColumnType);
+            Assert.AreEqual(6, table.Columns.ElementAt(6).ColumnOrder);
+
+            Assert.AreEqual("Moneys Left", table.Columns.ElementAt(7).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(7).ColumnType);
+            Assert.AreEqual(7, table.Columns.ElementAt(7).ColumnOrder);
+
+            Assert.AreEqual("Ov. Moneys Left", table.Columns.ElementAt(8).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(8).ColumnType);
+            Assert.AreEqual(8, table.Columns.ElementAt(8).ColumnOrder);
+
+            Assert.AreEqual("Ov. Categ. Outcome", table.Columns.ElementAt(9).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(9).ColumnType);
+            Assert.AreEqual(9, table.Columns.ElementAt(9).ColumnOrder);
+
+            Assert.AreEqual(48, table.Count);
+        }
+
+        [TestMethod]
+        public void RichStatsFakeBankFile2Test()
+        {
+            var query = @"
+with BasicIndicators as (
+	select 
+		ExtractFromDate(DateTime, 'month') as 'Month', 
+		ClusteredByContainsKey('./Files/Categories.txt', ChargeName) as 'Category', 
+		SumIncome(ToDecimal(Amount)) as Income, 
+		SumIncome(1, ToDecimal(Amount)) as 'MonthlyIncome',
+		Round(PercentOf(Abs(SumOutcome(ToDecimal(Amount))), SumIncome(1, ToDecimal(Amount))), 2) as 'PercOfOutForOvInc',	
+		SumOutcome(ToDecimal(Amount)) as Outcome, 
+		SumOutcome(1, ToDecimal(Amount)) as 'MonthlyOutcome',
+		SumIncome(1, ToDecimal(Amount)) + SumOutcome(1, ToDecimal(Amount)) as 'MoneysLeft',
+		SumIncome(2, ToDecimal(Amount)) + SumOutcome(2, ToDecimal(Amount)) as 'OvMoneysLeft'
+	from #csv.file('./Files/FakeBankingTransactions.csv', ',', true, 0) as csv
+	group by 
+		ExtractFromDate(DateTime, 'month'), 
+		ClusteredByContainsKey('./Files/Categories.txt', ChargeName)
+), AggregatedCategories as (
+	select Category, Sum(Outcome) as 'CategoryOutcome' from BasicIndicators group by Category
+)
+select
+	BasicIndicators.Month,
+	BasicIndicators.Category,
+	BasicIndicators.Income,
+	BasicIndicators.MonthlyIncome as 'Monthly Income',
+	BasicIndicators.PercOfOutForOvInc as '% Of Out. for ov. inc.',
+	BasicIndicators.Outcome,
+	BasicIndicators.MonthlyOutcome as 'Monthly Outcome',
+	BasicIndicators.MoneysLeft as 'Moneys Left',
+	BasicIndicators.OvMoneysLeft as 'Ov. Moneys Left',
+	AggregatedCategories.CategoryOutcome as 'Ov. Categ. Outcome'
+from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category = AggregatedCategories.Category";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(10, table.Columns.Count());
+
+            Assert.AreEqual("BasicIndicators.Month", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnOrder);
+
+            Assert.AreEqual("BasicIndicators.Category", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnOrder);
+
+            Assert.AreEqual("BasicIndicators.Income", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
+            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnOrder);
+
+            Assert.AreEqual("Monthly Income", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(3).ColumnType);
+            Assert.AreEqual(3, table.Columns.ElementAt(3).ColumnOrder);
+
+            Assert.AreEqual("% Of Out. for ov. inc.", table.Columns.ElementAt(4).Name);
+            Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(4).ColumnType);
+            Assert.AreEqual(4, table.Columns.ElementAt(4).ColumnOrder);
+
+            Assert.AreEqual("BasicIndicators.Outcome", table.Columns.ElementAt(5).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(5).ColumnType);
+            Assert.AreEqual(5, table.Columns.ElementAt(5).ColumnOrder);
+
+            Assert.AreEqual("Monthly Outcome", table.Columns.ElementAt(6).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(6).ColumnType);
+            Assert.AreEqual(6, table.Columns.ElementAt(6).ColumnOrder);
+
+            Assert.AreEqual("Moneys Left", table.Columns.ElementAt(7).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(7).ColumnType);
+            Assert.AreEqual(7, table.Columns.ElementAt(7).ColumnOrder);
+
+            Assert.AreEqual("Ov. Moneys Left", table.Columns.ElementAt(8).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(8).ColumnType);
+            Assert.AreEqual(8, table.Columns.ElementAt(8).ColumnOrder);
+
+            Assert.AreEqual("Ov. Categ. Outcome", table.Columns.ElementAt(9).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(9).ColumnType);
+            Assert.AreEqual(9, table.Columns.ElementAt(9).ColumnOrder);
+
+            Assert.AreEqual(48, table.Count);
+        }
+
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new CsvSchemaProvider());
