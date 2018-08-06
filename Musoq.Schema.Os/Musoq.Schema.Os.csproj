@@ -3,6 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.5.0</Version>
+    <Authors>Jakub Puchała</Authors>
+    <Product>Musoq</Product>
+    <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Puchaczov/Musoq/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageTags>sql, csv, dotnet-core</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

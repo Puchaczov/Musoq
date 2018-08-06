@@ -153,7 +153,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         }
 
         [TestMethod]
-        public void InneJoinTest()
+        public void InnerJoinTest()
         {
             var query = "select persons.Name, persons.Surname, grades.Subject, grades.ToDecimal(grades.Grade) from #csv.file('./Files/Persons.csv', ',', true, 0) persons inner join #csv.file('./Files/Gradebook.csv', ',', true, 0) grades on persons.Id = grades.PersonId";
 
