@@ -14,13 +14,15 @@ namespace Musoq.Schema.Csv
         private readonly string _separator;
         private readonly bool _hasHeader;
         private readonly int _skipLines;
+        private readonly InterCommunicator _communicator;
 
-        public CsvSource(string filePath, string separator, bool hasHeader, int skipLines)
+        public CsvSource(string filePath, string separator, bool hasHeader, int skipLines, InterCommunicator communicator)
         {
             _filePath = filePath;
             _separator = separator;
             _hasHeader = hasHeader;
             _skipLines = skipLines;
+            _communicator = communicator;
         }
 
         protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<string[]>>> chunkedSource)
@@ -35,6 +37,7 @@ namespace Musoq.Schema.Csv
 
             var nameToIndexMap = new Dictionary<string, int>();
             var indexToMethodAccess = new Dictionary<int, Func<string[], object>>();
+            var endWorkToken = _communicator.EndWorkToken;
 
             using (var stream = CreateStreamFromFile(file))
             {
@@ -93,11 +96,11 @@ namespace Musoq.Schema.Csv
 
                             rowsToRead = rowsToReadBase * j;
                             
-                            chunkedSource.Add(list);
+                            chunkedSource.Add(list, endWorkToken);
                             list = new List<EntityResolver<string[]>>(rowsToRead);
                         }
 
-                        chunkedSource.Add(list);
+                        chunkedSource.Add(list, endWorkToken);
                     }
                 }
             }

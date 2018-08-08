@@ -8,10 +8,12 @@ namespace Musoq.Schema.Os.Files
 {
     public class FilesSource : RowSourceBase<FileInfo>
     {
+        private readonly InterCommunicator _communicator;
         private readonly DirectorySourceSearchOptions _source;
 
-        public FilesSource(string path, bool useSubDirectories)
+        public FilesSource(string path, bool useSubDirectories, InterCommunicator communicator)
         {
+            _communicator = communicator;
             _source = new DirectorySourceSearchOptions(path, useSubDirectories);
         }
 
@@ -21,6 +23,8 @@ namespace Musoq.Schema.Os.Files
 
             if(!Directory.Exists(_source.Path))
                 return;
+
+            var endWorkToken = _communicator.EndWorkToken;
 
             sources.Push(_source);
 
@@ -42,7 +46,7 @@ namespace Musoq.Schema.Os.Files
                     continue;
                 }
 
-                chunkedSource.Add(dirFiles);
+                chunkedSource.Add(dirFiles, endWorkToken);
 
                 if (source.WithSubDirectories)
                     foreach (var subDir in dir.GetDirectories())

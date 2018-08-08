@@ -1,9 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
 using Newtonsoft.Json.Linq;
+using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.Json.Tests.Core
 {
@@ -92,6 +95,29 @@ namespace Musoq.Schema.Json.Tests.Core
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("1, 2, 3", table[0].Values[0]);
             Assert.AreEqual(string.Empty, table[1].Values[0]);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(OperationCanceledException))]
+        public void JsonSource_CancelledLoadTest()
+        {
+            var tokenSource = new CancellationTokenSource();
+            tokenSource.Cancel();
+            var source = new JsonSource("./JsonTestFile_First.json", new InterCommunicator(tokenSource.Token));
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(0, fired);
+        }
+
+        [TestMethod]
+        public void JsonSource_FullLoadTest()
+        {
+            var source = new JsonSource("./JsonTestFile_First.json", InterCommunicator.Empty);
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(3, fired);
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)

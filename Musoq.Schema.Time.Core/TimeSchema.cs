@@ -21,13 +21,13 @@ namespace Musoq.Schema.Time
             throw new NotSupportedException($"Table {name} not found.");
         }
 
-        public override RowSource GetRowSource(string name, params object[] parameters)
+        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
                 case "interval":
                     return new TimeSource(DateTimeOffset.Parse((string)parameters[0]), DateTimeOffset.Parse((string)parameters[1]),
-                        (string)parameters[2]);
+                        (string)parameters[2], interCommunicator);
             }
 
             throw new NotSupportedException($"Table {name} not found.");

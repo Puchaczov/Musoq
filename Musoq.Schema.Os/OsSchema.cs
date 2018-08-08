@@ -42,18 +42,18 @@ namespace Musoq.Schema.Os
             throw new NotSupportedException();
         }
 
-        public override RowSource GetRowSource(string name, params object[] parameters)
+        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
                 case FilesTable:
-                    return new FilesSource((string)parameters[0], (bool)parameters[1]);
+                    return new FilesSource((string)parameters[0], (bool)parameters[1], interCommunicator);
                 case DirectoriesTable:
-                    return new DirectoriesSource((string)parameters[0], (bool)parameters[1]);
+                    return new DirectoriesSource((string)parameters[0], (bool)parameters[1], interCommunicator);
                 case ZipTable:
-                    return new ZipSource((string)parameters[0]);
+                    return new ZipSource((string)parameters[0], interCommunicator);
                 case ProcessesName:
-                    return new ProcessesSource();
+                    return new ProcessesSource(interCommunicator);
                 case Self:
                     return new OsSource();
             }
@@ -66,7 +66,7 @@ namespace Musoq.Schema.Os
             var methodsManager = new MethodsManager();
             var propertiesManager = new PropertiesManager();
 
-            var library = new DiskLibrary();
+            var library = new OsLibrary();
 
             methodsManager.RegisterLibraries(library);
             propertiesManager.RegisterProperties(library);

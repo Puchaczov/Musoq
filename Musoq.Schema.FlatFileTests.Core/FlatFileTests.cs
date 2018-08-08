@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
@@ -43,6 +44,32 @@ namespace Musoq.Schema.FlatFileTests.Core
 
             Assert.AreEqual(6, table[5].Values[0]);
             Assert.AreEqual("linexx", table[5].Values[1]);
+        }
+
+        [TestMethod]
+        public void FlatFileSource_CancelledLoadTest()
+        {
+            var endWorkTokenSource = new CancellationTokenSource();
+            endWorkTokenSource.Cancel();
+            var schema = new FlatFileSource("./TestMultilineFile.txt", new InterCommunicator(endWorkTokenSource.Token));
+
+            int fires = 0;
+            foreach (var item in schema.Rows)
+                fires += 1;
+
+            Assert.AreEqual(0, fires);
+        }
+
+        [TestMethod]
+        public void FlatFileSource_FullLoadTest()
+        {
+            var schema = new FlatFileSource("./TestMultilineFile.txt", InterCommunicator.Empty);
+
+            int fires = 0;
+            foreach (var item in schema.Rows)
+                fires += 1;
+
+            Assert.AreEqual(6, fires);
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)

@@ -2,11 +2,13 @@
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Os.Directories;
 using Musoq.Schema.Os.Files;
 using Musoq.Schema.Os.Tests.Core.Utils;
 using Environment = Musoq.Plugins.Environment;
@@ -146,7 +148,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void FilesSourceIterateDirectoriesTest()
         {
-            var source = new TestFilesSource("./Directories", false);
+            var source = new TestFilesSource("./Directories", false, InterCommunicator.Empty);
 
             var folders = source.GetFiles();
 
@@ -158,7 +160,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void FilesSourceIterateWithNestedDirectoriesTest()
         {
-            var source = new TestFilesSource("./Directories", true);
+            var source = new TestFilesSource("./Directories", true, InterCommunicator.Empty);
 
             var folders = source.GetFiles();
 
@@ -173,7 +175,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void DirectoriesSourceIterateDirectoriesTest()
         {
-            var source = new TestDirectoriesSource("./Directories", false);
+            var source = new TestDirectoriesSource("./Directories", false, InterCommunicator.Empty);
 
             var directories = source.GetDirectories();
 
@@ -186,7 +188,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void TestDirectoriesSourceIterateWithNestedDirectories()
         {
-            var source = new TestDirectoriesSource("./Directories", true);
+            var source = new TestDirectoriesSource("./Directories", true, InterCommunicator.Empty);
 
             var directories = source.GetDirectories();
 
@@ -200,7 +202,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void NonExistingDirectoryTest()
         {
-            var source = new TestDirectoriesSource("./Some/Non/Existing/Path", true);
+            var source = new TestDirectoriesSource("./Some/Non/Existing/Path", true, InterCommunicator.Empty);
 
             var directories = source.GetDirectories();
 
@@ -210,11 +212,55 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void NonExisitngFileTest()
         {
-            var source = new TestFilesSource("./Some/Non/Existing/Path.pdf", true);
+            var source = new TestFilesSource("./Some/Non/Existing/Path.pdf", true, InterCommunicator.Empty);
 
             var directories = source.GetFiles();
 
             Assert.AreEqual(0, directories.Count);
+        }
+
+        [TestMethod]
+        public void DirectoriesSource_CancelledLoadTest()
+        {
+            var tokenSource = new CancellationTokenSource();
+            tokenSource.Cancel();
+            var source = new DirectoriesSource("./Directories", true, new InterCommunicator(tokenSource.Token));
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(0, fired);
+        }
+
+        [TestMethod]
+        public void DirectoriesSource_FullLoadTest()
+        {
+            var source = new DirectoriesSource("./Directories", true, InterCommunicator.Empty);
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(3, fired);
+        }
+
+        [TestMethod]
+        public void FilesSource_CancelledLoadTest()
+        {
+            var tokenSource = new CancellationTokenSource();
+            tokenSource.Cancel();
+            var source = new FilesSource("./Directories", true, new InterCommunicator(tokenSource.Token));
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(0, fired);
+        }
+
+        [TestMethod]
+        public void FilesSource_FullLoadTest()
+        {
+            var source = new FilesSource("./Directories", true, InterCommunicator.Empty);
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(4, fired);
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)

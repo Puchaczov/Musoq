@@ -17,7 +17,7 @@ namespace Musoq.Schema.Os
 {
     [BindableClass]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    public class DiskLibrary : LibraryBase
+    public class OsLibrary : LibraryBase
     {
         [BindableMethod]
         public string Sha1File([InjectSource] FileInfo file)

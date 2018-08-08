@@ -8,24 +8,30 @@ namespace Musoq.Schema.Os.Zip
     public class ZipSource : RowSource
     {
         private readonly string _zipPath;
+        private readonly InterCommunicator _communicator;
 
-        public ZipSource(string zipPath)
+        public ZipSource(string zipPath, InterCommunicator communicator)
         {
             _zipPath = zipPath;
+            _communicator = communicator;
         }
 
         public override IEnumerable<IObjectResolver> Rows
         {
             get
             {
+                var endWorkToken = _communicator.EndWorkToken;
                 using (var file = File.OpenRead(_zipPath))
                 {
                     using (var zip = new ZipArchive(file))
                     {
                         foreach (var entry in zip.Entries)
+                        {
+                            endWorkToken.ThrowIfCancellationRequested();
                             if (entry.Name != string.Empty)
                                 yield return new EntityResolver<ZipArchiveEntry>(entry, SchemaZipHelper.NameToIndexMap,
                                     SchemaZipHelper.IndexToMethodAccessMap);
+                        }
                     }
                 }
             }

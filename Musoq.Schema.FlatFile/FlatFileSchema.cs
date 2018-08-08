@@ -24,12 +24,12 @@ namespace Musoq.Schema.FlatFile
             throw new TableNotFoundException(nameof(name));
         }
 
-        public override RowSource GetRowSource(string name, params object[] parameters)
+        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
                 case "file":
-                    return new FlatFileSource((string)parameters[0]);
+                    return new FlatFileSource((string)parameters[0], interCommunicator);
             }
 
             throw new SourceNotFoundException(nameof(name));

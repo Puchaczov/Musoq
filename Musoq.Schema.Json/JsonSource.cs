@@ -11,16 +11,19 @@ namespace Musoq.Schema.Json
     public class JsonSource : RowSource
     {
         private readonly string _filePath;
+        private readonly InterCommunicator _communicator;
 
-        public JsonSource(string filePath)
+        public JsonSource(string filePath, InterCommunicator communicator)
         {
             _filePath = filePath;
+            _communicator = communicator;
         }
 
         public override IEnumerable<IObjectResolver> Rows
         {
             get
             {
+                var endWorkToken = _communicator.EndWorkToken;
                 using (var file = File.OpenRead(_filePath))
                 {
                     using (JsonReader reader = new JsonTextReader(new StreamReader(file)))
@@ -42,6 +45,8 @@ namespace Musoq.Schema.Json
 
                         if (rows == null)
                             throw new NotSupportedException("This type of .json file is not supported.");
+
+                        endWorkToken.ThrowIfCancellationRequested();
 
                         foreach (var row in rows)
                             yield return row;

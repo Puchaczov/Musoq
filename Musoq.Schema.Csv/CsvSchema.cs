@@ -1,5 +1,6 @@
 ﻿using System;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 
 namespace Musoq.Schema.Csv
@@ -25,13 +26,13 @@ namespace Musoq.Schema.Csv
             throw new NotSupportedException();
         }
 
-        public override RowSource GetRowSource(string name, params object[] parameters)
+        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {
                 case FileTable:
                     parameters[3] = Convert.ToInt32(parameters[3]);
-                    return (CsvSource) Activator.CreateInstance(typeof(CsvSource), parameters);
+                    return (CsvSource) Activator.CreateInstance(typeof(CsvSource), parameters.ExpandParameters(interCommunicator));
             }
 
             throw new NotSupportedException();

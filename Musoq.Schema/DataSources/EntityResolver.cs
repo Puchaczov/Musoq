@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Musoq.Schema.DataSources
 {
+#if DEBUG
+    [DebuggerDisplay("{" + nameof(DebugString) + "()}")]
+#endif
     public class EntityResolver<T> : IObjectResolver
     {
         private readonly T _entitiy;
@@ -29,5 +33,12 @@ namespace Musoq.Schema.DataSources
         {
             return _nameToIndexMap.ContainsKey(name);
         }
+
+#if DEBUG
+        public string DebugString()
+        {
+            return $"{_entitiy.ToString()}";
+        }
+#endif
     }
 }

@@ -28,7 +28,7 @@ namespace Musoq.Schema.Git
             throw new NotSupportedException(name);
         }
 
-        public override RowSource GetRowSource(string name, params object[] parameters)
+        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
         {
             switch (name)
             {

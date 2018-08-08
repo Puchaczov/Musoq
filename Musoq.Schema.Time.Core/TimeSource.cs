@@ -8,14 +8,40 @@ namespace Musoq.Schema.Time
     public class TimeSource : RowSourceBase<DateTimeOffset>
     {
         private readonly string _resolution;
+        private readonly InterCommunicator _communicator;
         private readonly DateTimeOffset _startAt;
         private readonly DateTimeOffset _stopAt;
 
-        public TimeSource(DateTimeOffset startAt, DateTimeOffset stopAt, string resolution)
+        public TimeSource(DateTimeOffset startAt, DateTimeOffset stopAt, string resolution, InterCommunicator communicator)
         {
             _startAt = startAt;
-            _stopAt = stopAt;
-            _resolution = resolution;
+            _resolution = resolution.ToLowerInvariant();
+
+            switch (_resolution)
+            {
+                case "seconds":
+                    _stopAt = stopAt.Add(TimeSpan.FromMilliseconds(1));
+                    break;
+                case "minutes":
+                    _stopAt = stopAt.AddSeconds(1);
+                    break;
+                case "hours":
+                    _stopAt = stopAt.AddMinutes(1);
+                    break;
+                case "days":
+                    _stopAt = stopAt.AddHours(1);
+                    break;
+                case "months":
+                    _stopAt = stopAt.AddDays(1);
+                    break;
+                case "years":
+                    _stopAt = stopAt.AddMonths(1);
+                    break;
+                default:
+                    throw new NotSupportedException($"Chosen resolution '{_resolution}' is not supported.");
+            }
+
+            _communicator = communicator;
         }
 
         protected override void CollectChunks(
@@ -49,6 +75,7 @@ namespace Musoq.Schema.Time
             var listOfCalcTimes = new List<EntityResolver<DateTimeOffset>>();
             var currentTime = _startAt;
             var i = 0;
+            var endWorkToken = _communicator.EndWorkToken;
 
             while (currentTime <= _stopAt)
             {
@@ -59,12 +86,12 @@ namespace Musoq.Schema.Time
                 if (i++ > 99)
                     continue;
 
-                chunkedSource.Add(listOfCalcTimes);
+                chunkedSource.Add(listOfCalcTimes, endWorkToken);
                 listOfCalcTimes = new List<EntityResolver<DateTimeOffset>>();
                 i = 0;
             }
 
-            chunkedSource.Add(listOfCalcTimes);
+            chunkedSource.Add(listOfCalcTimes, endWorkToken);
         }
     }
 }

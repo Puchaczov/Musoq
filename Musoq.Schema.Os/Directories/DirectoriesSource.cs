@@ -7,10 +7,12 @@ namespace Musoq.Schema.Os.Directories
 {
     public class DirectoriesSource : RowSourceBase<DirectoryInfo>
     {
+        private readonly InterCommunicator _communicator;
         private readonly DirectorySourceSearchOptions _source;
 
-        public DirectoriesSource(string path, bool recursive)
+        public DirectoriesSource(string path, bool recursive, InterCommunicator communicator)
         {
+            _communicator = communicator;
             _source = new DirectorySourceSearchOptions(path, recursive);
         }
 
@@ -21,6 +23,8 @@ namespace Musoq.Schema.Os.Directories
 
             if(!Directory.Exists(_source.Path))
                 return;
+
+            var endWorkToken = _communicator.EndWorkToken;
 
             sources.Push(_source);
 
@@ -35,7 +39,7 @@ namespace Musoq.Schema.Os.Directories
                     chunk.Add(new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap,
                         SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap));
 
-                chunkedSource.Add(chunk);
+                chunkedSource.Add(chunk, endWorkToken);
 
                 if (!source.WithSubDirectories) continue;
 

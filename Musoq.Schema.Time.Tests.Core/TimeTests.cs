@@ -1,7 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
+using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.Time.Tests.Core
 {
@@ -16,7 +20,35 @@ namespace Musoq.Schema.Time.Tests.Core
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
+            Assert.AreEqual(30, table.Count);
+
             for (var i = 1; i <= 30; i++) Assert.AreEqual(i, table[i - 1][0]);
+        }
+
+        [TestMethod]
+        public void TimeSource_CancelledLoadTest()
+        {
+            var tokenSource = new CancellationTokenSource();
+            tokenSource.Cancel();
+            var now = DateTimeOffset.Now;
+            var nextHour = now.AddHours(1);
+            var source = new TimeSource(now, nextHour, "minutes", new InterCommunicator(tokenSource.Token));
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(0, fired);
+        }
+
+        [TestMethod]
+        public void TimeSource_FullLoadTest()
+        {
+            var now = DateTimeOffset.Parse("01/01/2000");
+            var nextHour = now.AddHours(1);
+            var source = new TimeSource(now, nextHour, "minutes", InterCommunicator.Empty);
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(61, fired);
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)

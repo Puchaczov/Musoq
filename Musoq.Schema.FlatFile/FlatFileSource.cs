@@ -8,14 +8,15 @@ namespace Musoq.Schema.FlatFile
     public class FlatFileSource : RowSourceBase<FlatFileEntity>
     {
         private readonly string _filePath;
+        private readonly InterCommunicator _communicator;
 
-        public FlatFileSource(string filePath)
+        public FlatFileSource(string filePath, InterCommunicator communicator)
         {
             _filePath = filePath;
+            _communicator = communicator;
         }
 
-        protected override void CollectChunks(
-            BlockingCollection<IReadOnlyList<EntityResolver<FlatFileEntity>>> chunkedSource)
+        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<FlatFileEntity>>> chunkedSource)
         {
             const int chunkSize = 1000;
 
@@ -23,6 +24,7 @@ namespace Musoq.Schema.FlatFile
                 return;
 
             var rowNum = 0;
+            var endWorkToken = _communicator.EndWorkToken;
 
             using (var file = File.OpenRead(_filePath))
             {
@@ -46,12 +48,12 @@ namespace Musoq.Schema.FlatFile
                             continue;
 
                         rowNum = 0;
-                        chunkedSource.Add(list);
+                        chunkedSource.Add(list, endWorkToken);
 
                         list = new List<EntityResolver<FlatFileEntity>>(chunkSize);
                     }
 
-                    chunkedSource.Add(list);
+                    chunkedSource.Add(list, endWorkToken);
                 }
             }
         }

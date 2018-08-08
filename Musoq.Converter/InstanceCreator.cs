@@ -71,14 +71,14 @@ namespace Musoq.Converter
                 items.Compilation?.SyntaxTrees.ElementAt(0).GetRoot().WriteTo(writer);
             }
 
-            using (var file = new StreamWriter(File.OpenWrite(csPath)))
+            using (var file = new StreamWriter(File.Open(csPath, FileMode.Create)))
             {
                 file.Write(builder.ToString());
             }
 
             if (items.DllFile != null && items.DllFile.Length > 0)
             {
-                using (var file = new BinaryWriter(File.OpenWrite(assemblyPath)))
+                using (var file = new BinaryWriter(File.Open(assemblyPath, FileMode.Create)))
                 {
                     if (items.DllFile != null)
                         file.Write(items.DllFile);
@@ -87,7 +87,7 @@ namespace Musoq.Converter
 
             if (items.PdbFile != null && items.PdbFile.Length > 0)
             {
-                using (var file = new BinaryWriter(File.OpenWrite(pdbPath)))
+                using (var file = new BinaryWriter(File.Open(pdbPath, FileMode.Create)))
                 {
                     if (items.PdbFile != null)
                         file.Write(items.PdbFile);

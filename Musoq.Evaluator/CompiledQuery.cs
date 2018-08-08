@@ -16,7 +16,10 @@ namespace Musoq.Evaluator
 
         public Table Run()
         {
-             return Run(CancellationToken.None);
+            var exitSourcesLoaderTokenSource = new CancellationTokenSource();
+            var table = Run(exitSourcesLoaderTokenSource.Token);
+            exitSourcesLoaderTokenSource.Cancel();
+            return table;
         }
 
         public Table Run(CancellationToken token)

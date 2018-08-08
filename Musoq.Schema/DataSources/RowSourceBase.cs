@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 
 namespace Musoq.Schema.DataSources
@@ -13,7 +12,7 @@ namespace Musoq.Schema.DataSources
             get
             {
                 var chunkedSource = new BlockingCollection<IReadOnlyList<EntityResolver<T>>>();
-                var tokenSource = new CancellationTokenSource();
+                var workFinishedSignalizer = new CancellationTokenSource();
 
                 var thread = new Thread(() =>
                 {
@@ -21,16 +20,17 @@ namespace Musoq.Schema.DataSources
                     {
                         CollectChunks(chunkedSource);
                     }
+                    catch (OperationCanceledException) { }
                     finally
                     {
                         chunkedSource.Add(new List<EntityResolver<T>>());
-                        tokenSource.Cancel();
+                        workFinishedSignalizer.Cancel();
                     }
                 });
 
                 thread.Start();
 
-                return new ChunkedSource<T>(chunkedSource, tokenSource.Token);
+                return new ChunkedSource<T>(chunkedSource, workFinishedSignalizer.Token);
             }
         }
 

@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
+using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.Csv.Tests.Core
 {
@@ -155,7 +158,14 @@ namespace Musoq.Schema.Csv.Tests.Core
         [TestMethod]
         public void InnerJoinTest()
         {
-            var query = "select persons.Name, persons.Surname, grades.Subject, grades.ToDecimal(grades.Grade) from #csv.file('./Files/Persons.csv', ',', true, 0) persons inner join #csv.file('./Files/Gradebook.csv', ',', true, 0) grades on persons.Id = grades.PersonId";
+            var query = @"
+select 
+    persons.Name, 
+    persons.Surname, 
+    grades.Subject, 
+    grades.ToDecimal(grades.Grade) 
+from #csv.file('./Files/Persons.csv', ',', true, 0) persons 
+inner join #csv.file('./Files/Gradebook.csv', ',', true, 0) grades on persons.Id = grades.PersonId";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -458,6 +468,28 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
             Assert.AreEqual(9, table.Columns.ElementAt(9).ColumnOrder);
 
             Assert.AreEqual(48, table.Count);
+        }
+
+        [TestMethod]
+        public void CsvSource_CancelledLoadTest()
+        {
+            var tokenSource = new CancellationTokenSource();
+            tokenSource.Cancel();
+            var source = new CsvSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, new InterCommunicator(tokenSource.Token));
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(0, fired);
+        }
+
+        [TestMethod]
+        public void CsvSource_FullLoadTest()
+        {
+            var source = new CsvSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, InterCommunicator.Empty);
+
+            var fired = source.Rows.Count();
+
+            Assert.AreEqual(11, fired);
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)

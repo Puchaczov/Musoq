@@ -10,7 +10,7 @@ namespace Musoq.Schema
 
         ISchemaTable GetTableByName(string name, params object[] parameters);
 
-        RowSource GetRowSource(string name, params object[] parameters);
+        RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters);
 
         MethodInfo ResolveMethod(string method, Type[] parameters);
 

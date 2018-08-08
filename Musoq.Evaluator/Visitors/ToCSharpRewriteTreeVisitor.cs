@@ -956,6 +956,13 @@ namespace Musoq.Evaluator.Visitors
                     {
                         SyntaxHelper.StringLiteralArgument(node.Method),
                         SyntaxFactory.Argument(
+                            SyntaxFactory.ObjectCreationExpression(
+                                SyntaxFactory.IdentifierName(nameof(InterCommunicator)))
+                                .WithArgumentList(
+                                    SyntaxFactory.ArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Argument( SyntaxFactory.IdentifierName("token")))))),
+                        SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(
                                 nameof(Object),
                                 args.ToArray()))

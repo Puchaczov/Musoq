@@ -20,7 +20,7 @@ namespace Musoq.Evaluator.TemporarySchemas
             return _table;
         }
 
-        public override RowSource GetRowSource(string name, params object[] parameters)
+        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
         {
             return new TableMetadataSource(_columns);
         }
