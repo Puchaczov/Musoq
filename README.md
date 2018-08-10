@@ -81,6 +81,12 @@ Yes, it does. I was testing it on Ubuntu 18.04. If you tried to run it on differ
 
 You can easily plug-in your own data source. There is fairly simple plugin api that all sources uses. To read in details how to do it, jump into wiki section of this repo ![click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
 
+## Roughly about performance
+
+[![Maintenance](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)
+
+Tested on laptop with i7 7700HQ, 12 GB RAM, Windows 10, Main Disk (250 GB SSD), Secondary Disk (1TB HDD) where the files were placed. The query was counting how many rows does the files have. About the files, It was a single 6GB csv file with 11 columns. File had been splitted to reflect sizes you can observe in chart. It should hints you what data volume it can handle in what time.
+
 ## Plugins
 
 <table>
@@ -178,13 +184,6 @@ You can easily check it by typing a query that asks the source about columns it 
 ## Whats was the reason for creating it
 
 On the one hand, I needed something that allows me performing queries on my own bank account file, on the other hand something that simultaneously filters with respect to file names and their content. For some reason, I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writting" all scripts manually however I found it usefull to automate this process and as a result avoid wasting time to create it. Fast querying was my goal. At a second glance, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing script is redundant and all you have to do is to write a query and it will do the magic with your data source.
-
-## Features considered to be explored / implemented
-
-- Query parallelization
-- Case when syntax
-- Order by syntax
-- Nested queries (corellated and uncorellated)
 
 ## Please, be aware of
 
