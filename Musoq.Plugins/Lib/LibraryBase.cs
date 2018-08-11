@@ -21,19 +21,6 @@ namespace Musoq.Plugins
             new Dictionary<string, IDictionary<string, string>>();
 
         [AggregationGetMethod]
-        public decimal StringAsNumericSum([InjectGroup] Group group, string name)
-        {
-            return group.GetValue<decimal>(name);
-        }
-
-        [AggregationSetMethod]
-        public void SetStringAsNumericSum([InjectGroup] Group group, string name, string number)
-        {
-            var value = group.GetOrCreateValue<decimal>(name);
-            group.SetValue(name, value + ToDecimal(number));
-        }
-
-        [AggregationGetMethod]
         public decimal Max([InjectGroup] Group group, string name)
         {
             return group.GetValue<decimal>(name);
@@ -249,18 +236,6 @@ namespace Musoq.Plugins
             return Coalesce<long>(exp1, exp2, exp3);
         }
 
-        [BindableMethod]
-        public int Coalesce(int exp1, int exp2, int exp3)
-        {
-            return Coalesce<int>(exp1, exp2, exp3);
-        }
-
-        [BindableMethod]
-        public long Coalesce(short exp1, short exp2, short exp3)
-        {
-            return Coalesce<short>(exp1, exp2, exp3);
-        }
-
         private static T Coalesce<T>(T exp1, T exp2, T exp3)
         {
             if (!exp1.Equals(default(T)))
@@ -271,52 +246,6 @@ namespace Musoq.Plugins
                 return exp3;
 
             return default(T);
-        }
-
-        [BindableMethod]
-        public string Reduce(string value)
-        {
-            var spaces = 0;
-            var text = new StringBuilder();
-
-            foreach (var character in value)
-            {
-                if (character == ' ')
-                {
-                    spaces += 1;
-                }
-                else
-                {
-                    if (spaces > 0)
-                        spaces = 0;
-                }
-
-                if (character == ',')
-                    continue;
-
-                if (spaces > 1)
-                    continue;
-
-                text.Append(character);
-            }
-
-            var i = text.Length - 1;
-            while (text[i] == ' ')
-            {
-                text.Remove(i, 1);
-                i -= 1;
-            }
-
-            return text.ToString();
-        }
-
-        [BindableMethod]
-        public decimal? Round(decimal? value, long precision)
-        {
-            if (!value.HasValue)
-                return null;
-
-            return Math.Round(value.Value, (int) precision);
         }
 
         [BindableMethod]
@@ -450,15 +379,6 @@ namespace Musoq.Plugins
 
         [BindableMethod]
         public int? Abs(int? value)
-        {
-            if (!value.HasValue)
-                return null;
-
-            return Math.Abs(value.Value);
-        }
-
-        [BindableMethod]
-        public short? Abs(short? value)
         {
             if (!value.HasValue)
                 return null;
