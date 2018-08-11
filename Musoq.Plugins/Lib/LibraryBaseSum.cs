@@ -9,34 +9,40 @@ namespace Musoq.Plugins
     {
         [AggregationGetMethod]
         public decimal Sum([InjectGroup] Group group, string name)
+            => Sum(group, name, 0);
+
+        [AggregationGetMethod]
+        public decimal Sum([InjectGroup] Group group, string name, int parent)
         {
-            return group.GetValue<decimal>(name);
+            return GetParentGroup(group, parent).GetValue<decimal>(name);
         }
 
         [AggregationSetMethod]
-        public void SetSum([InjectGroup] Group group, string name, decimal? number)
+        public void SetSum([InjectGroup] Group group, string name, decimal? number, int parent = 0)
         {
+            var parentGroup = GetParentGroup(group, parent);
             if (!number.HasValue)
             {
-                group.GetOrCreateValue<decimal>(name);
+                parentGroup.GetOrCreateValue<decimal>(name);
                 return;
             }
 
-            var value = group.GetOrCreateValue<decimal>(name);
-            group.SetValue(name, value + number);
+            var value = parentGroup.GetOrCreateValue<decimal>(name);
+            parentGroup.SetValue(name, value + number);
         }
 
         [AggregationSetMethod]
-        public void SetSum([InjectGroup] Group group, string name, long? number)
+        public void SetSum([InjectGroup] Group group, string name, long? number, int parent = 0)
         {
+            var parentGroup = GetParentGroup(group, parent);
             if (!number.HasValue)
             {
-                group.GetOrCreateValue<long>(name);
+                parentGroup.GetOrCreateValue<decimal>(name);
                 return;
             }
 
-            var value = group.GetOrCreateValue<long>(name);
-            group.SetValue(name, value + number);
+            var value = parentGroup.GetOrCreateValue<decimal>(name);
+            parentGroup.SetValue(name, value + number);
         }
     }
 }

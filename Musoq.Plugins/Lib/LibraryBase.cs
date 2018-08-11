@@ -21,27 +21,6 @@ namespace Musoq.Plugins
             new Dictionary<string, IDictionary<string, string>>();
 
         [AggregationGetMethod]
-        public decimal SumOutcome([InjectGroup] Group group, string name)
-        {
-            return group.GetValue<decimal>(name);
-        }
-
-        [AggregationSetMethod]
-        public void SetSumOutcome([InjectGroup] Group group, string name, decimal? number)
-        {
-            if (!number.HasValue)
-            {
-                group.GetOrCreateValue<decimal>(name);
-                return;
-            }
-
-            var value = group.GetOrCreateValue<decimal>(name);
-
-            if (number < 0)
-                group.SetValue(name, value + number);
-        }
-
-        [AggregationGetMethod]
         public decimal StringAsNumericSum([InjectGroup] Group group, string name)
         {
             return group.GetValue<decimal>(name);
@@ -134,23 +113,6 @@ namespace Musoq.Plugins
             }
 
             occur.Increment();
-        }
-
-        [AggregationGetMethod]
-        public decimal SumOutcome([InjectGroup] Group group, string name, long number)
-        {
-            var parent = GetParentGroup(group, number);
-            var value = parent.GetRawValue<decimal>(name);
-            return value;
-        }
-
-        [AggregationSetMethod]
-        public void SetSumOutcome([InjectGroup] Group group, string name, long number, decimal? value)
-        {
-            var parent = GetParentGroup(group, number);
-            SetSumOutcome(parent, name, value);
-            group.GetOrCreateValueWithConverter<Group, decimal>(name, parent,
-                o => ((Group) o).GetRawValue<decimal>(name));
         }
 
         [BindableMethod]

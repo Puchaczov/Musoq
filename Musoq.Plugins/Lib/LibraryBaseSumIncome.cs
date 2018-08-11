@@ -7,43 +7,35 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
-
-        [AggregationGetMethod]
-        public decimal SumIncome([InjectGroup] Group group, string name, long number)
-        {
-            var parent = GetParentGroup(group, number);
-            var value = parent.GetRawValue<decimal>(name);
-            return value;
-        }
-
         [AggregationGetMethod]
         public decimal SumIncome([InjectGroup] Group group, string name)
+            => SumIncome(group, name, 0);
+
+        [AggregationGetMethod]
+        public decimal SumIncome([InjectGroup] Group group, string name, int parent)
         {
-            return group.GetValue<decimal>(name);
+            var parentGroup = GetParentGroup(group, parent);
+            return parentGroup.GetRawValue<decimal>(name);
         }
 
         [AggregationSetMethod]
-        public void SetSumIncome([InjectGroup] Group group, string name, long number, decimal? value)
-        {
-            var parent = GetParentGroup(group, number);
-            SetSumIncome(parent, name, value);
-            group.GetOrCreateValueWithConverter<Group, decimal>(name, parent,
-                o => ((Group)o).GetRawValue<decimal>(name));
-        }
+        public void SetSumIncome([InjectGroup] Group group, string name, long? number, int parent = 0)
+            => SetSumIncome(group, name, (decimal?)number, parent);
 
         [AggregationSetMethod]
-        public void SetSumIncome([InjectGroup] Group group, string name, decimal? number)
+        public void SetSumIncome([InjectGroup] Group group, string name, decimal? number, int parent = 0)
         {
+            var parentGroup = GetParentGroup(group, parent);
             if (!number.HasValue)
             {
-                group.GetOrCreateValue<decimal>(name);
+                parentGroup.GetOrCreateValue<decimal>(name);
                 return;
             }
 
-            var value = group.GetOrCreateValue<decimal>(name);
+            var value = parentGroup.GetOrCreateValue<decimal>(name);
 
             if (number >= 0)
-                group.SetValue(name, value + number);
+                parentGroup.SetValue(name, value + number);
         }
     }
 }

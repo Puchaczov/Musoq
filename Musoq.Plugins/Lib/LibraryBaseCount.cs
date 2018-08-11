@@ -7,116 +7,113 @@ namespace Musoq.Plugins
     {
         [AggregationGetMethod]
         public int Count([InjectGroup] Group group, string name)
-        {
-            return group.GetValue<int>(name);
-        }
-
-        [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, string value)
-        {
-            if (value == null)
-            {
-                group.GetOrCreateValue<int>(name);
-                return;
-            }
-
-            var values = group.GetOrCreateValue<int>(name);
-            group.SetValue(name, values + 1);
-        }
-
-        [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, decimal? value)
-        {
-            if (value == null)
-            {
-                group.GetOrCreateValue<int>(name);
-                return;
-            }
-
-            var values = group.GetOrCreateValue<int>(name);
-            group.SetValue(name, values + 1);
-        }
-
-        [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, DateTimeOffset? value)
-        {
-            if (value == null)
-            {
-                group.GetOrCreateValue<int>(name);
-                return;
-            }
-
-            var values = group.GetOrCreateValue<int>(name);
-            group.SetValue(name, values + 1);
-        }
-
-        [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, DateTime? value)
-        {
-            if (value == null)
-            {
-                group.GetOrCreateValue<int>(name);
-                return;
-            }
-
-            var values = group.GetOrCreateValue<int>(name);
-            group.SetValue(name, values + 1);
-        }
-
-        [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, long? value)
-        {
-            if (value == null)
-            {
-                group.GetOrCreateValue<int>(name);
-                return;
-            }
-
-            var values = group.GetOrCreateValue<int>(name);
-            group.SetValue(name, values + 1);
-        }
-
-        [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, int? value)
-        {
-            if (value == null)
-            {
-                group.GetOrCreateValue<int>(name);
-                return;
-            }
-
-            var values = group.GetOrCreateValue<int>(name);
-            group.SetValue(name, values + 1);
-        }
-
-        [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, bool? value)
-        {
-            if (value == null)
-            {
-                group.GetOrCreateValue<int>(name);
-                return;
-            }
-
-            var values = group.GetOrCreateValue<int>(name);
-            group.SetValue(name, values + 1);
-        }
+            => Count(group, name, 0);
 
         [AggregationGetMethod]
-        public int ParentCount([InjectGroup] Group group, string name)
+        public int Count([InjectGroup] Group group, string name, int parent)
         {
-            var parentGroup = group.GetValue<int>(name);
-            return parentGroup;
+            var parentGroup = GetParentGroup(group, parent);
+            return parentGroup.GetValue<int>(name);
         }
 
         [AggregationSetMethod]
-        public void SetParentCount([InjectGroup] Group group, string name, long number)
+        public void SetCount([InjectGroup] Group group, string name, string value, int parent = 0)
         {
-            var parent = GetParentGroup(group, number);
+            var parentGroup = GetParentGroup(group, parent);
 
-            var value = parent.GetOrCreateValue<int>(name);
-            parent.SetValue(name, value + 1);
-            group.GetOrCreateValueWithConverter<Group, int>(name, parent, o => ((Group)o).GetValue<int>(name));
+            if (value == null)
+            {
+                parentGroup.GetOrCreateValue<int>(name);
+                return;
+            }
+
+            var values = parentGroup.GetOrCreateValue<int>(name);
+            parentGroup.SetValue(name, values + 1);
+        }
+
+        [AggregationSetMethod]
+        public void SetCount([InjectGroup] Group group, string name, decimal? value, int parent = 0)
+        {
+            var parentGroup = GetParentGroup(group, parent);
+
+            if (value == null)
+            {
+                parentGroup.GetOrCreateValue<int>(name);
+                return;
+            }
+
+            var values = parentGroup.GetOrCreateValue<int>(name);
+            parentGroup.SetValue(name, values + 1);
+        }
+
+        [AggregationSetMethod]
+        public void SetCount([InjectGroup] Group group, string name, DateTimeOffset? value, int parent = 0)
+        {
+            var parentGroup = GetParentGroup(group, parent);
+            if (value == null)
+            {
+                parentGroup.GetOrCreateValue<int>(name);
+                return;
+            }
+
+            var values = parentGroup.GetOrCreateValue<int>(name);
+            parentGroup.SetValue(name, values + 1);
+        }
+
+        [AggregationSetMethod]
+        public void SetCount([InjectGroup] Group group, string name, DateTime? value, int parent = 0)
+        {
+            var parentGroup = GetParentGroup(group, parent);
+            if (value == null)
+            {
+                parentGroup.GetOrCreateValue<int>(name);
+                return;
+            }
+
+            var values = parentGroup.GetOrCreateValue<int>(name);
+            parentGroup.SetValue(name, values + 1);
+        }
+
+        [AggregationSetMethod]
+        public void SetCount([InjectGroup] Group group, string name, long? value, int parent = 0)
+        {
+            var parentGroup = GetParentGroup(group, parent);
+            if (value == null)
+            {
+                parentGroup.GetOrCreateValue<int>(name);
+                return;
+            }
+
+            var values = parentGroup.GetOrCreateValue<int>(name);
+            parentGroup.SetValue(name, values + 1);
+        }
+
+        [AggregationSetMethod]
+        public void SetCount([InjectGroup] Group group, string name, int? value, int parent = 0)
+        {
+            var parentGroup = GetParentGroup(group, parent);
+            if (value == null)
+            {
+                parentGroup.GetOrCreateValue<int>(name);
+                return;
+            }
+
+            var values = parentGroup.GetOrCreateValue<int>(name);
+            parentGroup.SetValue(name, values + 1);
+        }
+
+        [AggregationSetMethod]
+        public void SetCount([InjectGroup] Group group, string name, bool? value, int parent = 0)
+        {
+            var parentGroup = GetParentGroup(group, parent);
+            if (value == null)
+            {
+                parentGroup.GetOrCreateValue<int>(name);
+                return;
+            }
+
+            var values = parentGroup.GetOrCreateValue<int>(name);
+            parentGroup.SetValue(name, values + 1);
         }
     }
 }

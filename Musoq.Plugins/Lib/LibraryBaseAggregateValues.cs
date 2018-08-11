@@ -90,10 +90,6 @@ namespace Musoq.Plugins
             var foundedGroup = GetParentGroup(group, parent);
             var list = foundedGroup.GetOrCreateValue(name, new List<string>());
             list.Add(value.ToString());
-
-            foundedGroup.GetOrCreateValueWithConverter<List<string>, string>(name, new List<string>(), (lst) => {
-                return list.Count == 0 ? string.Empty : list.Aggregate((a, b) => a.ToString() + "," + b.ToString());
-            });
         }
     }
 }
