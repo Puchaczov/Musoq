@@ -10,7 +10,7 @@ using Musoq.Schema.Managers;
 namespace Musoq.Evaluator.Tests.Core
 {
     [TestClass]
-    public class PassPrimitiveTypesTests
+    public class PassPrimitiveTypesTests : TestBase
     {
         [TestMethod]
         public void GetSchemaTableAndRowSourcePassedPrimitiveArgumentsTest()
@@ -19,7 +19,7 @@ namespace Musoq.Evaluator.Tests.Core
 
             var vm = CreateAndRunVirtualMachine(query, new List<TestEntity>(), (passedParams) =>
             {
-                Assert.AreEqual(1L, passedParams[0]);
+                Assert.AreEqual(1, passedParams[0]);
                 Assert.AreEqual(2m, passedParams[1]);
                 Assert.AreEqual(true, passedParams[2]);
                 Assert.AreEqual(false, passedParams[3]);

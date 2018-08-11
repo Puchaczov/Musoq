@@ -34,6 +34,7 @@ namespace Musoq.Parser.Nodes
         public ArgsListNode ExtraAggregateArguments { get; }
 
         public int ArgsCount => Arguments.Args.Length;
+
         public override Type ReturnType => Method != null ? Method.ReturnType : typeof(void);
 
         public override string Id { get; }

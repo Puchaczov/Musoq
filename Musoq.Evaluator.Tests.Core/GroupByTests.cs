@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Tests.Core
         [TestMethod]
         public void GroupByWithParentSumTest()
         {
-            var query = @"select SumIncome(1, Money), SumOutcome(1, Money) from #A.Entities() group by Month, City";
+            var query = @"select SumIncome(Money, 1), SumOutcome(Money, 1) from #A.Entities() group by Month, City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
@@ -413,17 +413,17 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual("Inc(10)", table.Columns.ElementAt(2).Name);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
             Assert.AreEqual("1", table.Columns.ElementAt(3).Name);
-            Assert.AreEqual(typeof(long), table.Columns.ElementAt(3).ColumnType);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("ABBA", table[0].Values[0]);
             Assert.AreEqual(Convert.ToInt32(3), table[0].Values[1]);
             Assert.AreEqual(Convert.ToDecimal(11), table[0].Values[2]);
-            Assert.AreEqual(Convert.ToInt64(1), table[0].Values[3]);
+            Assert.AreEqual(Convert.ToInt32(1), table[0].Values[3]);
             Assert.AreEqual("BABBA", table[1].Values[0]);
             Assert.AreEqual(Convert.ToInt32(2), table[1].Values[1]);
             Assert.AreEqual(Convert.ToDecimal(11), table[1].Values[2]);
-            Assert.AreEqual(Convert.ToInt64(1), table[1].Values[3]);
+            Assert.AreEqual(Convert.ToInt32(1), table[1].Values[3]);
         }
 
         [TestMethod]
@@ -472,7 +472,7 @@ namespace Musoq.Evaluator.Tests.Core
         public void GroupByWithParentCountTest()
         {
             var query =
-                "select Country, City as 'City', ParentCount(1), Count(City) as 'CountOfCities' from #A.Entities() group by Country, City";
+                "select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' from #A.Entities() group by Country, City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -496,7 +496,7 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
             Assert.AreEqual("City", table.Columns.ElementAt(1).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("ParentCount(1)", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Count(City, 1)", table.Columns.ElementAt(2).Name);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
             Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).Name);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
@@ -532,7 +532,7 @@ namespace Musoq.Evaluator.Tests.Core
         public void GroupByWithWhereTest()
         {
             var query =
-                "select Country, City as 'City', ParentCount(1), Count(City) as 'CountOfCities' from #A.Entities() where Country = 'POLAND' group by Country, City";
+                "select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' from #A.Entities() where Country = 'POLAND' group by Country, City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -556,7 +556,7 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
             Assert.AreEqual("City", table.Columns.ElementAt(1).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("ParentCount(1)", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Count(City, 1)", table.Columns.ElementAt(2).Name);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
             Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).Name);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);

@@ -4,9 +4,10 @@ namespace Musoq.Parser.Nodes
 {
     public class IdentifierNode : Node
     {
-        public IdentifierNode(string name)
+        public IdentifierNode(string name, Type returnType = null)
         {
             Name = name;
+            ReturnType = returnType;
             Id = $"{nameof(IdentifierNode)}{Name}";
         }
 

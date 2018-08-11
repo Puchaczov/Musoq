@@ -88,8 +88,8 @@ namespace Musoq.Plugins
         private static void AggregateAdd<TType>(Group group, string name, TType value, long parent)
         {
             var foundedGroup = GetParentGroup(group, parent);
-            var list = foundedGroup.GetOrCreateValue(name, new List<string>());
-            list.Add(value.ToString());
+            var list = foundedGroup.GetOrCreateValue(name, new List<TType>());
+            list.Add(value);
         }
     }
 }

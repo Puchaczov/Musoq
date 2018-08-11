@@ -202,7 +202,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(IntegerNode node)
         {
-            Nodes.Push(new IntegerNode(node.Value.ToString()));
+            Nodes.Push(new IntegerNode(node.ObjValue.ToString()));
         }
 
         public void Visit(BooleanNode node)
@@ -225,6 +225,11 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(AccessMethodNode node)
         {
             VisitAccessMethod(node);
+        }
+
+        public void Visit(AccessRawIdentifierNode node)
+        {
+            Nodes.Push(new AccessRawIdentifierNode(node.Name, node.ReturnType));
         }
 
         public void Visit(IsNullNode node)
@@ -356,7 +361,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var fields = CreateFields(node.Fields);
 
-            Nodes.Push(new CreateTableNode(node.Name, node.Keys, fields));
+            Nodes.Push(new CreateTableNode(node.Name, node.Keys, fields, node.ForGrouping));
         }
 
         public void Visit(RenameTableNode node)
@@ -452,7 +457,7 @@ namespace Musoq.Evaluator.Visitors
                     null,
                     new RefreshNode(new AccessMethodNode[0]));
 
-                var targetTable = new CreateTableNode(targetTableName, new string[0], bothForCreateTable);
+                var targetTable = new CreateTableNode(targetTableName, new string[0], bothForCreateTable, false);
 
                 splittedNodes.Add(targetTable);
                 splittedNodes.Add(joinedQuery);
@@ -519,7 +524,7 @@ namespace Musoq.Evaluator.Visitors
                         null,
                         new RefreshNode(new AccessMethodNode[0]));
 
-                    targetTable = new CreateTableNode(targetTableName, new string[0], bothForCreateTable);
+                    targetTable = new CreateTableNode(targetTableName, new string[0], bothForCreateTable, false);
 
                     splittedNodes.Add(targetTable);
                     splittedNodes.Add(joinedQuery);
@@ -555,8 +560,7 @@ namespace Musoq.Evaluator.Visitors
                 var scopeCreateResultTable = _scope.AddScope("Table");
                 var scopeResultQuery = _scope.AddScope("Query");
 
-                scopeCreateTranformingTable[MetaAttributes.CreateTableVariableName] =
-                    nestedFrom.Alias.ToGroupingTable();
+                scopeCreateTranformingTable[MetaAttributes.CreateTableVariableName] = nestedFrom.Alias.ToGroupingTable();
                 scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = nestedFrom.Alias.ToScoreTable();
 
                 var destination = nestedFrom.Alias.ToGroupingTable().ToTransformedRowsSource();
@@ -612,16 +616,16 @@ namespace Musoq.Evaluator.Visitors
                     outSelect,
                     new ExpressionFromNode(
                         new InMemoryGroupedFromNode(returnScore)),
-                    new WhereNode(new PutTrueNode()),
+                    null,
                     null,
                     null,
                     skip,
                     take,
                     returnScore);
 
-                splittedNodes.Add(new CreateTableNode(destination, new string[0], transformingQuery.Select.Fields));
+                splittedNodes.Add(new CreateTableNode(destination, new string[0], transformingQuery.Select.Fields, true));
                 splittedNodes.Add(transformingQuery);
-                splittedNodes.Add(new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields));
+                splittedNodes.Add(new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields, false));
                 splittedNodes.Add(query);
 
                 Nodes.Push(
@@ -651,8 +655,7 @@ namespace Musoq.Evaluator.Visitors
                         ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                         : from;
 
-                    splittedNodes.Add(new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName],
-                        new string[0], select.Fields));
+                    splittedNodes.Add(new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], new string[0], select.Fields, false));
                     splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, null, skip, take,
                         scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
 
@@ -687,7 +690,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var query = (InternalQueryNode) Nodes.Pop();
 
-            var nodes = new Node[] {new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields), query};
+            var nodes = new Node[] {new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields, false), query};
 
             Nodes.Push(new MultiStatementNode(nodes, null));
         }

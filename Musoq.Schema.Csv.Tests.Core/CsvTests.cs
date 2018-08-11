@@ -118,13 +118,13 @@ namespace Musoq.Schema.Csv.Tests.Core
         public void SimpleGroupByWithSum()
         {
             var query =
-                "SELECT ParentCount(1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0) group by ExtractFromDate(OperationDate, 'month')";
+                "SELECT Count(OperationDate, 1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0) group by ExtractFromDate(OperationDate, 'month')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
             Assert.AreEqual(6, table.Columns.Count());
-            Assert.AreEqual("ParentCount(1)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Count(OperationDate, 1)", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
             Assert.AreEqual("ExtractFromDate(OperationDate, 'month')", table.Columns.ElementAt(1).Name);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
@@ -313,12 +313,12 @@ with BasicIndicators as (
 		ExtractFromDate(DateTime, 'month') as 'Month', 
 		ClusteredByContainsKey('./Files/Categories.txt', ChargeName) as 'Category', 
 		SumIncome(ToDecimal(Amount)) as Income, 
-		SumIncome(1, ToDecimal(Amount)) as 'MonthlyIncome',
-		Round(PercentOf(Abs(SumOutcome(ToDecimal(Amount))), SumIncome(1, ToDecimal(Amount))), 2) as 'PercOfOutForOvInc',	
+		SumIncome(ToDecimal(Amount), 1) as 'MonthlyIncome',
+		Round(PercentOf(Abs(SumOutcome(ToDecimal(Amount))), SumIncome(ToDecimal(Amount), 1)), 2) as 'PercOfOutForOvInc',	
 		SumOutcome(ToDecimal(Amount)) as Outcome, 
-		SumOutcome(1, ToDecimal(Amount)) as 'MonthlyOutcome',
-		SumIncome(1, ToDecimal(Amount)) + SumOutcome(1, ToDecimal(Amount)) as 'MoneysLeft',
-		SumIncome(2, ToDecimal(Amount)) + SumOutcome(2, ToDecimal(Amount)) as 'OvMoneysLeft'
+		SumOutcome(ToDecimal(Amount), 1) as 'MonthlyOutcome',
+		SumIncome(ToDecimal(Amount), 1) + SumOutcome(ToDecimal(Amount), 1) as 'MoneysLeft',
+		SumIncome(ToDecimal(Amount), 2) + SumOutcome(ToDecimal(Amount), 2) as 'OvMoneysLeft'
 	from #csv.file('./Files/FakeBankingTransactions.csv', ',', true, 0) as csv
 	group by 
 		ExtractFromDate(DateTime, 'month'), 
@@ -396,12 +396,12 @@ with BasicIndicators as (
 		ExtractFromDate(DateTime, 'month') as 'Month', 
 		ClusteredByContainsKey('./Files/Categories.txt', ChargeName) as 'Category', 
 		SumIncome(ToDecimal(Amount)) as Income, 
-		SumIncome(1, ToDecimal(Amount)) as 'MonthlyIncome',
-		Round(PercentOf(Abs(SumOutcome(ToDecimal(Amount))), SumIncome(1, ToDecimal(Amount))), 2) as 'PercOfOutForOvInc',	
+		SumIncome(ToDecimal(Amount), 1) as 'MonthlyIncome',
+		Round(PercentOf(Abs(SumOutcome(ToDecimal(Amount))), SumIncome(ToDecimal(Amount), 1)), 2) as 'PercOfOutForOvInc',	
 		SumOutcome(ToDecimal(Amount)) as Outcome, 
-		SumOutcome(1, ToDecimal(Amount)) as 'MonthlyOutcome',
-		SumIncome(1, ToDecimal(Amount)) + SumOutcome(1, ToDecimal(Amount)) as 'MoneysLeft',
-		SumIncome(2, ToDecimal(Amount)) + SumOutcome(2, ToDecimal(Amount)) as 'OvMoneysLeft'
+		SumOutcome(ToDecimal(Amount), 1) as 'MonthlyOutcome',
+		SumIncome(ToDecimal(Amount), 1) + SumOutcome(ToDecimal(Amount), 1) as 'MoneysLeft',
+		SumIncome(ToDecimal(Amount), 2) + SumOutcome(ToDecimal(Amount), 2) as 'OvMoneysLeft'
 	from #csv.file('./Files/FakeBankingTransactions.csv', ',', true, 0) as csv
 	group by 
 		ExtractFromDate(DateTime, 'month'), 

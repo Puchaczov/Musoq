@@ -191,7 +191,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(IntegerNode node)
         {
-            Nodes.Push(new IntegerNode(node.Value.ToString()));
+            Nodes.Push(new IntegerNode(node.ObjValue.ToString()));
         }
 
         public void Visit(BooleanNode node)
@@ -214,6 +214,11 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(AccessMethodNode node)
         {
             Nodes.Push(new AccessMethodNode(node.FToken, (ArgsListNode) Nodes.Pop(), null, node.Method, node.Alias));
+        }
+
+        public void Visit(AccessRawIdentifierNode node)
+        {
+            Nodes.Push(new AccessRawIdentifierNode(node.Name, node.ReturnType));
         }
 
         public virtual void Visit(IsNullNode node)
@@ -356,7 +361,7 @@ namespace Musoq.Evaluator.Visitors
             for (var i = node.Fields.Length - 1; i >= 0; --i)
                 items[i] = (FieldNode) Nodes.Pop();
 
-            Nodes.Push(new CreateTableNode(node.Name, node.Keys, items));
+            Nodes.Push(new CreateTableNode(node.Name, node.Keys, items, node.ForGrouping));
         }
 
         public virtual void Visit(RenameTableNode node)

@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
+using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -47,7 +50,13 @@ namespace Musoq.Evaluator.Visitors
                 Nodes.Pop();
 
                 var wordNode = node.Arguments.Args[0] as WordNode;
-                Nodes.Push(new AccessColumnNode(wordNode.Value, string.Empty, node.ReturnType, TextSpan.Empty));
+                var accessGroup = new AccessColumnNode("none", string.Empty, typeof(Group), TextSpan.Empty);
+                var args = new List<Node> {accessGroup, wordNode};
+                args.AddRange(node.Arguments.Args.Skip(1));
+                var extractFromGroup = new AccessMethodNode(
+                    new FunctionToken(node.Method.Name, TextSpan.Empty), 
+                    new ArgsListNode(args.ToArray()), node.ExtraAggregateArguments, node.Method, node.Alias);
+                Nodes.Push(extractFromGroup);
             }
             else if (_fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))
             {

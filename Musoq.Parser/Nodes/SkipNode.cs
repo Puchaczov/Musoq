@@ -7,7 +7,7 @@ namespace Musoq.Parser.Nodes
         public SkipNode(IntegerNode expression) : base(expression)
         {
             Id = $"{nameof(SkipNode)}{ReturnType.Name}{Expression.Id}";
-            Value = expression.Value;
+            Value = Convert.ToInt64(expression.ObjValue);
         }
 
         public long Value { get; }

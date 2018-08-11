@@ -34,6 +34,7 @@ namespace Musoq.Parser
         void Visit(WordNode node);
         void Visit(ContainsNode node);
         void Visit(AccessMethodNode node);
+        void Visit(AccessRawIdentifierNode node);
         void Visit(IsNullNode node);
         void Visit(AccessRefreshAggreationScoreNode node);
         void Visit(AccessColumnNode node);

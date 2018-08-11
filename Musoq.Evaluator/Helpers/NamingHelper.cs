@@ -61,5 +61,10 @@
         {
             return $"{left}RefreshMethods";
         }
+
+        public static string ListOf<T>()
+        {
+            return $"List<{typeof(T).Name}>";
+        }
     }
 }

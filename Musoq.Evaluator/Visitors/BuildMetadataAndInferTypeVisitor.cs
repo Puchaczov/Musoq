@@ -222,8 +222,8 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(IntegerNode node)
         {
             AddAssembly(typeof(int).Assembly);
-            Nodes.Push(new IntegerNode(node.Value.ToString()));
-            _schemaFromArgs.Add(node.Value);
+            Nodes.Push(new IntegerNode(node.ObjValue.ToString()));
+            _schemaFromArgs.Add(node.ObjValue);
         }
 
         public void Visit(BooleanNode node)
@@ -252,6 +252,11 @@ namespace Musoq.Evaluator.Visitors
             VisitAccessMethod(node,
                 (token, node1, exargs, arg3, alias) =>
                     new AccessMethodNode(token, node1 as ArgsListNode, exargs, arg3, alias));
+        }
+
+        public void Visit(AccessRawIdentifierNode node)
+        {
+            Nodes.Push(new AccessRawIdentifierNode(node.Name, node.ReturnType));
         }
 
         public void Visit(IsNullNode node)
@@ -522,7 +527,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var fields = CreateFields(node.Fields);
 
-            Nodes.Push(new CreateTableNode(node.Name, node.Keys, fields));
+            Nodes.Push(new CreateTableNode(node.Name, node.Keys, fields, node.ForGrouping));
         }
 
         public void Visit(RenameTableNode node)
@@ -558,11 +563,10 @@ namespace Musoq.Evaluator.Visitors
             var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
 
             if (groupBy == null && _refreshMethods.Count > 0)
+            {
                 groupBy = new GroupByNode(
-                    new[]
-                    {
-                        new FieldNode(new IntegerNode("1"), 0, string.Empty)
-                    }, null);
+                    new[] { new FieldNode(new IntegerNode("1"), 0, string.Empty) }, null);
+            }
 
             var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
             var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
@@ -795,7 +799,7 @@ namespace Musoq.Evaluator.Visitors
             var args = Nodes.Pop() as ArgsListNode;
 
             var groupArgs = new List<Type> {typeof(string)};
-            groupArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1).Select(f => f.ReturnType));
+            groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
 
             var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
 
@@ -813,7 +817,7 @@ namespace Musoq.Evaluator.Visitors
                 var identifier = accessMethod.ToString();
 
                 var newArgs = new List<Node> {new WordNode(identifier)};
-                newArgs.AddRange(args.Args.Where((f, i) => i < args.Args.Length - 1));
+                newArgs.AddRange(args.Args.Skip(1));
                 var newSetArgs = new List<Node> {new WordNode(identifier)};
                 newSetArgs.AddRange(args.Args);
 

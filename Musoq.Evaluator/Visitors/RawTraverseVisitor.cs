@@ -59,6 +59,11 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
+        public void Visit(AccessRawIdentifierNode node)
+        {
+            node.Accept(Visitor);
+        }
+
         public virtual void Visit(IsNullNode node)
         {
             node.Expression.Accept(this);

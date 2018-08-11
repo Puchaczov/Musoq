@@ -5,19 +5,21 @@ namespace Musoq.Parser.Nodes
 {
     public class CreateTableNode : Node
     {
-        public CreateTableNode(string name, string[] keys, FieldNode[] fields)
+        public CreateTableNode(string name, string[] keys, FieldNode[] fields, bool forGrouping)
         {
             Name = name;
             Keys = keys;
             Fields = fields;
+            ForGrouping = forGrouping;
             var keysId = keys.Length == 0 ? string.Empty : keys.Aggregate((a, b) => a + b);
             Id = $"{nameof(CreateTableNode)}{name}{keysId}";
         }
 
-
         public string[] Keys { get; }
 
         public FieldNode[] Fields { get; }
+
+        public bool ForGrouping { get; }
 
         public string Name { get; }
 

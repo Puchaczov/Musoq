@@ -444,7 +444,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(IntegerNode node)
         {
-            Nodes.Push(Generator.LiteralExpression(node.Value));
+            Nodes.Push(Generator.LiteralExpression(node.ObjValue));
         }
 
         public void Visit(BooleanNode node)
@@ -542,7 +542,15 @@ namespace Musoq.Evaluator.Visitors
                                         SyntaxFactory.IdentifierName(nameof(IObjectResolver.Context))))));
                         break;
                     case InjectGroupAttribute _:
-                        args.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")));
+
+                        switch (_type)
+                        {
+                            case MethodAccessType.ResultQuery: //do not inject in result query.
+                                break;
+                            default:
+                                args.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")));
+                                break;
+                        }
                         break;
                     case InjectGroupAccessName _:
                         break;
@@ -571,6 +579,11 @@ namespace Musoq.Evaluator.Visitors
                 NullSuspiciousNodes.Push(accessMethodExpr);
 
             Nodes.Push(accessMethodExpr);
+        }
+
+        public void Visit(AccessRawIdentifierNode node)
+        {
+            Nodes.Push(SyntaxFactory.IdentifierName(node.Name));
         }
 
         public void Visit(IsNullNode node)
@@ -641,10 +654,11 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(IdentifierNode node)
         {
             Nodes.Push(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults"))
-                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(SyntaxFactory.Argument(
-                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                            SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
+                .WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
         }
 
         public void Visit(AccessObjectArrayNode node)
@@ -1033,43 +1047,55 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CreateTableNode node)
         {
-            var cols = new List<ExpressionSyntax>();
-
-            foreach (var field in node.Fields)
+            if (!node.ForGrouping)
             {
-                var types = EvaluationHelper.GetNestedTypes(field.ReturnType);
-                AddNamespace(types);
-                AddReference(types);
+                var cols = new List<ExpressionSyntax>();
 
-                cols.Add(
+                foreach (var field in node.Fields)
+                {
+                    var types = EvaluationHelper.GetNestedTypes(field.ReturnType);
+                    AddNamespace(types);
+                    AddReference(types);
+
+                    cols.Add(
+                        SyntaxHelper.CreateObjectOf(
+                            nameof(Column),
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(new[]
+                                {
+                                    SyntaxHelper.StringLiteralArgument(field.FieldName),
+                                    SyntaxHelper.TypeLiteralArgument(
+                                        EvaluationHelper.GetCastableType(field.ReturnType)),
+                                    SyntaxHelper.IntLiteralArgument(field.FieldOrder)
+                                }))));
+                }
+
+                var createObject = SyntaxHelper.CreateAssignment(
+                    _scope[MetaAttributes.CreateTableVariableName],
                     SyntaxHelper.CreateObjectOf(
-                        nameof(Column),
+                        nameof(Table),
                         SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList(new[]
-                            {
-                                SyntaxHelper.StringLiteralArgument(field.FieldName),
-                                SyntaxHelper.TypeLiteralArgument(
-                                    EvaluationHelper.GetCastableType(field.ReturnType)),
-                                SyntaxHelper.IntLiteralArgument(field.FieldOrder)
-                            }))));
+                            SyntaxFactory.SeparatedList(
+                                new[]
+                                {
+                                    SyntaxFactory.Argument((ExpressionSyntax) Generator.LiteralExpression(node.Name)),
+                                    SyntaxFactory.Argument(
+                                        SyntaxHelper.CreateArrayOf(
+                                            nameof(Column),
+                                            cols.ToArray()))
+                                }))));
+                Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
             }
-
-            var createObject = SyntaxHelper.CreateAssignment(
-                _scope[MetaAttributes.CreateTableVariableName],
-                SyntaxHelper.CreateObjectOf(
-                    nameof(Table),
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList(
-                            new[]
-                            {
-                                SyntaxFactory.Argument((ExpressionSyntax) Generator.LiteralExpression(node.Name)),
-                                SyntaxFactory.Argument(
-                                    SyntaxHelper.CreateArrayOf(
-                                        nameof(Column),
-                                        cols.ToArray()))
-                            }))));
+            else
+            {
+                var createObject = SyntaxHelper.CreateAssignment(
+                    _scope[MetaAttributes.CreateTableVariableName],
+                    SyntaxHelper.CreateObjectOf(
+                        NamingHelper.ListOf<Group>(),
+                        SyntaxFactory.ArgumentList()));
+                Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
+            }
             NullSuspiciousNodes.Clear();
-            Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
         }
 
         public void Visit(RenameTableNode node)
@@ -1196,8 +1222,7 @@ namespace Musoq.Evaluator.Visitors
 
                 Statements.Add(SyntaxFactory.LocalDeclarationStatement(columnToValueDict));
 
-                block = block.AddStatements(AddGroupStatement(node.From.Alias.ToGroupingTable(),
-                    indexToValueDictVariableName));
+                block = block.AddStatements(AddGroupStatement(node.From.Alias.ToGroupingTable()));
                 block = GroupByForeach(block, node.From.Alias.ToRowItem(), _scope[MetaAttributes.SourceName]);
                 Statements.AddRange(block.Statements);
             }
@@ -1711,7 +1736,7 @@ namespace Musoq.Evaluator.Visitors
                 foreachInstructions).NormalizeWhitespace());
         }
 
-        private StatementSyntax AddGroupStatement(string scoreTable, string indexToColumnVariableName)
+        private StatementSyntax AddGroupStatement(string scoreTable)
         {
             return SyntaxFactory.IfStatement(
                 SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
@@ -1728,21 +1753,9 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 SyntaxFactory.IdentifierName(scoreTable),
                                 SyntaxFactory.IdentifierName("Add")))
-                            .WithArgumentList(
-                                SyntaxFactory.ArgumentList(
-                                    SyntaxFactory.SingletonSeparatedList(
-                                        SyntaxFactory.Argument(
-                                            SyntaxHelper.CreateObjectOf(nameof(GroupRow),
-                                                SyntaxFactory.ArgumentList(
-                                                    SyntaxFactory.SeparatedList(
-                                                        new[]
-                                                        {
-                                                            SyntaxFactory.Argument(
-                                                                SyntaxFactory.IdentifierName("group")),
-                                                            SyntaxFactory.Argument(
-                                                                SyntaxFactory.IdentifierName(
-                                                                    indexToColumnVariableName))
-                                                        })))))))),
+                            .WithArgumentList(SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")))))),
                     SyntaxFactory.ExpressionStatement(
                         SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,

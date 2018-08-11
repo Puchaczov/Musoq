@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
+using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
@@ -11,9 +12,14 @@ namespace Musoq.Evaluator.Helpers
 {
     public static class EvaluationHelper
     {
-        public static TableRowSource ConvertTableToSource(Table table)
+        public static RowSource ConvertTableToSource(Table table)
         {
             return new TableRowSource(table);
+        }
+
+        public static RowSource ConvertTableToSource(List<Group> list)
+        {
+            return new ListRowSource(list);
         }
 
         public static Table GetSchemaDescription(ISchemaTable table)
@@ -84,6 +90,55 @@ namespace Musoq.Evaluator.Helpers
 
             builder.Append('>');
             return builder.ToString();
+        }
+    }
+
+    public class ListRowSource : RowSource
+    {
+        private readonly List<Group> _list;
+
+        public ListRowSource(List<Group> list)
+        {
+            _list = list;
+        }
+
+        public override IEnumerable<IObjectResolver> Rows
+        {
+            get
+            {
+                foreach (var item in _list)
+                    yield return new GroupResolver(item);
+            }
+        }
+    }
+
+    public class GroupResolver : IObjectResolver
+    {
+        private readonly Group _item;
+
+        public GroupResolver(Group item)
+        {
+            _item = item;
+        }
+
+        public object Context { get; }
+
+        public object this[string name]
+        {
+            get
+            {
+                if (name == "none")
+                    return _item;
+
+                return _item.GetValue<object>(name);
+            }
+        }
+
+        public object this[int index] => null;
+
+        public bool HasColumn(string name)
+        {
+            return false;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Musoq.Parser.Nodes
         public TakeNode(IntegerNode expression) : base(expression)
         {
             Id = $"{nameof(TakeNode)}{ReturnType.Name}{Expression.Id}";
-            Value = expression.Value;
+            Value = Convert.ToInt64(expression.ObjValue);
         }
 
         public override Type ReturnType => typeof(long);

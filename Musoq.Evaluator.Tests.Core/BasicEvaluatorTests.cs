@@ -349,7 +349,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
             Assert.AreEqual("1", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual(typeof(long), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual("Name", table.Columns.ElementAt(1).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
@@ -389,7 +389,7 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual(1, table.Count);
 
-            Assert.AreEqual(Convert.ToInt64(1), table[0].Values[0]);
+            Assert.AreEqual(Convert.ToInt32(1), table[0].Values[0]);
             Assert.AreEqual("ABBA", table[0].Values[1]);
             Assert.AreEqual("CRACOV", table[0].Values[2]);
             Assert.AreEqual("POLAND", table[0].Values[3]);
@@ -875,7 +875,7 @@ namespace Musoq.Evaluator.Tests.Core
         [TestMethod]
         public void AggregateValuesTest()
         {
-            var query = @"select AggregateValues(Name) from #A.entites() a";
+            var query = @"select AggregateValues(Name) from #A.entites() a group by Name";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -891,7 +891,9 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("A,B", table[0][0]);
+
+            Assert.AreEqual("A", table[0][0]);
+            Assert.AreEqual("B", table[1][0]);
         }
 
         [TestMethod]
@@ -913,8 +915,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("A", table[0][0]);
-            Assert.AreEqual("B", table[1][0]);
+            Assert.AreEqual("A,B", table[0][0]);
         }
     }
 }

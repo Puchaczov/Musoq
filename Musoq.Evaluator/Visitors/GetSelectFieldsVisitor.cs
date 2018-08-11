@@ -141,6 +141,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(AccessRawIdentifierNode node)
+        {
+        }
+
         public void Visit(IsNullNode node)
         {
         }

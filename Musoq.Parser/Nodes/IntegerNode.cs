@@ -6,21 +6,27 @@ namespace Musoq.Parser.Nodes
     {
         public IntegerNode(string value)
         {
-            Value = Convert.ToInt64(value);
+            if (int.TryParse(value, out var value1))
+            {
+                ObjValue = value1;
+            }
+            else if (long.TryParse(value, out var value2))
+            {
+                ObjValue = value2;
+            }
+
             Id = $"{nameof(IntegerNode)}{value}{ReturnType.Name}";
         }
 
-        public long Value { get; }
+        public override object ObjValue { get; }
 
-        public override object ObjValue => Value;
-
-        public override Type ReturnType => typeof(long);
+        public override Type ReturnType => ObjValue.GetType();
 
         public override string Id { get; }
 
         public override string ToString()
         {
-            return Value.ToString();
+            return ObjValue.ToString();
         }
 
         public override void Accept(IExpressionVisitor visitor)
