@@ -875,7 +875,7 @@ namespace Musoq.Evaluator.Tests.Core
         [TestMethod]
         public void AggregateValuesTest()
         {
-            var query = @"select AggregateValue(Name) from #A.entites() a";
+            var query = @"select AggregateValues(Name) from #A.entites() a";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -891,7 +891,30 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("AB", table[0][0]);
+            Assert.AreEqual("A,B", table[0][0]);
+        }
+
+        [TestMethod]
+        public void AggregateValuesParentTest()
+        {
+            var query = @"select AggregateValues(Name, 1) from #A.entites() a group by Name";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("A"),
+                        new BasicEntity("B")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("A", table[0][0]);
+            Assert.AreEqual("B", table[1][0]);
         }
     }
 }
