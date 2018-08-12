@@ -6,7 +6,7 @@ namespace Musoq.Plugins
 {
     public class UserMethodsLibrary
     {
-        protected static Group GetParentGroup(Group group, long number)
+        protected static Group GetParentGroup(Group group, int number)
         {
             var i = 0;
             var parent = @group;

@@ -14,9 +14,9 @@ namespace Musoq.Plugins
             => AggregateValues(group, name, 0);
 
         [AggregationGetMethod]
-        public string AggregateValues([InjectGroup] Group group, string name, long number)
+        public string AggregateValues([InjectGroup] Group group, string name, int parent)
         {
-            var foundedGroup = GetParentGroup(group, number);
+            var foundedGroup = GetParentGroup(group, parent);
             var list = foundedGroup.GetOrCreateValue<List<string>>(name);
 
             var builder = new StringBuilder();
@@ -32,13 +32,13 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetAggregateValues([InjectGroup] Group group, string name, string value, long parent = 0)
+        public void SetAggregateValues([InjectGroup] Group group, string name, string value, int parent = 0)
         {
             AggregateAdd(group, name, value ?? string.Empty, parent);
         }
 
         [AggregationSetMethod]
-        public void SetAggregateValues([InjectGroup] Group group, string name, decimal? value, long parent = 0)
+        public void SetAggregateValues([InjectGroup] Group group, string name, decimal? value, int parent = 0)
         {
             if (!value.HasValue)
             {
@@ -50,7 +50,7 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetAggregateValues([InjectGroup] Group group, string name, long? value, long parent = 0)
+        public void SetAggregateValues([InjectGroup] Group group, string name, long? value, int parent = 0)
         {
             if (!value.HasValue)
             {
@@ -62,7 +62,7 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetAggregateValues([InjectGroup] Group group, string name, DateTimeOffset? value, long parent = 0)
+        public void SetAggregateValues([InjectGroup] Group group, string name, DateTimeOffset? value, int parent = 0)
         {
             if (!value.HasValue)
             {
@@ -74,7 +74,7 @@ namespace Musoq.Plugins
         }
 
         [AggregationSetMethod]
-        public void SetAggregateValues([InjectGroup] Group group, string name, DateTime? value, long parent = 0)
+        public void SetAggregateValues([InjectGroup] Group group, string name, DateTime? value, int parent = 0)
         {
             if (!value.HasValue)
             {
@@ -85,7 +85,7 @@ namespace Musoq.Plugins
             AggregateAdd(group, name, value.Value.ToString(CultureInfo.InvariantCulture), parent);
         }
 
-        private static void AggregateAdd<TType>(Group group, string name, TType value, long parent)
+        private static void AggregateAdd<TType>(Group group, string name, TType value, int parent)
         {
             var foundedGroup = GetParentGroup(group, parent);
             var list = foundedGroup.GetOrCreateValue(name, new List<TType>());

@@ -20,88 +20,6 @@ namespace Musoq.Plugins
         private readonly IDictionary<string, IDictionary<string, string>> _fileNameToClusteredWordsMapDictionary =
             new Dictionary<string, IDictionary<string, string>>();
 
-        [AggregationGetMethod]
-        public decimal Max([InjectGroup] Group group, string name)
-        {
-            return group.GetValue<decimal>(name);
-        }
-
-        [AggregationSetMethod]
-        public void SetMax([InjectGroup] Group group, string name, decimal? value)
-        {
-            if (!value.HasValue)
-            {
-                group.GetOrCreateValue<decimal>(name);
-                return;
-            }
-
-            var storedValue = group.GetOrCreateValue<decimal>(name);
-
-            if (storedValue < value)
-                group.SetValue(name, value);
-        }
-
-        [AggregationGetMethod]
-        public decimal Min([InjectGroup] Group group, string name)
-        {
-            return group.GetValue<decimal>(name);
-        }
-
-        [AggregationSetMethod]
-        public void SetMin([InjectGroup] Group group, string name, decimal? value)
-        {
-            if (!value.HasValue)
-            {
-                group.GetOrCreateValue<decimal>(name);
-                return;
-            }
-
-            var storedValue = group.GetOrCreateValue<decimal>(name);
-
-            if (storedValue > value)
-                group.SetValue(name, value);
-        }
-
-        [AggregationGetMethod]
-        public decimal Avg([InjectGroup] Group group, string name)
-        {
-            return Sum(group, name) / group.Count;
-        }
-
-        [AggregationSetMethod]
-        public void SetAvg([InjectGroup] Group group, string name, decimal? value)
-        {
-            SetSum(group, name, value);
-        }
-
-        [AggregationGetMethod]
-        public decimal Dominant([InjectGroup] Group group, string name)
-        {
-            var dict = group.GetValue<SortedDictionary<decimal, Occurence>>(name);
-
-            return dict.First().Key;
-        }
-
-        [AggregationSetMethod]
-        public void SetDominant([InjectGroup] Group group, string name, decimal? value)
-        {
-            if (!value.HasValue)
-            {
-                group.GetOrCreateValue<decimal>(name);
-                return;
-            }
-
-            var dict = group.GetOrCreateValue(name, new SortedDictionary<decimal, Occurence>());
-
-            if (!dict.TryGetValue(value.Value, out var occur))
-            {
-                occur = new Occurence();
-                dict.Add(value.Value, occur);
-            }
-
-            occur.Increment();
-        }
-
         [BindableMethod]
         public int RowNumber([InjectQueryStats] QueryStats info)
         {
@@ -124,7 +42,7 @@ namespace Musoq.Plugins
         public int ExtractFromDate(string date, string partOfDate)
         {
             var value = DateTime.Parse(date);
-            switch (partOfDate)
+            switch (partOfDate.ToLowerInvariant())
             {
                 case "month":
                     return value.Month;
@@ -194,9 +112,14 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public string Concat(string first, string second)
+        public string Concat(params string[] strings)
         {
-            return first + second;
+            var concatedStrings = new StringBuilder();
+
+            foreach (var value in strings)
+                concatedStrings.Append(value);
+
+            return concatedStrings.ToString();
         }
 
         [BindableMethod]
@@ -220,30 +143,13 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public string Coalesce(string exp1, string exp2, string exp3)
+        public T Coalesce<T>(params T[] array)
         {
-            if (!string.IsNullOrEmpty(exp1))
-                return exp1;
-            if (!string.IsNullOrEmpty(exp2))
-                return exp2;
-
-            return !string.IsNullOrEmpty(exp3) ? exp3 : string.Empty;
-        }
-
-        [BindableMethod]
-        public long Coalesce(long exp1, long exp2, long exp3)
-        {
-            return Coalesce<long>(exp1, exp2, exp3);
-        }
-
-        private static T Coalesce<T>(T exp1, T exp2, T exp3)
-        {
-            if (!exp1.Equals(default(T)))
-                return exp1;
-            if (!exp2.Equals(default(T)))
-                return exp2;
-            if (!exp3.Equals(default(T)))
-                return exp3;
+            foreach (var obj in array)
+            {
+                if (obj.Equals(default(T)))
+                    return obj;
+            }
 
             return default(T);
         }

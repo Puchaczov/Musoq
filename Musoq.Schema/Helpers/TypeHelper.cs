@@ -65,6 +65,16 @@ namespace Musoq.Schema.Helpers
         }
 
         /// <summary>
+        /// Determine if method has parameters.
+        /// </summary>
+        /// <param name="paramsParameters"></param>
+        /// <returns>True if has parameters, otherwise false.</returns>
+        public static bool HasParameters(this ParameterInfo[] paramsParameters)
+        {
+            return paramsParameters != null && paramsParameters.Length > 0;
+        }
+
+        /// <summary>
         ///     Gets amount of parameters that are not marked by some attribute.
         /// </summary>
         /// <typeparam name="TType">The attribute type</typeparam>

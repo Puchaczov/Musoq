@@ -163,18 +163,19 @@ namespace Musoq.Schema.Managers
                 var optionalParametersCount = parameters.CountOptionalParameters();
                 var allParameters = parameters.Length;
                 var notAnnotatedParametersCount = parameters.CountWithoutParametersAnnotatedBy<InjectTypeAttribute>();
+                var paramsParameter = parameters.GetParametersWithAttribute<ParamArrayAttribute>();
                 var parametersToInject = allParameters - notAnnotatedParametersCount;
 
                 //Wrong amount of argument's. That's not our function.
-                if (HasMoreArgumentsThanMethodDefinitionContains(methodArgs, notAnnotatedParametersCount) ||
-                    !CanUseSomeArgumentsAsDefaultParameters(methodArgs, notAnnotatedParametersCount,
-                        optionalParametersCount))
+                if (!paramsParameter.HasParameters() &&
+                    (HasMoreArgumentsThanMethodDefinitionContains(methodArgs, notAnnotatedParametersCount) ||
+                    !CanUseSomeArgumentsAsDefaultParameters(methodArgs, notAnnotatedParametersCount, optionalParametersCount)))
                     continue;
 
                 var parametersToSkip = parametersToInject;
 
                 var hasMatchedArgTypes = true;
-                for (int f = 0, g = methodArgs.Count; f < g; ++f)
+                for (int f = 0, g = paramsParameter.HasParameters() ? methodArgs.Count - (parameters.Length - 1) : methodArgs.Count; f < g; ++f)
                 {
                     //1. When constant value, it won't be nullable<type> but type.
                     //So it is possible to call function with such value. 
@@ -186,6 +187,13 @@ namespace Musoq.Schema.Managers
 
                     hasMatchedArgTypes = false;
                     break;
+                }
+
+                if (paramsParameter.HasParameters())
+                {
+                    var paramsParameters = methodArgs.Skip(parameters.Length - 1);
+                    var arrayType = paramsParameters.ElementAt(0).MakeArrayType();
+                    hasMatchedArgTypes = parameters[parameters.Length - 1].ParameterType == arrayType;
                 }
 
                 if (!hasMatchedArgTypes)
