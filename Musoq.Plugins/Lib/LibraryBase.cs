@@ -143,11 +143,19 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public decimal? Coalesce(params decimal?[] array)
+            => Coalesce<decimal?>(array);
+
+        [BindableMethod]
+        public long? Coalesce(params long?[] array)
+            => Coalesce<long?>(array);
+
+        [BindableMethod]
         public T Coalesce<T>(params T[] array)
         {
             foreach (var obj in array)
             {
-                if (obj.Equals(default(T)))
+                if (!obj.Equals(default(T)))
                     return obj;
             }
 
