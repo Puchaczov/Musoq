@@ -1,4 +1,6 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes
 {
     public class EqualityNode : BinaryNode
     {
@@ -8,6 +10,7 @@
         }
 
         public override string Id { get; }
+        public override Type ReturnType => typeof(bool);
 
         public override void Accept(IExpressionVisitor visitor)
         {

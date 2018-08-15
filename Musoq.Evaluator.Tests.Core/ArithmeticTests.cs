@@ -115,22 +115,5 @@ namespace Musoq.Evaluator.Tests.Core
         {
             TestMethodTemplate<long>("1 + 2 * 3 * ( 7 * 8 ) - ( 45 - 10 )", 302);
         }
-
-        private void TestMethodTemplate<TResult>(string operation, TResult score)
-        {
-            var query = $"select {operation} from #A.Entities()";
-            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                {"#A", new[] {new BasicEntity("ABCAACBA")}}
-            };
-
-            var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
-
-            Assert.AreEqual(1, table.Count);
-            Assert.AreEqual(typeof(TResult), table.Columns.ElementAt(0).ColumnType);
-
-            Assert.AreEqual(score, table[0][0]);
-        }
     }
 }

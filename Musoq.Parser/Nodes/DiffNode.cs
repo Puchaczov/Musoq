@@ -1,4 +1,6 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes
 {
     public class DiffNode : BinaryNode
     {
@@ -9,6 +11,8 @@
 
         public override string Id { get; }
 
+        public override Type ReturnType => typeof(bool);
+
         public override void Accept(IExpressionVisitor visitor)
         {
             visitor.Visit(this);
@@ -16,7 +20,7 @@
 
         public override string ToString()
         {
-            return $"{Left.ToString()} / {Right.ToString()}";
+            return $"{Left.ToString()} <> {Right.ToString()}";
         }
     }
 }

@@ -19,15 +19,5 @@ namespace Musoq.Plugins
 
             return parent;
         }
-
-        protected class Occurence
-        {
-            public int Value { get; private set; }
-
-            public void Increment()
-            {
-                Value += 1;
-            }
-        }
     }
 }

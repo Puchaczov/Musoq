@@ -917,5 +917,47 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual("A,B", table[0][0]);
         }
+
+        [TestMethod]
+        public void CoalesceTest()
+        {
+            var query = @"select Coalesce('a', 'b', 'c', 'e', 'f') from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("A")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("a", table[0][0]);
+        }
+
+        [TestMethod]
+        public void ChooseTest()
+        {
+            var query = @"select Choose(2, 'a', 'b', 'c', 'e', 'f') from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("A")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("c", table[0][0]);
+        }
     }
 }

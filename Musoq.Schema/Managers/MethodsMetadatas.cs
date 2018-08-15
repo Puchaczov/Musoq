@@ -175,14 +175,15 @@ namespace Musoq.Schema.Managers
                 var parametersToSkip = parametersToInject;
 
                 var hasMatchedArgTypes = true;
-                for (int f = 0, g = paramsParameter.HasParameters() ? methodArgs.Count - (parameters.Length - 1) : methodArgs.Count; f < g; ++f)
+                for (int f = 0, g = paramsParameter.HasParameters() ? Math.Min(methodArgs.Count - (parameters.Length - 1), parameters.Length) : methodArgs.Count; f < g; ++f)
                 {
                     //1. When constant value, it won't be nullable<type> but type.
                     //So it is possible to call function with such value. 
                     //That's why GetUnderlyingNullable exists here.
-                    if (IsTypePossibleToConvert(
-                        parameters[f + parametersToSkip].ParameterType.GetUnderlyingNullable(),
-                        methodArgs[f].GetUnderlyingNullable()))
+                    var param = parameters[f + parametersToSkip].ParameterType.GetUnderlyingNullable();
+                    var arg = methodArgs[f].GetUnderlyingNullable();
+
+                    if (IsTypePossibleToConvert(param, arg) || param.IsGenericParameter || param.IsArray && param.GetElementType().IsGenericParameter)
                         continue;
 
                     hasMatchedArgTypes = false;
@@ -193,7 +194,8 @@ namespace Musoq.Schema.Managers
                 {
                     var paramsParameters = methodArgs.Skip(parameters.Length - 1);
                     var arrayType = paramsParameters.ElementAt(0).MakeArrayType();
-                    hasMatchedArgTypes = parameters[parameters.Length - 1].ParameterType == arrayType;
+                    var paramType = parameters[parameters.Length - 1].ParameterType;
+                    hasMatchedArgTypes = paramType == arrayType || CanBeAssignedFromGeneric(paramType, arrayType);
                 }
 
                 if (!hasMatchedArgTypes)
@@ -205,6 +207,11 @@ namespace Musoq.Schema.Managers
 
             index = -1;
             return false;
+        }
+
+        private bool CanBeAssignedFromGeneric(Type paramType, Type arrayType)
+        {
+            return paramType.IsArray && paramType.GetElementType().IsGenericParameter && arrayType.IsArray;
         }
 
         /// <summary>
