@@ -1,4 +1,4 @@
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Puchaczov/Musoq/graphs/code-frequency)
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 [![Build](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)
 
@@ -52,6 +52,10 @@ Yes, it does. I was testing it on Ubuntu 18.04. If you tried to run it on differ
 - Desc syntax.
 - In syntax.
 - Inner join syntax.
+
+## Open to add new syntax features
+
+Do you think that SQL lacks some syntax that could simplify your work? Write this, I am open to implementations of features that sql does not have if they really prove their usefullnes. 
 
 ## Roadmap
 
