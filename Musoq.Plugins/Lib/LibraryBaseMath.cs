@@ -55,7 +55,7 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public long? Sign(decimal? value)
+        public decimal? Sign(decimal? value)
         {
             if (!value.HasValue)
                 return null;

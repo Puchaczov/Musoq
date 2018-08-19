@@ -9,15 +9,21 @@ namespace Musoq.Plugins
     public partial class LibraryBase
     {
         [BindableMethod]
-        public decimal ToDecimal(string value)
+        public decimal? ToDecimal(string value)
         {
-            return Convert.ToDecimal(value, CultureInfo.CurrentCulture);
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out decimal result))
+                return result;
+
+            return null;
         }
 
         [BindableMethod]
-        public decimal ToDecimal(string value, string culture)
+        public decimal? ToDecimal(string value, string culture)
         {
-            return Convert.ToDecimal(value, new CultureInfo(culture));
+            if (decimal.TryParse(value, NumberStyles.Any, new CultureInfo(culture), out decimal result))
+                return result;
+
+            return null;
         }
 
         [BindableMethod]
@@ -27,28 +33,16 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public decimal? ToDecimal(decimal? value)
-        {
-            return value;
-        }
-
-        [BindableMethod]
         public long? ToLong(string value)
         {
-            return long.Parse(value);
+            if (long.TryParse(value, out var number))
+                return number;
+
+            return null;
         }
 
         [BindableMethod]
         public string ToString(DateTimeOffset? date)
-        {
-            if (!date.HasValue)
-                return null;
-
-            return date.ToString();
-        }
-
-        [BindableMethod]
-        public string ToString(DateTime? date)
         {
             return date?.ToString(CultureInfo.InvariantCulture);
         }

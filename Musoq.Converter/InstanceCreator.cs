@@ -104,9 +104,7 @@ namespace Musoq.Converter
 
         private static IRunnable CreateRunnable(BuildItems items, string assemblyPath)
         {
-            return CreateRunnable(items, () => {
-               return Assembly.LoadFrom(assemblyPath);
-            });
+            return CreateRunnable(items, () => Assembly.LoadFrom(assemblyPath));
         }
 
         private static IRunnable CreateRunnable(BuildItems items)

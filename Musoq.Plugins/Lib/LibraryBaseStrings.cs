@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,78 +11,28 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
-        private readonly IDictionary<string, IDictionary<string, string>> _fileNameToClusteredWordsMapDictionary =
-            new Dictionary<string, IDictionary<string, string>>();
-
         [BindableMethod]
-        public string Substr(string value, long index, long length)
+        public string Substr(string value, int index, int length)
         {
-            if (value.Length < index + length + 1)
-                length = value.Length - (index + 1);
+            if (string.IsNullOrEmpty(value))
+                return value;
 
-            return value.Substring((int)index, (int)length);
+            if (length < 1)
+                return string.Empty;
+
+            var valueLastIndex = value.Length - 1;
+            var computedLastIndex = index + (length - 1);
+
+            if (valueLastIndex < computedLastIndex)
+                length = ((value.Length - 1) - index) + 1;
+
+            return value.Substring(index, length);
         }
 
         [BindableMethod]
-        public string Substr(string value, long length)
+        public string Substr(string value, int length)
         {
             return Substr(value, 0, length);
-        }
-
-        [BindableMethod]
-        public string ClusterIfLesserThan(decimal? value, decimal? edgeValue)
-        {
-            if (value >= 0)
-                return "none";
-
-            return value >= edgeValue ? "small" : "big";
-        }
-
-        [BindableMethod]
-        public string CopyUntilStopword(string text, string stopword)
-        {
-            var index = text.IndexOf(stopword, StringComparison.Ordinal);
-
-            return index == -1 ? text : text.Substring(0, index);
-        }
-
-        [BindableMethod]
-        public string ClusteredByContainsKey(string dictionaryFilename, string value)
-        {
-            if (!_fileNameToClusteredWordsMapDictionary.ContainsKey(dictionaryFilename))
-            {
-                _fileNameToClusteredWordsMapDictionary.Add(dictionaryFilename, new Dictionary<string, string>());
-
-                using (var stream = File.OpenRead(dictionaryFilename))
-                {
-                    var reader = new StreamReader(stream);
-                    var map = _fileNameToClusteredWordsMapDictionary[dictionaryFilename];
-                    var currentKey = string.Empty;
-
-                    while (!reader.EndOfStream)
-                    {
-                        var line = reader
-                            .ReadLine()
-                            .ToLowerInvariant()
-                            .Trim();
-
-                        if (line == System.Environment.NewLine || line == string.Empty)
-                            continue;
-
-                        if (line.EndsWith(":"))
-                            currentKey = line.Substring(0, line.Length - 1);
-                        else
-                            map.Add(line, currentKey);
-                    }
-                }
-            }
-
-            value = value.ToLowerInvariant();
-
-            var dict = _fileNameToClusteredWordsMapDictionary[dictionaryFilename];
-            var newValue = dict.FirstOrDefault(f => value.Contains(f.Key)).Value;
-
-            return newValue ?? "other";
         }
 
         [BindableMethod]
@@ -96,23 +47,29 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public bool Contains(string content, string what)
+        public string Concat(params object[] objects)
         {
-            return content.Contains(what);
+            var concatedStrings = new StringBuilder();
+
+            foreach (var value in objects)
+                concatedStrings.Append(value);
+
+            return concatedStrings.ToString();
         }
 
         [BindableMethod]
-        public string TrimWhen(string value, string pattern)
+        public bool Contains(string content, string what)
         {
-            var match = Regex.Match(value, pattern);
+            if (string.IsNullOrEmpty(content) || string.IsNullOrEmpty(what))
+                return false;
 
-            return match.Success ? value.Substring(0, match.Index).TrimEnd() : value;
+            return CultureInfo.CurrentCulture.CompareInfo.IndexOf(content, what, CompareOptions.IgnoreCase) >= 0;
         }
 
         [BindableMethod]
         public int IndexOf(string value, string text)
         {
-            return value.IndexOf(text, StringComparison.Ordinal);
+            return value.IndexOf(text, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

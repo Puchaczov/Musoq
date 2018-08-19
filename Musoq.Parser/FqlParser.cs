@@ -625,7 +625,7 @@ namespace Musoq.Parser
                     return new StarNode(new IntegerNode("-1"), Compose(f => f.ComposeArithmeticExpression(minPrec)));
             }
 
-            throw new NotSupportedException();
+            throw new NotSupportedException($"Token {Current.Value}({Current.TokenType}) cannot be used here.");
         }
 
         private IntegerNode ComposeInteger()

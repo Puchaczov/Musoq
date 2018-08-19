@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins
@@ -7,27 +8,11 @@ namespace Musoq.Plugins
     {
         [BindableMethod]
         public int ExtractFromDate(string date, string partOfDate)
-        {
-            var value = DateTimeOffset.Parse(date);
-
-            switch (partOfDate.ToLowerInvariant())
-            {
-                case "month":
-                    return value.Month;
-                case "year":
-                    return value.Year;
-                case "day":
-                    return value.Day;
-            }
-
-            throw new NotSupportedException();
-        }
+            => ExtractFromDate(date, CultureInfo.CurrentCulture, partOfDate);
 
         [BindableMethod]
-        public TimeSpan? DateDiff(DateTimeOffset? first, DateTimeOffset? second)
-        {
-            return second - first;
-        }
+        public int ExtractFromDate(string date, string culture, string partOfDate)
+            => ExtractFromDate(date, new CultureInfo(culture), partOfDate);
 
         [BindableMethod]
         public DateTimeOffset? GetDate()
@@ -48,5 +33,23 @@ namespace Musoq.Plugins
         [BindableMethod]
         public int? Day(DateTimeOffset? value)
             => value?.Day;
+
+        private static int ExtractFromDate(string date, CultureInfo culture, string partOfDate)
+        {
+            if (!DateTimeOffset.TryParse(date, culture, DateTimeStyles.None, out var value))
+                throw new NotSupportedException($"'{date}' looks to be not valid date.");
+
+            switch (partOfDate.ToLowerInvariant())
+            {
+                case "month":
+                    return value.Month;
+                case "year":
+                    return value.Year;
+                case "day":
+                    return value.Day;
+            }
+
+            throw new NotSupportedException($"specified part of date value ({partOfDate}) is not valid.");
+        }
     }
 }

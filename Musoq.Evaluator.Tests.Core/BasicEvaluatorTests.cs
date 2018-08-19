@@ -959,5 +959,26 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual("c", table[0][0]);
         }
+
+        [TestMethod]
+        public void MatchWithRegexTest()
+        {
+            var query = @"select Match('\d{7}', Name) from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("3213213")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(true, table[0][0]);
+        }
     }
 }

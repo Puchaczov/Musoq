@@ -118,7 +118,16 @@ namespace Musoq.Schema.Csv.Tests.Core
         public void SimpleGroupByWithSum()
         {
             var query =
-                "SELECT Count(OperationDate, 1), ExtractFromDate(OperationDate, 'month'), Count(OperationDate), SumIncome(ToDecimal(Money)), SumOutcome(ToDecimal(Money)), SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0) group by ExtractFromDate(OperationDate, 'month')";
+                @"
+select 
+    Count(OperationDate, 1), 
+    ExtractFromDate(OperationDate, 'month'), 
+    Count(OperationDate), 
+    SumIncome(ToDecimal(Money)), 
+    SumOutcome(ToDecimal(Money)), 
+    SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) 
+from #csv.file('./Files/BankingTransactions.csv', ',', true, 0) 
+group by ExtractFromDate(OperationDate, 'month')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -179,7 +188,7 @@ inner join #csv.file('./Files/Gradebook.csv', ',', true, 0) grades on persons.Id
             Assert.AreEqual("grades.Subject", table.Columns.ElementAt(2).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
             Assert.AreEqual("ToDecimal(grades.Grade)", table.Columns.ElementAt(3).Name);
-            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(3).ColumnType);
+            Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(3).ColumnType);
 
             Assert.AreEqual(24, table.Count);
 

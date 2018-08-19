@@ -50,34 +50,5 @@ namespace Musoq.Parser.Helpers
         {
             return BinaryTypes[(left.GetUnderlyingNullable(), right.GetUnderlyingNullable())];
         }
-
-        /// <summary>
-        ///     Calculates unique identifier for accessed column.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns>Column unique identifier.</returns>
-        public static string CalculateColumnAccessUniqueIdentifier(AccessColumnNode node)
-        {
-            return $"{node.Name}{node.Span.Start}{node.Span.End}";
-        }
-
-        public static string ComputeHash(string content)
-        {
-            using (var hash = SHA1.Create())
-            {
-                var stream = new MemoryStream();
-                var writer = new StreamWriter(stream);
-                writer.Write(content);
-                writer.Flush();
-                stream.Position = 0;
-
-                var hashedContent = hash.ComputeHash(stream);
-
-                var sb = new StringBuilder(hashedContent.Length * 2);
-                foreach (var b in hashedContent) sb.Append(b.ToString("X2"));
-
-                return sb.ToString();
-            }
-        }
     }
 }

@@ -434,7 +434,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(StringNode node)
         {
-            Nodes.Push(Generator.LiteralExpression(node.Value));
+            Nodes.Push(
+                SyntaxFactory.LiteralExpression(
+                    SyntaxKind.StringLiteralExpression, 
+                    SyntaxFactory.Literal($"@\"{node.Value}\"", node.Value)));
         }
 
         public void Visit(DecimalNode node)
@@ -631,7 +634,10 @@ namespace Musoq.Evaluator.Visitors
 
             var sNode = Generator.ElementAccessExpression(
                 Generator.IdentifierName(variableName),
-                SyntaxHelper.StringLiteralArgument(node.Name));
+                SyntaxFactory.Argument(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression, 
+                        SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
 
             var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
             AddNamespace(types);
@@ -837,12 +843,12 @@ namespace Musoq.Evaluator.Visitors
             for (var i = 0; i < groupFields.Names.Length - 1; i++)
             {
                 fieldName =
-                    $"new string[]{{{groupFields.Names.Where((f, idx) => idx <= i).Select(f => $"\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
+                    $"new string[]{{{groupFields.Names.Where((f, idx) => idx <= i).Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
                 fieldNames.Append(fieldName);
                 fieldNames.Append(',');
             }
 
-            fieldName = $"new string[]{{{groupFields.Names.Select(f => $"\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
+            fieldName = $"new string[]{{{groupFields.Names.Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
             fieldNames.Append(fieldName);
             fieldNames.Append("};");
 
@@ -1063,7 +1069,10 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.ArgumentList(
                                 SyntaxFactory.SeparatedList(new[]
                                 {
-                                    SyntaxHelper.StringLiteralArgument(field.FieldName),
+                                    SyntaxFactory.Argument(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.StringLiteralExpression, 
+                                            SyntaxFactory.Literal( $"@\"{field.FieldName}\"", field.FieldName))),
                                     SyntaxHelper.TypeLiteralArgument(
                                         EvaluationHelper.GetCastableType(field.ReturnType)),
                                     SyntaxHelper.IntLiteralArgument(field.FieldOrder)

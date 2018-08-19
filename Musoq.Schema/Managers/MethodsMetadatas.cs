@@ -56,7 +56,10 @@ namespace Musoq.Schema.Managers
         public MethodInfo GetMethod(string name, Type[] methodArgs)
         {
             if (!TryGetAnnotatedMethod(name, methodArgs, out var index))
-                throw new MissingMethodException("Unknown", name);
+            {
+                var args = methodArgs.Length == 0 ? string.Empty : methodArgs.Select(arg => arg.Name).Aggregate((a, b) => a + ", " + b);
+                throw new MissingMethodException("Unresolvable", $"{name}({args})");
+            }
 
             return _methods[name][index];
         }
