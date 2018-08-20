@@ -17,4 +17,8 @@
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="dotnet $(SolutionDir)Musoq.Tools.CopyReleased\bin\Release\netcoreapp2.1\Musoq.Tools.CopyReleased.dll --source &quot;$(ProjectDir)\bin\$(ConfigurationName)\netcoreapp2.1&quot; --destinationDirName &quot;Plugins\Musoq.Schema.FlatFile&quot; --configurationDir &quot;$(SolutionDir)..\Musoq&quot; --buildType &quot;$(ConfigurationName)&quot;" />
+  </Target>
+
 </Project>
