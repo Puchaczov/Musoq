@@ -96,7 +96,7 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public long Format([InjectSource] FileInfo context, string unit = "b")
         {
-            switch (unit)
+            switch (unit.ToLowerInvariant())
             {
                 case "b":
                     return context.Length;
@@ -107,7 +107,7 @@ namespace Musoq.Schema.Os
                 case "gb":
                     return Convert.ToInt64(context.Length / 1024f / 1024f / 1024f);
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException($"unsupported unit ({unit})");
             }
         }
 

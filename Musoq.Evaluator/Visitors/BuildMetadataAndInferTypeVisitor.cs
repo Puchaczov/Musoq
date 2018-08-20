@@ -822,12 +822,18 @@ namespace Musoq.Evaluator.Visitors
                 newSetArgs.AddRange(args.Args);
 
                 var setMethodName = $"Set{method.Name}";
+                var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
 
                 if (!schemaTablePair.Schema.TryResolveAggreationMethod(
                     setMethodName,
-                    newSetArgs.Select(f => f.ReturnType).ToArray(),
+                    argTypes,
                     out var setMethod))
-                    throw new NotSupportedException();
+                {
+                    var names = argTypes.Length == 0
+                        ? string.Empty
+                        : argTypes.Select(arg => arg.Name).Aggregate((a, b) => a + ", " + b);
+                    throw new NotSupportedException($"Cannot resolve method {setMethodName} with parameters {names}");
+                }
 
                 var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty),
                     new ArgsListNode(newSetArgs.ToArray()), null, setMethod,

@@ -23,7 +23,7 @@ namespace Musoq.Schema.Csv
                 return (CsvBasedTable)Activator.CreateInstance(typeof(CsvBasedTable), parameters);
             }
 
-            throw new NotSupportedException();
+            throw new NotSupportedException($"Unrecognized table {name}.");
         }
 
         public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
@@ -35,7 +35,7 @@ namespace Musoq.Schema.Csv
                     return (CsvSource) Activator.CreateInstance(typeof(CsvSource), parameters.ExpandParameters(interCommunicator));
             }
 
-            throw new NotSupportedException();
+            throw new NotSupportedException($"Unrecognized method {name}.");
         }
 
         private static MethodsAggregator CreateLibrary()

@@ -980,5 +980,47 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual(true, table[0][0]);
         }
+
+        [TestMethod]
+        public void SubtractTwoAliasedValuesTest()
+        {
+            var query = "select a.Money - a.Money from #A.entities() a";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 2512m)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(0m, table[0][0]);
+        }
+
+        [TestMethod]
+        public void SubtractThreeAliasedValuesTest()
+        {
+            var query = "select (a.Money - a.Population) / a.Money from #A.entities() a";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 10 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(0.9m, table[0][0]);
+        }
     }
 }

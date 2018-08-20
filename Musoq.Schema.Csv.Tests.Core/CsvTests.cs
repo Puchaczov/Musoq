@@ -345,13 +345,14 @@ select
 	bi.MonthlyOutcome as 'Monthly Outcome',
 	bi.MoneysLeft as 'Moneys Left',
 	bi.OvMoneysLeft as 'Ov. Moneys Left',
-	ac.CategoryOutcome as 'Ov. Categ. Outcome'
+	ac.CategoryOutcome as 'Ov. Categ. Outcome',
+    ((bi.MonthlyIncome - bi.MonthlyOutcome) / bi.MonthlyIncome) as 'Saving Coeff'
 from BasicIndicators bi inner join AggregatedCategories ac on bi.Category = ac.Category";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
-            Assert.AreEqual(10, table.Columns.Count());
+            Assert.AreEqual(11, table.Columns.Count());
 
             Assert.AreEqual("Month", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -393,6 +394,10 @@ from BasicIndicators bi inner join AggregatedCategories ac on bi.Category = ac.C
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(9).ColumnType);
             Assert.AreEqual(9, table.Columns.ElementAt(9).ColumnOrder);
 
+            Assert.AreEqual("Saving Coeff", table.Columns.ElementAt(10).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(10).ColumnType);
+            Assert.AreEqual(10, table.Columns.ElementAt(10).ColumnOrder);
+
             Assert.AreEqual(48, table.Count);
         }
 
@@ -428,13 +433,14 @@ select
 	BasicIndicators.MonthlyOutcome as 'Monthly Outcome',
 	BasicIndicators.MoneysLeft as 'Moneys Left',
 	BasicIndicators.OvMoneysLeft as 'Ov. Moneys Left',
-	AggregatedCategories.CategoryOutcome as 'Ov. Categ. Outcome'
+	AggregatedCategories.CategoryOutcome as 'Ov. Categ. Outcome',
+    ((BasicIndicators.MonthlyIncome - BasicIndicators.MonthlyOutcome) / BasicIndicators.MonthlyIncome) as 'Saving Coeff'
 from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category = AggregatedCategories.Category";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
-            Assert.AreEqual(10, table.Columns.Count());
+            Assert.AreEqual(11, table.Columns.Count());
 
             Assert.AreEqual("BasicIndicators.Month", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -475,6 +481,10 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
             Assert.AreEqual("Ov. Categ. Outcome", table.Columns.ElementAt(9).Name);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(9).ColumnType);
             Assert.AreEqual(9, table.Columns.ElementAt(9).ColumnOrder);
+
+            Assert.AreEqual("Saving Coeff", table.Columns.ElementAt(10).Name);
+            Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(10).ColumnType);
+            Assert.AreEqual(10, table.Columns.ElementAt(10).ColumnOrder);
 
             Assert.AreEqual(48, table.Count);
         }

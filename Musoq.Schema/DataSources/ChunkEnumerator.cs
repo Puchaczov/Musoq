@@ -74,7 +74,7 @@ namespace Musoq.Schema.DataSources
 
         public void Reset()
         {
-            throw new NotSupportedException();
+            throw new NotSupportedException("Chunk enumerator does not support reseting enumeration.");
         }
 
         public IObjectResolver Current => _currentChunk[_currentIndex];

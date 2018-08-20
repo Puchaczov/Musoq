@@ -22,7 +22,7 @@ namespace Musoq.Parser
                 {TokenType.Star, (2, Associativity.Left)},
                 {TokenType.FSlash, (2, Associativity.Left)},
                 {TokenType.Mod, (2, Associativity.Left)},
-                {TokenType.Dot, (1, Associativity.Left)}
+                {TokenType.Dot, (3, Associativity.Left)}
             };
 
         public FqlParser(Lexer lexer)
@@ -36,6 +36,7 @@ namespace Musoq.Parser
         {
             _lexer.Next();
             while (Current.TokenType != TokenType.EndOfFile)
+            {
                 switch (Current.TokenType)
                 {
                     case TokenType.Desc:
@@ -44,7 +45,10 @@ namespace Musoq.Parser
                         return new RootNode(ComposeSetOps(0));
                     case TokenType.With:
                         return new RootNode(ComposeCteExpression());
+                    default:
+                        throw new NotSupportedException($"{Current.TokenType} cannot be used here.");
                 }
+            }
 
             return new RootNode(null);
         }
@@ -358,7 +362,7 @@ namespace Musoq.Parser
                 case TokenType.EndOfFile:
                     return Order.Ascending;
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException($"Unrecognized token for ComposeOrder(), the token was {Current.TokenType}");
             }
         }
 
@@ -377,7 +381,7 @@ namespace Musoq.Parser
                         node = new OrNode(node, ComposeEqualityOperators());
                         break;
                     default:
-                        throw new NotSupportedException();
+                        throw new NotSupportedException($"Unrecognized token for ComposeOperations(), the token was {Current.TokenType}");
                 }
             return node;
         }
@@ -492,7 +496,7 @@ namespace Musoq.Parser
                         node = new NotNode(new InNode(node, ComposeArgs()));
                         break;
                     default:
-                        throw new NotSupportedException();
+                        throw new NotSupportedException($"Unrecognized token for ComposeEqualityOperators(), the token was {Current.TokenType}");
                 }
 
             return node;
@@ -587,7 +591,7 @@ namespace Musoq.Parser
                 case TokenType.Identifier:
 
                     if (!(Current is ColumnToken column))
-                        throw new ArgumentNullException();
+                        throw new ArgumentNullException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}");
 
                     Consume(TokenType.Identifier);
 
@@ -642,7 +646,7 @@ namespace Musoq.Parser
         private AccessMethodNode ComposeAccessMethod(string alias)
         {
             if (!(Current is FunctionToken func))
-                throw new ArgumentNullException();
+                throw new ArgumentNullException($"Expected token is {TokenType.Function} but {Current.TokenType} received");
 
             Consume(TokenType.Function);
 

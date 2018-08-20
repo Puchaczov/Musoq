@@ -39,7 +39,7 @@ namespace Musoq.Plugins
         public T GetValue<T>(string name)
         {
             if (!Values.ContainsKey(name))
-                throw new KeyNotFoundException(name);
+                throw new KeyNotFoundException($"Group does not have value {name}.");
 
             if (Converters.ContainsKey(name))
                 return (T) Converters[name](Values[name]);
@@ -50,7 +50,7 @@ namespace Musoq.Plugins
         public T GetRawValue<T>(string name)
         {
             if (!Values.ContainsKey(name))
-                throw new KeyNotFoundException(name);
+                throw new KeyNotFoundException($"Group does not have value {name}.");
 
             return (T) Values[name];
         }

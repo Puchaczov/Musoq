@@ -39,7 +39,7 @@ namespace Musoq.Schema.Os
                     return new OsBasedTable();
             }
 
-            throw new NotSupportedException();
+            throw new NotSupportedException($"Unsupported table {name}.");
         }
 
         public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
@@ -58,7 +58,7 @@ namespace Musoq.Schema.Os
                     return new OsSource();
             }
 
-            throw new NotSupportedException();
+            throw new NotSupportedException($"Unsupported row source {name}");
         }
 
         private static MethodsAggregator CreateLibrary()

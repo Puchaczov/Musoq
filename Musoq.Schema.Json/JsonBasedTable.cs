@@ -34,7 +34,7 @@ namespace Musoq.Schema.Json
                         return ParseArray(jarr);
                 }
 
-                throw new NotSupportedException();
+                throw new NotSupportedException($"Unsupported object in schema {schema.GetType().Name}");
             }
         }
 

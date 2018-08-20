@@ -26,8 +26,11 @@ namespace Musoq.Schema.Time
             switch (name.ToLowerInvariant())
             {
                 case "interval":
-                    return new TimeSource(DateTimeOffset.Parse((string)parameters[0]), DateTimeOffset.Parse((string)parameters[1]),
-                        (string)parameters[2], interCommunicator);
+                    return new TimeSource(
+                        DateTimeOffset.Parse((string)parameters[0]), 
+                        DateTimeOffset.Parse((string)parameters[1]),
+                        (string)parameters[2], 
+                        interCommunicator);
             }
 
             throw new NotSupportedException($"Table {name} not found.");

@@ -48,7 +48,7 @@ namespace Musoq.Evaluator.Utils.Symbols
                 var col = table.Value.Item2.Columns.SingleOrDefault(c => c.ColumnName == column);
 
                 if (col == null)
-                    throw new NotSupportedException();
+                    throw new NotSupportedException($"Unrecognized column ({column})");
 
                 score = (table.Value.Item1, table.Value.Item2, table.Key);
             }

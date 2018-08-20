@@ -37,7 +37,7 @@ namespace Musoq.Plugins
         private static int ExtractFromDate(string date, CultureInfo culture, string partOfDate)
         {
             if (!DateTimeOffset.TryParse(date, culture, DateTimeStyles.None, out var value))
-                throw new NotSupportedException($"'{date}' looks to be not valid date.");
+                throw new NotSupportedException($"'{date}' value looks to be not valid date.");
 
             switch (partOfDate.ToLowerInvariant())
             {

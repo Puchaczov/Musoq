@@ -9,7 +9,7 @@
     <Product>Musoq</Product>
     <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/Puchaczov/Musoq/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageTags>sql, csv, dotnet-core</PackageTags>
+    <PackageTags>sql, os, dotnet-core</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

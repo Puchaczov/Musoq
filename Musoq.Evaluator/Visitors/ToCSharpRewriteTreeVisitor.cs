@@ -531,7 +531,7 @@ namespace Musoq.Evaluator.Visitors
                                 objectName = "score";
                                 break;
                             default:
-                                throw new NotSupportedException();
+                                throw new NotSupportedException($"Unrecognized method access type ({_type})");
                         }
 
                         args.Add(
@@ -629,7 +629,7 @@ namespace Musoq.Evaluator.Visitors
                     variableName = "score";
                     break;
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException($"Unrecognized method access type ({_type})");
             }
 
             var sNode = Generator.ElementAccessExpression(
