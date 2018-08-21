@@ -96,6 +96,8 @@ Tested on laptop with i7 7700HQ, 12 GB RAM, Windows 10, Main Disk (250 GB SSD), 
 
 Plugins which have been implemented so far include:
 
+| Plugin | Description |
+| ---    | --- |
 | `#Os`       | Exposes operating system tables. One of them are disk and files sources |
 | `#Zip`      | Exposes compressed (.zip) files from the hard disk so that you can decompress files that fits sophisticated conditions. |
 | `#Json`     | Exposes json file as queryable source. |
