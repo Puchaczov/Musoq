@@ -3,12 +3,12 @@
 [![Build](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)
 
 # Quick Description of Musoq
-Musoq is handy tool that allows using SQL on various data sources.
+Musoq is handy tool that allows you to use SQL syntax on a variety of data sources.
 
 ![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
 
 # What is Musoq? (in depth) 
-Musoq exposes raw data sets as queryable sources. This allows you to write queries to those sources. It uses concepts of schemas and tables to logically group your tables. What would be used as query source? Virtually anything! Those below are just ideas but some of them had been already implemented.
+Musoq exposes raw data sets as queryable sources. This allows you to write queries on those sources. It uses concepts of schemas and tables to logically group your datasource. What can be used as query source? Virtually anything! Here are some ideas (many of them have been implemented already!):
 
 - Directories
 - Files
@@ -28,11 +28,11 @@ You can also mix sources between each other.
  
 ## How to run it?
 
-To run it, you need `.NET Core 2.1` runtime. You can find it ![here](https://www.microsoft.com/net/download/dotnet-core/2.1). If you've got it, then download **![Musoq Simple Client](https://github.com/Puchaczov/Musoq.Console)**. You can find latest releases here.
+To run it, you need `.NET Core 2.1` runtime. You can find it [here](https://www.microsoft.com/net/download/dotnet-core/2.1). Once you have that, then download **[Musoq Simple Client](https://github.com/Puchaczov/Musoq.Console)**. You can find latest releases [here](https://github.com/Puchaczov/Musoq/releases).
 
 ## Does it work on Linux?
 
-Yes, it does. I was testing it on Ubuntu 18.04. If you tried to run it on different distro or version, I will be grateful when you post an issue wherever you success or fail
+Yes, it does. I have tested it on Ubuntu 18.04. If you try to run it on different distro or version, I will be grateful if you would post an issue reporting either success or fail
 
 ## What features does the Musoq implements
 
@@ -42,7 +42,7 @@ Yes, it does. I was testing it on Ubuntu 18.04. If you tried to run it on differ
 - Skip & Take operators.
 - Complex object accessing ability `column.Name`.
 - User defined functions and aggregation functions.
-- Plugin API (for those who wants to create own data source).
+- Plugin API (to create your own custom data source).
 - Set operators (non sql-like usage) (union, union all, except, intersect).
 - Parametrizable sources.
 - Like / not Like operator.
@@ -55,7 +55,7 @@ Yes, it does. I was testing it on Ubuntu 18.04. If you tried to run it on differ
 
 ## Open to add new syntax features
 
-Do you think that SQL lacks some syntax that could simplify your work? Write this, I am open to implementations of features that sql does not have if they really prove their usefullnes. 
+Do you think that SQL lacks some syntax that could simplify your work? Write this, I am open to implementations of features that sql does not have if they can prove their usefullness. 
 
 ## Roadmap
 
@@ -71,39 +71,38 @@ Do you think that SQL lacks some syntax that could simplify your work? Write thi
 ## Long term goals
 
 - Order by further implementation.
-- Translated code optimisations.
+- Translated code optimizations.
 - Rethink how `LibraryBase` works in mixed sources context.
 - Left and right join syntax.
-- betwen ... and ... syntax.
+- between ... and ... syntax.
 
 ## Current known critical issues
 
-- Chunks loader will greedly load datas until memory ends (important for huge files).
+- Chunks loader will greedily load datas until memory runs out (important to know for huge files).
 - Unmanaged resources are disposed too fast.
-- There is no any kind of framework that allows plugin communicate with runtime about the issues occured internally.
+- There is not any kind of framework that allows plugin communicate with runtime about the issues occurred internally.
 
 ## Architecture for plugins
 
-You can easily plug-in your own data source. There is fairly simple plugin api that all sources uses. To read in details how to do it, jump into wiki section of this repo ![click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
+You can easily plug-in your own data source. There is fairly simple plugin api that all sources use. To read in details how to do it, jump into wiki section of this repo [click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
 
 ## Roughly about performance
 
 [![Maintenance](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)
 
-Tested on laptop with i7 7700HQ, 12 GB RAM, Windows 10, Main Disk (250 GB SSD), Secondary Disk (1TB HDD) where the files were placed. The query was counting how many rows does the files have. About the files, It was a single 6GB csv file with 11 columns. File had been splitted to reflect sizes you can observe in chart. It should hints you what data volume it can handle in what time.
+Tested on laptop with i7 7700HQ, 12 GB RAM, Windows 10, Main Disk (250 GB SSD), Secondary Disk (1TB HDD). Files were placed on the HDD. The query tested was counting how many rows the files has. The file tested was a single 6GB csv file with 11 columns. For each test the file was split to reflect sizes you can observe in chart. This should give you some guidance on what data processing rate you can expect using this tool.
 
 ## Plugins
 
-<table>
-      <thead>
-            <tr><td>#Os</td><td>Exposes operating system tables. One of them are disk and files sources</td></tr>
-            <tr><td>#Zip</td><td>Exposes compressed (.zip) files from the hard disk so that you can decompress files that fits sophisticated conditions.</td></tr>
-            <tr><td>#Json</td><td>Exposes json file as queryable source.</td></tr>
-            <tr><td>#Csv</td><td>Exposes csv file as queryable source.</td></tr>
-            <tr><td>#FlatFile</td><td>Exposes FlatFile file as queryable source.</td></tr>
-            <tr><td>#Time</td><td>Exposes time as queryable source.</td></tr>
-      </thead>
-</table>
+Plugins which have been implemented so far include:
+
+| `#Os`       | Exposes operating system tables. One of them are disk and files sources |
+| `#Zip`      | Exposes compressed (.zip) files from the hard disk so that you can decompress files that fits sophisticated conditions. |
+| `#Json`     | Exposes json file as queryable source. |
+| `#Csv`      | Exposes csv file as queryable source. |
+| `#FlatFile` | Exposes FlatFile file as queryable source. |
+| `#Time`     | Exposes time as queryable source. |
+
 
 ## Query examples
 
@@ -182,19 +181,19 @@ and file to be queried is:
       }
     ]
     
-## How do I know what columns does the source have?
+## How do I know what columns the source has?
 
-You can easily check it by typing a query that asks the source about columns it has. It's super easy and looks like `desc #git.commits('path/to/repo')`. All plugins supports it out of the box!
+There is a built-in way to list all the columns from a source, all plugins supports it out of the box! The command is: `desc #git.commits('path/to/repo')`. 
 
 ## Motivation for creating this project
 
-On the one hand, I needed something that allows me performing queries on my own bank account file, on the other hand something that simultaneously filters with respect to file names and their content. For some reason, I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writting" all scripts manually however I found it usefull to automate this process and as a result avoid wasting time to create it. Fast querying was my goal. At a second glance, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing script is redundant and all you have to do is to write a query and it will do the magic with your data source.
+On the one hand, I needed something that allowed me to perform queries on my own bank account file, at the same time something that filters with respect to file names and their content. I had the idea that I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writing" multiple scripts manually, however I found it useful to automate this process and as a result minimizing the amount of time to create it. Fast querying was my goal. Looking at it another way, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing C# code is redundant when all you have to do is to write a query and it will do the magic with your data source.
 
 ## Please, be aware of
 
-As the language looks like sql, it doesn't mean it is fully SQL compliant. It uses SQL syntax and repeats some of it's behaviour hoverwer, some differences may appear. It will also implement some experimental syntax and behaviours that are not used by database engines.
+As the language looks like sql, it doesn't mean it is fully SQL compliant. It uses SQL syntax and repeats some of it's behaviour however, some differences may appear. It will also implement some experimental syntax and behaviours that are not used by database engines.
 
-Hopefully, I will list the incompatibilities here:
+I will try to keep this list of the incompatibilities up-to-date (hopefully):
 
 - `Parent group aggregations`
 - `Non standard set operators based on keys rather than rows.`
