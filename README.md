@@ -2,7 +2,7 @@
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 [![Build](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)
 
-# Quick Description of Musoq
+# A Quick Description of Musoq
 Musoq is handy tool that allows you to use SQL syntax on a variety of data sources.
 
 ![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
