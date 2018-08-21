@@ -2,12 +2,12 @@
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 [![Build](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)
 
-# Shortly about Musoq
+# Quick Description of Musoq
 Musoq is handy tool that allows using SQL on various data sources.
 
 ![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
 
-# What is Musoq (more detailed)? 
+# What is Musoq? (in depth) 
 Musoq exposes raw data sets as queryable sources. This allows you to write queries to those sources. It uses concepts of schemas and tables to logically group your tables. What would be used as query source? Virtually anything! Those below are just ideas but some of them had been already implemented.
 
 - Directories
@@ -22,7 +22,7 @@ Musoq exposes raw data sets as queryable sources. This allows you to write queri
 
 You can also mix sources between each other.
 
-## How does the query looks like?
+## What does a query look like?
 
   `select * from #os.files('path/to/folder', false) where Extension = '.exe' or Extension = '.png'`
  
@@ -76,7 +76,7 @@ Do you think that SQL lacks some syntax that could simplify your work? Write thi
 - Left and right join syntax.
 - betwen ... and ... syntax.
 
-## Current known vital issues
+## Current known critical issues
 
 - Chunks loader will greedly load datas until memory ends (important for huge files).
 - Unmanaged resources are disposed too fast.
@@ -186,7 +186,7 @@ and file to be queried is:
 
 You can easily check it by typing a query that asks the source about columns it has. It's super easy and looks like `desc #git.commits('path/to/repo')`. All plugins supports it out of the box!
 
-## Whats was the reason for creating it
+## Motivation for creating this project
 
 On the one hand, I needed something that allows me performing queries on my own bank account file, on the other hand something that simultaneously filters with respect to file names and their content. For some reason, I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writting" all scripts manually however I found it usefull to automate this process and as a result avoid wasting time to create it. Fast querying was my goal. At a second glance, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing script is redundant and all you have to do is to write a query and it will do the magic with your data source.
 
