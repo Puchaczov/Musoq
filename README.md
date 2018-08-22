@@ -28,7 +28,7 @@ You can also mix sources between each other.
  
 ## How to run it?
 
-To run it, you need `.NET Core 2.1` runtime. You can find it [here](https://www.microsoft.com/net/download/dotnet-core/2.1). Once you have that, then download **[Musoq Simple Client](https://github.com/Puchaczov/Musoq.Console)**. You can find latest releases [here](https://github.com/Puchaczov/Musoq/releases).
+To run it, you need `.NET Core 2.1` runtime. You can find it [here](https://www.microsoft.com/net/download/dotnet-core/2.1). Once you have that, then download **[Musoq Simple Client](https://github.com/Puchaczov/Musoq.Console)**. You can find latest releases [here](https://github.com/Puchaczov/Musoq.Console/releases).
 
 ## Does it work on Linux?
 
