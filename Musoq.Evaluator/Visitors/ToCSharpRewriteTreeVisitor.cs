@@ -517,6 +517,7 @@ namespace Musoq.Evaluator.Visitors
                 new TypeSymbol(method.ReflectedType));
 
             foreach (var parameterInfo in parameters)
+            {
                 switch (parameterInfo.GetCustomAttribute<InjectTypeAttribute>())
                 {
                     case InjectSourceAttribute _:
@@ -554,6 +555,7 @@ namespace Musoq.Evaluator.Visitors
                                 args.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")));
                                 break;
                         }
+
                         break;
                     case InjectGroupAccessName _:
                         break;
@@ -563,6 +565,7 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.IdentifierName("stats")));
                         break;
                 }
+            }
 
             var tmpArgs = (ArgumentListSyntax) Nodes.Pop();
 
@@ -662,8 +665,10 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults"))
                 .WithArgumentList(
                     SyntaxFactory.BracketedArgumentList(
-                        SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
                                 SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
         }
 
