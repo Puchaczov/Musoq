@@ -1,9 +1,13 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
+using Musoq.Schema.Os.Zip;
+using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.Os.Tests.Core
 {
@@ -80,6 +84,35 @@ namespace Musoq.Schema.Os.Tests.Core
             Assert.IsTrue(File.Exists("./Results/DecompressWithFilterTest/File2.txt"));
 
             Directory.Delete("./Results/DecompressWithFilterTest", true);
+        }
+
+        [TestMethod]
+        public void DecompressZipWithHelperTest()
+        {
+            var tempDir = "./Temp";
+            using (var file = File.OpenRead("./Files.zip"))
+            {
+                using (var zip = new ZipArchive(file))
+                {
+                    var unpackedFile = SchemaZipHelper.UnpackZipEntry(zip.Entries[0], "test.abc", tempDir);
+                    unpackedFile.Delete();
+                }
+            }
+
+            Directory.Delete(tempDir);
+        }
+
+        [TestMethod]
+        public void DecompressZipSlipVulnerabilityTest()
+        {
+            var tempDir = "./Temp";
+            using (var file = File.OpenRead("./Files.zip"))
+            {
+                using (var zip = new ZipArchive(file))
+                {
+                    Assert.ThrowsException<InvalidOperationException>(() => SchemaZipHelper.UnpackZipEntry(zip.Entries[0], "../test.abc", tempDir));
+                }
+            }
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)

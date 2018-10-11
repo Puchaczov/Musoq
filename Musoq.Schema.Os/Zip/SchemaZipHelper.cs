@@ -37,19 +37,7 @@ namespace Musoq.Schema.Os.Zip
                 {5, info => info},
                 {
                     6,
-                    info =>
-                    {
-                        //CONSIDER USING MEMORY MAPPED FILES!
-                        var extractPath = Path.Combine(Path.GetTempPath(), info.FullName);
-                        var extractDir = Path.GetDirectoryName(extractPath);
-
-                        if (!Directory.Exists(extractDir))
-                            Directory.CreateDirectory(extractDir);
-
-                        info.ExtractToFile(extractPath, true);
-
-                        return new FileInfo(extractPath);
-                    }
+                    info => UnpackZipEntry(info, info.FullName, Path.GetTempPath())
                 },
                 {7, info => info.Name == string.Empty},
                 {8, info => info.FullName.Trim('/').Split('/').Length - 1}
@@ -67,6 +55,23 @@ namespace Musoq.Schema.Os.Zip
                 new SchemaColumn("IsDirectory", 7, typeof(bool)),
                 new SchemaColumn("Level", 8, typeof(int))
             };
+        }
+
+        public static FileInfo UnpackZipEntry(ZipArchiveEntry entry, string name, string destDir)
+        {
+            //CONSIDER USING MEMORY MAPPED FILES!
+            var destFilePath = Path.GetFullPath(Path.Combine(destDir, name));
+            var destDirectoryPath = Path.GetFullPath(destDir + Path.DirectorySeparatorChar);
+
+            if (!destFilePath.StartsWith(destDirectoryPath))
+                throw new InvalidOperationException($"Entry is outside the target dir: {destFilePath}");
+
+            if (!Directory.Exists(destDirectoryPath))
+                Directory.CreateDirectory(destDirectoryPath);
+
+            entry.ExtractToFile(destFilePath, true);
+
+            return new FileInfo(destFilePath);
         }
     }
 }

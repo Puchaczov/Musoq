@@ -72,6 +72,9 @@ namespace Musoq.Converter
             var pdbPath = Path.Combine(tempPath, $"{tempFileName}.pdb");
             var csPath = Path.Combine(tempPath, $"{tempFileName}.cs");
 
+            if (!Directory.Exists(tempPath))
+                Directory.CreateDirectory(tempPath);
+
             var builder = new StringBuilder();
             using (var writer = new StringWriter(builder))
             {
