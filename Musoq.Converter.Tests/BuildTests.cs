@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
 using Musoq.Plugins;
@@ -14,6 +15,20 @@ namespace Musoq.Converter.Tests
             var query = "select 1 from #system.dual()";
 
             var arrays = CreateForStore(query);
+
+            Assert.IsNotNull(arrays.DllFile);
+            Assert.IsNotNull(arrays.PdbFile);
+
+            Assert.AreNotEqual(0, arrays.DllFile.Length);
+            Assert.AreNotEqual(0, arrays.PdbFile.Length);
+        }
+
+        [TestMethod]
+        public async Task CompileForStoreAsyncTest()
+        {
+            var query = "select 1 from #system.dual()";
+
+            var arrays = await InstanceCreator.CompileForStoreAsync(query, new SystemSchemaProvider());
 
             Assert.IsNotNull(arrays.DllFile);
             Assert.IsNotNull(arrays.PdbFile);

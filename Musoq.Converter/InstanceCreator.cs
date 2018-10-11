@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
@@ -29,6 +30,12 @@ namespace Musoq.Converter
             chain.Build(items);
 
             return (items.DllFile, items.PdbFile);
+        }
+
+        public static Task<(byte[] DllFile, byte[] PdbFile)> CompileForStoreAsync(string script,
+            ISchemaProvider provider)
+        {
+            return Task.Factory.StartNew(() => CompileForStore(script, provider));
         }
 
         public static CompiledQuery CompileForExecution(string script, ISchemaProvider schemaProvider)
@@ -100,6 +107,11 @@ namespace Musoq.Converter
             var runnable = new RunnableDebugDecorator(CreateRunnable(items), csPath, assemblyPath, pdbPath);
 
             return new CompiledQuery(runnable);
+        }
+
+        public static Task<CompiledQuery> CompileForExecutionAsync(string script, ISchemaProvider schemaProvider)
+        {
+            return Task.Factory.StartNew(() => CompileForExecution(script, schemaProvider));
         }
 
         private static IRunnable CreateRunnable(BuildItems items, string assemblyPath)
