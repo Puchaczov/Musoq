@@ -58,9 +58,6 @@ namespace Musoq.Schema.Git
         protected virtual void Dispose(bool disposing)
         {
             ReleaseUnmanagedResources();
-            if (disposing)
-            {
-            }
         }
 
         ~RepositorySource()

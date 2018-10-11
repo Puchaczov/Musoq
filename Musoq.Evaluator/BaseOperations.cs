@@ -9,7 +9,7 @@ namespace Musoq.Evaluator
     {
         public Table Union(Table first, Table second, Func<Row, Row, bool> comparer)
         {
-            var result = new Table($"{first}Union{second}", first.Columns.ToArray());
+            var result = new Table($"{first.Name}Union{second.Name}", first.Columns.ToArray());
 
             foreach (var row in first) result.Add(row);
 
@@ -22,7 +22,7 @@ namespace Musoq.Evaluator
 
         public Table UnionAll(Table first, Table second, Func<Row, Row, bool> comparer = null)
         {
-            var result = new Table($"{first}UnionAll{second}", first.Columns.ToArray());
+            var result = new Table($"{first.Name}UnionAll{second.Name}", first.Columns.ToArray());
 
             foreach (var row in first) result.Add(row);
 
@@ -33,7 +33,7 @@ namespace Musoq.Evaluator
 
         public Table Except(Table first, Table second, Func<Row, Row, bool> comparer)
         {
-            var result = new Table($"{first}Except{second}", first.Columns.ToArray());
+            var result = new Table($"{first.Name}Except{second.Name}", first.Columns.ToArray());
 
             foreach (var row in first)
                 if (!second.Contains(row, comparer))
@@ -44,7 +44,7 @@ namespace Musoq.Evaluator
 
         public Table Intersect(Table first, Table second, Func<Row, Row, bool> comparer)
         {
-            var result = new Table($"{first}Except{second}", first.Columns.ToArray());
+            var result = new Table($"{first.Name}Except{second.Name}", first.Columns.ToArray());
 
             foreach (var row in first)
                 if (second.Contains(row, comparer))

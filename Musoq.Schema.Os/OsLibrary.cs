@@ -71,12 +71,13 @@ namespace Musoq.Schema.Os
                 var line = 1;
                 while (!stream.EndOfStream)
                 {
-                    if (stream.ReadLine().Contains(word))
+                    var strLine = stream.ReadLine();
+                    if (strLine != null && strLine.Contains(word))
                         lines.Add(line.ToString());
                     line += 1;
                 }
 
-                var builder = new StringBuilder('(');
+                var builder = new StringBuilder("(");
 
                 for (int i = 0, j = lines.Count - 1; i < j; ++i) builder.Append(lines[i]);
 

@@ -19,9 +19,11 @@ namespace Musoq.Plugins.Helpers
         public static string ComputeHash<THashProvider>(Stream stream)
             where THashProvider : HashAlgorithm, new()
         {
-            var sha = new THashProvider();
-            var hash = sha.ComputeHash(stream);
-            return BitConverter.ToString(hash).Replace("-", string.Empty);
+            using (var hashProvider = new THashProvider())
+            {
+                var hash = hashProvider.ComputeHash(stream);
+                return BitConverter.ToString(hash).Replace("-", string.Empty);
+            }
         }
     }
 }

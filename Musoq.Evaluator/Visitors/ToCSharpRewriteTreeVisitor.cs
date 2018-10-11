@@ -2015,11 +2015,6 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(OrderByNode node)
         {
             AddNamespace("System.Linq");
-
-            foreach(var column in node.Fields)
-            {
-
-            }
         }
     }
 }

@@ -20,24 +20,26 @@ namespace Musoq.Schema.Csv
 
                 using (var stream = File.OpenRead(dictionaryFilename))
                 {
-                    var reader = new StreamReader(stream);
-                    var map = _fileNameToClusteredWordsMapDictionary[dictionaryFilename];
-                    var currentKey = string.Empty;
-
-                    while (!reader.EndOfStream)
+                    using (var reader = new StreamReader(stream))
                     {
-                        var line = reader
-                            .ReadLine()
-                            .ToLowerInvariant()
-                            .Trim();
+                        var map = _fileNameToClusteredWordsMapDictionary[dictionaryFilename];
+                        var currentKey = string.Empty;
 
-                        if (line == System.Environment.NewLine || line == string.Empty)
-                            continue;
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader
+                                .ReadLine()
+                                .ToLowerInvariant()
+                                .Trim();
 
-                        if (line.EndsWith(":"))
-                            currentKey = line.Substring(0, line.Length - 1);
-                        else
-                            map.Add(line, currentKey);
+                            if (line == System.Environment.NewLine || line == string.Empty)
+                                continue;
+
+                            if (line.EndsWith(":"))
+                                currentKey = line.Substring(0, line.Length - 1);
+                            else
+                                map.Add(line, currentKey);
+                        }
                     }
                 }
             }
