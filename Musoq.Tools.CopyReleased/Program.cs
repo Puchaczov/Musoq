@@ -26,7 +26,7 @@ namespace Musoq.Tools.CopyReleased
         private static int ProcessArguments(ApplicationArguments parsedArgs)
         {
             if (!Directory.Exists(parsedArgs.SourceDir))
-                return 1;
+                return 0;
 
             var file = Path.Combine(parsedArgs.ConfigurationDir, $"_conf.{parsedArgs.BuildType.ToLowerInvariant()}.mrf");
 

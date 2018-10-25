@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="dotnet $(SolutionDir)Musoq.Tools.CopyReleased\bin\Release\netcoreapp2.1\Musoq.Tools.CopyReleased.dll --source &quot;$(ProjectDir)\bin\$(ConfigurationName)\netstandard2.0&quot; --destinationDirName &quot;Musoq.Converter&quot; --configurationDir &quot;$(SolutionDir)..\Musoq&quot; --buildType &quot;$(ConfigurationName)&quot;" />
+    <Exec Command="dotnet $(SolutionDir)Musoq.Tools.CopyReleased\bin\$(ConfigurationName)\netcoreapp2.1\Musoq.Tools.CopyReleased.dll --source &quot;$(ProjectDir)\bin\$(ConfigurationName)\netstandard2.0&quot; --destinationDirName &quot;Musoq.Converter&quot; --configurationDir &quot;$(SolutionDir)..\Musoq&quot; --buildType &quot;$(ConfigurationName)&quot;" />
   </Target>
 
 </Project>
