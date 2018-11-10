@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Core.Schema;
@@ -129,7 +130,7 @@ namespace Musoq.Evaluator.Tests.Core
         public void ComplexWhere1Test()
         {
             var query =
-                "select Population from #A.Entities() where Population > 0 and Population - 100 > -1.5d and Population - 100 < 1.5d";
+                $"select Population from #A.Entities() where Population > 0 and Population - 100 > -1.5d and Population - 100 < 1.5d";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {

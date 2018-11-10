@@ -214,7 +214,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(DecimalNode node)
         {
             AddAssembly(typeof(decimal).Assembly);
-            Nodes.Push(new DecimalNode(node.Value.ToString(CultureInfo.InvariantCulture)));
+            Nodes.Push(new DecimalNode(node.Value));
             _schemaFromArgs.Add(node.Value);
         }
 

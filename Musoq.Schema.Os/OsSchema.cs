@@ -2,6 +2,7 @@
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Os.Directories;
+using Musoq.Schema.Os.Dlls;
 using Musoq.Schema.Os.Files;
 using Musoq.Schema.Os.Process;
 using Musoq.Schema.Os.Self;
@@ -13,6 +14,7 @@ namespace Musoq.Schema.Os
     {
         private const string DirectoriesTable = "directories";
         private const string FilesTable = "files";
+        private const string DllsTable = "dlls";
         private const string ZipTable = "zip";
         private const string Self = "self";
         private const string SchemaName = "os";
@@ -37,6 +39,8 @@ namespace Musoq.Schema.Os
                     return new ProcessBasedTable();
                 case Self:
                     return new OsBasedTable();
+                case DllsTable:
+                    return new DllBasedTable();
             }
 
             throw new NotSupportedException($"Unsupported table {name}.");
@@ -56,6 +60,8 @@ namespace Musoq.Schema.Os
                     return new ProcessesSource(interCommunicator);
                 case Self:
                     return new OsSource();
+                case DllsTable:
+                    return new DllSource((string)parameters[0], (bool)parameters[1], interCommunicator);
             }
 
             throw new NotSupportedException($"Unsupported row source {name}");

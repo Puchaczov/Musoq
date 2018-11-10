@@ -123,9 +123,9 @@ select
     Count(OperationDate, 1), 
     ExtractFromDate(OperationDate, 'month'), 
     Count(OperationDate), 
-    SumIncome(ToDecimal(Money)), 
-    SumOutcome(ToDecimal(Money)), 
-    SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) 
+    SumIncome(ToDecimal(Money, 'pl-PL')), 
+    SumOutcome(ToDecimal(Money, 'pl-PL')), 
+    SumIncome(ToDecimal(Money, 'pl-PL')) - Abs(SumOutcome(ToDecimal(Money, 'pl-PL'))) 
 from #csv.file('./Files/BankingTransactions.csv', ',', true, 0) 
 group by ExtractFromDate(OperationDate, 'month')";
 
@@ -139,11 +139,11 @@ group by ExtractFromDate(OperationDate, 'month')";
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
             Assert.AreEqual("Count(OperationDate)", table.Columns.ElementAt(2).Name);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual("SumIncome(ToDecimal(Money))", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("SumIncome(ToDecimal(Money, 'pl-PL'))", table.Columns.ElementAt(3).Name);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(3).ColumnType);
-            Assert.AreEqual("SumOutcome(ToDecimal(Money))", table.Columns.ElementAt(4).Name);
+            Assert.AreEqual("SumOutcome(ToDecimal(Money, 'pl-PL'))", table.Columns.ElementAt(4).Name);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
-            Assert.AreEqual("SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money)))",
+            Assert.AreEqual("SumIncome(ToDecimal(Money, 'pl-PL')) - Abs(SumOutcome(ToDecimal(Money, 'pl-PL')))",
                 table.Columns.ElementAt(5).Name);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(5).ColumnType);
 

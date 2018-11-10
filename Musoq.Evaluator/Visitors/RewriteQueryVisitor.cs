@@ -197,7 +197,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DecimalNode node)
         {
-            Nodes.Push(new DecimalNode(node.Value.ToString()));
+            Nodes.Push(new DecimalNode(node.Value));
         }
 
         public void Visit(IntegerNode node)

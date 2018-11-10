@@ -186,7 +186,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(DecimalNode node)
         {
-            Nodes.Push(new DecimalNode(node.Value.ToString(CultureInfo.InvariantCulture)));
+            Nodes.Push(new DecimalNode(node.Value));
         }
 
         public virtual void Visit(IntegerNode node)

@@ -8,7 +8,16 @@ namespace Musoq.Parser.Nodes
     {
         public DecimalNode(string value)
         {
-            Value = Convert.ToDecimal(value);
+            if (!decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+                throw new NotSupportedException($"The value '{value}' cannot be converted to decimal.");
+
+            Value = result;
+            Id = $"{nameof(DecimalNode)}{value}{ReturnType.Name}";
+        }
+
+        public DecimalNode(decimal value)
+        {
+            Value = value;
             Id = $"{nameof(DecimalNode)}{value}{ReturnType.Name}";
         }
 

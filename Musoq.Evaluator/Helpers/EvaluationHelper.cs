@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
@@ -34,6 +35,36 @@ namespace Musoq.Evaluator.Helpers
             foreach (var column in table.Columns)
             {
                 newTable.Add(new ObjectsRow(new object[] { column.ColumnName, column.ColumnIndex, column.ColumnType.Name }));
+
+                if (!(column.ColumnType.IsPrimitive || column.ColumnType.Equals(typeof(string))))
+                {
+                    var columnName = column.ColumnName;
+                    var types = new Stack<Type>();
+                    var names = new Stack<string>();
+                    types.Push(column.ColumnType);
+                    names.Push(column.ColumnName);
+
+                    while(types.Count > 0)
+                    {
+                        var currentType = types.Pop();
+                        var currentName = names.Pop();
+                        foreach(var prop in currentType.GetProperties())
+                        {
+                            if (prop.MemberType != MemberTypes.Property)
+                                continue;
+
+                            var newName = $"{currentName}.{prop.Name}";
+                            newTable.Add(new ObjectsRow(new object[] { newName, column.ColumnIndex, prop.ReflectedType.Name }));
+
+                            if(!(currentType.IsPrimitive || currentType.Equals(typeof(string))))
+                            {
+                                types.Push(prop.ReflectedType);
+                                names.Push(newName);
+                            }
+                        }
+                    }
+                }
+                
             }
 
             return newTable;
