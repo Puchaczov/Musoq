@@ -34,40 +34,48 @@ namespace Musoq.Evaluator.Helpers
 
             foreach (var column in table.Columns)
             {
-                newTable.Add(new ObjectsRow(new object[] { column.ColumnName, column.ColumnIndex, column.ColumnType.Name }));
-
-                if (!(column.ColumnType.IsPrimitive || column.ColumnType.Equals(typeof(string))))
+                foreach (var complexField in CreateTypeComplexDescription(column.ColumnName, column.ColumnType))
                 {
-                    var columnName = column.ColumnName;
-                    var types = new Stack<Type>();
-                    var names = new Stack<string>();
-                    types.Push(column.ColumnType);
-                    names.Push(column.ColumnName);
-
-                    while(types.Count > 0)
-                    {
-                        var currentType = types.Pop();
-                        var currentName = names.Pop();
-                        foreach(var prop in currentType.GetProperties())
-                        {
-                            if (prop.MemberType != MemberTypes.Property)
-                                continue;
-
-                            var newName = $"{currentName}.{prop.Name}";
-                            newTable.Add(new ObjectsRow(new object[] { newName, column.ColumnIndex, prop.ReflectedType.Name }));
-
-                            if(!(currentType.IsPrimitive || currentType.Equals(typeof(string))))
-                            {
-                                types.Push(prop.ReflectedType);
-                                names.Push(newName);
-                            }
-                        }
-                    }
+                    newTable.Add(new ObjectsRow(new object[]{ complexField.FieldName, column.ColumnIndex, complexField.Type.FullName }));
                 }
                 
             }
 
             return newTable;
+        }
+
+        public static IEnumerable<(string FieldName, Type Type)> CreateTypeComplexDescription(
+            string initialFieldName, Type type)
+        {
+            var output = new List<(string FieldName, Type Type)>();
+            var fields = new Queue<(string FieldName, Type Type)>();
+
+            fields.Enqueue((initialFieldName, type));
+            output.Add((initialFieldName, type));
+
+            while (fields.Count > 0)
+            {
+                var current = fields.Dequeue();
+
+                foreach (var prop in current.Type.GetProperties())
+                {
+                    if (prop.MemberType != MemberTypes.Property)
+                        continue;
+
+                    var complexName = $"{current.FieldName}.{prop.Name}";
+                    output.Add((complexName, prop.PropertyType));
+
+                    if(prop.PropertyType == current.Type)
+                        continue;
+
+                    if (!(prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object)))
+                    {
+                        fields.Enqueue((complexName, prop.PropertyType));
+                    }
+                }
+            }
+
+            return output;
         }
 
         public static string GetCastableType(Type type)

@@ -66,8 +66,9 @@ namespace Musoq.Schema.Os.Zip
             if (!destFilePath.StartsWith(destDirectoryPath))
                 throw new InvalidOperationException($"Entry is outside the target dir: {destFilePath}");
 
-            if (!Directory.Exists(destDirectoryPath))
-                Directory.CreateDirectory(destDirectoryPath);
+            var fullDestDirectory = Path.GetDirectoryName(destFilePath);
+            if (!Directory.Exists(fullDestDirectory))
+                Directory.CreateDirectory(fullDestDirectory);
 
             entry.ExtractToFile(destFilePath, true);
 

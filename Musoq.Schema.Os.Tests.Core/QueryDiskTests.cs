@@ -100,49 +100,22 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void TestFilesTest()
         {
-            var query = "desc #os.files('C:/','false')";
+            var query = "desc #os.files('./','false')";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
             Assert.AreEqual(3, table.Columns.Count());
-            Assert.AreEqual(9, table.Count);
 
-            Assert.AreEqual(nameof(FileInfo.Name), table[0][0]);
-            Assert.AreEqual(0, table[0][1]);
-            Assert.AreEqual(nameof(String), table[0][2]);
-
-            Assert.AreEqual(nameof(FileInfo.CreationTime), table[1][0]);
-            Assert.AreEqual(1, table[1][1]);
-            Assert.AreEqual(nameof(DateTime), table[1][2]);
-
-            Assert.AreEqual(nameof(FileInfo.CreationTimeUtc), table[2][0]);
-            Assert.AreEqual(2, table[2][1]);
-            Assert.AreEqual(nameof(DateTime), table[2][2]);
-
-            Assert.AreEqual(nameof(FileInfo.DirectoryName), table[3][0]);
-            Assert.AreEqual(3, table[3][1]);
-            Assert.AreEqual(nameof(String), table[3][2]);
-
-            Assert.AreEqual(nameof(FileInfo.Extension), table[4][0]);
-            Assert.AreEqual(4, table[4][1]);
-            Assert.AreEqual(nameof(String), table[4][2]);
-
-            Assert.AreEqual(nameof(FileInfo.FullName), table[5][0]);
-            Assert.AreEqual(5, table[5][1]);
-            Assert.AreEqual(nameof(String), table[5][2]);
-
-            Assert.AreEqual(nameof(FileInfo.Exists), table[6][0]);
-            Assert.AreEqual(6, table[6][1]);
-            Assert.AreEqual(nameof(Boolean), table[6][2]);
-
-            Assert.AreEqual(nameof(FileInfo.IsReadOnly), table[7][0]);
-            Assert.AreEqual(7, table[7][1]);
-            Assert.AreEqual(nameof(Boolean), table[7][2]);
-
-            Assert.AreEqual(nameof(FileInfo.Length), table[8][0]);
-            Assert.AreEqual(8, table[8][1]);
-            Assert.AreEqual(nameof(Int64), table[8][2]);
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.Name) && (string)row[2] == typeof(string).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.CreationTime) && (string)row[2] == typeof(DateTime).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.CreationTimeUtc) && (string)row[2] == typeof(DateTime).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.DirectoryName) && (string)row[2] == typeof(string).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.Extension) && (string)row[2] == typeof(string).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.FullName) && (string)row[2] == typeof(string).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.Exists) && (string)row[2] == typeof(bool).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.IsReadOnly) && (string)row[2] == typeof(bool).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.Length) && (string)row[2] == typeof(long).FullName));
         }
 
         [TestMethod]

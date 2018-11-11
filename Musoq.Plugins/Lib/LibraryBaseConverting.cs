@@ -11,7 +11,7 @@ namespace Musoq.Plugins
         [BindableMethod]
         public decimal? ToDecimal(string value)
         {
-            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out decimal result))
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
                 return result;
 
             return null;
@@ -20,7 +20,7 @@ namespace Musoq.Plugins
         [BindableMethod]
         public decimal? ToDecimal(string value, string culture)
         {
-            if (decimal.TryParse(value, NumberStyles.Any, new CultureInfo(culture), out decimal result))
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.GetCultureInfo(culture), out decimal result))
                 return result;
 
             return null;

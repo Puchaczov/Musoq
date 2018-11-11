@@ -821,7 +821,6 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(3, table.Columns.Count());
-            Assert.AreEqual(10, table.Count);
 
             Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -832,45 +831,15 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual("Type", table.Columns.ElementAt(2).Name);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
-            Assert.AreEqual("Name", table[0][0]);
-            Assert.AreEqual(10, table[0][1]);
-            Assert.AreEqual("String", table[0][2]);
-
-            Assert.AreEqual("City", table[1][0]);
-            Assert.AreEqual(11, table[1][1]);
-            Assert.AreEqual("String", table[1][2]);
-
-            Assert.AreEqual("Country", table[2][0]);
-            Assert.AreEqual(12, table[2][1]);
-            Assert.AreEqual("String", table[2][2]);
-
-            Assert.AreEqual("Population", table[3][0]);
-            Assert.AreEqual(13, table[3][1]);
-            Assert.AreEqual("Decimal", table[3][2]);
-
-            Assert.AreEqual("Self", table[4][0]);
-            Assert.AreEqual(14, table[4][1]);
-            Assert.AreEqual("BasicEntity", table[4][2]);
-
-            Assert.AreEqual("Money", table[5][0]);
-            Assert.AreEqual(15, table[5][1]);
-            Assert.AreEqual("Decimal", table[5][2]);
-
-            Assert.AreEqual("Month", table[6][0]);
-            Assert.AreEqual(16, table[6][1]);
-            Assert.AreEqual("String", table[6][2]);
-
-            Assert.AreEqual("Time", table[7][0]);
-            Assert.AreEqual(17, table[7][1]);
-            Assert.AreEqual("DateTime", table[7][2]);
-
-            Assert.AreEqual("Id", table[8][0]);
-            Assert.AreEqual(18, table[8][1]);
-            Assert.AreEqual("Int32", table[8][2]);
-
-            Assert.AreEqual("NullableValue", table[9][0]);
-            Assert.AreEqual(19, table[9][1]);
-            Assert.AreEqual("Nullable`1", table[9][2]);
+            Assert.IsTrue(table.Any(row => (string) row[0] == "Name" && (string) row[2] == "System.String"));
+            Assert.IsTrue(table.Any(row => (string) row[0] == "City" && (string) row[2] == "System.String"));
+            Assert.IsTrue(table.Any(row => (string) row[0] == "Country" && (string) row[2] == "System.String"));
+            Assert.IsTrue(table.Any(row => (string) row[0] == "Self" && (string) row[2] == "Musoq.Evaluator.Tests.Core.Schema.BasicEntity"));
+            Assert.IsTrue(table.Any(row => (string) row[0] == "Money" && (string) row[2] == "System.Decimal"));
+            Assert.IsTrue(table.Any(row => (string) row[0] == "Month" && (string) row[2] == "System.String"));
+            Assert.IsTrue(table.Any(row => (string) row[0] == "Time" && (string) row[2] == "System.DateTime"));
+            Assert.IsTrue(table.Any(row => (string) row[0] == "Id" && (string) row[2] == "System.Int32"));
+            Assert.IsTrue(table.Any(row => (string) row[0] == "NullableValue" && (string) row[2] == "System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]"));
         }
 
         [TestMethod]
@@ -1022,6 +991,29 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(0.9m, table[0][0]);
+        }
+
+        [TestMethod]
+        public void FilterByComplexObjectAccessInWhereTest()
+        {
+            var query = "select Population from #A.entities() where Self.Money > 100";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 10 },
+                        new BasicEntity("june", 200m) { Population = 20 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(20m, table[0][0]);
         }
     }
 }
