@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -9,6 +11,7 @@ using Musoq.Evaluator;
 using Musoq.Plugins;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Os.Directories;
+using Musoq.Schema.Os.Dlls;
 using Musoq.Schema.Os.Files;
 using Musoq.Schema.Os.Tests.Core.Utils;
 using Environment = Musoq.Plugins.Environment;
@@ -98,7 +101,7 @@ namespace Musoq.Schema.Os.Tests.Core
         }
 
         [TestMethod]
-        public void TestFilesTest()
+        public void DescFilesTest()
         {
             var query = "desc #os.files('./','false')";
 
@@ -116,6 +119,21 @@ namespace Musoq.Schema.Os.Tests.Core
             Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.Exists) && (string)row[2] == typeof(bool).FullName));
             Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.IsReadOnly) && (string)row[2] == typeof(bool).FullName));
             Assert.IsTrue(table.Any(row => (string)row[0] == nameof(FileInfo.Length) && (string)row[2] == typeof(long).FullName));
+        }
+
+        [TestMethod]
+        public void DescDllsTest()
+        {
+            var query = "desc #os.dlls('./','false')";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(3, table.Columns.Count());
+
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(DllInfo.FileInfo) && (string)row[2] == typeof(FileInfo).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(DllInfo.Assembly) && (string)row[2] == typeof(Assembly).FullName));
+            Assert.IsTrue(table.Any(row => (string)row[0] == nameof(DllInfo.Version) && (string)row[2] == typeof(FileVersionInfo).FullName));
         }
 
         [TestMethod]

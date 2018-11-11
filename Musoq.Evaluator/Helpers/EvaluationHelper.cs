@@ -48,14 +48,17 @@ namespace Musoq.Evaluator.Helpers
             string initialFieldName, Type type)
         {
             var output = new List<(string FieldName, Type Type)>();
-            var fields = new Queue<(string FieldName, Type Type)>();
+            var fields = new Queue<(string FieldName, Type Type, int Level)>();
 
-            fields.Enqueue((initialFieldName, type));
+            fields.Enqueue((initialFieldName, type, 0));
             output.Add((initialFieldName, type));
 
             while (fields.Count > 0)
             {
                 var current = fields.Dequeue();
+
+                if(current.Level > 3)
+                    continue;
 
                 foreach (var prop in current.Type.GetProperties())
                 {
@@ -70,7 +73,7 @@ namespace Musoq.Evaluator.Helpers
 
                     if (!(prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object)))
                     {
-                        fields.Enqueue((complexName, prop.PropertyType));
+                        fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
                     }
                 }
             }
