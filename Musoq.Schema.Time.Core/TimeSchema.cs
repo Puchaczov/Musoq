@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Schema.Time
 {
@@ -47,6 +50,15 @@ namespace Musoq.Schema.Time
             propertiesManager.RegisterProperties(library);
 
             return new MethodsAggregator(methodsManager, propertiesManager);
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            var constructors = new List<SchemaMethodInfo>();
+
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<TimeSource>("interval"));
+
+            return constructors.ToArray();
         }
     }
 }

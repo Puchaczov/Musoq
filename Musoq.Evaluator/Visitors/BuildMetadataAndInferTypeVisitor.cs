@@ -50,7 +50,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DescNode node)
         {
-            Nodes.Push(new DescNode((FromNode) Nodes.Pop()));
+            Nodes.Push(new DescNode((FromNode) Nodes.Pop(), node.Type));
         }
 
         public void Visit(StarNode node)

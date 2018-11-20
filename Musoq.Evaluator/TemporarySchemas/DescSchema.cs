@@ -1,5 +1,8 @@
 ﻿using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
+using Musoq.Schema.Reflection;
+using System.Collections.Generic;
 
 namespace Musoq.Evaluator.TemporarySchemas
 {
@@ -23,6 +26,12 @@ namespace Musoq.Evaluator.TemporarySchemas
         public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
         {
             return new TableMetadataSource(_columns);
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            var constructors = new List<SchemaMethodInfo>();
+            return constructors.ToArray();
         }
     }
 }

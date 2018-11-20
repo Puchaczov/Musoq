@@ -1,5 +1,8 @@
 ﻿using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
+using System.Collections.Generic;
 
 namespace Musoq.Schema.Json
 {
@@ -34,6 +37,15 @@ namespace Musoq.Schema.Json
             propertiesManager.RegisterProperties(library);
 
             return new MethodsAggregator(methodsManager, propertiesManager);
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            var constructors = new List<SchemaMethodInfo>();
+
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<JsonSource>(FileTable));
+
+            return constructors.ToArray();
         }
     }
 }

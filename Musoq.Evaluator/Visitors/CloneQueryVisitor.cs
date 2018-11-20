@@ -19,7 +19,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(DescNode node)
         {
-            Nodes.Push(new DescNode((FromNode) Nodes.Pop()));
+            Nodes.Push(new DescNode((FromNode) Nodes.Pop(), DescForType.Constructors));
         }
 
         public virtual void Visit(StarNode node)

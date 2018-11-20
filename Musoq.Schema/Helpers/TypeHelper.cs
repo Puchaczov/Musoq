@@ -160,5 +160,37 @@ namespace Musoq.Schema.Helpers
 
             return (nameToIndexMap, indexToMethodAccess, columns.ToArray());
         }
+
+        public static (string Name, Type Type)[] GetParametersForConstructor(ConstructorInfo constructor)
+        {
+            var parameters = constructor.GetParameters();
+            var filteredConstructors = new List<(string Name, Type Type)>();
+
+            foreach(var param in parameters)
+            {
+                if(param.ParameterType != typeof(InterCommunicator))
+                    filteredConstructors.Add((param.Name, param.ParameterType));
+            }
+
+            return filteredConstructors.ToArray();
+        }
+
+        public static Reflection.ConstructorInfo[] GetConstructorsFor<TType>()
+        {
+            var constructors = new List<Reflection.ConstructorInfo>();
+
+            var type = typeof(TType);
+            var allConstructors = type.GetConstructors();
+
+            foreach (var constr in allConstructors)
+                constructors.Add(new Reflection.ConstructorInfo(type, GetParametersForConstructor(constr)));
+
+            return constructors.ToArray();
+        }
+
+        public static Reflection.SchemaMethodInfo[] GetSchemaMethodInfosForType<TType>(string typeIdentifier)
+        {
+            return GetConstructorsFor<TType>().Select(constr => new Reflection.SchemaMethodInfo(typeIdentifier, constr)).ToArray();
+        }
     }
 }

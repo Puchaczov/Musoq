@@ -4,11 +4,13 @@ namespace Musoq.Parser.Nodes
 {
     public class DescNode : Node
     {
-        public DescNode(FromNode from)
+        public DescNode(FromNode from, DescForType type)
         {
             From = from;
             Id = $"{nameof(DescNode)}{from.Id}";
         }
+
+        public DescForType Type { get; set; }
 
         public FromNode From { get; }
 

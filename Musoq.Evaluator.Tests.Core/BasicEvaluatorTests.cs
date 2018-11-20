@@ -843,6 +843,25 @@ namespace Musoq.Evaluator.Tests.Core
         }
 
         [TestMethod]
+        public void DescMethodTest()
+        {
+            var query = "desc #A.entities";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+        }
+
+        [TestMethod]
         public void AggregateValuesTest()
         {
             var query = @"select AggregateValues(Name) from #A.entites() a group by Name";

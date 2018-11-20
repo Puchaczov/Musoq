@@ -13,6 +13,8 @@ namespace Musoq.Parser.Nodes
             Id = $"{nameof(ArgsListNode)}{argsId}";
         }
 
+        public static ArgsListNode Empty => new ArgsListNode(new Node[0]);
+
         public Node[] Args { get; }
 
         public override Type ReturnType => Args[0].ReturnType;

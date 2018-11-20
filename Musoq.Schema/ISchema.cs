@@ -10,6 +10,10 @@ namespace Musoq.Schema
 
         ISchemaTable GetTableByName(string name, params object[] parameters);
 
+        Reflection.SchemaMethodInfo[] GetConstructors(string methodName);
+
+        Reflection.SchemaMethodInfo[] GetConstructors();
+
         RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters);
 
         MethodInfo ResolveMethod(string method, Type[] parameters);

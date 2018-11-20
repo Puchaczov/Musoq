@@ -150,7 +150,25 @@ namespace Musoq.Evaluator.Visitors
         {
             AddNamespace(typeof(EvaluationHelper).Namespace);
 
-            var schemaNode = (SchemaFromNode) node.From;
+            switch(node.Type)
+            {
+                case DescForType.Constructors:
+                    CreateDescForConstructors(node);
+                    break;
+                case DescForType.Schema:
+                    CreateDescForSchema(node);
+                    break;
+                case DescForType.SpecificConstructor:
+                    CreateDescForSpecificConstructor(node);
+                    break;
+            }
+
+            Statements.Clear();
+        }
+
+        private void CreateDescForSpecificConstructor(DescNode node)
+        {
+            var schemaNode = (SchemaFromNode)node.From;
             var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
                 "desc",
                 "provider",
@@ -165,7 +183,7 @@ namespace Musoq.Evaluator.Visitors
                 )
             );
 
-            var args = schemaNode.Parameters.Args.Select(arg => (ExpressionSyntax) Generator.LiteralExpression(((ConstantValueNode)arg).ObjValue)).ToArray();
+            var args = schemaNode.Parameters.Args.Select(arg => (ExpressionSyntax)Generator.LiteralExpression(((ConstantValueNode)arg).ObjValue)).ToArray();
 
             var gettedTable = SyntaxHelper.CreateAssignmentByMethodCall(
                 "schemaTable",
@@ -185,11 +203,11 @@ namespace Musoq.Evaluator.Visitors
             var returnStatement = SyntaxFactory.ReturnStatement(SyntaxFactory
                 .InvocationExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSchemaDescription)))).WithArgumentList(
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificTableDescription)))).WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable"))))));
-            
+
             Statements.AddRange(new StatementSyntax[]
             {
                 SyntaxFactory.LocalDeclarationStatement(createdSchema),
@@ -231,10 +249,17 @@ namespace Musoq.Evaluator.Visitors
                 null);
 
             _members.Add(method);
-
             _methodNames.Push(methodName);
+        }
 
-            Statements.Clear();
+        private void CreateDescForSchema(DescNode node)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void CreateDescForConstructors(DescNode node)
+        {
+            throw new NotImplementedException();
         }
 
         public void Visit(StarNode node)

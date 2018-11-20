@@ -58,12 +58,31 @@ namespace Musoq.Parser
             Consume(Current.TokenType);
 
             var name = ComposeWord();
-            Consume(TokenType.Dot);
-            var accessMethod = ComposeAccessMethod(string.Empty);
 
-            var fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, string.Empty);
+            FromNode fromNode;
+            if(Current.TokenType == TokenType.Dot)
+            {
+                Consume(TokenType.Dot);
 
-            return new DescNode(fromNode);
+                if ((Current is FunctionToken func))
+                {
+                    var accessMethod = ComposeAccessMethod(string.Empty);
+
+                    fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, string.Empty);
+                    return new DescNode(fromNode, DescForType.SpecificConstructor);
+                }
+                else
+                {
+                    var methodName = new WordNode(ConsumeAndGetToken(TokenType.Property).Value);
+
+                    fromNode = new SchemaFromNode(name.Value, methodName.Value, ArgsListNode.Empty, string.Empty);
+                    return new DescNode(fromNode, DescForType.Constructors);
+                }
+            }
+            else
+            {
+                return new DescNode(new SchemaFromNode(name.Value, string.Empty, ArgsListNode.Empty, string.Empty), DescForType.Schema);
+            }
         }
 
         private CteExpressionNode ComposeCteExpression()

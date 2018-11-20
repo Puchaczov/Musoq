@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Schema.Csv
 {
@@ -36,6 +39,15 @@ namespace Musoq.Schema.Csv
             }
 
             throw new NotSupportedException($"Unrecognized method {name}.");
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            var constructors = new List<SchemaMethodInfo>();
+
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<CsvSource>(FileTable));
+
+            return constructors.ToArray();
         }
 
         private static MethodsAggregator CreateLibrary()

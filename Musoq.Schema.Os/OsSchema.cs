@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Os.Directories;
 using Musoq.Schema.Os.Dlls;
@@ -7,6 +9,7 @@ using Musoq.Schema.Os.Files;
 using Musoq.Schema.Os.Process;
 using Musoq.Schema.Os.Self;
 using Musoq.Schema.Os.Zip;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Schema.Os
 {
@@ -78,6 +81,20 @@ namespace Musoq.Schema.Os
             propertiesManager.RegisterProperties(library);
 
             return new MethodsAggregator(methodsManager, propertiesManager);
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            var constructors = new List<SchemaMethodInfo>();
+
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<FilesSource>(FilesTable));
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<DirectoriesSource>(DirectoriesTable));
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<ZipSource>(ZipTable));
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<ProcessesSource>(ProcessesName));
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<OsSource>(Self));
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<DllSource>(DllsTable));
+
+            return constructors.ToArray();
         }
     }
 }

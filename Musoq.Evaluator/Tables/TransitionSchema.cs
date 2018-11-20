@@ -1,6 +1,10 @@
-﻿using Musoq.Schema;
+﻿using System.Collections.Generic;
+using System.Reflection;
+using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tables
 {
@@ -35,6 +39,15 @@ namespace Musoq.Evaluator.Tables
             propertiesManager.RegisterProperties(library);
 
             return new MethodsAggregator(methodsManager, propertiesManager);
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            var constructors = new List<SchemaMethodInfo>();
+
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<TransientVariableSource>("transient"));
+
+            return constructors.ToArray();
         }
     }
 }

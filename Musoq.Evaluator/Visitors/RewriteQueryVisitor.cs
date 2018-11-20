@@ -31,7 +31,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(DescNode node)
         {
             var from = (SchemaFromNode) Nodes.Pop();
-            Nodes.Push(new DescNode(from));
+            Nodes.Push(new DescNode(from, node.Type));
         }
 
         public void Visit(StarNode node)

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using Musoq.Plugins;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Schema.System
 {
@@ -47,6 +50,15 @@ namespace Musoq.Schema.System
             propertiesManager.RegisterProperties(library);
 
             return new MethodsAggregator(methodsManager, propertiesManager);
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            var constructors = new List<SchemaMethodInfo>();
+
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<DualRowSource>(Dual));
+
+            return constructors.ToArray();
         }
 
         private class EmptyLibrary : LibraryBase

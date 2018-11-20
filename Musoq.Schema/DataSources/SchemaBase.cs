@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Schema.DataSources
 {
@@ -20,6 +22,13 @@ namespace Musoq.Schema.DataSources
         public abstract ISchemaTable GetTableByName(string name, params object[] parameters);
 
         public abstract RowSource GetRowSource(string name, InterCommunicator communicator, params object[] parameters);
+        
+        public SchemaMethodInfo[] GetConstructors(string methodName)
+        {
+            return GetConstructors().Where(constr => constr.MethodName == methodName).ToArray();
+        }
+
+        public abstract SchemaMethodInfo[] GetConstructors();
 
         public bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo)
         {

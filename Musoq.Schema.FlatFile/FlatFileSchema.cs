@@ -1,6 +1,9 @@
 ﻿using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
+using System.Collections.Generic;
 
 namespace Musoq.Schema.FlatFile
 {
@@ -46,6 +49,15 @@ namespace Musoq.Schema.FlatFile
             propertiesManager.RegisterProperties(library);
 
             return new MethodsAggregator(methodsManager, propertiesManager);
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            var constructors = new List<SchemaMethodInfo>();
+
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<FlatFileSource>("file"));
+
+            return constructors.ToArray();
         }
     }
 }

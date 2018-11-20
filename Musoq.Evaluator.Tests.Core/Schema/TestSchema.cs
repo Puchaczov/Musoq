@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
@@ -11,7 +12,6 @@ namespace Musoq.Evaluator.Tests.Core.Schema
     {
         private static readonly IDictionary<string, int> TestNameToIndexMap;
         private static readonly IDictionary<int, Func<T, object>> TestIndexToObjectAccessMap;
-        private readonly MethodsAggregator _aggreagator;
         private readonly IEnumerable<T> _sources;
 
         static TestSchema()
@@ -72,6 +72,16 @@ namespace Musoq.Evaluator.Tests.Core.Schema
         public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
         {
             return new EntitySource<T>(_sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
+        }
+
+        public override ConstructorInfo[] GetConstructors(string methodName)
+        {
+            return typeof(BasicEntityTable).GetConstructors();
+        }
+
+        public override string[] GetMethods()
+        {
+            return new string[] { nameof(BasicEntityTable) };
         }
     }
 }

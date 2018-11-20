@@ -23,7 +23,7 @@ namespace Musoq.Evaluator.Helpers
             return new ListRowSource(list);
         }
 
-        public static Table GetSchemaDescription(ISchemaTable table)
+        public static Table GetSpecificTableDescription(ISchemaTable table)
         {
             var newTable = new Table("desc", new[]
             {
@@ -42,6 +42,16 @@ namespace Musoq.Evaluator.Helpers
             }
 
             return newTable;
+        }
+
+        public static Table GetSpecificSchemaDescriptions(ISchema schema)
+        {
+            return null;
+        }
+
+        public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName)
+        {
+            return null;
         }
 
         public static IEnumerable<(string FieldName, Type Type)> CreateTypeComplexDescription(
