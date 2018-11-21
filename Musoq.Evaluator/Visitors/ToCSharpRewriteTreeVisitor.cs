@@ -168,6 +168,51 @@ namespace Musoq.Evaluator.Visitors
 
         private void CreateDescForSpecificConstructor(DescNode node)
         {
+            CreateDescMethod(node,
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificTableDescription))))
+                        .WithArgumentList(
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable"))))));
+        }
+
+        private void CreateDescForSchema(DescNode node)
+        {
+            CreateDescMethod(node,
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificSchemaDescriptions))))
+                        .WithArgumentList(
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc"))))));
+        }
+
+        private void CreateDescForConstructors(DescNode node)
+        {
+            CreateDescMethod(node,
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetConstructorsForSpecificMethod))))
+                        .WithArgumentList(
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(
+                                    new[] {
+                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
+                                        SyntaxHelper.StringLiteralArgument(((SchemaFromNode)node.From).Method)
+                                    }))));
+        }
+
+        private void CreateDescMethod(DescNode node, InvocationExpressionSyntax invocationExpression)
+        {
             var schemaNode = (SchemaFromNode)node.From;
             var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
                 "desc",
@@ -200,13 +245,7 @@ namespace Musoq.Evaluator.Visitors
                 )
             );
 
-            var returnStatement = SyntaxFactory.ReturnStatement(SyntaxFactory
-                .InvocationExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificTableDescription)))).WithArgumentList(
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable"))))));
+            var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
 
             Statements.AddRange(new StatementSyntax[]
             {
@@ -250,16 +289,6 @@ namespace Musoq.Evaluator.Visitors
 
             _members.Add(method);
             _methodNames.Push(methodName);
-        }
-
-        private void CreateDescForSchema(DescNode node)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void CreateDescForConstructors(DescNode node)
-        {
-            throw new NotImplementedException();
         }
 
         public void Visit(StarNode node)

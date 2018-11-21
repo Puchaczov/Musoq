@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tests.Core.Schema
 {
@@ -74,14 +76,11 @@ namespace Musoq.Evaluator.Tests.Core.Schema
             return new EntitySource<T>(_sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
         }
 
-        public override ConstructorInfo[] GetConstructors(string methodName)
+        public override SchemaMethodInfo[] GetConstructors()
         {
-            return typeof(BasicEntityTable).GetConstructors();
-        }
+            var methodInfos = new List<SchemaMethodInfo>();
 
-        public override string[] GetMethods()
-        {
-            return new string[] { nameof(BasicEntityTable) };
+            return methodInfos.ToArray();
         }
     }
 }

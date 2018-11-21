@@ -6,6 +6,7 @@ using Musoq.Evaluator.Tests.Core.Schema;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tests.Core
 {
@@ -109,6 +110,12 @@ namespace Musoq.Evaluator.Tests.Core
                 methodManager.RegisterLibraries(lib);
 
                 return new MethodsAggregator(methodManager, propertiesManager);
+            }
+
+            public override SchemaMethodInfo[] GetConstructors()
+            {
+                var methodInfos = new List<SchemaMethodInfo>();
+                return methodInfos.ToArray();
             }
         }
 

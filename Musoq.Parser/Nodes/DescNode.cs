@@ -8,6 +8,7 @@ namespace Musoq.Parser.Nodes
         {
             From = from;
             Id = $"{nameof(DescNode)}{from.Id}";
+            Type = type;
         }
 
         public DescForType Type { get; set; }
