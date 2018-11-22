@@ -80,6 +80,9 @@ namespace Musoq.Evaluator.Tests.Core.Schema
         {
             var methodInfos = new List<SchemaMethodInfo>();
 
+            methodInfos.Add(new SchemaMethodInfo("entities", Musoq.Schema.Reflection.ConstructorInfo.Empty<EntitySource<T>>()));
+            methodInfos.Add(new SchemaMethodInfo("test", new Musoq.Schema.Reflection.ConstructorInfo(typeof(int), ("a", typeof(int)), ("b", typeof(string)))));
+
             return methodInfos.ToArray();
         }
     }

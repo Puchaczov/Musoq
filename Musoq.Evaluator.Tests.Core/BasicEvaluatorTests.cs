@@ -859,6 +859,40 @@ namespace Musoq.Evaluator.Tests.Core
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("entities", table[0][0]);
+        }
+
+        [TestMethod]
+        public void DescSchemaTest()
+        {
+            var query = "desc #A";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(3, table.Columns.Count());
+            Assert.AreEqual(2, table.Count);
+
+            Assert.AreEqual("entities", table[0][0]);
+            Assert.AreEqual(null, table[0][1]);
+            Assert.AreEqual(null, table[0][2]);
+
+            Assert.AreEqual("test", table[1][0]);
+            Assert.AreEqual($"a: {typeof(int).FullName}", table[1][1]);
+            Assert.AreEqual($"b: {typeof(string).FullName}", table[1][2]);
         }
 
         [TestMethod]

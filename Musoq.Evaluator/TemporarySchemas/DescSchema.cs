@@ -31,6 +31,9 @@ namespace Musoq.Evaluator.TemporarySchemas
         public override SchemaMethodInfo[] GetConstructors()
         {
             var constructors = new List<SchemaMethodInfo>();
+
+            constructors.Add(new SchemaMethodInfo(nameof(TableMetadataSource), ConstructorInfo.Empty<TableMetadataSource>()));
+
             return constructors.ToArray();
         }
     }

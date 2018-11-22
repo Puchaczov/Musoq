@@ -13,6 +13,11 @@ namespace Musoq.Schema.Reflection
             OriginType = originType;
             Arguments = arguments;
         }
+
+        public static ConstructorInfo Empty<T>()
+        {
+            return new ConstructorInfo(typeof(T), new (string, Type)[0]);
+        }
     }
 
     public class SchemaMethodInfo

@@ -8,6 +8,7 @@ using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Helpers
 {
@@ -46,12 +47,61 @@ namespace Musoq.Evaluator.Helpers
 
         public static Table GetSpecificSchemaDescriptions(ISchema schema)
         {
-            return null;
+            return CreateTableFromConstructors(() => schema.GetConstructors());
         }
 
         public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName)
         {
-            return null;
+            return CreateTableFromConstructors(() => schema.GetConstructors(methodName));
+        }
+
+        private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
+        {
+            var maxColumns = 0;
+            var values = new List<List<string>>();
+
+            foreach (var constructor in getConstructors())
+            {
+                var row = new List<string>();
+                values.Add(row);
+
+                row.Add(constructor.MethodName);
+
+                if (constructor.ConstructorInfo.Arguments.Length > maxColumns)
+                    maxColumns = constructor.ConstructorInfo.Arguments.Length;
+
+                foreach (var param in constructor.ConstructorInfo.Arguments)
+                {
+                    row.Add($"{param.Name}: {param.Type.FullName}");
+                }
+            }
+
+            maxColumns += 1;
+
+            foreach (var row in values)
+            {
+                if (maxColumns > row.Count)
+                {
+                    row.AddRange(new string[maxColumns - row.Count]);
+                }
+            }
+
+            var columns = new Column[maxColumns];
+            columns[0] = new Column("Name", typeof(string), 0);
+
+            for (int i = 1; i < columns.Length; i++)
+            {
+                columns[i] = new Column($"Param {i - 1}", typeof(string), i);
+            }
+
+            var descTable = new Table("desc", columns);
+
+            foreach (var row in values)
+            {
+                descTable.Add(new ObjectsRow(row.ToArray()));
+            }
+
+            return descTable;
         }
 
         public static IEnumerable<(string FieldName, Type Type)> CreateTypeComplexDescription(
