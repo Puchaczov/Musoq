@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
+using Musoq.Evaluator.Runtime;
 using Musoq.Schema;
 
 namespace Musoq.Converter
@@ -22,6 +23,8 @@ namespace Musoq.Converter
                 SchemaProvider = provider,
                 RawQuery = script
             };
+
+            RuntimeLibraries.CreateReferences();
 
             var chain = new CreateTree(
                 new TransformTree(
@@ -47,6 +50,8 @@ namespace Musoq.Converter
             };
 
             var compiled = true;
+
+            RuntimeLibraries.CreateReferences();
 
             BuildChain chain = 
                 new CreateTree(

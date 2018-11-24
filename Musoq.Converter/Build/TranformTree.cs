@@ -31,7 +31,7 @@ namespace Musoq.Converter.Build
 
             queryTree = rewriter.RootScript;
 
-            var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies, metadataInferer.SetOperatorFieldPositions, string.Empty);
+            var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies, metadataInferer.SetOperatorFieldPositions);
             var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, new ScopeWalker(metadataInfererTraverser.Scope));
 
             queryTree.Accept(csharpRewriteTraverser);

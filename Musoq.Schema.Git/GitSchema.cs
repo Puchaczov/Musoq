@@ -1,6 +1,7 @@
 ﻿using System;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Schema.Git
 {
@@ -26,6 +27,11 @@ namespace Musoq.Schema.Git
             }
 
             throw new NotSupportedException(name);
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            return new SchemaMethodInfo[] { };
         }
 
         public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)

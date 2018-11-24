@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
+using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -37,7 +38,6 @@ namespace Musoq.Evaluator.Visitors
 
         private readonly List<string> _namespaces = new List<string>();
         private readonly IDictionary<string, int[]> _setOperatorFieldIndexes;
-        private readonly string _sourcePath;
 
         private readonly Dictionary<string, Type> _typesToInstantiate = new Dictionary<string, Type>();
         private BlockSyntax _emptyBlock;
@@ -56,38 +56,17 @@ namespace Musoq.Evaluator.Visitors
         private MethodAccessType _type;
 
         public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies,
-            IDictionary<string, int[]> setOperatorFieldIndexes, string sourcePath)
+            IDictionary<string, int[]> setOperatorFieldIndexes)
         {
             _setOperatorFieldIndexes = setOperatorFieldIndexes;
-            _sourcePath = sourcePath;
             Workspace = new AdhocWorkspace();
             Nodes = new Stack<SyntaxNode>();
 
             Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
-            var objLocation = typeof(object).GetTypeInfo().Assembly.Location;
-            var path = new FileInfo(objLocation);
-            var directory = path.Directory;
-
             Compilation = CSharpCompilation.Create("InMemoryAssembly");
 
-            foreach (var file in directory.GetFiles("System*.dll"))
-            {
-                try
-                {
-                    AssemblyName.GetAssemblyName(file.FullName);
-                    Compilation = Compilation.AddReferences(MetadataReference.CreateFromFile(file.FullName));
-                }
-                catch (FileNotFoundException)
-                {
-                }
-                catch (BadImageFormatException)
-                {
-                }
-                catch (FileLoadException)
-                {
-                }
-            }
+            Compilation = Compilation.AddReferences(RuntimeLibraries.References);
 
             var env = new Plugins.Environment();
             Compilation = Compilation
@@ -111,7 +90,7 @@ namespace Musoq.Evaluator.Visitors
 #endif
                         assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default)
                     .WithConcurrentBuild(true)
-                    .WithMetadataImportOptions(MetadataImportOptions.All));
+                    .WithMetadataImportOptions(MetadataImportOptions.Public));
 
             AccessToClassPath = $"{Namespace}.{ClassName}";
 
