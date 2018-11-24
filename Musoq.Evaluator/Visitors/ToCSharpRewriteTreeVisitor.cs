@@ -149,48 +149,48 @@ namespace Musoq.Evaluator.Visitors
         {
             CreateDescMethod(node,
                 SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificTableDescription))))
-                        .WithArgumentList(
-                            SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable"))))));
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificTableDescription))))
+                    .WithArgumentList(
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable"))))), true);
         }
 
         private void CreateDescForSchema(DescNode node)
         {
             CreateDescMethod(node,
                 SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificSchemaDescriptions))))
-                        .WithArgumentList(
-                            SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc"))))));
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificSchemaDescriptions))))
+                    .WithArgumentList(
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc"))))), false);
         }
 
         private void CreateDescForConstructors(DescNode node)
         {
             CreateDescMethod(node,
                 SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetConstructorsForSpecificMethod))))
-                        .WithArgumentList(
-                            SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SeparatedList(
-                                    new[] {
-                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
-                                        SyntaxHelper.StringLiteralArgument(((SchemaFromNode)node.From).Method)
-                                    }))));
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetConstructorsForSpecificMethod))))
+                    .WithArgumentList(
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SeparatedList(
+                                new[] {
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
+                                    SyntaxHelper.StringLiteralArgument(((SchemaFromNode)node.From).Method)
+                                }))), false);
         }
 
-        private void CreateDescMethod(DescNode node, InvocationExpressionSyntax invocationExpression)
+        private void CreateDescMethod(DescNode node, InvocationExpressionSyntax invocationExpression, bool useProvidedTable)
         {
             var schemaNode = (SchemaFromNode)node.From;
             var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
@@ -207,31 +207,44 @@ namespace Musoq.Evaluator.Visitors
                 )
             );
 
-            var args = schemaNode.Parameters.Args.Select(arg => (ExpressionSyntax)Generator.LiteralExpression(((ConstantValueNode)arg).ObjValue)).ToArray();
-
-            var gettedTable = SyntaxHelper.CreateAssignmentByMethodCall(
-                "schemaTable",
-                "desc",
-                nameof(ISchema.GetTableByName),
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                    SyntaxFactory.SeparatedList(new[]
-                    {
-                        SyntaxHelper.StringLiteralArgument(schemaNode.Method),
-                        SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args))
-                    }),
-                    SyntaxFactory.Token(SyntaxKind.CloseParenToken)
-                )
-            );
-
-            var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
-
-            Statements.AddRange(new StatementSyntax[]
+            if (useProvidedTable)
             {
-                SyntaxFactory.LocalDeclarationStatement(createdSchema),
-                SyntaxFactory.LocalDeclarationStatement(gettedTable),
-                returnStatement
-            });
+                var args = schemaNode.Parameters.Args.Select(arg => (ExpressionSyntax)Generator.LiteralExpression(((ConstantValueNode)arg).ObjValue)).ToArray();
+
+                var gettedTable = SyntaxHelper.CreateAssignmentByMethodCall(
+                    "schemaTable",
+                    "desc",
+                    nameof(ISchema.GetTableByName),
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                        SyntaxFactory.SeparatedList(new[]
+                        {
+                            SyntaxHelper.StringLiteralArgument(schemaNode.Method),
+                            SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args))
+                        }),
+                        SyntaxFactory.Token(SyntaxKind.CloseParenToken)
+                    )
+                );
+
+                var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
+
+                Statements.AddRange(new StatementSyntax[]
+                {
+                    SyntaxFactory.LocalDeclarationStatement(createdSchema),
+                    SyntaxFactory.LocalDeclarationStatement(gettedTable),
+                    returnStatement
+                });
+            }
+            else
+            {
+                var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
+
+                Statements.AddRange(new StatementSyntax[]
+                {
+                    SyntaxFactory.LocalDeclarationStatement(createdSchema),
+                    returnStatement
+                });
+            }
 
             var methodName = "GetTableDesc";
 

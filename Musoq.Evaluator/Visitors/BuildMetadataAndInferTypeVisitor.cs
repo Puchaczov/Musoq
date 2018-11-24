@@ -6,6 +6,7 @@ using System.Reflection;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
@@ -409,7 +410,13 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(SchemaFromNode node)
         {
             var schema = _provider.GetSchema(node.Schema);
-            var table = schema.GetTableByName(node.Method, _schemaFromArgs.ToArray());
+
+            ISchemaTable table;
+            if(_currentScope.Name != "Desc")
+                table = schema.GetTableByName(node.Method, _schemaFromArgs.ToArray());
+            else
+                table = new DynamicTable(new ISchemaColumn[0]);
+
             _schemaFromArgs.Clear();
 
             AddAssembly(schema.GetType().Assembly);

@@ -502,6 +502,30 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
         }
 
         [TestMethod]
+        public void DescSchemaTest()
+        {
+            var query = "desc #csv";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(5, table.Columns.Count());
+            Assert.AreEqual(1, table.Count);
+        }
+
+        [TestMethod]
+        public void DescMethodTest()
+        {
+            var query = "desc #csv.file";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(5, table.Columns.Count());
+            Assert.AreEqual(1, table.Count);
+        }
+
+        [TestMethod]
         public void CsvSource_FullLoadTest()
         {
             var source = new CsvSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, InterCommunicator.Empty);
