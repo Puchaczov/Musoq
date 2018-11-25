@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Musoq.Plugins.Attributes;
-using Phonix;
 
 namespace Musoq.Plugins
 {
@@ -78,7 +73,7 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string Soundex(string value)
         {
-            return _soundex.BuildKey(value);
+            return _soundex.For(value);
         }
     }
 }
