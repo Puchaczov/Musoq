@@ -6,11 +6,14 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Musoq.Plugins.Attributes;
+using Phonix;
 
 namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
+        private readonly Soundex _soundex = new Soundex();
+
         [BindableMethod]
         public string Substr(string value, int index, int length)
         {
@@ -70,6 +73,12 @@ namespace Musoq.Plugins
         public int IndexOf(string value, string text)
         {
             return value.IndexOf(text, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [BindableMethod]
+        public string Soundex(string value)
+        {
+            return _soundex.BuildKey(value);
         }
     }
 }

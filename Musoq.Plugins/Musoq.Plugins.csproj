@@ -12,4 +12,8 @@
     <PackageTags>sql, dotnet-core</PackageTags>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Phonix" Version="1.0.1" />
+  </ItemGroup>
+
 </Project>

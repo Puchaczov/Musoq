@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Musoq.Plugins;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
@@ -8,7 +7,7 @@ using Musoq.Schema.Reflection;
 
 namespace Musoq.Schema.System
 {
-    public class SystemSchema : SchemaBase
+    public partial class SystemSchema : SchemaBase
     {
         private const string Dual = "dual";
         private const string System = "system";
@@ -60,8 +59,5 @@ namespace Musoq.Schema.System
 
             return constructors.ToArray();
         }
-
-        private class EmptyLibrary : LibraryBase
-        { }
     }
 }

@@ -32,6 +32,18 @@ namespace Musoq.Schema.System.Tests
             Assert.AreEqual(3L, table[0][0]);
         }
 
+        [TestMethod]
+        public void SomeTest()
+        {
+            var query = "select ToDecimal(1 + 2) / 5 from #system.dual()";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(0.6m, table[0][0]);
+        }
+
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new SystemSchemaProvider());

@@ -41,5 +41,12 @@ namespace Musoq.Plugins.Tests
             Assert.AreEqual(6, Library.IndexOf("lorem ipsum dolor", "ipsum"));
             Assert.AreEqual(-1, Library.IndexOf("lorem ipsum dolor", "tatarata"));
         }
+
+        [TestMethod]
+        public void SoundexTest()
+        {
+            Assert.AreEqual("W355", Library.Soundex("Woda Mineralna"));
+            Assert.AreEqual("T221", Library.Soundex("This is very long text that have to be soundexed"));
+        }
     }
 }
