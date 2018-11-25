@@ -49,7 +49,7 @@ Yes, it does. I have tested it on Ubuntu 18.04. If you try to run it on differen
 - RLike / not RLike operator (regex like operator).
 - Contains operator (Doesn't support nested queries yet).
 - CTE expressions.
-- Desc syntax.
+- Desc for schema, schema table constructors and tables.
 - In syntax.
 - Inner join syntax.
 
@@ -63,8 +63,6 @@ Do you think that SQL lacks some syntax that could simplify your work? Write thi
 - Query as data source (views)
 - Optional query reordering `FROM ... WHERE ... SELECT...`
 - Ability to use query as a source of next query like `with p as (select 1 from #source) select 2 from #source.method(p)`
-- Syntax to query constructors about it's parameters (desc for constructors).
-- Syntax to query plugins about it's methods and parameters (desc for methods).
 - Rethink and design mechanism to dispose unmanaged resources.
 - Further project cleanups and more robust tests.
 
