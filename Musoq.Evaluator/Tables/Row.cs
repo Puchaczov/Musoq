@@ -15,6 +15,9 @@ namespace Musoq.Evaluator.Tables
 
         public bool Equals(Row other)
         {
+            if (other == null)
+                return false;
+
             if (other.Count != Count)
                 return false;
 
