@@ -53,8 +53,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{2F3A37EC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Tools.CopyReleased", "Musoq.Tools.CopyReleased\Musoq.Tools.CopyReleased.csproj", "{9436065F-CE7F-4C8F-A7D0-83B74245EB36}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Xml", "Musoq.Schema.Xml\Musoq.Schema.Xml.csproj", "{E03B4A49-53B3-431C-AB67-FD738D642DA8}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -255,14 +253,6 @@ Global
 		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Release|x64.ActiveCfg = Release|Any CPU
 		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Release|x64.Build.0 = Release|Any CPU
-		{E03B4A49-53B3-431C-AB67-FD738D642DA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E03B4A49-53B3-431C-AB67-FD738D642DA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E03B4A49-53B3-431C-AB67-FD738D642DA8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{E03B4A49-53B3-431C-AB67-FD738D642DA8}.Debug|x64.Build.0 = Debug|Any CPU
-		{E03B4A49-53B3-431C-AB67-FD738D642DA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E03B4A49-53B3-431C-AB67-FD738D642DA8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E03B4A49-53B3-431C-AB67-FD738D642DA8}.Release|x64.ActiveCfg = Release|Any CPU
-		{E03B4A49-53B3-431C-AB67-FD738D642DA8}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
