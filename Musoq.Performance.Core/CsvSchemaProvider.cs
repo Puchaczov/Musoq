@@ -1,7 +1,7 @@
 ﻿using Musoq.Schema;
 using Musoq.Schema.Csv;
 
-namespace Musoq.Performance
+namespace Musoq.Performance.Core
 {
     internal class CsvSchemaProvider : ISchemaProvider
     {
