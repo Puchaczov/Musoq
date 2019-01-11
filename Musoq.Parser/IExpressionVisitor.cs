@@ -59,7 +59,7 @@ namespace Musoq.Parser
         void Visit(InMemoryTableFromNode node);
         void Visit(JoinFromNode node);
         void Visit(ExpressionFromNode node);
-        void Visit(CreateTableNode node);
+        void Visit(CreateTransformationTableNode node);
         void Visit(RenameTableNode node);
         void Visit(TranslatedSetTreeNode node);
         void Visit(IntoNode node);

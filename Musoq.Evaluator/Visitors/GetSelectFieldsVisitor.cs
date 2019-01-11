@@ -241,7 +241,7 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
         }
 

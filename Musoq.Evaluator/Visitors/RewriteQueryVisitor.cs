@@ -357,11 +357,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new InMemoryTableFromNode(node.VariableName, node.Alias));
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             var fields = CreateFields(node.Fields);
 
-            Nodes.Push(new CreateTableNode(node.Name, node.Keys, fields, node.ForGrouping));
+            Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, fields, node.ForGrouping));
         }
 
         public void Visit(RenameTableNode node)
@@ -457,7 +457,7 @@ namespace Musoq.Evaluator.Visitors
                     null,
                     new RefreshNode(new AccessMethodNode[0]));
 
-                var targetTable = new CreateTableNode(targetTableName, new string[0], bothForCreateTable, false);
+                var targetTable = new CreateTransformationTableNode(targetTableName, new string[0], bothForCreateTable, false);
 
                 splittedNodes.Add(targetTable);
                 splittedNodes.Add(joinedQuery);
@@ -524,7 +524,7 @@ namespace Musoq.Evaluator.Visitors
                         null,
                         new RefreshNode(new AccessMethodNode[0]));
 
-                    targetTable = new CreateTableNode(targetTableName, new string[0], bothForCreateTable, false);
+                    targetTable = new CreateTransformationTableNode(targetTableName, new string[0], bothForCreateTable, false);
 
                     splittedNodes.Add(targetTable);
                     splittedNodes.Add(joinedQuery);
@@ -623,9 +623,9 @@ namespace Musoq.Evaluator.Visitors
                     take,
                     returnScore);
 
-                splittedNodes.Add(new CreateTableNode(destination, new string[0], transformingQuery.Select.Fields, true));
+                splittedNodes.Add(new CreateTransformationTableNode(destination, new string[0], transformingQuery.Select.Fields, true));
                 splittedNodes.Add(transformingQuery);
-                splittedNodes.Add(new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields, false));
+                splittedNodes.Add(new CreateTransformationTableNode(query.From.Alias, new string[0], query.Select.Fields, false));
                 splittedNodes.Add(query);
 
                 Nodes.Push(
@@ -655,7 +655,7 @@ namespace Musoq.Evaluator.Visitors
                         ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                         : from;
 
-                    splittedNodes.Add(new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], new string[0], select.Fields, false));
+                    splittedNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], new string[0], select.Fields, false));
                     splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, null, skip, take,
                         scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
 
@@ -690,7 +690,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var query = (InternalQueryNode) Nodes.Pop();
 
-            var nodes = new Node[] {new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields, false), query};
+            var nodes = new Node[] {new CreateTransformationTableNode(query.From.Alias, new string[0], query.Select.Fields, false), query};
 
             Nodes.Push(new MultiStatementNode(nodes, null));
         }

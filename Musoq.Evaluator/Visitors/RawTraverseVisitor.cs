@@ -190,7 +190,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public virtual void Visit(CreateTableNode node)
+        public virtual void Visit(CreateTransformationTableNode node)
         {
             foreach (var item in node.Fields)
                 item.Accept(this);

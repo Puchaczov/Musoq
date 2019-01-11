@@ -354,14 +354,14 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new ExpressionFromNode(from));
         }
 
-        public virtual void Visit(CreateTableNode node)
+        public virtual void Visit(CreateTransformationTableNode node)
         {
             var items = new FieldNode[node.Fields.Length];
 
             for (var i = node.Fields.Length - 1; i >= 0; --i)
                 items[i] = (FieldNode) Nodes.Pop();
 
-            Nodes.Push(new CreateTableNode(node.Name, node.Keys, items, node.ForGrouping));
+            Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, items, node.ForGrouping));
         }
 
         public virtual void Visit(RenameTableNode node)

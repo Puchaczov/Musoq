@@ -11,6 +11,32 @@ namespace Musoq.Evaluator.Tests.Core
     public class BasicEvaluatorTests : TestBase
     {
         [TestMethod]
+        public void SimpleVNextTest()
+        {
+            var query = 
+                "table DummyTable {" +
+                "   Dummy 'System.String'" +
+                "};" +
+                "couple #A.Entities() as #test with table DummyTable;" +
+                "select 1 from #test;";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
+                        new BasicEntity("dadsqqAA")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+        }
+
+        [TestMethod]
         public void LikeOperatorTest()
         {
             var query = "select Name from #A.Entities() where Name like '%AA%'";

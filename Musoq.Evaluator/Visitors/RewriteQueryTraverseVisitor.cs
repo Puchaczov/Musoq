@@ -221,7 +221,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             foreach (var item in node.Fields)
                 item.Accept(this);

@@ -1,27 +1,19 @@
 ﻿using System;
-using System.Linq;
 
 namespace Musoq.Parser.Nodes
 {
     public class CreateTableNode : Node
     {
-        public CreateTableNode(string name, string[] keys, FieldNode[] fields, bool forGrouping)
+        public CreateTableNode(string name, (string TableName, string TypeName)[] tableTypePairs)
         {
             Name = name;
-            Keys = keys;
-            Fields = fields;
-            ForGrouping = forGrouping;
-            var keysId = keys.Length == 0 ? string.Empty : keys.Aggregate((a, b) => a + b);
-            Id = $"{nameof(CreateTableNode)}{name}{keysId}";
+            TableTypePairs = tableTypePairs;
+            Id = $"{nameof(CreateTransformationTableNode)}{name}";
         }
 
-        public string[] Keys { get; }
-
-        public FieldNode[] Fields { get; }
-
-        public bool ForGrouping { get; }
-
         public string Name { get; }
+
+        public (string TableName, string TypeName)[] TableTypePairs { get; }
 
         public override Type ReturnType => null;
 

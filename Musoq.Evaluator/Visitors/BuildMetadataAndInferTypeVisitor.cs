@@ -494,11 +494,11 @@ namespace Musoq.Evaluator.Visitors
             }
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             var fields = CreateFields(node.Fields);
 
-            Nodes.Push(new CreateTableNode(node.Name, node.Keys, fields, node.ForGrouping));
+            Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, fields, node.ForGrouping));
         }
 
         public void Visit(RenameTableNode node)

@@ -223,7 +223,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             _walker = _walker.NextChild();
             _visitor.SetScope(_walker.Scope);

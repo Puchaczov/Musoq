@@ -1102,7 +1102,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(SyntaxFactory.Block());
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             if (!node.ForGrouping)
             {

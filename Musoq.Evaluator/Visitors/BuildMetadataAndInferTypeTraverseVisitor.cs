@@ -276,7 +276,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             SetQueryPart(QueryPart.None);
             foreach (var item in node.Fields)
