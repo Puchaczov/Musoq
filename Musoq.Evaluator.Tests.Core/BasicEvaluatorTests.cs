@@ -15,10 +15,10 @@ namespace Musoq.Evaluator.Tests.Core
         {
             var query = 
                 "table DummyTable {" +
-                "   Dummy 'System.String'" +
+                "   Name 'System.String'" +
                 "};" +
-                "couple #A.Entities() as #test with table DummyTable;" +
-                "select 1 from #test;";
+                "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
+                "select Name from SourceOfDummyRows();";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -26,7 +26,9 @@ namespace Musoq.Evaluator.Tests.Core
                     "#A",
                     new[]
                     {
-                        new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
+                        new BasicEntity("ABCAACBA"),
+                        new BasicEntity("AAeqwgQEW"),
+                        new BasicEntity("XXX"),
                         new BasicEntity("dadsqqAA")
                     }
                 }
@@ -34,6 +36,16 @@ namespace Musoq.Evaluator.Tests.Core
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(4, table.Count);
+            Assert.AreEqual("ABCAACBA", table[0].Values[0]);
+            Assert.AreEqual("AAeqwgQEW", table[1].Values[0]);
+            Assert.AreEqual("XXX", table[2].Values[0]);
+            Assert.AreEqual("dadsqqAA", table[3].Values[0]);
         }
 
         [TestMethod]

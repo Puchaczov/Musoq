@@ -965,9 +965,33 @@ namespace Musoq.Evaluator.Visitors
             return new RefreshNode(methods.ToArray());
         }
 
+        public void Visit(CreateTableNode node)
+        {
+        }
+
+        public void Visit(CoupleNode node)
+        {
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+        }
+
         private bool HasMethod(IEnumerable<AccessMethodNode> methods, AccessMethodNode node)
         {
             return methods.Any(f => f.ToString() == node.ToString());
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+        }
+
+        public void Visit(StatementNode node)
+        {
         }
     }
 }

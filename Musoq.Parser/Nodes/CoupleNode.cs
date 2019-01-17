@@ -4,19 +4,22 @@ namespace Musoq.Parser.Nodes
 {
     public class CoupleNode : Node
     {
-        public CoupleNode(SchemaFromNode from, string names)
+        public CoupleNode(SchemaMethodFromNode from, string tableName, string mappedSchemaName)
         {
-            SchemaNode = from;
-            TableName = names;
+            SchemaMethodNode = from;
+            TableName = tableName;
+            MappedSchemaName = mappedSchemaName;
         }
 
-        public SchemaFromNode SchemaNode { get; }
+        public SchemaMethodFromNode SchemaMethodNode { get; }
+
+        public string MappedSchemaName { get; }
 
         public string TableName { get; }
 
         public override Type ReturnType => typeof(void);
 
-        public override string Id => $"couple {TableName}";
+        public override string Id => $"{SchemaMethodNode.ToString()}{TableName}";
 
         public override void Accept(IExpressionVisitor visitor)
         {
@@ -25,7 +28,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"couple {SchemaNode.ToString()} with table {TableName}";
+            return $"couple {SchemaMethodNode.ToString()} with table {TableName} as {MappedSchemaName}";
         }
     }
 }

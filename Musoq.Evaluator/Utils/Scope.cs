@@ -31,6 +31,24 @@ namespace Musoq.Evaluator.Utils
 
         public Scope Parent { get; private set; }
 
+        public Scope Root {
+            get
+            {
+                if (Parent == null)
+                    return this;
+
+                var root = Parent;
+                var rootCandidate = Parent;
+                while (rootCandidate != null)
+                {
+                    root = rootCandidate;
+                    rootCandidate = rootCandidate.Parent;
+                }
+
+                return root;
+            }
+        }
+
         public SymbolTable ScopeSymbolTable { get; } = new SymbolTable();
 
         public StringBuilder Script { get; } = new StringBuilder();

@@ -1,19 +1,20 @@
 ﻿using System;
+using System.Text;
 
 namespace Musoq.Parser.Nodes
 {
     public class CreateTableNode : Node
     {
-        public CreateTableNode(string name, (string TableName, string TypeName)[] tableTypePairs)
+        public CreateTableNode(string name, (string ColumnName, string TypeName)[] tableTypePairs)
         {
             Name = name;
             TableTypePairs = tableTypePairs;
-            Id = $"{nameof(CreateTransformationTableNode)}{name}";
+            Id = $"{nameof(CreateTableNode)}{name}";
         }
 
         public string Name { get; }
 
-        public (string TableName, string TypeName)[] TableTypePairs { get; }
+        public (string ColumnName, string TypeName)[] TableTypePairs { get; }
 
         public override Type ReturnType => null;
 
@@ -26,6 +27,16 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
+            var cols = new StringBuilder();
+
+            cols.Append($"{TableTypePairs[0].ColumnName} {TableTypePairs[0].TypeName}");
+
+            for (var i = 1; i < TableTypePairs.Length - 1; ++i)
+            {
+                cols.Append($"{TableTypePairs[i].ColumnName} {TableTypePairs[i].TypeName}");
+            }
+
+            cols.Append($"{TableTypePairs[TableTypePairs.Length - 1].ColumnName} {TableTypePairs[TableTypePairs.Length - 1].TypeName}");
             return $"CREATE TABLE {Name}";
         }
     }

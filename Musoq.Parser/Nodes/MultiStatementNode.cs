@@ -61,11 +61,11 @@ namespace Musoq.Parser.Nodes
         public StatementsArrayNode(StatementNode[] nodes)
         {
             ReturnType = typeof(void);
-            Nodes = nodes;
+            Statements = nodes;
             Id = null;
         }
 
-        public StatementNode[] Nodes { get; }
+        public StatementNode[] Statements { get; }
 
         public override Type ReturnType { get; }
 
@@ -78,7 +78,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return Nodes.Select(f => f.ToString())
+            return Statements.Select(f => f.ToString())
                 .Aggregate((a, b) => $"{a.ToString()}{Environment.NewLine}{b.ToString()}");
         }
     }

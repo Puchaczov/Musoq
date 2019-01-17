@@ -507,6 +507,40 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
+        public void Visit(CreateTableNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(CoupleNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+            foreach (var statement in node.Statements)
+                statement.Accept(this);
+
+            node.Accept(Visitor);
+        }
+
+        public void Visit(StatementNode node)
+        {
+            node.Node.Accept(this);
+            node.Accept(Visitor);
+        }
+
         private void TraverseSetOperator(SetOperatorNode node)
         {
             node.Left.Accept(this);

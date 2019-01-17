@@ -49,15 +49,15 @@ namespace Musoq.Parser
             switch (Current.TokenType)
             {
                 case TokenType.Desc:
-                    return ComposeAndSkip(p => new StatementNode(p.ComposeDesc()), TokenType.Semicolon);
+                    return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeDesc()), TokenType.Semicolon);
                 case TokenType.Select:
-                    return ComposeAndSkip(p => new StatementNode(p.ComposeSetOps(0)), TokenType.Semicolon);
+                    return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeSetOps(0)), TokenType.Semicolon);
                 case TokenType.With:
-                    return ComposeAndSkip(p => new StatementNode(p.ComposeCteExpression()), TokenType.Semicolon);
+                    return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeCteExpression()), TokenType.Semicolon);
                 case TokenType.Table:
-                    return ComposeAndSkip(p => new StatementNode(p.ComposeTable()), TokenType.Semicolon);
+                    return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeTable()), TokenType.Semicolon);
                 case TokenType.Couple:
-                    return ComposeAndSkip(p => new StatementNode(p.ComposeCouple()), TokenType.Semicolon);
+                    return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeCouple()), TokenType.Semicolon);
 
                 default:
                     throw new NotSupportedException($"{Current.TokenType} cannot be used here.");
@@ -96,23 +96,27 @@ namespace Musoq.Parser
             }
         }
 
-        private Node ComposeCouple()
+        private CoupleNode ComposeCouple()
         {
             Consume(TokenType.Couple);
 
-            var from = (SchemaFromNode)ComposeFrom(false);
+            var from = ComposeSchemaMethod();
 
             Consume(TokenType.With);
             Consume(TokenType.Table);
 
-            var names = Current.Value;
+            var name = Current.Value;
 
             Consume(Current.TokenType);
 
-            return new CoupleNode(from, names);
+            Consume(TokenType.As);
+
+            var identifierNode = (IdentifierNode)ComposeBaseTypes();
+
+            return new CoupleNode(from, name, identifierNode.Name);
         }
 
-        private Node ComposeTable()
+        private CreateTableNode ComposeTable()
         {
             Consume(Current.TokenType);
             var tableName = Current.Value;
@@ -574,6 +578,15 @@ namespace Musoq.Parser
             return node;
         }
 
+        private SchemaMethodFromNode ComposeSchemaMethod()
+        {
+            var schemaNode = ComposeWord();
+            Consume(TokenType.Dot);
+            var identifierNode = ((IdentifierNode)ComposeBaseTypes());
+
+            return new SchemaMethodFromNode(schemaNode.Value, identifierNode.Name);
+        }
+
         private FromNode ComposeFrom(bool fromBefore = true)
         {
             if (fromBefore)
@@ -601,6 +614,13 @@ namespace Musoq.Parser
                 }
 
                 return fromNode;
+            }
+            else if(Current.TokenType == TokenType.Function)
+            {
+                var method = ComposeAccessMethod(string.Empty);
+                alias = ComposeAlias();
+
+                return new AliasedFromNode(method.Name, method.Arguments, alias);
             }
 
             var column = (IdentifierNode) ComposeBaseTypes();
@@ -753,17 +773,26 @@ namespace Musoq.Parser
             return ConsumeAndGetToken(Current.TokenType);
         }
 
-        private TNode SkipComposeSkip<TNode>(TokenType pStatenent, Func<FqlParser, TNode> parserAction,
-            TokenType aStatement)
+        private TNode SkipComposeSkip<TNode>(TokenType pType, Func<FqlParser, TNode> parserAction,
+            TokenType aType)
         {
-            Consume(pStatenent);
-            return ComposeAndSkip(parserAction, aStatement);
+            Consume(pType);
+            return ComposeAndSkip(parserAction, aType);
         }
 
-        private TNode ComposeAndSkip<TNode>(Func<FqlParser, TNode> parserAction, TokenType statement)
+        private TNode ComposeAndSkip<TNode>(Func<FqlParser, TNode> parserAction, TokenType type)
         {
             var node = Compose(parserAction);
-            Consume(statement);
+            Consume(type);
+            return node;
+        }
+
+        private TNode ComposeAndSkipIfPresent<TNode>(Func<FqlParser, TNode> parserAction, TokenType type)
+        {
+            var node = Compose(parserAction);
+            if (Current.TokenType == type)
+                Consume(type);
+
             return node;
         }
 

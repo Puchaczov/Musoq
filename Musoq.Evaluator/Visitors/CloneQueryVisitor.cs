@@ -519,5 +519,41 @@ namespace Musoq.Evaluator.Visitors
 
             Nodes.Push(new OrderByNode(fields));
         }
+
+        public void Visit(CreateTableNode node)
+        {
+            Nodes.Push(new CreateTableNode(node.Name, node.TableTypePairs));
+        }
+
+        public void Visit(CoupleNode node)
+        {
+            Nodes.Push(new CoupleNode(node.SchemaMethodNode, node.TableName, node.MappedSchemaName));
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+            Nodes.Push(new AliasedFromNode(node.Identifier, node.Args, node.Alias));
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            Nodes.Push(new SchemaMethodFromNode(node.Schema, node.Method));
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+            var statements = new StatementNode[node.Statements.Length];
+            for(int i = 0; i < node.Statements.Length; ++i)
+            {
+                statements[node.Statements.Length - 1 - i] = (StatementNode)Nodes.Pop();
+            }
+
+            Nodes.Push(new StatementsArrayNode(statements));
+        }
+
+        public void Visit(StatementNode node)
+        {
+            Nodes.Push(new StatementNode(Nodes.Pop()));
+        }
     }
 }
