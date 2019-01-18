@@ -10,24 +10,61 @@ namespace Musoq.Schema.Csv
 {
     public class CsvSource : RowSourceBase<string[]>
     {
-        private readonly string _filePath;
-        private readonly string _separator;
-        private readonly bool _hasHeader;
-        private readonly int _skipLines;
+        private class CsvFile
+        {
+            public string FilePath { get; set; }
+            public string Separator { get; set; }
+            public bool HasHeader { get; set; }
+            public int SkipLines { get; set; }
+        }
+
+        private readonly CsvFile[] _files;
         private readonly InterCommunicator _communicator;
 
         public CsvSource(string filePath, string separator, bool hasHeader, int skipLines, InterCommunicator communicator)
         {
-            _filePath = filePath;
-            _separator = separator;
-            _hasHeader = hasHeader;
-            _skipLines = skipLines;
+            _files = new CsvFile[] {
+                new CsvFile()
+                {
+                    FilePath = filePath,
+                    HasHeader = hasHeader,
+                    Separator = separator,
+                    SkipLines = skipLines
+                }
+            };
+            _communicator = communicator;
+        }
+
+        public CsvSource(IReadOnlyTable table, InterCommunicator communicator)
+        {
+            _files = new CsvFile[table.Count];
+
+            for(int i = 0; i < table.Count; ++i)
+            {
+                var row = table.Rows[i];
+                _files[i] = new CsvFile()
+                {
+                    FilePath = (string)row[0],
+                    Separator = (string)row[1],
+                    HasHeader = (bool)row[2],
+                    SkipLines = (int)row[3]
+                };
+            }
+
             _communicator = communicator;
         }
 
         protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<string[]>>> chunkedSource)
         {
-            var file = new FileInfo(_filePath);
+            foreach(var csvFile in _files)
+            {
+                ProcessFile(csvFile, chunkedSource);
+            }
+        }
+
+        private void ProcessFile(CsvFile csvFile, BlockingCollection<IReadOnlyList<EntityResolver<string[]>>> chunkedSource)
+        {
+            var file = new FileInfo(csvFile.FilePath);
 
             if (!file.Exists)
             {
@@ -43,18 +80,18 @@ namespace Musoq.Schema.Csv
             {
                 using (var reader = new StreamReader(stream))
                 {
-                    SkipLines(reader);
+                    SkipLines(reader, csvFile);
 
                     using (var csvReader = new CsvReader(reader))
                     {
-                        csvReader.Configuration.Delimiter = _separator;
+                        csvReader.Configuration.Delimiter = csvFile.Separator;
                         csvReader.Read();
 
                         var header = csvReader.Context.Record;
 
                         for (var i = 0; i < header.Length; ++i)
                         {
-                            nameToIndexMap.Add(_hasHeader ? CsvHelper.MakeHeaderNameValidColumnName(header[i]) : string.Format(CsvHelper.AutoColumnName, i + 1), i);
+                            nameToIndexMap.Add(csvFile.HasHeader ? CsvHelper.MakeHeaderNameValidColumnName(header[i]) : string.Format(CsvHelper.AutoColumnName, i + 1), i);
 
                             var i1 = i;
                             indexToMethodAccess.Add(i, row => row[i1]);
@@ -67,19 +104,19 @@ namespace Musoq.Schema.Csv
             {
                 using (var reader = new StreamReader(stream))
                 {
-                    SkipLines(reader);
+                    SkipLines(reader, csvFile);
 
                     using (var csvReader = new CsvReader(reader))
                     {
                         csvReader.Configuration.BadDataFound = context => { };
-                        csvReader.Configuration.Delimiter = _separator;
+                        csvReader.Configuration.Delimiter = csvFile.Separator;
 
                         int i = 1, j = 11;
                         var list = new List<EntityResolver<string[]>>(100);
                         var rowsToRead = 1000;
                         const int rowsToReadBase = 100;
 
-                        if (_hasHeader)
+                        if (csvFile.HasHeader)
                             csvReader.Read(); //skip header.
 
                         while (csvReader.Read())
@@ -95,7 +132,7 @@ namespace Musoq.Schema.Csv
                                 j -= 1;
 
                             rowsToRead = rowsToReadBase * j;
-                            
+
                             chunkedSource.Add(list, endWorkToken);
                             list = new List<EntityResolver<string[]>>(rowsToRead);
                         }
@@ -106,12 +143,12 @@ namespace Musoq.Schema.Csv
             }
         }
 
-        private void SkipLines(TextReader reader)
+        private void SkipLines(TextReader reader, CsvFile csvFile)
         {
-            if (_skipLines <= 0) return;
+            if (csvFile.SkipLines <= 0) return;
 
             var skippedLines = 0;
-            while (skippedLines < _skipLines)
+            while (skippedLines < csvFile.SkipLines)
             {
                 reader.ReadLine();
                 skippedLines += 1;

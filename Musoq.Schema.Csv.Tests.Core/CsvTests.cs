@@ -78,6 +78,40 @@ namespace Musoq.Schema.Csv.Tests.Core
         }
 
         [TestMethod]
+        public void SimpleSelectWithCouplingTableSyntaxSkipLinesTest2()
+        {
+            var query = "" +
+                "table CsvFile {" +
+                "   Name 'System.String'" +
+                "};" +
+                "couple #csv.file with table CsvFile as SourceCsvFile;" +
+                "with FilesToScan as (" +
+                "   select './Files/BankingTransactionsWithSkippedLines.csv', ',', true, 2 from #csv.empty()" +
+                ")" +
+                "select Name from SourceCsvFile(FilesToScan);";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(11, table.Count);
+            Assert.AreEqual("Salary", table[0].Values[0]);
+            Assert.AreEqual("Restaurant A", table[1].Values[0]);
+            Assert.AreEqual("Bus ticket", table[2].Values[0]);
+            Assert.AreEqual("Tesco", table[3].Values[0]);
+            Assert.AreEqual("Restaurant B", table[4].Values[0]);
+            Assert.AreEqual("Service", table[5].Values[0]);
+            Assert.AreEqual("Salary", table[6].Values[0]);
+            Assert.AreEqual("Restaurant A", table[7].Values[0]);
+            Assert.AreEqual("Bus ticket", table[8].Values[0]);
+            Assert.AreEqual("Tesco", table[9].Values[0]);
+            Assert.AreEqual("Restaurant B", table[10].Values[0]);
+        }
+
+        [TestMethod]
         public void SimpleSelectTest()
         {
             var query = "SELECT Name FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0)";

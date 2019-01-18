@@ -51,6 +51,8 @@ namespace Musoq.Evaluator.Tests.Core.Schema
             : base("test", CreateLibrary())
         {
             _sources = sources;
+            AddSource<EntitySource<T>>("entities", _sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
+            AddTable<BasicEntityTable>("entities");
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -64,26 +66,6 @@ namespace Musoq.Evaluator.Tests.Core.Schema
             methodManager.RegisterLibraries(lib);
 
             return new MethodsAggregator(methodManager, propertiesManager);
-        }
-
-        public override ISchemaTable GetTableByName(string name, params object[] parameters)
-        {
-            return new BasicEntityTable();
-        }
-
-        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
-        {
-            return new EntitySource<T>(_sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
-        }
-
-        public override SchemaMethodInfo[] GetConstructors()
-        {
-            var methodInfos = new List<SchemaMethodInfo>();
-
-            methodInfos.Add(new SchemaMethodInfo("entities", Musoq.Schema.Reflection.ConstructorInfo.Empty<EntitySource<T>>()));
-            methodInfos.Add(new SchemaMethodInfo("test", new Musoq.Schema.Reflection.ConstructorInfo(typeof(int), ("a", typeof(int)), ("b", typeof(string)))));
-
-            return methodInfos.ToArray();
         }
     }
 }

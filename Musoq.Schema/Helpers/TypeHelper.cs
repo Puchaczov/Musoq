@@ -161,18 +161,21 @@ namespace Musoq.Schema.Helpers
             return (nameToIndexMap, indexToMethodAccess, columns.ToArray());
         }
 
-        public static (string Name, Type Type)[] GetParametersForConstructor(ConstructorInfo constructor)
+        public static (bool SupportsInterCommunicator, (string Name, Type Type)[] Parameters) GetParametersForConstructor(ConstructorInfo constructor)
         {
             var parameters = constructor.GetParameters();
             var filteredConstructors = new List<(string Name, Type Type)>();
+            var supportsInterCommunicator = false;
 
             foreach(var param in parameters)
             {
-                if(param.ParameterType != typeof(InterCommunicator))
+                if (param.ParameterType != typeof(InterCommunicator))
                     filteredConstructors.Add((param.Name, param.ParameterType));
+                else
+                    supportsInterCommunicator = true;
             }
 
-            return filteredConstructors.ToArray();
+            return (supportsInterCommunicator, filteredConstructors.ToArray());
         }
 
         public static Reflection.ConstructorInfo[] GetConstructorsFor<TType>()
@@ -183,7 +186,10 @@ namespace Musoq.Schema.Helpers
             var allConstructors = type.GetConstructors();
 
             foreach (var constr in allConstructors)
-                constructors.Add(new Reflection.ConstructorInfo(type, GetParametersForConstructor(constr)));
+            {
+                var paramsInfo = GetParametersForConstructor(constr);
+                constructors.Add(new Reflection.ConstructorInfo(constr, type, paramsInfo.SupportsInterCommunicator, paramsInfo.Parameters));
+            }
 
             return constructors.ToArray();
         }

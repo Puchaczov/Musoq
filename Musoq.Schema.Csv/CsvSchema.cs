@@ -13,41 +13,11 @@ namespace Musoq.Schema.Csv
         private const string FileTable = "file";
         private const string SchemaName = "csv";
 
-        public CsvSchema()
+        public CsvSchema() 
             : base(SchemaName, CreateLibrary())
         {
-        }
-
-        public override ISchemaTable GetTableByName(string name, params object[] parameters)
-        {
-            if (name.ToLowerInvariant() == FileTable)
-            {
-                parameters[3] = Convert.ToInt32(parameters[3]);
-                return (CsvBasedTable)Activator.CreateInstance(typeof(CsvBasedTable), parameters);
-            }
-
-            throw new NotSupportedException($"Unrecognized table {name}.");
-        }
-
-        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
-        {
-            switch (name.ToLowerInvariant())
-            {
-                case FileTable:
-                    parameters[3] = Convert.ToInt32(parameters[3]);
-                    return (CsvSource) Activator.CreateInstance(typeof(CsvSource), parameters.ExpandParameters(interCommunicator));
-            }
-
-            throw new NotSupportedException($"Unrecognized method {name}.");
-        }
-
-        public override SchemaMethodInfo[] GetConstructors()
-        {
-            var constructors = new List<SchemaMethodInfo>();
-
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<CsvSource>(FileTable));
-
-            return constructors.ToArray();
+            AddSource<CsvSource>(FileTable);
+            AddTable<CsvBasedTable>(FileTable);
         }
 
         private static MethodsAggregator CreateLibrary()

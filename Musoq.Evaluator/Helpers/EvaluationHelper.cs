@@ -47,12 +47,12 @@ namespace Musoq.Evaluator.Helpers
 
         public static Table GetSpecificSchemaDescriptions(ISchema schema)
         {
-            return CreateTableFromConstructors(() => schema.GetConstructors());
+            return CreateTableFromConstructors(() => schema.GetRawConstructors());
         }
 
         public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName)
         {
-            return CreateTableFromConstructors(() => schema.GetConstructors(methodName));
+            return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName));
         }
 
         private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)

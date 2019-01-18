@@ -936,7 +936,7 @@ namespace Musoq.Evaluator.Tests.Core
         [TestMethod]
         public void AggregateValuesTest()
         {
-            var query = @"select AggregateValues(Name) from #A.entites() a group by Name";
+            var query = @"select AggregateValues(Name) from #A.entities() a group by Name";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -960,7 +960,7 @@ namespace Musoq.Evaluator.Tests.Core
         [TestMethod]
         public void AggregateValuesParentTest()
         {
-            var query = @"select AggregateValues(Name, 1) from #A.entites() a group by Name";
+            var query = @"select AggregateValues(Name, 1) from #A.entities() a group by Name";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {

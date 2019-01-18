@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Musoq.Schema;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Musoq.Evaluator.Tables
 {
-    public class Table : IndexedList<Key, Row>, IEnumerable<Row>
+    public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
     {
         private readonly Dictionary<int, Column> _columnsByIndex;
         private readonly Dictionary<string, Column> _columnsByName;
@@ -27,6 +28,8 @@ namespace Musoq.Evaluator.Tables
         public IEnumerable<Column> Columns => _columnsByIndex.Values;
 
         public IEnumerator<Row> CurrentEnumerator { get; private set; }
+
+        IReadOnlyList<IReadOnlyRow> IReadOnlyTable.Rows => Rows;
 
         public IEnumerator<Row> GetEnumerator()
         {
