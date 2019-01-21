@@ -11,11 +11,13 @@ namespace Musoq.Schema.DataSources
 {
     public abstract class SchemaBase : ISchema
     {
+        private const string _sourcePart = "_source";
+        private const string _tablePart = "_table";
+
         private readonly MethodsAggregator _aggregator;
 
         private IDictionary<string, Reflection.ConstructorInfo[]> Constructors { get; } = new Dictionary<string, Reflection.ConstructorInfo[]>();
         private List<SchemaMethodInfo> ConstructorsMethods { get; } = new List<SchemaMethodInfo>();
-        private List<SchemaMethodInfo> RawConstructorsMethods { get; } = new List<SchemaMethodInfo>();
         private IDictionary<string, object[]> AdditionalArguments { get; } = new Dictionary<string, object[]>();
 
         protected SchemaBase(string name, MethodsAggregator methodsAggregator)
@@ -29,16 +31,14 @@ namespace Musoq.Schema.DataSources
 
         public void AddSource<TType>(string name, params object[] args)
         {
-            var sourceName = $"{name.ToLowerInvariant()}_source";
+            var sourceName = $"{name.ToLowerInvariant()}{_sourcePart}";
             AddToConstructors<TType>(sourceName);
             AdditionalArguments.Add(sourceName, args);
-
-            RawConstructorsMethods.AddRange(TypeHelper.GetSchemaMethodInfosForType<TType>(name));
         }
 
         public void AddTable<TType>(string name)
         {
-            AddToConstructors<TType>($"{name.ToLowerInvariant()}_table");
+            AddToConstructors<TType>($"{name.ToLowerInvariant()}{_tablePart}");
         }
 
         private void AddToConstructors<TType>(string name)
@@ -59,7 +59,7 @@ namespace Musoq.Schema.DataSources
 
         public virtual ISchemaTable GetTableByName(string name, params object[] parameters)
         {
-            var methods = GetConstructors($"{name.ToLowerInvariant()}_table").Select(c => c.ConstructorInfo).ToArray();
+            var methods = GetConstructors($"{name.ToLowerInvariant()}{_tablePart}").Select(c => c.ConstructorInfo).ToArray();
 
             if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
                 throw new NotSupportedException($"Unrecognized method {name}.");
@@ -69,7 +69,7 @@ namespace Musoq.Schema.DataSources
 
         public virtual RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
         {
-            var sourceName = $"{name.ToLowerInvariant()}_source";
+            var sourceName = $"{name.ToLowerInvariant()}{_sourcePart}";
 
             var methods = GetConstructors(sourceName).Select(c => c.ConstructorInfo).ToArray();
 
@@ -97,12 +97,18 @@ namespace Musoq.Schema.DataSources
 
         public SchemaMethodInfo[] GetRawConstructors()
         {
-            return RawConstructorsMethods.ToArray();
+            return ConstructorsMethods
+                .Where(cm => cm.MethodName.Contains(_tablePart))
+                .Select(cm => {
+                    var index = cm.MethodName.IndexOf(_tablePart);
+                    var rawMethodName = cm.MethodName.Substring(0, index);
+                    return new SchemaMethodInfo(rawMethodName, cm.ConstructorInfo);
+                }).ToArray();
         }
 
         public SchemaMethodInfo[] GetRawConstructors(string methodName)
         {
-            return RawConstructorsMethods.Where(constr => constr.MethodName == methodName).ToArray();
+            return GetRawConstructors().Where(constr => constr.MethodName == methodName).ToArray();
         }
 
         public bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo)

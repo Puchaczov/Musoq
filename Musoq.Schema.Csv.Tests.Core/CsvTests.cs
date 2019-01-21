@@ -575,7 +575,7 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
             var table = vm.Run();
 
             Assert.AreEqual(5, table.Columns.Count());
-            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(2, table.Count);
         }
 
         [TestMethod]
