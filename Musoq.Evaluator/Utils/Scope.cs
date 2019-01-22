@@ -37,15 +37,40 @@ namespace Musoq.Evaluator.Utils
                 if (Parent == null)
                     return this;
 
-                var root = Parent;
+                var prev = Parent;
                 var rootCandidate = Parent;
                 while (rootCandidate != null)
                 {
-                    root = rootCandidate;
+                    prev = rootCandidate;
                     rootCandidate = rootCandidate.Parent;
                 }
 
-                return root;
+                return prev;
+            }
+        }
+
+        public Scope Query
+        {
+            get
+            {
+                if (Name == "Query")
+                    return this;
+
+                if (Parent == null)
+                    return null;
+
+                var prev = Parent;
+                var rootCandidate = Parent;
+                while (rootCandidate != null)
+                {
+                    if (rootCandidate.Name == "Query")
+                        break;
+
+                    prev = rootCandidate;
+                    rootCandidate = rootCandidate.Parent;
+                }
+
+                return prev;
             }
         }
 

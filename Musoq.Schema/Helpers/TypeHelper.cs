@@ -169,7 +169,7 @@ namespace Musoq.Schema.Helpers
 
             foreach(var param in parameters)
             {
-                if (param.ParameterType != typeof(InterCommunicator))
+                if (param.ParameterType != typeof(RuntimeContext))
                     filteredConstructors.Add((param.Name, param.ParameterType));
                 else
                     supportsInterCommunicator = true;

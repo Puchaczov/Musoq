@@ -7,10 +7,10 @@ namespace Musoq.Schema.Os.Directories
 {
     public class DirectoriesSource : RowSourceBase<DirectoryInfo>
     {
-        private readonly InterCommunicator _communicator;
+        private readonly RuntimeContext _communicator;
         private readonly DirectorySourceSearchOptions _source;
 
-        public DirectoriesSource(string path, bool recursive, InterCommunicator communicator)
+        public DirectoriesSource(string path, bool recursive, RuntimeContext communicator)
         {
             _communicator = communicator;
             _source = new DirectorySourceSearchOptions(path, recursive);

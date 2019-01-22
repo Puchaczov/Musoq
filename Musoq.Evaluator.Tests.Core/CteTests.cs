@@ -31,8 +31,8 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(5, table.Count());
 
@@ -75,8 +75,8 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(5, table.Count());
 
@@ -120,8 +120,8 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(2, table.Count());
 
@@ -157,8 +157,8 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(2, table.Count());
 
@@ -200,8 +200,8 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(5, table.Count());
 
@@ -252,8 +252,8 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(5, table.Count());
 
@@ -305,8 +305,8 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(1, table.Count());
 
@@ -347,8 +347,8 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(2, table.Count());
 
@@ -396,8 +396,8 @@ select City, Country from p";
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(2, table.Count());
 
@@ -445,8 +445,8 @@ select City, Country from #B.entities()";
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(5, table.Count());
 
@@ -504,8 +504,8 @@ with p as (
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(2, table.Count());
 
@@ -561,8 +561,8 @@ select City, Country from #C.Entities()";
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(3, table.Count());
 
@@ -621,8 +621,8 @@ select City, Country from f";
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
-            Assert.AreEqual("Country", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
 
             Assert.AreEqual(5, table.Count());
 

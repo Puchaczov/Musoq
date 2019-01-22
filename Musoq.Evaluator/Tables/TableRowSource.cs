@@ -15,7 +15,7 @@ namespace Musoq.Evaluator.Tables
             _columnToIndexMap = new Dictionary<string, int>();
 
             foreach (var column in _table.Columns)
-                _columnToIndexMap.Add(column.Name, column.ColumnOrder);
+                _columnToIndexMap.Add(column.ColumnName, column.ColumnIndex);
         }
 
         public TableRowSource(Table rowSource, IDictionary<string, int> columnToIndexMap)

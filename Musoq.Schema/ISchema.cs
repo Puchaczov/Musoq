@@ -18,7 +18,7 @@ namespace Musoq.Schema
 
         Reflection.SchemaMethodInfo[] GetRawConstructors(string methodName);
 
-        RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters);
+        RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters);
 
         MethodInfo ResolveMethod(string method, Type[] parameters);
 

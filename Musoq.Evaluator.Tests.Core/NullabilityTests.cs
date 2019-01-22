@@ -86,7 +86,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(4, table.Count);
@@ -122,9 +122,9 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(5, table.Count);

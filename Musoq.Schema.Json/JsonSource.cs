@@ -11,9 +11,9 @@ namespace Musoq.Schema.Json
     public class JsonSource : RowSource
     {
         private readonly string _filePath;
-        private readonly InterCommunicator _communicator;
+        private readonly RuntimeContext _communicator;
 
-        public JsonSource(string filePath, InterCommunicator communicator)
+        public JsonSource(string filePath, RuntimeContext communicator)
         {
             _filePath = filePath;
             _communicator = communicator;

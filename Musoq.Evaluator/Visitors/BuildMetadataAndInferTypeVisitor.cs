@@ -47,6 +47,8 @@ namespace Musoq.Evaluator.Visitors
         public List<Assembly> Assemblies { get; } = new List<Assembly>();
         public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
+        public IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
+
         public RootNode Root => (RootNode) Nodes.Peek();
 
         public void Visit(Node node)
@@ -432,7 +434,12 @@ namespace Musoq.Evaluator.Visitors
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
 
-            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias));
+            var aliasedSchemaFromNode = new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias);
+
+            if(!InferredColumns.ContainsKey(aliasedSchemaFromNode))
+                InferredColumns.Add(aliasedSchemaFromNode, table.Columns);
+
+            Nodes.Push(aliasedSchemaFromNode);
         }
 
         public void Visit(SchemaMethodFromNode node)
@@ -457,7 +464,12 @@ namespace Musoq.Evaluator.Visitors
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
 
-            Nodes.Push(new SchemaFromNode(schemaInfo.Schema, schemaInfo.Method, node.Args, _queryAlias));
+            var aliasedSchemaFromNode = new SchemaFromNode(schemaInfo.Schema, schemaInfo.Method, node.Args, _queryAlias);
+
+            if (!InferredColumns.ContainsKey(aliasedSchemaFromNode))
+                InferredColumns.Add(aliasedSchemaFromNode, table.Columns);
+
+            Nodes.Push(aliasedSchemaFromNode);
         }
 
         public void Visit(JoinSourcesTableFromNode node)

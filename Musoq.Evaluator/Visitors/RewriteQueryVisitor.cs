@@ -443,6 +443,7 @@ namespace Musoq.Evaluator.Visitors
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
                     _scope.ScopeSymbolTable.GetSymbol(targetTableName));
                 scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
+                scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
                 scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
 
@@ -500,6 +501,7 @@ namespace Musoq.Evaluator.Visitors
                     scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
                         _scope.ScopeSymbolTable.GetSymbol(targetTableName));
                     scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
+                    scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
                     scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
                     var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
@@ -568,6 +570,7 @@ namespace Musoq.Evaluator.Visitors
                 scopeTransformedQuery[MetaAttributes.SourceName] = splittedNodes.Count > 0
                     ? nestedFrom.Alias.ToTransitionTable().ToTransformedRowsSource()
                     : nestedFrom.Alias.ToRowsSource().WithRowsUsage();
+                scopeTransformedQuery[MetaAttributes.OriginAlias] = nestedFrom.Alias;
                 scopeTransformedQuery.ScopeSymbolTable.AddSymbol(nestedFrom.Alias,
                     _scope.ScopeSymbolTable.GetSymbol(nestedFrom.Alias));
 
@@ -648,6 +651,7 @@ namespace Musoq.Evaluator.Visitors
                     var scopeResultQuery = _scope.AddScope("Query");
 
                     scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = from.Alias.ToScoreTable();
+                    scopeCreateResultTable[MetaAttributes.OriginAlias] = from.Alias;
                     scopeResultQuery[MetaAttributes.SelectIntoVariableName] = from.Alias.ToScoreTable();
                     scopeResultQuery[MetaAttributes.SourceName] = source;
 

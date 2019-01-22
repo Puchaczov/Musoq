@@ -67,7 +67,7 @@ namespace Musoq.Schema.DataSources
             return (ISchemaTable)constructorInfo.OriginConstructor.Invoke(parameters);
         }
 
-        public virtual RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
+        public virtual RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)
         {
             var sourceName = $"{name.ToLowerInvariant()}{_sourcePart}";
 

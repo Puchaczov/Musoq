@@ -5,7 +5,7 @@ namespace Musoq.Schema.Os.Files
 {
     public class FilesSource : FilesSourceBase<FileInfo>
     {
-        public FilesSource(string path, bool useSubDirectories, InterCommunicator communicator) 
+        public FilesSource(string path, bool useSubDirectories, RuntimeContext communicator) 
             : base(path, useSubDirectories, communicator)
         {
         }

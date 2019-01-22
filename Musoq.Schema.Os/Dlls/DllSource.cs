@@ -11,7 +11,7 @@ namespace Musoq.Schema.Os.Dlls
 {
     public class DllSource : FilesSourceBase<DllInfo>
     {
-        public DllSource(string path, bool useSubDirectories, InterCommunicator communicator) 
+        public DllSource(string path, bool useSubDirectories, RuntimeContext communicator) 
             : base(path, useSubDirectories, communicator)
         {
         }

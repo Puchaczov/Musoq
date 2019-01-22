@@ -55,10 +55,13 @@ namespace Musoq.Evaluator.Visitors
         private BlockSyntax _selectBlock;
         private MethodAccessType _type;
 
-        public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies,
-            IDictionary<string, int[]> setOperatorFieldIndexes)
+        public ToCSharpRewriteTreeVisitor(
+            IEnumerable<Assembly> assemblies,
+            IDictionary<string, int[]> setOperatorFieldIndexes, 
+            IDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns)
         {
             _setOperatorFieldIndexes = setOperatorFieldIndexes;
+            InferredColumns = inferredColumns;
             Workspace = new AdhocWorkspace();
             Nodes = new Stack<SyntaxNode>();
 
@@ -120,6 +123,7 @@ namespace Musoq.Evaluator.Visitors
 
         private List<StatementSyntax> Statements { get; } = new List<StatementSyntax>();
         private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new Stack<SyntaxNode>();
+        private IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
         public void Visit(Node node)
         {
@@ -1000,6 +1004,34 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
+            var originColumns = InferredColumns[node];
+
+            var listOfColumns = new List<ExpressionSyntax>();
+            foreach (var column in originColumns)
+            {
+                listOfColumns.Add(
+                    SyntaxHelper.CreateObjectOf(
+                        nameof(Column),
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SeparatedList(new[]
+                            {
+                                    SyntaxFactory.Argument(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.StringLiteralExpression,
+                                            SyntaxFactory.Literal( $"@\"{column.ColumnName}\""))),
+                                    SyntaxHelper.TypeLiteralArgument(
+                                        EvaluationHelper.GetCastableType(column.ColumnType)),
+                                    SyntaxHelper.IntLiteralArgument(column.ColumnIndex)
+                            }))));
+            }
+
+            var tableInfoVariableName = node.Alias.ToInfoTable();
+            var tableInfoObject = SyntaxHelper.CreateAssignment(
+                tableInfoVariableName,
+                SyntaxHelper.CreateArrayOf(
+                    nameof(ISchemaColumn),
+                    listOfColumns.ToArray()));
+
             var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
                 node.Alias,
                 "provider",
@@ -1028,11 +1060,14 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxHelper.StringLiteralArgument(node.Method),
                         SyntaxFactory.Argument(
                             SyntaxFactory.ObjectCreationExpression(
-                                SyntaxFactory.IdentifierName(nameof(InterCommunicator)))
+                                SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
                                 .WithArgumentList(
                                     SyntaxFactory.ArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument( SyntaxFactory.IdentifierName("token")))))),
+                                        SyntaxFactory.SeparatedList(
+                                            new []{
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(tableInfoVariableName))
+                                            })))),
                         SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(
                                 nameof(Object),
@@ -1040,6 +1075,7 @@ namespace Musoq.Evaluator.Visitors
                     })
                 ));
 
+            Statements.Add(SyntaxFactory.LocalDeclarationStatement(tableInfoObject));
             Statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchema));
             Statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
         }
@@ -1144,6 +1180,7 @@ namespace Musoq.Evaluator.Visitors
                                             nameof(Column),
                                             cols.ToArray()))
                                 }))));
+
                 Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
             }
             else
@@ -1933,8 +1970,7 @@ namespace Musoq.Evaluator.Visitors
             ExpressionSyntax firstTableExpression, ExpressionSyntax secondTableExpression)
         {
             return SyntaxFactory
-                .MethodDeclaration(SyntaxFactory.IdentifierName(nameof(Table)),
-                    SyntaxFactory.Identifier(methodName))
+                .MethodDeclaration(SyntaxFactory.IdentifierName(nameof(Table)), SyntaxFactory.Identifier(methodName))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                 .WithParameterList(SyntaxFactory.ParameterList(
                     SyntaxFactory.SeparatedList(

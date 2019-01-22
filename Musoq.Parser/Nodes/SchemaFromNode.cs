@@ -29,5 +29,18 @@
         {
             return $"from {Schema}.{Method}({Parameters.Id}) {Alias}";
         }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is SchemaFromNode node)
+                return node.Id == Id;
+
+            return base.Equals(obj);
+        }
     }
 }

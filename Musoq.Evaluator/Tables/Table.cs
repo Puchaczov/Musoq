@@ -46,8 +46,8 @@ namespace Musoq.Evaluator.Tables
         {
             for (var i = 0; i < columns.Length; i++)
             {
-                _columnsByIndex.Add(columns[i].ColumnOrder, columns[i]);
-                _columnsByName.Add(columns[i].Name, columns[i]);
+                _columnsByIndex.Add(columns[i].ColumnIndex, columns[i]);
+                _columnsByName.Add(columns[i].ColumnName, columns[i]);
             }
         }
 
@@ -100,11 +100,11 @@ namespace Musoq.Evaluator.Tables
             {
                 var array = index.Value.Select((f, i) => _columnsByName[f.ColumnName]);
                 var enumerable = array as Column[] ?? array.ToArray();
-                var indexes = enumerable.Select(f => f.ColumnOrder).ToArray();
+                var indexes = enumerable.Select(f => f.ColumnIndex).ToArray();
 
                 var objects = new object[indexes.Length];
 
-                for (var i = 0; i < indexes.Length; i++) objects[i] = value[_columnsByIndex[indexes[i]].ColumnOrder];
+                for (var i = 0; i < indexes.Length; i++) objects[i] = value[_columnsByIndex[indexes[i]].ColumnIndex];
 
                 var key = new Key(objects, indexes);
 

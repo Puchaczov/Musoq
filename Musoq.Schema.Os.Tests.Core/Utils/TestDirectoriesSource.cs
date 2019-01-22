@@ -10,7 +10,7 @@ namespace Musoq.Schema.Os.Tests.Core.Utils
 {
     class TestDirectoriesSource : DirectoriesSource
     {
-        public TestDirectoriesSource(string path, bool recursive, InterCommunicator communicator) 
+        public TestDirectoriesSource(string path, bool recursive, RuntimeContext communicator) 
             : base(path, recursive, communicator)
         {
         }

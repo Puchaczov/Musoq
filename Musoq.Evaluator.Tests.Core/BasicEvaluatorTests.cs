@@ -38,7 +38,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(4, table.Count);
@@ -68,7 +68,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -97,7 +97,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -126,7 +126,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -157,7 +157,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -187,7 +187,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Population", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Population", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -212,7 +212,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -236,7 +236,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -258,7 +258,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("'abc' + 'cda'", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("'abc' + 'cda'", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -287,7 +287,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -323,7 +323,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("NothingToDo(Self)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("NothingToDo(Self)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -357,7 +357,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Self", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Self", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -387,43 +387,43 @@ namespace Musoq.Evaluator.Tests.Core
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
-            Assert.AreEqual("1", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("1", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
-            Assert.AreEqual("Name", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
-            Assert.AreEqual("City", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
-            Assert.AreEqual("Country", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
 
-            Assert.AreEqual("Population", table.Columns.ElementAt(4).Name);
+            Assert.AreEqual("Population", table.Columns.ElementAt(4).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
 
-            Assert.AreEqual("Self", table.Columns.ElementAt(5).Name);
+            Assert.AreEqual("Self", table.Columns.ElementAt(5).ColumnName);
             Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(5).ColumnType);
 
-            Assert.AreEqual("Money", table.Columns.ElementAt(6).Name);
+            Assert.AreEqual("Money", table.Columns.ElementAt(6).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(6).ColumnType);
 
-            Assert.AreEqual("Month", table.Columns.ElementAt(7).Name);
+            Assert.AreEqual("Month", table.Columns.ElementAt(7).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(7).ColumnType);
 
-            Assert.AreEqual("Time", table.Columns.ElementAt(8).Name);
+            Assert.AreEqual("Time", table.Columns.ElementAt(8).ColumnName);
             Assert.AreEqual(typeof(DateTime), table.Columns.ElementAt(8).ColumnType);
 
-            Assert.AreEqual("Id", table.Columns.ElementAt(9).Name);
+            Assert.AreEqual("Id", table.Columns.ElementAt(9).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(9).ColumnType);
 
-            Assert.AreEqual("NullableValue", table.Columns.ElementAt(10).Name);
+            Assert.AreEqual("NullableValue", table.Columns.ElementAt(10).ColumnName);
             Assert.AreEqual(typeof(int?), table.Columns.ElementAt(10).ColumnType);
 
-            Assert.AreEqual("Name2", table.Columns.ElementAt(11).Name);
+            Assert.AreEqual("Name2", table.Columns.ElementAt(11).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(11).ColumnType);
 
-            Assert.AreEqual("SelfString", table.Columns.ElementAt(12).Name);
+            Assert.AreEqual("SelfString", table.Columns.ElementAt(12).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(12).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -455,7 +455,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("Self.Array[2]", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Self.Array[2]", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -475,7 +475,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("Self.Array", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Self.Array", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -493,7 +493,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("Self.Self.Array", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Self.Self.Array", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -511,7 +511,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("Inc(Self.Array[2])", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Inc(Self.Array[2])", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(long), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -539,7 +539,7 @@ namespace Musoq.Evaluator.Tests.Core
         [TestMethod]
         public void SimpleQueryTest()
         {
-            var query = @"select Name from #A.Entities()";
+            var query = @"select Name as 'x1' from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}}
@@ -717,16 +717,16 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(4, table.Columns.Count());
-            Assert.AreEqual("TestName", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("TestName", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-            Assert.AreEqual("GetOne()", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("GetOne()", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
 
-            Assert.AreEqual("TestColumn", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("TestColumn", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
 
-            Assert.AreEqual("GetTwo(4, 'test')", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("GetTwo(4, 'test')", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
         }
 
@@ -748,7 +748,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Concat(Country, ToString(Population))", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Concat(Country, ToString(Population))", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -774,7 +774,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Time", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Time", table.Columns.ElementAt(0).ColumnName);
 
             Assert.AreEqual(1, table.Count());
             Assert.AreEqual(DateTime.MinValue, table[0].Values[0]);
@@ -830,9 +830,9 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("1.0", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("1.0", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("-1.0", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("-1.0", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(1, table.Count());
@@ -860,13 +860,13 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual(3, table.Columns.Count());
 
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-            Assert.AreEqual("Index", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Index", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
-            Assert.AreEqual("Type", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
             Assert.IsTrue(table.Any(row => (string) row[0] == "Name" && (string) row[2] == "System.String"));

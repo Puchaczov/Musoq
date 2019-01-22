@@ -87,7 +87,7 @@ namespace Musoq.Evaluator.Tests.Core
                 _whenChecked = whenChecked;
             }
 
-            public override RowSource GetRowSource(string name, InterCommunicator communicator, params object[] parameters)
+            public override RowSource GetRowSource(string name, RuntimeContext communicator, params object[] parameters)
             {
                 if(_whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) _onGetTableOrRowSource(parameters);
                 return new EntitySource<TestEntity>(_entities, new Dictionary<string, int>(), new Dictionary<int, Func<TestEntity, object>>());

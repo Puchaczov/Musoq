@@ -19,9 +19,9 @@ namespace Musoq.Schema.Csv
         }
 
         private readonly CsvFile[] _files;
-        private readonly InterCommunicator _communicator;
+        private readonly RuntimeContext _communicator;
 
-        public CsvSource(string filePath, string separator, bool hasHeader, int skipLines, InterCommunicator communicator)
+        public CsvSource(string filePath, string separator, bool hasHeader, int skipLines, RuntimeContext communicator)
         {
             _files = new CsvFile[] {
                 new CsvFile()
@@ -35,7 +35,7 @@ namespace Musoq.Schema.Csv
             _communicator = communicator;
         }
 
-        public CsvSource(IReadOnlyTable table, InterCommunicator communicator)
+        public CsvSource(IReadOnlyTable table, RuntimeContext communicator)
         {
             _files = new CsvFile[table.Count];
 
