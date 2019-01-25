@@ -6,9 +6,9 @@ namespace Musoq.Schema.Os.Process
 {
     public class ProcessesSource : RowSourceBase<System.Diagnostics.Process>
     {
-        private readonly InterCommunicator _communicator;
+        private readonly RuntimeContext _communicator;
 
-        public ProcessesSource(InterCommunicator communicator)
+        public ProcessesSource(RuntimeContext communicator)
         {
             _communicator = communicator;
         }

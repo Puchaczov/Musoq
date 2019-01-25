@@ -23,9 +23,9 @@ namespace Musoq.Schema.Json.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Age", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Age", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -47,7 +47,7 @@ namespace Musoq.Schema.Json.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Array", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Array", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(JArray), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -65,9 +65,9 @@ namespace Musoq.Schema.Json.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Length(Books)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Length(Books)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -89,7 +89,7 @@ namespace Musoq.Schema.Json.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("MakeFlat(Array)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("MakeFlat(Array)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -103,7 +103,7 @@ namespace Musoq.Schema.Json.Tests.Core
         {
             var tokenSource = new CancellationTokenSource();
             tokenSource.Cancel();
-            var source = new JsonSource("./JsonTestFile_First.json", new InterCommunicator(tokenSource.Token));
+            var source = new JsonSource("./JsonTestFile_First.json", new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
             var fired = source.Rows.Count();
 
@@ -113,7 +113,7 @@ namespace Musoq.Schema.Json.Tests.Core
         [TestMethod]
         public void JsonSource_FullLoadTest()
         {
-            var source = new JsonSource("./JsonTestFile_First.json", InterCommunicator.Empty);
+            var source = new JsonSource("./JsonTestFile_First.json", RuntimeContext.Empty);
 
             var fired = source.Rows.Count();
 

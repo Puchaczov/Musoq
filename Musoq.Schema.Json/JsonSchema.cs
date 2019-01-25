@@ -21,7 +21,7 @@ namespace Musoq.Schema.Json
             return new JsonBasedTable((string)parameters[1], (string)parameters[2]);
         }
 
-        public override RowSource GetRowSource(string name, InterCommunicator communicator, params object[] parameters)
+        public override RowSource GetRowSource(string name, RuntimeContext communicator, params object[] parameters)
         {
             return new JsonSource((string)parameters[0], communicator);
         }

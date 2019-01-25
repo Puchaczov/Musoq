@@ -29,7 +29,7 @@ namespace Musoq.Schema.Csv.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(11, table.Count);
@@ -47,6 +47,152 @@ namespace Musoq.Schema.Csv.Tests.Core
         }
 
         [TestMethod]
+        public void SimpleSelectWithCouplingTableSyntaxSkipLinesTest()
+        {
+            var query = "" +
+                "table CsvFile {" +
+                "   Name 'System.String'" +
+                "};" +
+                "couple #csv.file with table CsvFile as SourceCsvFile;" +
+                "select Name from SourceCsvFile('./Files/BankingTransactionsWithSkippedLines.csv', ',', true, 2);";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(11, table.Count);
+            Assert.AreEqual("Salary", table[0].Values[0]);
+            Assert.AreEqual("Restaurant A", table[1].Values[0]);
+            Assert.AreEqual("Bus ticket", table[2].Values[0]);
+            Assert.AreEqual("Tesco", table[3].Values[0]);
+            Assert.AreEqual("Restaurant B", table[4].Values[0]);
+            Assert.AreEqual("Service", table[5].Values[0]);
+            Assert.AreEqual("Salary", table[6].Values[0]);
+            Assert.AreEqual("Restaurant A", table[7].Values[0]);
+            Assert.AreEqual("Bus ticket", table[8].Values[0]);
+            Assert.AreEqual("Tesco", table[9].Values[0]);
+            Assert.AreEqual("Restaurant B", table[10].Values[0]);
+        }
+
+        [TestMethod]
+        public void CheckTypesTest()
+        {
+            var query = "" +
+                "table Persons {" +
+                "   Id 'System.Int32'," +
+                "   Name 'System.String'" +
+                "};" +
+                "couple #csv.file with table Persons as SourceOfPersons;" +
+                "select Id, Name from SourceOfPersons('./Files/Persons.csv', ',', true, 0)";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("Id", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(int?), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("Name", table.Columns.ElementAt(1).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual(5, table.Count);
+            Assert.AreEqual(1, table[0].Values[0]);
+            Assert.AreEqual("Jan", table[0].Values[1]);
+            Assert.AreEqual(2, table[1].Values[0]);
+            Assert.AreEqual("Marek", table[1].Values[1]);
+            Assert.AreEqual(3, table[2].Values[0]);
+            Assert.AreEqual("Witek", table[2].Values[1]);
+            Assert.AreEqual(4, table[3].Values[0]);
+            Assert.AreEqual("Anna", table[3].Values[1]);
+            Assert.AreEqual(5, table[4].Values[0]);
+            Assert.AreEqual("Anna", table[4].Values[1]);
+        }
+
+        [TestMethod]
+        public void SimpleSelectWithCouplingTableSyntaxSkipLinesTest2()
+        {
+            var query = "" +
+                "table CsvFile {" +
+                "   Name 'System.String'" +
+                "};" +
+                "couple #csv.file with table CsvFile as SourceCsvFile;" +
+                "with FilesToScan as (" +
+                "   select './Files/BankingTransactionsWithSkippedLines.csv', ',', true, 2 from #csv.empty()" +
+                ")" +
+                "select Name from SourceCsvFile(FilesToScan);";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(11, table.Count);
+            Assert.AreEqual("Salary", table[0].Values[0]);
+            Assert.AreEqual("Restaurant A", table[1].Values[0]);
+            Assert.AreEqual("Bus ticket", table[2].Values[0]);
+            Assert.AreEqual("Tesco", table[3].Values[0]);
+            Assert.AreEqual("Restaurant B", table[4].Values[0]);
+            Assert.AreEqual("Service", table[5].Values[0]);
+            Assert.AreEqual("Salary", table[6].Values[0]);
+            Assert.AreEqual("Restaurant A", table[7].Values[0]);
+            Assert.AreEqual("Bus ticket", table[8].Values[0]);
+            Assert.AreEqual("Tesco", table[9].Values[0]);
+            Assert.AreEqual("Restaurant B", table[10].Values[0]);
+        }
+
+        [TestMethod]
+        public void SameFileReadDoubleTimesTest()
+        {
+            var query = "" +
+                "table CsvFile {" +
+                "   Name 'System.String'" +
+                "};" +
+                "couple #csv.file with table CsvFile as SourceCsvFile;" +
+                "with FilesToScan as (" +
+                "   select './Files/BankingTransactionsWithSkippedLines.csv' as FileName, ',', true, 2 from #csv.empty()" +
+                "   union all (FileName) " +
+                "   select './Files/BankingTransactionsWithSkippedLines.csv' as FileName, ',', true, 2 from #csv.empty()" +
+                ")" +
+                "select Name from SourceCsvFile(FilesToScan);";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(22, table.Count);
+            Assert.AreEqual("Salary", table[0].Values[0]);
+            Assert.AreEqual("Restaurant A", table[1].Values[0]);
+            Assert.AreEqual("Bus ticket", table[2].Values[0]);
+            Assert.AreEqual("Tesco", table[3].Values[0]);
+            Assert.AreEqual("Restaurant B", table[4].Values[0]);
+            Assert.AreEqual("Service", table[5].Values[0]);
+            Assert.AreEqual("Salary", table[6].Values[0]);
+            Assert.AreEqual("Restaurant A", table[7].Values[0]);
+            Assert.AreEqual("Bus ticket", table[8].Values[0]);
+            Assert.AreEqual("Tesco", table[9].Values[0]);
+            Assert.AreEqual("Restaurant B", table[10].Values[0]);
+
+            Assert.AreEqual("Salary", table[11].Values[0]);
+            Assert.AreEqual("Restaurant A", table[12].Values[0]);
+            Assert.AreEqual("Bus ticket", table[13].Values[0]);
+            Assert.AreEqual("Tesco", table[14].Values[0]);
+            Assert.AreEqual("Restaurant B", table[15].Values[0]);
+            Assert.AreEqual("Service", table[16].Values[0]);
+            Assert.AreEqual("Salary", table[17].Values[0]);
+            Assert.AreEqual("Restaurant A", table[18].Values[0]);
+            Assert.AreEqual("Bus ticket", table[19].Values[0]);
+            Assert.AreEqual("Tesco", table[20].Values[0]);
+            Assert.AreEqual("Restaurant B", table[21].Values[0]);
+        }
+
+        [TestMethod]
         public void SimpleSelectTest()
         {
             var query = "SELECT Name FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0)";
@@ -55,7 +201,7 @@ namespace Musoq.Schema.Csv.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(11, table.Count);
@@ -81,7 +227,7 @@ namespace Musoq.Schema.Csv.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Column3", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Column3", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(11, table.Count);
@@ -107,7 +253,7 @@ namespace Musoq.Schema.Csv.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Count(OperationDate)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Count(OperationDate)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -133,18 +279,18 @@ group by ExtractFromDate(OperationDate, 'month')";
             var table = vm.Run();
 
             Assert.AreEqual(6, table.Columns.Count());
-            Assert.AreEqual("Count(OperationDate, 1)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Count(OperationDate, 1)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("ExtractFromDate(OperationDate, 'month')", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("ExtractFromDate(OperationDate, 'month')", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("Count(OperationDate)", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Count(OperationDate)", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual("SumIncome(ToDecimal(Money))", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("SumIncome(ToDecimal(Money))", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(3).ColumnType);
-            Assert.AreEqual("SumOutcome(ToDecimal(Money))", table.Columns.ElementAt(4).Name);
+            Assert.AreEqual("SumOutcome(ToDecimal(Money))", table.Columns.ElementAt(4).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
             Assert.AreEqual("SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money)))",
-                table.Columns.ElementAt(5).Name);
+                table.Columns.ElementAt(5).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(5).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -181,13 +327,13 @@ inner join #csv.file('./Files/Gradebook.csv', ',', true, 0) grades on persons.Id
 
             Assert.AreEqual(4, table.Columns.Count());
 
-            Assert.AreEqual("persons.Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("persons.Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("persons.Surname", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("persons.Surname", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("grades.Subject", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("grades.Subject", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual("ToDecimal(grades.Grade)", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("ToDecimal(grades.Grade)", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(3).ColumnType);
 
             Assert.AreEqual(24, table.Count);
@@ -354,49 +500,49 @@ from BasicIndicators bi inner join AggregatedCategories ac on bi.Category = ac.C
 
             Assert.AreEqual(11, table.Columns.Count());
 
-            Assert.AreEqual("Month", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Month", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnOrder);
+            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-            Assert.AreEqual("Category", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Category", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnOrder);
+            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
-            Assert.AreEqual("Income", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Income", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnOrder);
+            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
 
-            Assert.AreEqual("Monthly Income", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("Monthly Income", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(3).ColumnType);
-            Assert.AreEqual(3, table.Columns.ElementAt(3).ColumnOrder);
+            Assert.AreEqual(3, table.Columns.ElementAt(3).ColumnIndex);
 
-            Assert.AreEqual("% Of Out. for ov. inc.", table.Columns.ElementAt(4).Name);
+            Assert.AreEqual("% Of Out. for ov. inc.", table.Columns.ElementAt(4).ColumnName);
             Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(4).ColumnType);
-            Assert.AreEqual(4, table.Columns.ElementAt(4).ColumnOrder);
+            Assert.AreEqual(4, table.Columns.ElementAt(4).ColumnIndex);
 
-            Assert.AreEqual("Outcome", table.Columns.ElementAt(5).Name);
+            Assert.AreEqual("Outcome", table.Columns.ElementAt(5).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(5).ColumnType);
-            Assert.AreEqual(5, table.Columns.ElementAt(5).ColumnOrder);
+            Assert.AreEqual(5, table.Columns.ElementAt(5).ColumnIndex);
 
-            Assert.AreEqual("Monthly Outcome", table.Columns.ElementAt(6).Name);
+            Assert.AreEqual("Monthly Outcome", table.Columns.ElementAt(6).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(6).ColumnType);
-            Assert.AreEqual(6, table.Columns.ElementAt(6).ColumnOrder);
+            Assert.AreEqual(6, table.Columns.ElementAt(6).ColumnIndex);
 
-            Assert.AreEqual("Moneys Left", table.Columns.ElementAt(7).Name);
+            Assert.AreEqual("Moneys Left", table.Columns.ElementAt(7).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(7).ColumnType);
-            Assert.AreEqual(7, table.Columns.ElementAt(7).ColumnOrder);
+            Assert.AreEqual(7, table.Columns.ElementAt(7).ColumnIndex);
 
-            Assert.AreEqual("Ov. Moneys Left", table.Columns.ElementAt(8).Name);
+            Assert.AreEqual("Ov. Moneys Left", table.Columns.ElementAt(8).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(8).ColumnType);
-            Assert.AreEqual(8, table.Columns.ElementAt(8).ColumnOrder);
+            Assert.AreEqual(8, table.Columns.ElementAt(8).ColumnIndex);
 
-            Assert.AreEqual("Ov. Categ. Outcome", table.Columns.ElementAt(9).Name);
+            Assert.AreEqual("Ov. Categ. Outcome", table.Columns.ElementAt(9).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(9).ColumnType);
-            Assert.AreEqual(9, table.Columns.ElementAt(9).ColumnOrder);
+            Assert.AreEqual(9, table.Columns.ElementAt(9).ColumnIndex);
 
-            Assert.AreEqual("Saving Coeff", table.Columns.ElementAt(10).Name);
+            Assert.AreEqual("Saving Coeff", table.Columns.ElementAt(10).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(10).ColumnType);
-            Assert.AreEqual(10, table.Columns.ElementAt(10).ColumnOrder);
+            Assert.AreEqual(10, table.Columns.ElementAt(10).ColumnIndex);
 
             Assert.AreEqual(48, table.Count);
         }
@@ -442,49 +588,49 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
 
             Assert.AreEqual(11, table.Columns.Count());
 
-            Assert.AreEqual("BasicIndicators.Month", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("BasicIndicators.Month", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnOrder);
+            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-            Assert.AreEqual("BasicIndicators.Category", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("BasicIndicators.Category", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnOrder);
+            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
-            Assert.AreEqual("BasicIndicators.Income", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("BasicIndicators.Income", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnOrder);
+            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
 
-            Assert.AreEqual("Monthly Income", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("Monthly Income", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(3).ColumnType);
-            Assert.AreEqual(3, table.Columns.ElementAt(3).ColumnOrder);
+            Assert.AreEqual(3, table.Columns.ElementAt(3).ColumnIndex);
 
-            Assert.AreEqual("% Of Out. for ov. inc.", table.Columns.ElementAt(4).Name);
+            Assert.AreEqual("% Of Out. for ov. inc.", table.Columns.ElementAt(4).ColumnName);
             Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(4).ColumnType);
-            Assert.AreEqual(4, table.Columns.ElementAt(4).ColumnOrder);
+            Assert.AreEqual(4, table.Columns.ElementAt(4).ColumnIndex);
 
-            Assert.AreEqual("BasicIndicators.Outcome", table.Columns.ElementAt(5).Name);
+            Assert.AreEqual("BasicIndicators.Outcome", table.Columns.ElementAt(5).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(5).ColumnType);
-            Assert.AreEqual(5, table.Columns.ElementAt(5).ColumnOrder);
+            Assert.AreEqual(5, table.Columns.ElementAt(5).ColumnIndex);
 
-            Assert.AreEqual("Monthly Outcome", table.Columns.ElementAt(6).Name);
+            Assert.AreEqual("Monthly Outcome", table.Columns.ElementAt(6).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(6).ColumnType);
-            Assert.AreEqual(6, table.Columns.ElementAt(6).ColumnOrder);
+            Assert.AreEqual(6, table.Columns.ElementAt(6).ColumnIndex);
 
-            Assert.AreEqual("Moneys Left", table.Columns.ElementAt(7).Name);
+            Assert.AreEqual("Moneys Left", table.Columns.ElementAt(7).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(7).ColumnType);
-            Assert.AreEqual(7, table.Columns.ElementAt(7).ColumnOrder);
+            Assert.AreEqual(7, table.Columns.ElementAt(7).ColumnIndex);
 
-            Assert.AreEqual("Ov. Moneys Left", table.Columns.ElementAt(8).Name);
+            Assert.AreEqual("Ov. Moneys Left", table.Columns.ElementAt(8).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(8).ColumnType);
-            Assert.AreEqual(8, table.Columns.ElementAt(8).ColumnOrder);
+            Assert.AreEqual(8, table.Columns.ElementAt(8).ColumnIndex);
 
-            Assert.AreEqual("Ov. Categ. Outcome", table.Columns.ElementAt(9).Name);
+            Assert.AreEqual("Ov. Categ. Outcome", table.Columns.ElementAt(9).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(9).ColumnType);
-            Assert.AreEqual(9, table.Columns.ElementAt(9).ColumnOrder);
+            Assert.AreEqual(9, table.Columns.ElementAt(9).ColumnIndex);
 
-            Assert.AreEqual("Saving Coeff", table.Columns.ElementAt(10).Name);
+            Assert.AreEqual("Saving Coeff", table.Columns.ElementAt(10).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(10).ColumnType);
-            Assert.AreEqual(10, table.Columns.ElementAt(10).ColumnOrder);
+            Assert.AreEqual(10, table.Columns.ElementAt(10).ColumnIndex);
 
             Assert.AreEqual(48, table.Count);
         }
@@ -494,7 +640,7 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
         {
             var tokenSource = new CancellationTokenSource();
             tokenSource.Cancel();
-            var source = new CsvSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, new InterCommunicator(tokenSource.Token));
+            var source = new CsvSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
             var fired = source.Rows.Count();
 
@@ -510,7 +656,7 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
             var table = vm.Run();
 
             Assert.AreEqual(5, table.Columns.Count());
-            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(2, table.Count);
         }
 
         [TestMethod]
@@ -528,7 +674,7 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
         [TestMethod]
         public void CsvSource_FullLoadTest()
         {
-            var source = new CsvSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, InterCommunicator.Empty);
+            var source = new CsvSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, RuntimeContext.Empty);
 
             var fired = source.Rows.Count();
 

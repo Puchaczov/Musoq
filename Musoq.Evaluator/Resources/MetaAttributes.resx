@@ -123,6 +123,9 @@
   <data name="MethodName" xml:space="preserve">
     <value>MethodName</value>
   </data>
+  <data name="OriginAlias" xml:space="preserve">
+    <value>OriginAlias</value>
+  </data>
   <data name="ProcessedQueryId" xml:space="preserve">
     <value>ProcessedQueryId</value>
   </data>

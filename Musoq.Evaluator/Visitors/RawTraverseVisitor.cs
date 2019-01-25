@@ -190,7 +190,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public virtual void Visit(CreateTableNode node)
+        public virtual void Visit(CreateTransformationTableNode node)
         {
             foreach (var item in node.Fields)
                 item.Accept(this);
@@ -504,6 +504,40 @@ namespace Musoq.Evaluator.Visitors
             foreach (var field in node.Fields)
                 field.Accept(this);
 
+            node.Accept(Visitor);
+        }
+
+        public void Visit(CreateTableNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(CoupleNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+            foreach (var statement in node.Statements)
+                statement.Accept(this);
+
+            node.Accept(Visitor);
+        }
+
+        public void Visit(StatementNode node)
+        {
+            node.Node.Accept(this);
             node.Accept(Visitor);
         }
 

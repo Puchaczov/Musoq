@@ -223,7 +223,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             _walker = _walker.NextChild();
             _visitor.SetScope(_walker.Scope);
@@ -583,6 +583,40 @@ namespace Musoq.Evaluator.Visitors
             foreach (var field in node.Fields)
                 field.Accept(this);
 
+            node.Accept(_visitor);
+        }
+
+        public void Visit(CreateTableNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(CoupleNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+            foreach (var statement in node.Statements)
+                statement.Accept(this);
+
+            node.Accept(_visitor);
+        }
+
+        public void Visit(StatementNode node)
+        {
+            node.Node.Accept(this);
             node.Accept(_visitor);
         }
 

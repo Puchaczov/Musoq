@@ -8,9 +8,9 @@ namespace Musoq.Schema.Os.Zip
     public class ZipSource : RowSource
     {
         private readonly string _zipPath;
-        private readonly InterCommunicator _communicator;
+        private readonly RuntimeContext _communicator;
 
-        public ZipSource(string zipPath, InterCommunicator communicator)
+        public ZipSource(string zipPath, RuntimeContext communicator)
         {
             _zipPath = zipPath;
             _communicator = communicator;

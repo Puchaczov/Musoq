@@ -8,11 +8,11 @@ namespace Musoq.Schema.Time
     public class TimeSource : RowSourceBase<DateTimeOffset>
     {
         private readonly string _resolution;
-        private readonly InterCommunicator _communicator;
+        private readonly RuntimeContext _communicator;
         private readonly DateTimeOffset _startAt;
         private readonly DateTimeOffset _stopAt;
 
-        public TimeSource(DateTimeOffset startAt, DateTimeOffset stopAt, string resolution, InterCommunicator communicator)
+        public TimeSource(DateTimeOffset startAt, DateTimeOffset stopAt, string resolution, RuntimeContext communicator)
         {
             _startAt = startAt;
             _resolution = resolution.ToLowerInvariant();

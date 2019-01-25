@@ -27,7 +27,7 @@ namespace Musoq.Schema.FlatFile
             throw new TableNotFoundException(nameof(name));
         }
 
-        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
+        public override RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {

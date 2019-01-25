@@ -51,17 +51,17 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual(3, table.Columns.Count());
 
-            Assert.AreEqual("countries.Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("countries.Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnOrder);
+            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-            Assert.AreEqual("cities.City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("cities.City", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnOrder);
+            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
-            Assert.AreEqual("population.Population", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnOrder);
+            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
 
             Assert.AreEqual("Poland", table[0][0]);
             Assert.AreEqual("Krakow", table[0][1]);
@@ -126,13 +126,13 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual(2, table.Columns.Count());
 
-            Assert.AreEqual("cities.Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("cities.Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnOrder);
+            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-            Assert.AreEqual("Sum(population.Population)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Sum(population.Population)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnOrder);
+            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
             Assert.AreEqual("Poland", table[0][0]);
             Assert.AreEqual(2100m, table[0][1]);
@@ -194,17 +194,17 @@ inner join #C.entities() population on cities.City = population.City";
 
             Assert.AreEqual(3, table.Columns.Count());
 
-            Assert.AreEqual("countries.Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("countries.Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnOrder);
+            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-            Assert.AreEqual("cities.City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("cities.City", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnOrder);
+            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
-            Assert.AreEqual("population.Population", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnOrder);
+            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
 
             Assert.AreEqual(0, table.Count);
         }
@@ -262,17 +262,17 @@ inner join #C.entities() population on cities.City = population.City";
 
             Assert.AreEqual(3, table.Columns.Count());
 
-            Assert.AreEqual("countries.Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("countries.Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnOrder);
+            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-            Assert.AreEqual("cities.City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("cities.City", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnOrder);
+            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
-            Assert.AreEqual("population.Population", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnOrder);
+            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
 
             Assert.AreEqual(5, table.Count);
 
@@ -350,17 +350,17 @@ inner join #C.entities() population on cities.City = population.City";
 
             Assert.AreEqual(3, table.Columns.Count());
 
-            Assert.AreEqual("countries.Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("countries.Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnOrder);
+            Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-            Assert.AreEqual("cities.City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("cities.City", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnOrder);
+            Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
-            Assert.AreEqual("population.Population", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnOrder);
+            Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
 
             Assert.AreEqual(10, table.Count);
 

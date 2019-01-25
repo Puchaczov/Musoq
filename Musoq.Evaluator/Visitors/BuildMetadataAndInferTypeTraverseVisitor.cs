@@ -276,7 +276,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             SetQueryPart(QueryPart.None);
             foreach (var item in node.Fields)
@@ -634,6 +634,40 @@ namespace Musoq.Evaluator.Visitors
         public void SetQueryPart(QueryPart part)
         {
             _visitor.SetQueryPart(part);
+        }
+
+        public void Visit(CreateTableNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(CoupleNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+            foreach (var statement in node.Statements)
+                statement.Accept(this);
+
+            node.Accept(_visitor);
+        }
+
+        public void Visit(StatementNode node)
+        {
+            node.Node.Accept(this);
+            node.Accept(_visitor);
         }
     }
 }

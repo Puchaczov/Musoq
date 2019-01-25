@@ -64,6 +64,11 @@
         True,
         False,
         In,
-        NotIn
+        NotIn,
+        Table,
+        LBracket,
+        RBracket,
+        Semicolon,
+        Couple
     }
 }

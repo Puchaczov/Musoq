@@ -32,7 +32,7 @@ namespace Musoq.Schema.Time.Tests.Core
             tokenSource.Cancel();
             var now = DateTimeOffset.Now;
             var nextHour = now.AddHours(1);
-            var source = new TimeSource(now, nextHour, "minutes", new InterCommunicator(tokenSource.Token));
+            var source = new TimeSource(now, nextHour, "minutes", new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
             var fired = source.Rows.Count();
 
@@ -44,7 +44,7 @@ namespace Musoq.Schema.Time.Tests.Core
         {
             var now = DateTimeOffset.Parse("01/01/2000");
             var nextHour = now.AddHours(1);
-            var source = new TimeSource(now, nextHour, "minutes", InterCommunicator.Empty);
+            var source = new TimeSource(now, nextHour, "minutes", RuntimeContext.Empty);
 
             var fired = source.Rows.Count();
 

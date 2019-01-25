@@ -23,7 +23,7 @@ namespace Musoq.Evaluator.Tables
             return _table;
         }
 
-        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
+        public override RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)
         {
             return new TransientVariableSource(name);
         }

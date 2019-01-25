@@ -17,6 +17,11 @@
             return $"{name}TransformedScore";
         }
 
+        public static string ToInfoTable(this string name)
+        {
+            return $"{name}InferredInfoTable";
+        }
+
         public static string ToRowsSource(this string name)
         {
             return $"{name}Rows";
