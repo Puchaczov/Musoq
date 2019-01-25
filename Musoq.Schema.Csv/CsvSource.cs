@@ -160,59 +160,102 @@ namespace Musoq.Schema.Csv
             {
                 if (_types.ContainsKey(i))
                 {
+                    var colValue = rawRow[i];
                     switch (Type.GetTypeCode(_types[i]))
                     {
                         case TypeCode.Boolean:
-                            parsedRecords[i] = bool.Parse(rawRow[i]);
+                            if (bool.TryParse(colValue, out var boolValue))
+                                parsedRecords[i] = boolValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.Byte:
-                            parsedRecords[i] = byte.Parse(rawRow[i]);
+                            if (byte.TryParse(colValue, out var byteValue))
+                                parsedRecords[i] = byteValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.Char:
-                            parsedRecords[i] = char.Parse(rawRow[i]);
+                            if (char.TryParse(colValue, out var charValue))
+                                parsedRecords[i] = charValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.DateTime:
-                            parsedRecords[i] = DateTime.Parse(rawRow[i], CultureInfo.InvariantCulture);
+                            if (DateTime.TryParse(colValue, out var dateTimeValue))
+                                parsedRecords[i] = dateTimeValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.DBNull:
                             throw new NotSupportedException($"Type {TypeCode.DBNull} is not supported.");
                         case TypeCode.Decimal:
-                            parsedRecords[i] = decimal.Parse(rawRow[i]);
+                            if (decimal.TryParse(colValue, out var decimalValue))
+                                parsedRecords[i] = decimalValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.Double:
-                            parsedRecords[i] = double.Parse(rawRow[i]);
+                            if (double.TryParse(colValue, out var doubleValue))
+                                parsedRecords[i] = doubleValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.Empty:
                             throw new NotSupportedException($"Type {TypeCode.Empty} is not supported.");
                         case TypeCode.Int16:
-                            parsedRecords[i] = short.Parse(rawRow[i]);
+                            if (short.TryParse(colValue, out var shortValue))
+                                parsedRecords[i] = shortValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.Int32:
-                            parsedRecords[i] = int.Parse(rawRow[i]);
+                            if (int.TryParse(colValue, out var intValue))
+                                parsedRecords[i] = intValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.Int64:
-                            parsedRecords[i] = long.Parse(rawRow[i]);
+                            if (long.TryParse(colValue, out var longValue))
+                                parsedRecords[i] = longValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.Object:
-                            parsedRecords[i] = rawRow[i];
+                            parsedRecords[i] = colValue;
                             break;
                         case TypeCode.SByte:
-                            parsedRecords[i] = sbyte.Parse(rawRow[i]);
+                            if (sbyte.TryParse(colValue, out var sbyteValue))
+                                parsedRecords[i] = sbyteValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.Single:
-                            parsedRecords[i] = decimal.Parse(rawRow[i]);
+                            if (float.TryParse(colValue, out var floatValue))
+                                parsedRecords[i] = floatValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.String:
-                            parsedRecords[i] = rawRow[i];
+                            parsedRecords[i] = colValue;
                             break;
                         case TypeCode.UInt16:
-                            parsedRecords[i] = ushort.Parse(rawRow[i]);
+                            if (ushort.TryParse(colValue, out var ushortValue))
+                                parsedRecords[i] = ushortValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.UInt32:
-                            parsedRecords[i] = uint.Parse(rawRow[i]);
+                            if (uint.TryParse(colValue, out var uintValue))
+                                parsedRecords[i] = uintValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         case TypeCode.UInt64:
-                            parsedRecords[i] = ulong.Parse(rawRow[i]);
+                            if (ulong.TryParse(colValue, out var ulongValue))
+                                parsedRecords[i] = ulongValue;
+                            else
+                                parsedRecords[i] = null;
                             break;
                         default:
                             break;
