@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using CsvHelper;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 
 namespace Musoq.Schema.Csv
 {
@@ -59,7 +60,7 @@ namespace Musoq.Schema.Csv
         private CsvSource(RuntimeContext context)
         {
             _context = context;
-            _types = _context.AllColumns.ToDictionary(col => col.ColumnIndex, col => col.ColumnType);
+            _types = _context.AllColumns.ToDictionary(col => col.ColumnIndex, col => col.ColumnType.GetUnderlyingNullable());
         }
 
         protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<object[]>>> chunkedSource)

@@ -231,6 +231,41 @@ namespace Musoq.Evaluator.Helpers
 
             return typeName;
         }
+
+        public static Type GetType(string typeName)
+        {
+            switch (typeName)
+            {
+                case "System.Int16":
+                    return typeof(short?);
+                case "System.Int32":
+                    return typeof(int?);
+                case "System.Int64":
+                    return typeof(long?);
+                case "System.UInt16":
+                    return typeof(ushort?);
+                case "System.UInt32":
+                    return typeof(uint?);
+                case "System.UInt64":
+                    return typeof(ulong?);
+                case "System.String":
+                    return typeof(string);
+                case "System.Char":
+                    return typeof(char?);
+                case "System.Boolean":
+                    return typeof(bool?);
+                case "System.Single":
+                    return typeof(float?);
+                case "System.Double":
+                    return typeof(double?);
+                case "System.Decimal":
+                    return typeof(decimal?);
+                case "System.Guid":
+                    return typeof(Guid?);
+            }
+
+            return Type.GetType(typeName);
+        }
     }
 
     public class ListRowSource : RowSource

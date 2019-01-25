@@ -910,8 +910,10 @@ namespace Musoq.Evaluator.Visitors
             for (int i = 0; i < node.TableTypePairs.Length; i++)
             {
                 (string ColumnName, string TypeName) typePair = node.TableTypePairs[i];
+
                 var remappedType = EvaluationHelper.RemapPrimitiveTypes(typePair.TypeName);
-                var type = Type.GetType(remappedType);
+
+                var type = EvaluationHelper.GetType(remappedType);
 
                 if (type == null)
                     throw new TypeNotFoundException($"Type '{remappedType}' could not be found.");

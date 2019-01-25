@@ -93,7 +93,7 @@ namespace Musoq.Schema.Csv.Tests.Core
 
             Assert.AreEqual(2, table.Columns.Count());
             Assert.AreEqual("Id", table.Columns.ElementAt(0).ColumnName);
-            Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual(typeof(int?), table.Columns.ElementAt(0).ColumnType);
             Assert.AreEqual("Name", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
