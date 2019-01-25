@@ -193,6 +193,44 @@ namespace Musoq.Evaluator.Helpers
             builder.Append('>');
             return builder.ToString();
         }
+
+        public static string RemapPrimitiveTypes(string typeName)
+        {
+            switch (typeName.ToLowerInvariant())
+            {
+                case "short":
+                    return "System.Int16";
+                case "int":
+                    return "System.Int32";
+                case "long":
+                    return "System.Int64";
+                case "ushort":
+                    return "System.UInt16";
+                case "uint":
+                    return "System.UInt32";
+                case "ulong":
+                    return "System.UInt64";
+                case "string":
+                    return "System.String";
+                case "char":
+                    return "System.Char";
+                case "boolean":
+                case "bool":
+                case "bit":
+                    return "System.Boolean";
+                case "float":
+                    return "System.Single";
+                case "double":
+                    return "System.Double";
+                case "decimal":
+                case "money":
+                    return "System.Decimal";
+                case "guid":
+                    return "System.Guid";
+            }
+
+            return typeName;
+        }
     }
 
     public class ListRowSource : RowSource

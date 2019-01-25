@@ -78,6 +78,39 @@ namespace Musoq.Schema.Csv.Tests.Core
         }
 
         [TestMethod]
+        public void CheckTypesTest()
+        {
+            var query = "" +
+                "table Persons {" +
+                "   Id 'System.Int32'," +
+                "   Name 'System.String'" +
+                "};" +
+                "couple #csv.file with table Persons as SourceOfPersons;" +
+                "select Id, Name from SourceOfPersons('./Files/Persons.csv', ',', true, 0)";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("Id", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("Name", table.Columns.ElementAt(1).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual(5, table.Count);
+            Assert.AreEqual(1, table[0].Values[0]);
+            Assert.AreEqual("Jan", table[0].Values[1]);
+            Assert.AreEqual(2, table[1].Values[0]);
+            Assert.AreEqual("Marek", table[1].Values[1]);
+            Assert.AreEqual(3, table[2].Values[0]);
+            Assert.AreEqual("Witek", table[2].Values[1]);
+            Assert.AreEqual(4, table[3].Values[0]);
+            Assert.AreEqual("Anna", table[3].Values[1]);
+            Assert.AreEqual(5, table[4].Values[0]);
+            Assert.AreEqual("Anna", table[4].Values[1]);
+        }
+
+        [TestMethod]
         public void SimpleSelectWithCouplingTableSyntaxSkipLinesTest2()
         {
             var query = "" +

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
@@ -909,7 +910,13 @@ namespace Musoq.Evaluator.Visitors
             for (int i = 0; i < node.TableTypePairs.Length; i++)
             {
                 (string ColumnName, string TypeName) typePair = node.TableTypePairs[i];
-                columns.Add(new SchemaColumn(typePair.ColumnName, i, Type.GetType(typePair.TypeName)));
+                var remappedType = EvaluationHelper.RemapPrimitiveTypes(typePair.TypeName);
+                var type = Type.GetType(remappedType);
+
+                if (type == null)
+                    throw new TypeNotFoundException($"Type '{remappedType}' could not be found.");
+
+                columns.Add(new SchemaColumn(typePair.ColumnName, i, type));
             }
 
             var table = new DynamicTable(columns.ToArray());

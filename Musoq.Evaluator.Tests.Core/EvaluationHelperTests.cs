@@ -46,5 +46,35 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass" && pair.Type == typeof(TestSubClass)));
             Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass.SomeInt" && pair.Type == typeof(int)));
         }
+
+        [TestMethod]
+        public void RemapPrimitiveTypesTest()
+        {
+            Assert.AreEqual("System.Int16", EvaluationHelper.RemapPrimitiveTypes("short"));
+            Assert.AreEqual("System.Int32", EvaluationHelper.RemapPrimitiveTypes("int"));
+            Assert.AreEqual("System.Int64", EvaluationHelper.RemapPrimitiveTypes("long"));
+
+            Assert.AreEqual("System.UInt16", EvaluationHelper.RemapPrimitiveTypes("ushort"));
+            Assert.AreEqual("System.UInt32", EvaluationHelper.RemapPrimitiveTypes("uint"));
+            Assert.AreEqual("System.UInt64", EvaluationHelper.RemapPrimitiveTypes("ulong"));
+
+            Assert.AreEqual("System.String", EvaluationHelper.RemapPrimitiveTypes("string"));
+
+            Assert.AreEqual("System.Char", EvaluationHelper.RemapPrimitiveTypes("char"));
+
+            Assert.AreEqual("System.Boolean", EvaluationHelper.RemapPrimitiveTypes("bool"));
+            Assert.AreEqual("System.Boolean", EvaluationHelper.RemapPrimitiveTypes("boolean"));
+            Assert.AreEqual("System.Boolean", EvaluationHelper.RemapPrimitiveTypes("bit"));
+
+            Assert.AreEqual("System.Single", EvaluationHelper.RemapPrimitiveTypes("float"));
+            Assert.AreEqual("System.Double", EvaluationHelper.RemapPrimitiveTypes("double"));
+
+            Assert.AreEqual("System.Decimal", EvaluationHelper.RemapPrimitiveTypes("decimal"));
+            Assert.AreEqual("System.Decimal", EvaluationHelper.RemapPrimitiveTypes("money"));
+
+            Assert.AreEqual("System.Guid", EvaluationHelper.RemapPrimitiveTypes("guid"));
+
+            Assert.AreEqual("System.SomeType", EvaluationHelper.RemapPrimitiveTypes("System.SomeType"));
+        }
     }
 }
