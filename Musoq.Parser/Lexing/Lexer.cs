@@ -122,6 +122,16 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Semicolon;
                 case CoupleToken.TokenText:
                     return TokenType.Couple;
+                case CaseToken.TokenText:
+                    return TokenType.Case;
+                case WhenToken.TokenText:
+                    return TokenType.When;
+                case ThenToken.TokenText:
+                    return TokenType.Then;
+                case ElseToken.TokenText:
+                    return TokenType.Else;
+                case EndToken.TokenText:
+                    return TokenType.End;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -246,6 +256,11 @@ namespace Musoq.Parser.Lexing
             public static readonly string KRightBracket = "\\}";
             public static readonly string KSemicolon = "\\;";
             public static readonly string KCouple = Format(Keyword, CoupleToken.TokenText);
+            public static readonly string KCase = Format(Keyword, CaseToken.TokenText);
+            public static readonly string KWhen = Format(Keyword, WhenToken.TokenText);
+            public static readonly string KThen = Format(Keyword, ThenToken.TokenText);
+            public static readonly string KElse = Format(Keyword, ElseToken.TokenText);
+            public static readonly string KEnd = Format(Keyword, EndToken.TokenText);
 
             private static string Format(string keyword, string arg)
             {
@@ -331,7 +346,12 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KLeftBracket),
                 new TokenDefinition(TokenRegexDefinition.KRightBracket),
                 new TokenDefinition(TokenRegexDefinition.KSemicolon),
-                new TokenDefinition(TokenRegexDefinition.KCouple)
+                new TokenDefinition(TokenRegexDefinition.KCouple),
+                new TokenDefinition(TokenRegexDefinition.KCase),
+                new TokenDefinition(TokenRegexDefinition.KWhen),
+                new TokenDefinition(TokenRegexDefinition.KThen),
+                new TokenDefinition(TokenRegexDefinition.KElse),
+                new TokenDefinition(TokenRegexDefinition.KEnd),
             };
         }
 
@@ -504,6 +524,16 @@ namespace Musoq.Parser.Lexing
                     return new SemicolonToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Couple:
                     return new CoupleToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Case:
+                    return new CaseToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.When:
+                    return new WhenToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Then:
+                    return new ThenToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Else:
+                    return new ElseToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.End:
+                    return new EndToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)

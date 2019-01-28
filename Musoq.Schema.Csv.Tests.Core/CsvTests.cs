@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Evaluator.Tables;
 using Musoq.Plugins;
 using Environment = Musoq.Plugins.Environment;
 
@@ -108,6 +110,37 @@ namespace Musoq.Schema.Csv.Tests.Core
             Assert.AreEqual("Anna", table[3].Values[1]);
             Assert.AreEqual(5, table[4].Values[0]);
             Assert.AreEqual("Anna", table[4].Values[1]);
+        }
+
+        [TestMethod]
+        public void CheckNullValues()
+        {
+            var query = "" +
+                "table BankingTransactions {" +
+                "   Category 'string'," +
+                "   Money 'decimal'" +
+                "};" +
+                "couple #csv.file with table BankingTransactions as SourceOfBankingTransactions;" +
+                "select Category, Money from SourceOfBankingTransactions('./Files/BankingTransactionsNullValues.csv', ',', true, 0) where Category is null or Money is null;";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual("Category", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("Money", table.Columns.ElementAt(1).ColumnName);
+            Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(1).ColumnType);
+
+            Assert.AreEqual(4, table.Count);
+            Assert.AreEqual("Life", table[0].Values[0]);
+            Assert.AreEqual(null, table[0].Values[1]);
+            Assert.AreEqual(null, table[1].Values[0]);
+            Assert.AreEqual(-1m, table[1].Values[1]);
+            Assert.AreEqual(null, table[2].Values[0]);
+            Assert.AreEqual(-121.95m, table[2].Values[1]);
+            Assert.AreEqual(null, table[3].Values[0]);
+            Assert.AreEqual(null, table[3].Values[1]);
         }
 
         [TestMethod]
@@ -645,6 +678,54 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
             var fired = source.Rows.Count();
 
             Assert.AreEqual(0, fired);
+        }
+
+        [TestMethod]
+        public void CsvSource_AllTypesSupportedTest()
+        {
+            var tokenSource = new CancellationTokenSource();
+
+            var columns = new List<ISchemaColumn>();
+
+            columns.Add(new Column("boolColumn", typeof(bool?), 0));
+            columns.Add(new Column("byteColumn", typeof(byte?), 1));
+            columns.Add(new Column("charColumn", typeof(char?), 2));
+            columns.Add(new Column("dateTimeColumn", typeof(DateTime?), 3));
+            columns.Add(new Column("decimalColumn", typeof(decimal?), 4));
+            columns.Add(new Column("doubleColumn", typeof(double?), 5));
+            columns.Add(new Column("shortColumn", typeof(short?), 6));
+            columns.Add(new Column("intColumn", typeof(int?), 7));
+            columns.Add(new Column("longColumn", typeof(long?), 8));
+            columns.Add(new Column("sbyteColumn", typeof(sbyte?), 9));
+            columns.Add(new Column("singleColumn", typeof(float?), 10));
+            columns.Add(new Column("stringColumn", typeof(string), 11));
+            columns.Add(new Column("ushortColumn", typeof(ushort?), 12));
+            columns.Add(new Column("uintColumn", typeof(uint?), 13));
+            columns.Add(new Column("ulongColumn", typeof(ulong?), 14));
+
+            var context = new RuntimeContext(tokenSource.Token, columns);
+
+            var source = new CsvSource("./Files/AllTypes.csv", ",", true, 0, context);
+
+            var rows = source.Rows;
+
+            var row = rows.ElementAt(0);
+
+            Assert.AreEqual(true, row[0]);
+            Assert.AreEqual((byte)48, row[1]);
+            Assert.AreEqual('c', row[2]);
+            Assert.AreEqual(DateTime.Parse("12/12/2012"), row[3]);
+            Assert.AreEqual(10.23m, row[4]);
+            Assert.AreEqual(13.111d, row[5]);
+            Assert.AreEqual((short)-15, row[6]);
+            Assert.AreEqual(2147483647, row[7]);
+            Assert.AreEqual(9223372036854775807, row[8]);
+            Assert.AreEqual((sbyte)-3, row[9]);
+            Assert.AreEqual(1.11f, row[10]);
+            Assert.AreEqual("some text", row[11]);
+            Assert.AreEqual((ushort)256, row[12]);
+            Assert.AreEqual((uint)512, row[13]);
+            Assert.AreEqual((ulong)1024, row[14]);
         }
 
         [TestMethod]

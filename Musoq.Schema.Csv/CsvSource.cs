@@ -23,7 +23,7 @@ namespace Musoq.Schema.Csv
 
         private readonly CsvFile[] _files;
         private readonly RuntimeContext _context;
-        private readonly IReadOnlyDictionary<int, Type> _types;
+        private readonly IReadOnlyDictionary<string, Type> _types;
 
         public CsvSource(string filePath, string separator, bool hasHeader, int skipLines, RuntimeContext context)
             : this(context)
@@ -60,7 +60,7 @@ namespace Musoq.Schema.Csv
         private CsvSource(RuntimeContext context)
         {
             _context = context;
-            _types = _context.AllColumns.ToDictionary(col => col.ColumnIndex, col => col.ColumnType.GetUnderlyingNullable());
+            _types = _context.AllColumns.ToDictionary(col => col.ColumnName, col => col.ColumnType.GetUnderlyingNullable());
         }
 
         protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<object[]>>> chunkedSource)
@@ -83,6 +83,7 @@ namespace Musoq.Schema.Csv
 
             var nameToIndexMap = new Dictionary<string, int>();
             var indexToMethodAccess = new Dictionary<int, Func<object[], object>>();
+            var indexToNameMap = new Dictionary<int, string>();
             var endWorkToken = _context.EndWorkToken;
 
             using (var stream = CreateStreamFromFile(file))
@@ -100,8 +101,9 @@ namespace Musoq.Schema.Csv
 
                         for (var i = 0; i < header.Length; ++i)
                         {
-                            nameToIndexMap.Add(csvFile.HasHeader ? CsvHelper.MakeHeaderNameValidColumnName(header[i]) : string.Format(CsvHelper.AutoColumnName, i + 1), i);
-
+                            var headerName = csvFile.HasHeader ? CsvHelper.MakeHeaderNameValidColumnName(header[i]) : string.Format(CsvHelper.AutoColumnName, i + 1);
+                            nameToIndexMap.Add(headerName, i);
+                            indexToNameMap.Add(i, headerName);
                             var i1 = i;
                             indexToMethodAccess.Add(i, row => row[i1]);
                         }
@@ -131,7 +133,7 @@ namespace Musoq.Schema.Csv
                         while (csvReader.Read())
                         {
                             var rawRow = csvReader.Context.Record;
-                            list.Add(new EntityResolver<object[]>(ParseRecords(rawRow), nameToIndexMap, indexToMethodAccess));
+                            list.Add(new EntityResolver<object[]>(ParseRecords(rawRow, indexToNameMap), nameToIndexMap, indexToMethodAccess));
 
                             if (i++ < rowsToRead) continue;
 
@@ -152,16 +154,17 @@ namespace Musoq.Schema.Csv
             }
         }
 
-        private object[] ParseRecords(string[] rawRow)
+        private object[] ParseRecords(string[] rawRow, IReadOnlyDictionary<int, string> indexToNameMap)
         {
             var parsedRecords = new object[rawRow.Length];
 
             for (int i = 0; i < rawRow.Length; ++i)
             {
-                if (_types.ContainsKey(i))
+                var headerName = indexToNameMap[i];
+                if (_types.ContainsKey(headerName))
                 {
                     var colValue = rawRow[i];
-                    switch (Type.GetTypeCode(_types[i]))
+                    switch (Type.GetTypeCode(_types[headerName]))
                     {
                         case TypeCode.Boolean:
                             if (bool.TryParse(colValue, out var boolValue))
@@ -170,7 +173,7 @@ namespace Musoq.Schema.Csv
                                 parsedRecords[i] = null;
                             break;
                         case TypeCode.Byte:
-                            if (byte.TryParse(colValue, out var byteValue))
+                            if (byte.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var byteValue))
                                 parsedRecords[i] = byteValue;
                             else
                                 parsedRecords[i] = null;
@@ -182,7 +185,7 @@ namespace Musoq.Schema.Csv
                                 parsedRecords[i] = null;
                             break;
                         case TypeCode.DateTime:
-                            if (DateTime.TryParse(colValue, out var dateTimeValue))
+                            if (DateTime.TryParse(colValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTimeValue))
                                 parsedRecords[i] = dateTimeValue;
                             else
                                 parsedRecords[i] = null;
@@ -190,13 +193,13 @@ namespace Musoq.Schema.Csv
                         case TypeCode.DBNull:
                             throw new NotSupportedException($"Type {TypeCode.DBNull} is not supported.");
                         case TypeCode.Decimal:
-                            if (decimal.TryParse(colValue, out var decimalValue))
+                            if (decimal.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var decimalValue))
                                 parsedRecords[i] = decimalValue;
                             else
                                 parsedRecords[i] = null;
                             break;
                         case TypeCode.Double:
-                            if (double.TryParse(colValue, out var doubleValue))
+                            if (double.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleValue))
                                 parsedRecords[i] = doubleValue;
                             else
                                 parsedRecords[i] = null;
@@ -204,19 +207,19 @@ namespace Musoq.Schema.Csv
                         case TypeCode.Empty:
                             throw new NotSupportedException($"Type {TypeCode.Empty} is not supported.");
                         case TypeCode.Int16:
-                            if (short.TryParse(colValue, out var shortValue))
+                            if (short.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var shortValue))
                                 parsedRecords[i] = shortValue;
                             else
                                 parsedRecords[i] = null;
                             break;
                         case TypeCode.Int32:
-                            if (int.TryParse(colValue, out var intValue))
+                            if (int.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var intValue))
                                 parsedRecords[i] = intValue;
                             else
                                 parsedRecords[i] = null;
                             break;
                         case TypeCode.Int64:
-                            if (long.TryParse(colValue, out var longValue))
+                            if (long.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var longValue))
                                 parsedRecords[i] = longValue;
                             else
                                 parsedRecords[i] = null;
@@ -225,34 +228,37 @@ namespace Musoq.Schema.Csv
                             parsedRecords[i] = colValue;
                             break;
                         case TypeCode.SByte:
-                            if (sbyte.TryParse(colValue, out var sbyteValue))
+                            if (sbyte.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var sbyteValue))
                                 parsedRecords[i] = sbyteValue;
                             else
                                 parsedRecords[i] = null;
                             break;
                         case TypeCode.Single:
-                            if (float.TryParse(colValue, out var floatValue))
+                            if (float.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var floatValue))
                                 parsedRecords[i] = floatValue;
                             else
                                 parsedRecords[i] = null;
                             break;
                         case TypeCode.String:
-                            parsedRecords[i] = colValue;
+                            if (string.IsNullOrEmpty(colValue))
+                                parsedRecords[i] = null;
+                            else
+                                parsedRecords[i] = colValue;
                             break;
                         case TypeCode.UInt16:
-                            if (ushort.TryParse(colValue, out var ushortValue))
+                            if (ushort.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var ushortValue))
                                 parsedRecords[i] = ushortValue;
                             else
                                 parsedRecords[i] = null;
                             break;
                         case TypeCode.UInt32:
-                            if (uint.TryParse(colValue, out var uintValue))
+                            if (uint.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var uintValue))
                                 parsedRecords[i] = uintValue;
                             else
                                 parsedRecords[i] = null;
                             break;
                         case TypeCode.UInt64:
-                            if (ulong.TryParse(colValue, out var ulongValue))
+                            if (ulong.TryParse(colValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var ulongValue))
                                 parsedRecords[i] = ulongValue;
                             else
                                 parsedRecords[i] = null;

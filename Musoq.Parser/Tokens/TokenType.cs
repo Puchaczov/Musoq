@@ -69,6 +69,11 @@
         LBracket,
         RBracket,
         Semicolon,
-        Couple
+        Couple,
+        Case,
+        When,
+        Then,
+        Else,
+        End
     }
 }

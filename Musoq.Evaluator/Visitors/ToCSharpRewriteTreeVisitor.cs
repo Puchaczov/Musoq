@@ -1018,7 +1018,7 @@ namespace Musoq.Evaluator.Visitors
                                     SyntaxFactory.Argument(
                                         SyntaxFactory.LiteralExpression(
                                             SyntaxKind.StringLiteralExpression,
-                                            SyntaxFactory.Literal( $"@\"{column.ColumnName}\""))),
+                                            SyntaxFactory.Literal(column.ColumnName))),
                                     SyntaxHelper.TypeLiteralArgument(
                                         EvaluationHelper.GetCastableType(column.ColumnType)),
                                     SyntaxHelper.IntLiteralArgument(column.ColumnIndex)
