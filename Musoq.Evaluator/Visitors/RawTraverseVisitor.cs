@@ -541,6 +541,19 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
+        public void Visit(CaseNode node)
+        {
+            node.Else.Accept(this);
+
+            for (int i = node.WhenThenPairs.Length - 1; i >= 0; --i)
+            {
+                node.WhenThenPairs[i].When.Accept(this);
+                node.WhenThenPairs[i].Then.Accept(this);
+            }
+
+            node.Accept(Visitor);
+        }
+
         private void TraverseSetOperator(SetOperatorNode node)
         {
             node.Left.Accept(this);

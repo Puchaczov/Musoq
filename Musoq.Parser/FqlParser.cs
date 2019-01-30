@@ -733,9 +733,35 @@ namespace Musoq.Parser
                 case TokenType.Hyphen:
                     Consume(TokenType.Hyphen);
                     return new StarNode(new IntegerNode("-1"), Compose(f => f.ComposeArithmeticExpression(minPrec)));
+                case TokenType.Case:
+                    var caseNodes = ComposeCase();
+                    return new CaseNode(caseNodes.WhenThenNodes, caseNodes.ElseNode);
             }
 
             throw new NotSupportedException($"Token {Current.Value}({Current.TokenType}) cannot be used here.");
+        }
+
+        private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode) ComposeCase()
+        {
+            Consume(TokenType.Case);
+
+
+            var whenThenNodes = new List<(Node When, Node Then)>();
+
+            while(Current.TokenType == TokenType.When)
+            {
+                Consume(TokenType.When);
+                var whenNode = ComposeOperations();
+                Consume(TokenType.Then);
+                var thenNode = ComposeEqualityOperators();
+                whenThenNodes.Add((whenNode, thenNode));
+            }
+
+            Consume(TokenType.Else);
+            var elseNode = ComposeEqualityOperators();
+            Consume(TokenType.End);
+
+            return (whenThenNodes.ToArray(), elseNode);
         }
 
         private IntegerNode ComposeInteger()

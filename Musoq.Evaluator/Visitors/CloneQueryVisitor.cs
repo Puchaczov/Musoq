@@ -555,5 +555,21 @@ namespace Musoq.Evaluator.Visitors
         {
             Nodes.Push(new StatementNode(Nodes.Pop()));
         }
+
+        public void Visit(CaseNode node)
+        {
+            var whenThenPairs = new List<(Node When, Node Then)>();
+
+            for (int i = 0; i < node.WhenThenPairs.Length; ++i)
+            {
+                var then = Nodes.Pop();
+                var when = Nodes.Pop();
+                whenThenPairs.Add((when, then));
+            }
+
+            var elseNode = Nodes.Pop();
+
+            Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, elseNode.ReturnType));
+        }
     }
 }

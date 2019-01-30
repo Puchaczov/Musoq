@@ -840,5 +840,32 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual("feb", table[1].Values[0]);
             Assert.AreEqual(100m, table[1].Values[1]);
         }
+
+        [TestMethod]
+        public void GroupByWithCaseWhenInSelectTest()
+        {
+            var query = @"select (case when Self.Month = 'jan' then 'JANUARY' when Self.Month = 'feb' then 'FEBRUARY' else 'NONE' end) from #A.Entities() group by Self.Month";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
+                        new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
+                        new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("JANUARY", table[0][0]);
+            Assert.AreEqual("FEBRUARY", table[1][0]);
+            Assert.AreEqual("NONE", table[2][0]);
+        }
     }
 }

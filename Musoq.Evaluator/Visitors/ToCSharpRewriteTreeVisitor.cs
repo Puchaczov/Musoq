@@ -48,6 +48,7 @@ namespace Musoq.Evaluator.Visitors
 
         private int _inMemoryTableIndex;
         private int _setOperatorMethodIdentifier;
+        private int _caseWhenMethodIndex = 0;
 
         private BlockSyntax _joinBlock;
         private string _queryAlias;
@@ -465,9 +466,14 @@ namespace Musoq.Evaluator.Visitors
             var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
             AddReference(types);
             AddNamespace(types);
-            var castedExpression = Generator.CastExpression(
+
+            var typeIdentifier = 
                 SyntaxFactory.IdentifierName(
-                    EvaluationHelper.GetCastableType(node.ReturnType)), Nodes.Pop());
+                    EvaluationHelper.GetCastableType(node.ReturnType));
+
+            var expression = Nodes.Pop();
+
+            var castedExpression = Generator.CastExpression(typeIdentifier, expression);
             Nodes.Push(castedExpression);
         }
 
@@ -2121,6 +2127,123 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(StatementNode node)
         {
+        }
+
+        public void Visit(CaseNode node)
+        {
+            (Node When, Node Then) whenThenPair = node.WhenThenPairs[0];
+            var then = Nodes.Pop();
+            var when = Nodes.Pop();
+
+            var ifStatement = 
+                SyntaxFactory.IfStatement(
+                    (ExpressionSyntax)when,
+                    SyntaxFactory.Block(
+                        SyntaxFactory.SingletonList<StatementSyntax>(
+                            SyntaxFactory.ReturnStatement(
+                                (ExpressionSyntax)then))));
+
+            var ifStatements = new List<IfStatementSyntax>();
+            ifStatements.Add(ifStatement);
+
+            for (int i = 1; i < node.WhenThenPairs.Length; i++)
+            {
+                whenThenPair = node.WhenThenPairs[i];
+                then = Nodes.Pop();
+                when = Nodes.Pop();
+
+                ifStatements.Add(
+                        SyntaxFactory.IfStatement(
+                            (ExpressionSyntax)when,
+                            SyntaxFactory.Block(
+                                SyntaxFactory.SingletonList<StatementSyntax>(
+                                SyntaxFactory.ReturnStatement(
+                                    (ExpressionSyntax)then)))));
+            }
+
+            var elseNode = Nodes.Pop();
+
+            ifStatements[ifStatements.Count - 1] = 
+                ifStatements[ifStatements.Count - 1].WithElse(
+                    SyntaxFactory.ElseClause(
+                        SyntaxFactory.Block(
+                                SyntaxFactory.SingletonList<StatementSyntax>(
+                                SyntaxFactory.ReturnStatement(
+                                    (ExpressionSyntax)elseNode)))));
+
+            IfStatementSyntax first;
+            IfStatementSyntax second;
+
+            IfStatementSyntax newIfStatement = null;
+
+            for(int i = ifStatements.Count - 2; i >= 1; i-=1)
+            {
+                first = ifStatements[i];
+                second = ifStatements[i + 1];
+
+                ifStatements.RemoveAt(i + 1);
+                ifStatements.RemoveAt(i);
+
+                newIfStatement = 
+                    first.WithElse(
+                        SyntaxFactory.ElseClause(second));
+
+                ifStatements.Add(newIfStatement);
+            }
+
+            if(ifStatements.Count == 2)
+            {
+                first = ifStatements[0];
+                second = ifStatements[1];
+
+                ifStatements.RemoveAt(1);
+                ifStatements.RemoveAt(0);
+
+                newIfStatement =
+                    first.WithElse(
+                        SyntaxFactory.ElseClause(second));
+            }
+            else
+            {
+                newIfStatement = ifStatements[0];
+
+                ifStatements.RemoveAt(0);
+            }
+
+            ifStatement = newIfStatement ?? throw new NullReferenceException(nameof(newIfStatement));
+
+            AddNamespace(node.ReturnType.Namespace);
+            AddNamespace(typeof(IObjectResolver).Namespace);
+
+            var methodName = $"CaseWhen_{_caseWhenMethodIndex++}";
+
+            var method = SyntaxFactory
+                .MethodDeclaration(
+                    SyntaxFactory.IdentifierName(node.ReturnType.FullName),
+                    SyntaxFactory.Identifier(methodName))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+                .WithParameterList(
+                    SyntaxFactory.ParameterList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("score")
+                            ).WithType(
+                                SyntaxFactory.IdentifierName(nameof(IObjectResolver))
+                            )
+                    ))
+                )
+                .WithBody(
+                    SyntaxFactory.Block(
+                        SyntaxFactory.SingletonList<StatementSyntax>(ifStatement)));
+
+            _members.Add(method);
+
+            Nodes.Push(
+                SyntaxHelper.CreateMethodInvocation("this", methodName, new SyntaxNode[] {
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.IdentifierName("score"))
+                }));
         }
     }
 }

@@ -6,19 +6,35 @@ namespace Musoq.Parser.Nodes
 {
     public class CaseNode : Node
     {
-        public CaseNode((Node When, Node Then)[] whenThenNodesPairs, Node elseNode)
+        public CaseNode((Node When, Node Then)[] whenThenNodesPairs, Node elseNode, Type returnType = null)
         {
-            WhenThenNodesPairs = whenThenNodesPairs;
-            ElseNode = elseNode;
+            WhenThenPairs = whenThenNodesPairs;
+            Else = elseNode;
+            ReturnType = returnType ?? typeof(void);
         }
 
-        public (Node When, Node Then)[] WhenThenNodesPairs { get; }
+        public (Node When, Node Then)[] WhenThenPairs { get; }
 
-        public Node ElseNode { get; }
+        public Node Else { get; }
 
-        public override Type ReturnType => throw new NotImplementedException();
+        public override Type ReturnType { get; }
 
-        public override string Id => throw new NotImplementedException();
+        public override string Id
+        {
+            get
+            {
+                var id = $"{nameof(CaseNode)}";
+
+                foreach(var item in WhenThenPairs)
+                {
+                    id += $"{item.When.Id}{item.Then.Id}";
+                }
+
+                id += $"{Else.Id}";
+
+                return id;
+            }
+        }
 
         public override void Accept(IExpressionVisitor visitor)
         {
@@ -32,7 +48,7 @@ namespace Musoq.Parser.Nodes
             builder.Append(CaseToken.TokenText);
             builder.Append(" ");
 
-            foreach(var pair in WhenThenNodesPairs)
+            foreach(var pair in WhenThenPairs)
             {
                 builder.Append(WhenToken.TokenText);
                 builder.Append(" ");
@@ -46,7 +62,7 @@ namespace Musoq.Parser.Nodes
             builder.Append(" ");
             builder.Append(ElseToken.TokenText);
             builder.Append(" ");
-            builder.Append(ElseNode.ToString());
+            builder.Append(Else.ToString());
             builder.Append(" ");
             builder.Append(EndToken.TokenText);
 

@@ -356,5 +356,9 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(StatementNode node)
         {
         }
+
+        public void Visit(CaseNode node)
+        {
+        }
     }
 }

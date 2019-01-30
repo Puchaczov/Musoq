@@ -620,6 +620,19 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(CaseNode node)
+        {
+            node.Else.Accept(this);
+
+            for (int i = node.WhenThenPairs.Length - 1; i >= 0; --i)
+            {
+                node.WhenThenPairs[i].When.Accept(this);
+                node.WhenThenPairs[i].Then.Accept(this);
+            }
+
+            node.Accept(_visitor);
+        }
+
         private void TraverseSetOperator(SetOperatorNode node)
         {
             _walker = _walker.NextChild();
