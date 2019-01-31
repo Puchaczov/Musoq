@@ -1132,5 +1132,36 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual(false, table[0][0]);
             Assert.AreEqual(true, table[1][0]);
         }
+
+        [TestMethod]
+        public void CaseWhenWithLibraryMethodCallTest()
+        {
+            var query = "select " +
+                "   (case " +
+                "       when Population > 100d" +
+                "       then entities.GetOne()" +
+                "       else entities.Inc(entities.GetOne())" +
+                "   end)" +
+                "from #A.entities() entities";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 100 },
+                        new BasicEntity("june", 200m) { Population = 200 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+
+            Assert.AreEqual(2m, table[0][0]);
+            Assert.AreEqual(1m, table[1][0]);
+        }
     }
 }

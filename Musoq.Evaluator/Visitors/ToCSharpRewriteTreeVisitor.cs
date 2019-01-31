@@ -2217,6 +2217,34 @@ namespace Musoq.Evaluator.Visitors
 
             var methodName = $"CaseWhen_{_caseWhenMethodIndex++}";
 
+            var parameters = new List<ParameterSyntax>();
+            var callParameters = new List<SyntaxNode>();
+
+            parameters.Add(
+                SyntaxFactory.Parameter(
+                    SyntaxFactory.Identifier("score")
+            ).WithType(
+                  SyntaxFactory.IdentifierName(nameof(IObjectResolver))
+            ));
+
+            callParameters.Add(
+                SyntaxFactory.Argument(
+                    SyntaxFactory.IdentifierName("score")));
+
+            foreach (var variableNameTypePair in _typesToInstantiate)
+            {
+                parameters.Add(
+                    SyntaxFactory.Parameter(
+                        SyntaxFactory.Identifier(variableNameTypePair.Key)
+                    ).WithType (
+                        SyntaxFactory.IdentifierName(variableNameTypePair.Value.Name)
+                    ));
+
+                callParameters.Add(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.IdentifierName(variableNameTypePair.Key)));
+            }
+
             var method = SyntaxFactory
                 .MethodDeclaration(
                     SyntaxFactory.IdentifierName(node.ReturnType.FullName),
@@ -2225,13 +2253,7 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                 .WithParameterList(
                     SyntaxFactory.ParameterList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Parameter(
-                                SyntaxFactory.Identifier("score")
-                            ).WithType(
-                                SyntaxFactory.IdentifierName(nameof(IObjectResolver))
-                            )
-                    ))
+                        SyntaxFactory.SeparatedList(parameters.ToArray()))
                 )
                 .WithBody(
                     SyntaxFactory.Block(
@@ -2240,10 +2262,7 @@ namespace Musoq.Evaluator.Visitors
             _members.Add(method);
 
             Nodes.Push(
-                SyntaxHelper.CreateMethodInvocation("this", methodName, new SyntaxNode[] {
-                    SyntaxFactory.Argument(
-                        SyntaxFactory.IdentifierName("score"))
-                }));
+                SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray()));
         }
     }
 }
