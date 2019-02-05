@@ -75,5 +75,17 @@ namespace Musoq.Plugins
         {
             return _soundex.For(value);
         }
+
+        [BindableMethod]
+        public string ToUpperInvariant(string value)
+        {
+            return value.ToUpperInvariant();
+        }
+
+        [BindableMethod]
+        public string ToLowerInvariant(string value)
+        {
+            return value.ToLowerInvariant();
+        }
     }
 }
