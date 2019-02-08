@@ -44,6 +44,11 @@ namespace Musoq.Parser
             return new RootNode(new StatementsArrayNode(statements.ToArray()));
         }
 
+        public WhereNode ComposeWhereConditions()
+        {
+            return ComposeWhere(true);
+        }
+
         public StatementNode ComposeStatement()
         {
             switch (Current.TokenType)
@@ -257,7 +262,7 @@ namespace Musoq.Parser
 
             fromNode = ComposeJoin(fromNode);
 
-            var whereNode = ComposeWhereNode();
+            var whereNode = ComposeWhere();
             var groupBy = ComposeGrouByNode();
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
@@ -634,7 +639,7 @@ namespace Musoq.Parser
                 Consume(TokenType.WhiteSpace);
         }
 
-        private WhereNode ComposeWhereNode(bool withoutWhereToken = false)
+        private WhereNode ComposeWhere(bool withoutWhereToken)
         {
             if (Current.TokenType == TokenType.Where)
             {
