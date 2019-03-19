@@ -262,7 +262,7 @@ namespace Musoq.Parser
 
             fromNode = ComposeJoin(fromNode);
 
-            var whereNode = ComposeWhere();
+            var whereNode = ComposeWhere(false);
             var groupBy = ComposeGrouByNode();
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
