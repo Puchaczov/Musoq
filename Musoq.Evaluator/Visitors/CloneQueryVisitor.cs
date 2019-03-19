@@ -354,14 +354,14 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new ExpressionFromNode(from));
         }
 
-        public virtual void Visit(CreateTableNode node)
+        public virtual void Visit(CreateTransformationTableNode node)
         {
             var items = new FieldNode[node.Fields.Length];
 
             for (var i = node.Fields.Length - 1; i >= 0; --i)
                 items[i] = (FieldNode) Nodes.Pop();
 
-            Nodes.Push(new CreateTableNode(node.Name, node.Keys, items, node.ForGrouping));
+            Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, items, node.ForGrouping));
         }
 
         public virtual void Visit(RenameTableNode node)
@@ -518,6 +518,58 @@ namespace Musoq.Evaluator.Visitors
                 fields[i] = (FieldOrderedNode)Nodes.Pop();
 
             Nodes.Push(new OrderByNode(fields));
+        }
+
+        public void Visit(CreateTableNode node)
+        {
+            Nodes.Push(new CreateTableNode(node.Name, node.TableTypePairs));
+        }
+
+        public void Visit(CoupleNode node)
+        {
+            Nodes.Push(new CoupleNode(node.SchemaMethodNode, node.TableName, node.MappedSchemaName));
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+            Nodes.Push(new AliasedFromNode(node.Identifier, node.Args, node.Alias));
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            Nodes.Push(new SchemaMethodFromNode(node.Schema, node.Method));
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+            var statements = new StatementNode[node.Statements.Length];
+            for(int i = 0; i < node.Statements.Length; ++i)
+            {
+                statements[node.Statements.Length - 1 - i] = (StatementNode)Nodes.Pop();
+            }
+
+            Nodes.Push(new StatementsArrayNode(statements));
+        }
+
+        public void Visit(StatementNode node)
+        {
+            Nodes.Push(new StatementNode(Nodes.Pop()));
+        }
+
+        public void Visit(CaseNode node)
+        {
+            var whenThenPairs = new List<(Node When, Node Then)>();
+
+            for (int i = 0; i < node.WhenThenPairs.Length; ++i)
+            {
+                var then = Nodes.Pop();
+                var when = Nodes.Pop();
+                whenThenPairs.Add((when, then));
+            }
+
+            var elseNode = Nodes.Pop();
+
+            Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, elseNode.ReturnType));
         }
     }
 }

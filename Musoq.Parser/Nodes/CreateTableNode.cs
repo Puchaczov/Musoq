@@ -1,27 +1,20 @@
 ﻿using System;
-using System.Linq;
+using System.Text;
 
 namespace Musoq.Parser.Nodes
 {
     public class CreateTableNode : Node
     {
-        public CreateTableNode(string name, string[] keys, FieldNode[] fields, bool forGrouping)
+        public CreateTableNode(string name, (string ColumnName, string TypeName)[] tableTypePairs)
         {
             Name = name;
-            Keys = keys;
-            Fields = fields;
-            ForGrouping = forGrouping;
-            var keysId = keys.Length == 0 ? string.Empty : keys.Aggregate((a, b) => a + b);
-            Id = $"{nameof(CreateTableNode)}{name}{keysId}";
+            TableTypePairs = tableTypePairs;
+            Id = $"{nameof(CreateTableNode)}{name}";
         }
 
-        public string[] Keys { get; }
-
-        public FieldNode[] Fields { get; }
-
-        public bool ForGrouping { get; }
-
         public string Name { get; }
+
+        public (string ColumnName, string TypeName)[] TableTypePairs { get; }
 
         public override Type ReturnType => null;
 
@@ -34,6 +27,16 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
+            var cols = new StringBuilder();
+
+            cols.Append($"{TableTypePairs[0].ColumnName} {TableTypePairs[0].TypeName}");
+
+            for (var i = 1; i < TableTypePairs.Length - 1; ++i)
+            {
+                cols.Append($"{TableTypePairs[i].ColumnName} {TableTypePairs[i].TypeName}");
+            }
+
+            cols.Append($"{TableTypePairs[TableTypePairs.Length - 1].ColumnName} {TableTypePairs[TableTypePairs.Length - 1].TypeName}");
             return $"CREATE TABLE {Name}";
         }
     }

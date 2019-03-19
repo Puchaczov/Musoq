@@ -8,10 +8,10 @@ namespace Musoq.Schema.Os.Files
 {
     public abstract class FilesSourceBase<TEntity> : RowSourceBase<TEntity>
     {
-        private readonly InterCommunicator _communicator;
+        private readonly RuntimeContext _communicator;
         private readonly DirectorySourceSearchOptions _source;
 
-        public FilesSourceBase(string path, bool useSubDirectories, InterCommunicator communicator)
+        public FilesSourceBase(string path, bool useSubDirectories, RuntimeContext communicator)
         {
             _communicator = communicator;
             _source = new DirectorySourceSearchOptions(path, useSubDirectories);

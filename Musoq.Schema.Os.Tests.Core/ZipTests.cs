@@ -30,7 +30,7 @@ namespace Musoq.Schema.Os.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("FullName", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("FullName", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -50,7 +50,7 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Decompress(AggregateFiles(File), './Results/DecompressTest')",
-                table.Columns.ElementAt(0).Name);
+                table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -74,7 +74,7 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual("Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest')",
-                table.Columns.ElementAt(0).Name);
+                table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);

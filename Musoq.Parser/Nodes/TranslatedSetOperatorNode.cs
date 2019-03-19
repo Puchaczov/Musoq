@@ -6,7 +6,7 @@ namespace Musoq.Parser.Nodes
 {
     public class TranslatedSetOperatorNode : Node
     {
-        public TranslatedSetOperatorNode(CreateTableNode[] createTableNode, InternalQueryNode fQuery,
+        public TranslatedSetOperatorNode(CreateTransformationTableNode[] createTableNode, InternalQueryNode fQuery,
             InternalQueryNode sQuery, string resultTableName, string[] keys)
         {
             CreateTableNodes = createTableNode;
@@ -20,7 +20,7 @@ namespace Musoq.Parser.Nodes
 
         public override Type ReturnType => null;
 
-        public CreateTableNode[] CreateTableNodes { get; }
+        public CreateTransformationTableNode[] CreateTableNodes { get; }
         public InternalQueryNode FQuery { get; }
         public InternalQueryNode SQuery { get; }
         public string ResultTableName { get; }

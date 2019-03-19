@@ -24,7 +24,7 @@ namespace Musoq.Schema.Time
             throw new NotSupportedException($"Table {name} not found.");
         }
 
-        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
+        public override RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {

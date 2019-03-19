@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Musoq.Schema;
+using System;
 using System.Diagnostics;
 using System.Text;
 
 namespace Musoq.Evaluator.Tables
 {
     [DebuggerDisplay("{DebugInfo()}")]
-    public abstract class Row : IEquatable<Row>, IValue<Key>
+    public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
     {
         public abstract object this[int columnNumber] { get; }
 

@@ -35,6 +35,9 @@ namespace Musoq.Evaluator.Visitors
         {
             if (!(node.Root is DotNode) && node.Root is AccessColumnNode column)
             {
+                Nodes.Pop();
+                Nodes.Pop();
+
                 var name = $"{NamingHelper.ToColumnName(column.Alias, column.Name)}.{node.Expression.ToString()}";
                 Nodes.Push(new AccessColumnNode(name, string.Empty, node.ReturnType, TextSpan.Empty));
                 return;

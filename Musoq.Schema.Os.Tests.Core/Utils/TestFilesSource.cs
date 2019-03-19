@@ -10,7 +10,7 @@ namespace Musoq.Schema.Os.Tests.Core.Utils
 {
     class TestFilesSource : FilesSource
     {
-        public TestFilesSource(string path, bool useSubDirectories, InterCommunicator communicator) 
+        public TestFilesSource(string path, bool useSubDirectories, RuntimeContext communicator) 
             : base(path, useSubDirectories, communicator)
         {
         }

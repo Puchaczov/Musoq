@@ -4,19 +4,25 @@ namespace Musoq.Schema.Reflection
 {
     public class ConstructorInfo
     {
+        public System.Reflection.ConstructorInfo OriginConstructor { get; }
+
         public Type OriginType { get; }
 
         public (string Name, Type Type)[] Arguments { get; }
 
-        public ConstructorInfo(Type originType, params (string Name, Type Type)[] arguments)
+        public bool SupportsInterCommunicator { get; }
+
+        public ConstructorInfo(System.Reflection.ConstructorInfo originConstructorInfo, Type originType, bool supportsInterCommunicator, params (string Name, Type Type)[] arguments)
         {
+            OriginConstructor = originConstructorInfo;
             OriginType = originType;
             Arguments = arguments;
+            SupportsInterCommunicator = supportsInterCommunicator;
         }
 
         public static ConstructorInfo Empty<T>()
         {
-            return new ConstructorInfo(typeof(T), new (string, Type)[0]);
+            return new ConstructorInfo(null, typeof(T), false, new (string, Type)[0]);
         }
     }
 

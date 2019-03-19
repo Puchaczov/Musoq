@@ -357,11 +357,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new InMemoryTableFromNode(node.VariableName, node.Alias));
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             var fields = CreateFields(node.Fields);
 
-            Nodes.Push(new CreateTableNode(node.Name, node.Keys, fields, node.ForGrouping));
+            Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, fields, node.ForGrouping));
         }
 
         public void Visit(RenameTableNode node)
@@ -443,6 +443,7 @@ namespace Musoq.Evaluator.Visitors
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
                     _scope.ScopeSymbolTable.GetSymbol(targetTableName));
                 scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
+                scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
                 scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
 
@@ -457,7 +458,7 @@ namespace Musoq.Evaluator.Visitors
                     null,
                     new RefreshNode(new AccessMethodNode[0]));
 
-                var targetTable = new CreateTableNode(targetTableName, new string[0], bothForCreateTable, false);
+                var targetTable = new CreateTransformationTableNode(targetTableName, new string[0], bothForCreateTable, false);
 
                 splittedNodes.Add(targetTable);
                 splittedNodes.Add(joinedQuery);
@@ -500,6 +501,7 @@ namespace Musoq.Evaluator.Visitors
                     scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
                         _scope.ScopeSymbolTable.GetSymbol(targetTableName));
                     scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
+                    scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
                     scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
                     var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
@@ -524,7 +526,7 @@ namespace Musoq.Evaluator.Visitors
                         null,
                         new RefreshNode(new AccessMethodNode[0]));
 
-                    targetTable = new CreateTableNode(targetTableName, new string[0], bothForCreateTable, false);
+                    targetTable = new CreateTransformationTableNode(targetTableName, new string[0], bothForCreateTable, false);
 
                     splittedNodes.Add(targetTable);
                     splittedNodes.Add(joinedQuery);
@@ -568,6 +570,7 @@ namespace Musoq.Evaluator.Visitors
                 scopeTransformedQuery[MetaAttributes.SourceName] = splittedNodes.Count > 0
                     ? nestedFrom.Alias.ToTransitionTable().ToTransformedRowsSource()
                     : nestedFrom.Alias.ToRowsSource().WithRowsUsage();
+                scopeTransformedQuery[MetaAttributes.OriginAlias] = nestedFrom.Alias;
                 scopeTransformedQuery.ScopeSymbolTable.AddSymbol(nestedFrom.Alias,
                     _scope.ScopeSymbolTable.GetSymbol(nestedFrom.Alias));
 
@@ -623,9 +626,9 @@ namespace Musoq.Evaluator.Visitors
                     take,
                     returnScore);
 
-                splittedNodes.Add(new CreateTableNode(destination, new string[0], transformingQuery.Select.Fields, true));
+                splittedNodes.Add(new CreateTransformationTableNode(destination, new string[0], transformingQuery.Select.Fields, true));
                 splittedNodes.Add(transformingQuery);
-                splittedNodes.Add(new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields, false));
+                splittedNodes.Add(new CreateTransformationTableNode(query.From.Alias, new string[0], query.Select.Fields, false));
                 splittedNodes.Add(query);
 
                 Nodes.Push(
@@ -648,6 +651,7 @@ namespace Musoq.Evaluator.Visitors
                     var scopeResultQuery = _scope.AddScope("Query");
 
                     scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = from.Alias.ToScoreTable();
+                    scopeCreateResultTable[MetaAttributes.OriginAlias] = from.Alias;
                     scopeResultQuery[MetaAttributes.SelectIntoVariableName] = from.Alias.ToScoreTable();
                     scopeResultQuery[MetaAttributes.SourceName] = source;
 
@@ -655,7 +659,7 @@ namespace Musoq.Evaluator.Visitors
                         ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                         : from;
 
-                    splittedNodes.Add(new CreateTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], new string[0], select.Fields, false));
+                    splittedNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], new string[0], select.Fields, false));
                     splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, null, skip, take,
                         scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
 
@@ -690,7 +694,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var query = (InternalQueryNode) Nodes.Pop();
 
-            var nodes = new Node[] {new CreateTableNode(query.From.Alias, new string[0], query.Select.Fields, false), query};
+            var nodes = new Node[] {new CreateTransformationTableNode(query.From.Alias, new string[0], query.Select.Fields, false), query};
 
             Nodes.Push(new MultiStatementNode(nodes, null));
         }
@@ -965,9 +969,49 @@ namespace Musoq.Evaluator.Visitors
             return new RefreshNode(methods.ToArray());
         }
 
+        public void Visit(CreateTableNode node)
+        {
+        }
+
+        public void Visit(CoupleNode node)
+        {
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+        }
+
         private bool HasMethod(IEnumerable<AccessMethodNode> methods, AccessMethodNode node)
         {
             return methods.Any(f => f.ToString() == node.ToString());
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+        }
+
+        public void Visit(StatementNode node)
+        {
+        }
+
+        public void Visit(CaseNode node)
+        {
+            var whenThenPairs = new List<(Node When, Node Then)>();
+
+            for (int i = 0; i < node.WhenThenPairs.Length; ++i)
+            {
+                var then = Nodes.Pop();
+                var when = Nodes.Pop();
+                whenThenPairs.Add((when, then));
+            }
+
+            var elseNode = Nodes.Pop();
+
+            Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType));
         }
     }
 }

@@ -49,7 +49,7 @@ namespace Musoq.Schema.Os
             throw new NotSupportedException($"Unsupported table {name}.");
         }
 
-        public override RowSource GetRowSource(string name, InterCommunicator interCommunicator, params object[] parameters)
+        public override RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)
         {
             switch (name.ToLowerInvariant())
             {

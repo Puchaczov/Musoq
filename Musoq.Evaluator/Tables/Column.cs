@@ -1,29 +1,32 @@
-﻿using System;
+﻿using Musoq.Schema;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Musoq.Evaluator.Tables
 {
-    [DebuggerDisplay("{ColumnOrder}. {Name}: {ColumnType.Name}")]
-    public class Column : IEquatable<Column>
+    [DebuggerDisplay("{ColumnIndex}. {ColumnName}: {ColumnType.Name}")]
+    public class Column : IEquatable<Column>, ISchemaColumn
     {
         public Column(string name, Type columnType, int columnOrder)
         {
-            Name = name;
+            ColumnName = name;
             ColumnType = columnType;
-            ColumnOrder = columnOrder;
+            ColumnIndex = columnOrder;
         }
 
-        public string Name { get; }
+        public string ColumnName { get; }
+
         public Type ColumnType { get; }
-        public int ColumnOrder { get; }
+
+        public int ColumnIndex { get; }
 
         public bool Equals(Column other)
         {
             return other != null &&
-                   Name == other.Name &&
+                   ColumnName == other.ColumnName &&
                    EqualityComparer<Type>.Default.Equals(ColumnType, other.ColumnType) &&
-                   ColumnOrder == other.ColumnOrder;
+                   ColumnIndex == other.ColumnIndex;
         }
 
         public override bool Equals(object obj)
@@ -34,9 +37,9 @@ namespace Musoq.Evaluator.Tables
         public override int GetHashCode()
         {
             var hashCode = -1716540554;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(ColumnName);
             hashCode = hashCode * -1521134295 + EqualityComparer<Type>.Default.GetHashCode(ColumnType);
-            hashCode = hashCode * -1521134295 + ColumnOrder.GetHashCode();
+            hashCode = hashCode * -1521134295 + ColumnIndex.GetHashCode();
             return hashCode;
         }
     }

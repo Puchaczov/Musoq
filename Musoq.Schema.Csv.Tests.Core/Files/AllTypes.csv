@@ -1,0 +1,2 @@
+﻿boolColumn,byteColumn,charColumn,dateTimeColumn,decimalColumn,doubleColumn,shortColumn,intColumn,longColumn,sbyteColumn,singleColumn,stringColumn,ushortColumn,uintColumn,ulongColumn
+true,48,c,12/12/2012,10.23,13.111,-15,2147483647,9223372036854775807,-3,1.11,some text,256,512,1024

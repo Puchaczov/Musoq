@@ -39,7 +39,7 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual($"Compress(AggregateFiles(), './Results/{nameof(CompressFilesTest)}.zip', 'fastest')",
-                table.Columns.ElementAt(0).Name);
+                table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -61,7 +61,7 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual($"Compress(AggregateDirectories(), '{resultName}', 'fastest')",
-                table.Columns.ElementAt(0).Name);
+                table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -92,7 +92,7 @@ namespace Musoq.Schema.Os.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Parent.Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Parent.Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -139,7 +139,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void FilesSourceIterateDirectoriesTest()
         {
-            var source = new TestFilesSource("./Directories", false, InterCommunicator.Empty);
+            var source = new TestFilesSource("./Directories", false, RuntimeContext.Empty);
 
             var folders = source.GetFiles();
 
@@ -151,7 +151,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void FilesSourceIterateWithNestedDirectoriesTest()
         {
-            var source = new TestFilesSource("./Directories", true, InterCommunicator.Empty);
+            var source = new TestFilesSource("./Directories", true, RuntimeContext.Empty);
 
             var folders = source.GetFiles();
 
@@ -166,7 +166,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void DirectoriesSourceIterateDirectoriesTest()
         {
-            var source = new TestDirectoriesSource("./Directories", false, InterCommunicator.Empty);
+            var source = new TestDirectoriesSource("./Directories", false, RuntimeContext.Empty);
 
             var directories = source.GetDirectories();
 
@@ -179,7 +179,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void TestDirectoriesSourceIterateWithNestedDirectories()
         {
-            var source = new TestDirectoriesSource("./Directories", true, InterCommunicator.Empty);
+            var source = new TestDirectoriesSource("./Directories", true, RuntimeContext.Empty);
 
             var directories = source.GetDirectories();
 
@@ -193,7 +193,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void NonExistingDirectoryTest()
         {
-            var source = new TestDirectoriesSource("./Some/Non/Existing/Path", true, InterCommunicator.Empty);
+            var source = new TestDirectoriesSource("./Some/Non/Existing/Path", true, RuntimeContext.Empty);
 
             var directories = source.GetDirectories();
 
@@ -203,7 +203,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void NonExisitngFileTest()
         {
-            var source = new TestFilesSource("./Some/Non/Existing/Path.pdf", true, InterCommunicator.Empty);
+            var source = new TestFilesSource("./Some/Non/Existing/Path.pdf", true, RuntimeContext.Empty);
 
             var directories = source.GetFiles();
 
@@ -215,7 +215,7 @@ namespace Musoq.Schema.Os.Tests.Core
         {
             var tokenSource = new CancellationTokenSource();
             tokenSource.Cancel();
-            var source = new DirectoriesSource("./Directories", true, new InterCommunicator(tokenSource.Token));
+            var source = new DirectoriesSource("./Directories", true, new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
             var fired = source.Rows.Count();
 
@@ -225,7 +225,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void DirectoriesSource_FullLoadTest()
         {
-            var source = new DirectoriesSource("./Directories", true, InterCommunicator.Empty);
+            var source = new DirectoriesSource("./Directories", true, RuntimeContext.Empty);
 
             var fired = source.Rows.Count();
 
@@ -237,7 +237,7 @@ namespace Musoq.Schema.Os.Tests.Core
         {
             var tokenSource = new CancellationTokenSource();
             tokenSource.Cancel();
-            var source = new FilesSource("./Directories", true, new InterCommunicator(tokenSource.Token));
+            var source = new FilesSource("./Directories", true, new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
             var fired = source.Rows.Count();
 
@@ -247,7 +247,7 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void FilesSource_FullLoadTest()
         {
-            var source = new FilesSource("./Directories", true, InterCommunicator.Empty);
+            var source = new FilesSource("./Directories", true, RuntimeContext.Empty);
 
             var fired = source.Rows.Count();
 

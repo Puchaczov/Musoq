@@ -48,6 +48,7 @@ namespace Musoq.Evaluator.Visitors
 
         private int _inMemoryTableIndex;
         private int _setOperatorMethodIdentifier;
+        private int _caseWhenMethodIndex = 0;
 
         private BlockSyntax _joinBlock;
         private string _queryAlias;
@@ -55,10 +56,13 @@ namespace Musoq.Evaluator.Visitors
         private BlockSyntax _selectBlock;
         private MethodAccessType _type;
 
-        public ToCSharpRewriteTreeVisitor(IEnumerable<Assembly> assemblies,
-            IDictionary<string, int[]> setOperatorFieldIndexes)
+        public ToCSharpRewriteTreeVisitor(
+            IEnumerable<Assembly> assemblies,
+            IDictionary<string, int[]> setOperatorFieldIndexes, 
+            IDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns)
         {
             _setOperatorFieldIndexes = setOperatorFieldIndexes;
+            InferredColumns = inferredColumns;
             Workspace = new AdhocWorkspace();
             Nodes = new Stack<SyntaxNode>();
 
@@ -120,6 +124,7 @@ namespace Musoq.Evaluator.Visitors
 
         private List<StatementSyntax> Statements { get; } = new List<StatementSyntax>();
         private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new Stack<SyntaxNode>();
+        private IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
         public void Visit(Node node)
         {
@@ -461,9 +466,14 @@ namespace Musoq.Evaluator.Visitors
             var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
             AddReference(types);
             AddNamespace(types);
-            var castedExpression = Generator.CastExpression(
+
+            var typeIdentifier = 
                 SyntaxFactory.IdentifierName(
-                    EvaluationHelper.GetCastableType(node.ReturnType)), Nodes.Pop());
+                    EvaluationHelper.GetCastableType(node.ReturnType));
+
+            var expression = Nodes.Pop();
+
+            var castedExpression = Generator.CastExpression(typeIdentifier, expression);
             Nodes.Push(castedExpression);
         }
 
@@ -1000,6 +1010,34 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
+            var originColumns = InferredColumns[node];
+
+            var listOfColumns = new List<ExpressionSyntax>();
+            foreach (var column in originColumns)
+            {
+                listOfColumns.Add(
+                    SyntaxHelper.CreateObjectOf(
+                        nameof(Column),
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SeparatedList(new[]
+                            {
+                                    SyntaxFactory.Argument(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.StringLiteralExpression,
+                                            SyntaxFactory.Literal(column.ColumnName))),
+                                    SyntaxHelper.TypeLiteralArgument(
+                                        EvaluationHelper.GetCastableType(column.ColumnType)),
+                                    SyntaxHelper.IntLiteralArgument(column.ColumnIndex)
+                            }))));
+            }
+
+            var tableInfoVariableName = node.Alias.ToInfoTable();
+            var tableInfoObject = SyntaxHelper.CreateAssignment(
+                tableInfoVariableName,
+                SyntaxHelper.CreateArrayOf(
+                    nameof(ISchemaColumn),
+                    listOfColumns.ToArray()));
+
             var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
                 node.Alias,
                 "provider",
@@ -1028,11 +1066,14 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxHelper.StringLiteralArgument(node.Method),
                         SyntaxFactory.Argument(
                             SyntaxFactory.ObjectCreationExpression(
-                                SyntaxFactory.IdentifierName(nameof(InterCommunicator)))
+                                SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
                                 .WithArgumentList(
                                     SyntaxFactory.ArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument( SyntaxFactory.IdentifierName("token")))))),
+                                        SyntaxFactory.SeparatedList(
+                                            new []{
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(tableInfoVariableName))
+                                            })))),
                         SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(
                                 nameof(Object),
@@ -1040,6 +1081,7 @@ namespace Musoq.Evaluator.Visitors
                     })
                 ));
 
+            Statements.Add(SyntaxFactory.LocalDeclarationStatement(tableInfoObject));
             Statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchema));
             Statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
         }
@@ -1102,7 +1144,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(SyntaxFactory.Block());
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             if (!node.ForGrouping)
             {
@@ -1144,6 +1186,7 @@ namespace Musoq.Evaluator.Visitors
                                             nameof(Column),
                                             cols.ToArray()))
                                 }))));
+
                 Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
             }
             else
@@ -1933,8 +1976,7 @@ namespace Musoq.Evaluator.Visitors
             ExpressionSyntax firstTableExpression, ExpressionSyntax secondTableExpression)
         {
             return SyntaxFactory
-                .MethodDeclaration(SyntaxFactory.IdentifierName(nameof(Table)),
-                    SyntaxFactory.Identifier(methodName))
+                .MethodDeclaration(SyntaxFactory.IdentifierName(nameof(Table)), SyntaxFactory.Identifier(methodName))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                 .WithParameterList(SyntaxFactory.ParameterList(
                     SyntaxFactory.SeparatedList(
@@ -2061,6 +2103,166 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(OrderByNode node)
         {
             AddNamespace("System.Linq");
+        }
+
+        public void Visit(CreateTableNode node)
+        {
+        }
+
+        public void Visit(CoupleNode node)
+        {
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+        }
+
+        public void Visit(StatementNode node)
+        {
+        }
+
+        public void Visit(CaseNode node)
+        {
+            (Node When, Node Then) whenThenPair = node.WhenThenPairs[0];
+            var then = Nodes.Pop();
+            var when = Nodes.Pop();
+
+            var ifStatement = 
+                SyntaxFactory.IfStatement(
+                    (ExpressionSyntax)when,
+                    SyntaxFactory.Block(
+                        SyntaxFactory.SingletonList<StatementSyntax>(
+                            SyntaxFactory.ReturnStatement(
+                                (ExpressionSyntax)then))));
+
+            var ifStatements = new List<IfStatementSyntax>();
+            ifStatements.Add(ifStatement);
+
+            for (int i = 1; i < node.WhenThenPairs.Length; i++)
+            {
+                whenThenPair = node.WhenThenPairs[i];
+                then = Nodes.Pop();
+                when = Nodes.Pop();
+
+                ifStatements.Add(
+                        SyntaxFactory.IfStatement(
+                            (ExpressionSyntax)when,
+                            SyntaxFactory.Block(
+                                SyntaxFactory.SingletonList<StatementSyntax>(
+                                SyntaxFactory.ReturnStatement(
+                                    (ExpressionSyntax)then)))));
+            }
+
+            var elseNode = Nodes.Pop();
+
+            ifStatements[ifStatements.Count - 1] = 
+                ifStatements[ifStatements.Count - 1].WithElse(
+                    SyntaxFactory.ElseClause(
+                        SyntaxFactory.Block(
+                                SyntaxFactory.SingletonList<StatementSyntax>(
+                                SyntaxFactory.ReturnStatement(
+                                    (ExpressionSyntax)elseNode)))));
+
+            IfStatementSyntax first;
+            IfStatementSyntax second;
+
+            IfStatementSyntax newIfStatement = null;
+
+            for(int i = ifStatements.Count - 2; i >= 1; i-=1)
+            {
+                first = ifStatements[i];
+                second = ifStatements[i + 1];
+
+                ifStatements.RemoveAt(i + 1);
+                ifStatements.RemoveAt(i);
+
+                newIfStatement = 
+                    first.WithElse(
+                        SyntaxFactory.ElseClause(second));
+
+                ifStatements.Add(newIfStatement);
+            }
+
+            if(ifStatements.Count == 2)
+            {
+                first = ifStatements[0];
+                second = ifStatements[1];
+
+                ifStatements.RemoveAt(1);
+                ifStatements.RemoveAt(0);
+
+                newIfStatement =
+                    first.WithElse(
+                        SyntaxFactory.ElseClause(second));
+            }
+            else
+            {
+                newIfStatement = ifStatements[0];
+
+                ifStatements.RemoveAt(0);
+            }
+
+            ifStatement = newIfStatement ?? throw new NullReferenceException(nameof(newIfStatement));
+
+            AddNamespace(node.ReturnType.Namespace);
+            AddNamespace(typeof(IObjectResolver).Namespace);
+
+            var methodName = $"CaseWhen_{_caseWhenMethodIndex++}";
+
+            var parameters = new List<ParameterSyntax>();
+            var callParameters = new List<SyntaxNode>();
+
+            parameters.Add(
+                SyntaxFactory.Parameter(
+                    SyntaxFactory.Identifier("score")
+            ).WithType(
+                  SyntaxFactory.IdentifierName(nameof(IObjectResolver))
+            ));
+
+            callParameters.Add(
+                SyntaxFactory.Argument(
+                    SyntaxFactory.IdentifierName("score")));
+
+            foreach (var variableNameTypePair in _typesToInstantiate)
+            {
+                parameters.Add(
+                    SyntaxFactory.Parameter(
+                        SyntaxFactory.Identifier(variableNameTypePair.Key)
+                    ).WithType (
+                        SyntaxFactory.IdentifierName(variableNameTypePair.Value.Name)
+                    ));
+
+                callParameters.Add(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.IdentifierName(variableNameTypePair.Key)));
+            }
+
+            var method = SyntaxFactory
+                .MethodDeclaration(
+                    SyntaxFactory.IdentifierName(node.ReturnType.FullName),
+                    SyntaxFactory.Identifier(methodName))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+                .WithParameterList(
+                    SyntaxFactory.ParameterList(
+                        SyntaxFactory.SeparatedList(parameters.ToArray()))
+                )
+                .WithBody(
+                    SyntaxFactory.Block(
+                        SyntaxFactory.SingletonList<StatementSyntax>(ifStatement)));
+
+            _members.Add(method);
+
+            Nodes.Push(
+                SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray()));
         }
     }
 }

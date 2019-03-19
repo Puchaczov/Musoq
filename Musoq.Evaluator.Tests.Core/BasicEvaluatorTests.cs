@@ -11,6 +11,44 @@ namespace Musoq.Evaluator.Tests.Core
     public class BasicEvaluatorTests : TestBase
     {
         [TestMethod]
+        public void SimpleVNextTest()
+        {
+            var query = 
+                "table DummyTable {" +
+                "   Name 'System.String'" +
+                "};" +
+                "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
+                "select Name from SourceOfDummyRows();";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("ABCAACBA"),
+                        new BasicEntity("AAeqwgQEW"),
+                        new BasicEntity("XXX"),
+                        new BasicEntity("dadsqqAA")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(4, table.Count);
+            Assert.AreEqual("ABCAACBA", table[0].Values[0]);
+            Assert.AreEqual("AAeqwgQEW", table[1].Values[0]);
+            Assert.AreEqual("XXX", table[2].Values[0]);
+            Assert.AreEqual("dadsqqAA", table[3].Values[0]);
+        }
+
+        [TestMethod]
         public void LikeOperatorTest()
         {
             var query = "select Name from #A.Entities() where Name like '%AA%'";
@@ -30,7 +68,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -59,7 +97,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -88,7 +126,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -119,7 +157,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -149,7 +187,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Population", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Population", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -174,7 +212,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -198,7 +236,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -220,7 +258,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("'abc' + 'cda'", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("'abc' + 'cda'", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -249,7 +287,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -285,7 +323,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("NothingToDo(Self)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("NothingToDo(Self)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -319,7 +357,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Self", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Self", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -349,43 +387,43 @@ namespace Musoq.Evaluator.Tests.Core
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
-            Assert.AreEqual("1", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("1", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
-            Assert.AreEqual("Name", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
-            Assert.AreEqual("City", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
-            Assert.AreEqual("Country", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
 
-            Assert.AreEqual("Population", table.Columns.ElementAt(4).Name);
+            Assert.AreEqual("Population", table.Columns.ElementAt(4).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
 
-            Assert.AreEqual("Self", table.Columns.ElementAt(5).Name);
+            Assert.AreEqual("Self", table.Columns.ElementAt(5).ColumnName);
             Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(5).ColumnType);
 
-            Assert.AreEqual("Money", table.Columns.ElementAt(6).Name);
+            Assert.AreEqual("Money", table.Columns.ElementAt(6).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(6).ColumnType);
 
-            Assert.AreEqual("Month", table.Columns.ElementAt(7).Name);
+            Assert.AreEqual("Month", table.Columns.ElementAt(7).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(7).ColumnType);
 
-            Assert.AreEqual("Time", table.Columns.ElementAt(8).Name);
+            Assert.AreEqual("Time", table.Columns.ElementAt(8).ColumnName);
             Assert.AreEqual(typeof(DateTime), table.Columns.ElementAt(8).ColumnType);
 
-            Assert.AreEqual("Id", table.Columns.ElementAt(9).Name);
+            Assert.AreEqual("Id", table.Columns.ElementAt(9).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(9).ColumnType);
 
-            Assert.AreEqual("NullableValue", table.Columns.ElementAt(10).Name);
+            Assert.AreEqual("NullableValue", table.Columns.ElementAt(10).ColumnName);
             Assert.AreEqual(typeof(int?), table.Columns.ElementAt(10).ColumnType);
 
-            Assert.AreEqual("Name2", table.Columns.ElementAt(11).Name);
+            Assert.AreEqual("Name2", table.Columns.ElementAt(11).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(11).ColumnType);
 
-            Assert.AreEqual("SelfString", table.Columns.ElementAt(12).Name);
+            Assert.AreEqual("SelfString", table.Columns.ElementAt(12).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(12).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -417,7 +455,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("Self.Array[2]", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Self.Array[2]", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -437,7 +475,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("Self.Array", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Self.Array", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -455,7 +493,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("Self.Self.Array", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Self.Self.Array", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -473,7 +511,7 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual("Inc(Self.Array[2])", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Inc(Self.Array[2])", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(long), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -501,7 +539,7 @@ namespace Musoq.Evaluator.Tests.Core
         [TestMethod]
         public void SimpleQueryTest()
         {
-            var query = @"select Name from #A.Entities()";
+            var query = @"select Name as 'x1' from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}}
@@ -679,16 +717,16 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(4, table.Columns.Count());
-            Assert.AreEqual("TestName", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("TestName", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-            Assert.AreEqual("GetOne()", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("GetOne()", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
 
-            Assert.AreEqual("TestColumn", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("TestColumn", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
 
-            Assert.AreEqual("GetTwo(4, 'test')", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("GetTwo(4, 'test')", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
         }
 
@@ -710,7 +748,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Concat(Country, ToString(Population))", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Concat(Country, ToString(Population))", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -736,7 +774,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Time", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Time", table.Columns.ElementAt(0).ColumnName);
 
             Assert.AreEqual(1, table.Count());
             Assert.AreEqual(DateTime.MinValue, table[0].Values[0]);
@@ -792,9 +830,9 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("1.0", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("1.0", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("-1.0", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("-1.0", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(1, table.Count());
@@ -822,13 +860,13 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual(3, table.Columns.Count());
 
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-            Assert.AreEqual("Index", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Index", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
-            Assert.AreEqual("Type", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
             Assert.IsTrue(table.Any(row => (string) row[0] == "Name" && (string) row[2] == "System.String"));
@@ -883,22 +921,17 @@ namespace Musoq.Evaluator.Tests.Core
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
 
-            Assert.AreEqual(3, table.Columns.Count());
+            Assert.AreEqual(1, table.Columns.Count());
             Assert.AreEqual(2, table.Count);
 
-            Assert.AreEqual("entities", table[0][0]);
-            Assert.AreEqual(null, table[0][1]);
-            Assert.AreEqual(null, table[0][2]);
-
-            Assert.AreEqual("test", table[1][0]);
-            Assert.AreEqual($"a: {typeof(int).FullName}", table[1][1]);
-            Assert.AreEqual($"b: {typeof(string).FullName}", table[1][2]);
+            Assert.AreEqual("empty", table[0][0]);
+            Assert.AreEqual("entities", table[1][0]);
         }
 
         [TestMethod]
         public void AggregateValuesTest()
         {
-            var query = @"select AggregateValues(Name) from #A.entites() a group by Name";
+            var query = @"select AggregateValues(Name) from #A.entities() a group by Name";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -922,7 +955,7 @@ namespace Musoq.Evaluator.Tests.Core
         [TestMethod]
         public void AggregateValuesParentTest()
         {
-            var query = @"select AggregateValues(Name, 1) from #A.entites() a group by Name";
+            var query = @"select AggregateValues(Name, 1) from #A.entities() a group by Name";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -1067,6 +1100,106 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual(20m, table[0][0]);
+        }
+        
+        [TestMethod]
+        public void CaseWhenSimpleTest()
+        {
+            var query = "select " +
+                "   (case " +
+                "       when Population > 100d" +
+                "       then true" +
+                "       else false" +
+                "   end)" +
+                "from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 100 },
+                        new BasicEntity("june", 200m) { Population = 200 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+
+            Assert.AreEqual(false, table[0][0]);
+            Assert.AreEqual(true, table[1][0]);
+        }
+
+        [TestMethod]
+        public void CaseWhenWithLibraryMethodCallTest()
+        {
+            var query = "select " +
+                "   (case " +
+                "       when Population > 100d" +
+                "       then entities.GetOne()" +
+                "       else entities.Inc(entities.GetOne())" +
+                "   end)" +
+                "from #A.entities() entities";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 100 },
+                        new BasicEntity("june", 200m) { Population = 200 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+
+            Assert.AreEqual(2m, table[0][0]);
+            Assert.AreEqual(1m, table[1][0]);
+        }
+
+        [TestMethod]
+        public void MultipleCaseWhenWithLibraryMethodCallTest()
+        {
+            var query = "select " +
+                "   (case " +
+                "       when Population > 100d" +
+                "       then entities.GetOne()" +
+                "       else entities.Inc(entities.GetOne())" +
+                "   end)," +
+                "   (case " +
+                "       when Population <= 100d" +
+                "       then entities.GetOne()" +
+                "       else entities.Inc(entities.GetOne())" +
+                "   end)" +
+                "from #A.entities() entities";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 100 },
+                        new BasicEntity("june", 200m) { Population = 200 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+
+            Assert.AreEqual(2m, table[0][0]);
+            Assert.AreEqual(1m, table[0][1]);
+            Assert.AreEqual(1m, table[1][0]);
+            Assert.AreEqual(2m, table[1][1]);
         }
     }
 }

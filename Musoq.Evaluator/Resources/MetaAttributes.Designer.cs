@@ -79,6 +79,15 @@ namespace Musoq.Evaluator.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to OriginAlias.
+        /// </summary>
+        internal static string OriginAlias {
+            get {
+                return ResourceManager.GetString("OriginAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ProcessedQueryId.
         /// </summary>
         internal static string ProcessedQueryId {

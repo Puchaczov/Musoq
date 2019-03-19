@@ -8,9 +8,9 @@ namespace Musoq.Schema.FlatFile
     public class FlatFileSource : RowSourceBase<FlatFileEntity>
     {
         private readonly string _filePath;
-        private readonly InterCommunicator _communicator;
+        private readonly RuntimeContext _communicator;
 
-        public FlatFileSource(string filePath, InterCommunicator communicator)
+        public FlatFileSource(string filePath, RuntimeContext communicator)
         {
             _filePath = filePath;
             _communicator = communicator;

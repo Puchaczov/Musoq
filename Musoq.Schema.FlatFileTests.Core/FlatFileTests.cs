@@ -20,9 +20,9 @@ namespace Musoq.Schema.FlatFileTests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("LineNumber", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("LineNumber", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Line", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Line", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(6, table.Count);
@@ -51,7 +51,7 @@ namespace Musoq.Schema.FlatFileTests.Core
         {
             var endWorkTokenSource = new CancellationTokenSource();
             endWorkTokenSource.Cancel();
-            var schema = new FlatFileSource("./TestMultilineFile.txt", new InterCommunicator(endWorkTokenSource.Token));
+            var schema = new FlatFileSource("./TestMultilineFile.txt", new RuntimeContext(endWorkTokenSource.Token, new ISchemaColumn[0]));
 
             int fires = 0;
             foreach (var item in schema.Rows)
@@ -63,7 +63,7 @@ namespace Musoq.Schema.FlatFileTests.Core
         [TestMethod]
         public void FlatFileSource_FullLoadTest()
         {
-            var schema = new FlatFileSource("./TestMultilineFile.txt", InterCommunicator.Empty);
+            var schema = new FlatFileSource("./TestMultilineFile.txt", RuntimeContext.Empty);
 
             int fires = 0;
             foreach (var item in schema.Rows)

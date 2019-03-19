@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
@@ -14,6 +15,7 @@ using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -29,6 +31,9 @@ namespace Musoq.Evaluator.Visitors
         private FieldNode[] _generatedColumns = new FieldNode[0];
         private string _identifier;
         private string _queryAlias;
+        private IDictionary<string, ISchemaTable> _explicitlyDefinedTables = new Dictionary<string, ISchemaTable>();
+        private IDictionary<string, string> _explicitlyCoupledTablesWithAliases = new Dictionary<string, string>();
+        private IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases = new Dictionary<string, SchemaMethodFromNode>();
 
         private int _setKey;
 
@@ -42,6 +47,8 @@ namespace Musoq.Evaluator.Visitors
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
         public List<Assembly> Assemblies { get; } = new List<Assembly>();
         public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
+
+        public IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
 
         public RootNode Root => (RootNode) Nodes.Peek();
 
@@ -428,7 +435,42 @@ namespace Musoq.Evaluator.Visitors
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
 
-            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias));
+            var aliasedSchemaFromNode = new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias);
+
+            if(!InferredColumns.ContainsKey(aliasedSchemaFromNode))
+                InferredColumns.Add(aliasedSchemaFromNode, table.Columns);
+
+            Nodes.Push(aliasedSchemaFromNode);
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            Nodes.Push(new SchemaMethodFromNode(node.Schema, node.Method));
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+            var schemaInfo = _explicitlyUsedAliases[node.Identifier];
+            var tableName = _explicitlyCoupledTablesWithAliases[node.Identifier];
+            var table = _explicitlyDefinedTables[tableName];
+
+            var schema = _provider.GetSchema(schemaInfo.Schema);
+
+            AddAssembly(schema.GetType().Assembly);
+
+            _queryAlias = StringHelpers.CreateAliasIfEmpty(node.Alias, _generatedAliases);
+            _generatedAliases.Add(_queryAlias);
+
+            var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
+            _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
+            _currentScope[node.Id] = _queryAlias;
+
+            var aliasedSchemaFromNode = new SchemaFromNode(schemaInfo.Schema, schemaInfo.Method, node.Args, _queryAlias);
+
+            if (!InferredColumns.ContainsKey(aliasedSchemaFromNode))
+                InferredColumns.Add(aliasedSchemaFromNode, table.Columns);
+
+            Nodes.Push(aliasedSchemaFromNode);
         }
 
         public void Visit(JoinSourcesTableFromNode node)
@@ -494,11 +536,11 @@ namespace Musoq.Evaluator.Visitors
             }
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             var fields = CreateFields(node.Fields);
 
-            Nodes.Push(new CreateTableNode(node.Name, node.Keys, fields, node.ForGrouping));
+            Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, fields, node.ForGrouping));
         }
 
         public void Visit(RenameTableNode node)
@@ -861,8 +903,71 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new OrderByNode(fields));
         }
 
+        public void Visit(CreateTableNode node)
+        {
+            var columns = new List<ISchemaColumn>();
+
+            for (int i = 0; i < node.TableTypePairs.Length; i++)
+            {
+                (string ColumnName, string TypeName) typePair = node.TableTypePairs[i];
+
+                var remappedType = EvaluationHelper.RemapPrimitiveTypes(typePair.TypeName);
+
+                var type = EvaluationHelper.GetType(remappedType);
+
+                if (type == null)
+                    throw new TypeNotFoundException($"Type '{remappedType}' could not be found.");
+
+                columns.Add(new SchemaColumn(typePair.ColumnName, i, type));
+            }
+
+            var table = new DynamicTable(columns.ToArray());
+            _explicitlyDefinedTables.Add(node.Name, table);
+
+            Nodes.Push(new CreateTableNode(node.Name, node.TableTypePairs));
+        }
+
+        public void Visit(CoupleNode node)
+        {
+            _explicitlyCoupledTablesWithAliases.Add(node.MappedSchemaName, node.TableName);
+            _explicitlyUsedAliases.Add(node.MappedSchemaName, node.SchemaMethodNode);
+            Nodes.Push(new CoupleNode(node.SchemaMethodNode, node.TableName, node.MappedSchemaName));
+        }
+
         public void SetQueryPart(QueryPart part)
         {
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+            var statements = new StatementNode[node.Statements.Length];
+            for (int i = 0; i < node.Statements.Length; ++i)
+            {
+                statements[node.Statements.Length - 1 - i] = (StatementNode)Nodes.Pop();
+            }
+
+            Nodes.Push(new StatementsArrayNode(statements));
+        }
+
+        public void Visit(StatementNode node)
+        {
+            Nodes.Push(new StatementNode(Nodes.Pop()));
+        }
+
+        public void Visit(CaseNode node)
+        {
+            var whenThenPairs = new List<(Node When, Node Then)>();
+
+            for(int i = 0; i < node.WhenThenPairs.Length; ++i)
+            {
+                var then = Nodes.Pop();
+                var when = Nodes.Pop();
+                whenThenPairs.Add((when, then));
+            }
+
+            var elseNode = Nodes.Pop();
+
+            Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, elseNode.ReturnType));
         }
     }
 }

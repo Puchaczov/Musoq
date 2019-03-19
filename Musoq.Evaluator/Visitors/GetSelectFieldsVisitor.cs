@@ -241,7 +241,7 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
-        public void Visit(CreateTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
         }
 
@@ -330,6 +330,34 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(OrderByNode node)
+        {
+        }
+
+        public void Visit(CreateTableNode node)
+        {
+        }
+
+        public void Visit(CoupleNode node)
+        {
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
+        }
+
+        public void Visit(StatementsArrayNode node)
+        {
+        }
+
+        public void Visit(StatementNode node)
+        {
+        }
+
+        public void Visit(CaseNode node)
         {
         }
     }

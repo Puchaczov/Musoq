@@ -47,12 +47,12 @@ namespace Musoq.Evaluator.Helpers
 
         public static Table GetSpecificSchemaDescriptions(ISchema schema)
         {
-            return CreateTableFromConstructors(() => schema.GetConstructors());
+            return CreateTableFromConstructors(() => schema.GetRawConstructors());
         }
 
         public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName)
         {
-            return CreateTableFromConstructors(() => schema.GetConstructors(methodName));
+            return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName));
         }
 
         private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
@@ -192,6 +192,79 @@ namespace Musoq.Evaluator.Helpers
 
             builder.Append('>');
             return builder.ToString();
+        }
+
+        public static string RemapPrimitiveTypes(string typeName)
+        {
+            switch (typeName.ToLowerInvariant())
+            {
+                case "short":
+                    return "System.Int16";
+                case "int":
+                    return "System.Int32";
+                case "long":
+                    return "System.Int64";
+                case "ushort":
+                    return "System.UInt16";
+                case "uint":
+                    return "System.UInt32";
+                case "ulong":
+                    return "System.UInt64";
+                case "string":
+                    return "System.String";
+                case "char":
+                    return "System.Char";
+                case "boolean":
+                case "bool":
+                case "bit":
+                    return "System.Boolean";
+                case "float":
+                    return "System.Single";
+                case "double":
+                    return "System.Double";
+                case "decimal":
+                case "money":
+                    return "System.Decimal";
+                case "guid":
+                    return "System.Guid";
+            }
+
+            return typeName;
+        }
+
+        public static Type GetType(string typeName)
+        {
+            switch (typeName)
+            {
+                case "System.Int16":
+                    return typeof(short?);
+                case "System.Int32":
+                    return typeof(int?);
+                case "System.Int64":
+                    return typeof(long?);
+                case "System.UInt16":
+                    return typeof(ushort?);
+                case "System.UInt32":
+                    return typeof(uint?);
+                case "System.UInt64":
+                    return typeof(ulong?);
+                case "System.String":
+                    return typeof(string);
+                case "System.Char":
+                    return typeof(char?);
+                case "System.Boolean":
+                    return typeof(bool?);
+                case "System.Single":
+                    return typeof(float?);
+                case "System.Double":
+                    return typeof(double?);
+                case "System.Decimal":
+                    return typeof(decimal?);
+                case "System.Guid":
+                    return typeof(Guid?);
+            }
+
+            return Type.GetType(typeName);
         }
     }
 

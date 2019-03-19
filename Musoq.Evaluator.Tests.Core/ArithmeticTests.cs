@@ -115,5 +115,11 @@ namespace Musoq.Evaluator.Tests.Core
         {
             TestMethodTemplate<long>("1 + 2 * 3 * ( 7 * 8 ) - ( 45 - 10 )", 302);
         }
+
+        [TestMethod]
+        public void CaseWhenArithmeticExpressionTest()
+        {
+            TestMethodTemplate<long>("1 + (case when 2 > 1 then 1 else 0 end) - 1", 1);
+        }
     }
 }

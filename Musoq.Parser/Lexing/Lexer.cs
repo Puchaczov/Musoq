@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -111,6 +112,26 @@ namespace Musoq.Parser.Lexing
                     return TokenType.False;
                 case InToken.TokenText:
                     return TokenType.In;
+                case TableToken.TokenText:
+                    return TokenType.Table;
+                case LBracketToken.TokenText:
+                    return TokenType.LBracket;
+                case RBracketToken.TokenText:
+                    return TokenType.RBracket;
+                case SemicolonToken.TokenText:
+                    return TokenType.Semicolon;
+                case CoupleToken.TokenText:
+                    return TokenType.Couple;
+                case CaseToken.TokenText:
+                    return TokenType.Case;
+                case WhenToken.TokenText:
+                    return TokenType.When;
+                case ThenToken.TokenText:
+                    return TokenType.Then;
+                case ElseToken.TokenText:
+                    return TokenType.Else;
+                case EndToken.TokenText:
+                    return TokenType.End;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -163,49 +184,49 @@ namespace Musoq.Parser.Lexing
         /// </summary>
         private static class TokenRegexDefinition
         {
-            private const string Keyword = @"(?<=[\s]{{1,}}|^){0}(?=[\s]{{1,}}|$)";
+            private const string Keyword = @"(?<=[\s]{1,}|^){keyword}(?=[\s]{1,}|$)";
             public const string Function = @"[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\d]*(?=[\(])";
 
-            public static readonly string KAnd = string.Format(Keyword, AndToken.TokenText);
+            public static readonly string KAnd = Format(Keyword, AndToken.TokenText);
             public static readonly string KComma = CommaToken.TokenText;
             public static readonly string KDiff = DiffToken.TokenText;
-            public static readonly string KfSlashToken = string.Format(Keyword, FSlashToken.TokenText);
-            public static readonly string KGreater = string.Format(Keyword, GreaterToken.TokenText);
-            public static readonly string KGreaterEqual = string.Format(Keyword, GreaterEqualToken.TokenText);
+            public static readonly string KfSlashToken = Format(Keyword, FSlashToken.TokenText);
+            public static readonly string KGreater = Format(Keyword, GreaterToken.TokenText);
+            public static readonly string KGreaterEqual = Format(Keyword, GreaterEqualToken.TokenText);
             public static readonly string KHyphen = $@"\{HyphenToken.TokenText}";
             public static readonly string KLeftParenthesis = $@"\{LeftParenthesisToken.TokenText}";
-            public static readonly string KLess = string.Format(Keyword, LessToken.TokenText);
-            public static readonly string KLessEqual = string.Format(Keyword, LessEqualToken.TokenText);
-            public static readonly string KModulo = string.Format(Keyword, ModuloToken.TokenText);
-            public static readonly string KNot = string.Format(Keyword, NotToken.TokenText);
-            public static readonly string KOr = string.Format(Keyword, OrToken.TokenText);
+            public static readonly string KLess = Format(Keyword, LessToken.TokenText);
+            public static readonly string KLessEqual = Format(Keyword, LessEqualToken.TokenText);
+            public static readonly string KModulo = Format(Keyword, ModuloToken.TokenText);
+            public static readonly string KNot = Format(Keyword, NotToken.TokenText);
+            public static readonly string KOr = Format(Keyword, OrToken.TokenText);
             public static readonly string KPlus = $@"\{PlusToken.TokenText}";
             public static readonly string KRightParenthesis = $@"\{RightParenthesisToken.TokenText}";
-            public static readonly string KIs = string.Format(Keyword, IsToken.TokenText);
-            public static readonly string KNull = string.Format(Keyword, NullToken.TokenText);
-            public static readonly string KStar = string.Format(Keyword, $@"\{StarToken.TokenText}");
-            public static readonly string KWhere = string.Format(Keyword, WhereToken.TokenText);
+            public static readonly string KIs = Format(Keyword, IsToken.TokenText);
+            public static readonly string KNull = Format(Keyword, NullToken.TokenText);
+            public static readonly string KStar = Format(Keyword, $@"\{StarToken.TokenText}");
+            public static readonly string KWhere = Format(Keyword, WhereToken.TokenText);
             public static readonly string KWhiteSpace = @"[\s]{1,}";
             public static readonly string KWordBracketed = @"'(.*?[^\\])'";
-            public static readonly string KEqual = string.Format(Keyword, EqualityToken.TokenText);
-            public static readonly string KSelect = string.Format(Keyword, SelectToken.TokenText);
-            public static readonly string KFrom = string.Format(Keyword, FromToken.TokenText);
+            public static readonly string KEqual = Format(Keyword, EqualityToken.TokenText);
+            public static readonly string KSelect = Format(Keyword, SelectToken.TokenText);
+            public static readonly string KFrom = Format(Keyword, FromToken.TokenText);
             public static readonly string KColumn = @"[\w*?_]{1,}";
             public static readonly string KHFrom = @"#[\w*?_]{1,}";
-            public static readonly string KLike = string.Format(Keyword, LikeToken.TokenText);
+            public static readonly string KLike = Format(Keyword, LikeToken.TokenText);
             public static readonly string KNotLike = @"(?<=[\s]{1,}|^)not[\s]{1,}like(?=[\s]{1,}|$)";
-            public static readonly string KRLike = string.Format(Keyword, RLikeToken.TokenText);
+            public static readonly string KRLike = Format(Keyword, RLikeToken.TokenText);
             public static readonly string KRNotLike = @"(?<=[\s]{1,}|^)not[\s]{1,}rlike(?=[\s]{1,}|$)";
-            public static readonly string KAs = string.Format(Keyword, AsToken.TokenText);
-            public static readonly string KUnion = string.Format(Keyword, SetOperatorToken.UnionOperatorText);
+            public static readonly string KAs = Format(Keyword, AsToken.TokenText);
+            public static readonly string KUnion = Format(Keyword, SetOperatorToken.UnionOperatorText);
             public static readonly string KDot = "\\.";
-            public static readonly string KIntersect = string.Format(Keyword, SetOperatorToken.IntersectOperatorText);
-            public static readonly string KExcept = string.Format(Keyword, SetOperatorToken.ExceptOperatorText);
+            public static readonly string KIntersect = Format(Keyword, SetOperatorToken.IntersectOperatorText);
+            public static readonly string KExcept = Format(Keyword, SetOperatorToken.ExceptOperatorText);
             public static readonly string KCompareWith = @"(?<=[\s]{1,}|^)compare[\s]{1,}with(?=[\s]{1,}|$)";
             public static readonly string KUnionAll = @"(?<=[\s]{1,}|^)union[\s]{1,}all(?=[\s]{1,}|$)";
             public static readonly string KGroupBy = @"(?<=[\s]{1,}|^)group[\s]{1,}by(?=[\s]{1,}|$)";
-            public static readonly string KHaving = string.Format(Keyword, HavingToken.TokenText);
-            public static readonly string KContains = string.Format(Keyword, ContainsToken.TokenText);
+            public static readonly string KHaving = Format(Keyword, HavingToken.TokenText);
+            public static readonly string KContains = Format(Keyword, ContainsToken.TokenText);
             public static readonly string KDecimal = @"[\-]?([0-9]+(\.[0-9]{1,})?)[dD]?";
             public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
             public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
@@ -213,22 +234,45 @@ namespace Musoq.Parser.Lexing
             public static readonly string KMethodAccess =
                 "([a-zA-Z_-]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
 
-            public static readonly string KSkip = string.Format(Keyword, SkipToken.TokenText);
-            public static readonly string KTake = string.Format(Keyword, TakeToken.TokenText);
-            public static readonly string KWith = string.Format(Keyword, WithToken.TokenText);
+            public static readonly string KSkip = Format(Keyword, SkipToken.TokenText);
+            public static readonly string KTake = Format(Keyword, TakeToken.TokenText);
+            public static readonly string KWith = Format(Keyword, WithToken.TokenText);
             public static readonly string KInnerJoin = @"(?<=[\s]{1,}|^)inner[\s]{1,}join(?=[\s]{1,}|$)";
 
             public static readonly string KOuterJoin =
                 @"(?<=[\s]{1,}|^)(left|right)[\s]{1,}(outer[\s]{1,}join)(?=[\s]{1,}|$)";
 
-            public static readonly string KOn = string.Format(Keyword, OnToken.TokenText);
+            public static readonly string KOn = Format(Keyword, OnToken.TokenText);
             public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
-            public static readonly string KAsc = string.Format(Keyword, AscToken.TokenText);
-            public static readonly string KDesc = string.Format(Keyword, DescToken.TokenText);
-            public static readonly string KTrue = string.Format(Keyword, DescToken.TokenText);
-            public static readonly string KFalse = string.Format(Keyword, DescToken.TokenText);
-            public static readonly string KIn = string.Format(Keyword, InToken.TokenText);
+            public static readonly string KAsc = Format(Keyword, AscToken.TokenText);
+            public static readonly string KDesc = Format(Keyword, DescToken.TokenText);
+            public static readonly string KTrue = Format(Keyword, TrueToken.TokenText);
+            public static readonly string KFalse = Format(Keyword, FalseToken.TokenText);
+            public static readonly string KIn = Format(Keyword, InToken.TokenText);
             public static readonly string KNotIn = @"(?<=[\s]{1,}|^)not[\s]{1,}in(?=[\s]{1,}|$)";
+
+            public static readonly string KTable = Format(Keyword, TableToken.TokenText);
+            public static readonly string KLeftBracket = "\\{";
+            public static readonly string KRightBracket = "\\}";
+            public static readonly string KSemicolon = "\\;";
+            public static readonly string KCouple = Format(Keyword, CoupleToken.TokenText);
+            public static readonly string KCase = Format(Keyword, CaseToken.TokenText);
+            public static readonly string KWhen = Format(Keyword, WhenToken.TokenText);
+            public static readonly string KThen = Format(Keyword, ThenToken.TokenText);
+            public static readonly string KElse = Format(Keyword, ElseToken.TokenText);
+            public static readonly string KEnd = Format(Keyword, EndToken.TokenText);
+
+            private static string Format(string keyword, string arg)
+            {
+                try
+                {
+                    return keyword.Replace("{keyword}", arg);
+                }
+                catch(Exception exc)
+                {
+                    throw exc;
+                }
+            }
         }
 
         /// <summary>
@@ -297,7 +341,17 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KColumn),
                 new TokenDefinition(TokenRegexDefinition.KHFrom),
                 new TokenDefinition(TokenRegexDefinition.KDot),
-                new TokenDefinition(TokenRegexDefinition.KOn)
+                new TokenDefinition(TokenRegexDefinition.KOn),
+                new TokenDefinition(TokenRegexDefinition.KTable),
+                new TokenDefinition(TokenRegexDefinition.KLeftBracket),
+                new TokenDefinition(TokenRegexDefinition.KRightBracket),
+                new TokenDefinition(TokenRegexDefinition.KSemicolon),
+                new TokenDefinition(TokenRegexDefinition.KCouple),
+                new TokenDefinition(TokenRegexDefinition.KCase),
+                new TokenDefinition(TokenRegexDefinition.KWhen),
+                new TokenDefinition(TokenRegexDefinition.KThen),
+                new TokenDefinition(TokenRegexDefinition.KElse),
+                new TokenDefinition(TokenRegexDefinition.KEnd),
             };
         }
 
@@ -460,6 +514,26 @@ namespace Musoq.Parser.Lexing
                     return new InToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.NotIn:
                     return new NotInToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Table:
+                    return new TableToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.LBracket:
+                    return new LBracketToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.RBracket:
+                    return new RBracketToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Semicolon:
+                    return new SemicolonToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Couple:
+                    return new CoupleToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Case:
+                    return new CaseToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.When:
+                    return new WhenToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Then:
+                    return new ThenToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.Else:
+                    return new ElseToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.End:
+                    return new EndToken(new TextSpan(Position, tokenText.Length));
             }
 
             if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)
