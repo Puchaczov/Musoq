@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="dotnet $(SolutionDir)Musoq.Tools.CopyReleased\bin\Release\netcoreapp2.1\Musoq.Tools.CopyReleased.dll --source &quot;$(ProjectDir)\bin\$(ConfigurationName)\netcoreapp2.1&quot; --destinationDirName &quot;Plugins\Musoq.Schema.FlatFile&quot; --configurationDir &quot;$(SolutionDir)..\Musoq&quot; --buildType &quot;$(ConfigurationName)&quot;&#xD;&#xA;dotnet $(SolutionDir)Shared\Musoq.Repository.Packer\Musoq.Repository.Packer.dll --sourceDir &quot;$(ProjectDir)\bin\$(ConfigurationName)\netcoreapp2.1&quot; --destDir &quot;$(ProjectDir)\bin\$(ConfigurationName)&quot; --dll &quot;Musoq.Schema.FlatFile&quot; --license &quot;MIT&quot; --licenseUrl &quot;https://github.com/Puchaczov/Musoq/blob/master/LICENSE&quot; --descriptionFile &quot;$(ProjectDir)\$(ProjectName).modf&quot;" />
+    <Exec Command="dotnet $(SolutionDir)Shared\Musoq.Repository.Packer\Musoq.Repository.Packer.dll --packType 0 --sourceDir &quot;$(ProjectDir)\bin\$(ConfigurationName)\netcoreapp2.1&quot; --destDir &quot;$(ProjectDir)\bin\$(ConfigurationName)&quot; --dll &quot;Musoq.Schema.FlatFile&quot; --license &quot;MIT&quot; --licenseUrl &quot;https://github.com/Puchaczov/Musoq/blob/master/LICENSE&quot; --descriptionFile &quot;$(ProjectDir)\$(ProjectName).modf&quot;" />
   </Target>
 
 </Project>
