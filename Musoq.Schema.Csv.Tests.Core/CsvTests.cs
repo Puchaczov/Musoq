@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -666,6 +667,15 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
             Assert.AreEqual(10, table.Columns.ElementAt(10).ColumnIndex);
 
             Assert.AreEqual(48, table.Count);
+        }
+
+        [TestMethod]
+        public void CoupledQueryInsideCteTest()
+        {
+            var query = File.ReadAllText("./Test1/Query.txt");
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
         }
 
         [TestMethod]

@@ -1,0 +1,16 @@
+﻿table CsvFileTable {
+	fileName 'string',
+	intValue 'decimal',
+	stringValue 'string'
+};
+
+couple #csv.file with table CsvFileTable as SourceOfRows;
+
+with FilesFromDisk as (
+	select files.FullName as FullName from #os.files('Some\Specific\Directory', true) as files where files.Extension = '.csv'
+), ReadedFiles as (
+	for rows of FilesFromDisk read (
+		select fileName, intValue, stringValue from SourceOfRows(FilesFromDisk.FullName, ',', true, 0)
+	)
+)
+select * from ReadedFiles
