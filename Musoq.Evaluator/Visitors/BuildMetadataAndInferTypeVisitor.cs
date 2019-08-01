@@ -361,7 +361,7 @@ namespace Musoq.Evaluator.Visitors
 
             if (root.ReturnType == typeof(IDynamicMetaObjectProvider))
             {
-                Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, typeof(object)));
+                Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, typeof(IDynamicMetaObjectProvider)));
             }
             else
             {

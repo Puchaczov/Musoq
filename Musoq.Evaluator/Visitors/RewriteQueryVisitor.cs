@@ -280,12 +280,12 @@ namespace Musoq.Evaluator.Visitors
 
             if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
             {
-                Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name, typeof(object)));
+                Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name, typeof(IDynamicMetaObjectProvider)));
             }
             else
             {
                 if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(root.ReturnType))
-                    Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name, typeof(object)));
+                    Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name, typeof(IDynamicMetaObjectProvider)));
                 else
                     Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name, exp.ReturnType));
             }

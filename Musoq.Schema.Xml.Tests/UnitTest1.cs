@@ -169,7 +169,7 @@ namespace Musoq.Schema.Xml.Tests
         [TestMethod]
         public void TestMethod9()
         {
-            var query = @"select ToDecimal(text) from #xml.file('./TestFiles/Test2.xml', 'child') where price is not null and ToDecimal(text) > 40";
+            var query = @"select ToDecimal(text) from #xml.file('./TestFiles/Test2.xml') where price is not null and ToDecimal(text) > 40";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -177,6 +177,20 @@ namespace Musoq.Schema.Xml.Tests
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual(42.50m, table[0][0]);
+        }
+
+        [TestMethod]
+        public void TestMethod10()
+        {
+            var query = @"select ToDecimal(price.text) from #xml.file('./TestFiles/Test2.xml') where price is not null";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(39.95m, table[0][0]);
+            Assert.AreEqual(42.50m, table[1][0]);
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)

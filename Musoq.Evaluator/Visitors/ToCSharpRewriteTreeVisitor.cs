@@ -1188,16 +1188,7 @@ namespace Musoq.Evaluator.Visitors
                 {
                     var type = field.ReturnType;
 
-                    Type[] types;
-                    if(typeof(IDynamicMetaObjectProvider).IsAssignableFrom(type))
-                    {
-                        types = new Type[] { typeof(object) };
-                        type = typeof(object);
-                    }
-                    else
-                    {
-                        types = EvaluationHelper.GetNestedTypes(type);
-                    }
+                    var types = EvaluationHelper.GetNestedTypes(type);
 
                     AddNamespace(types);
                     AddReference(types);

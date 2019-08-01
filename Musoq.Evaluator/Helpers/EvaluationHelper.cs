@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -143,6 +144,7 @@ namespace Musoq.Evaluator.Helpers
 
         public static string GetCastableType(Type type)
         {
+            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(type)) return "object";
             if (type.IsGenericType) return GetFriendlyTypeName(type);
 
             return $"{type.Namespace}.{type.Name}";
