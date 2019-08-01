@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
@@ -276,7 +277,18 @@ namespace Musoq.Evaluator.Visitors
         {
             var exp = Nodes.Pop();
             var root = Nodes.Pop();
-            Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name, exp.ReturnType));
+
+            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
+            {
+                Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name, typeof(object)));
+            }
+            else
+            {
+                if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(root.ReturnType))
+                    Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name, typeof(object)));
+                else
+                    Nodes.Push(new DotNode(root, exp, node.IsOuter, node.Name, exp.ReturnType));
+            }
         }
 
         public virtual void Visit(AccessCallChainNode node)

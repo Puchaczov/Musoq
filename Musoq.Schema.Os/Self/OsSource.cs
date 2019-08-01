@@ -7,7 +7,7 @@ namespace Musoq.Schema.Os.Self
     public class OsSource : RowSourceBase<object[]>
     {
         protected override void CollectChunks(
-            BlockingCollection<IReadOnlyList<EntityResolver<object[]>>> chunkedSource)
+            BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
             var list = new List<EntityResolver<object[]>>();
 

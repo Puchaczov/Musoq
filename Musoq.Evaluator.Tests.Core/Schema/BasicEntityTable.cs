@@ -1,5 +1,6 @@
 ﻿using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using System.Linq;
 
 namespace Musoq.Evaluator.Tests.Core.Schema
 {
@@ -33,5 +34,10 @@ namespace Musoq.Evaluator.Tests.Core.Schema
         }
 
         public ISchemaColumn[] Columns { get; }
+
+        public ISchemaColumn GetColumnByName(string name)
+        {
+            return Columns.SingleOrDefault(col => col.ColumnName == name);
+        }
     }
 }

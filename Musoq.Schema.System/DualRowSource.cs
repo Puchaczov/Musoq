@@ -6,7 +6,7 @@ namespace Musoq.Schema.System
 {
     public class DualRowSource : RowSourceBase<DualEntity>
     {
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<DualEntity>>> chunkedSource)
+        protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
             chunkedSource.Add(
                 new[]

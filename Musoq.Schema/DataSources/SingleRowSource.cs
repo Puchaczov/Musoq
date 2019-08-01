@@ -7,7 +7,7 @@ namespace Musoq.Schema.DataSources
 {
     public class SingleRowSource : RowSourceBase<string>
     {
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<string>>> chunkedSource)
+        protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
             var list = new List<EntityResolver<string>>
             {

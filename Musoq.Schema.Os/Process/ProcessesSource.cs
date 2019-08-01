@@ -14,7 +14,7 @@ namespace Musoq.Schema.Os.Process
         }
 
         protected override void CollectChunks(
-            BlockingCollection<IReadOnlyList<EntityResolver<System.Diagnostics.Process>>> chunkedSource)
+            BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
             var list = new List<EntityResolver<System.Diagnostics.Process>>();
             var endWorkToken = _communicator.EndWorkToken;

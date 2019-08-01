@@ -7,18 +7,18 @@ namespace Musoq.Schema.DataSources
 {
     public class ChunkedSource<T> : IEnumerable<IObjectResolver>
     {
-        private readonly BlockingCollection<IReadOnlyList<EntityResolver<T>>> _readedRows;
+        private readonly BlockingCollection<IReadOnlyList<IObjectResolver>> _readRows;
         private readonly CancellationToken _token;
 
-        public ChunkedSource(BlockingCollection<IReadOnlyList<EntityResolver<T>>> readedRows, CancellationToken token)
+        public ChunkedSource(BlockingCollection<IReadOnlyList<IObjectResolver>> readRows, CancellationToken token)
         {
-            _readedRows = readedRows;
+            _readRows = readRows;
             _token = token;
         }
 
         public IEnumerator<IObjectResolver> GetEnumerator()
         {
-            return new ChunkEnumerator<T>(_readedRows, _token);
+            return new ChunkEnumerator<T>(_readRows, _token);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

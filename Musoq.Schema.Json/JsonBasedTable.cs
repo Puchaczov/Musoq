@@ -148,5 +148,10 @@ namespace Musoq.Schema.Json
 
             throw new NotSupportedException($"Type {token.Value<string>()} is not supported.");
         }
+
+        public ISchemaColumn GetColumnByName(string name)
+        {
+            return Columns.SingleOrDefault(column => column.ColumnName == name);
+        }
     }
 }

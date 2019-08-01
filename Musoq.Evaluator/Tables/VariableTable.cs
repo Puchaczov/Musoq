@@ -1,4 +1,5 @@
 ﻿using Musoq.Schema;
+using System.Linq;
 
 namespace Musoq.Evaluator.Tables
 {
@@ -10,5 +11,10 @@ namespace Musoq.Evaluator.Tables
         }
 
         public ISchemaColumn[] Columns { get; }
+
+        public ISchemaColumn GetColumnByName(string name)
+        {
+            return Columns.SingleOrDefault(column => column.ColumnName == name);
+        }
     }
 }

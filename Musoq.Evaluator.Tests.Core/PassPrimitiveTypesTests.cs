@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Core.Schema;
@@ -122,6 +123,11 @@ namespace Musoq.Evaluator.Tests.Core
         private class TestTable : ISchemaTable
         {
             public ISchemaColumn[] Columns => new ISchemaColumn[0];
+
+            public ISchemaColumn GetColumnByName(string name)
+            {
+                return Columns.Single(column => column.ColumnName == name);
+            }
         }
 
         private class TestEntity

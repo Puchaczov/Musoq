@@ -8,15 +8,15 @@ namespace Musoq.Schema.DataSources
 {
     public class ChunkEnumerator<T> : IEnumerator<IObjectResolver>
     {
-        private readonly BlockingCollection<IReadOnlyList<EntityResolver<T>>> _readedRows;
+        private readonly BlockingCollection<IReadOnlyList<IObjectResolver>> _readRows;
 
-        private IReadOnlyList<EntityResolver<T>> _currentChunk;
+        private IReadOnlyList<IObjectResolver> _currentChunk;
         private int _currentIndex = -1;
         private readonly CancellationToken _token;
 
-        public ChunkEnumerator(BlockingCollection<IReadOnlyList<EntityResolver<T>>> readedRows, CancellationToken token)
+        public ChunkEnumerator(BlockingCollection<IReadOnlyList<IObjectResolver>> readRows, CancellationToken token)
         {
-            _readedRows = readedRows;
+            _readRows = readRows;
             _token = token;
         }
 
@@ -30,7 +30,7 @@ namespace Musoq.Schema.DataSources
                 var wasTaken = false;
                 for (var i = 0; i < 10; i++)
                 {
-                    if (!_readedRows.TryTake(out _currentChunk) || _currentChunk == null || _currentChunk.Count == 0) continue;
+                    if (!_readRows.TryTake(out _currentChunk) || _currentChunk == null || _currentChunk.Count == 0) continue;
 
                     wasTaken = true;
                     break;
@@ -38,9 +38,9 @@ namespace Musoq.Schema.DataSources
 
                 if (!wasTaken)
                 {
-                    IReadOnlyList<EntityResolver<T>> newChunk = null;
+                    IReadOnlyList<IObjectResolver> newChunk = null;
                     while (newChunk == null || newChunk.Count == 0)
-                        newChunk = _readedRows.Count > 0 ? _readedRows.Take() : _readedRows.Take(_token);
+                        newChunk = _readRows.Count > 0 ? _readRows.Take() : _readRows.Take(_token);
 
                     _currentChunk = newChunk;
                 }
@@ -50,17 +50,15 @@ namespace Musoq.Schema.DataSources
             }
             catch (OperationCanceledException)
             {
-                if (_readedRows.Count > 0)
-                {
-                    _currentChunk = _readedRows.Take();
-                    while (_readedRows.Count > 0 && _currentChunk.Count == 0)
-                        _currentChunk = _readedRows.Take();
+                if (_readRows.Count <= 0) return false;
 
-                    _currentIndex = 0;
-                    return _currentChunk.Count > 0;
-                }
+                _currentChunk = _readRows.Take();
+                while (_readRows.Count > 0 && _currentChunk.Count == 0)
+                    _currentChunk = _readRows.Take();
 
-                return false;
+                _currentIndex = 0;
+                return _currentChunk.Count > 0;
+
             }
             catch (NullReferenceException)
             {

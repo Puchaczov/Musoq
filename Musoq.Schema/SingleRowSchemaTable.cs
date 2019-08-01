@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Musoq.Schema
@@ -18,5 +19,10 @@ namespace Musoq.Schema
         public ISchemaColumn[] Columns => new ISchemaColumn[]{
             new SimpleColumn()
         };
+
+        public ISchemaColumn GetColumnByName(string name)
+        {
+            return Columns.SingleOrDefault(column => column.ColumnName == name);
+        }
     }
 }

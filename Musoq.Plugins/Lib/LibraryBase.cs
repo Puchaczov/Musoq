@@ -42,5 +42,11 @@ namespace Musoq.Plugins
 
             return HashHelper.ComputeHash<MD5CryptoServiceProvider>(content);
         }
+
+        [BindableMethod]
+        public string GetTypeName(object obj)
+        {
+            return obj?.GetType().FullName;
+        }
     }
 }

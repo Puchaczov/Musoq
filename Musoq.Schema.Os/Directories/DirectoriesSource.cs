@@ -17,7 +17,7 @@ namespace Musoq.Schema.Os.Directories
         }
 
         protected override void CollectChunks(
-            BlockingCollection<IReadOnlyList<EntityResolver<DirectoryInfo>>> chunkedSource)
+            BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
             var sources = new Stack<DirectorySourceSearchOptions>();
 

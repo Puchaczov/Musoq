@@ -45,7 +45,7 @@ namespace Musoq.Schema.Time
         }
 
         protected override void CollectChunks(
-            BlockingCollection<IReadOnlyList<EntityResolver<DateTimeOffset>>> chunkedSource)
+            BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
             Func<DateTimeOffset, DateTimeOffset> modify;
             switch (_resolution)

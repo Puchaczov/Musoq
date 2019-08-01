@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Plugins.Attributes;
@@ -288,6 +289,8 @@ namespace Musoq.Schema.Managers
         /// <returns>Return true if convertion is possible, otherwise false.</returns>
         public static bool IsTypePossibleToConvert(Type to, Type from)
         {
+            if (from == typeof(IDynamicMetaObjectProvider))
+                return true;
             if (TypeCompatibilityTable.ContainsKey(to))
                 return TypeCompatibilityTable[to].Any(f => f == from);
             return to == from || to.IsAssignableFrom(from);

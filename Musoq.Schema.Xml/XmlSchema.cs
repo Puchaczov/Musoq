@@ -1,18 +1,21 @@
-﻿using Musoq.Schema.DataSources;
+﻿using Musoq.Plugins.Attributes;
+using Musoq.Schema.Attributes;
+using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
 
-namespace Musoq.Schema.FlatFile
+namespace Musoq.Schema.Xml
 {
-    public class FlatFileSchema : SchemaBase
-    {
-        private const string SchemaName = "Flat";
 
-        public FlatFileSchema()
-            : base(SchemaName, CreateLibrary())
+    public class XmlSchema : SchemaBase
+    {
+        public XmlSchema() 
+            : base("Xml", CreateLibrary())
         {
         }
 
@@ -21,7 +24,7 @@ namespace Musoq.Schema.FlatFile
             switch (name.ToLowerInvariant())
             {
                 case "file":
-                    return new FlatFileTable();
+                    return new XmlFileTable();
             }
 
             throw new TableNotFoundException(nameof(name));
@@ -32,10 +35,19 @@ namespace Musoq.Schema.FlatFile
             switch (name.ToLowerInvariant())
             {
                 case "file":
-                    return new FlatFileSource((string)parameters[0], interCommunicator);
+                    return new XmlSource((string)parameters[0], interCommunicator);
             }
 
             throw new SourceNotFoundException(nameof(name));
+        }
+
+        public override SchemaMethodInfo[] GetConstructors()
+        {
+            var constructors = new List<SchemaMethodInfo>();
+
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<XmlSource>("file"));
+
+            return constructors.ToArray();
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -43,21 +55,12 @@ namespace Musoq.Schema.FlatFile
             var methodsManager = new MethodsManager();
             var propertiesManager = new PropertiesManager();
 
-            var library = new FlatFileLibrary();
+            var library = new XmlLibrary();
 
             methodsManager.RegisterLibraries(library);
             propertiesManager.RegisterProperties(library);
 
             return new MethodsAggregator(methodsManager, propertiesManager);
-        }
-
-        public override SchemaMethodInfo[] GetConstructors()
-        {
-            var constructors = new List<SchemaMethodInfo>();
-
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<FlatFileSource>("file"));
-
-            return constructors.ToArray();
         }
     }
 }

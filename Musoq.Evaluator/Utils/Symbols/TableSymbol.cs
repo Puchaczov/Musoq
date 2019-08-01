@@ -45,7 +45,7 @@ namespace Musoq.Evaluator.Utils.Symbols
 
             foreach (var table in _tables)
             {
-                var col = table.Value.Item2.Columns.SingleOrDefault(c => c.ColumnName == column);
+                var col = table.Value.Item2.GetColumnByName(column);
 
                 if (col == null)
                     throw new NotSupportedException($"Unrecognized column ({column})");
@@ -66,9 +66,9 @@ namespace Musoq.Evaluator.Utils.Symbols
         public ISchemaColumn GetColumnByAliasAndName(string alias, string columnName)
         {
             if (_fullTableName == alias)
-                return _fullTable.Columns.Single(c => c.ColumnName == columnName);
+                return _fullTable.GetColumnByName(columnName);
 
-            return _tables[alias].Item2.Columns.Single(c => c.ColumnName == columnName);
+            return _tables[alias].Item2.GetColumnByName(columnName);
         }
 
         public ISchemaColumn GetColumn(string columnName)
@@ -76,7 +76,7 @@ namespace Musoq.Evaluator.Utils.Symbols
             ISchemaColumn column = null;
             foreach (var table in _orders)
             {
-                var tmpColumn = _tables[table].Item2.Columns.SingleOrDefault(col => col.ColumnName == columnName);
+                var tmpColumn = _tables[table].Item2.GetColumnByName(columnName);
 
                 if (column != null)
                     throw new NotSupportedException("Multiple column with the same identifier");

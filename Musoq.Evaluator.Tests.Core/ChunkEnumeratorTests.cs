@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Tests.Core
         public void EnumerateAllTest()
         {
             var tokenSource = new CancellationTokenSource();
-            var readedChunks = new BlockingCollection<IReadOnlyList<EntityResolver<string>>>
+            var readedChunks = new BlockingCollection<IReadOnlyList<IObjectResolver>>
             {
                 new List<EntityResolver<string>>(),
                 new List<EntityResolver<string>>

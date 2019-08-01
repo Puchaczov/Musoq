@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -292,7 +293,7 @@ namespace Musoq.Evaluator.Visitors
             else
                 tuple = tableSymbol.GetTableByColumnName(node.Name);
 
-            var column = tuple.Table.Columns.SingleOrDefault(f => f.ColumnName == node.Name);
+            var column = tuple.Table.GetColumnByName(node.Name);
 
             AddAssembly(column.ColumnType.Assembly);
             node.ChangeReturnType(column.ColumnType);
@@ -358,7 +359,15 @@ namespace Musoq.Evaluator.Visitors
             var exp = Nodes.Pop();
             var root = Nodes.Pop();
 
-            Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType));
+            if (root.ReturnType == typeof(IDynamicMetaObjectProvider))
+            {
+                Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, typeof(object)));
+            }
+            else
+            {
+                Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType));
+            }
+
         }
 
         public virtual void Visit(AccessCallChainNode node)

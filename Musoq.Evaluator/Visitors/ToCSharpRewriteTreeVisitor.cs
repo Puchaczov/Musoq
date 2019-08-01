@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -82,6 +83,7 @@ namespace Musoq.Evaluator.Visitors
             AddReference(typeof(LibraryBase));
             AddReference(typeof(Table));
             AddReference(typeof(SyntaxFactory));
+            AddReference(typeof(ExpandoObject));
             AddReference(assemblies.ToArray());
 
             Compilation = Compilation.WithOptions(
@@ -106,6 +108,7 @@ namespace Musoq.Evaluator.Visitors
             AddNamespace("Musoq.Evaluator");
             AddNamespace("Musoq.Evaluator.Tables");
             AddNamespace("Musoq.Evaluator.Helpers");
+            AddNamespace("System.Dynamic");
         }
 
         public string Namespace { get; } = $"{Resources.Compilation.NamespaceConstantPart}_{StringHelpers.GenerateNamespaceIdentifier()}";
@@ -464,12 +467,18 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(FieldNode node)
         {
             var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
+
             AddReference(types);
             AddNamespace(types);
 
-            var typeIdentifier = 
+            var typeIdentifier =
                 SyntaxFactory.IdentifierName(
                     EvaluationHelper.GetCastableType(node.ReturnType));
+
+            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
+            }
 
             var expression = Nodes.Pop();
 
@@ -480,11 +489,21 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(FieldOrderedNode node)
         {
             var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
+
             AddReference(types);
             AddNamespace(types);
+
+            var typeIdentifier = SyntaxFactory.IdentifierName(
+                    EvaluationHelper.GetCastableType(node.ReturnType));
+
+            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
+            }
+
             var castedExpression = Generator.CastExpression(
-                SyntaxFactory.IdentifierName(
-                    EvaluationHelper.GetCastableType(node.ReturnType)), Nodes.Pop());
+                typeIdentifier, Nodes.Pop());
+
             Nodes.Push(castedExpression);
         }
 
@@ -591,11 +610,18 @@ namespace Musoq.Evaluator.Visitors
                                 throw new NotSupportedException($"Unrecognized method access type ({_type})");
                         }
 
+                        var typeIdentifier = SyntaxFactory.IdentifierName(
+                                        EvaluationHelper.GetCastableType(parameterInfo.ParameterType));
+
+                        if (parameterInfo.ParameterType == typeof(ExpandoObject))
+                        {
+                            typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
+                        }
+
                         args.Add(
                             SyntaxFactory.Argument(
                                 SyntaxFactory.CastExpression(
-                                    SyntaxFactory.IdentifierName(
-                                        EvaluationHelper.GetCastableType(parameterInfo.ParameterType)),
+                                    typeIdentifier,
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
                                         SyntaxFactory.IdentifierName(objectName),
@@ -699,12 +725,20 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
 
             var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
+
             AddNamespace(types);
             AddReference(types);
 
-            sNode = Generator.CastExpression(
+            var typeIdentifier =
                 SyntaxFactory.IdentifierName(
-                    EvaluationHelper.GetCastableType(node.ReturnType)), sNode);
+                    EvaluationHelper.GetCastableType(node.ReturnType));
+
+            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
+            }
+
+            sNode = Generator.CastExpression(typeIdentifier, sNode);
 
             if (!node.ReturnType.IsTrueValueType())
                 NullSuspiciousNodes.Push(sNode);
@@ -1152,7 +1186,19 @@ namespace Musoq.Evaluator.Visitors
 
                 foreach (var field in node.Fields)
                 {
-                    var types = EvaluationHelper.GetNestedTypes(field.ReturnType);
+                    var type = field.ReturnType;
+
+                    Type[] types;
+                    if(typeof(IDynamicMetaObjectProvider).IsAssignableFrom(type))
+                    {
+                        types = new Type[] { typeof(object) };
+                        type = typeof(object);
+                    }
+                    else
+                    {
+                        types = EvaluationHelper.GetNestedTypes(type);
+                    }
+
                     AddNamespace(types);
                     AddReference(types);
 
@@ -1167,7 +1213,7 @@ namespace Musoq.Evaluator.Visitors
                                             SyntaxKind.StringLiteralExpression, 
                                             SyntaxFactory.Literal( $"@\"{field.FieldName}\"", field.FieldName))),
                                     SyntaxHelper.TypeLiteralArgument(
-                                        EvaluationHelper.GetCastableType(field.ReturnType)),
+                                        EvaluationHelper.GetCastableType(type)),
                                     SyntaxHelper.IntLiteralArgument(field.FieldOrder)
                                 }))));
                 }

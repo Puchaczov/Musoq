@@ -16,7 +16,7 @@ namespace Musoq.Schema.FlatFile
             _communicator = communicator;
         }
 
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<FlatFileEntity>>> chunkedSource)
+        protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
             const int chunkSize = 1000;
 

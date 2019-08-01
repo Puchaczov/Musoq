@@ -17,6 +17,7 @@ namespace Musoq.Schema.Csv
         {
             public string FilePath { get; set; }
             public string Separator { get; set; }
+
             public bool HasHeader { get; set; }
             public int SkipLines { get; set; }
         }
@@ -28,7 +29,7 @@ namespace Musoq.Schema.Csv
         public CsvSource(string filePath, string separator, bool hasHeader, int skipLines, RuntimeContext context)
             : this(context)
         {
-            _files = new CsvFile[] {
+            _files = new[] {
                 new CsvFile()
                 {
                     FilePath = filePath,
@@ -63,7 +64,7 @@ namespace Musoq.Schema.Csv
             _types = _context.AllColumns.ToDictionary(col => col.ColumnName, col => col.ColumnType.GetUnderlyingNullable());
         }
 
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<object[]>>> chunkedSource)
+        protected override void CollectChunks(BlockingCollection<IReadOnlyList<DataSources.IObjectResolver>> chunkedSource)
         {
             foreach(var csvFile in _files)
             {
@@ -71,7 +72,7 @@ namespace Musoq.Schema.Csv
             }
         }
 
-        private void ProcessFile(CsvFile csvFile, BlockingCollection<IReadOnlyList<EntityResolver<object[]>>> chunkedSource)
+        private void ProcessFile(CsvFile csvFile, BlockingCollection<IReadOnlyList<DataSources.IObjectResolver>> chunkedSource)
         {
             var file = new FileInfo(csvFile.FilePath);
 

@@ -3,5 +3,7 @@
     public interface ISchemaTable
     {
         ISchemaColumn[] Columns { get; }
+
+        ISchemaColumn GetColumnByName(string name);
     }
 }

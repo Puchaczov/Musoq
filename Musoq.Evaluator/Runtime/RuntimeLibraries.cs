@@ -59,7 +59,14 @@ namespace Musoq.Evaluator.Runtime
 
                         var tasks = new List<Task<MetadataReference>>();
 
-                        foreach (var file in directory.GetFiles("System*.dll"))
+                        var directories = directory.GetFiles("System*.dll").ToList();
+
+                        var microsoftCSharpFileInfo = new FileInfo(Path.Combine(directory.FullName, "Microsoft.CSharp.dll"));
+
+                        if (microsoftCSharpFileInfo.Exists)
+                            directories.Add(microsoftCSharpFileInfo);
+
+                        foreach (var file in directories)
                         {
                             tasks.Add(Task.Factory.StartNew<MetadataReference>(() =>
                             {

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Os.Files;
@@ -17,13 +18,13 @@ namespace Musoq.Schema.Os.Tests.Core.Utils
 
         public IReadOnlyList<EntityResolver<FileInfo>> GetFiles()
         {
-            var collection = new BlockingCollection<IReadOnlyList<EntityResolver<FileInfo>>>();
+            var collection = new BlockingCollection<IReadOnlyList<IObjectResolver>>();
             CollectChunks(collection);
 
             var list = new List<EntityResolver<FileInfo>>();
 
             foreach(var item in collection)
-                list.AddRange(item);
+                list.AddRange(item.Select(file => (EntityResolver<FileInfo>)file));
 
             return list;
         }

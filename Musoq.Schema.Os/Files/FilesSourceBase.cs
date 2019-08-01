@@ -17,7 +17,7 @@ namespace Musoq.Schema.Os.Files
             _source = new DirectorySourceSearchOptions(path, useSubDirectories);
         }
 
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<EntityResolver<TEntity>>> chunkedSource)
+        protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
             var sources = new Stack<DirectorySourceSearchOptions>();
 
