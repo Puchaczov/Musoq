@@ -1,6 +1,6 @@
 language: csharp
 solution: Musoq.sln
 mono: none
-dotnet: 2.1
+dotnet: 2.2
 script:
 - dotnet restore
