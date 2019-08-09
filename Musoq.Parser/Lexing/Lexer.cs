@@ -482,9 +482,9 @@ namespace Musoq.Parser.Lexing
                 case TokenType.Contains:
                     return new ContainsToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Skip:
-                    return new SkipToken(new TextSpan(Position, tokenText.Length));
+                    return new SkipToken(tokenText, new TextSpan(Position, tokenText.Length));
                 case TokenType.Take:
-                    return new TakeToken(new TextSpan(Position, tokenText.Length));
+                    return new TakeToken(tokenText, new TextSpan(Position, tokenText.Length));
                 case TokenType.With:
                     return new WithToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.On:

@@ -187,7 +187,12 @@ namespace Musoq.Schema.Managers
                     var param = parameters[f + parametersToSkip].ParameterType.GetUnderlyingNullable();
                     var arg = methodArgs[f].GetUnderlyingNullable();
 
-                    if (IsTypePossibleToConvert(param, arg) || param.IsGenericParameter || param.IsArray && param.GetElementType().IsGenericParameter)
+                    if (IsTypePossibleToConvert(param, arg) || 
+                        param.IsGenericParameter ||
+                        arg.IsArray && param.IsGenericType && param.Name == "IEnumerable`1" || 
+                        param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" && arg.Name == "IEnumerable`1" ||
+                        param.IsArray && param.GetElementType().IsGenericParameter ||
+                        arg.IsArray && arg.GetElementType().IsGenericParameter)
                         continue;
 
                     hasMatchedArgTypes = false;

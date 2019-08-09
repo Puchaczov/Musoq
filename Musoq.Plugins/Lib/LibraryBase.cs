@@ -1,5 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using Musoq.Plugins.Attributes;
 using Musoq.Plugins.Helpers;
 
@@ -8,7 +12,7 @@ namespace Musoq.Plugins
     [BindableClass]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     [SuppressMessage("ReSharper", "UnusedParameter.Global")]
-    public abstract partial class LibraryBase : UserMethodsLibrary
+    public partial class LibraryBase : UserMethodsLibrary
     {
         [BindableMethod]
         public int RowNumber([InjectQueryStats] QueryStats info)

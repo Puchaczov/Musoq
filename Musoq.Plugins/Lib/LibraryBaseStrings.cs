@@ -5,7 +5,7 @@ using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins
 {
-    public partial class LibraryBase
+    public abstract partial class LibraryBase
     {
         private readonly Soundex _soundex = new Soundex();
 
@@ -86,6 +86,26 @@ namespace Musoq.Plugins
         public string ToLowerInvariant(string value)
         {
             return value.ToLowerInvariant();
+        }
+
+        [BindableMethod]
+        public string ToHex(byte[] bytes, string delimiter = "")
+        {
+            var hexBuilder = new StringBuilder();
+
+            if (bytes.Length > 0)
+            {
+                for (int i = 0; i < bytes.Length - 1; i++)
+                {
+                    var byteValue = bytes[i];
+                    hexBuilder.Append(byteValue.ToString("X2"));
+                    hexBuilder.Append(delimiter);
+                }
+
+                hexBuilder.Append(bytes[bytes.Length - 1].ToString("X2"));
+            }
+
+            return hexBuilder.ToString();
         }
     }
 }

@@ -20,6 +20,27 @@ namespace Musoq.Schema.Os
     public class OsLibrary : LibraryBase
     {
         [BindableMethod]
+        public byte[] GetFileBytes([InjectSource] FileInfo file, long bytesCount = long.MaxValue)
+        {
+            using (var stream = file.OpenRead())
+            using (var reader = new BinaryReader(stream))
+            {
+                long toRead = 0;
+                if (bytesCount < stream.Length)
+                    toRead = bytesCount;
+                else
+                    toRead = stream.Length;
+
+                var bytes = new byte[toRead];
+
+                for (int i = 0; i < toRead; ++i)
+                    bytes[i] = reader.ReadByte();
+
+                return bytes;
+            }
+        }
+
+        [BindableMethod]
         public string Sha1File([InjectSource] FileInfo file)
         {
             using (var stream = file.OpenRead())

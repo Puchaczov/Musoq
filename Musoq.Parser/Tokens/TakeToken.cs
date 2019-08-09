@@ -4,7 +4,7 @@
     {
         public const string TokenText = "take";
 
-        public TakeToken(TextSpan span) : base(TokenText, TokenType.Take, span)
+        public TakeToken(string value, TextSpan span) : base(value, TokenType.Take, span)
         {
         }
     }

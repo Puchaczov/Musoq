@@ -608,6 +608,28 @@ namespace Musoq.Evaluator.Tests.Core
         }
 
         [TestMethod]
+        public void GetHexTest()
+        {
+            var query = @"select ToHex(GetBytes(5), '|') as hexValue from #A.Entities()";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("001"),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("05|00|00|00", table[0][0]);
+        }
+
+        [TestMethod]
         public void SimpleSkipTakeTest()
         {
             var query = @"select Name from #A.Entities() skip 1 take 2";

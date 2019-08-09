@@ -233,6 +233,45 @@ namespace Musoq.Schema.Os.Tests.Core
         }
 
         [TestMethod]
+        public void File_GetFirstByte_Test()
+        {
+            var query = "select ToHex(GetFileBytes(2), '|') from #disk.files('./Files', false) where Name = 'File1.txt'";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+
+            Assert.AreEqual("EF|BB", table[0][0]);
+        }
+
+        [TestMethod]
+        public void File_SkipTwoBytesAndTakeFiveBytes_Test()
+        {
+            var query = "select ToHex(ToArray(Take(Skip(GetFileBytes(), 2), 5)), '|') from #disk.files('./Files', false) where Name = 'File1.txt'";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+
+            Assert.AreEqual("BF|45|78|61|6D", table[0][0]);
+        }
+
+        [TestMethod]
+        public void File_SkipTwoBytesAndTakeFiveBytes2_Test()
+        {
+            var query = "select ToHex(ToArray(SkipAndTake(GetFileBytes(), 2, 5)), '|') from #disk.files('./Files', false) where Name = 'File1.txt'";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+
+            Assert.AreEqual("BF|45|78|61|6D", table[0][0]);
+        }
+
+        [TestMethod]
         public void FilesSource_CancelledLoadTest()
         {
             var tokenSource = new CancellationTokenSource();

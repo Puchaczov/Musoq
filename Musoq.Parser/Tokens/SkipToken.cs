@@ -4,7 +4,7 @@
     {
         public const string TokenText = "skip";
 
-        public SkipToken(TextSpan span) : base(TokenText, TokenType.Skip, span)
+        public SkipToken(string value, TextSpan span) : base(value, TokenType.Skip, span)
         {
         }
     }

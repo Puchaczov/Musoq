@@ -14,6 +14,9 @@ namespace Musoq.Parser
 
         private readonly Lexer _lexer;
 
+        private bool _hasReplacedToken;
+        private Token _replacedToken;
+
         private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precDict =
             new Dictionary<TokenType, (short Precendence, Associativity Associativity)>
             {
@@ -30,7 +33,22 @@ namespace Musoq.Parser
             _lexer = lexer;
         }
 
-        private Token Current => _lexer.Current();
+        private Token Current
+        {
+            get
+            {
+                if (_hasReplacedToken)
+                    return _replacedToken;
+
+                return _lexer.Current();
+            }
+        }
+
+        private void ReplaceCurrentToken(Token newToken)
+        {
+            _replacedToken = newToken;
+            _hasReplacedToken = true;
+        }
 
         public RootNode ComposeAll()
         {
@@ -657,6 +675,7 @@ namespace Musoq.Parser
         {
             if (Current.TokenType.Equals(tokenType))
             {
+                _hasReplacedToken = false;
                 _lexer.Next();
                 return;
             }
@@ -697,6 +716,10 @@ namespace Musoq.Parser
                     return ComposeInteger();
                 case TokenType.Word:
                     return ComposeWord();
+                case TokenType.Skip:
+                case TokenType.Take:
+                    ReplaceCurrentToken(new FunctionToken(Current.Value, Current.Span));
+                    return ComposeAccessMethod(string.Empty);
                 case TokenType.Function:
                     return ComposeAccessMethod(string.Empty);
                 case TokenType.Identifier:
