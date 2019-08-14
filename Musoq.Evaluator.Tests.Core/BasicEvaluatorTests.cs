@@ -1060,6 +1060,48 @@ namespace Musoq.Evaluator.Tests.Core
         }
 
         [TestMethod]
+        public void HeadWithStringTest()
+        {
+            var query = "select Head('ABCDEF', 2) from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("3213213")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("AB", table[0][0]);
+        }
+
+        [TestMethod]
+        public void TailWithStringTest()
+        {
+            var query = "select Tail('ABCDEF', 2) from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("3213213")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("EF", table[0][0]);
+        }
+
+        [TestMethod]
         public void SubtractTwoAliasedValuesTest()
         {
             var query = "select a.Money - a.Money from #A.entities() a";

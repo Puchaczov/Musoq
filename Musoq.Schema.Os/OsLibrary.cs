@@ -20,20 +20,38 @@ namespace Musoq.Schema.Os
     public class OsLibrary : LibraryBase
     {
         [BindableMethod]
+        public byte[] Head([InjectSource] FileInfo file, int length)
+            => GetFileBytes(file, length);
+
+        [BindableMethod]
+        public byte[] Tail([InjectSource] FileInfo file, int length)
+        {
+            using (var stream = file.OpenRead())
+            using (var reader = new BinaryReader(stream))
+            {
+                var toRead = length < stream.Length ? length : stream.Length;
+
+                var bytes = new byte[toRead];
+
+                stream.Position = stream.Length - length;
+                for (var i = 0; i < toRead; ++i)
+                    bytes[i] = reader.ReadByte();
+
+                return bytes;
+            }
+        }
+
+        [BindableMethod]
         public byte[] GetFileBytes([InjectSource] FileInfo file, long bytesCount = long.MaxValue)
         {
             using (var stream = file.OpenRead())
             using (var reader = new BinaryReader(stream))
             {
-                long toRead = 0;
-                if (bytesCount < stream.Length)
-                    toRead = bytesCount;
-                else
-                    toRead = stream.Length;
+                var toRead = bytesCount < stream.Length ? bytesCount : stream.Length;
 
                 var bytes = new byte[toRead];
 
-                for (int i = 0; i < toRead; ++i)
+                for (var i = 0; i < toRead; ++i)
                     bytes[i] = reader.ReadByte();
 
                 return bytes;
@@ -378,25 +396,31 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public string Combine(string path1, string path2)
         {
-            return Path.Combine(new[] {path1, path2});
+            return Path.Combine(path1, path2);
         }
 
         [BindableMethod]
         public string Combine(string path1, string path2, string path3)
         {
-            return Path.Combine(new[] {path1, path2, path3});
+            return Path.Combine(path1, path2, path3);
         }
 
         [BindableMethod]
         public string Combine(string path1, string path2, string path3, string path4)
         {
-            return Path.Combine(new[] {path1, path2, path3, path4});
+            return Path.Combine(path1, path2, path3, path4);
         }
 
         [BindableMethod]
         public string Combine(string path1, string path2, string path3, string path4, string path5)
         {
             return Path.Combine(path1, path2, path3, path4, path5);
+        }
+
+        [BindableMethod]
+        public string Combine(params string[] paths)
+        {
+            return Path.Combine(paths);
         }
 
         private class DirectoryinfoPosition

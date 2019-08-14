@@ -89,6 +89,13 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public string Head(string value, int length) => value.Substring(0, length);
+
+        [BindableMethod]
+        public string Tail(string value, int length) => value.Substring(value.Length - length, length);
+
+
+        [BindableMethod]
         public string ToHex(byte[] bytes, string delimiter = "")
         {
             var hexBuilder = new StringBuilder();

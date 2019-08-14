@@ -272,6 +272,32 @@ namespace Musoq.Schema.Os.Tests.Core
         }
 
         [TestMethod]
+        public void File_GetHead_Test()
+        {
+            var query = "select ToHex(Head(2), '|') from #disk.files('./Files', false) where Name = 'File1.txt'";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+
+            Assert.AreEqual("EF|BB", table[0][0]);
+        }
+
+        [TestMethod]
+        public void File_GetTail_Test()
+        {
+            var query = "select ToHex(Tail(2), '|') from #disk.files('./Files', false) where Name = 'File1.txt'";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+
+            Assert.AreEqual("31|2E", table[0][0]);
+        }
+
+        [TestMethod]
         public void FilesSource_CancelledLoadTest()
         {
             var tokenSource = new CancellationTokenSource();
