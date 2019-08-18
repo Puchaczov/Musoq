@@ -44,6 +44,19 @@ namespace Musoq.Schema.System.Tests
             Assert.AreEqual(0.6m, table[0][0]);
         }
 
+        [TestMethod]
+        public void UnionTest()
+        {
+            var query = "select 1 as t from #system.dual() union (t) select 2 as t from #system.dual()";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(1, table[0][0]);
+            Assert.AreEqual(2, table[1][0]);
+        }
+
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new SystemSchemaProvider());

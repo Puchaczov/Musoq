@@ -32,9 +32,9 @@ namespace Musoq.Evaluator.Visitors
         private FieldNode[] _generatedColumns = new FieldNode[0];
         private string _identifier;
         private string _queryAlias;
-        private IDictionary<string, ISchemaTable> _explicitlyDefinedTables = new Dictionary<string, ISchemaTable>();
-        private IDictionary<string, string> _explicitlyCoupledTablesWithAliases = new Dictionary<string, string>();
-        private IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases = new Dictionary<string, SchemaMethodFromNode>();
+        private readonly IDictionary<string, ISchemaTable> _explicitlyDefinedTables = new Dictionary<string, ISchemaTable>();
+        private readonly IDictionary<string, string> _explicitlyCoupledTablesWithAliases = new Dictionary<string, string>();
+        private readonly IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases = new Dictionary<string, SchemaMethodFromNode>();
 
         private int _setKey;
 
@@ -918,16 +918,16 @@ namespace Musoq.Evaluator.Visitors
 
             for (int i = 0; i < node.TableTypePairs.Length; i++)
             {
-                (string ColumnName, string TypeName) typePair = node.TableTypePairs[i];
+                (string ColumnName, string TypeName) = node.TableTypePairs[i];
 
-                var remappedType = EvaluationHelper.RemapPrimitiveTypes(typePair.TypeName);
+                var remappedType = EvaluationHelper.RemapPrimitiveTypes(TypeName);
 
                 var type = EvaluationHelper.GetType(remappedType);
 
                 if (type == null)
                     throw new TypeNotFoundException($"Type '{remappedType}' could not be found.");
 
-                columns.Add(new SchemaColumn(typePair.ColumnName, i, type));
+                columns.Add(new SchemaColumn(ColumnName, i, type));
             }
 
             var table = new DynamicTable(columns.ToArray());

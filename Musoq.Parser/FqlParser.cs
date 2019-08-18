@@ -93,12 +93,12 @@ namespace Musoq.Parser
 
             var name = ComposeWord();
 
-            FromNode fromNode;
             if(Current.TokenType == TokenType.Dot)
             {
                 Consume(TokenType.Dot);
 
-                if ((Current is FunctionToken func))
+                FromNode fromNode;
+                if ((Current is FunctionToken))
                 {
                     var accessMethod = ComposeAccessMethod(string.Empty);
 
