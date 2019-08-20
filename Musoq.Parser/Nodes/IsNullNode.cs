@@ -15,7 +15,7 @@ namespace Musoq.Parser.Nodes
 
         public bool IsNegated { get; }
 
-        public override Type ReturnType => null;
+        public override Type ReturnType => typeof(bool);
 
         public override string Id { get; }
 

@@ -20,7 +20,9 @@ namespace Musoq.Schema
 
         RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters);
 
-        MethodInfo ResolveMethod(string method, Type[] parameters);
+        bool TryResolveMethod(string method, Type[] parameters, out MethodInfo methodInfo);
+
+        bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo);
 
         bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo);
     }

@@ -609,7 +609,7 @@ namespace Musoq.Evaluator.Visitors
 
                         var newArgs = new ArgsListNode(newNodes.ToArray());
                         newRefreshMethods.Add(new AccessMethodNode(method.FToken, newArgs,
-                            method.ExtraAggregateArguments, method.Method));
+                            method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method));
                     }
 
                     refreshMethods = new RefreshNode(newRefreshMethods.ToArray());
@@ -801,11 +801,6 @@ namespace Musoq.Evaluator.Visitors
             _scope = scope;
         }
 
-        private bool IsQueryWithOnlyAggregateMethods(FieldNode[][] splitted)
-        {
-            return splitted[0].Length > 0 && splitted[0].Length == splitted[1].Length;
-        }
-
         private bool IsQueryWithMixedAggregateAndNonAggregateMethods(FieldNode[][] splitted)
         {
             return splitted[0].Length > 0 && splitted[0].Length != splitted[1].Length;
@@ -834,7 +829,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var args = Nodes.Pop() as ArgsListNode;
 
-            Nodes.Push(new AccessMethodNode(node.FToken, args, null, node.Method, node.Alias));
+            Nodes.Push(new AccessMethodNode(node.FToken, args, null, node.CanSkipInjectSource, node.Method, node.Alias));
         }
 
         private FieldNode[][] SplitBetweenAggreateAndNonAggreagate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields,

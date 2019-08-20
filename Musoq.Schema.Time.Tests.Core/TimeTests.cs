@@ -28,15 +28,17 @@ namespace Musoq.Schema.Time.Tests.Core
         [TestMethod]
         public void TimeSource_CancelledLoadTest()
         {
-            var tokenSource = new CancellationTokenSource();
-            tokenSource.Cancel();
-            var now = DateTimeOffset.Now;
-            var nextHour = now.AddHours(1);
-            var source = new TimeSource(now, nextHour, "minutes", new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                tokenSource.Cancel();
+                var now = DateTimeOffset.Now;
+                var nextHour = now.AddHours(1);
+                var source = new TimeSource(now, nextHour, "minutes", new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
-            var fired = source.Rows.Count();
+                var fired = source.Rows.Count();
 
-            Assert.AreEqual(0, fired);
+                Assert.AreEqual(0, fired);
+            }
         }
 
         [TestMethod]

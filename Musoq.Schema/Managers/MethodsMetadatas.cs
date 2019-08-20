@@ -85,6 +85,25 @@ namespace Musoq.Schema.Managers
         }
 
         /// <summary>
+        ///     Tries match function as if it weren't annotated. Assume that method specified parameters explicitly.
+        /// </summary>
+        /// <param name="name">Function name</param>
+        /// <param name="methodArgs">Types of method arguments</param>
+        /// <param name="index">Index of method that fits requirements.</param>
+        /// <returns>True if some method fits, else false.</returns>
+        public bool TryGetRawMethod(string name, Type[] methodArgs, out MethodInfo result)
+        {
+            if (!TryGetRawMethod(name, methodArgs, out int index))
+            {
+                result = null;
+                return false;
+            }
+
+            result = _methods[name][index];
+            return true;
+        }
+
+        /// <summary>
         ///     Determine if manager registered function with passed names and types of arguments.
         /// </summary>
         /// <param name="name">Function name</param>
@@ -92,8 +111,7 @@ namespace Musoq.Schema.Managers
         /// <returns>True if some method fits, else false.</returns>
         public bool HasMethod(string name, Type[] methodArgs)
         {
-            int index;
-            return TryGetAnnotatedMethod(name, methodArgs, out index) || TryGetRawMethod(name, methodArgs, out index);
+            return TryGetAnnotatedMethod(name, methodArgs, out _) || TryGetRawMethod(name, methodArgs, out int _);
         }
 
         /// <summary>

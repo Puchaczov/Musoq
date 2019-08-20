@@ -121,9 +121,14 @@ namespace Musoq.Schema.DataSources
             return false;
         }
 
-        public MethodInfo ResolveMethod(string method, Type[] parameters)
+        public bool TryResolveMethod(string method, Type[] parameters, out MethodInfo methodInfo)
         {
-            return _aggregator.ResolveMethod(method, parameters);
+            return _aggregator.TryResolveMethod(method, parameters, out methodInfo);
+        }
+
+        public bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo)
+        {
+            return _aggregator.TryResolveRawMethod(method, parameters, out methodInfo);
         }
 
         protected bool ParamsMatchConstructor(Reflection.ConstructorInfo constructor, object[] parameters)

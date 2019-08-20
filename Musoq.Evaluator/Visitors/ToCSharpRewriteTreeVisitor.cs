@@ -436,7 +436,7 @@ namespace Musoq.Evaluator.Visitors
 
             Visit(new AccessMethodNode(
                 new FunctionToken(nameof(Operators.Like), TextSpan.Empty),
-                new ArgsListNode(new[] {node.Left, node.Right}), null,
+                new ArgsListNode(new[] {node.Left, node.Right}), null, false,
                 typeof(Operators).GetMethod(nameof(Operators.Like))));
         }
 
@@ -456,7 +456,7 @@ namespace Musoq.Evaluator.Visitors
 
             Visit(new AccessMethodNode(
                 new FunctionToken(nameof(Operators.RLike), TextSpan.Empty),
-                new ArgsListNode(new[] { node.Left, node.Right }), null,
+                new ArgsListNode(new[] { node.Left, node.Right }), null, false,
                 typeof(Operators).GetMethod(nameof(Operators.RLike))));
         }
 
@@ -560,7 +560,7 @@ namespace Musoq.Evaluator.Visitors
 
             Visit(new AccessMethodNode(
                 new FunctionToken(nameof(Operators.Contains), TextSpan.Empty),
-                new ArgsListNode(new[] {node.Left, node.Right}), null,
+                new ArgsListNode(new[] {node.Left, node.Right}), null, false,
                 typeof(Operators).GetMethod(nameof(Operators.Contains))));
         }
 
@@ -596,6 +596,10 @@ namespace Musoq.Evaluator.Visitors
                 switch (parameterInfo.GetCustomAttribute<InjectTypeAttribute>())
                 {
                     case InjectSourceAttribute _:
+
+                        if (node.CanSkipInjectSource)
+                            continue;
+
                         string objectName;
 
                         switch (_type)
@@ -2180,8 +2184,10 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.ReturnStatement(
                                 (ExpressionSyntax)then))));
 
-            var ifStatements = new List<IfStatementSyntax>();
-            ifStatements.Add(ifStatement);
+            var ifStatements = new List<IfStatementSyntax>
+            {
+                ifStatement
+            };
 
             for (int i = 1; i < node.WhenThenPairs.Length; i++)
             {

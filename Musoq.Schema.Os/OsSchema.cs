@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Os.Compare.Directories;
 using Musoq.Schema.Os.Directories;
 using Musoq.Schema.Os.Dlls;
 using Musoq.Schema.Os.Files;
@@ -22,6 +23,7 @@ namespace Musoq.Schema.Os
         private const string Self = "self";
         private const string SchemaName = "os";
         private const string ProcessesName = "process";
+        private const string DirsCompare = "dirscompare";
 
         public OsSchema()
             : base(SchemaName, CreateLibrary())
@@ -44,6 +46,8 @@ namespace Musoq.Schema.Os
                     return new OsBasedTable();
                 case DllsTable:
                     return new DllBasedTable();
+                case DirsCompare:
+                    return new DirsCompareBasedTable();
             }
 
             throw new NotSupportedException($"Unsupported table {name}.");
@@ -65,6 +69,8 @@ namespace Musoq.Schema.Os
                     return new OsSource();
                 case DllsTable:
                     return new DllSource((string)parameters[0], (bool)parameters[1], interCommunicator);
+                case DirsCompare:
+                    return new CompareDirectoriesSource((string)parameters[0], (string)parameters[1], interCommunicator);
             }
 
             throw new NotSupportedException($"Unsupported row source {name}");

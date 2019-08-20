@@ -258,8 +258,8 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(AccessMethodNode node)
         {
             VisitAccessMethod(node,
-                (token, node1, exargs, arg3, alias) =>
-                    new AccessMethodNode(token, node1 as ArgsListNode, exargs, arg3, alias));
+                (token, node1, exargs, arg3, alias, canSkipInjectSource) =>
+                    new AccessMethodNode(token, node1 as ArgsListNode, exargs, canSkipInjectSource, arg3, alias));
         }
 
         public void Visit(AccessRawIdentifierNode node)
@@ -275,8 +275,8 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(AccessRefreshAggreationScoreNode node)
         {
             VisitAccessMethod(node,
-                (token, node1, exargs, arg3, alias) =>
-                    new AccessRefreshAggreationScoreNode(token, node1 as ArgsListNode, exargs, arg3, alias));
+                (token, node1, exargs, arg3, alias, canSkipInjectSource) =>
+                    new AccessRefreshAggreationScoreNode(token, node1 as ArgsListNode, exargs, node.CanSkipInjectSource, arg3, alias));
         }
 
         public void Visit(AccessColumnNode node)
@@ -329,6 +329,10 @@ namespace Musoq.Evaluator.Visitors
             {
                 var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
                 var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+
+                if (column == null)
+                    throw new UnknownColumnException($"Column '{node.Name}' cannot be recognized.");
+
                 Visit(new AccessColumnNode(node.Name, string.Empty, column.ColumnType, TextSpan.Empty));
                 return;
             }
@@ -816,7 +820,7 @@ namespace Musoq.Evaluator.Visitors
         }
 
         private void VisitAccessMethod(AccessMethodNode node,
-            Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, AccessMethodNode> func)
+            Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
         {
             var args = Nodes.Pop() as ArgsListNode;
 
@@ -827,15 +831,29 @@ namespace Musoq.Evaluator.Visitors
 
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
             var schemaTablePair = tableSymbol.GetTableByAlias(alias);
+            var canSkipInjectSource = false;
             if (!schemaTablePair.Schema.TryResolveAggreationMethod(node.Name, groupArgs.ToArray(), out var method))
-                method = schemaTablePair.Schema.ResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray());
+            {
+                if (!schemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
+                {
+                    if (!schemaTablePair.Schema.TryResolveRawMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
+                    {
+                        var types = args.Args.Length > 0 
+                            ? args.Args.Select(f => f.ReturnType.ToString()).Aggregate((a, b) => a + ", " + b) 
+                            : string.Empty;
+
+                        throw new UnresolvableMethodException($"{node.Name}({types}) cannot be resolved.");
+                    }
+                    canSkipInjectSource = true;
+                }
+            }
 
             var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
             AccessMethodNode accessMethod;
             if (isAggregateMethod)
             {
-                accessMethod = func(node.FToken, args, node.ExtraAggregateArguments, method, alias);
+                accessMethod = func(node.FToken, args, node.ExtraAggregateArguments, method, alias, false);
                 var identifier = accessMethod.ToString();
 
                 var newArgs = new List<Node> {new WordNode(identifier)};
@@ -859,15 +877,15 @@ namespace Musoq.Evaluator.Visitors
 
                 var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty),
                     new ArgsListNode(newSetArgs.ToArray()), null, setMethod,
-                    alias);
+                    alias, false);
 
                 _refreshMethods.Add(setMethodNode);
 
-                accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), null, method, alias);
+                accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), null, method, alias, canSkipInjectSource);
             }
             else
             {
-                accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method, alias);
+                accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method, alias, canSkipInjectSource);
             }
 
             AddAssembly(method.DeclaringType.Assembly);

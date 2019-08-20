@@ -213,7 +213,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(AccessMethodNode node)
         {
-            Nodes.Push(new AccessMethodNode(node.FToken, (ArgsListNode) Nodes.Pop(), null, node.Method, node.Alias));
+            Nodes.Push(new AccessMethodNode(node.FToken, (ArgsListNode) Nodes.Pop(), null, node.CanSkipInjectSource, node.Method, node.Alias));
         }
 
         public void Visit(AccessRawIdentifierNode node)

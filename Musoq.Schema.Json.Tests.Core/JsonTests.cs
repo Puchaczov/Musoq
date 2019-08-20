@@ -101,13 +101,15 @@ namespace Musoq.Schema.Json.Tests.Core
         [ExpectedException(typeof(OperationCanceledException))]
         public void JsonSource_CancelledLoadTest()
         {
-            var tokenSource = new CancellationTokenSource();
-            tokenSource.Cancel();
-            var source = new JsonSource("./JsonTestFile_First.json", new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                tokenSource.Cancel();
+                var source = new JsonSource("./JsonTestFile_First.json", new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
-            var fired = source.Rows.Count();
+                var fired = source.Rows.Count();
 
-            Assert.AreEqual(0, fired);
+                Assert.AreEqual(0, fired);
+            }
         }
 
         [TestMethod]

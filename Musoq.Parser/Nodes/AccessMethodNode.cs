@@ -10,16 +10,19 @@ namespace Musoq.Parser.Nodes
     {
         public readonly FunctionToken FToken;
 
-        public AccessMethodNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraAggregateArguments,
+        public AccessMethodNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraAggregateArguments, bool canSkipInjectSource,
             MethodInfo method = (MethodInfo) null, string alias = "")
         {
             FToken = fToken;
             Arguments = args;
             ExtraAggregateArguments = extraAggregateArguments;
+            CanSkipInjectSource = canSkipInjectSource;
             Method = method;
             Alias = alias;
             Id = $"{nameof(AccessMethodNode)}{alias}{fToken.Value}{args.Id}";
         }
+
+        public bool CanSkipInjectSource { get; }
 
         public MethodInfo Method { get; private set; }
 

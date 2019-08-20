@@ -14,13 +14,13 @@ namespace Musoq.Converter.Tests
         {
             var query = "select 1 from #system.dual()";
 
-            var arrays = CreateForStore(query);
+            var (DllFile, PdbFile) = CreateForStore(query);
 
-            Assert.IsNotNull(arrays.DllFile);
-            Assert.IsNotNull(arrays.PdbFile);
+            Assert.IsNotNull(DllFile);
+            Assert.IsNotNull(PdbFile);
 
-            Assert.AreNotEqual(0, arrays.DllFile.Length);
-            Assert.AreNotEqual(0, arrays.PdbFile.Length);
+            Assert.AreNotEqual(0, DllFile.Length);
+            Assert.AreNotEqual(0, PdbFile.Length);
         }
 
         [TestMethod]

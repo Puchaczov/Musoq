@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Plugins.Helpers;
+using Musoq.Schema.Exceptions;
 using Group = Musoq.Plugins.Group;
 
 namespace Musoq.Schema.Os
@@ -26,6 +27,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public byte[] Tail([InjectSource] FileInfo file, int length)
         {
+            if (file == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             using (var stream = file.OpenRead())
             using (var reader = new BinaryReader(stream))
             {
@@ -44,6 +48,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public byte[] GetFileBytes([InjectSource] FileInfo file, long bytesCount = long.MaxValue)
         {
+            if (file == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             using (var stream = file.OpenRead())
             using (var reader = new BinaryReader(stream))
             {
@@ -61,6 +68,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public string Sha1File([InjectSource] FileInfo file)
         {
+            if (file == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             using (var stream = file.OpenRead())
             {
                 return HashHelper.ComputeHash<SHA1CryptoServiceProvider>(stream);
@@ -70,6 +80,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public string Sha256File([InjectSource] FileInfo file)
         {
+            if (file == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             using (var stream = file.OpenRead())
             {
                 return HashHelper.ComputeHash<SHA256CryptoServiceProvider>(stream);
@@ -79,6 +92,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public string Md5File([InjectSource] FileInfo file)
         {
+            if (file == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             using (var stream = file.OpenRead())
             {
                 return HashHelper.ComputeHash<MD5CryptoServiceProvider>(stream);
@@ -88,6 +104,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public bool HasContent([InjectSource] FileInfo file, string pattern)
         {
+            if (file == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             using (var stream = new StreamReader(file.OpenRead()))
             {
                 var content = stream.ReadToEnd();
@@ -104,6 +123,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public string GetLinesContainingWord([InjectSource] FileInfo file, string word)
         {
+            if (file == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             using (var stream = new StreamReader(file.OpenRead()))
             {
                 var lines = new List<string>();
@@ -136,6 +158,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public long Format([InjectSource] FileInfo context, string unit = "b")
         {
+            if (context == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             switch (unit.ToLowerInvariant())
             {
                 case "b":
@@ -154,6 +179,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public long CountOfLines([InjectSource] FileInfo context)
         {
+            if (context == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             using (var stream = new StreamReader(context.OpenRead()))
             {
                 var lines = 0;
@@ -170,6 +198,9 @@ namespace Musoq.Schema.Os
         [BindableMethod]
         public long CountOfNotEmptyLines([InjectSource] FileInfo context)
         {
+            if (context == null)
+                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+
             using (var stream = new StreamReader(context.OpenRead()))
             {
                 var lines = 0;

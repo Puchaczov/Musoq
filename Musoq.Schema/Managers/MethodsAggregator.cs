@@ -29,6 +29,11 @@ namespace Musoq.Schema.Managers
             return _methsManager.TryGetMethod(name, types, out method);
         }
 
+        public bool TryResolveRawMethod(string name, Type[] types, out MethodInfo method)
+        {
+            return _methsManager.TryGetRawMethod(name, types, out method);
+        }
+
         public MethodInfo ResolveProperty(string name)
         {
             return _propsManager.Properties.SingleOrDefault(f => f.Name == name);

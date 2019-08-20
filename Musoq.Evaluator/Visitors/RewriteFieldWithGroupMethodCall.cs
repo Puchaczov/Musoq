@@ -58,7 +58,7 @@ namespace Musoq.Evaluator.Visitors
                 args.AddRange(node.Arguments.Args.Skip(1));
                 var extractFromGroup = new AccessMethodNode(
                     new FunctionToken(node.Method.Name, TextSpan.Empty), 
-                    new ArgsListNode(args.ToArray()), node.ExtraAggregateArguments, node.Method, node.Alias);
+                    new ArgsListNode(args.ToArray()), node.ExtraAggregateArguments, node.CanSkipInjectSource, node.Method, node.Alias);
                 Nodes.Push(extractFromGroup);
             }
             else if (_fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))

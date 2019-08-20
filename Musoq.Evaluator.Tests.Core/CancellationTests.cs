@@ -40,7 +40,7 @@ namespace Musoq.Evaluator.Tests.Core
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             TokenSource.Cancel();
-            var table = vm.Run(TokenSource.Token);
+            _ = vm.Run(TokenSource.Token);
         }
 
 

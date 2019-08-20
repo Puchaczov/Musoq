@@ -812,7 +812,7 @@ namespace Musoq.Parser
 
             var args = ComposeArgs();
 
-            return new AccessMethodNode(func, args, null, null, alias);
+            return new AccessMethodNode(func, args, null, false, null, alias);
         }
 
         private Token ConsumeAndGetToken(TokenType expected)

@@ -10,6 +10,7 @@ using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Os.Compare.Directories;
 using Musoq.Schema.Os.Directories;
 using Musoq.Schema.Os.Dlls;
 using Musoq.Schema.Os.Files;
@@ -213,13 +214,15 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void DirectoriesSource_CancelledLoadTest()
         {
-            var tokenSource = new CancellationTokenSource();
-            tokenSource.Cancel();
-            var source = new DirectoriesSource("./Directories", true, new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                tokenSource.Cancel();
+                var source = new DirectoriesSource("./Directories", true, new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
-            var fired = source.Rows.Count();
+                var fired = source.Rows.Count();
 
-            Assert.AreEqual(0, fired);
+                Assert.AreEqual(0, fired);
+            }
         }
 
         [TestMethod]
@@ -300,13 +303,15 @@ namespace Musoq.Schema.Os.Tests.Core
         [TestMethod]
         public void FilesSource_CancelledLoadTest()
         {
-            var tokenSource = new CancellationTokenSource();
-            tokenSource.Cancel();
-            var source = new FilesSource("./Directories", true, new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                tokenSource.Cancel();
+                var source = new FilesSource("./Directories", true, new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
-            var fired = source.Rows.Count();
+                var fired = source.Rows.Count();
 
-            Assert.AreEqual(0, fired);
+                Assert.AreEqual(0, fired);
+            }
         }
 
         [TestMethod]
@@ -317,6 +322,64 @@ namespace Musoq.Schema.Os.Tests.Core
             var fired = source.Rows.Count();
 
             Assert.AreEqual(4, fired);
+        }
+
+        [TestMethod]
+        public void DirectoriesCompare_CompareTwoDirectories()
+        {
+            var source = new CompareDirectoriesSource("./Directories/Directory1", "./Directories/Directory2", RuntimeContext.Empty);
+
+            var rows = source.Rows.ToArray();
+
+            var firstRow = rows[0].Context as CompareDirectoriesResult;
+            var secondRow = rows[1].Context as CompareDirectoriesResult;
+            var thirdRow = rows[2].Context as CompareDirectoriesResult;
+
+            Assert.AreEqual(new FileInfo("./Directories/Directory1/TextFile1.txt").FullName, firstRow.SourceFile.FullName);
+            Assert.AreEqual(null, firstRow.DestinationFile);
+            Assert.AreEqual(State.Removed, firstRow.State);
+
+
+            Assert.AreEqual(null, secondRow.SourceFile);
+            Assert.AreEqual(new FileInfo("./Directories/Directory2/TextFile2.txt").FullName, secondRow.DestinationFile.FullName);
+            Assert.AreEqual(State.Added, secondRow.State);
+
+
+            Assert.AreEqual(null, thirdRow.SourceFile);
+            Assert.AreEqual(new FileInfo("./Directories/Directory2/Directory3/TextFile3.txt").FullName, thirdRow.DestinationFile.FullName);
+            Assert.AreEqual(State.Added, thirdRow.State);
+        }
+
+        [TestMethod]
+        public void DirectoriesCompare_CompareWithItself()
+        {
+            var source = new CompareDirectoriesSource("./Directories/Directory1", "./Directories/Directory1", RuntimeContext.Empty);
+
+            var rows = source.Rows.ToArray();
+
+            var firstRow = rows[0].Context as CompareDirectoriesResult;
+
+            Assert.AreEqual(new FileInfo("./Directories/Directory1/TextFile1.txt").FullName, firstRow.SourceFile.FullName);
+            Assert.AreEqual(new FileInfo("./Directories/Directory1/TextFile1.txt").FullName, firstRow.DestinationFile.FullName);
+            Assert.AreEqual(State.TheSame, firstRow.State);
+        }
+
+        [TestMethod]
+        public void Query_CompareTwoDirectiories()
+        {
+            var query = "select * from #disk.DirsCompare('./Directories/Directory1', './Directories/Directory2')";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+        }
+
+        [TestMethod]
+        public void Query_CompareTwoDirectiories_WithSha()
+        {
+            var query = "select Sha256File(SourceFile) from #disk.DirsCompare('./Directories/Directory1', './Directories/Directory2') where SourceFile is not null";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)

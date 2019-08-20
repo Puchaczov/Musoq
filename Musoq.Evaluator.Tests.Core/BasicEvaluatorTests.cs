@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Core.Schema;
 
 namespace Musoq.Evaluator.Tests.Core
@@ -162,6 +163,25 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("ma@hostname.comcom", table[0].Values[0]);
+        }
+
+        [TestMethod]
+        public void WrongColumnNameTest()
+        {
+            var query =
+                $"select Populationr from #A.Entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                    }
+                }
+            };
+
+            Assert.ThrowsException<UnknownColumnException>(() => CreateAndRunVirtualMachine(query, sources));
         }
 
         [TestMethod]
