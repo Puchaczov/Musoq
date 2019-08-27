@@ -22,7 +22,7 @@ namespace Musoq.Schema.Os
     {
         [BindableMethod]
         public byte[] Head([InjectSource] FileInfo file, int length)
-            => GetFileBytes(file, length);
+            => GetFileBytes(file, length, 0);
 
         [BindableMethod]
         public byte[] Tail([InjectSource] FileInfo file, int length)
@@ -46,7 +46,7 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public byte[] GetFileBytes([InjectSource] FileInfo file, long bytesCount = long.MaxValue)
+        public byte[] GetFileBytes([InjectSource] FileInfo file, long bytesCount = long.MaxValue, long offset = 0)
         {
             if (file == null)
                 throw new InjectSourceNullReferenceException(typeof(FileInfo));
@@ -54,6 +54,9 @@ namespace Musoq.Schema.Os
             using (var stream = file.OpenRead())
             using (var reader = new BinaryReader(stream))
             {
+                if (offset > 0)
+                    stream.Seek(offset, SeekOrigin.Begin);
+
                 var toRead = bytesCount < stream.Length ? bytesCount : stream.Length;
 
                 var bytes = new byte[toRead];

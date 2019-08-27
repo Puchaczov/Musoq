@@ -4,6 +4,8 @@
     {
         public const string TokenText = "word";
 
+        public const string EmptyTokenText = "''";
+
         public WordToken(string value, TextSpan span)
             : base(value, TokenType.Word, span)
         {

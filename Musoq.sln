@@ -49,9 +49,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Time", "Musoq.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Time.Tests.Core", "Musoq.Schema.Time.Tests.Core\Musoq.Schema.Time.Tests.Core.csproj", "{75374CB9-F751-4C5A-BD6E-0F82C3BEA436}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Xml", "Musoq.Schema.Xml\Musoq.Schema.Xml.csproj", "{0B4D1600-9815-4EED-8E3F-91FBD05984B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Xml", "Musoq.Schema.Xml\Musoq.Schema.Xml.csproj", "{0B4D1600-9815-4EED-8E3F-91FBD05984B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Schema.Xml.Tests", "Musoq.Schema.Xml.Tests\Musoq.Schema.Xml.Tests.csproj", "{49D0580B-7DB6-4FDD-8672-0B1C46210D17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Xml.Tests", "Musoq.Schema.Xml.Tests\Musoq.Schema.Xml.Tests.csproj", "{49D0580B-7DB6-4FDD-8672-0B1C46210D17}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Parser.Tests", "Musoq.Parser.Tests\Musoq.Parser.Tests.csproj", "{595C2DAB-96F1-4EE7-B056-BAF77611F648}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -253,6 +255,14 @@ Global
 		{49D0580B-7DB6-4FDD-8672-0B1C46210D17}.Release|Any CPU.Build.0 = Release|Any CPU
 		{49D0580B-7DB6-4FDD-8672-0B1C46210D17}.Release|x64.ActiveCfg = Release|Any CPU
 		{49D0580B-7DB6-4FDD-8672-0B1C46210D17}.Release|x64.Build.0 = Release|Any CPU
+		{595C2DAB-96F1-4EE7-B056-BAF77611F648}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{595C2DAB-96F1-4EE7-B056-BAF77611F648}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{595C2DAB-96F1-4EE7-B056-BAF77611F648}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{595C2DAB-96F1-4EE7-B056-BAF77611F648}.Debug|x64.Build.0 = Debug|Any CPU
+		{595C2DAB-96F1-4EE7-B056-BAF77611F648}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{595C2DAB-96F1-4EE7-B056-BAF77611F648}.Release|Any CPU.Build.0 = Release|Any CPU
+		{595C2DAB-96F1-4EE7-B056-BAF77611F648}.Release|x64.ActiveCfg = Release|Any CPU
+		{595C2DAB-96F1-4EE7-B056-BAF77611F648}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

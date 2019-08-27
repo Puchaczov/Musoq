@@ -14,6 +14,12 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public byte[] GetBytes(string content, int length, int offset)
+        {
+            return Encoding.UTF8.GetBytes(content.Substring(offset, length));
+        }
+
+        [BindableMethod]
         public byte[] GetBytes(char character)
         {
             return BitConverter.GetBytes(character);

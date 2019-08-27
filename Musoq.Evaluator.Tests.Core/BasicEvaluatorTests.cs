@@ -185,6 +185,32 @@ namespace Musoq.Evaluator.Tests.Core
         }
 
         [TestMethod]
+        public void EmptyStringTest()
+        {
+            var query =
+                $"select '' from #A.Entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("''", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(string.Empty, table[0][0]);
+        }
+
+        [TestMethod]
         public void ComplexWhere1Test()
         {
             var query =

@@ -132,6 +132,8 @@ namespace Musoq.Parser.Lexing
                     return TokenType.Else;
                 case EndToken.TokenText:
                     return TokenType.End;
+                case WordToken.EmptyTokenText:
+                    return TokenType.Word;
             }
 
             if (string.IsNullOrWhiteSpace(tokenText))
@@ -208,6 +210,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KWhere = Format(Keyword, WhereToken.TokenText);
             public static readonly string KWhiteSpace = @"[\s]{1,}";
             public static readonly string KWordBracketed = @"'(.*?[^\\])'";
+            public static readonly string KEmptyString = @"'(.*)'";
             public static readonly string KEqual = Format(Keyword, EqualityToken.TokenText);
             public static readonly string KSelect = Format(Keyword, SelectToken.TokenText);
             public static readonly string KFrom = Format(Keyword, FromToken.TokenText);
@@ -352,6 +355,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KThen),
                 new TokenDefinition(TokenRegexDefinition.KElse),
                 new TokenDefinition(TokenRegexDefinition.KEnd),
+                new TokenDefinition(TokenRegexDefinition.KEmptyString),
             };
         }
 
@@ -536,8 +540,13 @@ namespace Musoq.Parser.Lexing
                     return new EndToken(new TextSpan(Position, tokenText.Length));
             }
 
-            if (matchedDefinition.Regex.ToString() == TokenRegexDefinition.KWordBracketed)
+            var regex = matchedDefinition.Regex.ToString();
+
+            if (regex == TokenRegexDefinition.KWordBracketed)
                 return new WordToken(match.Groups[1].Value, new TextSpan(Position + 1, match.Groups[1].Value.Length));
+            if (regex == TokenRegexDefinition.KEmptyString)
+                return new WordToken(string.Empty, new TextSpan(Position + 1, 0));
+
             return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
         }
 

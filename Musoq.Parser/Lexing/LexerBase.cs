@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace Musoq.Parser.Lexing
@@ -45,6 +46,7 @@ namespace Musoq.Parser.Lexing
 
         #region TokenUtils
 
+        [DebuggerDisplay("{Regex.ToString()}")]
         protected sealed class TokenDefinition
         {
             public TokenDefinition(string pattern)
