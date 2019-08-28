@@ -99,6 +99,7 @@ namespace Musoq.Schema.Os
             constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<ProcessesSource>(ProcessesName));
             constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<OsSource>(Self));
             constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<DllSource>(DllsTable));
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<CompareDirectoriesSource>(DirsCompare));
 
             return constructors.ToArray();
         }
