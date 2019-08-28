@@ -210,7 +210,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KWhere = Format(Keyword, WhereToken.TokenText);
             public static readonly string KWhiteSpace = @"[\s]{1,}";
             public static readonly string KWordBracketed = @"'(.*?[^\\])'";
-            public static readonly string KEmptyString = @"'(.*)'";
+            public static readonly string KEmptyString = @"''";
             public static readonly string KEqual = Format(Keyword, EqualityToken.TokenText);
             public static readonly string KSelect = Format(Keyword, SelectToken.TokenText);
             public static readonly string KFrom = Format(Keyword, FromToken.TokenText);
@@ -323,6 +323,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KWhiteSpace),
                 new TokenDefinition(TokenRegexDefinition.KUnionAll, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.Function),
+                new TokenDefinition(TokenRegexDefinition.KEmptyString),
                 new TokenDefinition(TokenRegexDefinition.KWordBracketed, RegexOptions.ECMAScript),
                 new TokenDefinition(TokenRegexDefinition.KSelect, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KFrom, RegexOptions.IgnoreCase),
@@ -355,7 +356,6 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KThen),
                 new TokenDefinition(TokenRegexDefinition.KElse),
                 new TokenDefinition(TokenRegexDefinition.KEnd),
-                new TokenDefinition(TokenRegexDefinition.KEmptyString),
             };
         }
 

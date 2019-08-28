@@ -762,8 +762,8 @@ namespace Musoq.Parser
                     Consume(TokenType.Hyphen);
                     return new StarNode(new IntegerNode("-1"), Compose(f => f.ComposeArithmeticExpression(minPrec)));
                 case TokenType.Case:
-                    var caseNodes = ComposeCase();
-                    return new CaseNode(caseNodes.WhenThenNodes, caseNodes.ElseNode);
+                    var (WhenThenNodes, ElseNode) = ComposeCase();
+                    return new CaseNode(WhenThenNodes, ElseNode);
             }
 
             throw new NotSupportedException($"Token {Current.Value}({Current.TokenType}) cannot be used here.");

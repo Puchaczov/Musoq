@@ -382,6 +382,15 @@ namespace Musoq.Schema.Os.Tests.Core
             var table = vm.Run();
         }
 
+        [TestMethod]
+        public void Query_ShouldNotThrowException()
+        {
+            var query = "select (case when SourceFile is not null then ToHex(Head(SourceFile, 5), '|') else '' end) as t, DestinationFileRelative, State from #os.dirscompare('./Files', './Files')";
+            
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+        }
+
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new OsSchemaProvider());
