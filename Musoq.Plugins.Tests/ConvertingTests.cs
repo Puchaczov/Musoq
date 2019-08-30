@@ -72,6 +72,12 @@ namespace Musoq.Plugins.Tests
             Assert.AreEqual(null, Library.ToString((TestToStringClass)null));
         }
 
+        [TestMethod]
+        public void ToBinTest()
+        {
+            Assert.AreEqual("100", Library.ToBin(4));
+        }
+
         private class TestToStringClass
         {
             public override string ToString()

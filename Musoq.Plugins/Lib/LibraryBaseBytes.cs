@@ -77,5 +77,17 @@ namespace Musoq.Plugins
 
             return bytes.ToArray();
         }
+
+        [BindableMethod]
+        public byte[] GetBytes(double value)
+        {
+            return GetBytes(BitConverter.DoubleToInt64Bits(value));
+        }
+
+        [BindableMethod]
+        public byte[] GetBytes(float value)
+        {
+            return BitConverter.GetBytes(value);
+        }
     }
 }

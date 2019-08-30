@@ -89,6 +89,18 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public string PadLeft(string value, string character, int totalWidth)
+        {
+            return value.PadLeft(totalWidth, character[0]);
+        }
+
+        [BindableMethod]
+        public string PadRight(string value, string character, int totalWidth)
+        {
+            return value.PadRight(totalWidth, character[0]);
+        }
+
+        [BindableMethod]
         public string Head(string value, int length) => value.Substring(0, length);
 
         [BindableMethod]
@@ -96,23 +108,9 @@ namespace Musoq.Plugins
 
 
         [BindableMethod]
-        public string ToHex(byte[] bytes, string delimiter = "")
+        public int LevenshteinDistance(string firstValue, string secondValue)
         {
-            var hexBuilder = new StringBuilder();
-
-            if (bytes.Length > 0)
-            {
-                for (int i = 0; i < bytes.Length - 1; i++)
-                {
-                    var byteValue = bytes[i];
-                    hexBuilder.Append(byteValue.ToString("X2"));
-                    hexBuilder.Append(delimiter);
-                }
-
-                hexBuilder.Append(bytes[bytes.Length - 1].ToString("X2"));
-            }
-
-            return hexBuilder.ToString();
+            return Fastenshtein.Levenshtein.Distance(firstValue, secondValue);
         }
     }
 }
