@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using Musoq.Plugins.Attributes;
 
@@ -10,7 +11,7 @@ namespace Musoq.Plugins
         private readonly Soundex _soundex = new Soundex();
 
         [BindableMethod]
-        public string Substr(string value, int index, int length)
+        public string Substring(string value, int index, int length)
         {
             if (string.IsNullOrEmpty(value))
                 return value;
@@ -28,9 +29,9 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public string Substr(string value, int length)
+        public string Substring(string value, int length)
         {
-            return Substr(value, 0, length);
+            return Substring(value, 0, length);
         }
 
         [BindableMethod]
@@ -112,5 +113,9 @@ namespace Musoq.Plugins
         {
             return Fastenshtein.Levenshtein.Distance(firstValue, secondValue);
         }
+
+        [BindableMethod]
+        public string LongestCommonSubstring(string source, string pattern)
+            => new string(LongestCommonSequence(source, pattern).ToArray());
     }
 }

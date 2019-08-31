@@ -345,7 +345,7 @@ namespace Musoq.Evaluator.Tests.Core
         public void GroupBySubstrTest()
         {
             var query =
-                @"select Substr(Name, 0, 2), Count(Substr(Name, 0, 2)) from #A.Entities() group by Substr(Name, 0, 2)";
+                @"select Substring(Name, 0, 2), Count(Substring(Name, 0, 2)) from #A.Entities() group by Substring(Name, 0, 2)";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
@@ -365,9 +365,9 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Substr(Name, 0, 2)", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("Substring(Name, 0, 2)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Count(Substr(Name, 0, 2))", table.Columns.ElementAt(1).ColumnName);
+            Assert.AreEqual("Count(Substring(Name, 0, 2))", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -430,7 +430,7 @@ namespace Musoq.Evaluator.Tests.Core
         public void GroupByColumnSubstringTest()
         {
             var query =
-                "select Country, Substr(City, IndexOf(City, ':')) as 'City', Count(City) as 'Count', Sum(Population) as 'Sum' from #A.Entities() group by Substr(City, IndexOf(City, ':')), Country";
+                "select Country, Substring(City, IndexOf(City, ':')) as 'City', Count(City) as 'Count', Sum(Population) as 'Sum' from #A.Entities() group by Substring(City, IndexOf(City, ':')), Country";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {

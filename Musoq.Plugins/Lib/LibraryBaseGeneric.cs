@@ -1,4 +1,5 @@
 ﻿using Musoq.Plugins.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -28,6 +29,47 @@ namespace Musoq.Plugins
         public T[] ToArray<T>(IEnumerable<T> values)
         {
             return values.ToArray();
+        }
+
+        public IEnumerable<T> LongestCommonSequence<T>(IEnumerable<T> source, IEnumerable<T> pattern)
+            where T : IEquatable<T>
+        {
+            var sourceCount = source.Count();
+            var patternCount = pattern.Count();
+
+            var array = new int[sourceCount, patternCount];
+            var maxSubStringSequnce = 0;
+
+            var subSequence = (IEnumerable<T>)null;
+
+            for (int i = 0; i < sourceCount; ++i)
+            {
+                var sourceElement = source.ElementAt(i);
+                for (int j = 0; j < patternCount; ++j)
+                {
+                    var patternElement = pattern.ElementAt(j);
+
+                    if (sourceElement.Equals(patternElement))
+                    {
+                        array[i, j] = (i == 0 || j == 0) ? 1 : array[i - 1, j - 1] + 1;
+
+                        if (array[i, j] > maxSubStringSequnce)
+                        {
+                            maxSubStringSequnce = array[i, j];
+                            subSequence = source.Skip(i - maxSubStringSequnce + 1).Take(maxSubStringSequnce);
+                        }
+                    }
+                    else
+                    {
+                        array[i, j] = 0;
+                    }
+                }
+            }
+
+            if (subSequence == null)
+                return Array.Empty<T>();
+
+            return subSequence;
         }
     }
 }

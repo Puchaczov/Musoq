@@ -6,6 +6,7 @@ namespace Musoq.Schema.FlatFile
     {
         [EntityProperty]
         public string Line { get; set; }
+
         [EntityProperty]
         public int LineNumber { get; set; }
     }

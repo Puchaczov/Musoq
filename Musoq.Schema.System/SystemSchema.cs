@@ -10,6 +10,7 @@ namespace Musoq.Schema.System
     public partial class SystemSchema : SchemaBase
     {
         private const string Dual = "dual";
+        private const string Range = "range";
         private const string System = "system";
         public SystemSchema() 
             : base(System, CreateLibrary())
@@ -22,6 +23,8 @@ namespace Musoq.Schema.System
             {
                 case Dual:
                     return new DualTable();
+                case Range:
+                    return new RangeTable();
             }
 
             throw new NotSupportedException(name);
@@ -33,6 +36,17 @@ namespace Musoq.Schema.System
             {
                 case Dual:
                     return new DualRowSource();
+                case Range:
+                    {
+                        switch(parameters.Length)
+                        {
+                            case 1:
+                                return new RangeSource(0, Convert.ToInt64(parameters[0]));
+                            case 2:
+                                return new RangeSource(Convert.ToInt64(parameters[0]), Convert.ToInt64(parameters[1]));
+                        }
+                        break;
+                    }
             }
 
             throw new NotSupportedException(name);
@@ -56,6 +70,7 @@ namespace Musoq.Schema.System
             var constructors = new List<SchemaMethodInfo>();
 
             constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<DualRowSource>(Dual));
+            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<RangeSource>(Range));
 
             return constructors.ToArray();
         }

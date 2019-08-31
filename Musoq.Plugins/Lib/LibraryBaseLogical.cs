@@ -10,7 +10,7 @@ namespace Musoq.Plugins
         public T Choose<T>(int index, params T[] values)
         {
             if (values.Length <= index)
-                return default(T);
+                return default;
 
             return values[index];
         }
@@ -47,7 +47,7 @@ namespace Musoq.Plugins
                     return obj;
             }
 
-            return default(T);
+            return default;
         }
     }
 }

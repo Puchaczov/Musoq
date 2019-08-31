@@ -8,15 +8,15 @@ namespace Musoq.Plugins.Tests
         [TestMethod]
         public void SubstrTest()
         {
-            Assert.AreEqual("lorem", Library.Substr("lorem ipsum dolor", 0, 5));
-            Assert.AreEqual("lorem ipsum dolor", Library.Substr("lorem ipsum dolor", 0, 150));
-            Assert.AreEqual(string.Empty, Library.Substr("lorem ipsum dolor", 0, 0));
-            Assert.AreEqual(null, Library.Substr(null, 0, 5));
+            Assert.AreEqual("lorem", Library.Substring("lorem ipsum dolor", 0, 5));
+            Assert.AreEqual("lorem ipsum dolor", Library.Substring("lorem ipsum dolor", 0, 150));
+            Assert.AreEqual(string.Empty, Library.Substring("lorem ipsum dolor", 0, 0));
+            Assert.AreEqual(null, Library.Substring(null, 0, 5));
 
-            Assert.AreEqual(string.Empty, Library.Substr("lorem ipsum dolor", 0));
-            Assert.AreEqual("lorem", Library.Substr("lorem ipsum dolor", 5));
-            Assert.AreEqual("lorem ipsum dolor", Library.Substr("lorem ipsum dolor", 150));
-            Assert.AreEqual(null, Library.Substr(null, 150));
+            Assert.AreEqual(string.Empty, Library.Substring("lorem ipsum dolor", 0));
+            Assert.AreEqual("lorem", Library.Substring("lorem ipsum dolor", 5));
+            Assert.AreEqual("lorem ipsum dolor", Library.Substring("lorem ipsum dolor", 150));
+            Assert.AreEqual(null, Library.Substring(null, 150));
         }
 
         [TestMethod]
@@ -53,6 +53,14 @@ namespace Musoq.Plugins.Tests
         public void ToHexTest()
         {
             Assert.AreEqual("01,05,07,09,0B,0D,0F,11,19", Library.ToHex(new byte[] { 1, 5, 7, 9, 11, 13, 15, 17, 25 }, ","));
+        }
+
+        [TestMethod]
+        public void LongestCommonSubstringTest()
+        {
+            Assert.AreEqual("vwtgw", Library.LongestCommonSubstring("svfvwtgwdsd", "vwtgw"));
+            Assert.AreEqual("vwtgw", Library.LongestCommonSubstring("vwtgwdsd", "vwtgw"));
+            Assert.AreEqual("vwtgw", Library.LongestCommonSubstring("svfvwtgw", "vwtgw"));
         }
     }
 }
