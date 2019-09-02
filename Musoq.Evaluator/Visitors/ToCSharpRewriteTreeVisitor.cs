@@ -661,11 +661,58 @@ namespace Musoq.Evaluator.Visitors
                 args.Add(item);
             }
 
-            var accessMethodExpr = Generator.InvocationExpression(
-                Generator.MemberAccessExpression(
-                    Generator.IdentifierName(variableName),
-                    Generator.IdentifierName(node.Name)),
-                args);
+            SyntaxNode accessMethodExpr;
+
+            if (node.Method.IsGenericMethod && method.GetCustomAttribute<AggregationMethodAttribute>() != null)
+            {
+                var genericArgs = node.Method.GetGenericArguments();
+                var syntaxArgs = new List<SyntaxNodeOrToken>();
+
+                for(int i = 0; i < genericArgs.Length - 1; ++i)
+                {
+                    syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[i].FullName));
+                    syntaxArgs.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
+                }
+
+                syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[genericArgs.Length - 1].FullName));
+
+                TypeArgumentListSyntax typeArgs;
+                if (syntaxArgs.Count < 2)
+                {
+                    typeArgs = SyntaxFactory.TypeArgumentList(
+                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                            (IdentifierNameSyntax)syntaxArgs[0]));
+                }
+                else
+                {
+                    typeArgs = SyntaxFactory.TypeArgumentList(
+                        SyntaxFactory.SeparatedList<TypeSyntax>(
+                            syntaxArgs.ToArray()));
+                }
+
+                var genericName = SyntaxFactory
+                    .GenericName(node.Name)
+                    .WithTypeArgumentList(
+                        typeArgs
+                        .WithLessThanToken(
+                            SyntaxFactory.Token(SyntaxKind.LessThanToken))
+                        .WithGreaterThanToken(
+                            SyntaxFactory.Token(SyntaxKind.GreaterThanToken)));
+
+                accessMethodExpr = Generator.InvocationExpression(
+                    Generator.MemberAccessExpression(
+                        Generator.IdentifierName(variableName),
+                        genericName),
+                    args);
+            }
+            else
+            {
+                accessMethodExpr = Generator.InvocationExpression(
+                    Generator.MemberAccessExpression(
+                        Generator.IdentifierName(variableName),
+                        Generator.IdentifierName(node.Name)),
+                    args);
+            }
 
             if (!node.ReturnType.IsTrueValueType())
                 NullSuspiciousNodes.Push(accessMethodExpr);
@@ -1278,6 +1325,7 @@ namespace Musoq.Evaluator.Visitors
 
             var block = (BlockSyntax) Nodes.Pop();
 
+            block = block.AddStatements(GenerateStatsUpdateStatements());
             block = block.AddStatements(GenerateCancellationExpression());
 
             if (where != null)
@@ -1290,7 +1338,6 @@ namespace Musoq.Evaluator.Visitors
                 block = block.AddStatements(take.Statements.ToArray());
 
             block = block.AddStatements(select.Statements.ToArray());
-            block = block.AddStatements(GenerateStatsUpdateStatements());
             var fullBlock = SyntaxFactory.Block();
 
             fullBlock = fullBlock.AddStatements(SyntaxHelper.Foreach("score", _scope[MetaAttributes.SourceName],

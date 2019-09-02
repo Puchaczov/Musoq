@@ -5,6 +5,7 @@ using Musoq.Plugins;
 
 namespace Musoq.Schema.System.Tests
 {
+    [TestClass]
     public class RangeTests
     {
 
@@ -54,6 +55,20 @@ namespace Musoq.Schema.System.Tests
             Assert.AreEqual(1L, table[2][0]);
         }
 
+
+        [TestMethod]
+        public void RowNumberEvenForRangeMinSignedMaxTest()
+        {
+            var query = "select Value from #system.range(0, 5) where RowNumber() % 2 = 0";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(1L, table[0][0]);
+            Assert.AreEqual(3L, table[1][0]);
+        }
+
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, new SystemSchemaProvider());
@@ -61,7 +76,7 @@ namespace Musoq.Schema.System.Tests
 
         static RangeTests()
         {
-            new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }

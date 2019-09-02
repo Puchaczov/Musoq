@@ -875,6 +875,33 @@ namespace Musoq.Evaluator.Visitors
                     throw new NotSupportedException($"Cannot resolve method {setMethodName} with parameters {names}");
                 }
 
+                if (setMethod.IsGenericMethodDefinition)
+                {
+                    var setParams = setMethod.GetParameters();
+                    var genericArguments = setMethod.GetGenericArguments();
+                    var genericArgumentsMap = new Dictionary<int, Type>();
+                    var genericArgumentsDistinct = new List<Type>();
+
+                    foreach (var genericArgument in genericArguments)
+                    {
+                        for (int i = 0; i < setParams.Length; i++)
+                        {
+                            var setParam = setParams[i];
+
+                            if (setParam.ParameterType == genericArgument)
+                            {
+                                genericArgumentsMap.Add(i, genericArgument);
+                                genericArgumentsDistinct.Add(newSetArgs.Where((arg, index) => index == i - 1).Single().ReturnType);
+                            }
+                        }
+                    }
+
+                    var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
+
+                    method = method.MakeGenericMethod(genericArgumentsConcreteTypes);
+                    setMethod = setMethod.MakeGenericMethod(genericArgumentsConcreteTypes);
+                }
+
                 var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty),
                     new ArgsListNode(newSetArgs.ToArray()), null, setMethod,
                     alias, false);

@@ -2,6 +2,6 @@
 {
     public class QueryStats
     {
-        public int RowNumber { get; protected set; } = 1;
+        public int RowNumber { get; protected set; } = 0;
     }
 }

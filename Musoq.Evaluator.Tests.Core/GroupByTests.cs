@@ -529,6 +529,84 @@ namespace Musoq.Evaluator.Tests.Core
         }
 
         [TestMethod]
+        public void GroupByForFakeWindowTest()
+        {
+            var query =
+                "select Window(Population) from #A.Entities() group by 'fake'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Window(Population)", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(IEnumerable<decimal>), table.Columns.ElementAt(0).ColumnType);
+
+            var window = (IEnumerable<decimal>)table[0][0];
+
+            Assert.AreEqual(5, window.Count());
+            Assert.AreEqual(500, window.ElementAt(0));
+            Assert.AreEqual(400, window.ElementAt(1));
+            Assert.AreEqual(250, window.ElementAt(2));
+            Assert.AreEqual(250, window.ElementAt(3));
+            Assert.AreEqual(350, window.ElementAt(4));
+        }
+
+        [TestMethod]
+        public void GroupByForCountriesWideWindowTest()
+        {
+            var query =
+                "select Window(Population) from #A.Entities() group by Country";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Window(Population)", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(IEnumerable<decimal>), table.Columns.ElementAt(0).ColumnType);
+
+            var window = (IEnumerable<decimal>)table[0][0];
+
+            Assert.AreEqual(3, window.Count());
+            Assert.AreEqual(500, window.ElementAt(0));
+            Assert.AreEqual(400, window.ElementAt(1));
+            Assert.AreEqual(250, window.ElementAt(2));
+
+            window = (IEnumerable<decimal>)table[1][0];
+
+            Assert.AreEqual(2, window.Count());
+            Assert.AreEqual(250, window.ElementAt(0));
+            Assert.AreEqual(350, window.ElementAt(1));
+        }
+
+        [TestMethod]
         public void GroupByWithWhereTest()
         {
             var query =

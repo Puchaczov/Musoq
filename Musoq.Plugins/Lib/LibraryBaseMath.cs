@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Musoq.Plugins.Attributes;
 
@@ -110,5 +111,27 @@ namespace Musoq.Plugins
         [BindableMethod]
         public int Rand(int min, int max)
             => _rand.Next(min, max);
+
+        [BindableMethod]
+        public double Pow(decimal x, decimal y) => Math.Pow(Convert.ToDouble(x), Convert.ToDouble(y));
+
+        [BindableMethod]
+        public double Pow(double x, double y) => Math.Pow(x, y);
+
+        [BindableMethod]
+        public double Sqrt(decimal x) => Math.Sqrt(Convert.ToDouble(x));
+
+        [BindableMethod]
+        public double Sqrt(double x) => Math.Sqrt(x);
+
+        [BindableMethod]
+        public double PercentRank<T>(IEnumerable<T> window, T value)
+            where T : IComparable<T>
+        {
+            var orderedWindow = window.OrderBy(w => w).ToArray();
+            var index = Array.IndexOf(orderedWindow, value);
+
+            return (index - 1) / (orderedWindow.Length - 1);
+        }
     }
 }

@@ -63,6 +63,14 @@ namespace Musoq.Plugins
             return (T) Values[name];
         }
 
+        public T GetOrCreateValue<T>(string name, Func<T> createDefault)
+        {
+            if (!Values.ContainsKey(name))
+                Values.Add(name, createDefault());
+
+            return (T)Values[name];
+        }
+
         public void SetValue<T>(string name, T value)
         {
             Values[name] = value;

@@ -31,6 +31,7 @@ namespace Musoq.Plugins
             return values.ToArray();
         }
 
+        [BindableMethod]
         public IEnumerable<T> LongestCommonSequence<T>(IEnumerable<T> source, IEnumerable<T> pattern)
             where T : IEquatable<T>
         {
@@ -70,6 +71,28 @@ namespace Musoq.Plugins
                 return Array.Empty<T>();
 
             return subSequence;
+        }
+
+        [AggregationSetMethod]
+        public void SetWindow<T>([InjectGroup] Group group, string name, T value, int parent = 0)
+        {
+            var parentGroup = GetParentGroup(group, parent);
+
+            if (value == null)
+            {
+                parentGroup.GetOrCreateValue(name, new List<T>());
+                return;
+            }
+
+            var values = parentGroup.GetOrCreateValue(name, () => new List<T>());
+
+            values.Add(value);
+        }
+
+        [AggregationGetMethod]
+        public IEnumerable<T> Window<T>([InjectGroup] Group group, string name)
+        {
+            return group.GetValue<List<T>>(name);
         }
     }
 }
