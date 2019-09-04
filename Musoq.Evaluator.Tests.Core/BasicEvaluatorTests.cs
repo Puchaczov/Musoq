@@ -1238,6 +1238,28 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual(20m, table[0][0]);
         }
+
+        [TestMethod]
+        public void ComputeStDevTest()
+        {
+            var query = "select StDev(Population) from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 10 },
+                        new BasicEntity("june", 200m) { Population = 20 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.IsTrue(0.001m > (decimal)table[0][0] - 7.071m);
+        }
         
         [TestMethod]
         public void CaseWhenSimpleTest()
