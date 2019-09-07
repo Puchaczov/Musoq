@@ -1073,24 +1073,138 @@ namespace Musoq.Evaluator.Visitors
 
             _emptyBlock = SyntaxFactory.Block();
 
-            var foreaches = SyntaxFactory.ForEachStatement(
-                SyntaxFactory.IdentifierName("var"),
-                SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
-                SyntaxFactory.IdentifierName(
-                    $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
-                SyntaxFactory.Block(
-                    SyntaxFactory.SingletonList<StatementSyntax>(
+            var computingBlock = SyntaxFactory.Block();
+            switch (node.JoinType)
+            {
+                case JoinType.Inner:
+                    computingBlock = computingBlock.AddStatements(
                         SyntaxFactory.ForEachStatement(
                             SyntaxFactory.IdentifierName("var"),
-                            SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
-                            SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
+                            SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
+                            SyntaxFactory.IdentifierName(
+                                $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
                             SyntaxFactory.Block(
-                                GenerateCancellationExpression(),
-                                (StatementSyntax) ifStatement,
-                                _emptyBlock)))));
+                                SyntaxFactory.SingletonList<StatementSyntax>(
+                                    SyntaxFactory.ForEachStatement(
+                                        SyntaxFactory.IdentifierName("var"),
+                                        SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
+                                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
+                                        SyntaxFactory.Block(
+                                            GenerateCancellationExpression(),
+                                            (StatementSyntax)ifStatement,
+                                            _emptyBlock))))));
+                    break;
+                case JoinType.OuterLeft:
+
+                    var fullTransitionTable = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(_queryAlias);
+                    var fieldNames = _scope.ScopeSymbolTable.GetSymbol<FieldsNamesSymbol>(MetaAttributes.LeftJoinSelectWhenRightTableIsNull);
+                    var expressions = new List<ExpressionSyntax>();
+
+                    for (int i = 0, j = 0; i < fullTransitionTable.CompoundTables.Length - 1; i++)
+                    {
+                        foreach(var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[i]))
+                        {
+                            expressions.Add(
+                                SyntaxFactory.ElementAccessExpression(
+                                    SyntaxFactory.IdentifierName($"{node.InMemoryTableAlias}Row"),
+                                    SyntaxFactory.BracketedArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Argument(
+                                                (LiteralExpressionSyntax)Generator.LiteralExpression(fieldNames.Names[j]))))));
+
+                            j += 1;
+                        }
+                    }
+
+                    foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[fullTransitionTable.CompoundTables.Length - 1]))
+                    {
+                        expressions.Add(
+                            SyntaxFactory.CastExpression(
+                                SyntaxFactory.IdentifierName(
+                                    EvaluationHelper.GetCastableType(column.ColumnType)),
+                                (LiteralExpressionSyntax)Generator.NullLiteralExpression()));
+                    }
+
+                    var arrayType = SyntaxFactory.ArrayType(
+                                        SyntaxFactory.IdentifierName("object"),
+                                        new SyntaxList<ArrayRankSpecifierSyntax>(
+                                            SyntaxFactory.ArrayRankSpecifier(
+                                            SyntaxFactory.SingletonSeparatedList(
+                                                (ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
+
+                    var rewriteSelect =
+                        SyntaxFactory.VariableDeclaration(
+                            SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.VariableDeclarator(
+                                    SyntaxFactory.Identifier("select"),
+                                    null,
+                                    SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.ArrayCreationExpression(
+                                            arrayType,
+                                            SyntaxFactory.InitializerExpression(
+                                                SyntaxKind.ArrayInitializerExpression,
+                                                SyntaxFactory.SeparatedList(expressions)))))));
+
+
+
+                    var invocation = SyntaxHelper.CreateMethodInvocation(
+                        _scope[MetaAttributes.SelectIntoVariableName],
+                        nameof(Table.Add),
+                        new[]
+                        {
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.ObjectCreationExpression(
+                                    SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                                    SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                                    SyntaxFactory.ArgumentList(
+                                        SyntaxFactory.SeparatedList(
+                                            new[]
+                                            {
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select"))
+                                            })
+                                    ),
+                                    SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
+                            )});
+
+                    computingBlock = computingBlock.AddStatements(
+                        SyntaxFactory.ForEachStatement(
+                            SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
+                            SyntaxFactory.IdentifierName(
+                                $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
+                            SyntaxFactory.Block(
+                                SyntaxFactory.LocalDeclarationStatement(
+                                    SyntaxHelper.CreateAssignment("hasAnyRowMatched", SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
+                                SyntaxFactory.ForEachStatement(
+                                        SyntaxFactory.IdentifierName("var"),
+                                        SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
+                                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
+                                        SyntaxFactory.Block(
+                                            GenerateCancellationExpression(),
+                                            (StatementSyntax)ifStatement,
+                                            _emptyBlock,
+                                            SyntaxFactory.IfStatement(
+                                                (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                                SyntaxFactory.Block(
+                                                    SyntaxFactory.ExpressionStatement(
+                                                        SyntaxFactory.AssignmentExpression(
+                                                            SyntaxKind.SimpleAssignmentExpression, 
+                                                            SyntaxFactory.IdentifierName("hasAnyRowMatched"), 
+                                                            (LiteralExpressionSyntax) Generator.TrueLiteralExpression())))))),
+                                SyntaxFactory.IfStatement(
+                                    (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                    SyntaxFactory.Block(
+                                        SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
+                                        SyntaxFactory.ExpressionStatement(invocation))))));
+                    break;
+                case JoinType.OuterRight:
+                    break;
+            }
 
             NullSuspiciousNodes.Clear();
-            _joinBlock = SyntaxFactory.Block(foreaches);
+
+            _joinBlock = computingBlock;
         }
 
         public void Visit(SchemaFromNode node)
@@ -1179,19 +1293,129 @@ namespace Musoq.Evaluator.Visitors
 
             _emptyBlock = SyntaxFactory.Block();
 
-            var foreaches = SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
-                SyntaxFactory.Identifier($"{node.First.Alias}Row"),
-                SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
-                SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ForEachStatement(
-                    SyntaxFactory.IdentifierName("var"), SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
-                    SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
-                    SyntaxFactory.Block(
-                        GenerateCancellationExpression(),
-                        (StatementSyntax) ifStatement, 
-                        _emptyBlock)))));
+            var computingBlock = SyntaxFactory.Block();
+            switch (node.JoinType)
+            {
+                case JoinType.Inner:
+                    computingBlock = 
+                        computingBlock.AddStatements(
+                            SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.Identifier($"{node.First.Alias}Row"),
+                            SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
+                            SyntaxFactory.Block(
+                                SyntaxFactory.SingletonList<StatementSyntax>(
+                                    SyntaxFactory.ForEachStatement(
+                                        SyntaxFactory.IdentifierName("var"), 
+                                        SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
+                                        SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
+                                        SyntaxFactory.Block(
+                                            GenerateCancellationExpression(),
+                                            (StatementSyntax)ifStatement,
+                                            _emptyBlock))))));
+                    break;
+                case JoinType.OuterLeft:
+
+                    var fullTransitionTable = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(_queryAlias);
+                    var expressions = new List<ExpressionSyntax>();
+
+                    foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
+                    {
+                        expressions.Add(
+                            SyntaxFactory.ElementAccessExpression(
+                                SyntaxFactory.IdentifierName("aRow"), 
+                                SyntaxFactory.BracketedArgumentList(
+                                    SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Argument(
+                                            (LiteralExpressionSyntax)Generator.LiteralExpression(column.ColumnName))))));
+                    }
+
+                    foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
+                    {
+                        expressions.Add(
+                            SyntaxFactory.CastExpression(
+                                SyntaxFactory.IdentifierName(
+                                    EvaluationHelper.GetCastableType(column.ColumnType)),
+                                (LiteralExpressionSyntax)Generator.NullLiteralExpression()));
+                    }
+
+                    var arrayType = SyntaxFactory.ArrayType(
+                                        SyntaxFactory.IdentifierName("object"),
+                                        new SyntaxList<ArrayRankSpecifierSyntax>(
+                                            SyntaxFactory.ArrayRankSpecifier(
+                                            SyntaxFactory.SingletonSeparatedList(
+                                                (ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
+
+                    var rewriteSelect = 
+                        SyntaxFactory.VariableDeclaration(
+                            SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.VariableDeclarator(
+                                    SyntaxFactory.Identifier("select"),
+                                    null,
+                                    SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.ArrayCreationExpression(
+                                            arrayType,
+                                            SyntaxFactory.InitializerExpression(
+                                                SyntaxKind.ArrayInitializerExpression,
+                                                SyntaxFactory.SeparatedList(expressions)))))));
+
+
+
+                    var invocation = SyntaxHelper.CreateMethodInvocation(
+                        _scope[MetaAttributes.SelectIntoVariableName],
+                        nameof(Table.Add),
+                        new[]
+                        {
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.ObjectCreationExpression(
+                                    SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                                    SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                                    SyntaxFactory.ArgumentList(
+                                        SyntaxFactory.SeparatedList(
+                                            new[]
+                                            {
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select"))
+                                            })
+                                    ),
+                                    SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
+                            )});
+
+                    computingBlock =
+                        computingBlock.AddStatements(
+                            SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.Identifier($"{node.First.Alias}Row"),
+                            SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
+                            SyntaxFactory.Block(
+                                SyntaxFactory.LocalDeclarationStatement(
+                                    SyntaxHelper.CreateAssignment("hasAnyRowMatched", (LiteralExpressionSyntax)Generator.FalseLiteralExpression())),
+                                SyntaxFactory.ForEachStatement(
+                                    SyntaxFactory.IdentifierName("var"),
+                                    SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
+                                    SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
+                                    SyntaxFactory.Block(
+                                        GenerateCancellationExpression(),
+                                        (StatementSyntax)ifStatement,
+                                        _emptyBlock,
+                                        SyntaxFactory.IfStatement(
+                                            (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                            SyntaxFactory.Block(
+                                                SyntaxFactory.ExpressionStatement(
+                                                    SyntaxFactory.AssignmentExpression(
+                                                        SyntaxKind.SimpleAssignmentExpression,
+                                                        SyntaxFactory.IdentifierName("hasAnyRowMatched"),
+                                                        (LiteralExpressionSyntax)Generator.TrueLiteralExpression())))))),
+                                SyntaxFactory.IfStatement(
+                                    (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                    SyntaxFactory.Block(
+                                        SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
+                                        SyntaxFactory.ExpressionStatement(invocation))))));
+                    break;
+                case JoinType.OuterRight:
+                    break;
+            }
 
             NullSuspiciousNodes.Clear();
-            _joinBlock = SyntaxFactory.Block(foreaches);
+            _joinBlock = computingBlock;
         }
 
         public void Visit(InMemoryTableFromNode node)

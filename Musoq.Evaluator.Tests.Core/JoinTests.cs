@@ -726,18 +726,132 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             Assert.AreEqual(2, table[0][1]);
         }
 
-        [Ignore]
         [TestMethod]
         public void SimpleLeftJoinTest()
         {
-            var query = "select a.Id from #A.x1() a left outer join #B.x2() b on a.Id = b.Id";
+            var query = "select a.Id, b.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
                     "#A", new[]
                     {
-                        new BasicEntity("xX")
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                },
+                {
+                    "#B",
+                    new BasicEntity[]
+                    {
+
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(2, table.Columns.Count());
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual(0, column.ColumnIndex);
+            Assert.AreEqual("a.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual(1, column.ColumnIndex);
+            Assert.AreEqual("b.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            Assert.AreEqual(1, table[0][0]);
+            Assert.AreEqual((int?)null, table[0][1]);
+        }
+
+        [TestMethod]
+        public void MultipleLeftJoinTest()
+        {
+            var query = "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #B.entities() c on b.Id = c.Id";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                },
+                {
+                    "#B",
+                    new BasicEntity[]
+                    {
+
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+        }
+
+        [TestMethod]
+        public void MultipleLeftJoinWithCTriesMatchBButFailTest()
+        {
+            var query = "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #C.entities() c on b.Id = c.Id";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                },
+                {
+                    "#B",
+                    new BasicEntity[]
+                    {
+
+                    }
+                },
+                {
+                    "#C",
+                    new BasicEntity[]
+                    {
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+        }
+
+        [TestMethod]
+        public void MultipleLeftJoinWithCTriesMatchBAndSucceedTest()
+        {
+            var query = "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #C.entities() c on b.Id = c.Id";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                },
+                {
+                    "#B",
+                    new BasicEntity[]
+                    {
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                },
+                {
+                    "#C",
+                    new BasicEntity[]
+                    {
+                        new BasicEntity("xX") { Id = 1 }
                     }
                 }
             };

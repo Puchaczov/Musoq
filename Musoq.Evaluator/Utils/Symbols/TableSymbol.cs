@@ -4,6 +4,7 @@ using System.Linq;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Utils.Symbols
 {
@@ -139,12 +140,33 @@ namespace Musoq.Evaluator.Utils.Symbols
                 compundTableColumns.AddRange(item.Value.Item2.Columns);
             }
 
-            foreach (var item in other._tables)
-            {
-                symbol._tables.Add(item.Key, item.Value);
-                symbol._orders.Add(item.Key);
+            symbol._tables.Add(other._fullTableName, new Tuple<ISchema, ISchemaTable>(other._fullSchema, other._fullTable));
+            symbol._orders.Add(other._fullTableName);
 
-                compundTableColumns.AddRange(item.Value.Item2.Columns);
+            compundTableColumns.AddRange(other._fullTable.Columns);
+
+            symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
+            symbol._fullTable = new DynamicTable(compundTableColumns.ToArray());
+            symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol._fullTable);
+
+            return symbol;
+        }
+
+        public TableSymbol MakeNullableIfPossible()
+        {
+            var symbol = new TableSymbol();
+            var compundTableColumns = new List<ISchemaColumn>();
+            
+            foreach (var column in _fullTable.Columns)
+            {
+                compundTableColumns.Add(ConvertColumnToNullable(column));
+            }
+
+            foreach (var item in _tables)
+            {
+                var dynamicTable = new DynamicTable(item.Value.Item2.Columns.Select(c => ConvertColumnToNullable(c)).ToArray());
+                symbol._tables.Add(item.Key, new Tuple<ISchema, ISchemaTable>(item.Value.Item1, dynamicTable));
+                symbol._orders.Add(item.Key);
             }
 
             symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
@@ -152,6 +174,19 @@ namespace Musoq.Evaluator.Utils.Symbols
             symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol._fullTable);
 
             return symbol;
+        }
+
+        private ISchemaColumn ConvertColumnToNullable(ISchemaColumn column)
+        {
+            return new SchemaColumn(column.ColumnName, column.ColumnIndex, ConvertToNullable(column.ColumnType));
+        }
+
+        private Type ConvertToNullable(Type columnType)
+        {
+            if (Nullable.GetUnderlyingType(columnType) == null && columnType.IsValueType)
+                return typeof(Nullable<>).MakeGenericType(columnType);
+
+            return columnType;
         }
     }
 }

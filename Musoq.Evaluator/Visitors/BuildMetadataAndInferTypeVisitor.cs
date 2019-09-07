@@ -492,7 +492,7 @@ namespace Musoq.Evaluator.Visitors
             var b = (FromNode) Nodes.Pop();
             var a = (FromNode) Nodes.Pop();
 
-            Nodes.Push(new JoinSourcesTableFromNode(a, b, exp));
+            Nodes.Push(new JoinSourcesTableFromNode(a, b, exp, node.JoinType));
         }
 
         public void Visit(InMemoryTableFromNode node)
@@ -606,7 +606,7 @@ namespace Musoq.Evaluator.Visitors
             _refreshMethods.Clear();
 
             if (_currentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
-                _currentScope.ScopeSymbolTable.UpdateSymbol(string.Empty, from.Alias);
+                _currentScope.ScopeSymbolTable.MoveSymbol(string.Empty, from.Alias);
 
             Methods.Push(from.Alias);
             Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
@@ -618,7 +618,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var exp = Nodes.Pop();
             var from = (FromNode) Nodes.Pop();
-            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp));
+            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
         }
 
         public void Visit(InternalQueryNode node)

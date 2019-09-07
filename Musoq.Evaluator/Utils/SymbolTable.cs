@@ -28,10 +28,16 @@ namespace Musoq.Evaluator.Utils
             return (TSymbol) GetSymbol(key);
         }
 
-        public void UpdateSymbol(object oldKey, object newKey)
+        public void MoveSymbol(object oldKey, object newKey)
         {
             _symbols.Add(newKey, GetSymbol(oldKey));
             _symbols.Remove(oldKey);
+        }
+
+        public void UpdateSymbol(object oldKey, Symbol symbol)
+        {
+            _symbols.Remove(oldKey);
+            _symbols.Add(oldKey, symbol);
         }
 
         public bool SymbolIsOfType<TType>(object key) where TType : Symbol

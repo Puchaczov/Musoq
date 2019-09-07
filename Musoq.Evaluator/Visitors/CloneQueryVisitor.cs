@@ -331,7 +331,7 @@ namespace Musoq.Evaluator.Visitors
             var b = (FromNode) Nodes.Pop();
             var a = (FromNode) Nodes.Pop();
 
-            Nodes.Push(new JoinSourcesTableFromNode(a, b, exp));
+            Nodes.Push(new JoinSourcesTableFromNode(a, b, exp, node.JoinType));
         }
 
         public virtual void Visit(InMemoryTableFromNode node)
@@ -410,7 +410,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var exp = Nodes.Pop();
             var from = (FromNode) Nodes.Pop();
-            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp));
+            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
         }
 
         public virtual void Visit(InternalQueryNode node)

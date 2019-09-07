@@ -243,6 +243,20 @@ namespace Musoq.Evaluator.Visitors
             var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.Source.Id]);
             var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
 
+            switch (join.JoinType)
+            {
+                case JoinType.Inner:
+                    break;
+                case JoinType.OuterLeft:
+                    secondTableSymbol = secondTableSymbol.MakeNullableIfPossible();
+                    Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.With.Id], secondTableSymbol);
+                    break;
+                case JoinType.OuterRight:
+                    firstTableSymbol = firstTableSymbol.MakeNullableIfPossible();
+                    Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.Source.Id], firstTableSymbol);
+                    break;
+            }
+
             var id = $"{Scope[join.Source.Id]}{Scope[join.With.Id]}";
 
             Scope.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
@@ -258,6 +272,20 @@ namespace Musoq.Evaluator.Visitors
 
                 var currentTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
                 var previousTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(id);
+
+                switch (join.JoinType)
+                {
+                    case JoinType.Inner:
+                        break;
+                    case JoinType.OuterLeft:
+                        currentTableSymbol = currentTableSymbol.MakeNullableIfPossible();
+                        Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.With.Id], currentTableSymbol);
+                        break;
+                    case JoinType.OuterRight:
+                        previousTableSymbol = firstTableSymbol.MakeNullableIfPossible();
+                        Scope.ScopeSymbolTable.UpdateSymbol(id, previousTableSymbol);
+                        break;
+                }
 
                 id = $"{id}{Scope[join.With.Id]}";
 

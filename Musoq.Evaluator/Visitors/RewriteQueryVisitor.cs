@@ -454,15 +454,19 @@ namespace Musoq.Evaluator.Visitors
 
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
                     _scope.ScopeSymbolTable.GetSymbol(targetTableName));
+
                 scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                 scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
                 scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
-
                 var joinedQuery = new InternalQueryNode(
                     new SelectNode(bothForSelect),
-                    new ExpressionFromNode(new JoinSourcesTableFromNode(current.Source, current.With,
-                        current.Expression)),
+                    new ExpressionFromNode(
+                        new JoinSourcesTableFromNode(
+                            current.Source, 
+                            current.With,
+                            current.Expression, 
+                            current.JoinType)),
                     null,
                     null,
                     null,
@@ -514,6 +518,9 @@ namespace Musoq.Evaluator.Visitors
                         _scope.ScopeSymbolTable.GetSymbol(targetTableName));
                     scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                     scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
+                        MetaAttributes.LeftJoinSelectWhenRightTableIsNull, 
+                        new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray()));
                     scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
                     var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
@@ -529,8 +536,12 @@ namespace Musoq.Evaluator.Visitors
 
                     joinedQuery = new InternalQueryNode(
                         new SelectNode(bothForSelect),
-                        new ExpressionFromNode(new JoinInMemoryWithSourceTableFromNode(current.Source.Alias,
-                            current.With, expressionUpdater.Where.Expression)),
+                        new ExpressionFromNode(
+                            new JoinInMemoryWithSourceTableFromNode(
+                                current.Source.Alias,
+                                current.With, 
+                                expressionUpdater.Where.Expression,
+                                current.JoinType)),
                         null,
                         null,
                         null,
@@ -689,7 +700,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var exp = Nodes.Pop();
             var from = (FromNode) Nodes.Pop();
-            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp));
+            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
         }
 
         public void Visit(InternalQueryNode node)

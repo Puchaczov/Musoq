@@ -120,6 +120,9 @@
   <data name="CreateTableVariableName" xml:space="preserve">
     <value>CreateTableVariableName</value>
   </data>
+  <data name="LeftJoinSelectWhenRightTableIsNull" xml:space="preserve">
+    <value>LeftJoinSelectWhenRightTableIsNull</value>
+  </data>
   <data name="MethodName" xml:space="preserve">
     <value>MethodName</value>
   </data>

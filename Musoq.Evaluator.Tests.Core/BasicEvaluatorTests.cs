@@ -1260,7 +1260,7 @@ namespace Musoq.Evaluator.Tests.Core
 
             Assert.IsTrue(0.001m > (decimal)table[0][0] - 7.071m);
         }
-        
+
         [TestMethod]
         public void CaseWhenSimpleTest()
         {

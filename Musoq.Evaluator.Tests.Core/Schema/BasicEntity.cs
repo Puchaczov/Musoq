@@ -51,12 +51,17 @@ namespace Musoq.Evaluator.Tests.Core.Schema
         }
 
         public string Month { get; set; }
+
         public string Name { get; set; }
+
         public string Country { get; set; }
 
         public string City { get; set; }
+
         public decimal Population { get; set; }
+
         public decimal Money { get; set; }
+
         public DateTime Time { get; set; }
 
         public BasicEntity Self => this;
