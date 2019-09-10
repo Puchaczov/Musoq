@@ -518,10 +518,11 @@ namespace Musoq.Evaluator.Visitors
                         _scope.ScopeSymbolTable.GetSymbol(targetTableName));
                     scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                     scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
-                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
-                        MetaAttributes.LeftJoinSelectWhenRightTableIsNull, 
-                        new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray()));
                     scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
+
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
+                        MetaAttributes.OuterJoinSelect,
+                        new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray()));
 
                     var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
                     var traverser = new CloneTraverseVisitor(expressionUpdater);

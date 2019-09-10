@@ -70,15 +70,6 @@ namespace Musoq.Evaluator.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to LeftJoinSelectWhenRightTableIsNull.
-        /// </summary>
-        internal static string LeftJoinSelectWhenRightTableIsNull {
-            get {
-                return ResourceManager.GetString("LeftJoinSelectWhenRightTableIsNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to MethodName.
         /// </summary>
         internal static string MethodName {
@@ -93,6 +84,15 @@ namespace Musoq.Evaluator.Resources {
         internal static string OriginAlias {
             get {
                 return ResourceManager.GetString("OriginAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OuterJoinSelect.
+        /// </summary>
+        internal static string OuterJoinSelect {
+            get {
+                return ResourceManager.GetString("OuterJoinSelect", resourceCulture);
             }
         }
         

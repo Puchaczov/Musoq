@@ -62,5 +62,18 @@ namespace Musoq.Plugins.Tests
             Assert.AreEqual("vwtgw", Library.LongestCommonSubstring("vwtgwdsd", "vwtgw"));
             Assert.AreEqual("vwtgw", Library.LongestCommonSubstring("svfvwtgw", "vwtgw"));
         }
+
+        [TestMethod]
+        public void SplitTest()
+        {
+            var values = Library.Split("test,test2", ",");
+            Assert.AreEqual("test", values[0]);
+            Assert.AreEqual("test2", values[1]);
+
+            values = Library.Split("test,test2;test3", ",", ";");
+            Assert.AreEqual("test", values[0]);
+            Assert.AreEqual("test2", values[1]);
+            Assert.AreEqual("test3", values[2]);
+        }
     }
 }

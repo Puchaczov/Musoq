@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -78,6 +79,20 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public bool HasSoundLikeWord(string text, string word, string separator = " ")
+        {
+            var soundexedWord = _soundex.For(word);
+
+            foreach (var tokenizedWord in text.Split(separator[0]))
+            {
+                if (soundexedWord == _soundex.For(tokenizedWord))
+                    return true;
+            }
+
+            return false;
+        }
+
+        [BindableMethod]
         public string ToUpperInvariant(string value)
         {
             return value.ToUpperInvariant();
@@ -113,6 +128,9 @@ namespace Musoq.Plugins
         {
             return Fastenshtein.Levenshtein.Distance(firstValue, secondValue);
         }
+
+        [BindableMethod]
+        public string[] Split(string value, params string[] separators) => value.Split(separators, StringSplitOptions.None);
 
         [BindableMethod]
         public string LongestCommonSubstring(string source, string pattern)

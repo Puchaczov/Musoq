@@ -282,7 +282,7 @@ namespace Musoq.Evaluator.Visitors
                         Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.With.Id], currentTableSymbol);
                         break;
                     case JoinType.OuterRight:
-                        previousTableSymbol = firstTableSymbol.MakeNullableIfPossible();
+                        previousTableSymbol = previousTableSymbol.MakeNullableIfPossible();
                         Scope.ScopeSymbolTable.UpdateSymbol(id, previousTableSymbol);
                         break;
                 }

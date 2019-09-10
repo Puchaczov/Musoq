@@ -120,14 +120,14 @@
   <data name="CreateTableVariableName" xml:space="preserve">
     <value>CreateTableVariableName</value>
   </data>
-  <data name="LeftJoinSelectWhenRightTableIsNull" xml:space="preserve">
-    <value>LeftJoinSelectWhenRightTableIsNull</value>
-  </data>
   <data name="MethodName" xml:space="preserve">
     <value>MethodName</value>
   </data>
   <data name="OriginAlias" xml:space="preserve">
     <value>OriginAlias</value>
+  </data>
+  <data name="OuterJoinSelect" xml:space="preserve">
+    <value>OuterJoinSelect</value>
   </data>
   <data name="ProcessedQueryId" xml:space="preserve">
     <value>ProcessedQueryId</value>

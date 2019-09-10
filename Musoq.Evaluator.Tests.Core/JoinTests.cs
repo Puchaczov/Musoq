@@ -792,6 +792,28 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(3, table.Columns.Count());
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual(0, column.ColumnIndex);
+            Assert.AreEqual("a.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual(1, column.ColumnIndex);
+            Assert.AreEqual("b.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            column = table.Columns.ElementAt(2);
+            Assert.AreEqual(2, column.ColumnIndex);
+            Assert.AreEqual("c.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            Assert.AreEqual(1, table[0][0]);
+            Assert.AreEqual((int?)null, table[0][1]);
+            Assert.AreEqual((int?)null, table[0][2]);
         }
 
         [TestMethod]
@@ -825,6 +847,28 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(3, table.Columns.Count());
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual(0, column.ColumnIndex);
+            Assert.AreEqual("a.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual(1, column.ColumnIndex);
+            Assert.AreEqual("b.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            column = table.Columns.ElementAt(2);
+            Assert.AreEqual(2, column.ColumnIndex);
+            Assert.AreEqual("c.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            Assert.AreEqual(1, table[0][0]);
+            Assert.AreEqual((int?)null, table[0][1]);
+            Assert.AreEqual((int?)null, table[0][2]);
         }
 
         [TestMethod]
@@ -837,7 +881,8 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                 {
                     "#A", new[]
                     {
-                        new BasicEntity("xX") { Id = 1 }
+                        new BasicEntity("xX") { Id = 1 },
+                        new BasicEntity("xX") { Id = 2 }
                     }
                 },
                 {
@@ -858,6 +903,132 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(3, table.Columns.Count());
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual(0, column.ColumnIndex);
+            Assert.AreEqual("a.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual(1, column.ColumnIndex);
+            Assert.AreEqual("b.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            column = table.Columns.ElementAt(2);
+            Assert.AreEqual(2, column.ColumnIndex);
+            Assert.AreEqual("c.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            Assert.AreEqual(1, table[0][0]);
+            Assert.AreEqual(1, table[0][1]);
+            Assert.AreEqual(1, table[0][2]);
+
+            Assert.AreEqual(2, table[1][0]);
+            Assert.AreEqual((int?)null, table[1][1]);
+            Assert.AreEqual((int?)null, table[1][2]);
+        }
+
+        [TestMethod]
+        public void SimpleRightJoinTest()
+        {
+            var query = "select a.Id, b.Id from #A.entities() a right outer join #B.entities() b on a.Id = b.Id";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new BasicEntity[]
+                    {
+                    }
+                },
+                {
+                    "#B",
+                    new BasicEntity[] {
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(2, table.Columns.Count());
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual(0, column.ColumnIndex);
+            Assert.AreEqual("a.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual(1, column.ColumnIndex);
+            Assert.AreEqual("b.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            Assert.AreEqual((int?)null, table[0][0]);
+            Assert.AreEqual(1, table[0][1]);
+        }
+
+        [TestMethod]
+        public void MultipleRightJoinWithCTriesMatchBAndSucceedForASingleTest()
+        {
+            var query = "select a.Id, b.Id, c.Id from #A.entities() a right outer join #B.entities() b on a.Id = b.Id right outer join #C.entities() c on b.Id = c.Id";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                },
+                {
+                    "#B",
+                    new BasicEntity[]
+                    {
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                },
+                {
+                    "#C",
+                    new BasicEntity[]
+                    {
+                        new BasicEntity("xX") { Id = 1 },
+                        new BasicEntity("xX") { Id = 2 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(3, table.Columns.Count());
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual(0, column.ColumnIndex);
+            Assert.AreEqual("a.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual(1, column.ColumnIndex);
+            Assert.AreEqual("b.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int?), column.ColumnType);
+
+            column = table.Columns.ElementAt(2);
+            Assert.AreEqual(2, column.ColumnIndex);
+            Assert.AreEqual("c.Id", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            Assert.AreEqual(1, table[0][0]);
+            Assert.AreEqual(1, table[0][1]);
+            Assert.AreEqual(1, table[0][2]);
+
+            Assert.AreEqual((int?)null, table[1][0]);
+            Assert.AreEqual((int?)null, table[1][1]);
+            Assert.AreEqual(2, table[1][2]);
         }
     }
 }
