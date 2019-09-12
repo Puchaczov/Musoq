@@ -146,7 +146,7 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(1, folders.Count);
 
-            Assert.AreEqual("TestFile1.txt", ((FileInfo)folders[0].Context).Name);
+            Assert.AreEqual("TestFile1.txt", ((FileInfo)folders[0].Contexts[0]).Name);
         }
 
         [TestMethod]
@@ -158,10 +158,10 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(4, folders.Count);
 
-            Assert.AreEqual("TestFile1.txt", ((FileInfo)folders[0].Context).Name);
-            Assert.AreEqual("TextFile2.txt", ((FileInfo)folders[1].Context).Name);
-            Assert.AreEqual("TextFile3.txt", ((FileInfo)folders[2].Context).Name);
-            Assert.AreEqual("TextFile1.txt", ((FileInfo)folders[3].Context).Name);
+            Assert.AreEqual("TestFile1.txt", ((FileInfo)folders[0].Contexts[0]).Name);
+            Assert.AreEqual("TextFile2.txt", ((FileInfo)folders[1].Contexts[0]).Name);
+            Assert.AreEqual("TextFile3.txt", ((FileInfo)folders[2].Contexts[0]).Name);
+            Assert.AreEqual("TextFile1.txt", ((FileInfo)folders[3].Contexts[0]).Name);
         }
 
         [TestMethod]
@@ -173,8 +173,8 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(2, directories.Count);
 
-            Assert.AreEqual("Directory1", ((DirectoryInfo)directories[0].Context).Name);
-            Assert.AreEqual("Directory2", ((DirectoryInfo)directories[1].Context).Name);
+            Assert.AreEqual("Directory1", ((DirectoryInfo)directories[0].Contexts[0]).Name);
+            Assert.AreEqual("Directory2", ((DirectoryInfo)directories[1].Contexts[0]).Name);
         }
 
         [TestMethod]
@@ -186,9 +186,9 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(3, directories.Count);
 
-            Assert.AreEqual("Directory1", ((DirectoryInfo) directories[0].Context).Name);
-            Assert.AreEqual("Directory2", ((DirectoryInfo) directories[1].Context).Name);
-            Assert.AreEqual("Directory3", ((DirectoryInfo) directories[2].Context).Name);
+            Assert.AreEqual("Directory1", ((DirectoryInfo) directories[0].Contexts[0]).Name);
+            Assert.AreEqual("Directory2", ((DirectoryInfo) directories[1].Contexts[0]).Name);
+            Assert.AreEqual("Directory3", ((DirectoryInfo) directories[2].Contexts[0]).Name);
         }
 
         [TestMethod]
@@ -331,9 +331,9 @@ namespace Musoq.Schema.Os.Tests.Core
 
             var rows = source.Rows.ToArray();
 
-            var firstRow = rows[0].Context as CompareDirectoriesResult;
-            var secondRow = rows[1].Context as CompareDirectoriesResult;
-            var thirdRow = rows[2].Context as CompareDirectoriesResult;
+            var firstRow = rows[0].Contexts[0] as CompareDirectoriesResult;
+            var secondRow = rows[1].Contexts[0] as CompareDirectoriesResult;
+            var thirdRow = rows[2].Contexts[0] as CompareDirectoriesResult;
 
             Assert.AreEqual(new FileInfo("./Directories/Directory1/TextFile1.txt").FullName, firstRow.SourceFile.FullName);
             Assert.AreEqual(null, firstRow.DestinationFile);
@@ -357,7 +357,7 @@ namespace Musoq.Schema.Os.Tests.Core
 
             var rows = source.Rows.ToArray();
 
-            var firstRow = rows[0].Context as CompareDirectoriesResult;
+            var firstRow = rows[0].Contexts[0] as CompareDirectoriesResult;
 
             Assert.AreEqual(new FileInfo("./Directories/Directory1/TextFile1.txt").FullName, firstRow.SourceFile.FullName);
             Assert.AreEqual(new FileInfo("./Directories/Directory1/TextFile1.txt").FullName, firstRow.DestinationFile.FullName);
@@ -377,6 +377,40 @@ namespace Musoq.Schema.Os.Tests.Core
         public void Query_CompareTwoDirectiories_WithSha()
         {
             var query = "select Sha256File(SourceFile) from #disk.DirsCompare('./Directories/Directory1', './Directories/Directory2') where SourceFile is not null";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+        }
+
+        [TestMethod]
+        public void Query_IntersectSameDirectoryTest()
+        {
+            var query = @"
+with IntersectedFiles as (
+	select a.FullName as FullName, a.Sha256File() as sha1, b.Sha256File() as sha2 from #os.files('.\Files', true) a inner join #os.files('.\Files', true) b on a.FullName = b.FullName
+)
+select * from IntersectedFiles";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+        }
+
+        [TestMethod]
+        public void Query_DirectoryDiffTest()
+        {
+            var query = @"
+with IntersectedFiles as (
+	select a.FullName as FullName, a.Sha256File() as sha1, b.Sha256File() as sha2 from #os.files('.\Files', true) a inner join #os.files('.\Files', true) b on a.FullName = b.FullName
+), ThoseInLeft as (
+	select a.FullName as FullName, a.Sha256File() as sha1, '' as sha2 from #os.files('.\Files', true) a left outer join #os.files('.\Files', true) b on a.FullName = b.FullName where b.FullName is null
+), ThoseInRight as (
+	select b.FullName as FullName, '' as sha1, b.Sha256File() as sha2 from #os.files('.\Files', true) a right outer join #os.files('.\Files', true) b on a.FullName = b.FullName where a.FullName is null
+)
+select FullName, sha1, sha2 from IntersectedFiles
+union all (FullName)
+select FullName, sha1, sha2 from ThoseInLeft
+union all (FullName)
+select FullName, sha1, sha2 from ThoseInRight";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();

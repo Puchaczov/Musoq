@@ -433,6 +433,9 @@ namespace Musoq.Evaluator.Visitors
                 usedRefreshMethods = _scope.ScopeSymbolTable
                     .GetSymbol<RefreshMethodsSymbol>(from.Alias.ToRefreshMethodsSymbolName()).RefreshMethods;
 
+            var aliasIndex = 0;
+            var aliasesPositionsSymbol = new AliasesPositionsSymbol();
+
             if (from.Expression is JoinsNode)
             {
                 var current = _joinedTables[0];
@@ -452,11 +455,15 @@ namespace Musoq.Evaluator.Visitors
 
                 var targetTableName = $"{current.Source.Alias}{current.With.Alias}";
 
+                aliasesPositionsSymbol.AliasesPositions.Add(current.Source.Alias, aliasIndex++);
+                aliasesPositionsSymbol.AliasesPositions.Add(current.With.Alias, aliasIndex++);
+
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
                     _scope.ScopeSymbolTable.GetSymbol(targetTableName));
 
                 scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                 scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
+                scopeJoinedQuery[MetaAttributes.Contexts] = $"{current.Source.Alias},{current.With.Alias}";
                 scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
                 var joinedQuery = new InternalQueryNode(
@@ -496,6 +503,9 @@ namespace Musoq.Evaluator.Visitors
 
                     targetTableName = $"{current.Source.Alias}{current.With.Alias}";
 
+                    aliasesPositionsSymbol.AliasesPositions.Add(current.Source.Alias, aliasIndex++);
+                    aliasesPositionsSymbol.AliasesPositions.Add(current.With.Alias, aliasIndex++);
+
                     scopeCreateTable = _scope.AddScope("Table");
                     scopeJoinedQuery = _scope.AddScope("Query");
 
@@ -518,6 +528,7 @@ namespace Musoq.Evaluator.Visitors
                         _scope.ScopeSymbolTable.GetSymbol(targetTableName));
                     scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                     scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
+                    scopeJoinedQuery[MetaAttributes.Contexts] = $"{current.Source.Alias},{current.With.Alias}";
                     scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
 
                     scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
@@ -597,6 +608,7 @@ namespace Musoq.Evaluator.Visitors
                 scopeTransformedQuery[MetaAttributes.OriginAlias] = nestedFrom.Alias;
                 scopeTransformedQuery.ScopeSymbolTable.AddSymbol(nestedFrom.Alias,
                     _scope.ScopeSymbolTable.GetSymbol(nestedFrom.Alias));
+                scopeTransformedQuery[MetaAttributes.Contexts] = $"{nestedFrom.Alias}";
 
                 if (splittedNodes.Count > 0)
                 {
@@ -638,6 +650,10 @@ namespace Musoq.Evaluator.Visitors
                 var returnScore = nestedFrom.Alias.ToScoreTable();
                 scopeResultQuery[MetaAttributes.SelectIntoVariableName] = returnScore;
                 scopeResultQuery[MetaAttributes.SourceName] = destination;
+                scopeResultQuery[MetaAttributes.Contexts] = $"{nestedFrom.Alias}";
+
+                aliasesPositionsSymbol.AliasesPositions.Add(nestedFrom.Alias, aliasIndex++);
+                aliasesPositionsSymbol.AliasesPositions.Add(returnScore, aliasIndex++);
 
                 query = new DetailedQueryNode(
                     outSelect,
@@ -677,11 +693,15 @@ namespace Musoq.Evaluator.Visitors
                     scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = from.Alias.ToScoreTable();
                     scopeCreateResultTable[MetaAttributes.OriginAlias] = from.Alias;
                     scopeResultQuery[MetaAttributes.SelectIntoVariableName] = from.Alias.ToScoreTable();
+                    scopeResultQuery[MetaAttributes.Contexts] = from.Alias;
                     scopeResultQuery[MetaAttributes.SourceName] = source;
 
                     var newFrom = lastJoinQuery != null
-                        ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
+                        ? new ExpressionFromNode(
+                            new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                         : from;
+
+                    aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex++);
 
                     splittedNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], new string[0], select.Fields, false));
                     splittedNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, null, skip, take,
@@ -693,6 +713,8 @@ namespace Musoq.Evaluator.Visitors
                             null));
                 }
             }
+
+            _scope.ScopeSymbolTable.AddSymbol(MetaAttributes.AllQueryContexts, aliasesPositionsSymbol);
 
             _joinedTables.Clear();
         }

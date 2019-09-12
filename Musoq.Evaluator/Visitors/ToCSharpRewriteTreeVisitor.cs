@@ -622,14 +622,25 @@ namespace Musoq.Evaluator.Visitors
                             typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
                         }
 
+                        var aliases = _scope.Parent.ScopeSymbolTable.GetSymbol<AliasesPositionsSymbol>(MetaAttributes.AllQueryContexts);
+                        var currentContext = aliases.AliasesPositions[node.Alias];
+
                         args.Add(
                             SyntaxFactory.Argument(
                                 SyntaxFactory.CastExpression(
                                     typeIdentifier,
-                                    SyntaxFactory.MemberAccessExpression(
+                                    SyntaxFactory.ElementAccessExpression(
+                                        SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
                                         SyntaxFactory.IdentifierName(objectName),
-                                        SyntaxFactory.IdentifierName(nameof(IObjectResolver.Context))))));
+                                        SyntaxFactory.IdentifierName(nameof(IObjectResolver.Contexts))),
+                                    SyntaxFactory.BracketedArgumentList(
+                                        SyntaxFactory.SeparatedList(
+                                            new[] 
+                                            {
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(currentContext)))
+                                            }))))));
                         break;
                     case InjectGroupAttribute _:
 
@@ -897,6 +908,36 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.IdentifierName("var").WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                     list);
 
+            var contexts = _scope[MetaAttributes.Contexts].Split(',');
+
+            var contextsExpressions = new List<ArgumentSyntax>
+            {
+                SyntaxFactory.Argument(
+                    SyntaxFactory.IdentifierName(variableNameKeyword.Text))
+            };
+
+            foreach (var context in contexts)
+            {
+                var rowVariableName = string.Empty;
+
+                switch (_type)
+                {
+                    case MethodAccessType.TransformingQuery:
+                        rowVariableName = $"{context}Row";
+                        break;
+                    case MethodAccessType.ResultQuery:
+                        rowVariableName = "score";
+                        break;
+                }
+
+                contextsExpressions.Add(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(rowVariableName),
+                            SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}"))));
+            }
+
             var invocation = SyntaxHelper.CreateMethodInvocation(
                 scoreTable,
                 nameof(Table.Add),
@@ -908,10 +949,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
                             SyntaxFactory.ArgumentList(
                                 SyntaxFactory.SeparatedList(
-                                    new[]
-                                    {
-                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableNameKeyword.Text))
-                                    })
+                                    contextsExpressions.ToArray())
                             ),
                             SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
                     )
@@ -1162,7 +1200,14 @@ namespace Musoq.Evaluator.Visitors
                                         SyntaxFactory.SeparatedList(
                                             new[]
                                             {
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select"))
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression, 
+                                                        SyntaxFactory.IdentifierName($"{node.InMemoryTableAlias}Row"),
+                                                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}"))),
+                                                SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
                                             })
                                     ),
                                     SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
@@ -1267,7 +1312,14 @@ namespace Musoq.Evaluator.Visitors
                                         SyntaxFactory.SeparatedList(
                                             new[]
                                             {
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select"))
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
+                                                SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Row"),
+                                                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}")))
                                             })
                                     ),
                                     SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
@@ -1478,7 +1530,14 @@ namespace Musoq.Evaluator.Visitors
                                         SyntaxFactory.SeparatedList(
                                             new[]
                                             {
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select"))
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
+                                                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}"))),
+                                                SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
                                             })
                                     ),
                                     SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
@@ -1574,7 +1633,14 @@ namespace Musoq.Evaluator.Visitors
                                         SyntaxFactory.SeparatedList(
                                             new[]
                                             {
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select"))
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
+                                                SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName($"{node.Second.Alias}Row"),
+                                                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}")))
                                             })
                                     ),
                                     SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))

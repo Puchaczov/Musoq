@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AllQueryContexts" xml:space="preserve">
+    <value>AllQueryContexts</value>
+  </data>
+  <data name="Contexts" xml:space="preserve">
+    <value>Contexts</value>
+  </data>
   <data name="CreateTableVariableName" xml:space="preserve">
     <value>CreateTableVariableName</value>
   </data>

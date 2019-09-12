@@ -61,6 +61,24 @@ namespace Musoq.Evaluator.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AllQueryContexts.
+        /// </summary>
+        internal static string AllQueryContexts {
+            get {
+                return ResourceManager.GetString("AllQueryContexts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contexts.
+        /// </summary>
+        internal static string Contexts {
+            get {
+                return ResourceManager.GetString("Contexts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CreateTableVariableName.
         /// </summary>
         internal static string CreateTableVariableName {

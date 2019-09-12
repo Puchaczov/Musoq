@@ -1,18 +1,50 @@
-﻿namespace Musoq.Evaluator.Tables
+﻿using System;
+using System.Linq;
+
+namespace Musoq.Evaluator.Tables
 {
     public class ObjectsRow : Row
     {
-        private readonly object[] _columns;
+        private readonly object[] _values;
 
-        public ObjectsRow(object[] columns)
+        public ObjectsRow(object[] values)
         {
-            _columns = columns;
+            _values = values;
         }
 
-        public override object this[int columnNumber] => _columns[columnNumber];
+        public ObjectsRow(object[] values, object[] contexts)
+        {
+            _values = values;
+            Contexts = contexts;
+        }
 
-        public override int Count => _columns.Length;
+        public ObjectsRow(object[] values, object[] leftContexts, object[] rightContexts)
+        {
+            if (leftContexts == null && rightContexts == null)
+                throw new NotSupportedException("Both contexts cannot be null");
 
-        public override object[] Values => _columns;
+            if (leftContexts == null)
+            {
+                Contexts = new object[] { null }.Concat(rightContexts).ToArray();
+            }
+            else if (rightContexts == null)
+            {
+                Contexts = leftContexts.Concat(new object[] { null }).ToArray();
+            }
+            else
+            {
+                Contexts = leftContexts.Concat(rightContexts).ToArray();
+            }
+
+            _values = values;
+        }
+
+        public override object this[int columnNumber] => _values[columnNumber];
+
+        public override int Count => _values.Length;
+
+        public override object[] Values => _values;
+
+        public object[] Contexts { get; }
     }
 }

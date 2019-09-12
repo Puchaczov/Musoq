@@ -6,15 +6,15 @@ namespace Musoq.Evaluator.Tables
     public class RowResolver : IObjectResolver
     {
         private readonly IDictionary<string, int> _nameToIndexMap;
-        private readonly Row _row;
+        private readonly ObjectsRow _row;
 
-        public RowResolver(Row row, IDictionary<string, int> nameToIndexMap)
+        public RowResolver(ObjectsRow row, IDictionary<string, int> nameToIndexMap)
         {
             _row = row;
             _nameToIndexMap = nameToIndexMap;
         }
 
-        public object Context => _row;
+        public object[] Contexts => _row.Contexts;
 
         public bool HasColumn(string name)
         {

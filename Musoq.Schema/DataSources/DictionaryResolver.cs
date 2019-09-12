@@ -11,7 +11,7 @@ namespace Musoq.Schema.DataSources
             _entity = entity;
         }
 
-        public object Context => _entity;
+        public object[] Contexts => new object[] { _entity };
 
         object IObjectResolver.this[string name] => _entity[name];
 

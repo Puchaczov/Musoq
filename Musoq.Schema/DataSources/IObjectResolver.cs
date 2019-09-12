@@ -2,7 +2,7 @@ namespace Musoq.Schema.DataSources
 {
     public interface IObjectResolver
     {
-        object Context { get; }
+        object[] Contexts { get; }
 
         object this[string name] { get; }
 

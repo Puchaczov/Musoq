@@ -25,6 +25,6 @@ namespace Musoq.Evaluator.Tables
         }
 
         public override IEnumerable<IObjectResolver> Rows =>
-            _table.Select(row => new RowResolver(row, _columnToIndexMap));
+            _table.Select(row => new RowResolver((ObjectsRow)row, _columnToIndexMap));
     }
 }

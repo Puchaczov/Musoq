@@ -40,17 +40,17 @@ namespace Musoq.Evaluator.Tests.Core
             tokenSource.Cancel();
 
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("a", enumerator.Current.Context);
+            Assert.AreEqual("a", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("ab", enumerator.Current.Context);
+            Assert.AreEqual("ab", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("abc", enumerator.Current.Context);
+            Assert.AreEqual("abc", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("abcd", enumerator.Current.Context);
+            Assert.AreEqual("abcd", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("x", enumerator.Current.Context);
+            Assert.AreEqual("x", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("xs", enumerator.Current.Context);
+            Assert.AreEqual("xs", enumerator.Current.Contexts[0]);
             Assert.IsFalse(enumerator.MoveNext());
         }
     }

@@ -21,7 +21,7 @@ namespace Musoq.Schema.DataSources
             _indexToObjectAccessMap = indexToObjectAccessMap;
         }
 
-        public object Context => _entitiy;
+        public object[] Contexts => new object[] { _entitiy };
 
         object IObjectResolver.this[string name]
             => _indexToObjectAccessMap[_nameToIndexMap[name]](_entitiy);
