@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.9</Version>
+    <Version>0.10</Version>
     <Authors>Jakub Puchała</Authors>
     <Product>Musoq</Product>
     <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>

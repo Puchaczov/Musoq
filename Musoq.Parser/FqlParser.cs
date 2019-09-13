@@ -766,7 +766,7 @@ namespace Musoq.Parser
                     return new CaseNode(WhenThenNodes, ElseNode);
             }
 
-            throw new NotSupportedException($"Token {Current.Value}({Current.TokenType}) cannot be used here.");
+            throw new NotSupportedException($"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.");
         }
 
         private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode) ComposeCase()
