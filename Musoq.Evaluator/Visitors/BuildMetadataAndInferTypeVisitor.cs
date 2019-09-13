@@ -529,6 +529,7 @@ namespace Musoq.Evaluator.Visitors
             var source = (FromNode) Nodes.Pop();
             var joinedFrom = new JoinFromNode(source, joinedTable, expression, node.JoinType);
             _identifier = joinedFrom.Alias;
+            _schemaFromArgs.Clear();
             Nodes.Push(joinedFrom);
         }
 

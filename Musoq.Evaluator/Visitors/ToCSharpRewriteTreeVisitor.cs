@@ -2249,6 +2249,7 @@ namespace Musoq.Evaluator.Visitors
                 null);
 
             _members.Add(method);
+            _typesToInstantiate.Clear();
             Statements.Clear();
         }
 

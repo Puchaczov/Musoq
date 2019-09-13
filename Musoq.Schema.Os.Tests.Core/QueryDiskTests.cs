@@ -387,33 +387,56 @@ namespace Musoq.Schema.Os.Tests.Core
         {
             var query = @"
 with IntersectedFiles as (
-	select a.FullName as FullName, a.Sha256File() as sha1, b.Sha256File() as sha2 from #os.files('.\Files', true) a inner join #os.files('.\Files', true) b on a.FullName = b.FullName
+	select a.Name as Name, a.Sha256File() as sha1, b.Sha256File() as sha2 from #os.files('.\Files', true) a inner join #os.files('.\Files', true) b on a.FullName = b.FullName
 )
 select * from IntersectedFiles";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
+
+            Assert.AreEqual(2, table.Count);
+
+            Assert.AreEqual("File1.txt", table[0][0]);
+            Assert.AreEqual(table[0][1], table[0][2]);
+
+            Assert.AreEqual("File2.txt", table[1][0]);
+            Assert.AreEqual(table[1][1], table[1][2]);
         }
 
         [TestMethod]
         public void Query_DirectoryDiffTest()
         {
             var query = @"
-with IntersectedFiles as (
-	select a.FullName as FullName, a.Sha256File() as sha1, b.Sha256File() as sha2 from #os.files('.\Files', true) a inner join #os.files('.\Files', true) b on a.FullName = b.FullName
+with FirstDirectory as (
+    select a.GetRelativeName('.\Files') as RelativeName, a.Sha256File() as sha from #os.files('.\Files', true) a
+), SecondDirectory as (
+    select a.GetRelativeName('.\Files2') as RelativeName, a.Sha256File() as sha from #os.files('.\Files2', true) a
+), IntersectedFiles as (
+	select a.RelativeName as RelativeName, a.sha as sha1, b.sha as sha2 from FirstDirectory a inner join SecondDirectory b on a.RelativeName = b.RelativeName
 ), ThoseInLeft as (
-	select a.FullName as FullName, a.Sha256File() as sha1, '' as sha2 from #os.files('.\Files', true) a left outer join #os.files('.\Files', true) b on a.FullName = b.FullName where b.FullName is null
+	select a.RelativeName as RelativeName, a.sha as sha1, '' as sha2 from FirstDirectory a left outer join SecondDirectory b on a.RelativeName = b.RelativeName where b.RelativeName is null
 ), ThoseInRight as (
-	select b.FullName as FullName, '' as sha1, b.Sha256File() as sha2 from #os.files('.\Files', true) a right outer join #os.files('.\Files', true) b on a.FullName = b.FullName where a.FullName is null
+	select b.RelativeName as RelativeName, '' as sha1, b.sha as sha2 from FirstDirectory a right outer join SecondDirectory b on a.RelativeName = b.RelativeName where a.RelativeName is null
 )
-select FullName, sha1, sha2 from IntersectedFiles
-union all (FullName)
-select FullName, sha1, sha2 from ThoseInLeft
-union all (FullName)
-select FullName, sha1, sha2 from ThoseInRight";
+select RelativeName, (case when sha1 <> sha2 then 'modified' else 'the same' end) as state from IntersectedFiles
+union all (RelativeName)
+select RelativeName, 'removed' as state from ThoseInLeft
+union all (RelativeName)
+select RelativeName, 'added' as state from ThoseInRight";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
+
+            Assert.AreEqual(3, table.Count);
+
+            Assert.AreEqual("\\File1.txt", table[0][0]);
+            Assert.AreEqual("modified", table[0][1]);
+
+            Assert.AreEqual("\\File2.txt", table[1][0]);
+            Assert.AreEqual("removed", table[1][1]);
+
+            Assert.AreEqual("\\File3.txt", table[2][0]);
+            Assert.AreEqual("added", table[2][1]);
         }
 
         [TestMethod]

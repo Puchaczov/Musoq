@@ -18,7 +18,8 @@ namespace Musoq.Evaluator.Tests.Core
     {
         protected CancellationTokenSource TokenSource { get; } = new CancellationTokenSource();
 
-        protected CompiledQuery CreateAndRunVirtualMachine<T>(string script,
+        protected CompiledQuery CreateAndRunVirtualMachine<T>(
+            string script,
             IDictionary<string, IEnumerable<T>> sources)
             where T : BasicEntity
         {

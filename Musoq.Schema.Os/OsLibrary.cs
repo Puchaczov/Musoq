@@ -21,6 +21,28 @@ namespace Musoq.Schema.Os
     public class OsLibrary : LibraryBase
     {
         [BindableMethod]
+        public string GetFileContent([InjectSource] FileInfo fileInfo)
+        {
+            if (!fileInfo.Exists)
+                return null;
+
+            using (var file = fileInfo.OpenRead())
+            using (var fileReader = new StreamReader(file))
+            {
+                return fileReader.ReadToEnd();
+            }
+        }
+
+        [BindableMethod]
+        public string GetRelativeName([InjectSource] FileInfo fileInfo, string basePath)
+        {
+            if (fileInfo == null)
+                return null;
+
+            return fileInfo.FullName.Replace(new FileInfo(basePath).FullName, string.Empty);
+        }
+
+        [BindableMethod]
         public byte[] Head([InjectSource] FileInfo file, int length)
             => GetFileBytes(file, length, 0);
 
@@ -150,12 +172,6 @@ namespace Musoq.Schema.Os
 
                 return builder.ToString();
             }
-        }
-
-        [BindableMethod]
-        public string Substring(string content, int startIndex, int length)
-        {
-            return content.Substring(startIndex, length);
         }
 
         [BindableMethod]

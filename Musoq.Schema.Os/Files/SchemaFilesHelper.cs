@@ -24,8 +24,7 @@ namespace Musoq.Schema.Os.Files
                 {nameof(FileInfo.Exists), 6},
                 {nameof(FileInfo.IsReadOnly), 7},
                 {nameof(FileInfo.Length), 8},
-                {"Content", 9},
-                {nameof(FileInfo), 10}
+                {nameof(FileInfo), 9}
             };
 
             FilesIndexToMethodAccessMap = new Dictionary<int, Func<FileInfo, object>>
@@ -39,8 +38,7 @@ namespace Musoq.Schema.Os.Files
                 {6, info => info.Exists},
                 {7, info => info.IsReadOnly},
                 {8, info => info.Length},
-                {9, info => GetFileContent(info)},
-                {10, info => info}
+                {9, info => info}
             };
 
             FilesColumns = new ISchemaColumn[]
@@ -54,21 +52,8 @@ namespace Musoq.Schema.Os.Files
                 new SchemaColumn(nameof(FileInfo.Exists), 6, typeof(bool)),
                 new SchemaColumn(nameof(FileInfo.IsReadOnly), 7, typeof(bool)),
                 new SchemaColumn(nameof(FileInfo.Length), 8, typeof(long)),
-                new SchemaColumn("Content", 9, typeof(string)),
-                new SchemaColumn(nameof(FileInfo), 10, typeof(FileInfo))
+                new SchemaColumn(nameof(FileInfo), 9, typeof(FileInfo))
             };
-        }
-
-        private static string GetFileContent(FileInfo fileInfo)
-        {
-            if (!fileInfo.Exists)
-                return null;
-
-            using (var file = fileInfo.OpenRead())
-            using (var fileReader = new StreamReader(file))
-            {
-                return fileReader.ReadToEnd();
-            }
         }
     }
 }

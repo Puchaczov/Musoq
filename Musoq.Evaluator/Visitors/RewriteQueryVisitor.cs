@@ -19,6 +19,7 @@ namespace Musoq.Evaluator.Visitors
     public class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         private readonly List<JoinFromNode> _joinedTables = new List<JoinFromNode>();
+        private int _queryIndex = 0;
         private Scope _scope;
 
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
@@ -425,7 +426,7 @@ namespace Musoq.Evaluator.Visitors
 
             QueryNode lastJoinQuery = null;
 
-            _scope[MetaAttributes.MethodName] = $"ComputeTable_{from.Alias}";
+            _scope[MetaAttributes.MethodName] = $"ComputeTable_{from.Alias}_{_queryIndex++}";
 
             IReadOnlyList<AccessMethodNode> usedRefreshMethods = null;
 

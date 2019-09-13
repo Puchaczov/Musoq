@@ -37,6 +37,7 @@ namespace Musoq.Schema.Json.Tests.Core
             Assert.AreEqual(45, table[2].Values[1]);
         }
 
+        [Ignore]
         [TestMethod]
         public void SelectArrayTest()
         {
