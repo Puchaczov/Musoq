@@ -450,7 +450,7 @@ select RelativeName, 'added' as state from ThoseInRight";
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.CompileForExecution(script, new OsSchemaProvider());
+            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new OsSchemaProvider());
         }
 
         static QueryDiskTests()

@@ -117,7 +117,7 @@ namespace Musoq.Schema.Os.Tests.Core
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.CompileForExecution(script, new OsSchemaProvider());
+            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new OsSchemaProvider());
         }
 
         static ZipTests()

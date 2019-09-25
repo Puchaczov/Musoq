@@ -20,15 +20,6 @@ namespace Musoq.Schema.Csv
             AddTable<CsvBasedTable>(FileTable);
         }
 
-        public override SchemaMethodInfo[] GetConstructors()
-        {
-            var constructors = new List<SchemaMethodInfo>();
-
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<CsvSource>(FileTable));
-
-            return base.GetConstructors();
-        }
-
         private static MethodsAggregator CreateLibrary()
         {
             var methodsManager = new MethodsManager();

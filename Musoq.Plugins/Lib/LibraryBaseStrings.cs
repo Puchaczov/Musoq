@@ -93,6 +93,31 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public bool HasSoundLikeSentence(string text, string sentence, string separator = " ")
+        {
+            var words = sentence.Split(separator[0]);
+            var tokens = text.Split(separator[0]);
+            var wordsMatchTable = new bool[words.Length];
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                string word = words[i];
+                var soundexedWord = _soundex.For(word);
+
+                foreach (var token in tokens)
+                {
+                    if (soundexedWord == _soundex.For(token))
+                    {
+                        wordsMatchTable[i] = true;
+                        break;
+                    }
+                }
+            }
+
+            return wordsMatchTable.All(entry => entry);
+        }
+
+        [BindableMethod]
         public string ToUpperInvariant(string value)
         {
             return value.ToUpperInvariant();

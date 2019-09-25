@@ -295,6 +295,9 @@ namespace Musoq.Evaluator.Visitors
 
             var column = tuple.Table.GetColumnByName(node.Name);
 
+            if (column == null)
+                throw new UnknownColumnException($"Column {node.Name} could not be found.");
+
             AddAssembly(column.ColumnType.Assembly);
             node.ChangeReturnType(column.ColumnType);
 

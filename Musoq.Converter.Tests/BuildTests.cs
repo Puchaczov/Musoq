@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
@@ -28,7 +29,7 @@ namespace Musoq.Converter.Tests
         {
             var query = "select 1 from #system.dual()";
 
-            var arrays = await InstanceCreator.CompileForStoreAsync(query, new SystemSchemaProvider());
+            var arrays = await InstanceCreator.CompileForStoreAsync(query, Guid.NewGuid().ToString(), new SystemSchemaProvider());
 
             Assert.IsNotNull(arrays.DllFile);
             Assert.IsNotNull(arrays.PdbFile);
@@ -39,12 +40,12 @@ namespace Musoq.Converter.Tests
 
         private (byte[] DllFile, byte[] PdbFile) CreateForStore(string script)
         {
-            return InstanceCreator.CompileForStore(script, new SystemSchemaProvider());
+            return InstanceCreator.CompileForStore(script, Guid.NewGuid().ToString(), new SystemSchemaProvider());
         }
 
         static BuildTests()
         {
-            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+            new Musoq.Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }

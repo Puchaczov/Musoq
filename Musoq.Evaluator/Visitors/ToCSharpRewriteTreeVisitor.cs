@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -60,7 +59,8 @@ namespace Musoq.Evaluator.Visitors
         public ToCSharpRewriteTreeVisitor(
             IEnumerable<Assembly> assemblies,
             IDictionary<string, int[]> setOperatorFieldIndexes, 
-            IDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns)
+            IDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
+            string assemblyName)
         {
             _setOperatorFieldIndexes = setOperatorFieldIndexes;
             InferredColumns = inferredColumns;
@@ -69,7 +69,7 @@ namespace Musoq.Evaluator.Visitors
 
             Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
-            Compilation = CSharpCompilation.Create("InMemoryAssembly");
+            Compilation = CSharpCompilation.Create(assemblyName);
 
             Compilation = Compilation.AddReferences(RuntimeLibraries.References);
 
@@ -2378,12 +2378,14 @@ namespace Musoq.Evaluator.Visitors
         private void AddReference(params Type[] types)
         {
             foreach (var type in types)
+            {
                 if (!_loadedAssemblies.Contains(type.Assembly.Location))
                 {
                     _loadedAssemblies.Add(type.Assembly.Location);
                     Compilation =
                         Compilation.AddReferences(MetadataReference.CreateFromFile(type.Assembly.Location));
                 }
+            }
         }
 
         private void AddReference(params Assembly[] assemblies)

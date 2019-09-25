@@ -23,7 +23,7 @@ namespace Musoq.Evaluator.Tests.Core
             IDictionary<string, IEnumerable<T>> sources)
             where T : BasicEntity
         {
-            return InstanceCreator.CompileForExecution(script, new SchemaProvider<T>(sources));
+            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new SchemaProvider<T>(sources));
         }
 
         protected void TestMethodTemplate<TResult>(string operation, TResult score)

@@ -59,7 +59,9 @@ namespace Musoq.Schema.DataSources
 
         public virtual ISchemaTable GetTableByName(string name, params object[] parameters)
         {
-            var methods = GetConstructors($"{name.ToLowerInvariant()}{_tablePart}").Select(c => c.ConstructorInfo).ToArray();
+            var tableName = $"{name.ToLowerInvariant()}{_tablePart}";
+
+            var methods = GetConstructors(tableName).Select(c => c.ConstructorInfo).ToArray();
 
             if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
                 throw new NotSupportedException($"Unrecognized method {name}.");

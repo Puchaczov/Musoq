@@ -22,12 +22,32 @@ namespace Musoq.Schema.Os
         private const string ZipTable = "zip";
         private const string Self = "self";
         private const string SchemaName = "os";
-        private const string ProcessesName = "process";
+        private const string ProcessesName = "processes";
         private const string DirsCompare = "dirscompare";
 
         public OsSchema()
             : base(SchemaName, CreateLibrary())
         {
+            AddSource<FilesSource>(FilesTable);
+            AddTable<FilesBasedTable>(FilesTable);
+
+            AddSource<DirectoriesSource>(DirectoriesTable);
+            AddTable<DirectoriesBasedTable>(DirectoriesTable);
+
+            AddSource<ZipSource>(ZipTable);
+            AddTable<ZipBasedTable>(ZipTable);
+
+            AddSource<ProcessesSource>(ProcessesName);
+            AddTable<ProcessBasedTable>(ProcessesName);
+
+            AddSource<OsSource>(Self);
+            AddTable<OsBasedTable>(Self);
+
+            AddSource<DllSource>(DllsTable);
+            AddTable<DllBasedTable>(DllsTable);
+
+            AddSource<CompareDirectoriesSource>(DirsCompare);
+            AddTable<DirsCompareBasedTable>(DirsCompare);
         }
 
         public override ISchemaTable GetTableByName(string name, params object[] parameters)
@@ -87,21 +107,6 @@ namespace Musoq.Schema.Os
             propertiesManager.RegisterProperties(library);
 
             return new MethodsAggregator(methodsManager, propertiesManager);
-        }
-
-        public override SchemaMethodInfo[] GetConstructors()
-        {
-            var constructors = new List<SchemaMethodInfo>();
-
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<FilesSource>(FilesTable));
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<DirectoriesSource>(DirectoriesTable));
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<ZipSource>(ZipTable));
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<ProcessesSource>(ProcessesName));
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<OsSource>(Self));
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<DllSource>(DllsTable));
-            constructors.AddRange(TypeHelper.GetSchemaMethodInfosForType<CompareDirectoriesSource>(DirsCompare));
-
-            return constructors.ToArray();
         }
     }
 }

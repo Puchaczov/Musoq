@@ -39,6 +39,12 @@ namespace Musoq.Converter.Build
             set => this["RAW_QUERY"] = value;
         }
 
+        public string AssemblyName
+        {
+            get => (string)this["ASSEMBLY_NAME"];
+            set => this["ASSEMBLY_NAME"] = value;
+        }
+
         public ISchemaProvider SchemaProvider
         {
             get => (ISchemaProvider) this["SCHEMA_PROVIDER"];

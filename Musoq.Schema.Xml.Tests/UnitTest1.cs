@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
+using System;
 using System.Linq;
 using System.Threading;
 
@@ -195,12 +196,12 @@ namespace Musoq.Schema.Xml.Tests
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.CompileForExecution(script, new XmlProvider());
+            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new XmlProvider());
         }
 
         static UnitTest1()
         {
-            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+            new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }

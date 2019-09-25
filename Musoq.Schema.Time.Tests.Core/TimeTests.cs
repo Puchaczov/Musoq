@@ -55,7 +55,7 @@ namespace Musoq.Schema.Time.Tests.Core
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.CompileForExecution(script, new TimeSchemaProvider());
+            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new TimeSchemaProvider());
         }
 
         static TimeTests()

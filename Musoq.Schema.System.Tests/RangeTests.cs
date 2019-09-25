@@ -2,6 +2,7 @@
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
+using System;
 
 namespace Musoq.Schema.System.Tests
 {
@@ -71,12 +72,12 @@ namespace Musoq.Schema.System.Tests
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.CompileForExecution(script, new SystemSchemaProvider());
+            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new SystemSchemaProvider());
         }
 
         static RangeTests()
         {
-            new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+            new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
         }
     }
 }

@@ -136,7 +136,7 @@ namespace Musoq.Evaluator.Tests.Core
 
         private CompiledQuery CreateAndRunVirtualMachine(string script, IEnumerable<TestEntity> source, Action<object[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
         {
-            return InstanceCreator.CompileForExecution(script, new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked));
+            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked));
         }
     }
 }

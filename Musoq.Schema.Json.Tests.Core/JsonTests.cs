@@ -125,7 +125,7 @@ namespace Musoq.Schema.Json.Tests.Core
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
-            return InstanceCreator.CompileForExecution(script, new JsonSchemaProvider());
+            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new JsonSchemaProvider());
         }
 
         static JsonTests()

@@ -16,12 +16,13 @@ namespace Musoq.Converter
 {
     public static class InstanceCreator
     {
-        public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, ISchemaProvider provider)
+        public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider)
         {
             var items = new BuildItems
             {
                 SchemaProvider = provider,
-                RawQuery = script
+                RawQuery = script,
+                AssemblyName = assemblyName
             };
 
             RuntimeLibraries.CreateReferences();
@@ -35,18 +36,18 @@ namespace Musoq.Converter
             return (items.DllFile, items.PdbFile);
         }
 
-        public static Task<(byte[] DllFile, byte[] PdbFile)> CompileForStoreAsync(string script,
-            ISchemaProvider provider)
+        public static Task<(byte[] DllFile, byte[] PdbFile)> CompileForStoreAsync(string script, string assemblyName, ISchemaProvider provider)
         {
-            return Task.Factory.StartNew(() => CompileForStore(script, provider));
+            return Task.Factory.StartNew(() => CompileForStore(script, assemblyName, provider));
         }
 
-        public static CompiledQuery CompileForExecution(string script, ISchemaProvider schemaProvider)
+        public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider)
         {
             var items = new BuildItems
             {
                 SchemaProvider = schemaProvider,
-                RawQuery = script
+                RawQuery = script,
+                AssemblyName = assemblyName
             };
 
             var compiled = true;
@@ -117,9 +118,9 @@ namespace Musoq.Converter
             return new CompiledQuery(runnable);
         }
 
-        public static Task<CompiledQuery> CompileForExecutionAsync(string script, ISchemaProvider schemaProvider)
+        public static Task<CompiledQuery> CompileForExecutionAsync(string script, string assemblyName, ISchemaProvider schemaProvider)
         {
-            return Task.Factory.StartNew(() => CompileForExecution(script, schemaProvider));
+            return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider));
         }
 
         private static IRunnable CreateRunnable(BuildItems items, string assemblyPath)
