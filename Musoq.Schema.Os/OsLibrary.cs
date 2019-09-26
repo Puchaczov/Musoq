@@ -20,6 +20,221 @@ namespace Musoq.Schema.Os
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class OsLibrary : LibraryBase
     {
+        private static readonly HashSet<string> IsZipArchiveSet = new HashSet<string>()
+        {
+            ".zip",
+            ".jar",
+            ".war",
+            ".ear"
+        };
+
+        private static readonly HashSet<string> IsArchiveSet = new HashSet<string>()
+        {
+            ".7z",
+            ".bz2",
+            ".bzip2",
+            ".gzip",
+            ".lz",
+            ".rar",
+            ".tar",
+            ".xz",
+            ".zip"
+        };
+
+        private static readonly HashSet<string> IsAudioSet = new HashSet<string>()
+        {
+            ".aac",
+            ".aiff",
+            ".amr",
+            ".flac",
+            ".gsm",
+            ".m4a",
+            ".m4b",
+            ".m4p",
+            ".mp3",
+            ".ogg",
+            ".wma",
+            ".aa", 
+            ".aax", 
+            ".ape", 
+            ".dsf", 
+            ".mpc", 
+            ".mpp", 
+            ".oga", 
+            ".wav", 
+            ".wv", 
+            ".webm"
+        };
+
+        private static readonly HashSet<string> IsBookSet = new HashSet<string>()
+        {
+            ".azw3",
+            ".chm",
+            ".djvu",
+            ".epub",
+            ".fb2",
+            ".mobi",
+            ".pdf"
+        };
+
+        private static readonly HashSet<string> IsDocSet = new HashSet<string>()
+        {
+            ".accdb",
+            ".doc",
+            ".docm",
+            ".docx",
+            ".dot",
+            ".dotm",
+            ".dotx",
+            ".mdb",
+            ".ods",
+            ".odt",
+            ".pdf",
+            ".potm",
+            ".potx",
+            ".ppt",
+            ".pptm",
+            ".pptx",
+            ".rtf",
+            ".xlm",
+            ".xls",
+            ".xlsm",
+            ".xlsx",
+            ".xlt",
+            ".xltm",
+            ".xltx",
+            ".xps"
+        };
+
+        private static readonly HashSet<string> IsImageSet = new HashSet<string>()
+        {
+            ".bmp",
+            ".gif",
+            ".jpeg",
+            ".jpg",
+            ".png",
+            ".psb",
+            ".psd",
+            ".tiff",
+            ".webp",
+            ".pbm", 
+            ".pgm", 
+            ".ppm", 
+            ".pnm", 
+            ".pcx", 
+            ".dng", 
+            ".svg"
+        };
+
+        private static readonly HashSet<string> IsSourceSet = new HashSet<string>()
+        {
+            ".asm",
+            ".bas",
+            ".c",
+            ".cc",
+            ".ceylon",
+            ".clj",
+            ".coffee",
+            ".cpp",
+            ".cs",
+            ".dart",
+            ".elm",
+            ".erl",
+            ".go",
+            ".groovy",
+            ".h",
+            ".hh",
+            ".hpp",
+            ".java",
+            ".js",
+            ".jsp",
+            ".kt",
+            ".kts",
+            ".lua",
+            ".nim",
+            ".pas",
+            ".php",
+            ".pl",
+            ".pm",
+            ".py",
+            ".rb",
+            ".rs",
+            ".scala",
+            ".swift",
+            ".tcl",
+            ".vala",
+            ".vb"
+        };
+
+        private static readonly HashSet<string> IsVideoSet = new HashSet<string>()
+        {
+            ".3gp",
+            ".avi",
+            ".flv",
+            ".m4p",
+            ".m4v",
+            ".mkv",
+            ".mov",
+            ".mp4",
+            ".mpeg",
+            ".mpg",
+            ".webm",
+            ".wmv",
+            ".ogv", 
+            ".asf", 
+            ".mpe", 
+            ".mpv", 
+            ".m2v"
+        };
+
+        [BindableMethod]
+        public bool IsZipArchive(string extension) => IsZipArchiveSet.Contains(extension);
+
+        [BindableMethod]
+        public bool IsZipArchive([InjectSource] FileInfo fileInfo) => IsZipArchiveSet.Contains(fileInfo.Extension);
+
+        [BindableMethod]
+        public bool IsArchive(string extension) => IsArchiveSet.Contains(extension);
+
+        [BindableMethod]
+        public bool IsArchive([InjectSource] FileInfo fileInfo) => IsArchiveSet.Contains(fileInfo.Extension);
+
+        [BindableMethod]
+        public bool IsAudio(string extension) => IsAudioSet.Contains(extension);
+
+        [BindableMethod]
+        public bool IsAudio([InjectSource] FileInfo fileInfo) => IsAudioSet.Contains(fileInfo.Extension);
+
+        [BindableMethod]
+        public bool IsBook(string extension) => IsBookSet.Contains(extension);
+
+        [BindableMethod]
+        public bool IsBook([InjectSource] FileInfo fileInfo) => IsBookSet.Contains(fileInfo.Extension);
+
+        [BindableMethod]
+        public bool IsDoc(string extension) => IsDocSet.Contains(extension);
+
+        [BindableMethod]
+        public bool IsDoc([InjectSource] FileInfo fileInfo) => IsDocSet.Contains(fileInfo.Extension);
+
+        [BindableMethod]
+        public bool IsImage(string extension) => IsImageSet.Contains(extension);
+
+        [BindableMethod]
+        public bool IsImage([InjectSource] FileInfo fileInfo) => IsImageSet.Contains(fileInfo.Extension);
+
+        [BindableMethod]
+        public bool IsSource(string extension) => IsSourceSet.Contains(extension);
+
+        [BindableMethod]
+        public bool IsSource([InjectSource] FileInfo fileInfo) => IsSourceSet.Contains(fileInfo.Extension);
+
+        [BindableMethod]
+        public bool IsVideo(string extension) => IsVideoSet.Contains(extension);
+
+        [BindableMethod]
+        public bool IsVideo([InjectSource] FileInfo fileInfo) => IsVideoSet.Contains(fileInfo.Extension);
+
         [BindableMethod]
         public string GetFileContent([InjectSource] FileInfo fileInfo)
         {
