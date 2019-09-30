@@ -47,6 +47,42 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public string Concat(params char[] strings)
+        {
+            var concatedStrings = new StringBuilder();
+
+            foreach (var value in strings)
+                concatedStrings.Append(value);
+
+            return concatedStrings.ToString();
+        }
+
+        [BindableMethod]
+        public string Concat(string firstString, params char[] chars)
+        {
+            var concatedStrings = new StringBuilder();
+
+            concatedStrings.Append(firstString);
+
+            foreach (var value in chars)
+                concatedStrings.Append(value);
+
+            return concatedStrings.ToString();
+        }
+
+        public string Concat(char firstChar, params string[] strings)
+        {
+            var concatedStrings = new StringBuilder();
+
+            concatedStrings.Append(firstChar);
+
+            foreach (var value in strings)
+                concatedStrings.Append(value);
+
+            return concatedStrings.ToString();
+        }
+
+        [BindableMethod]
         public string Concat(params object[] objects)
         {
             var concatedStrings = new StringBuilder();
@@ -79,7 +115,7 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public bool HasSoundLikeWord(string text, string word, string separator = " ")
+        public bool HasWordThatSoundLike(string text, string word, string separator = " ")
         {
             var soundexedWord = _soundex.For(word);
 
@@ -93,7 +129,7 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public bool HasSoundLikeSentence(string text, string sentence, string separator = " ")
+        public bool HasTextThatSoundLikeSentence(string text, string sentence, string separator = " ")
         {
             var words = sentence.Split(separator[0]);
             var tokens = text.Split(separator[0]);
@@ -142,16 +178,43 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public string Head(string value, int length) => value.Substring(0, length);
+        public string Head(string value, int length = 10) => value.Substring(0, length);
 
         [BindableMethod]
-        public string Tail(string value, int length) => value.Substring(value.Length - length, length);
+        public string Tail(string value, int length = 10) => value.Substring(value.Length - length, length);
 
 
         [BindableMethod]
-        public int LevenshteinDistance(string firstValue, string secondValue)
+        public int? LevenshteinDistance(string firstValue, string secondValue)
         {
+            if (firstValue == null || secondValue == null)
+                return null;
+
             return Fastenshtein.Levenshtein.Distance(firstValue, secondValue);
+        }
+
+        [BindableMethod]
+        public char? GetCharacterOf(string value, int index)
+        {
+            if (value.Length <= index || index < 0)
+                return null;
+
+            return value[index];
+        }
+
+        [BindableMethod]
+        public string Reverse(string value)
+        {
+            if (value == null)
+                return null;
+
+            if (value == string.Empty)
+                return value;
+
+            if (value.Length == 1)
+                return value;
+
+            return string.Concat(value.Reverse());
         }
 
         [BindableMethod]
@@ -160,5 +223,52 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string LongestCommonSubstring(string source, string pattern)
             => new string(LongestCommonSequence(source, pattern).ToArray());
+
+        [BindableMethod]
+        public string Replicate(string value, int integer)
+        {
+            var builder = new StringBuilder();
+
+            for (int i = 0; i < integer; ++i)
+                builder.Append(value);
+
+            return builder.ToString();
+        }
+
+        [BindableMethod]
+        public string Translate(string value, string characters, string translations)
+        {
+            if (value == null)
+                return null;
+
+            if (characters == null || translations == null)
+                return null;
+
+            if (characters.Length != translations.Length)
+                return null;
+
+            var builder = new StringBuilder();
+
+            for(int i = 0; i < value.Length; ++i)
+            {
+                var index = characters.IndexOf(value[i]);
+
+                if (index == -1)
+                    builder.Append(value[i]);
+                else
+                    builder.Append(translations[index]);
+            }
+
+            return builder.ToString();
+        }
+
+        [BindableMethod]
+        public string CapitalizeFirstLetterOfWords(string value)
+        {
+            if (value == null)
+                return null;
+
+            return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value);
+        }
     }
 }

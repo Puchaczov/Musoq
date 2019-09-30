@@ -129,6 +129,63 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public int? ToInt(string value)
+        {
+            if (int.TryParse(value, out var number))
+                return number;
+
+            return null;
+        }
+
+        [BindableMethod]
+        public char? ToChar(string value)
+        {
+            if (value == null)
+                return null;
+
+            if (value == string.Empty)
+                return null;
+
+            return value[0];
+        }
+
+        [BindableMethod]
+        public char? ToChar(int? value)
+        {
+            if (value == null)
+                return null;
+
+            return (char)value;
+        }
+
+        [BindableMethod]
+        public char? ToChar(short? value)
+        {
+            if (value == null)
+                return null;
+
+            return (char)value;
+        }
+
+        [BindableMethod]
+        public char? ToChar(byte? value)
+        {
+            if (value == null)
+                return null;
+
+            return (char)value;
+        }
+
+        [BindableMethod]
+        public string ToString(char? character)
+        {
+            if (character == null)
+                return null;
+
+            return character.ToString();
+        }
+
+        [BindableMethod]
         public string ToString(DateTimeOffset? date)
         {
             return date?.ToString(CultureInfo.InvariantCulture);
@@ -149,7 +206,20 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string ToString(object obj)
         {
+            if (obj == null)
+                return null;
+
             return obj?.ToString();
+        }
+
+        [BindableMethod]
+        public string ToString<T>(T obj)
+            where T : class
+        {
+            if (obj == default(T))
+                return null;
+
+            return obj.ToString();
         }
 
         [BindableMethod]

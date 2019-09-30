@@ -390,7 +390,11 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public long Format([InjectSource] FileInfo context, string unit = "b")
+        public long GetFileLength([InjectSource] FileInfo context, string unit = "b")
+            => GetLengthOfFile(context, unit);
+
+        [BindableMethod]
+        public long GetLengthOfFile([InjectSource] FileInfo context, string unit = "b")
         {
             if (context == null)
                 throw new InjectSourceNullReferenceException(typeof(FileInfo));

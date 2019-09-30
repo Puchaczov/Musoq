@@ -94,5 +94,11 @@ namespace Musoq.Plugins
         {
             return group.GetValue<List<T>>(name);
         }
+
+        [BindableMethod]
+        public T GetElementAt<T>(IEnumerable<T> enumerable, int index)
+        {
+            return enumerable.ElementAtOrDefault(index);
+        }
     }
 }

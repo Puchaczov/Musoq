@@ -165,6 +165,66 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual("ma@hostname.comcom", table[0].Values[0]);
         }
 
+        [Ignore]
+        [TestMethod]
+        public void FirstLetterOfColumnTest()
+        {
+            var query = @"select Name from #A.Entities() f where Name[0] = 'd'";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("12@hostname.com"),
+                        new BasicEntity("ma@hostname.comcom"),
+                        new BasicEntity("david.jones@proseware.com"),
+                        new BasicEntity("ma@hostname.com")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("david.jones@proseware.com", table[0].Values[0]);
+        }
+
+        [Ignore]
+        [TestMethod]
+        public void FirstLetterOfColumnTest2()
+        {
+            var query = @"select Name from #A.Entities() f where f.Name[0] = 'd'";
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("12@hostname.com"),
+                        new BasicEntity("ma@hostname.comcom"),
+                        new BasicEntity("david.jones@proseware.com"),
+                        new BasicEntity("ma@hostname.com")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual("david.jones@proseware.com", table[0].Values[0]);
+        }
+
         [TestMethod]
         public void WrongColumnNameTest()
         {
