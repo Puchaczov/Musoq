@@ -100,5 +100,11 @@ namespace Musoq.Plugins
         {
             return enumerable.ElementAtOrDefault(index);
         }
+
+        [BindableMethod]
+        public int Length<T>(IEnumerable<T> enumerable)
+        {
+            return enumerable.Count();
+        }
     }
 }

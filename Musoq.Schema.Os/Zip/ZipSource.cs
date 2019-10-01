@@ -29,10 +29,12 @@ namespace Musoq.Schema.Os.Zip
                         {
                             endWorkToken.ThrowIfCancellationRequested();
                             if (entry.Name != string.Empty)
+                            {
                                 yield return new EntityResolver<ZipArchiveEntry>(
-                                    entry, 
+                                    entry,
                                     SchemaZipHelper.NameToIndexMap,
                                     SchemaZipHelper.IndexToMethodAccessMap);
+                            }
                         }
                     }
                 }
