@@ -106,5 +106,11 @@ namespace Musoq.Plugins
         {
             return enumerable.Count();
         }
+
+        [BindableMethod]
+        public int Length<T>(T[] array)
+        {
+            return array.Length;
+        }
     }
 }

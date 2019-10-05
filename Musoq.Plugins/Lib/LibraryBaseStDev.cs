@@ -1,15 +1,18 @@
 ﻿using Musoq.Plugins.Attributes;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
         [AggregationSetMethod]
+        public void SetStDev([InjectGroup] Group group, string name, long? value, int parent = 0)
+            => SetStDev(group, name, (decimal?)value, parent);
+
+        [AggregationSetMethod]
         public void SetStDev([InjectGroup] Group group, string name, double? value, int parent = 0)
-            => SetStDev(group, name, value ?? null, parent);
+            => SetStDev(group, name, (decimal?)value, parent);
 
         [AggregationSetMethod]
         public void SetStDev([InjectGroup] Group group, string name, decimal? value, int parent = 0)

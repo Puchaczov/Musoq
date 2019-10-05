@@ -18,6 +18,9 @@ namespace Musoq.Plugins
             return parentGroup.GetValue<decimal>(name);
         }
 
+        public void SetMin([InjectGroup] Group group, string name, long? value, int parent = 0)
+            => SetMin(group, name, (decimal?)value, parent);
+
         [AggregationSetMethod]
         public void SetMin([InjectGroup] Group group, string name, decimal? value, int parent = 0)
         {

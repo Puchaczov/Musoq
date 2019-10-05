@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
@@ -293,16 +294,50 @@ namespace Musoq.Evaluator.Visitors
             else
                 tuple = tableSymbol.GetTableByColumnName(node.Name);
 
-            var column = tuple.Table.GetColumnByName(node.Name);
+            ISchemaColumn column;
+            try
+            {
+                column = tuple.Table.GetColumnByName(node.Name);
+            }
+            catch (InvalidOperationException)
+            {
+                column = null;
+            }
 
             if (column == null)
-                throw new UnknownColumnException($"Column {node.Name} could not be found.");
+                PrepareAndThrowUnknownColumnExceptionMessage(node.Name, tuple.Table.Columns);
 
             AddAssembly(column.ColumnType.Assembly);
             node.ChangeReturnType(column.ColumnType);
 
             var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span);
             Nodes.Push(accessColumn);
+        }
+
+        private static void PrepareAndThrowUnknownColumnExceptionMessage(string indetifier, ISchemaColumn[] columns)
+        {
+            var library = new TransitionLibrary();
+            var candidates = new StringBuilder();
+
+            var candidatesColumns = columns.Where(col =>
+                library.Soundex(col.ColumnName) == library.Soundex(indetifier) ||
+                library.LevenshteinDistance(col.ColumnName, indetifier).Value < 3).ToArray();
+
+            for (int i = 0; i < candidatesColumns.Length - 1; i++)
+            {
+                ISchemaColumn candidate = candidatesColumns[i];
+                candidates.Append(candidate.ColumnName);
+                candidates.Append(", ");
+            }
+
+            if (candidatesColumns.Length > 0)
+            {
+                candidates.Append(candidatesColumns[candidatesColumns.Length - 1].ColumnName);
+
+                throw new UnknownColumnException($"Column '{indetifier}' could not be found. Did you mean to use [{candidates.ToString()}]?");
+            }
+
+            throw new UnknownColumnException($"Column {indetifier} could not be found.");
         }
 
         public void Visit(AllColumnsNode node)
@@ -334,7 +369,7 @@ namespace Musoq.Evaluator.Visitors
                 var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
 
                 if (column == null)
-                    throw new UnknownColumnException($"Column '{node.Name}' cannot be recognized.");
+                    PrepareAndThrowUnknownColumnExceptionMessage(node.Name, tableSymbol.GetColumns());
 
                 Visit(new AccessColumnNode(node.Name, string.Empty, column.ColumnType, TextSpan.Empty));
                 return;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using Musoq.Plugins.Attributes;
@@ -8,6 +7,7 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
+        private static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
 
         [BindableMethod]
         public string ToHex(byte[] bytes, string delimiter = "")
@@ -29,7 +29,23 @@ namespace Musoq.Plugins
             return hexBuilder.ToString();
         }
 
-        private static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
+        [BindableMethod]
+        public string ToBin(byte[] bytes, string delimiter = "")
+        {
+            var builder = new StringBuilder();
+
+            for (int i = 0; i < bytes.Length; ++i)
+            {
+                var binaryRepresentation = Convert
+                    .ToString(bytes[i], 2)
+                    .PadLeft(8, '0');
+
+                builder.Append(binaryRepresentation);
+                builder.Append(delimiter);
+            }
+
+            return builder.ToString();
+        }
 
         [BindableMethod]
         public string ToHex<T>(T value) where T : IConvertible

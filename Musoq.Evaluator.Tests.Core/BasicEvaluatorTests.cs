@@ -106,6 +106,26 @@ namespace Musoq.Evaluator.Tests.Core
         }
 
         [TestMethod]
+        public void WrongColumnNameWithHintTest()
+        {
+            var query = "select Namre from #A.Entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
+                        new BasicEntity("dadsqqAA")
+                    }
+                }
+            };
+
+            Assert.ThrowsException<UnknownColumnException>(() => CreateAndRunVirtualMachine(query, sources));
+        }
+
+        [TestMethod]
         public void RLikeOperatorTest()
         {
             var query = @"select Name from #A.Entities() where Name rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";

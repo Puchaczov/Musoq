@@ -415,6 +415,16 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
+        public long Length([InjectSource] FileInfo context, string unit = "b")
+            => GetLengthOfFile(context, unit);
+
+        [BindableMethod]
+        public FileInfo GetFileInfo(string fullPath)
+        {
+            return new FileInfo(fullPath);
+        }
+
+        [BindableMethod]
         public long CountOfLines([InjectSource] FileInfo context)
         {
             if (context == null)
