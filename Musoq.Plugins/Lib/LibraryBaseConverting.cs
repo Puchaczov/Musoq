@@ -12,6 +12,9 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string ToHex(byte[] bytes, string delimiter = "")
         {
+            if (bytes == null)
+                return null;
+
             var hexBuilder = new StringBuilder();
 
             if (bytes.Length > 0)
@@ -32,6 +35,9 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string ToBin(byte[] bytes, string delimiter = "")
         {
+            if (bytes == null)
+                return null;
+
             var builder = new StringBuilder();
 
             for (int i = 0; i < bytes.Length; ++i)
@@ -114,6 +120,9 @@ namespace Musoq.Plugins
         [BindableMethod]
         public decimal? ToDecimal(string value)
         {
+            if (value == null)
+                return null;
+
             if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
                 return result;
 
@@ -136,7 +145,16 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public long? ToLong(string value)
+        public decimal? ToDecimal(double? value)
+        {
+            if (value == null)
+                return null;
+
+            return Convert.ToDecimal(value.Value);
+        }
+
+        [BindableMethod]
+        public long? ToInt64(string value)
         {
             if (long.TryParse(value, out var number))
                 return number;
@@ -145,12 +163,45 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public int? ToInt(string value)
+        public long? ToInt64(long? value)
+        {
+            return value;
+        }
+
+        [BindableMethod]
+        public long? ToInt64(decimal? value)
+        {
+            if (value == null)
+                return null;
+
+            return Convert.ToInt64(value.Value);
+        }
+
+        [BindableMethod]
+        public int? ToInt32(string value)
         {
             if (int.TryParse(value, out var number))
                 return number;
 
             return null;
+        }
+
+        [BindableMethod]
+        public int? ToInt32(long? value)
+        {
+            if (value == null)
+                return null;
+
+            return Convert.ToInt32(value.Value);
+        }
+
+        [BindableMethod]
+        public int? ToInt32(decimal? value)
+        {
+            if (value == null)
+                return null;
+
+            return Convert.ToInt32(value.Value);
         }
 
         [BindableMethod]
@@ -236,6 +287,44 @@ namespace Musoq.Plugins
                 return null;
 
             return obj.ToString();
+        }
+
+        [BindableMethod]
+        public string ToString(string[] obj)
+        {
+            var builder = new StringBuilder();
+
+            for (int i = 0; i < obj.Length - 1; ++i)
+            {
+                builder.Append(obj[i]);
+                builder.Append(',');
+            }
+
+            if (obj.Length > 0)
+            {
+                builder.Append(obj[obj.Length - 1]);
+            }
+
+            return builder.ToString();
+        }
+
+        [BindableMethod]
+        public string ToString<T>(T[] obj)
+        {
+            var builder = new StringBuilder();
+
+            for (int i = 0; i < obj.Length - 1; ++i)
+            {
+                builder.Append(obj[i].ToString());
+                builder.Append(',');
+            }
+
+            if (obj.Length > 0)
+            {
+                builder.Append(obj[obj.Length - 1].ToString());
+            }
+
+            return builder.ToString();
         }
 
         [BindableMethod]

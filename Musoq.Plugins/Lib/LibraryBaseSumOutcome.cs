@@ -18,6 +18,10 @@ namespace Musoq.Plugins
             => SumOutcome(group, name, 0);
 
         [AggregationSetMethod]
+        public void SetSumOutcome([InjectGroup] Group group, string name, long? number, int parent = 0)
+            => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+
+        [AggregationSetMethod]
         public void SetSumOutcome([InjectGroup] Group group, string name, decimal? number, int parent = 0)
         {
             var parentGroup = GetParentGroup(group, parent);

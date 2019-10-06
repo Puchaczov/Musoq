@@ -10,84 +10,123 @@ namespace Musoq.Plugins
         [BindableMethod]
         public byte[] GetBytes(string content)
         {
+            if (content == null)
+                return null;
+
             return Encoding.UTF8.GetBytes(content);
         }
 
         [BindableMethod]
         public byte[] GetBytes(string content, int length, int offset)
         {
+            if (content == null)
+                return null;
+
             return Encoding.UTF8.GetBytes(content.Substring(offset, length));
         }
 
         [BindableMethod]
-        public byte[] GetBytes(char character)
+        public byte[] GetBytes(char? character)
         {
-            return BitConverter.GetBytes(character);
+            if (character == null)
+                return null;
+
+            return BitConverter.GetBytes(character.Value);
         }
 
         [BindableMethod]
-        public byte[] GetBytes(bool bit)
+        public byte[] GetBytes(bool? bit)
         {
-            return BitConverter.GetBytes(bit);
+            if (bit == null)
+                return null;
+
+            return BitConverter.GetBytes(bit.Value);
         }
 
         [BindableMethod]
-        public byte[] GetBytes(long value)
+        public byte[] GetBytes(long? value)
         {
-            return BitConverter.GetBytes(value);
+            if (value == null)
+                return null;
+
+            return BitConverter.GetBytes(value.Value);
         }
 
         [BindableMethod]
-        public byte[] GetBytes(int value)
+        public byte[] GetBytes(int? value)
         {
-            return BitConverter.GetBytes(value);
+            if (value == null)
+                return null;
+
+            return BitConverter.GetBytes(value.Value);
         }
 
         [BindableMethod]
-        public byte[] GetBytes(short value)
+        public byte[] GetBytes(short? value)
         {
-            return BitConverter.GetBytes(value);
+            if (value == null)
+                return null;
+
+            return BitConverter.GetBytes(value.Value);
         }
 
         [BindableMethod]
-        public byte[] GetBytes(ulong value)
+        public byte[] GetBytes(ulong? value)
         {
-            return BitConverter.GetBytes(value);
+            if (value == null)
+                return null;
+
+            return BitConverter.GetBytes(value.Value);
         }
 
         [BindableMethod]
-        public byte[] GetBytes(ushort value)
+        public byte[] GetBytes(ushort? value)
         {
-            return BitConverter.GetBytes(value);
+            if (value == null)
+                return null;
+
+            return BitConverter.GetBytes(value.Value);
         }
 
         [BindableMethod]
-        public byte[] GetBytes(uint value)
+        public byte[] GetBytes(uint? value)
         {
-            return BitConverter.GetBytes(value);
+            if (value == null)
+                return null;
+
+            return BitConverter.GetBytes(value.Value);
         }
 
         [BindableMethod]
-        public byte[] GetBytes(decimal value)
+        public byte[] GetBytes(decimal? value)
         {
+            if (value == null)
+                return null;
+
             var bytes = new List<byte>();
 
-            foreach (var integerValue in decimal.GetBits(value))
+            foreach (var integerValue in decimal.GetBits(value.Value))
                 bytes.AddRange(BitConverter.GetBytes(integerValue));
 
             return bytes.ToArray();
         }
 
         [BindableMethod]
-        public byte[] GetBytes(double value)
+        public byte[] GetBytes(double? value)
         {
-            return GetBytes(BitConverter.DoubleToInt64Bits(value));
+            if (value == null)
+                return null;
+
+            return GetBytes(BitConverter.DoubleToInt64Bits(value.Value));
         }
 
         [BindableMethod]
-        public byte[] GetBytes(float value)
+        public byte[] GetBytes(float? value)
         {
-            return BitConverter.GetBytes(value);
+            if (value == null)
+                return null;
+
+            return BitConverter.GetBytes(value.Value);
         }
     }
 }

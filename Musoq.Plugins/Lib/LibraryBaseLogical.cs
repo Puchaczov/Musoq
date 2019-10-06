@@ -25,8 +25,11 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public bool Match(string regex, string content)
+        public bool? Match(string regex, string content)
         {
+            if (regex == null || content == null)
+                return null;
+
             return Regex.IsMatch(content, regex);
         }
 

@@ -109,25 +109,66 @@ namespace Musoq.Plugins
             => _rand.Next();
 
         [BindableMethod]
-        public int Rand(int min, int max)
-            => _rand.Next(min, max);
+        public int? Rand(int? min, int? max)
+        {
+            if (min == null || max == null)
+                return null;
+            
+            return _rand.Next(min.Value, max.Value);
+        }
 
         [BindableMethod]
-        public double Pow(decimal x, decimal y) => Math.Pow(Convert.ToDouble(x), Convert.ToDouble(y));
+        public double? Pow(decimal? x, decimal? y)
+        {
+            if (x == null || y == null)
+                return null;
+
+            return Math.Pow(Convert.ToDouble(x.Value), Convert.ToDouble(y.Value));
+        }
+
+    [BindableMethod]
+        public double? Pow(double? x, double? y)
+        {
+            if (x == null || y == null)
+                return null;
+
+            return Math.Pow(x.Value, y.Value);
+        }
 
         [BindableMethod]
-        public double Pow(double x, double y) => Math.Pow(x, y);
+        public double? Sqrt(decimal? x)
+        {
+            if (x == null)
+                return null;
+
+            return Math.Sqrt(Convert.ToDouble(x.Value));
+        }
 
         [BindableMethod]
-        public double Sqrt(decimal x) => Math.Sqrt(Convert.ToDouble(x));
+        public double? Sqrt(double? x)
+        {
+            if (x == null)
+                return null;
+
+            return Math.Sqrt(x.Value);
+        }
 
         [BindableMethod]
-        public double Sqrt(double x) => Math.Sqrt(x);
+        public double? Sqrt(long? x)
+        {
+            if (x == null)
+                return null;
+
+            return Math.Sqrt(x.Value);
+        }
 
         [BindableMethod]
-        public double PercentRank<T>(IEnumerable<T> window, T value)
+        public double? PercentRank<T>(IEnumerable<T> window, T value)
             where T : IComparable<T>
         {
+            if (window == null || value == null)
+                return null;
+
             var orderedWindow = window.OrderBy(w => w).ToArray();
             var index = Array.IndexOf(orderedWindow, value);
 

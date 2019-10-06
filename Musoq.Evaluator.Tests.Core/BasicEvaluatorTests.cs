@@ -779,7 +779,7 @@ namespace Musoq.Evaluator.Tests.Core
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Count);
-            Assert.AreEqual("05|00|00|00", table[0][0]);
+            Assert.AreEqual("05|00", table[0][0]);
         }
 
         [TestMethod]

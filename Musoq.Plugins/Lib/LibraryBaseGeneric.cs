@@ -10,24 +10,36 @@ namespace Musoq.Plugins
         [BindableMethod]
         public IEnumerable<T> Skip<T>(IEnumerable<T> values, int skipCount)
         {
+            if (values == null)
+                return null;
+
             return values.Skip(skipCount);
         }
 
         [BindableMethod]
         public IEnumerable<T> Take<T>(IEnumerable<T> values, int takeCount)
         {
+            if (values == null)
+                return null;
+
             return values.Take(takeCount);
         }
 
         [BindableMethod]
         public IEnumerable<T> SkipAndTake<T>(IEnumerable<T> values, int skipCount, int takeCount)
         {
+            if (values == null)
+                return null;
+
             return values.Skip(skipCount).Take(takeCount);
         }
 
         [BindableMethod]
         public T[] ToArray<T>(IEnumerable<T> values)
         {
+            if (values == null)
+                return null;
+
             return values.ToArray();
         }
 
@@ -35,6 +47,12 @@ namespace Musoq.Plugins
         public IEnumerable<T> LongestCommonSequence<T>(IEnumerable<T> source, IEnumerable<T> pattern)
             where T : IEquatable<T>
         {
+            if (source == null)
+                return null;
+
+            if (pattern == null)
+                return null;
+            
             var sourceCount = source.Count();
             var patternCount = pattern.Count();
 
@@ -96,20 +114,32 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public T GetElementAt<T>(IEnumerable<T> enumerable, int index)
+        public T GetElementAt<T>(IEnumerable<T> enumerable, int? index)
         {
-            return enumerable.ElementAtOrDefault(index);
+            if (enumerable == null)
+                return default;
+
+            if (index == null)
+                return default;
+
+            return enumerable.ElementAtOrDefault(index.Value);
         }
 
         [BindableMethod]
-        public int Length<T>(IEnumerable<T> enumerable)
+        public int? Length<T>(IEnumerable<T> enumerable)
         {
+            if (enumerable == null)
+                return null;
+
             return enumerable.Count();
         }
 
         [BindableMethod]
-        public int Length<T>(T[] array)
+        public int? Length<T>(T[] array)
         {
+            if (array == null)
+                return null;
+
             return array.Length;
         }
     }

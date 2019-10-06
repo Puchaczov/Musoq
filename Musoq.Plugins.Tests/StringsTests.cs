@@ -75,5 +75,14 @@ namespace Musoq.Plugins.Tests
             Assert.AreEqual("test2", values[1]);
             Assert.AreEqual("test3", values[2]);
         }
+
+        [TestMethod]
+        public void HasFuzzyMatchedWordTest()
+        {
+            Assert.IsTrue(Library.HasFuzzyMatchedWord("this is the world first query", "wrd"));
+            Assert.IsTrue(Library.HasFuzzyMatchedWord("this is the world first query", "wolrd"));
+            Assert.IsTrue(Library.HasFuzzyMatchedWord("this is the world first query", "owlrd"));
+            Assert.IsTrue(Library.HasFuzzyMatchedWord("this is the world first query", "worlded"));
+        }
     }
 }

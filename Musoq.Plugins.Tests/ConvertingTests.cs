@@ -40,8 +40,8 @@ namespace Musoq.Plugins.Tests
         [TestMethod]
         public void ToLongTest()
         {
-            Assert.AreEqual(12321L, Library.ToLong("12321"));
-            Assert.AreEqual(null, Library.ToLong(null));
+            Assert.AreEqual(12321L, Library.ToInt64("12321"));
+            Assert.AreEqual(null, Library.ToInt64((string)null));
         }
 
         [TestMethod]

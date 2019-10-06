@@ -12,7 +12,7 @@ namespace Musoq.Plugins
         private readonly Soundex _soundex = new Soundex();
 
         [BindableMethod]
-        public string Substring(string value, int index, int length)
+        public string Substring(string value, int? index, int? length)
         {
             if (string.IsNullOrEmpty(value))
                 return value;
@@ -20,17 +20,20 @@ namespace Musoq.Plugins
             if (length < 1)
                 return string.Empty;
 
+            if (index == null || length == null)
+                return null;
+
             var valueLastIndex = value.Length - 1;
             var computedLastIndex = index + (length - 1);
 
             if (valueLastIndex < computedLastIndex)
                 length = ((value.Length - 1) - index) + 1;
 
-            return value.Substring(index, length);
+            return value.Substring(index.Value, length.Value);
         }
 
         [BindableMethod]
-        public string Substring(string value, int length)
+        public string Substring(string value, int? length)
         {
             return Substring(value, 0, length);
         }
@@ -38,6 +41,9 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string Concat(params string[] strings)
         {
+            if (strings == null)
+                return null;
+
             var concatedStrings = new StringBuilder();
 
             foreach (var value in strings)
@@ -47,19 +53,25 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public string Concat(params char[] strings)
+        public string Concat(params char[] characters)
         {
-            var concatedStrings = new StringBuilder();
+            if (characters == null)
+                return null;
 
-            foreach (var value in strings)
-                concatedStrings.Append(value);
+            var concatedChars = new StringBuilder();
 
-            return concatedStrings.ToString();
+            foreach (var value in characters)
+                concatedChars.Append(value);
+
+            return concatedChars.ToString();
         }
 
         [BindableMethod]
         public string Concat(string firstString, params char[] chars)
         {
+            if (firstString == null || chars == null)
+                return null;
+
             var concatedStrings = new StringBuilder();
 
             concatedStrings.Append(firstString);
@@ -70,8 +82,11 @@ namespace Musoq.Plugins
             return concatedStrings.ToString();
         }
 
-        public string Concat(char firstChar, params string[] strings)
+        public string Concat(char? firstChar, params string[] strings)
         {
+            if (firstChar == null || strings == null)
+                return null;
+
             var concatedStrings = new StringBuilder();
 
             concatedStrings.Append(firstChar);
@@ -85,6 +100,9 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string Concat(params object[] objects)
         {
+            if (objects == null)
+                return null;
+
             var concatedStrings = new StringBuilder();
 
             foreach (var value in objects)
@@ -94,29 +112,80 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public bool Contains(string content, string what)
+        public bool? Contains(string content, string what)
         {
-            if (string.IsNullOrEmpty(content) || string.IsNullOrEmpty(what))
-                return false;
+            if (content == null || what == null)
+                return null;
 
             return CultureInfo.CurrentCulture.CompareInfo.IndexOf(content, what, CompareOptions.IgnoreCase) >= 0;
         }
 
         [BindableMethod]
-        public int IndexOf(string value, string text)
+        public int? IndexOf(string value, string text)
         {
+            if (value == null || text == null)
+                return null;
+
             return value.IndexOf(text, StringComparison.OrdinalIgnoreCase);
         }
 
         [BindableMethod]
         public string Soundex(string value)
         {
+            if (value == null)
+                return null;
+
             return _soundex.For(value);
+        }
+
+        [BindableMethod]
+        public bool HasFuzzyMatchedWord(string text, string word, string separator = " ")
+        {
+            if (word == null || word == string.Empty)
+                return false;
+
+            if (text == null || text == string.Empty)
+                return false;
+
+            var soundexedWord = _soundex.For(word);
+            var square = (int) Math.Ceiling(Math.Sqrt(word.Length));
+
+            foreach (var tokenizedWord in text.Split(separator[0]))
+            {
+                if (soundexedWord == _soundex.For(tokenizedWord) || LevenshteinDistance(word, tokenizedWord) <= square)
+                    return true;
+            }
+
+            return false;
+        }
+
+        [BindableMethod]
+        public bool HasWordThatHasSmallerLevenshteinDistanceThan(string text, string word, int distance, string separator = " ")
+        {
+            if (word == null || word == string.Empty)
+                return false;
+
+            if (text == null || text == string.Empty)
+                return false;
+
+            foreach (var tokenizedWord in text.Split(separator[0]))
+            {
+                if (tokenizedWord == word || LevenshteinDistance(tokenizedWord, word) <= distance)
+                    return true;
+            }
+
+            return false;
         }
 
         [BindableMethod]
         public bool HasWordThatSoundLike(string text, string word, string separator = " ")
         {
+            if (word == null || word == string.Empty)
+                return false;
+
+            if (text == null || text == string.Empty)
+                return false;
+
             var soundexedWord = _soundex.For(word);
 
             foreach (var tokenizedWord in text.Split(separator[0]))
@@ -131,6 +200,12 @@ namespace Musoq.Plugins
         [BindableMethod]
         public bool HasTextThatSoundLikeSentence(string text, string sentence, string separator = " ")
         {
+            if (sentence == null || sentence == string.Empty)
+                return false;
+
+            if (text == null || text == string.Empty)
+                return false;
+
             var words = sentence.Split(separator[0]);
             var tokens = text.Split(separator[0]);
             var wordsMatchTable = new bool[words.Length];
@@ -156,32 +231,65 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string ToUpperInvariant(string value)
         {
+            if (value == null)
+                return null;
+
             return value.ToUpperInvariant();
         }
 
         [BindableMethod]
         public string ToLowerInvariant(string value)
         {
+            if (value == null)
+                return null;
+
             return value.ToLowerInvariant();
         }
 
         [BindableMethod]
-        public string PadLeft(string value, string character, int totalWidth)
+        public string PadLeft(string value, string character, int? totalWidth)
         {
-            return value.PadLeft(totalWidth, character[0]);
+            if (value == null || character == null)
+                return null;
+
+            if (totalWidth == null)
+                return null;
+
+            return value.PadLeft(totalWidth.Value, character[0]);
         }
 
         [BindableMethod]
-        public string PadRight(string value, string character, int totalWidth)
+        public string PadRight(string value, string character, int? totalWidth)
         {
-            return value.PadRight(totalWidth, character[0]);
+            if (value == null || character == null)
+                return null;
+
+            if (totalWidth == null)
+                return null;
+
+            return value.PadRight(totalWidth.Value, character[0]);
         }
 
         [BindableMethod]
-        public string Head(string value, int length = 10) => value.Substring(0, length);
+        public string Head(string value, int? length = 10)
+        {
+            if (value == null)
+                return null;
+
+            return value.Substring(0, length.Value);
+        }
 
         [BindableMethod]
-        public string Tail(string value, int length = 10) => value.Substring(value.Length - length, length);
+        public string Tail(string value, int? length = 10)
+        {
+            if (value == null)
+                return null;
+
+            if (length == null)
+                return null;
+
+            return value.Substring(value.Length - length.Value, length.Value);
+        }
 
 
         [BindableMethod]
