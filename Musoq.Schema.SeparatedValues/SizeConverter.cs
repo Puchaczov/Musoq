@@ -1,4 +1,4 @@
-﻿namespace Musoq.Schema.Csv
+﻿namespace Musoq.Schema.SeparatedValues
 {
     public static class SizeConverter
     {

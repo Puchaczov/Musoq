@@ -1,10 +1,12 @@
-﻿namespace Musoq.Schema.Csv.Tests.Core
+﻿using Musoq.Schema.SeparatedValues;
+
+namespace Musoq.Schema.SeparatedValues.Tests.Core
 {
     internal class CsvSchemaProvider : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
-            return new CsvSchema();
+            return new SeparatedValuesSchema();
         }
     }
 }

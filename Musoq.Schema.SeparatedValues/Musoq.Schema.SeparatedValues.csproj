@@ -11,6 +11,8 @@
     <PackageLicenseUrl>https://github.com/Puchaczov/Musoq/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>sql, csv, dotnet-core</PackageTags>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AssemblyName>Musoq.Schema.SeparatedValues</AssemblyName>
+    <RootNamespace>Musoq.Schema.SeparatedValues</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

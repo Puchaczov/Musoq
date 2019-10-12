@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Musoq.Plugins;
-using Musoq.Plugins.Attributes;
 
-namespace Musoq.Schema.Csv
+namespace Musoq.Schema.SeparatedValues
 {
-    public class CsvLibrary : LibraryBase
+    public class SeparatedValuesLibrary : LibraryBase
     {
         private readonly IDictionary<string, IDictionary<string, string>> _fileNameToClusteredWordsMapDictionary =
-            new Dictionary<string, IDictionary<string, string>>();
+       new Dictionary<string, IDictionary<string, string>>();
 
         [BindableMethod]
         public string ClusteredByContainsKey(string dictionaryFilename, string value)

@@ -25,9 +25,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{2F3A37EC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Tools.CopyReleased", "Musoq.Tools.CopyReleased\Musoq.Tools.CopyReleased.csproj", "{9436065F-CE7F-4C8F-A7D0-83B74245EB36}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Csv", "Musoq.Schema.Csv\Musoq.Schema.Csv.csproj", "{08EE2355-3173-4888-A68E-1F3946D95BDA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.SeparatedValues", "Musoq.Schema.SeparatedValues\Musoq.Schema.SeparatedValues.csproj", "{08EE2355-3173-4888-A68E-1F3946D95BDA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Csv.Tests.Core", "Musoq.Schema.Csv.Tests.Core\Musoq.Schema.Csv.Tests.Core.csproj", "{25BB79FB-7256-4CDA-87DE-7DF37296BA9A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.SeparatedValues.Tests.Core", "Musoq.Schema.SeparatedValues.Tests.Core\Musoq.Schema.SeparatedValues.Tests.Core.csproj", "{25BB79FB-7256-4CDA-87DE-7DF37296BA9A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Os", "Musoq.Schema.Os\Musoq.Schema.Os.csproj", "{AFA50CED-A335-4559-B66D-60F65930258D}"
 EndProject
@@ -53,7 +53,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Xml", "Musoq.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Xml.Tests", "Musoq.Schema.Xml.Tests\Musoq.Schema.Xml.Tests.csproj", "{49D0580B-7DB6-4FDD-8672-0B1C46210D17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musoq.Parser.Tests", "Musoq.Parser.Tests\Musoq.Parser.Tests.csproj", "{595C2DAB-96F1-4EE7-B056-BAF77611F648}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Parser.Tests", "Musoq.Parser.Tests\Musoq.Parser.Tests.csproj", "{595C2DAB-96F1-4EE7-B056-BAF77611F648}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

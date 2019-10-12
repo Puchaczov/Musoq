@@ -32,7 +32,7 @@ namespace Musoq.Schema.Os.Process
                 {nameof(System.Diagnostics.Process.StartTime), 14},
                 {nameof(System.Diagnostics.Process.TotalProcessorTime), 15},
                 {nameof(System.Diagnostics.Process.UserProcessorTime), 16},
-                {"Dir", 17},
+                {"Directory", 17},
                 {"FileName", 18}
             };
 
@@ -102,7 +102,8 @@ namespace Musoq.Schema.Os.Process
                 new SchemaColumn(nameof(System.Diagnostics.Process.StartTime), 14, typeof(DateTime)),
                 new SchemaColumn(nameof(System.Diagnostics.Process.TotalProcessorTime), 15, typeof(TimeSpan)),
                 new SchemaColumn(nameof(System.Diagnostics.Process.UserProcessorTime), 16, typeof(TimeSpan)),
-                new SchemaColumn("Dir", 17, typeof(string))
+                new SchemaColumn("Directory", 17, typeof(string)),
+                new SchemaColumn("FileName", 18, typeof(string))
             };
         }
     }

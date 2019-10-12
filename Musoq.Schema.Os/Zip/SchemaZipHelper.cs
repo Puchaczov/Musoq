@@ -21,10 +21,8 @@ namespace Musoq.Schema.Os.Zip
                 {nameof(ZipArchiveEntry.CompressedLength), 2},
                 {nameof(ZipArchiveEntry.LastWriteTime), 3},
                 {nameof(ZipArchiveEntry.Length), 4},
-                {nameof(ZipArchiveEntry), 5},
-                {"File", 6},
-                {"IsDirectory", 7},
-                {"Level", 8}
+                {"IsDirectory", 5},
+                {"Level", 6}
             };
 
             IndexToMethodAccessMap = new Dictionary<int, Func<ZipArchiveEntry, object>>
@@ -34,13 +32,8 @@ namespace Musoq.Schema.Os.Zip
                 {2, info => info.CompressedLength},
                 {3, info => info.LastWriteTime},
                 {4, info => info.Length},
-                {5, info => info},
-                {
-                    6,
-                    info => UnpackZipEntry(info, info.FullName, Path.GetTempPath())
-                },
-                {7, info => info.Name == string.Empty},
-                {8, info => info.FullName.Trim('/').Split('/').Length - 1}
+                {5, info => info.Name == string.Empty},
+                {6, info => info.FullName.Trim('/').Split('/').Length - 1}
             };
 
             SchemaColumns = new ISchemaColumn[]
@@ -50,10 +43,8 @@ namespace Musoq.Schema.Os.Zip
                 new SchemaColumn(nameof(ZipArchiveEntry.CompressedLength), 2, typeof(long)),
                 new SchemaColumn(nameof(ZipArchiveEntry.LastWriteTime), 3, typeof(DateTimeOffset)),
                 new SchemaColumn(nameof(ZipArchiveEntry.Length), 4, typeof(long)),
-                new SchemaColumn(nameof(ZipArchiveEntry), 5, typeof(ZipArchiveEntry)),
-                new SchemaColumn("File", 6, typeof(FileInfo)),
-                new SchemaColumn("IsDirectory", 7, typeof(bool)),
-                new SchemaColumn("Level", 8, typeof(int))
+                new SchemaColumn("IsDirectory", 5, typeof(bool)),
+                new SchemaColumn("Level", 6, typeof(int))
             };
         }
 

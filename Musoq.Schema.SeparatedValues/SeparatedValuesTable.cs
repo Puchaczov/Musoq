@@ -3,11 +3,11 @@ using System.IO;
 using System.Linq;
 using Musoq.Schema.DataSources;
 
-namespace Musoq.Schema.Csv
+namespace Musoq.Schema.SeparatedValues
 {
-    public class CsvBasedTable : ISchemaTable
+    public class SeparatedValuesTable : ISchemaTable
     {
-        public CsvBasedTable(string fileName, string separator, bool hasHeader, int skipLines)
+        public SeparatedValuesTable(string fileName, string separator, bool hasHeader, int skipLines)
         {
             var file = new FileInfo(fileName);
             using (var stream = new StreamReader(file.OpenRead()))
@@ -20,15 +20,15 @@ namespace Musoq.Schema.Csv
                     currentLine += 1;
                 }
 
-                var columns = line.Split(new[] {separator}, StringSplitOptions.None);
+                var columns = line.Split(new[] { separator }, StringSplitOptions.None);
 
                 if (hasHeader)
                     Columns = columns
-                        .Select((header, i) => (ISchemaColumn) new SchemaColumn(CsvHelper.MakeHeaderNameValidColumnName(header), i, typeof(string)))
+                        .Select((header, i) => (ISchemaColumn)new SchemaColumn(SeparatedValuesHelper.MakeHeaderNameValidColumnName(header), i, typeof(string)))
                         .ToArray();
                 else
                     Columns = columns
-                        .Select((f, i) => (ISchemaColumn) new SchemaColumn(string.Format(CsvHelper.AutoColumnName, i + 1), i, typeof(string)))
+                        .Select((f, i) => (ISchemaColumn)new SchemaColumn(string.Format(SeparatedValuesHelper.AutoColumnName, i + 1), i, typeof(string)))
                         .ToArray();
             }
         }

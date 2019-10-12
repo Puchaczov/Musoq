@@ -24,20 +24,18 @@ namespace Musoq.Evaluator.Visitors
     public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     {
         private readonly ISchemaProvider _provider;
-
         private readonly List<AccessMethodNode> _refreshMethods = new List<AccessMethodNode>();
         private readonly List<object> _schemaFromArgs = new List<object>();
-
-        private Scope _currentScope;
         private readonly List<string> _generatedAliases = new List<string>();
-        private FieldNode[] _generatedColumns = new FieldNode[0];
-        private string _identifier;
-        private string _queryAlias;
         private readonly IDictionary<string, ISchemaTable> _explicitlyDefinedTables = new Dictionary<string, ISchemaTable>();
         private readonly IDictionary<string, string> _explicitlyCoupledTablesWithAliases = new Dictionary<string, string>();
         private readonly IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases = new Dictionary<string, SchemaMethodFromNode>();
 
         private int _setKey;
+        private Scope _currentScope;
+        private FieldNode[] _generatedColumns = new FieldNode[0];
+        private string _identifier;
+        private string _queryAlias;
 
         private Stack<string> Methods { get; } = new Stack<string>();
 
@@ -47,9 +45,12 @@ namespace Musoq.Evaluator.Visitors
         }
 
         protected Stack<Node> Nodes { get; } = new Stack<Node>();
+
         public List<Assembly> Assemblies { get; } = new List<Assembly>();
+        
         public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
+        
         public IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
 
         public RootNode Root => (RootNode) Nodes.Peek();
@@ -858,7 +859,8 @@ namespace Musoq.Evaluator.Visitors
             return fields.ToArray();
         }
 
-        private void VisitAccessMethod(AccessMethodNode node,
+        private void VisitAccessMethod(
+            AccessMethodNode node,
             Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
         {
             var args = Nodes.Pop() as ArgsListNode;
@@ -883,6 +885,7 @@ namespace Musoq.Evaluator.Visitors
 
                         throw new UnresolvableMethodException($"{node.Name}({types}) cannot be resolved.");
                     }
+
                     canSkipInjectSource = true;
                 }
             }
@@ -897,6 +900,7 @@ namespace Musoq.Evaluator.Visitors
 
                 var newArgs = new List<Node> {new WordNode(identifier)};
                 newArgs.AddRange(args.Args.Skip(1));
+                
                 var newSetArgs = new List<Node> {new WordNode(identifier)};
                 newSetArgs.AddRange(args.Args);
 
@@ -911,6 +915,7 @@ namespace Musoq.Evaluator.Visitors
                     var names = argTypes.Length == 0
                         ? string.Empty
                         : argTypes.Select(arg => arg.Name).Aggregate((a, b) => a + ", " + b);
+
                     throw new NotSupportedException($"Cannot resolve method {setMethodName} with parameters {names}");
                 }
 

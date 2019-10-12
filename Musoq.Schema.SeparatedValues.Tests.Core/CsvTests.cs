@@ -8,9 +8,10 @@ using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Tables;
 using Musoq.Plugins;
+using Musoq.Schema.SeparatedValues;
 using Environment = Musoq.Plugins.Environment;
 
-namespace Musoq.Schema.Csv.Tests.Core
+namespace Musoq.Schema.SeparatedValues.Tests.Core
 {
     [TestClass]
     public class CsvTests
@@ -18,7 +19,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         [TestMethod]
         public void ReplaceNotValidCharacters()
         {
-            var columnName = CsvHelper.MakeHeaderNameValidColumnName("#Column name 123 22@");
+            var columnName = SeparatedValuesHelper.MakeHeaderNameValidColumnName("#Column name 123 22@");
 
             Assert.AreEqual("ColumnName12322", columnName);
         }
@@ -26,7 +27,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         [TestMethod]
         public void SimpleSelectWithSkipLinesTest()
         {
-            var query = "SELECT Name FROM #csv.file('./Files/BankingTransactionsWithSkippedLines.csv', ',', true, 2)";
+            var query = "SELECT Name FROM #separatedvalues.csv('./Files/BankingTransactionsWithSkippedLines.csv', true, 2)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -56,8 +57,8 @@ namespace Musoq.Schema.Csv.Tests.Core
                 "table CsvFile {" +
                 "   Name 'System.String'" +
                 "};" +
-                "couple #csv.file with table CsvFile as SourceCsvFile;" +
-                "select Name from SourceCsvFile('./Files/BankingTransactionsWithSkippedLines.csv', ',', true, 2);";
+                "couple #separatedvalues.csv with table CsvFile as SourceCsvFile;" +
+                "select Name from SourceCsvFile('./Files/BankingTransactionsWithSkippedLines.csv', true, 2);";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -88,8 +89,8 @@ namespace Musoq.Schema.Csv.Tests.Core
                 "   Id 'System.Int32'," +
                 "   Name 'System.String'" +
                 "};" +
-                "couple #csv.file with table Persons as SourceOfPersons;" +
-                "select Id, Name from SourceOfPersons('./Files/Persons.csv', ',', true, 0)";
+                "couple #separatedvalues.csv with table Persons as SourceOfPersons;" +
+                "select Id, Name from SourceOfPersons('./Files/Persons.csv', true, 0)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -121,8 +122,8 @@ namespace Musoq.Schema.Csv.Tests.Core
                 "   Category 'string'," +
                 "   Money 'decimal'" +
                 "};" +
-                "couple #csv.file with table BankingTransactions as SourceOfBankingTransactions;" +
-                "select Category, Money from SourceOfBankingTransactions('./Files/BankingTransactionsNullValues.csv', ',', true, 0) where Category is null or Money is null;";
+                "couple #separatedvalues.csv with table BankingTransactions as SourceOfBankingTransactions;" +
+                "select Category, Money from SourceOfBankingTransactions('./Files/BankingTransactionsNullValues.csv', true, 0) where Category is null or Money is null;";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -151,9 +152,9 @@ namespace Musoq.Schema.Csv.Tests.Core
                 "table CsvFile {" +
                 "   Name 'System.String'" +
                 "};" +
-                "couple #csv.file with table CsvFile as SourceCsvFile;" +
+                "couple #separatedvalues.csv with table CsvFile as SourceCsvFile;" +
                 "with FilesToScan as (" +
-                "   select './Files/BankingTransactionsWithSkippedLines.csv', ',', true, 2 from #csv.empty()" +
+                "   select './Files/BankingTransactionsWithSkippedLines.csv', true, 2 from #separatedvalues.empty()" +
                 ")" +
                 "select Name from SourceCsvFile(FilesToScan);";
 
@@ -185,11 +186,11 @@ namespace Musoq.Schema.Csv.Tests.Core
                 "table CsvFile {" +
                 "   Name 'System.String'" +
                 "};" +
-                "couple #csv.file with table CsvFile as SourceCsvFile;" +
+                "couple #separatedvalues.csv with table CsvFile as SourceCsvFile;" +
                 "with FilesToScan as (" +
-                "   select './Files/BankingTransactionsWithSkippedLines.csv' as FileName, ',', true, 2 from #csv.empty()" +
+                "   select './Files/BankingTransactionsWithSkippedLines.csv' as FileName, true, 2 from #separatedvalues.empty()" +
                 "   union all (FileName) " +
-                "   select './Files/BankingTransactionsWithSkippedLines.csv' as FileName, ',', true, 2 from #csv.empty()" +
+                "   select './Files/BankingTransactionsWithSkippedLines.csv' as FileName, true, 2 from #separatedvalues.empty()" +
                 ")" +
                 "select Name from SourceCsvFile(FilesToScan);";
 
@@ -229,7 +230,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         [TestMethod]
         public void SimpleSelectTest()
         {
-            var query = "SELECT Name FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0)";
+            var query = "SELECT Name FROM #separatedvalues.csv('./Files/BankingTransactions.csv', true, 0)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -255,7 +256,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         [TestMethod]
         public void SimpleSelectNoHeaderTest()
         {
-            var query = "SELECT Column3 FROM #csv.file('./Files/BankingTransactionsNoHeader.csv', ',', false, 0)";
+            var query = "SELECT Column3 FROM #separatedvalues.csv('./Files/BankingTransactionsNoHeader.csv', false, 0)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -281,7 +282,7 @@ namespace Musoq.Schema.Csv.Tests.Core
         [TestMethod]
         public void SimpleCountTest()
         {
-            var query = "SELECT Count(OperationDate) FROM #csv.file('./Files/BankingTransactions.csv', ',', true, 0)";
+            var query = "SELECT Count(OperationDate) FROM #separatedvalues.csv('./Files/BankingTransactions.csv', true, 0)";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -306,7 +307,7 @@ select
     SumIncome(ToDecimal(Money)), 
     SumOutcome(ToDecimal(Money)), 
     SumIncome(ToDecimal(Money)) - Abs(SumOutcome(ToDecimal(Money))) 
-from #csv.file('./Files/BankingTransactions.csv', ',', true, 0) 
+from #separatedvalues.csv('./Files/BankingTransactions.csv', true, 0) 
 group by ExtractFromDate(OperationDate, 'month')";
 
             var vm = CreateAndRunVirtualMachine(query);
@@ -353,8 +354,8 @@ select
     persons.Surname, 
     grades.Subject, 
     grades.ToDecimal(grades.Grade) 
-from #csv.file('./Files/Persons.csv', ',', true, 0) persons 
-inner join #csv.file('./Files/Gradebook.csv', ',', true, 0) grades on persons.Id = grades.PersonId";
+from #separatedvalues.csv('./Files/Persons.csv', true, 0) persons 
+inner join #separatedvalues.csv('./Files/Gradebook.csv', true, 0) grades on persons.Id = grades.PersonId";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -508,7 +509,7 @@ with BasicIndicators as (
 		SumOutcome(ToDecimal(Amount), 1) as 'MonthlyOutcome',
 		SumIncome(ToDecimal(Amount), 1) + SumOutcome(ToDecimal(Amount), 1) as 'MoneysLeft',
 		SumIncome(ToDecimal(Amount), 2) + SumOutcome(ToDecimal(Amount), 2) as 'OvMoneysLeft'
-	from #csv.file('./Files/FakeBankingTransactions.csv', ',', true, 0) as csv
+	from #separatedvalues.csv('./Files/FakeBankingTransactions.csv', true, 0) as csv
 	group by 
 		ExtractFromDate(DateTime, 'month'), 
 		ClusteredByContainsKey('./Files/Categories.txt', ChargeName)
@@ -596,7 +597,7 @@ with BasicIndicators as (
 		SumOutcome(ToDecimal(Amount), 1) as 'MonthlyOutcome',
 		SumIncome(ToDecimal(Amount), 1) + SumOutcome(ToDecimal(Amount), 1) as 'MoneysLeft',
 		SumIncome(ToDecimal(Amount), 2) + SumOutcome(ToDecimal(Amount), 2) as 'OvMoneysLeft'
-	from #csv.file('./Files/FakeBankingTransactions.csv', ',', true, 0) as csv
+	from #separatedvalues.csv('./Files/FakeBankingTransactions.csv', true, 0) as csv
 	group by 
 		ExtractFromDate(DateTime, 'month'), 
 		ClusteredByContainsKey('./Files/Categories.txt', ChargeName)
@@ -710,7 +711,7 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
             using (var tokenSource = new CancellationTokenSource())
             {
                 tokenSource.Cancel();
-                var source = new CsvSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
+                var source = new SeparatedValuesSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, new RuntimeContext(tokenSource.Token, new ISchemaColumn[0]));
 
                 var fired = source.Rows.Count();
 
@@ -744,7 +745,7 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
 
                 var context = new RuntimeContext(tokenSource.Token, columns);
 
-                var source = new CsvSource("./Files/AllTypes.csv", ",", true, 0, context);
+                var source = new SeparatedValuesSource("./Files/AllTypes.csv", ",", true, 0, context);
 
                 var rows = source.Rows;
 
@@ -771,19 +772,19 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
         [TestMethod]
         public void DescSchemaTest()
         {
-            var query = "desc #csv";
+            var query = "desc #separatedvalues";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
 
             Assert.AreEqual(5, table.Columns.Count());
-            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(3, table.Count);
         }
 
         [TestMethod]
         public void DescMethodTest()
         {
-            var query = "desc #csv.file";
+            var query = "desc #separatedvalues.csv";
 
             var vm = CreateAndRunVirtualMachine(query);
             var table = vm.Run();
@@ -795,7 +796,7 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
         [TestMethod]
         public void CsvSource_FullLoadTest()
         {
-            var source = new CsvSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, RuntimeContext.Empty);
+            var source = new SeparatedValuesSource("./Files/BankingTransactionsWithSkippedLines.csv", ",", true, 2, RuntimeContext.Empty);
 
             var fired = source.Rows.Count();
 

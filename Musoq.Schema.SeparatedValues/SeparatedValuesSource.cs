@@ -9,28 +9,30 @@ using CsvHelper;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 
-namespace Musoq.Schema.Csv
+namespace Musoq.Schema.SeparatedValues
 {
-    public class CsvSource : RowSourceBase<object[]>
+    public class SeparatedValuesSource : RowSourceBase<object[]>
     {
-        private class CsvFile
+        private class SeparatedValueFile
         {
             public string FilePath { get; set; }
+
             public string Separator { get; set; }
 
             public bool HasHeader { get; set; }
+
             public int SkipLines { get; set; }
         }
 
-        private readonly CsvFile[] _files;
+        private readonly SeparatedValueFile[] _files;
         private readonly RuntimeContext _context;
         private readonly IReadOnlyDictionary<string, Type> _types;
 
-        public CsvSource(string filePath, string separator, bool hasHeader, int skipLines, RuntimeContext context)
+        public SeparatedValuesSource(string filePath, string separator, bool hasHeader, int skipLines, RuntimeContext context)
             : this(context)
         {
             _files = new[] {
-                new CsvFile()
+                new SeparatedValueFile()
                 {
                     FilePath = filePath,
                     HasHeader = hasHeader,
@@ -40,25 +42,25 @@ namespace Musoq.Schema.Csv
             };
         }
 
-        public CsvSource(IReadOnlyTable table, RuntimeContext context)
+        public SeparatedValuesSource(IReadOnlyTable table, string separator, RuntimeContext context)
             : this(context)
         {
-            _files = new CsvFile[table.Count];
+            _files = new SeparatedValueFile[table.Count];
 
-            for(int i = 0; i < table.Count; ++i)
+            for (int i = 0; i < table.Count; ++i)
             {
                 var row = table.Rows[i];
-                _files[i] = new CsvFile()
+                _files[i] = new SeparatedValueFile()
                 {
                     FilePath = (string)row[0],
-                    Separator = (string)row[1],
-                    HasHeader = (bool)row[2],
-                    SkipLines = (int)row[3]
+                    Separator = separator,
+                    HasHeader = (bool)row[1],
+                    SkipLines = (int)row[2]
                 };
             }
         }
 
-        private CsvSource(RuntimeContext context)
+        private SeparatedValuesSource(RuntimeContext context)
         {
             _context = context;
             _types = _context.AllColumns.ToDictionary(col => col.ColumnName, col => col.ColumnType.GetUnderlyingNullable());
@@ -66,13 +68,13 @@ namespace Musoq.Schema.Csv
 
         protected override void CollectChunks(BlockingCollection<IReadOnlyList<DataSources.IObjectResolver>> chunkedSource)
         {
-            foreach(var csvFile in _files)
+            foreach (var csvFile in _files)
             {
                 ProcessFile(csvFile, chunkedSource);
             }
         }
 
-        private void ProcessFile(CsvFile csvFile, BlockingCollection<IReadOnlyList<DataSources.IObjectResolver>> chunkedSource)
+        private void ProcessFile(SeparatedValueFile csvFile, BlockingCollection<IReadOnlyList<DataSources.IObjectResolver>> chunkedSource)
         {
             var file = new FileInfo(csvFile.FilePath);
 
@@ -89,7 +91,7 @@ namespace Musoq.Schema.Csv
 
             using (var stream = CreateStreamFromFile(file))
             {
-                using (var reader = new StreamReader(stream))
+                using (var reader = new StreamReader(stream, Encoding.UTF8))
                 {
                     SkipLines(reader, csvFile);
 
@@ -102,7 +104,7 @@ namespace Musoq.Schema.Csv
 
                         for (var i = 0; i < header.Length; ++i)
                         {
-                            var headerName = csvFile.HasHeader ? CsvHelper.MakeHeaderNameValidColumnName(header[i]) : string.Format(CsvHelper.AutoColumnName, i + 1);
+                            var headerName = csvFile.HasHeader ? SeparatedValuesHelper.MakeHeaderNameValidColumnName(header[i]) : string.Format(SeparatedValuesHelper.AutoColumnName, i + 1);
                             nameToIndexMap.Add(headerName, i);
                             indexToNameMap.Add(i, headerName);
                             var i1 = i;
@@ -277,7 +279,7 @@ namespace Musoq.Schema.Csv
             return parsedRecords;
         }
 
-        private void SkipLines(TextReader reader, CsvFile csvFile)
+        private void SkipLines(TextReader reader, SeparatedValueFile csvFile)
         {
             if (csvFile.SkipLines <= 0) return;
 

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Musoq.Schema.Csv
+namespace Musoq.Schema.SeparatedValues
 {
-    public static class CsvHelper
+    public static class SeparatedValuesHelper
     {
         public const string AutoColumnName = "Column{0}";
 

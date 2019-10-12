@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -107,6 +106,20 @@ namespace Musoq.Plugins
 
             foreach (var value in objects)
                 concatedStrings.Append(value);
+
+            return concatedStrings.ToString();
+        }
+
+        [BindableMethod]
+        public string Concat<T>(params T[] objects)
+        {
+            if (objects == null)
+                return null;
+
+            var concatedStrings = new StringBuilder();
+
+            foreach (var value in objects)
+                concatedStrings.Append(value.ToString());
 
             return concatedStrings.ToString();
         }
@@ -377,6 +390,51 @@ namespace Musoq.Plugins
                 return null;
 
             return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value);
+        }
+
+        [BindableMethod]
+        public string GetNthWord(string text, int wordIndex, string separator)
+        {
+            if (text == null || separator == null)
+                return null;
+
+            var splitted = text.Split(separator[0]);
+
+            if (wordIndex >= splitted.Length)
+                return null;
+
+            return splitted[wordIndex];
+        }
+
+        [BindableMethod]
+        public string GetFirstWord(string text, string separator)
+        {
+            return GetNthWord(text, 1, separator);
+        }
+
+
+        [BindableMethod]
+        public string GetSecondWord(string text, string separator)
+        {
+            return GetNthWord(text, 2, separator);
+        }
+
+
+        [BindableMethod]
+        public string GetThirdWord(string text, string separator)
+        {
+            return GetNthWord(text, 3, separator);
+        }
+
+        [BindableMethod]
+        public string GetLastWord(string text, string separator)
+        {
+            if (text == null || separator == null)
+                return null;
+
+            var splitted = text.Split(separator[0]);
+
+            return splitted[splitted.Length - 1];
         }
     }
 }

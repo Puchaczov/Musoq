@@ -12,6 +12,7 @@ using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Plugins.Helpers;
 using Musoq.Schema.Exceptions;
+using Musoq.Schema.Os.Zip;
 using Group = Musoq.Plugins.Group;
 
 namespace Musoq.Schema.Os
@@ -425,6 +426,16 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
+        public FileInfo GetFileInfo([InjectSource] FileInfo context)
+            => context;
+
+        [BindableMethod]
+        public FileInfo GetZipEntryFileInfo([InjectSource] ZipArchiveEntry zipArchiveEntry)
+        {
+            return SchemaZipHelper.UnpackZipEntry(zipArchiveEntry, zipArchiveEntry.FullName, Path.GetTempPath());
+        }
+
+        [BindableMethod]
         public long CountOfLines([InjectSource] FileInfo context)
         {
             if (context == null)
@@ -489,8 +500,7 @@ namespace Musoq.Schema.Os
         }
 
         [AggregationSetMethod]
-        public void SetAggregateDirectories([InjectGroup] Group group, [InjectSource] DirectoryInfo directory,
-            string name)
+        public void SetAggregateDirectories([InjectGroup] Group group, [InjectSource] DirectoryInfo directory, string name)
         {
             var list = group.GetOrCreateValue(name, new List<DirectoryInfo>());
 
@@ -700,6 +710,26 @@ namespace Musoq.Schema.Os
         public string Combine(params string[] paths)
         {
             return Path.Combine(paths);
+        }
+
+        [BindableMethod]
+        public ZipArchiveEntry GetZipArchiveEntry([InjectSource] ZipArchiveEntry zipArchiveEntry)
+        {
+            return zipArchiveEntry;
+        }
+
+        [BindableMethod]
+        public string UnpackTo([InjectSource] ZipArchiveEntry zipArchiveEntry, string destinationDirectory)
+        {
+            var fileInfo = SchemaZipHelper.UnpackZipEntry(zipArchiveEntry, zipArchiveEntry.FullName, destinationDirectory);
+            
+            return fileInfo.FullName;
+        }
+
+        [BindableMethod]
+        public string Unpack(ZipArchiveEntry zipArchiveEntry)
+        {
+            return UnpackTo(zipArchiveEntry, Path.GetTempPath());
         }
 
         private class DirectoryinfoPosition

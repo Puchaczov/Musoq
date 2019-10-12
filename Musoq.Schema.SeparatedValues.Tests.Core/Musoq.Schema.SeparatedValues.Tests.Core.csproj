@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <AssemblyName>Musoq.Schema.SeparatedValues.Tests.Core</AssemblyName>
+
+    <RootNamespace>Musoq.Schema.SeparatedValues.Tests.Core</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +21,7 @@
     <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
     <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
-    <ProjectReference Include="..\Musoq.Schema.Csv\Musoq.Schema.Csv.csproj" />
+    <ProjectReference Include="..\Musoq.Schema.SeparatedValues\Musoq.Schema.SeparatedValues.csproj" />
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
   </ItemGroup>
 

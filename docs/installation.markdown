@@ -20,8 +20,8 @@ Both applications have auto-update feature and **Musoq.Server** will update auto
 3. Run powershell script `.\run.ps1` that runs the server.
 
 ### Downloading and running Musoq.Sever.Console
-
 1. Download **Musoq.Server.Console** from [soupinf.net](https://soupinf.net/published/b3080332-19a8-433e-ae9f-3562e0db5fdc/latest).
+
 2. Unpack downloaded zip to destination client directory.
 3. Go to destination client directory and open `cmd` or `powershell` at that directory.
 4. Type command dotnet Musoq.Server.Console.dll --open help. If your default browser will new page, then everything works fine.
@@ -51,3 +51,45 @@ Here is the table of plugins with their identifiers to replace with `{plugin_id}
 |Musoq.Os |09f85f5a-cddc-410d-9483-b0061c3195eb|
 |Musoq.Media |f68edcac-0daf-4912-a876-be137d8dd525|
 |Musoq.Ocr|01d063ec-b32f-4807-8c98-f033ec6fac46|
+
+### Usage
+
+So, we have two programs, `Musoq.Server` which generally you won't do anything with beside running it. It just must be turned on as it is server. All operations you will be doing are on `Musoq.Server.Console` side. Let's see all options client provides:
+
+```
+--version
+--query [
+	--command {query} | 
+	--file {filePath}]
+--wait
+	--save {fileName.csv}
+	--output
+	--summary
+--command [
+	--math "1 + 2"
+	--findfile --fields "Put,Here,Fields" --folder "E:/Put/Here/Directory" --where "Put-Here-Where-Constraints"
+	]
+--plugins
+	--add {packageId}
+	--update {packageId}
+	--remove {packageId}
+--open ["help" | "constructors" | "methods"]
+```
+
+`--version` - prints current version.
+
+`--query --command "select 1 from #system.dual()"` - runs the query specified in `--command` parameter. This command do not wait for the query to be finished. It just instructs execution engine to start processing the query, print it's registration id and quit. You can omit `--command` in this case.
+
+`--query --file "Path/To/File/With/Query.txt"` - runs the query specified in file. This command also does not waits for the query to be completed.
+
+`--query --command "select 1 from #system.dual()" --wait` - runs the query and waits until it's execution is completed.
+
+`--query "select 1 from #system.dual()" --wait --save some_file.csv`. - runs the query, wait until execution has been completed and save returned table to `some_file.csv`. In case, your file extension won't be `.csv`, `save` will save only first cell from returned table.
+
+`--plugins --add {packageId}` - downoad and install plugin identified by an id.
+
+`--plugins --update {packageId}` - update plugin identified by an id.
+
+`--plugins --remove {packageId}` - remove plugin identified by an id.
+
+`--open {method}` - opens default browser in a pointed help page.
