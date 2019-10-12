@@ -21,10 +21,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Converter.Tests", "Mu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Plugins.Tests", "Musoq.Plugins.Tests\Musoq.Plugins.Tests.csproj", "{895E89E8-CCB8-4C29-B15E-8A37B3EFAECD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{2F3A37EC-F95C-410F-A630-9A19B8125768}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Tools.CopyReleased", "Musoq.Tools.CopyReleased\Musoq.Tools.CopyReleased.csproj", "{9436065F-CE7F-4C8F-A7D0-83B74245EB36}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.SeparatedValues", "Musoq.Schema.SeparatedValues\Musoq.Schema.SeparatedValues.csproj", "{08EE2355-3173-4888-A68E-1F3946D95BDA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.SeparatedValues.Tests.Core", "Musoq.Schema.SeparatedValues.Tests.Core\Musoq.Schema.SeparatedValues.Tests.Core.csproj", "{25BB79FB-7256-4CDA-87DE-7DF37296BA9A}"
@@ -135,14 +131,6 @@ Global
 		{895E89E8-CCB8-4C29-B15E-8A37B3EFAECD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{895E89E8-CCB8-4C29-B15E-8A37B3EFAECD}.Release|x64.ActiveCfg = Release|Any CPU
 		{895E89E8-CCB8-4C29-B15E-8A37B3EFAECD}.Release|x64.Build.0 = Release|Any CPU
-		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Debug|x64.Build.0 = Debug|Any CPU
-		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Release|x64.ActiveCfg = Release|Any CPU
-		{9436065F-CE7F-4C8F-A7D0-83B74245EB36}.Release|x64.Build.0 = Release|Any CPU
 		{08EE2355-3173-4888-A68E-1F3946D95BDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{08EE2355-3173-4888-A68E-1F3946D95BDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08EE2355-3173-4888-A68E-1F3946D95BDA}.Debug|x64.ActiveCfg = Debug|x64
@@ -266,9 +254,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{9436065F-CE7F-4C8F-A7D0-83B74245EB36} = {2F3A37EC-F95C-410F-A630-9A19B8125768}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {141FB08E-DEFC-43AF-A4A2-F740E7E8328C}

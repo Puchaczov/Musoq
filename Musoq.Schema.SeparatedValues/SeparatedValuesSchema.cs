@@ -9,7 +9,7 @@ namespace Musoq.Schema.SeparatedValues
         private const string SchemaName = "SeparatedValues";
 
         public SeparatedValuesSchema()
-            : base(SchemaName, CreateLibrary())
+            : base(SchemaName.ToLowerInvariant(), CreateLibrary())
         {
             AddSource<SeparatedValuesSource>("csv");
             AddSource<SeparatedValuesSource>("tsv");

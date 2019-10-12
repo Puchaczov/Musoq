@@ -6,14 +6,14 @@ if (Test-Path ".\bin\Published\*")
 
 $apiUrl = "https://soupinf.net"
 
-dotnet publish ".\Musoq.Schema.Csv.csproj" --configuration "Release" --output ".\bin\Published\Application";
+dotnet publish ".\Musoq.Schema.SeparatedValues.csproj" --configuration "Release" --output ".\bin\Published\Application";
 
-$pathToAssembly = Resolve-Path ".\bin\Published\Application\Musoq.Schema.Csv.dll";
+$pathToAssembly = Resolve-Path ".\bin\Published\Application\Musoq.Schema.SeparatedValues.dll";
 $assemblyName = [System.Reflection.AssemblyName]::GetAssemblyName($pathToAssembly);
 $version = $assemblyName.Version.ToString();
 
 $publishedDir = (Resolve-Path ".\bin\Published\Application");
-$installerPath = [System.IO.Path]::Combine((Resolve-Path ".\bin\Published"), "Musoq.Schema.Csv.zip");
+$installerPath = [System.IO.Path]::Combine((Resolve-Path ".\bin\Published"), "Musoq.Schema.SeparatedValues.zip");
 
 Compress-Archive -Path "$publishedDir\*" -DestinationPath $installerPath -CompressionLevel "Optimal";
 
@@ -31,22 +31,22 @@ if($publishType -ne '2' -and $publishType -ne '3' -and $publishType -ne '4'){
 
 $account = $env:PACKER_ACCOUNT_NAME;
 $password = $env:PACKER_ACCOUNT_PASSWORD;
-$packageId = 'c3dc9dbc-d08e-479c-8043-861e7af8d585';
+$packageId = 'ff226225-5996-40ec-a0fd-0d9e2162cb75';
 
 switch($publishType){
 	"2"
 	{
-		dotnet "$env:PACKER_LOCATION\Sui.Repository.Packer.dll" --packType $publishType --destinationVersionDirPath "$publishedDir" --installerPath "$installerPath" --entryPoint "Musoq.Schema.Csv.dll" --outputPath "E:\Temp" --apiUrl "$apiUrl" --login $account --password $password --packageId $packageId
+		dotnet "$env:PACKER_LOCATION\Sui.Repository.Packer.dll" --packType $publishType --destinationVersionDirPath "$publishedDir" --installerPath "$installerPath" --entryPoint "Musoq.Schema.SeparatedValues.dll" --outputPath "E:\Temp" --apiUrl "$apiUrl" --login $account --password $password --packageId $packageId
 		break;
 	}
 	"3"
 	{
-		dotnet "$env:PACKER_LOCATION\Sui.Repository.Packer.dll" --packType $publishType --destinationVersionDirPath "$publishedDir" --entryPoint "Musoq.Schema.Csv.dll" --outputPath "E:\Temp" --apiUrl "$apiUrl" --login $account --password $password --packageId $packageId
+		dotnet "$env:PACKER_LOCATION\Sui.Repository.Packer.dll" --packType $publishType --destinationVersionDirPath "$publishedDir" --entryPoint "Musoq.Schema.SeparatedValues.dll" --outputPath "E:\Temp" --apiUrl "$apiUrl" --login $account --password $password --packageId $packageId
 		break;
 	}
 	"4"
 	{
-		dotnet "$env:PACKER_LOCATION\Sui.Repository.Packer.dll" --packType $publishType --destinationVersionDirPath "$publishedDir" --installerPath "$installerPath" --entryPoint "Musoq.Schema.Csv.dll" --outputPath "E:\Temp" --apiUrl "$apiUrl" --login $account --password $password --packageId $packageId
+		dotnet "$env:PACKER_LOCATION\Sui.Repository.Packer.dll" --packType $publishType --destinationVersionDirPath "$publishedDir" --installerPath "$installerPath" --entryPoint "Musoq.Schema.SeparatedValues.dll" --outputPath "E:\Temp" --apiUrl "$apiUrl" --login $account --password $password --packageId $packageId
 		break;
 	}
 }

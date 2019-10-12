@@ -92,7 +92,7 @@ basically equivalent by using build-in plugin:
 ```
 SELECT * FROM #os.compareDirs('', true)
 ```
-Aggregate zip files inside directories
+Zip files inside directories
 ```
 SELECT
 	DirectoryName, 
@@ -107,5 +107,26 @@ SELECT
 	FullName 
 FROM #os.files('', true) 
 WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
+```
+Extract and process `.csv` files packed in `.zip` file.  
+```
+TABLE CsvFileTable {
+	fileName 'string',
+	intValue 'int',
+	stringValue 'string'
+};
+
+COUPLE #separatedvalues.csv WITH TABLE CsvFileTable AS SourceOfRows;
+
+WITH FromZipCsvs AS (
+	SELECT 
+		zip.UnpackTo(Combine('.\ZippedValues', 'temp')), 
+		true, 
+		0 
+	FROM #os.zip('.\Zippy.zip') zip
+), ReadedFiles as (
+	select fileName, intValue, stringValue from SourceOfRows(FromZipCsvs)
+)
+SELECT * FROM ReadedFiles
 ```
 

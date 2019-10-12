@@ -727,7 +727,7 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public string Unpack(ZipArchiveEntry zipArchiveEntry)
+        public string Unpack([InjectSource] ZipArchiveEntry zipArchiveEntry)
         {
             return UnpackTo(zipArchiveEntry, Path.GetTempPath());
         }
