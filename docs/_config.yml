@@ -21,12 +21,12 @@
 title: Musoq
 email: puchaczov@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  Musoq exposes raw data sets as queryable sources. 
+  This allows you to query those sources using a syntax very similar to SQL.
+  What can be queried? files, directories, logs, archives and many more.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: nope
+twitter_username: puchaczov
 github_username:  puchaczov
 
 # Build settings

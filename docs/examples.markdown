@@ -36,7 +36,7 @@ SELECT
 FROM #os.files('', true)
 WHERE Name like '%report%'
 ```
-try to find a file that has in it's part word that sounds like:
+try to find a file that has in it's title word that sounds like:
 ```
 SELECT 
 	FullName
@@ -55,42 +55,53 @@ FROM #os.files('', false)
 ```
 compare two directories
 ```
-WITH ThoseInBoth AS (
+WITH filesOfA AS (
+	SELECT GetRelativeName('E:\DiffDirsTests\A') AS FullName, Sha256File() AS ShaedFile FROM #os.files('E:\DiffDirsTests\A', true)
+), filesOfB AS (
+	SELECT GetRelativeName('E:\DiffDirsTests\B') AS FullName, Sha256File() AS ShaedFile FROM #os.files('E:\DiffDirsTests\B', true)
+), inBothDirs AS (
 	SELECT 
-		f1.FullName as FullName,
-		f1.Sha256File(),
-		f2.Sha256File(),
-		(CASE WHEN f1.Sha256File() = f2.Sha256File() THEN 'Same' ELSE 'Changed' END)
-	FROM #os.files('', true) f1
-	INNER JOIN #os.files('', true) f2 ON f1.FullName = f2.FullName
-), ThoseInLeft AS (
-	SELECT
-		f1.FullName as FullName,
-		f1.Sha256File(),
-		null,
-		'Removed' as 'State'
-	FROM #os.files('', true) f1
-	LEFT OUTER JOIN #os.files('', true) f2 ON f1.FullName = f2.FullName
-	WHERE f2.FullName is null
-), ThoseInRight AS (
-	SELECT
-		f2.FullName as FullName,
-		null,
-		f2.Sha256File(),
-		'Added' as 'State'
-	FROM #os.files('', true) f1
-	RIGHT OUTER JOIN #os.files('', true) f2 ON f1.FullName = f2.FullName
-	WHERE f1.FullName is null
+		a.FullName AS FullName, 
+		(
+			CASE WHEN a.ShaedFile = b.ShaedFile 
+			THEN 'The Same' 
+			ELSE 'Modified' 
+			END
+		) AS Status 
+	FROM filesOfA a INNER JOIN filesOfB b ON a.FullName = b.FullName
+), inSourceDir AS (
+	SELECT 
+		a.FullName AS FullName,
+		'Removed' AS Status
+	FROM filesOfA a LEFT OUTER JOIN filesOfB b ON a.FullName = b.FullName
+), inDestinationDir AS (
+	SELECT 
+		b.FullName AS FullName,
+		'Added' AS Status
+	FROM filesOfA a RIGHT OUTER JOIN filesOfB b ON a.FullName = b.FullName
 )
-SELECT * FROM ThoseInBoth
-UNION ALL (FullName)
-SELECT * FROM ThoseInLeft
-UNION ALL (FullName)
-SELECT * FROM ThoseInRight
+SELECT inBoth.FullName AS FullName, inBoth.Status AS Status FROM inBothDirs inBoth
+UNION (FullName)
+SELECT inSource.FullName AS FullName, inSource.Status AS Status FROM inSourceDir inSource
+UNION (FullName)
+SELECT inDest.FullName AS FullName, inDest.Status AS Status FROM inDestinationDir inDest
 ```
-basically equivalent by using build-in plugin:
+which basically equivalent with build-in plugin is:
 ```
-SELECT * FROM #os.compareDirs('', true)
+SELECT 
+	(
+		CASE WHEN SourceFile IS NOT NULL 
+		THEN SourceFileRelative 
+		ELSE DestinationFileRelative 
+		END
+	) AS FullName, 
+	(
+		CASE WHEN State = 'TheSame' 
+		THEN 'The Same' 
+		ELSE State 
+		END
+	) AS Status 
+FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
 ```
 Zip files inside directories
 ```
@@ -128,5 +139,60 @@ WITH FromZipCsvs AS (
 	select fileName, intValue, stringValue from SourceOfRows(FromZipCsvs)
 )
 SELECT * FROM ReadedFiles
+```
+For file:
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<breakfast_menu>
+<food>
+    <name>Belgian Waffles</name>
+    <price>$5.95</price>
+    <description>
+   Two of our famous Belgian Waffles with plenty of real maple syrup
+   </description>
+    <calories>650</calories>
+</food>
+<food>
+    <name>Strawberry Belgian Waffles</name>
+    <price>$7.95</price>
+    <description>
+    Light Belgian waffles covered with strawberries and whipped cream
+    </description>
+    <calories>900</calories>
+</food>
+<food>
+    <name>Berry-Berry Belgian Waffles</name>
+    <price>$8.95</price>
+    <description>
+    Belgian waffles covered with assorted fresh berries and whipped cream
+    </description>
+    <calories>900</calories>
+</food>
+<food>
+    <name>French Toast</name>
+    <price>$4.50</price>
+    <description>
+    Thick slices made from our homemade sourdough bread
+    </description>
+    <calories>600</calories>
+</food>
+<food>
+    <name>Homestyle Breakfast</name>
+    <price>$6.95</price>
+    <description>
+    Two eggs, bacon or sausage, toast, and our ever-popular hash browns
+    </description>
+    <calories>950</calories>
+</food>
+</breakfast_menu> 
+```
+Aggregate price values
+```
+WITH p AS ( 
+   SELECT ToDecimal(Substring(price.text, 1, Length(price.text))) AS price 
+   FROM #xml.file('E:\XmlTests\File.txt') 
+   WHERE parent.element = 'food' AND price IS NOT NULL
+) 
+SELECT Sum(price) FROM p GROUP BY 'fake'
 ```
 
