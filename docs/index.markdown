@@ -22,12 +22,18 @@ You can use it to do things you would never think of! For example, this query sc
 	ON 1 = 1 
 	WHERE files.Extension = '.png'
 ```
-This query computes two folders comparision so you can easily see which files had been changed, removed, added or are in the same state!
+Query below computes two folders comparision so you can easily see which files had been changed, removed, added or are in the same state!
 ```
 WITH filesOfA AS (
-	SELECT GetRelativeName('E:\DiffDirsTests\A') AS FullName, Sha256File() AS ShaedFile FROM #os.files('E:\DiffDirsTests\A', true)
+	SELECT 
+		GetRelativeName('E:\DiffDirsTests\A') AS FullName, 
+		Sha256File() AS ShaedFile 
+	FROM #os.files('E:\DiffDirsTests\A', true)
 ), filesOfB AS (
-	SELECT GetRelativeName('E:\DiffDirsTests\B') AS FullName, Sha256File() AS ShaedFile FROM #os.files('E:\DiffDirsTests\B', true)
+	SELECT 
+		GetRelativeName('E:\DiffDirsTests\B') AS FullName, 
+		Sha256File() AS ShaedFile 
+	FROM #os.files('E:\DiffDirsTests\B', true)
 ), inBothDirs AS (
 	SELECT 
 		a.FullName AS FullName, 
@@ -49,11 +55,20 @@ WITH filesOfA AS (
 		'Added' AS Status
 	FROM filesOfA a RIGHT OUTER JOIN filesOfB b ON a.FullName = b.FullName
 )
-SELECT inBoth.FullName AS FullName, inBoth.Status AS Status FROM inBothDirs inBoth
+SELECT 
+	inBoth.FullName AS FullName, 
+	inBoth.Status AS Status 
+FROM inBothDirs inBoth
 UNION (FullName)
-SELECT inSource.FullName AS FullName, inSource.Status AS Status FROM inSourceDir inSource
+SELECT 
+	inSource.FullName AS FullName, 
+	inSource.Status AS Status 
+FROM inSourceDir inSource
 UNION (FullName)
-SELECT inDest.FullName AS FullName, inDest.Status AS Status FROM inDestinationDir inDest
+SELECT 
+	inDest.FullName AS FullName, 
+	inDest.Status AS Status 
+FROM inDestinationDir inDest
 ```
 Would you like to see more example queries? Look [here](/examples).
 

@@ -33,6 +33,10 @@ github_username:  puchaczov
 theme: minima
 plugins:
   - jekyll-feed
+  
+minima:
+  social_links:
+    github: daada
 
 # Exclude from processing.
 # The following items will not be processed, by default.
