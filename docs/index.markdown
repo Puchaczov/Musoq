@@ -1,6 +1,4 @@
 ---
-# Feel free to add content and custom Front Matter to this file.
-# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: home
 ---
@@ -8,68 +6,19 @@ layout: home
 
 Musoq is handy execution engine that allows execution of SQL like commands on a variety of data sources.
 It treats different datas as tables so it's easy to ask curious questions quickly.
-Musoq supports various SQL syntax like WHERE, GROUP BY, HAVING, INNER, OUTER JOINS.
+Musoq supports various SQL syntax like WHERE, GROUP BY, HAVING, INNER, OUTER JOIN.
 Thanks to plugin system, it's easy to connect to different data streams, create own functions and even create own aggregation functions.
 
-You can use it to do things you would never think of! For example, this query scans the directory and tries to read text from the `.png` images. OCR involved.
+Scans the directory and print first ten bytes of that file.
 ```
-	SELECT 
-		ocr.GetText(file.FullName) as text
-	FROM 
-		#os.files('E:/Path/To/Directory', false) file 
-	INNER JOIN 
-		#ocr.single() ocr 
-	ON 1 = 1 
-	WHERE files.Extension = '.png'
+Musoq.Server.Console --query "select Name, ToHex(GetFileBytes(10), '|') from #os.files('E:\Some\Path\To\Directory', false)" --wait --output
 ```
-Query below computes two folders comparision so you can easily see which files had been changed, removed, added or are in the same state!
+Calculate basic statistics for directory
 ```
-WITH filesOfA AS (
-	SELECT 
-		GetRelativeName('E:\DiffDirsTests\A') AS FullName, 
-		Sha256File() AS ShaedFile 
-	FROM #os.files('E:\DiffDirsTests\A', true)
-), filesOfB AS (
-	SELECT 
-		GetRelativeName('E:\DiffDirsTests\B') AS FullName, 
-		Sha256File() AS ShaedFile 
-	FROM #os.files('E:\DiffDirsTests\B', true)
-), inBothDirs AS (
-	SELECT 
-		a.FullName AS FullName, 
-		(
-			CASE WHEN a.ShaedFile = b.ShaedFile 
-			THEN 'The Same' 
-			ELSE 'Modified' 
-			END
-		) AS Status 
-	FROM filesOfA a INNER JOIN filesOfB b ON a.FullName = b.FullName
-), inSourceDir AS (
-	SELECT 
-		a.FullName AS FullName,
-		'Removed' AS Status
-	FROM filesOfA a LEFT OUTER JOIN filesOfB b ON a.FullName = b.FullName
-), inDestinationDir AS (
-	SELECT 
-		b.FullName AS FullName,
-		'Added' AS Status
-	FROM filesOfA a RIGHT OUTER JOIN filesOfB b ON a.FullName = b.FullName
-)
-SELECT 
-	inBoth.FullName AS FullName, 
-	inBoth.Status AS Status 
-FROM inBothDirs inBoth
-UNION (FullName)
-SELECT 
-	inSource.FullName AS FullName, 
-	inSource.Status AS Status 
-FROM inSourceDir inSource
-UNION (FullName)
-SELECT 
-	inDest.FullName AS FullName, 
-	inDest.Status AS Status 
-FROM inDestinationDir inDest
+Musoq.Server.Console --query "select Min(Length), Max(Length), Avg(Length), Sum(Length), Count(Length) from #os.files('E:\Some\Path\To\Directory', true)" --wait --output
 ```
+You can use it to do things you would never suppose to!
+
 Would you like to see more example queries? Look [here](/examples).
 
 There are various plugins you can work with:

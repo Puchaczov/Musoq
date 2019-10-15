@@ -56,9 +56,15 @@ FROM #os.files('', false)
 compare two directories
 ```
 WITH filesOfA AS (
-	SELECT GetRelativeName('E:\DiffDirsTests\A') AS FullName, Sha256File() AS ShaedFile FROM #os.files('E:\DiffDirsTests\A', true)
+	SELECT 
+		GetRelativeName('E:\DiffDirsTests\A') AS FullName, 
+		Sha256File() AS ShaedFile 
+	FROM #os.files('E:\DiffDirsTests\A', true)
 ), filesOfB AS (
-	SELECT GetRelativeName('E:\DiffDirsTests\B') AS FullName, Sha256File() AS ShaedFile FROM #os.files('E:\DiffDirsTests\B', true)
+	SELECT 
+		GetRelativeName('E:\DiffDirsTests\B') AS FullName, 
+		Sha256File() AS ShaedFile 
+	FROM #os.files('E:\DiffDirsTests\B', true)
 ), inBothDirs AS (
 	SELECT 
 		a.FullName AS FullName, 
@@ -80,11 +86,20 @@ WITH filesOfA AS (
 		'Added' AS Status
 	FROM filesOfA a RIGHT OUTER JOIN filesOfB b ON a.FullName = b.FullName
 )
-SELECT inBoth.FullName AS FullName, inBoth.Status AS Status FROM inBothDirs inBoth
+SELECT 
+	inBoth.FullName AS FullName, 
+	inBoth.Status AS Status 
+FROM inBothDirs inBoth
 UNION (FullName)
-SELECT inSource.FullName AS FullName, inSource.Status AS Status FROM inSourceDir inSource
+SELECT 
+	inSource.FullName AS FullName, 
+	inSource.Status AS Status 
+FROM inSourceDir inSource
 UNION (FullName)
-SELECT inDest.FullName AS FullName, inDest.Status AS Status FROM inDestinationDir inDest
+SELECT 
+	inDest.FullName AS FullName, 
+	inDest.Status AS Status 
+FROM inDestinationDir inDest
 ```
 which basically equivalent with build-in plugin is:
 ```
@@ -194,5 +209,16 @@ WITH p AS (
    WHERE parent.element = 'food' AND price IS NOT NULL
 ) 
 SELECT Sum(price) FROM p GROUP BY 'fake'
+```
+Tries to read the text from `.png` file through OCR plugin.
+```	
+SELECT 
+	ocr.GetText(file.FullName) as text
+FROM 
+	#os.files('E:/Path/To/Directory', false) file 
+INNER JOIN 
+	#ocr.single() ocr 
+ON 1 = 1 
+WHERE files.Extension = '.png'
 ```
 
