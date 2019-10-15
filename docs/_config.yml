@@ -24,7 +24,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   Expose raw data sets as queryable sources. 
   This allows you to query those sources using a syntax very similar to SQL.
   What can be queried? files, directories, logs, archives and many more.
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/Musoq" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: puchaczov
 github_username:  puchaczov
