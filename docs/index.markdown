@@ -1,15 +1,17 @@
 ---
 
 layout: home
+title: ""
 ---
 ### **Welcome to the kingdom of Musoq!**
 
 Musoq is handy execution engine that allows execution of SQL like commands on a variety of data sources.
 It treats different datas as tables so it's easy to ask curious questions quickly.
 Musoq supports various SQL syntax like WHERE, GROUP BY, HAVING, INNER, OUTER JOIN.
-Thanks to plugin system, it's easy to connect to different data streams, create own functions and even create own aggregation functions.
+Because of plugins system, it's easy to connect to different datas, 
+create own functions and even create own aggregation functions.
 
-Scans the directory and print first ten bytes of that file.
+This query scans the directory and print first ten bytes of founded files.
 ```
 Musoq.Server.Console --query "select Name, ToHex(GetFileBytes(10), '|') from #os.files('E:\Some\Path\To\Directory', false)" --wait --output
 ```
@@ -17,9 +19,8 @@ Calculate basic statistics for directory
 ```
 Musoq.Server.Console --query "select Min(Length), Max(Length), Avg(Length), Sum(Length), Count(Length) from #os.files('E:\Some\Path\To\Directory', true)" --wait --output
 ```
-You can use it to do things you would never suppose to!
 
-Would you like to see more example queries? Look [here](/examples).
+You can use it to do things you would never suppose to! Look [here](./examples).
 
 There are various plugins you can work with:
 
