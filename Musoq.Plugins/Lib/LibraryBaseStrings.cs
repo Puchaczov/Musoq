@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,12 @@ namespace Musoq.Plugins
     public abstract partial class LibraryBase
     {
         private readonly Soundex _soundex = new Soundex();
+
+        [BindableMethod]
+        public string NewId()
+        {
+            return Guid.NewGuid().ToString();
+        }
 
         [BindableMethod]
         public string Substring(string value, int? index, int? length)
