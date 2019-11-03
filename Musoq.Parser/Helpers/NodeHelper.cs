@@ -40,8 +40,14 @@ namespace Musoq.Parser.Helpers
             dict.Add((typeof(bool), typeof(bool)), typeof(bool));
 
             dict.Add((typeof(DateTimeOffset), typeof(DateTimeOffset)), typeof(DateTimeOffset));
+            dict.Add((typeof(DateTimeOffset), typeof(TimeSpan)), typeof(DateTimeOffset));
+
+            dict.Add((typeof(DateTime), typeof(DateTime)), typeof(DateTime));
+            dict.Add((typeof(DateTime), typeof(TimeSpan)), typeof(DateTime));
 
             dict.Add((typeof(object), typeof(object)), typeof(object));
+
+            dict.Add((typeof(TimeSpan), typeof(TimeSpan)), typeof(TimeSpan));
         }
 
         public static IReadOnlyDictionary<(Type, Type), Type> BinaryTypes { get; }

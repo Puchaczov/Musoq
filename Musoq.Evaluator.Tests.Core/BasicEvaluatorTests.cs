@@ -1440,5 +1440,93 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual(1m, table[1][0]);
             Assert.AreEqual(2m, table[1][1]);
         }
+
+        [TestMethod]
+        public void QueryWithTimeSpanTest()
+        {
+            var query = "select ToTimeSpan('00:12:15') from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 100 },
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(new TimeSpan(0, 12, 15), table[0][0]);
+        }
+
+        [TestMethod]
+        public void QueryWithToDateTimeTest()
+        {
+            var query = "select ToDateTime('2012/01/13') from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 100 },
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(new DateTime(2012, 1, 13), table[0][0]);
+        }
+
+        [TestMethod]
+        public void QueryWithToDateTimeAndTimeSpanAdditionTest()
+        {
+            var query = "select ToDateTime('2012/01/13') + ToTimeSpan('00:12:15') from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 100 },
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(new DateTime(2012, 1, 13, 0, 12, 15), table[0][0]);
+        }
+
+        [TestMethod]
+        public void QueryWithTimeSpansAdditionTest()
+        {
+            var query = "select ToTimeSpan('00:12:15') + ToTimeSpan('00:12:15') from #A.entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("may", 100m) { Population = 100 },
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(new TimeSpan(0, 24, 30), table[0][0]);
+        }
     }
 }

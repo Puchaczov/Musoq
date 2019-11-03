@@ -58,5 +58,18 @@ namespace Musoq.Plugins.Tests
             Assert.AreEqual(1, Library.Day(DateTimeOffset.Parse("01/02/2012 00:00:00 +00:00")));
             Assert.AreEqual(null, Library.Day(null));
         }
+
+        [TestMethod]
+        public void ToTimeSpanTest()
+        {
+            Assert.AreEqual(TimeSpan.FromSeconds(10), Library.ToTimeSpan("00:00:10"));
+            Assert.AreEqual(TimeSpan.FromSeconds(70), Library.ToTimeSpan("00:01:10"));
+        }
+
+        [TestMethod]
+        public void ToDateTimeTest()
+        {
+            Assert.AreEqual(new DateTime(2012, 10, 15), Library.ToDateTime("2012/10/15"));
+        }
     }
 }

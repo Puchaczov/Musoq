@@ -21,10 +21,11 @@ namespace Musoq.Schema.Managers
                 {typeof(short), new[] {typeof(short), typeof(bool)}},
                 {typeof(int), new[] {typeof(int), typeof(short), typeof(bool)}},
                 {typeof(long), new[] {typeof(long), typeof(int), typeof(short), typeof(bool)}},
-                {typeof(DateTimeOffset), new[] {typeof(DateTimeOffset)}},
-                {typeof(DateTime), new[] {typeof(DateTime)}},
+                {typeof(DateTimeOffset), new[] {typeof(DateTimeOffset), typeof(TimeSpan)}},
+                {typeof(DateTime), new[] {typeof(DateTime), typeof(TimeSpan)}},
                 {typeof(string), new[] {typeof(string)}},
-                {typeof(decimal), new[] {typeof(decimal)}}
+                {typeof(decimal), new[] {typeof(decimal)}},
+                {typeof(TimeSpan), new[]{typeof(TimeSpan)}}
             };
         }
 

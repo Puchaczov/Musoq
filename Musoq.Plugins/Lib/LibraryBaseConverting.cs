@@ -139,6 +139,36 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public TimeSpan? ToTimeSpan(string value) => ToTimeSpan(value, CultureInfo.InvariantCulture.Name);
+
+        [BindableMethod]
+        public TimeSpan? ToTimeSpan(string value, string culture)
+        {
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            if (!TimeSpan.TryParse(value, CultureInfo.GetCultureInfo(culture), out var result))
+                return null;
+
+            return result;
+        }
+
+        [BindableMethod]
+        public DateTime? ToDateTime(string value) => ToDateTime(value, CultureInfo.InvariantCulture.Name);
+
+        [BindableMethod]
+        public DateTime? ToDateTime(string value, string culture)
+        {
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            if (!DateTime.TryParse(value, CultureInfo.GetCultureInfo(culture), DateTimeStyles.None, out var result))
+                return null;
+
+            return result;
+        }
+
+        [BindableMethod]
         public decimal? ToDecimal(long? value)
         {
             return value;
