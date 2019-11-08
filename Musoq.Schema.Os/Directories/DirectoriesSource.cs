@@ -1,6 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Os.Directories
@@ -8,44 +10,69 @@ namespace Musoq.Schema.Os.Directories
     public class DirectoriesSource : RowSourceBase<DirectoryInfo>
     {
         private readonly RuntimeContext _communicator;
-        private readonly DirectorySourceSearchOptions _source;
+        private readonly DirectorySourceSearchOptions[] _sources;
 
         public DirectoriesSource(string path, bool recursive, RuntimeContext communicator)
         {
             _communicator = communicator;
-            _source = new DirectorySourceSearchOptions(path, recursive);
+            _sources = new DirectorySourceSearchOptions[] 
+            {
+                new DirectorySourceSearchOptions(path, recursive)
+            };
+        }
+
+        public DirectoriesSource(IReadOnlyTable table, RuntimeContext context)
+        {
+            _communicator = context;
+            var sources = new List<DirectorySourceSearchOptions>();
+
+            foreach (var row in table.Rows)
+            {
+                sources.Add(new DirectorySourceSearchOptions((string)row[0], (bool)row[1]));
+            }
+
+            _sources = sources.ToArray();
         }
 
         protected override void CollectChunks(
             BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
-            var sources = new Stack<DirectorySourceSearchOptions>();
+            Parallel.ForEach(
+                _sources,
+                new ParallelOptions 
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount
+                },
+                (source) => 
+                {
+                    var sources = new Stack<DirectorySourceSearchOptions>();
 
-            if(!Directory.Exists(_source.Path))
-                return;
+                    if (!Directory.Exists(source.Path))
+                        return;
 
-            var endWorkToken = _communicator.EndWorkToken;
+                    var endWorkToken = _communicator.EndWorkToken;
 
-            sources.Push(_source);
+                    sources.Push(source);
 
-            while (sources.Count > 0)
-            {
-                var source = sources.Pop();
-                var dir = new DirectoryInfo(source.Path);
+                    while (sources.Count > 0)
+                    {
+                        var currentSource = sources.Pop();
+                        var dir = new DirectoryInfo(currentSource.Path);
 
-                var chunk = new List<EntityResolver<DirectoryInfo>>();
+                        var chunk = new List<EntityResolver<DirectoryInfo>>();
 
-                foreach (var file in dir.GetDirectories())
-                    chunk.Add(new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap,
-                        SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap));
+                        foreach (var file in dir.GetDirectories())
+                            chunk.Add(new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap,
+                                SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap));
 
-                chunkedSource.Add(chunk, endWorkToken);
+                        chunkedSource.Add(chunk, endWorkToken);
 
-                if (!source.WithSubDirectories) continue;
+                        if (!currentSource.WithSubDirectories) continue;
 
-                foreach (var subDir in dir.GetDirectories())
-                    sources.Push(new DirectorySourceSearchOptions(subDir.FullName, source.WithSubDirectories));
-            }
+                        foreach (var subDir in dir.GetDirectories())
+                            sources.Push(new DirectorySourceSearchOptions(subDir.FullName, currentSource.WithSubDirectories));
+                    }
+                });
         }
     }
 }

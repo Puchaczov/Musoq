@@ -448,6 +448,27 @@ select RelativeName, 'added' as state from ThoseInRight";
             var table = vm.Run();
         }
 
+        [TestMethod]
+        public void Query_UseFilesFromFilteredDirectories()
+        {
+            var query = "" +
+                "table Files {" +
+                "   FullName 'System.String'" +
+                "};" +
+                "couple #os.files with table Files as SourceOfFiles;" +
+                "with dirs as (" +
+                "   select FullName, true from #os.directories('./Directories', false)" +
+                ")" +
+                "select FullName from SourceOfFiles(dirs)";
+
+            var vm = CreateAndRunVirtualMachine(query);
+            var table = vm.Run();
+
+            Assert.IsTrue(table.Any(row => ((string)row[0]).Contains("TextFile1")));
+            Assert.IsTrue(table.Any(row => ((string)row[0]).Contains("TextFile3")));
+            Assert.IsTrue(table.Any(row => ((string)row[0]).Contains("TextFile2")));
+        }
+
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new OsSchemaProvider());

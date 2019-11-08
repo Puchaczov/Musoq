@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Os.Compare.Directories;
 using Musoq.Schema.Os.Directories;
@@ -10,7 +8,6 @@ using Musoq.Schema.Os.Files;
 using Musoq.Schema.Os.Process;
 using Musoq.Schema.Os.Self;
 using Musoq.Schema.Os.Zip;
-using Musoq.Schema.Reflection;
 
 namespace Musoq.Schema.Os
 {
@@ -81,8 +78,14 @@ namespace Musoq.Schema.Os
             switch (name.ToLowerInvariant())
             {
                 case FilesTable:
+                    if (parameters[0] is IReadOnlyTable filesTable)
+                        return new FilesSource(filesTable, interCommunicator);
+
                     return new FilesSource((string)parameters[0], (bool)parameters[1], interCommunicator);
                 case DirectoriesTable:
+                    if (parameters[0] is IReadOnlyTable directoriesTable)
+                        return new DirectoriesSource(directoriesTable, interCommunicator);
+
                     return new DirectoriesSource((string)parameters[0], (bool)parameters[1], interCommunicator);
                 case ZipTable:
                     return new ZipSource((string)parameters[0], interCommunicator);

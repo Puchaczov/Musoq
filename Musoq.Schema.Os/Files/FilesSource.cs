@@ -10,6 +10,11 @@ namespace Musoq.Schema.Os.Files
         {
         }
 
+        public FilesSource(IReadOnlyTable table, RuntimeContext runtimeContext)
+            : base(table, runtimeContext) 
+        {
+        }
+
         protected override EntityResolver<FileInfo> CreateBasedOnFile(FileInfo file)
         {
             return new EntityResolver<FileInfo>(file, SchemaFilesHelper.FilesNameToIndexMap,
