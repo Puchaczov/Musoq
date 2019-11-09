@@ -469,6 +469,18 @@ select RelativeName, 'added' as state from ThoseInRight";
             Assert.IsTrue(table.Any(row => ((string)row[0]).Contains("TextFile2")));
         }
 
+        [TestMethod]
+        public void TraverseToDirectoryFromRootTest() 
+        {
+            var library = new OsLibrary();
+            var separator = Path.DirectorySeparatorChar;
+
+            Assert.AreEqual("this", library.TraverseToDirectoryFromRoot($"this{separator}is{separator}test", 0));
+            Assert.AreEqual($"this{separator}is", library.TraverseToDirectoryFromRoot($"this{separator}is{separator}test", 1));
+            Assert.AreEqual($"this{separator}is{separator}test", library.TraverseToDirectoryFromRoot($"this{separator}is{separator}test", 2));
+            Assert.AreEqual($"this{separator}is{separator}test", library.TraverseToDirectoryFromRoot($"this{separator}is{separator}test", 10));
+        }
+
         private CompiledQuery CreateAndRunVirtualMachine(string script)
         {
             return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new OsSchemaProvider());

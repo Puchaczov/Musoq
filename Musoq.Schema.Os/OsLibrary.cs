@@ -416,6 +416,47 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
+        public string TraverseToDirectoryFromRoot([InjectSource] DirectoryInfo context, int nesting)
+            => TraverseToDirectoryFromRoot(context.FullName, nesting);
+
+        [BindableMethod]
+        public string TraverseToDirectoryFromRoot([InjectSource] FileInfo context, int nesting)
+            => TraverseToDirectoryFromRoot(context.Directory.FullName, nesting);
+        
+        [BindableMethod]
+        public string TraverseToDirectoryFromRoot(string directoryPath, int nesting)
+        {
+            if (directoryPath == null)
+                return null;
+
+            if (directoryPath == string.Empty)
+                return null;
+
+            if (nesting < 0)
+                return string.Empty;
+
+            var splittedDirs = directoryPath.Split(Path.DirectorySeparatorChar);
+            var subPathBuilder = new StringBuilder();
+
+            subPathBuilder.Append(splittedDirs[0]);
+
+            if (nesting >= 1 && splittedDirs.Length > 1)
+            {
+                subPathBuilder.Append(Path.DirectorySeparatorChar);
+
+                for (int i = 1; i < nesting && i < splittedDirs.Length - 1; ++i)
+                {
+                    subPathBuilder.Append(splittedDirs[i]);
+                    subPathBuilder.Append(Path.DirectorySeparatorChar);
+                }
+
+                subPathBuilder.Append(splittedDirs[nesting < splittedDirs.Length - 1 ? nesting : splittedDirs.Length - 1]);
+            }
+
+            return subPathBuilder.ToString();
+        }
+
+        [BindableMethod]
         public long Length([InjectSource] FileInfo context, string unit = "b")
             => GetLengthOfFile(context, unit);
 
