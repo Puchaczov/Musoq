@@ -16,15 +16,15 @@ namespace Musoq.Schema.Os.Tests.Core.Utils
         {
         }
 
-        public IReadOnlyList<EntityResolver<FileInfo>> GetFiles()
+        public IReadOnlyList<EntityResolver<ExtendedFileInfo>> GetFiles()
         {
             var collection = new BlockingCollection<IReadOnlyList<IObjectResolver>>();
             CollectChunks(collection);
 
-            var list = new List<EntityResolver<FileInfo>>();
+            var list = new List<EntityResolver<ExtendedFileInfo>>();
 
             foreach(var item in collection)
-                list.AddRange(item.Select(file => (EntityResolver<FileInfo>)file));
+                list.AddRange(item.Select(file => (EntityResolver<ExtendedFileInfo>)file));
 
             return list;
         }

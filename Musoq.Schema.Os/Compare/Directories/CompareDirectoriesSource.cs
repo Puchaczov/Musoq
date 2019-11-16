@@ -1,4 +1,5 @@
 ﻿using Musoq.Schema.DataSources;
+using Musoq.Schema.Os.Files;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -53,7 +54,7 @@ namespace Musoq.Schema.Os.Compare.Directories
                 else
                     continue;
 
-                CompareDirectoriesResult value = new CompareDirectoriesResult(_firstDirectory, files.Source, _secondDirectory, files.Destination, result);
+                var value = new CompareDirectoriesResult(_firstDirectory, files.Source, _secondDirectory, files.Destination, result);
 
                 source.Add(new EntityResolver<CompareDirectoriesResult>(value, CompareDirectoriesHelper.CompareDirectoriesNameToIndexMap, CompareDirectoriesHelper.CompareDirectoriesIndexToMethodAccessMap));
 
@@ -72,7 +73,7 @@ namespace Musoq.Schema.Os.Compare.Directories
                 chunkedSource.Add(source);
         }
 
-        private IEnumerable<FileInfo> GetAllFiles(DirectoryInfo directory)
+        private IEnumerable<ExtendedFileInfo> GetAllFiles(DirectoryInfo directory)
         {
             var dirs = new Stack<DirectoryInfo>();
 
@@ -83,7 +84,7 @@ namespace Musoq.Schema.Os.Compare.Directories
                 var currentDir = dirs.Pop();
 
                 foreach (var file in currentDir.GetFiles())
-                    yield return file;
+                    yield return new ExtendedFileInfo(file, directory.FullName);
 
                 foreach (var dir in currentDir.GetDirectories())
                     dirs.Push(dir);

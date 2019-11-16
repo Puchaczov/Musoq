@@ -16,7 +16,7 @@ namespace Musoq.Schema.Os.Dlls
         {
         }
 
-        protected override EntityResolver<DllInfo> CreateBasedOnFile(FileInfo file)
+        protected override EntityResolver<DllInfo> CreateBasedOnFile(FileInfo file, string rootDirectory)
         {
             Assembly asm = null;
             try

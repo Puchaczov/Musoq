@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Os.Files
@@ -8,26 +7,25 @@ namespace Musoq.Schema.Os.Files
     public static class SchemaFilesHelper
     {
         public static readonly IDictionary<string, int> FilesNameToIndexMap;
-        public static readonly IDictionary<int, Func<FileInfo, object>> FilesIndexToMethodAccessMap;
+        public static readonly IDictionary<int, Func<ExtendedFileInfo, object>> FilesIndexToMethodAccessMap;
         public static readonly ISchemaColumn[] FilesColumns;
 
         static SchemaFilesHelper()
         {
             FilesNameToIndexMap = new Dictionary<string, int>
             {
-                {nameof(FileInfo.Name), 0},
-                {nameof(FileInfo.CreationTime), 1},
-                {nameof(FileInfo.CreationTimeUtc), 2},
-                {nameof(FileInfo.DirectoryName), 3},
-                {nameof(FileInfo.Extension), 4},
-                {nameof(FileInfo.FullName), 5},
-                {nameof(FileInfo.Exists), 6},
-                {nameof(FileInfo.IsReadOnly), 7},
-                {nameof(FileInfo.Length), 8},
-                {nameof(FileInfo), 9}
+                {nameof(ExtendedFileInfo.Name), 0},
+                {nameof(ExtendedFileInfo.CreationTime), 1},
+                {nameof(ExtendedFileInfo.CreationTimeUtc), 2},
+                {nameof(ExtendedFileInfo.DirectoryName), 3},
+                {nameof(ExtendedFileInfo.Extension), 4},
+                {nameof(ExtendedFileInfo.FullName), 5},
+                {nameof(ExtendedFileInfo.Exists), 6},
+                {nameof(ExtendedFileInfo.IsReadOnly), 7},
+                {nameof(ExtendedFileInfo.Length), 8}
             };
 
-            FilesIndexToMethodAccessMap = new Dictionary<int, Func<FileInfo, object>>
+            FilesIndexToMethodAccessMap = new Dictionary<int, Func<ExtendedFileInfo, object>>
             {
                 {0, info => info.Name},
                 {1, info => info.CreationTime},
@@ -37,22 +35,20 @@ namespace Musoq.Schema.Os.Files
                 {5, info => info.FullName},
                 {6, info => info.Exists},
                 {7, info => info.IsReadOnly},
-                {8, info => info.Length},
-                {9, info => info}
+                {8, info => info.Length}
             };
 
             FilesColumns = new ISchemaColumn[]
             {
-                new SchemaColumn(nameof(FileInfo.Name), 0, typeof(string)),
-                new SchemaColumn(nameof(FileInfo.CreationTime), 1, typeof(DateTime)),
-                new SchemaColumn(nameof(FileInfo.CreationTimeUtc), 2, typeof(DateTime)),
-                new SchemaColumn(nameof(FileInfo.DirectoryName), 3, typeof(string)),
-                new SchemaColumn(nameof(FileInfo.Extension), 4, typeof(string)),
-                new SchemaColumn(nameof(FileInfo.FullName), 5, typeof(string)),
-                new SchemaColumn(nameof(FileInfo.Exists), 6, typeof(bool)),
-                new SchemaColumn(nameof(FileInfo.IsReadOnly), 7, typeof(bool)),
-                new SchemaColumn(nameof(FileInfo.Length), 8, typeof(long)),
-                new SchemaColumn(nameof(FileInfo), 9, typeof(FileInfo))
+                new SchemaColumn(nameof(ExtendedFileInfo.Name), 0, typeof(string)),
+                new SchemaColumn(nameof(ExtendedFileInfo.CreationTime), 1, typeof(DateTime)),
+                new SchemaColumn(nameof(ExtendedFileInfo.CreationTimeUtc), 2, typeof(DateTime)),
+                new SchemaColumn(nameof(ExtendedFileInfo.DirectoryName), 3, typeof(string)),
+                new SchemaColumn(nameof(ExtendedFileInfo.Extension), 4, typeof(string)),
+                new SchemaColumn(nameof(ExtendedFileInfo.FullName), 5, typeof(string)),
+                new SchemaColumn(nameof(ExtendedFileInfo.Exists), 6, typeof(bool)),
+                new SchemaColumn(nameof(ExtendedFileInfo.IsReadOnly), 7, typeof(bool)),
+                new SchemaColumn(nameof(ExtendedFileInfo.Length), 8, typeof(long))
             };
         }
     }

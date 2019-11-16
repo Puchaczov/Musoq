@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Musoq.Schema.Os.Files;
+using System.IO;
 
 namespace Musoq.Schema.Os.Compare.Directories
 {
@@ -6,9 +7,9 @@ namespace Musoq.Schema.Os.Compare.Directories
     {
         public CompareDirectoriesResult(
             DirectoryInfo sourceRoot,
-            FileInfo sourceFile, 
+            ExtendedFileInfo sourceFile, 
             DirectoryInfo destinationRoot,
-            FileInfo destinationFile, 
+            ExtendedFileInfo destinationFile, 
             State state)
         {
             SourceRoot = sourceRoot;
@@ -20,13 +21,13 @@ namespace Musoq.Schema.Os.Compare.Directories
 
         public DirectoryInfo SourceRoot { get; }
 
-        public FileInfo SourceFile { get; }
+        public ExtendedFileInfo SourceFile { get; }
 
         public string SourceFileRelative => SourceFile?.FullName?.Replace(SourceRoot.FullName, string.Empty);
 
         public DirectoryInfo DestinationRoot { get; }
 
-        public FileInfo DestinationFile { get; }
+        public ExtendedFileInfo DestinationFile { get; }
 
         public string DestinationFileRelative => DestinationFile?.FullName?.Replace(DestinationRoot.FullName, string.Empty);
 

@@ -17,7 +17,7 @@ namespace Musoq.Schema.Os.Directories
             _communicator = communicator;
             _sources = new DirectorySourceSearchOptions[] 
             {
-                new DirectorySourceSearchOptions(path, recursive)
+                new DirectorySourceSearchOptions(new DirectoryInfo(path).FullName, recursive)
             };
         }
 
@@ -28,7 +28,7 @@ namespace Musoq.Schema.Os.Directories
 
             foreach (var row in table.Rows)
             {
-                sources.Add(new DirectorySourceSearchOptions((string)row[0], (bool)row[1]));
+                sources.Add(new DirectorySourceSearchOptions(new DirectoryInfo((string)row[0]).FullName, (bool)row[1]));
             }
 
             _sources = sources.ToArray();
@@ -45,32 +45,39 @@ namespace Musoq.Schema.Os.Directories
                 },
                 (source) => 
                 {
-                    var sources = new Stack<DirectorySourceSearchOptions>();
-
-                    if (!Directory.Exists(source.Path))
-                        return;
-
-                    var endWorkToken = _communicator.EndWorkToken;
-
-                    sources.Push(source);
-
-                    while (sources.Count > 0)
+                    try
                     {
-                        var currentSource = sources.Pop();
-                        var dir = new DirectoryInfo(currentSource.Path);
+                        var sources = new Stack<DirectorySourceSearchOptions>();
 
-                        var chunk = new List<EntityResolver<DirectoryInfo>>();
+                        if (!Directory.Exists(source.Path))
+                            return;
 
-                        foreach (var file in dir.GetDirectories())
-                            chunk.Add(new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap,
-                                SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap));
+                        var endWorkToken = _communicator.EndWorkToken;
 
-                        chunkedSource.Add(chunk, endWorkToken);
+                        sources.Push(source);
 
-                        if (!currentSource.WithSubDirectories) continue;
+                        while (sources.Count > 0)
+                        {
+                            var currentSource = sources.Pop();
+                            var dir = new DirectoryInfo(currentSource.Path);
 
-                        foreach (var subDir in dir.GetDirectories())
-                            sources.Push(new DirectorySourceSearchOptions(subDir.FullName, currentSource.WithSubDirectories));
+                            var chunk = new List<EntityResolver<DirectoryInfo>>();
+
+                            foreach (var file in dir.GetDirectories())
+                                chunk.Add(new EntityResolver<DirectoryInfo>(file, SchemaDirectoriesHelper.DirectoriesNameToIndexMap,
+                                    SchemaDirectoriesHelper.DirectoriesIndexToMethodAccessMap));
+
+                            chunkedSource.Add(chunk, endWorkToken);
+
+                            if (!currentSource.WithSubDirectories) continue;
+
+                            foreach (var subDir in dir.GetDirectories())
+                                sources.Push(new DirectorySourceSearchOptions(subDir.FullName, currentSource.WithSubDirectories));
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+
                     }
                 });
         }

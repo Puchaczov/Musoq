@@ -3,7 +3,7 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Os.Files
 {
-    public class FilesSource : FilesSourceBase<FileInfo>
+    public class FilesSource : FilesSourceBase<ExtendedFileInfo>
     {
         public FilesSource(string path, bool useSubDirectories, RuntimeContext communicator) 
             : base(path, useSubDirectories, communicator)
@@ -15,9 +15,9 @@ namespace Musoq.Schema.Os.Files
         {
         }
 
-        protected override EntityResolver<FileInfo> CreateBasedOnFile(FileInfo file)
+        protected override EntityResolver<ExtendedFileInfo> CreateBasedOnFile(FileInfo file, string rootDirectory)
         {
-            return new EntityResolver<FileInfo>(file, SchemaFilesHelper.FilesNameToIndexMap,
+            return new EntityResolver<ExtendedFileInfo>(new ExtendedFileInfo(file, rootDirectory), SchemaFilesHelper.FilesNameToIndexMap,
                             SchemaFilesHelper.FilesIndexToMethodAccessMap);
         }
     }

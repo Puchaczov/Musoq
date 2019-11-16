@@ -146,7 +146,7 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(1, folders.Count);
 
-            Assert.AreEqual("TestFile1.txt", ((FileInfo)folders[0].Contexts[0]).Name);
+            Assert.AreEqual("TestFile1.txt", ((ExtendedFileInfo)folders[0].Contexts[0]).Name);
         }
 
         [TestMethod]
@@ -158,10 +158,10 @@ namespace Musoq.Schema.Os.Tests.Core
 
             Assert.AreEqual(4, folders.Count);
 
-            Assert.AreEqual("TestFile1.txt", ((FileInfo)folders[0].Contexts[0]).Name);
-            Assert.AreEqual("TextFile2.txt", ((FileInfo)folders[1].Contexts[0]).Name);
-            Assert.AreEqual("TextFile3.txt", ((FileInfo)folders[2].Contexts[0]).Name);
-            Assert.AreEqual("TextFile1.txt", ((FileInfo)folders[3].Contexts[0]).Name);
+            Assert.AreEqual("TestFile1.txt", ((ExtendedFileInfo)folders[0].Contexts[0]).Name);
+            Assert.AreEqual("TextFile2.txt", ((ExtendedFileInfo)folders[1].Contexts[0]).Name);
+            Assert.AreEqual("TextFile3.txt", ((ExtendedFileInfo)folders[2].Contexts[0]).Name);
+            Assert.AreEqual("TextFile1.txt", ((ExtendedFileInfo)folders[3].Contexts[0]).Name);
         }
 
         [TestMethod]
@@ -408,9 +408,9 @@ select * from IntersectedFiles";
         {
             var query = @"
 with FirstDirectory as (
-    select a.GetRelativeName('.\Files') as RelativeName, a.Sha256File() as sha from #os.files('.\Files', true) a
+    select a.GetRelativePath('.\Files') as RelativeName, a.Sha256File() as sha from #os.files('.\Files', true) a
 ), SecondDirectory as (
-    select a.GetRelativeName('.\Files2') as RelativeName, a.Sha256File() as sha from #os.files('.\Files2', true) a
+    select a.GetRelativePath('.\Files2') as RelativeName, a.Sha256File() as sha from #os.files('.\Files2', true) a
 ), IntersectedFiles as (
 	select a.RelativeName as RelativeName, a.sha as sha1, b.sha as sha2 from FirstDirectory a inner join SecondDirectory b on a.RelativeName = b.RelativeName
 ), ThoseInLeft as (
@@ -475,10 +475,10 @@ select RelativeName, 'added' as state from ThoseInRight";
             var library = new OsLibrary();
             var separator = Path.DirectorySeparatorChar;
 
-            Assert.AreEqual("this", library.TraverseToDirectoryFromRoot($"this{separator}is{separator}test", 0));
-            Assert.AreEqual($"this{separator}is", library.TraverseToDirectoryFromRoot($"this{separator}is{separator}test", 1));
-            Assert.AreEqual($"this{separator}is{separator}test", library.TraverseToDirectoryFromRoot($"this{separator}is{separator}test", 2));
-            Assert.AreEqual($"this{separator}is{separator}test", library.TraverseToDirectoryFromRoot($"this{separator}is{separator}test", 10));
+            Assert.AreEqual("this", library.SubPath($"this{separator}is{separator}test", 0));
+            Assert.AreEqual($"this{separator}is", library.SubPath($"this{separator}is{separator}test", 1));
+            Assert.AreEqual($"this{separator}is{separator}test", library.SubPath($"this{separator}is{separator}test", 2));
+            Assert.AreEqual($"this{separator}is{separator}test", library.SubPath($"this{separator}is{separator}test", 10));
         }
 
         private CompiledQuery CreateAndRunVirtualMachine(string script)

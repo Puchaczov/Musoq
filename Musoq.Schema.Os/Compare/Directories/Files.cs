@@ -1,27 +1,28 @@
-﻿using System.Collections;
+﻿using Musoq.Schema.Os.Files;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
 namespace Musoq.Schema.Os.Compare.Directories
 {
-    public class Files : IReadOnlyList<FileInfo>
+    public class Files : IReadOnlyList<ExtendedFileInfo>
     {
-        private readonly IReadOnlyList<FileInfo> _files;
+        private readonly IReadOnlyList<ExtendedFileInfo> _files;
 
-        public Files(IReadOnlyList<FileInfo> files)
+        public Files(IReadOnlyList<ExtendedFileInfo> files)
         {
             _files = files;
         }
 
-        public FileInfo Source => _files[0];
+        public ExtendedFileInfo Source => _files[0];
 
-        public FileInfo Destination => _files[1];
+        public ExtendedFileInfo Destination => _files[1];
 
-        public FileInfo this[int index] => _files[index];
+        public ExtendedFileInfo this[int index] => _files[index];
 
         public int Count => _files.Count;
 
-        public IEnumerator<FileInfo> GetEnumerator()
+        public IEnumerator<ExtendedFileInfo> GetEnumerator()
         {
             return _files.GetEnumerator();
         }

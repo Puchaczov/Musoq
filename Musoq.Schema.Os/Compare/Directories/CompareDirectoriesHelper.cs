@@ -1,4 +1,5 @@
 ﻿using Musoq.Schema.DataSources;
+using Musoq.Schema.Os.Files;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,8 +38,8 @@ namespace Musoq.Schema.Os.Compare.Directories
 
             CompareDirectoriesColumns = new ISchemaColumn[]
             {
-                new SchemaColumn(nameof(CompareDirectoriesResult.SourceFile), 0, typeof(FileInfo)),
-                new SchemaColumn(nameof(CompareDirectoriesResult.DestinationFile), 1, typeof(FileInfo)),
+                new SchemaColumn(nameof(CompareDirectoriesResult.SourceFile), 0, typeof(ExtendedFileInfo)),
+                new SchemaColumn(nameof(CompareDirectoriesResult.DestinationFile), 1, typeof(ExtendedFileInfo)),
                 new SchemaColumn(nameof(CompareDirectoriesResult.State), 2, typeof(string)),
                 new SchemaColumn(nameof(CompareDirectoriesResult.SourceRoot), 3, typeof(DirectoryInfo)),
                 new SchemaColumn(nameof(CompareDirectoriesResult.DestinationRoot), 4, typeof(DirectoryInfo)),

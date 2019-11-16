@@ -17,7 +17,7 @@ namespace Musoq.Schema.Os.Files
             _communicator = communicator;
             _source = new DirectorySourceSearchOptions[] 
             { 
-                new DirectorySourceSearchOptions(path, useSubDirectories) 
+                new DirectorySourceSearchOptions(new DirectoryInfo(path).FullName, useSubDirectories) 
             };
         }
 
@@ -28,7 +28,7 @@ namespace Musoq.Schema.Os.Files
 
             foreach (var row in table.Rows)
             {
-                sources.Add(new DirectorySourceSearchOptions((string)row[0], (bool)row[1]));
+                sources.Add(new DirectorySourceSearchOptions(new DirectoryInfo((string)row[0]).FullName, (bool)row[1]));
             }
 
             _source = sources.ToArray();
@@ -44,42 +44,50 @@ namespace Musoq.Schema.Os.Files
                 }, 
                 (source) => 
                 {
-                    var sources = new Stack<DirectorySourceSearchOptions>();
-
-                    if (!Directory.Exists(source.Path))
-                        return;
-
-                    var endWorkToken = _communicator.EndWorkToken;
-
-                    sources.Push(source);
-
-                    while (sources.Count > 0)
+                    try
                     {
-                        var currentSource = sources.Pop();
-                        var dir = new DirectoryInfo(currentSource.Path);
 
-                        var dirFiles = new List<EntityResolver<TEntity>>();
+                        var sources = new Stack<DirectorySourceSearchOptions>();
 
-                        try
+                        if (!Directory.Exists(source.Path))
+                            return;
+
+                        var endWorkToken = _communicator.EndWorkToken;
+
+                        sources.Push(source);
+
+                        while (sources.Count > 0)
                         {
-                            foreach (var file in GetFiles(dir))
-                                dirFiles.Add(CreateBasedOnFile(file));
-                        }
-                        catch (UnauthorizedAccessException)
-                        {
-                            continue;
-                        }
+                            var currentSource = sources.Pop();
+                            var dir = new DirectoryInfo(currentSource.Path);
 
-                        chunkedSource.Add(dirFiles, endWorkToken);
+                            var dirFiles = new List<EntityResolver<TEntity>>();
 
-                        if (currentSource.WithSubDirectories)
-                            foreach (var subDir in dir.GetDirectories())
-                                sources.Push(new DirectorySourceSearchOptions(subDir.FullName, currentSource.WithSubDirectories));
+                            try
+                            {
+                                foreach (var file in GetFiles(dir))
+                                    dirFiles.Add(CreateBasedOnFile(file, source.Path));
+                            }
+                            catch (UnauthorizedAccessException)
+                            {
+                                continue;
+                            }
+
+                            chunkedSource.Add(dirFiles, endWorkToken);
+
+                            if (currentSource.WithSubDirectories)
+                                foreach (var subDir in dir.GetDirectories())
+                                    sources.Push(new DirectorySourceSearchOptions(subDir.FullName, currentSource.WithSubDirectories));
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+
                     }
                 });
         }
 
-        protected abstract EntityResolver<TEntity> CreateBasedOnFile(FileInfo file);
+        protected abstract EntityResolver<TEntity> CreateBasedOnFile(FileInfo file, string rootDirectory);
 
         protected virtual FileInfo[] GetFiles(DirectoryInfo directoryInfo) => directoryInfo.GetFiles();
     }

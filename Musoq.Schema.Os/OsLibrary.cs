@@ -12,6 +12,7 @@ using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Plugins.Helpers;
 using Musoq.Schema.Exceptions;
+using Musoq.Schema.Os.Files;
 using Musoq.Schema.Os.Zip;
 using Group = Musoq.Plugins.Group;
 
@@ -192,57 +193,57 @@ namespace Musoq.Schema.Os
         public bool IsZipArchive(string extension) => IsZipArchiveSet.Contains(extension);
 
         [BindableMethod]
-        public bool IsZipArchive([InjectSource] FileInfo fileInfo) => IsZipArchiveSet.Contains(fileInfo.Extension);
+        public bool IsZipArchive([InjectSource] ExtendedFileInfo fileInfo) => IsZipArchiveSet.Contains(fileInfo.Extension);
 
         [BindableMethod]
         public bool IsArchive(string extension) => IsArchiveSet.Contains(extension);
 
         [BindableMethod]
-        public bool IsArchive([InjectSource] FileInfo fileInfo) => IsArchiveSet.Contains(fileInfo.Extension);
+        public bool IsArchive([InjectSource] ExtendedFileInfo fileInfo) => IsArchiveSet.Contains(fileInfo.Extension);
 
         [BindableMethod]
         public bool IsAudio(string extension) => IsAudioSet.Contains(extension);
 
         [BindableMethod]
-        public bool IsAudio([InjectSource] FileInfo fileInfo) => IsAudioSet.Contains(fileInfo.Extension);
+        public bool IsAudio([InjectSource] ExtendedFileInfo fileInfo) => IsAudioSet.Contains(fileInfo.Extension);
 
         [BindableMethod]
         public bool IsBook(string extension) => IsBookSet.Contains(extension);
 
         [BindableMethod]
-        public bool IsBook([InjectSource] FileInfo fileInfo) => IsBookSet.Contains(fileInfo.Extension);
+        public bool IsBook([InjectSource] ExtendedFileInfo fileInfo) => IsBookSet.Contains(fileInfo.Extension);
 
         [BindableMethod]
         public bool IsDoc(string extension) => IsDocSet.Contains(extension);
 
         [BindableMethod]
-        public bool IsDoc([InjectSource] FileInfo fileInfo) => IsDocSet.Contains(fileInfo.Extension);
+        public bool IsDoc([InjectSource] ExtendedFileInfo fileInfo) => IsDocSet.Contains(fileInfo.Extension);
 
         [BindableMethod]
         public bool IsImage(string extension) => IsImageSet.Contains(extension);
 
         [BindableMethod]
-        public bool IsImage([InjectSource] FileInfo fileInfo) => IsImageSet.Contains(fileInfo.Extension);
+        public bool IsImage([InjectSource] ExtendedFileInfo fileInfo) => IsImageSet.Contains(fileInfo.Extension);
 
         [BindableMethod]
         public bool IsSource(string extension) => IsSourceSet.Contains(extension);
 
         [BindableMethod]
-        public bool IsSource([InjectSource] FileInfo fileInfo) => IsSourceSet.Contains(fileInfo.Extension);
+        public bool IsSource([InjectSource] ExtendedFileInfo fileInfo) => IsSourceSet.Contains(fileInfo.Extension);
 
         [BindableMethod]
         public bool IsVideo(string extension) => IsVideoSet.Contains(extension);
 
         [BindableMethod]
-        public bool IsVideo([InjectSource] FileInfo fileInfo) => IsVideoSet.Contains(fileInfo.Extension);
+        public bool IsVideo([InjectSource] ExtendedFileInfo fileInfo) => IsVideoSet.Contains(fileInfo.Extension);
 
         [BindableMethod]
-        public string GetFileContent([InjectSource] FileInfo fileInfo)
+        public string GetFileContent([InjectSource] ExtendedFileInfo extendedFileInfo)
         {
-            if (!fileInfo.Exists)
+            if (!extendedFileInfo.Exists)
                 return null;
 
-            using (var file = fileInfo.OpenRead())
+            using (var file = extendedFileInfo.OpenRead())
             using (var fileReader = new StreamReader(file))
             {
                 return fileReader.ReadToEnd();
@@ -250,20 +251,37 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public string GetRelativeName([InjectSource] FileInfo fileInfo, string basePath)
+        public string GetRelativePath([InjectSource] ExtendedFileInfo fileInfo)
         {
             if (fileInfo == null)
                 return null;
 
-            return fileInfo.FullName.Replace(new FileInfo(basePath).FullName, string.Empty);
+            return fileInfo.FullName.Replace(fileInfo.ComputationRootDirectoryPath, string.Empty);
         }
 
         [BindableMethod]
-        public byte[] Head([InjectSource] FileInfo file, int length)
+        public string GetRelativePath([InjectSource] ExtendedFileInfo fileInfo, string basePath)
+        {
+            if (fileInfo == null)
+                return null;
+
+            if (basePath == null)
+                throw new ArgumentNullException(nameof(basePath));
+
+            if (!Directory.Exists(basePath))
+                throw new DirectoryNotFoundException(basePath);
+
+            basePath = new DirectoryInfo(basePath).FullName;
+
+            return fileInfo.FullName.Replace(basePath, string.Empty);
+        }
+
+        [BindableMethod]
+        public byte[] Head([InjectSource] ExtendedFileInfo file, int length)
             => GetFileBytes(file, length, 0);
 
         [BindableMethod]
-        public byte[] Tail([InjectSource] FileInfo file, int length)
+        public byte[] Tail([InjectSource] ExtendedFileInfo file, int length)
         {
             if (file == null)
                 throw new InjectSourceNullReferenceException(typeof(FileInfo));
@@ -284,7 +302,7 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public byte[] GetFileBytes([InjectSource] FileInfo file, long bytesCount = long.MaxValue, long offset = 0)
+        public byte[] GetFileBytes([InjectSource] ExtendedFileInfo file, long bytesCount = long.MaxValue, long offset = 0)
         {
             if (file == null)
                 throw new InjectSourceNullReferenceException(typeof(FileInfo));
@@ -307,10 +325,10 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public string Sha1File([InjectSource] FileInfo file)
+        public string Sha1File([InjectSource] ExtendedFileInfo file)
         {
             if (file == null)
-                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+                throw new InjectSourceNullReferenceException(typeof(ExtendedFileInfo));
 
             using (var stream = file.OpenRead())
             {
@@ -319,10 +337,18 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public string Sha256File([InjectSource] FileInfo file)
+        public string Sha256File([InjectSource] ExtendedFileInfo file)
         {
             if (file == null)
-                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+                throw new InjectSourceNullReferenceException(typeof(ExtendedFileInfo));
+
+            return Sha256File(file.FileInfo);
+        }
+
+        public string Sha256File(FileInfo file)
+        {
+            if (file == null)
+                throw new ArgumentNullException(nameof(file));
 
             using (var stream = file.OpenRead())
             {
@@ -331,10 +357,10 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public string Md5File([InjectSource] FileInfo file)
+        public string Md5File([InjectSource] ExtendedFileInfo file)
         {
             if (file == null)
-                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+                throw new InjectSourceNullReferenceException(typeof(ExtendedFileInfo));
 
             using (var stream = file.OpenRead())
             {
@@ -343,10 +369,10 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public bool HasContent([InjectSource] FileInfo file, string pattern)
+        public bool HasContent([InjectSource] ExtendedFileInfo file, string pattern)
         {
             if (file == null)
-                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+                throw new InjectSourceNullReferenceException(typeof(ExtendedFileInfo));
 
             using (var stream = new StreamReader(file.OpenRead()))
             {
@@ -356,16 +382,16 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public bool HasAttribute([InjectSource] FileInfo file, long flags)
+        public bool HasAttribute([InjectSource] ExtendedFileInfo file, long flags)
         {
             return (flags & Convert.ToUInt32(file.Attributes)) == flags;
         }
 
         [BindableMethod]
-        public string GetLinesContainingWord([InjectSource] FileInfo file, string word)
+        public string GetLinesContainingWord([InjectSource] ExtendedFileInfo file, string word)
         {
             if (file == null)
-                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+                throw new InjectSourceNullReferenceException(typeof(ExtendedFileInfo));
 
             using (var stream = new StreamReader(file.OpenRead()))
             {
@@ -391,14 +417,14 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public long GetFileLength([InjectSource] FileInfo context, string unit = "b")
+        public long GetFileLength([InjectSource] ExtendedFileInfo context, string unit = "b")
             => GetLengthOfFile(context, unit);
 
         [BindableMethod]
-        public long GetLengthOfFile([InjectSource] FileInfo context, string unit = "b")
+        public long GetLengthOfFile([InjectSource] ExtendedFileInfo context, string unit = "b")
         {
             if (context == null)
-                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+                throw new InjectSourceNullReferenceException(typeof(ExtendedFileInfo));
 
             switch (unit.ToLowerInvariant())
             {
@@ -416,15 +442,19 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public string TraverseToDirectoryFromRoot([InjectSource] DirectoryInfo context, int nesting)
-            => TraverseToDirectoryFromRoot(context.FullName, nesting);
+        public string SubPath([InjectSource] DirectoryInfo context, int nesting)
+            => SubPath(context.FullName, nesting);
 
         [BindableMethod]
-        public string TraverseToDirectoryFromRoot([InjectSource] FileInfo context, int nesting)
-            => TraverseToDirectoryFromRoot(context.Directory.FullName, nesting);
+        public string SubPath([InjectSource] ExtendedFileInfo context, int nesting)
+            => SubPath(context.Directory.FullName, nesting);
+
+        [BindableMethod]
+        public string RelativeSubPath([InjectSource] ExtendedFileInfo context, int nesting)
+            => SubPath(GetRelativePath(context, context.ComputationRootDirectoryPath), nesting);
         
         [BindableMethod]
-        public string TraverseToDirectoryFromRoot(string directoryPath, int nesting)
+        public string SubPath(string directoryPath, int nesting)
         {
             if (directoryPath == null)
                 return null;
@@ -457,30 +487,32 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public long Length([InjectSource] FileInfo context, string unit = "b")
+        public long Length([InjectSource] ExtendedFileInfo context, string unit = "b")
             => GetLengthOfFile(context, unit);
 
         [BindableMethod]
-        public FileInfo GetFileInfo(string fullPath)
+        public ExtendedFileInfo GetFileInfo(string fullPath)
         {
-            return new FileInfo(fullPath);
+            var fileInfo = new FileInfo(fullPath);
+            return new ExtendedFileInfo(fileInfo, fileInfo.DirectoryName);
         }
 
         [BindableMethod]
-        public FileInfo GetFileInfo([InjectSource] FileInfo context)
+        public ExtendedFileInfo GetExtendedFileInfo([InjectSource] ExtendedFileInfo context)
             => context;
 
         [BindableMethod]
-        public FileInfo GetZipEntryFileInfo([InjectSource] ZipArchiveEntry zipArchiveEntry)
+        public ExtendedFileInfo GetZipEntryFileInfo([InjectSource] ZipArchiveEntry zipArchiveEntry)
         {
-            return SchemaZipHelper.UnpackZipEntry(zipArchiveEntry, zipArchiveEntry.FullName, Path.GetTempPath());
+            var fileInfo = SchemaZipHelper.UnpackZipEntry(zipArchiveEntry, zipArchiveEntry.FullName, Path.GetTempPath());
+            return new ExtendedFileInfo(fileInfo, fileInfo.DirectoryName);
         }
 
         [BindableMethod]
-        public long CountOfLines([InjectSource] FileInfo context)
+        public long CountOfLines([InjectSource] ExtendedFileInfo context)
         {
             if (context == null)
-                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+                throw new InjectSourceNullReferenceException(typeof(ExtendedFileInfo));
 
             using (var stream = new StreamReader(context.OpenRead()))
             {
@@ -496,10 +528,10 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public long CountOfNotEmptyLines([InjectSource] FileInfo context)
+        public long CountOfNotEmptyLines([InjectSource] ExtendedFileInfo context)
         {
             if (context == null)
-                throw new InjectSourceNullReferenceException(typeof(FileInfo));
+                throw new InjectSourceNullReferenceException(typeof(ExtendedFileInfo));
 
             using (var stream = new StreamReader(context.OpenRead()))
             {
@@ -519,25 +551,25 @@ namespace Musoq.Schema.Os
         }
 
         [AggregationSetMethod]
-        public void SetAggregateFiles([InjectGroup] Group group, string name, FileInfo file)
+        public void SetAggregateFiles([InjectGroup] Group group, string name, ExtendedFileInfo file)
         {
-            var list = group.GetOrCreateValue(name, new List<FileInfo>());
+            var list = group.GetOrCreateValue(name, new List<ExtendedFileInfo>());
 
             list.Add(file);
         }
 
         [AggregationSetMethod]
-        public void SetAggregateFiles([InjectGroup] Group group, [InjectSource] FileInfo file, string name)
+        public void SetAggregateFiles([InjectGroup] Group group, [InjectSource] ExtendedFileInfo file, string name)
         {
-            var list = group.GetOrCreateValue(name, new List<FileInfo>());
+            var list = group.GetOrCreateValue(name, new List<ExtendedFileInfo>());
 
             list.Add(file);
         }
 
         [AggregationGetMethod]
-        public IReadOnlyList<FileInfo> AggregateFiles([InjectGroup] Group group, string name)
+        public IReadOnlyList<ExtendedFileInfo> AggregateFiles([InjectGroup] Group group, string name)
         {
-            return group.GetValue<IReadOnlyList<FileInfo>>(name);
+            return group.GetValue<IReadOnlyList<ExtendedFileInfo>>(name);
         }
 
         [AggregationSetMethod]
@@ -613,7 +645,7 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public string Compress(IReadOnlyList<FileInfo> files, string path, string method)
+        public string Compress(IReadOnlyList<ExtendedFileInfo> files, string path, string method)
         {
             if (files.Count == 0)
                 return string.Empty;
@@ -654,7 +686,7 @@ namespace Musoq.Schema.Os
         }
 
         [BindableMethod]
-        public string Decompress(IReadOnlyList<FileInfo> files, string path)
+        public string Decompress(IReadOnlyList<ExtendedFileInfo> files, string path)
         {
             if (files.Count == 0)
                 return string.Empty;
