@@ -622,6 +622,8 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CaseNode node)
         {
+            var oldMethodAccessType = _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
+            
             node.Else.Accept(this);
 
             for (int i = node.WhenThenPairs.Length - 1; i >= 0; --i)
@@ -631,6 +633,8 @@ namespace Musoq.Evaluator.Visitors
             }
 
             node.Accept(_visitor);
+
+            _visitor.SetMethodAccessType(oldMethodAccessType);
         }
 
         private void TraverseSetOperator(SetOperatorNode node)

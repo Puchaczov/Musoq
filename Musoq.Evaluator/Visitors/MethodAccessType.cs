@@ -3,6 +3,7 @@
     public enum MethodAccessType
     {
         ResultQuery,
-        TransformingQuery
+        TransformingQuery,
+        CaseWhen
     }
 }

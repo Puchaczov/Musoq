@@ -556,7 +556,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new StatementNode(Nodes.Pop()));
         }
 
-        public void Visit(CaseNode node)
+        public virtual void Visit(CaseNode node)
         {
             var whenThenPairs = new List<(Node When, Node Then)>();
 

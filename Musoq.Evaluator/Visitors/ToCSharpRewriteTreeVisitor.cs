@@ -54,6 +54,7 @@ namespace Musoq.Evaluator.Visitors
         private string _queryAlias;
         private Scope _scope;
         private BlockSyntax _selectBlock;
+        private MethodAccessType _oldType;
         private MethodAccessType _type;
 
         public ToCSharpRewriteTreeVisitor(
@@ -608,6 +609,7 @@ namespace Musoq.Evaluator.Visitors
                                 objectName = $"{_queryAlias}Row";
                                 break;
                             case MethodAccessType.ResultQuery:
+                            case MethodAccessType.CaseWhen:
                                 objectName = "score";
                                 break;
                             default:
@@ -773,6 +775,7 @@ namespace Musoq.Evaluator.Visitors
                     variableName = $"{node.Alias}Row";
                     break;
                 case MethodAccessType.ResultQuery:
+                case MethodAccessType.CaseWhen:
                     variableName = "score";
                     break;
                 default:
@@ -926,6 +929,7 @@ namespace Musoq.Evaluator.Visitors
                         rowVariableName = $"{context}Row";
                         break;
                     case MethodAccessType.ResultQuery:
+                    case MethodAccessType.CaseWhen:
                         rowVariableName = "score";
                         break;
                 }
@@ -2353,9 +2357,12 @@ namespace Musoq.Evaluator.Visitors
             _queryAlias = identifier;
         }
 
-        public void SetMethodAccessType(MethodAccessType type)
+        public MethodAccessType SetMethodAccessType(MethodAccessType type)
         {
+            _oldType = _type;
             _type = type;
+
+            return _oldType;
         }
 
         public void IncrementMethodIdentifier()
@@ -2808,9 +2815,19 @@ namespace Musoq.Evaluator.Visitors
                   SyntaxFactory.IdentifierName(nameof(IObjectResolver))
             ));
 
+            var rowVariableName = string.Empty;
+            switch (_oldType)
+            {
+                case MethodAccessType.TransformingQuery:
+                    rowVariableName = $"{_queryAlias}Row";
+                    break;
+                case MethodAccessType.ResultQuery:
+                    rowVariableName = "score";
+                    break;
+            }
             callParameters.Add(
                 SyntaxFactory.Argument(
-                    SyntaxFactory.IdentifierName("score")));
+                    SyntaxFactory.IdentifierName(rowVariableName)));
 
             foreach (var variableNameTypePair in _typesToInstantiate)
             {

@@ -4,7 +4,7 @@
     {
         void SetQueryIdentifier(string identifier);
 
-        void SetMethodAccessType(MethodAccessType type);
+        MethodAccessType SetMethodAccessType(MethodAccessType type);
 
         void IncrementMethodIdentifier();
     }

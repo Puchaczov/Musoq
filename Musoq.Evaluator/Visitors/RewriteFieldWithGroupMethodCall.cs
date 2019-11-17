@@ -75,5 +75,13 @@ namespace Musoq.Evaluator.Visitors
         {
             Nodes.Push(new AccessColumnNode(node.ToString(), string.Empty, node.ReturnType, TextSpan.Empty));
         }
+
+        public override void Visit(CaseNode node)
+        {
+            if (_fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))
+                Nodes.Push(new AccessColumnNode(node.ToString(), string.Empty, node.ReturnType, TextSpan.Empty));
+            else
+                base.Visit(node);
+        }
     }
 }
