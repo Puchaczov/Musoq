@@ -1077,7 +1077,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(FieldLinkNode node)
         {
-            Nodes.Push(_groupByFields[node.Index - 1].Expression);
+            var index = node.Index - 1;
+            
+            if (_groupByFields.Count <= index)
+                throw new FieldLinkIndexOutOfRangeException(index, _groupByFields.Count);
+
+            Nodes.Push(_groupByFields[index].Expression);
         }
     }
 }
