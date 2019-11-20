@@ -637,6 +637,11 @@ namespace Musoq.Evaluator.Visitors
             _visitor.SetMethodAccessType(oldMethodAccessType);
         }
 
+        public void Visit(FieldLinkNode node)
+        {
+            throw new NotSupportedException();
+        }
+
         private void TraverseSetOperator(SetOperatorNode node)
         {
             _walker = _walker.NextChild();

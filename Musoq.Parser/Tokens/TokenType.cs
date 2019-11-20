@@ -74,6 +74,7 @@
         When,
         Then,
         Else,
-        End
+        End,
+        FieldLink
     }
 }

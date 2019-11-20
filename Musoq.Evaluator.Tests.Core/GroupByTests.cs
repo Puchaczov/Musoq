@@ -972,5 +972,83 @@ namespace Musoq.Evaluator.Tests.Core
             Assert.AreEqual("feb", table[1][0]);
             Assert.AreEqual("march", table[2][0]);
         }
+
+        [TestMethod]
+        public void GroupByWithFieldLinkSyntaxTest()
+        {
+            var query = @"select ::1, Count(::1), ::2 from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
+                        new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
+                        new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual("::1", column.ColumnName);
+            Assert.AreEqual(typeof(string), column.ColumnType);
+            
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual("Count(::1)", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            column = table.Columns.ElementAt(2);
+            Assert.AreEqual("::2", column.ColumnName);
+            Assert.AreEqual(typeof(string), column.ColumnType);
+
+            Assert.AreEqual("jan", table[0][0]);
+            Assert.AreEqual("feb", table[1][0]);
+            Assert.AreEqual("march", table[2][0]);
+        }
+
+        [TestMethod]
+        public void GroupByWithFieldLinkSyntaxAndCustomColumnNamingTest()
+        {
+            var query = @"select ::1 as firstColumn, Count(::1) as secondColumn, ::2 as thirdColumn from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
+                        new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
+                        new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual("firstColumn", column.ColumnName);
+            Assert.AreEqual(typeof(string), column.ColumnType);
+
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual("secondColumn", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            column = table.Columns.ElementAt(2);
+            Assert.AreEqual("thirdColumn", column.ColumnName);
+            Assert.AreEqual(typeof(string), column.ColumnType);
+
+            Assert.AreEqual("jan", table[0][0]);
+            Assert.AreEqual("feb", table[1][0]);
+            Assert.AreEqual("march", table[2][0]);
+        }
     }
 }

@@ -2862,5 +2862,10 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(
                 SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray()));
         }
+
+        public void Visit(FieldLinkNode node)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

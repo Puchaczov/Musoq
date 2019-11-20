@@ -554,6 +554,11 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
+        public void Visit(FieldLinkNode node)
+        {
+            node.Accept(Visitor);
+        }
+
         private void TraverseSetOperator(SetOperatorNode node)
         {
             node.Left.Accept(this);

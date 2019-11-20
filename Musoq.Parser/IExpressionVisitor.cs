@@ -89,5 +89,6 @@ namespace Musoq.Parser
         void Visit(CreateTableNode node);
         void Visit(CoupleNode node);
         void Visit(CaseNode node);
+        void Visit(FieldLinkNode node);
     }
 }

@@ -3,7 +3,6 @@ using System.Globalization;
 
 namespace Musoq.Parser.Nodes
 {
-
     public class DecimalNode : ConstantValueNode
     {
         public DecimalNode(string value)

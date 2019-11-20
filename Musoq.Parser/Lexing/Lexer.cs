@@ -177,6 +177,8 @@ namespace Musoq.Parser.Lexing
                 return TokenType.OuterJoin;
             if (regex == TokenRegexDefinition.KHFrom)
                 return TokenType.Word;
+            if (regex == TokenRegexDefinition.KFieldLink)
+                return TokenType.FieldLink;
 
             return TokenType.Word;
         }
@@ -231,6 +233,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KHaving = Format(Keyword, HavingToken.TokenText);
             public static readonly string KContains = Format(Keyword, ContainsToken.TokenText);
             public static readonly string KDecimal = @"[\-]?([0-9]+(\.[0-9]{1,})?)[dD]?";
+            public static readonly string KFieldLink = @"::[1-9]{1,}";
             public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
             public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
 
@@ -356,6 +359,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KThen),
                 new TokenDefinition(TokenRegexDefinition.KElse),
                 new TokenDefinition(TokenRegexDefinition.KEnd),
+                new TokenDefinition(TokenRegexDefinition.KFieldLink)
             };
         }
 
@@ -538,6 +542,8 @@ namespace Musoq.Parser.Lexing
                     return new ElseToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.End:
                     return new EndToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.FieldLink:
+                    return new KFieldLinkToken(tokenText, new TextSpan(Position, tokenText.Length));
             }
 
             var regex = matchedDefinition.Regex.ToString();

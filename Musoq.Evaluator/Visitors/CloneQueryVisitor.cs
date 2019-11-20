@@ -571,5 +571,10 @@ namespace Musoq.Evaluator.Visitors
 
             Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, elseNode.ReturnType));
         }
+
+        public void Visit(FieldLinkNode node)
+        {
+            Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
+        }
     }
 }

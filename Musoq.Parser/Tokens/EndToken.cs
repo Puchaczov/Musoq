@@ -9,4 +9,12 @@
         {
         }
     }
+
+    public class KFieldLinkToken : Token
+    {
+        public KFieldLinkToken(string value, TextSpan span) 
+            : base(value, TokenType.FieldLink, span)
+        {
+        }
+    }
 }

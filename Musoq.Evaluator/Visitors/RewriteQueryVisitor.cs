@@ -5,14 +5,11 @@ using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
-using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
-using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -1054,6 +1051,11 @@ namespace Musoq.Evaluator.Visitors
             var elseNode = Nodes.Pop();
 
             Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType));
+        }
+
+        public void Visit(FieldLinkNode node)
+        {
+            Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
         }
     }
 }

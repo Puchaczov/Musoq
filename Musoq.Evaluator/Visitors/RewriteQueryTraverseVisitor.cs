@@ -623,6 +623,11 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(FieldLinkNode node)
+        {
+            node.Accept(_visitor);
+        }
+
         private void TraverseSetOperator(SetOperatorNode node)
         {
             _walker = _walker.NextChild();

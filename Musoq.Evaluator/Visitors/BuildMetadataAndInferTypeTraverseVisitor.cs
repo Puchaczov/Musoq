@@ -355,10 +355,10 @@ namespace Musoq.Evaluator.Visitors
             LoadScope("Query");
             node.From.Accept(this);
             node.Where?.Accept(this);
-            node.Select.Accept(this);
-            node.Take?.Accept(this);
-            node.Skip?.Accept(this);
             node.GroupBy?.Accept(this);
+            node.Select.Accept(this);
+            node.Skip?.Accept(this);
+            node.Take?.Accept(this);
             node.OrderBy?.Accept(this);
             node.Accept(_visitor);
             RestoreScope();
@@ -708,6 +708,11 @@ namespace Musoq.Evaluator.Visitors
                 node.WhenThenPairs[i].Then.Accept(this);
             }
 
+            node.Accept(_visitor);
+        }
+
+        public void Visit(FieldLinkNode node)
+        {
             node.Accept(_visitor);
         }
     }

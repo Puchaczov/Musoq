@@ -30,12 +30,14 @@ namespace Musoq.Evaluator.Visitors
         private readonly IDictionary<string, ISchemaTable> _explicitlyDefinedTables = new Dictionary<string, ISchemaTable>();
         private readonly IDictionary<string, string> _explicitlyCoupledTablesWithAliases = new Dictionary<string, string>();
         private readonly IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases = new Dictionary<string, SchemaMethodFromNode>();
+        private readonly List<FieldNode> _groupByFields = new List<FieldNode>();
 
         private int _setKey;
         private Scope _currentScope;
         private FieldNode[] _generatedColumns = new FieldNode[0];
         private string _identifier;
         private string _queryAlias;
+        private QueryPart _queryPart;
 
         private Stack<string> Methods { get; } = new Stack<string>();
 
@@ -446,7 +448,13 @@ namespace Musoq.Evaluator.Visitors
 
             var fields = new FieldNode[node.Fields.Length];
 
-            for (var i = node.Fields.Length - 1; i >= 0; --i) fields[i] = Nodes.Pop() as FieldNode;
+            for (var i = node.Fields.Length - 1; i >= 0; --i)
+            {
+                var field = Nodes.Pop() as FieldNode;
+                _groupByFields.Insert(0, field);
+                fields[i] = field;
+
+            }
 
             Nodes.Push(new GroupByNode(fields, having));
         }
@@ -626,20 +634,18 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(QueryNode node)
         {
             var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
+            var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
+            var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
+            var select = Nodes.Pop() as SelectNode;
             var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
+            var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
+            var from = Nodes.Pop() as FromNode;
 
             if (groupBy == null && _refreshMethods.Count > 0)
             {
                 groupBy = new GroupByNode(
                     new[] { new FieldNode(new IntegerNode("1"), 0, string.Empty) }, null);
             }
-
-            var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
-            var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
-
-            var select = Nodes.Pop() as SelectNode;
-            var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
-            var from = Nodes.Pop() as FromNode;
 
             _currentScope.ScopeSymbolTable.AddSymbol(from.Alias.ToRefreshMethodsSymbolName(),
                 new RefreshMethodsSymbol(_refreshMethods));
@@ -1034,6 +1040,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void SetQueryPart(QueryPart part)
         {
+            _queryPart = part;
         }
 
         public void Visit(StatementsArrayNode node)
@@ -1066,6 +1073,11 @@ namespace Musoq.Evaluator.Visitors
             var elseNode = Nodes.Pop();
 
             Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, elseNode.ReturnType));
+        }
+
+        public void Visit(FieldLinkNode node)
+        {
+            Nodes.Push(_groupByFields[node.Index - 1].Expression);
         }
     }
 }

@@ -764,6 +764,8 @@ namespace Musoq.Parser
                 case TokenType.Case:
                     var (WhenThenNodes, ElseNode) = ComposeCase();
                     return new CaseNode(WhenThenNodes, ElseNode);
+                case TokenType.FieldLink:
+                    return new FieldLinkNode(ConsumeAndGetToken().Value);
             }
 
             throw new NotSupportedException($"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.");
