@@ -391,6 +391,21 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
+        public string Replace(string text, string lookFor, string changeTo)
+        {
+            if (text == null)
+                return null;
+
+            if (string.IsNullOrEmpty(lookFor))
+                return text;
+
+            if (changeTo == null)
+                return text;
+
+            return text.Replace(lookFor, changeTo);
+        }
+
+        [BindableMethod]
         public string CapitalizeFirstLetterOfWords(string value)
         {
             if (value == null)
