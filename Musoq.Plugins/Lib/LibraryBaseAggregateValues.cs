@@ -46,7 +46,7 @@ namespace Musoq.Plugins
                 return;
             }
 
-            AggregateAdd(group, name, value.Value.ToString(CultureInfo.InvariantCulture), parent);
+            AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
         }
 
         [AggregationSetMethod]
@@ -58,7 +58,7 @@ namespace Musoq.Plugins
                 return;
             }
 
-            AggregateAdd(group, name, value.Value.ToString(CultureInfo.InvariantCulture), parent);
+            AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
         }
 
         [AggregationSetMethod]
@@ -70,7 +70,7 @@ namespace Musoq.Plugins
                 return;
             }
 
-            AggregateAdd(group, name, value.Value.ToString(CultureInfo.InvariantCulture), parent);
+            AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
         }
 
         [AggregationSetMethod]
@@ -82,7 +82,7 @@ namespace Musoq.Plugins
                 return;
             }
 
-            AggregateAdd(group, name, value.Value.ToString(CultureInfo.InvariantCulture), parent);
+            AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
         }
 
         private static void AggregateAdd<TType>(Group group, string name, TType value, int parent)
