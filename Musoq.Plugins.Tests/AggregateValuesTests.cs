@@ -93,9 +93,9 @@ namespace Musoq.Plugins.Tests
         [TestMethod]
         public void AggregateValuesDateTimeOffsetTest()
         {
-            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("01.01.2010"));
-            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("05.05.2015"));
-            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("29.01.2001"));
+            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("01.01.2010 00:00:00 +01:00"));
+            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("05.05.2015 00:00:00 +02:00"));
+            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("29.01.2001 00:00:00 +01:00"));
 
             var aggregated = Library.AggregateValues(Group, "test");
 
@@ -105,9 +105,9 @@ namespace Musoq.Plugins.Tests
         [TestMethod]
         public void AggregateValuesDateTimeOffsetParentTest()
         {
-            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("01.01.2010"));
-            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("05.05.2015"), 1);
-            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("03.02.2001"), 1);
+            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("01.01.2010 00:00:00 +01:00"));
+            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("05.05.2015 00:00:00 +02:00"), 1);
+            Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("03.02.2001 00:00:00 +01:00"), 1);
 
             Assert.AreEqual("05.05.2015 00:00:00 +02:00,03.02.2001 00:00:00 +01:00", Library.AggregateValues(Group, "test", 1));
             Assert.AreEqual("01.01.2010 00:00:00 +01:00", Library.AggregateValues(Group, "test"));
