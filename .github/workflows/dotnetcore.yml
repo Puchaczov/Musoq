@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        runs-on: [ubuntu-latest, windows-latest]
+        runs-on: [windows-latest]
 
     runs-on: ${{ matrix.runs-on }}
     name: Running tests on ${{ matrix.runs-on }}. 
