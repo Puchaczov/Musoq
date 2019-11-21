@@ -4,14 +4,17 @@ on: [push]
 
 jobs:
   build:
+    strategy:
+      matrix:
+        runs-on: [windows-latest]
 
-    runs-on: ubuntu-latest
-
+    runs-on: ${{ matrix.runs-on }}
+    name: Running tests on ${{ matrix.runs-on }}. 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@master
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 2.2.108
-    - name: Build with dotnet
-      run: dotnet build --configuration Release
+        dotnet-version: 3.0.100
+    - name: Build & Run tests
+      run: dotnet test --configuration Release
