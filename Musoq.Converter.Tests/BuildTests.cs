@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
 using Musoq.Plugins;
 using Musoq.Schema.System;
+using Musoq.Tests.Common;
 
 namespace Musoq.Converter.Tests
 {
@@ -45,7 +46,9 @@ namespace Musoq.Converter.Tests
 
         static BuildTests()
         {
-            new Musoq.Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+            new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+            Culture.ApplyWithDefaultCulture();
         }
     }
 }

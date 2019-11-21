@@ -7,6 +7,7 @@ using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
 using Musoq.Schema.Os.Zip;
+using Musoq.Tests.Common;
 using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.Os.Tests.Core
@@ -123,6 +124,8 @@ namespace Musoq.Schema.Os.Tests.Core
         static ZipTests()
         {
             new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+            Culture.ApplyWithDefaultCulture();
         }
     }
 }

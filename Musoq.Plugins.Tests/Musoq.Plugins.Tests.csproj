@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
+    <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
   </ItemGroup>
 
 </Project>

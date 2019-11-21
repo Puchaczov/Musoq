@@ -9,6 +9,7 @@ using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Tables;
 using Musoq.Plugins;
+using Musoq.Tests.Common;
 using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.SeparatedValues.Tests.Core
@@ -811,11 +812,7 @@ from BasicIndicators inner join AggregatedCategories on BasicIndicators.Category
         static CsvTests()
         {
             new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
-            
-            CultureInfo.CurrentCulture
-                = CultureInfo.CurrentUICulture =
-                    CultureInfo.DefaultThreadCurrentCulture =
-                        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("pl-PL");
+            Culture.ApplyWithDefaultCulture();
         }
     }
 }

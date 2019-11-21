@@ -23,6 +23,7 @@
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
     <ProjectReference Include="..\Musoq.Schema.SeparatedValues\Musoq.Schema.SeparatedValues.csproj" />
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+    <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

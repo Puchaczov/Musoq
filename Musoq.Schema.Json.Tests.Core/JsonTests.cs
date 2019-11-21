@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
+using Musoq.Tests.Common;
 using Newtonsoft.Json.Linq;
 using Environment = Musoq.Plugins.Environment;
 
@@ -131,6 +132,8 @@ namespace Musoq.Schema.Json.Tests.Core
         static JsonTests()
         {
             new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+            Culture.ApplyWithDefaultCulture();
         }
     }
 }

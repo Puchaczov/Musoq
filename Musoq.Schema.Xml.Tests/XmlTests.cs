@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
+using Musoq.Tests.Common;
 using System;
 using System.Linq;
 using System.Threading;
@@ -9,10 +10,10 @@ using System.Threading;
 namespace Musoq.Schema.Xml.Tests
 {
     [TestClass]
-    public class UnitTest1
+    public class XmlTests
     {
         [TestMethod]
-        public void TestMethod1()
+        public void XmlSourceGetAllRowsTest()
         {
             var source = new XmlSource("./TestFiles/Test1.xml", new RuntimeContext(CancellationToken.None, null, null));
 
@@ -22,7 +23,7 @@ namespace Musoq.Schema.Xml.Tests
         }
 
         [TestMethod]
-        public void TestMethod2()
+        public void XmlFilterElementValueTest()
         {
             var query = @"select element, parent.element from #xml.file('./TestFiles/Test1.xml') where element = 'food' or element = 'price'";
 
@@ -49,7 +50,7 @@ namespace Musoq.Schema.Xml.Tests
         }
 
         [TestMethod]
-        public void TestMethod3()
+        public void XmlFilterWithSpecialNotNullTest()
         {
             var query = @"select element, special from #xml.file('./TestFiles/Test1.xml') where special is not null";
 
@@ -70,7 +71,7 @@ namespace Musoq.Schema.Xml.Tests
         }
 
         [TestMethod]
-        public void TestMethod4()
+        public void XmlGroupByDynamicAttributeTest()
         {
             var query = @"select special, Count(special) from #xml.file('./TestFiles/Test1.xml') where special is not null group by special";
 
@@ -90,7 +91,7 @@ namespace Musoq.Schema.Xml.Tests
         }
 
         [TestMethod]
-        public void TestMethod5()
+        public void XmlFilterByDynamicAttributeIsNotNullTest()
         {
             var query = @"select element, text from #xml.file('./TestFiles/Test1.xml') where special is not null";
 
@@ -112,7 +113,7 @@ namespace Musoq.Schema.Xml.Tests
 
 
         [TestMethod]
-        public void TestMethod6()
+        public void XmlFilterWithSpecificElementAndGroupByItsAttributeTest()
         {
             var query = @"select image, Count(image) from #xml.file('./TestFiles/Test2.xml') where element = 'color_swatch' group by image";
 
@@ -136,7 +137,7 @@ namespace Musoq.Schema.Xml.Tests
 
 
         [TestMethod]
-        public void TestMethod7()
+        public void XmlFilterWithSpecificElementAndGroupByItsAttributeWithCountGreaterThanTest()
         {
             var query = @"select image, Count(image) from #xml.file('./TestFiles/Test2.xml') where element = 'color_swatch' group by image having Count(image) > 3";
 
@@ -154,7 +155,7 @@ namespace Musoq.Schema.Xml.Tests
 
 
         [TestMethod]
-        public void TestMethod8()
+        public void XmlSelectValueOfPriceWherePriceIsNotNullTest()
         {
             var query = @"select ToDecimal(text) from #xml.file('./TestFiles/Test2.xml') where price is not null";
 
@@ -168,7 +169,7 @@ namespace Musoq.Schema.Xml.Tests
         }
 
         [TestMethod]
-        public void TestMethod9()
+        public void XmlSelectValueOfPriceIfPriceIsGreaterThanTest()
         {
             var query = @"select ToDecimal(text) from #xml.file('./TestFiles/Test2.xml') where price is not null and ToDecimal(text) > 40";
 
@@ -181,7 +182,7 @@ namespace Musoq.Schema.Xml.Tests
         }
 
         [TestMethod]
-        public void TestMethod10()
+        public void XmlSelectValueByAccessingDynamicAttributeOfPriceWherePriceIsNotNullTest()
         {
             var query = @"select ToDecimal(price.text) from #xml.file('./TestFiles/Test2.xml') where price is not null";
 
@@ -199,9 +200,11 @@ namespace Musoq.Schema.Xml.Tests
             return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new XmlProvider());
         }
 
-        static UnitTest1()
+        static XmlTests()
         {
             new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+            Culture.ApplyWithDefaultCulture();
         }
     }
 }

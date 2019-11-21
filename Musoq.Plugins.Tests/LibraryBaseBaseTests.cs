@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Tests.Common;
 
 namespace Musoq.Plugins.Tests
 {
@@ -20,6 +18,8 @@ namespace Musoq.Plugins.Tests
             Library = new EmptyLibrary();
             Root = new Group(null, new string[0], new object[0]);
             Group = new Group(Root, new string[0], new object[0]);
+
+            Culture.ApplyWithDefaultCulture();
         }
     }
 }

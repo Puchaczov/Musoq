@@ -6,6 +6,7 @@ using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
 using Musoq.Schema.FlatFile;
+using Musoq.Tests.Common;
 
 namespace Musoq.Schema.FlatFileTests.Core
 {
@@ -81,6 +82,8 @@ namespace Musoq.Schema.FlatFileTests.Core
         static FlatFileTests()
         {
             new Musoq.Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+            Culture.ApplyWithDefaultCulture();
         }
     }
 }

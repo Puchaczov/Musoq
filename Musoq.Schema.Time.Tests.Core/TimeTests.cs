@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Plugins;
+using Musoq.Tests.Common;
 using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.Time.Tests.Core
@@ -63,10 +64,7 @@ namespace Musoq.Schema.Time.Tests.Core
         {
             new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
 
-            CultureInfo.CurrentCulture
-                = CultureInfo.CurrentUICulture =
-                    CultureInfo.DefaultThreadCurrentCulture =
-                        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("pl-PL");
+            Culture.ApplyWithDefaultCulture();
         }
     }
 }

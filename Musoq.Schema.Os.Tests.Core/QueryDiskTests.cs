@@ -15,6 +15,7 @@ using Musoq.Schema.Os.Directories;
 using Musoq.Schema.Os.Dlls;
 using Musoq.Schema.Os.Files;
 using Musoq.Schema.Os.Tests.Core.Utils;
+using Musoq.Tests.Common;
 using Environment = Musoq.Plugins.Environment;
 
 namespace Musoq.Schema.Os.Tests.Core
@@ -489,6 +490,8 @@ select RelativeName, 'added' as state from ThoseInRight";
         static QueryDiskTests()
         {
             new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+            Culture.ApplyWithDefaultCulture();
         }
     }
 }
