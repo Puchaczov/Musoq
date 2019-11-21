@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -61,6 +62,11 @@ namespace Musoq.Schema.Time.Tests.Core
         static TimeTests()
         {
             new Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+            CultureInfo.CurrentCulture
+                = CultureInfo.CurrentUICulture =
+                    CultureInfo.DefaultThreadCurrentCulture =
+                        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("pl-PL");
         }
     }
 }

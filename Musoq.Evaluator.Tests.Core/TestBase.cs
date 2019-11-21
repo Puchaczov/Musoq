@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Core.Schema;
 using Musoq.Plugins;
-using Musoq.Schema;
-using Environment = System.Environment;
 
 namespace Musoq.Evaluator.Tests.Core
 {
@@ -46,6 +42,11 @@ namespace Musoq.Evaluator.Tests.Core
         static TestBase()
         {
             new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+            CultureInfo.CurrentCulture
+                = CultureInfo.CurrentUICulture =
+                    CultureInfo.DefaultThreadCurrentCulture =
+                        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
         }
     }
 }
