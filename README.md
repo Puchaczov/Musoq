@@ -1,6 +1,6 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Puchaczov/Musoq/graphs/code-frequency)
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
-[![Build](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)](https://travis-ci.org/Puchaczov/Musoq.svg?branch=master)
+[![Build & Tests](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)
 
 # A Quick Description of Musoq
 Musoq is handy tool that allows you to use SQL syntax on a variety of data sources.
@@ -28,13 +28,13 @@ You can also mix sources between each other.
  
 ## How to run it?
 
-To run it, you need `.NET Core 2.1` runtime. You can find it [here](https://www.microsoft.com/net/download/dotnet-core/2.1). Once you have that, then download **[Musoq Simple Client](https://github.com/Puchaczov/Musoq.Console)**. You can find latest releases [here](https://github.com/Puchaczov/Musoq.Console/releases).
+To run it, visit **[Musoq installation page](https://puchaczov.github.io/Musoq/installation)**. You will find there latest release with installation process description.
 
 ## Does it work on Linux?
 
 Yes, it does. I have tested it on Ubuntu 18.04. If you try to run it on different distro or version, I will be grateful if you would post an issue reporting either success or fail
 
-## What features does the Musoq implements
+## What features does it has?
 
 - Use of `*` to select all columns.
 - Group by operator.
@@ -52,43 +52,6 @@ Yes, it does. I have tested it on Ubuntu 18.04. If you try to run it on differen
 - Desc for schema, schema table constructors and tables.
 - In syntax.
 - Inner join syntax.
-
-## Open to add new syntax features
-
-Do you think that SQL lacks some syntax that could simplify your work? Write this, I am open to implementations of features that sql does not have if they can prove their usefullness. 
-
-## Roadmap
-
-- Dynamic Query parameters like: `select * from #schema.table(@Arg2, ...) where ColumnName = @Arg1`
-- Query as data source (views)
-- Optional query reordering `FROM ... WHERE ... SELECT...`
-- Ability to use query as a source of next query like `with p as (select 1 from #source) select 2 from #source.method(p)`
-- Rethink and design mechanism to dispose unmanaged resources.
-- Further project cleanups and more robust tests.
-
-## Long term goals
-
-- Order by further implementation.
-- Translated code optimizations.
-- Rethink how `LibraryBase` works in mixed sources context.
-- Left and right join syntax.
-- between ... and ... syntax.
-
-## Current known critical issues
-
-- Chunks loader will greedily load datas until memory runs out (important to know for huge files).
-- Unmanaged resources are disposed too fast.
-- There is not any kind of framework that allows plugin communicate with runtime about the issues occurred internally.
-
-## Architecture for plugins
-
-You can easily plug-in your own data source. There is fairly simple plugin api that all sources use. To read in details how to do it, jump into wiki section of this repo [click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
-
-## Roughly about performance
-
-[![Maintenance](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)
-
-Tested on laptop with i7 7700HQ, 12 GB RAM, Windows 10, Main Disk (250 GB SSD), Secondary Disk (1TB HDD). Files were placed on the HDD. The query tested was counting how many rows the files has. The file tested was a single 6GB csv file with 11 columns. For each test the file was split to reflect sizes you can observe in chart. This should give you some guidance on what data processing rate you can expect using this tool.
 
 ## Plugins
 
@@ -185,6 +148,16 @@ and file to be queried is:
 
 There is a built-in way to list all the columns from a source, all plugins supports it out of the box! The command is: `desc #git.commits('path/to/repo')`. 
 
+## Architecture for plugins
+
+You can easily plug-in your own data source. There is fairly simple plugin api that all sources use. To read in details how to do it, jump into wiki section of this repo [click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
+
+## Roughly about performance
+
+[![Maintenance](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)
+
+Tested on laptop with i7 7700HQ, 12 GB RAM, Windows 10, Main Disk (250 GB SSD), Secondary Disk (1TB HDD). Files were placed on the HDD. The query tested was counting how many rows the files has. The file tested was a single 6GB csv file with 11 columns. For each test the file was split to reflect sizes you can observe in chart. This should give you some guidance on what data processing rate you can expect using this tool.
+
 ## Motivation for creating this project
 
 On the one hand, I needed something that allowed me to perform queries on my own bank account file, at the same time something that filters with respect to file names and their content. I had the idea that I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writing" multiple scripts manually, however I found it useful to automate this process and as a result minimizing the amount of time to create it. Fast querying was my goal. Looking at it another way, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing C# code is redundant when all you have to do is to write a query and it will do the magic with your data source.
@@ -192,12 +165,6 @@ On the one hand, I needed something that allowed me to perform queries on my own
 ## Please, be aware of
 
 As the language looks like sql, it doesn't mean it is fully SQL compliant. It uses SQL syntax and repeats some of it's behaviour however, some differences may appear. It will also implement some experimental syntax and behaviours that are not used by database engines.
-
-I will try to keep this list of the incompatibilities up-to-date (hopefully):
-
-- `Parent group aggregations`
-- `Non standard set operators based on keys rather than rows.`
-- `There is no support for huge sources exceeds memory`
 
 ## License
 
