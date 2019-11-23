@@ -47,14 +47,14 @@ namespace Musoq.Plugins.Tests
         [TestMethod]
         public void ToStringDateTimeOffsetTest()
         {
-            Assert.AreEqual("01/01/2015 00:00:00 +00:00", Library.ToString(DateTimeOffset.Parse("01/01/2015 00:00:00 +00:00")));
+            Assert.AreEqual("01.01.2015 00:00:00 +00:00", Library.ToString(DateTimeOffset.Parse("01.01.2015 00:00:00 +00:00")));
             Assert.AreEqual(null, Library.ToString((DateTimeOffset?)null));
         }
 
         [TestMethod]
         public void ToStringDecimalTest()
         {
-            Assert.AreEqual("32.22", Library.ToString(32.22m));
+            Assert.AreEqual("32,22", Library.ToString(32.22m));
             Assert.AreEqual(null, Library.ToString((decimal?) null));
         }
 

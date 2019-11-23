@@ -4,6 +4,7 @@ using Musoq.Evaluator;
 using Musoq.Plugins;
 using Musoq.Tests.Common;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 
@@ -204,7 +205,7 @@ namespace Musoq.Schema.Xml.Tests
         {
             new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
 
-            Culture.ApplyWithDefaultCulture();
+            Culture.Apply(CultureInfo.GetCultureInfo("en-EN"));
         }
     }
 }

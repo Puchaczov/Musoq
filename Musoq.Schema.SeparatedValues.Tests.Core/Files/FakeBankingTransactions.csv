@@ -2,700 +2,700 @@ DateTime,ChargeName,Amount
 01/01/2018 00:00:00,Salary from Company X,3500
 01/01/2018 00:00:00,Restaurant,-19
 01/01/2018 00:00:00,Restaurant,-21
-02/01/2018 00:00:00,Car Repair Shop,-62
-02/01/2018 00:00:00,Book about programming,-45
-02/01/2018 00:00:00,Medicine,-49
-02/01/2018 00:00:00,Petrol,-38
-03/01/2018 00:00:00,Petrol,-16
-03/01/2018 00:00:00,Your Shop,-41
-03/01/2018 00:00:00,Petrol,-50
-03/01/2018 00:00:00,Your Shop,-16
-04/01/2018 00:00:00,Car Repair Shop,-92
-04/01/2018 00:00:00,Book about programming,-2
-05/01/2018 00:00:00,Petrol,-42
-06/01/2018 00:00:00,Petrol,-45
-06/01/2018 00:00:00,Football team contribution,-25
-06/01/2018 00:00:00,Restaurant,-53
-06/01/2018 00:00:00,Your Shop,-2
-07/01/2018 00:00:00,Gym,-50
-07/01/2018 00:00:00,Petrol,-17
-07/01/2018 00:00:00,Petrol,-11
-07/01/2018 00:00:00,Petrol,-13
-07/01/2018 00:00:00,Football team contribution,-24
-07/01/2018 00:00:00,Your Shop,-16
-07/01/2018 00:00:00,Your Shop,-19
-07/01/2018 00:00:00,Football team contribution,-2
-08/01/2018 00:00:00,Book about programming,-57
-09/01/2018 00:00:00,Restaurant,-8
-10/01/2018 00:00:00,"Clothes from ""Danny"" shop",-45
-10/01/2018 00:00:00,Shoppy,-45
-11/01/2018 00:00:00,Restaurant,-2
-11/01/2018 00:00:00,Football team contribution,-41
-11/01/2018 00:00:00,"Clothes from ""Danny"" shop",-231
-11/01/2018 00:00:00,Football team contribution,-17
-12/01/2018 00:00:00,Restaurant,-53
-12/01/2018 00:00:00,Restaurant,-10
-13/01/2018 00:00:00,Petrol,-13
-14/01/2018 00:00:00,Restaurant,-41
-14/01/2018 00:00:00,Restaurant,-28
-15/01/2018 00:00:00,Car Repair Shop,-34
-15/01/2018 00:00:00,"Clothes from ""Danny"" shop",-105
-16/01/2018 00:00:00,Restaurant,-36
-16/01/2018 00:00:00,Restaurant,-77
-17/01/2018 00:00:00,Petrol,-103
-17/01/2018 00:00:00,Gym,-2
-18/01/2018 00:00:00,Book about programming,-19
-18/01/2018 00:00:00,Medicine,-14
-19/01/2018 00:00:00,Book about programming,-24
-20/01/2018 00:00:00,Your Shop,-83
-20/01/2018 00:00:00,Gym,-16
-21/01/2018 00:00:00,Book about Electronics,-31
-21/01/2018 00:00:00,Football team contribution,-39
-22/01/2018 00:00:00,Shoppy,-49
-22/01/2018 00:00:00,Gym,-2
-23/01/2018 00:00:00,Shoppy,-57
-23/01/2018 00:00:00,Book about programming,-11
-23/01/2018 00:00:00,Shoppy,-18
-23/01/2018 00:00:00,Gym,-35
-24/01/2018 00:00:00,Gym,-45
-25/01/2018 00:00:00,Shoppy,-59
-25/01/2018 00:00:00,Shoppy,-16
-26/01/2018 00:00:00,Restaurant,-73
-26/01/2018 00:00:00,Shoppy,-2
-27/01/2018 00:00:00,Book about programming,-23
-27/01/2018 00:00:00,"Clothes from ""Danny"" shop",-73
-28/01/2018 00:00:00,Car Repair Shop,-7
-29/01/2018 00:00:00,Medicine,-7
-30/01/2018 00:00:00,Book about Electronics,-14
-30/01/2018 00:00:00,Restaurant,-15
-31/01/2018 00:00:00,Book about programming,-42
-31/01/2018 00:00:00,Book about Electronics,-45
-01/02/2018 00:00:00,Salary from Company X,3500
-01/02/2018 00:00:00,Gym,-27
-01/02/2018 00:00:00,Shoppy,-92
+01/02/2018 00:00:00,Car Repair Shop,-62
+01/02/2018 00:00:00,Book about programming,-45
+01/02/2018 00:00:00,Medicine,-49
+01/02/2018 00:00:00,Petrol,-38
+01/03/2018 00:00:00,Petrol,-16
+01/03/2018 00:00:00,Your Shop,-41
+01/03/2018 00:00:00,Petrol,-50
+01/03/2018 00:00:00,Your Shop,-16
+01/04/2018 00:00:00,Car Repair Shop,-92
+01/04/2018 00:00:00,Book about programming,-2
+01/05/2018 00:00:00,Petrol,-42
+01/06/2018 00:00:00,Petrol,-45
+01/06/2018 00:00:00,Football team contribution,-25
+01/06/2018 00:00:00,Restaurant,-53
+01/06/2018 00:00:00,Your Shop,-2
+01/07/2018 00:00:00,Gym,-50
+01/07/2018 00:00:00,Petrol,-17
+01/07/2018 00:00:00,Petrol,-11
+01/07/2018 00:00:00,Petrol,-13
+01/07/2018 00:00:00,Football team contribution,-24
+01/07/2018 00:00:00,Your Shop,-16
+01/07/2018 00:00:00,Your Shop,-19
+01/07/2018 00:00:00,Football team contribution,-2
+01/08/2018 00:00:00,Book about programming,-57
+01/09/2018 00:00:00,Restaurant,-8
+01/10/2018 00:00:00,"Clothes from ""Danny"" shop",-45
+01/10/2018 00:00:00,Shoppy,-45
+01/11/2018 00:00:00,Restaurant,-2
+01/11/2018 00:00:00,Football team contribution,-41
+01/11/2018 00:00:00,"Clothes from ""Danny"" shop",-231
+01/11/2018 00:00:00,Football team contribution,-17
+01/12/2018 00:00:00,Restaurant,-53
+01/12/2018 00:00:00,Restaurant,-10
+01/13/2018 00:00:00,Petrol,-13
+01/14/2018 00:00:00,Restaurant,-41
+01/14/2018 00:00:00,Restaurant,-28
+01/15/2018 00:00:00,Car Repair Shop,-34
+01/15/2018 00:00:00,"Clothes from ""Danny"" shop",-105
+01/16/2018 00:00:00,Restaurant,-36
+01/16/2018 00:00:00,Restaurant,-77
+01/17/2018 00:00:00,Petrol,-103
+01/17/2018 00:00:00,Gym,-2
+01/18/2018 00:00:00,Book about programming,-19
+01/18/2018 00:00:00,Medicine,-14
+01/19/2018 00:00:00,Book about programming,-24
+01/20/2018 00:00:00,Your Shop,-83
+01/20/2018 00:00:00,Gym,-16
+01/21/2018 00:00:00,Book about Electronics,-31
+01/21/2018 00:00:00,Football team contribution,-39
+01/22/2018 00:00:00,Shoppy,-49
+01/22/2018 00:00:00,Gym,-2
+01/23/2018 00:00:00,Shoppy,-57
+01/23/2018 00:00:00,Book about programming,-11
+01/23/2018 00:00:00,Shoppy,-18
+01/23/2018 00:00:00,Gym,-35
+01/24/2018 00:00:00,Gym,-45
+01/25/2018 00:00:00,Shoppy,-59
+01/25/2018 00:00:00,Shoppy,-16
+01/26/2018 00:00:00,Restaurant,-73
+01/26/2018 00:00:00,Shoppy,-2
+01/27/2018 00:00:00,Book about programming,-23
+01/27/2018 00:00:00,"Clothes from ""Danny"" shop",-73
+01/28/2018 00:00:00,Car Repair Shop,-7
+01/29/2018 00:00:00,Medicine,-7
+01/30/2018 00:00:00,Book about Electronics,-14
+01/30/2018 00:00:00,Restaurant,-15
+01/31/2018 00:00:00,Book about programming,-42
+01/31/2018 00:00:00,Book about Electronics,-45
+02/01/2018 00:00:00,Salary from Company X,3500
+02/01/2018 00:00:00,Gym,-27
+02/01/2018 00:00:00,Shoppy,-92
 02/02/2018 00:00:00,Book about programming,-59
 02/02/2018 00:00:00,Petrol,-50
-03/02/2018 00:00:00,Petrol,-73
-04/02/2018 00:00:00,Petrol,-57
-05/02/2018 00:00:00,Book about programming,-42
-05/02/2018 00:00:00,Gym,-17
-06/02/2018 00:00:00,Football team contribution,-17
-07/02/2018 00:00:00,Book about Electronics,-73
-08/02/2018 00:00:00,Football team contribution,-17
-08/02/2018 00:00:00,Restaurant,-2
-09/02/2018 00:00:00,Shoppy,-41
-09/02/2018 00:00:00,Restaurant,-103
-09/02/2018 00:00:00,Petrol,-49
-09/02/2018 00:00:00,Restaurant,-45
-09/02/2018 00:00:00,Your Shop,-7
-09/02/2018 00:00:00,"Clothes from ""Danny"" shop",-231
-09/02/2018 00:00:00,Car Repair Shop,-106
-09/02/2018 00:00:00,Book about Electronics,-105
-10/02/2018 00:00:00,Medicine,-31
-11/02/2018 00:00:00,Football team contribution,-34
-11/02/2018 00:00:00,Car Repair Shop,-77
-12/02/2018 00:00:00,Your Shop,-8
-12/02/2018 00:00:00,Shoppy,-21
-13/02/2018 00:00:00,Medicine,-118
-14/02/2018 00:00:00,"Clothes from ""Danny"" shop",-106
-15/02/2018 00:00:00,Book about Electronics,-73
-15/02/2018 00:00:00,Shoppy,-77
-16/02/2018 00:00:00,Shoppy,-50
-17/02/2018 00:00:00,Shoppy,-42
-18/02/2018 00:00:00,Your Shop,-22
-18/02/2018 00:00:00,Football team contribution,-16
-19/02/2018 00:00:00,Restaurant,-59
-19/02/2018 00:00:00,Shoppy,-3
-20/02/2018 00:00:00,Your Shop,-36
-20/02/2018 00:00:00,Petrol,-73
-21/02/2018 00:00:00,Gym,-39
-21/02/2018 00:00:00,Petrol,-45
-21/02/2018 00:00:00,Petrol,-49
-21/02/2018 00:00:00,Restaurant,-3
-21/02/2018 00:00:00,Car Repair Shop,-45
-21/02/2018 00:00:00,Book about programming,-53
-21/02/2018 00:00:00,Book about programming,-35
-22/02/2018 00:00:00,Restaurant,-45
-23/02/2018 00:00:00,Restaurant,-10
-24/02/2018 00:00:00,Petrol,-42
-24/02/2018 00:00:00,Car Repair Shop,-77
-25/02/2018 00:00:00,Shoppy,-56
-25/02/2018 00:00:00,Shoppy,-50
-26/02/2018 00:00:00,Book about programming,-11
-26/02/2018 00:00:00,Shoppy,-56
-26/02/2018 00:00:00,Gym,-42
-26/02/2018 00:00:00,"Clothes from ""Danny"" shop",-231
-26/02/2018 00:00:00,"Clothes from ""Danny"" shop",-7
-26/02/2018 00:00:00,"Clothes from ""Danny"" shop",-16
-26/02/2018 00:00:00,Shoppy,-92
-26/02/2018 00:00:00,Football team contribution,-2
-27/02/2018 00:00:00,Book about programming,-37
-28/02/2018 00:00:00,Shoppy,-15
-28/02/2018 00:00:00,Book Sale,529
-01/03/2018 00:00:00,Salary from Company X,3500
-01/03/2018 00:00:00,Book about programming,-22
-01/03/2018 00:00:00,Restaurant,-34
-02/03/2018 00:00:00,Restaurant,-73
+02/03/2018 00:00:00,Petrol,-73
+02/04/2018 00:00:00,Petrol,-57
+02/05/2018 00:00:00,Book about programming,-42
+02/05/2018 00:00:00,Gym,-17
+02/06/2018 00:00:00,Football team contribution,-17
+02/07/2018 00:00:00,Book about Electronics,-73
+02/08/2018 00:00:00,Football team contribution,-17
+02/08/2018 00:00:00,Restaurant,-2
+02/09/2018 00:00:00,Shoppy,-41
+02/09/2018 00:00:00,Restaurant,-103
+02/09/2018 00:00:00,Petrol,-49
+02/09/2018 00:00:00,Restaurant,-45
+02/09/2018 00:00:00,Your Shop,-7
+02/09/2018 00:00:00,"Clothes from ""Danny"" shop",-231
+02/09/2018 00:00:00,Car Repair Shop,-106
+02/09/2018 00:00:00,Book about Electronics,-105
+02/10/2018 00:00:00,Medicine,-31
+02/11/2018 00:00:00,Football team contribution,-34
+02/11/2018 00:00:00,Car Repair Shop,-77
+02/12/2018 00:00:00,Your Shop,-8
+02/12/2018 00:00:00,Shoppy,-21
+02/13/2018 00:00:00,Medicine,-118
+02/14/2018 00:00:00,"Clothes from ""Danny"" shop",-106
+02/15/2018 00:00:00,Book about Electronics,-73
+02/15/2018 00:00:00,Shoppy,-77
+02/16/2018 00:00:00,Shoppy,-50
+02/17/2018 00:00:00,Shoppy,-42
+02/18/2018 00:00:00,Your Shop,-22
+02/18/2018 00:00:00,Football team contribution,-16
+02/19/2018 00:00:00,Restaurant,-59
+02/19/2018 00:00:00,Shoppy,-3
+02/20/2018 00:00:00,Your Shop,-36
+02/20/2018 00:00:00,Petrol,-73
+02/21/2018 00:00:00,Gym,-39
+02/21/2018 00:00:00,Petrol,-45
+02/21/2018 00:00:00,Petrol,-49
+02/21/2018 00:00:00,Restaurant,-3
+02/21/2018 00:00:00,Car Repair Shop,-45
+02/21/2018 00:00:00,Book about programming,-53
+02/21/2018 00:00:00,Book about programming,-35
+02/22/2018 00:00:00,Restaurant,-45
+02/23/2018 00:00:00,Restaurant,-10
+02/24/2018 00:00:00,Petrol,-42
+02/24/2018 00:00:00,Car Repair Shop,-77
+02/25/2018 00:00:00,Shoppy,-56
+02/25/2018 00:00:00,Shoppy,-50
+02/26/2018 00:00:00,Book about programming,-11
+02/26/2018 00:00:00,Shoppy,-56
+02/26/2018 00:00:00,Gym,-42
+02/26/2018 00:00:00,"Clothes from ""Danny"" shop",-231
+02/26/2018 00:00:00,"Clothes from ""Danny"" shop",-7
+02/26/2018 00:00:00,"Clothes from ""Danny"" shop",-16
+02/26/2018 00:00:00,Shoppy,-92
+02/26/2018 00:00:00,Football team contribution,-2
+02/27/2018 00:00:00,Book about programming,-37
+02/28/2018 00:00:00,Shoppy,-15
+02/28/2018 00:00:00,Book Sale,529
+03/01/2018 00:00:00,Salary from Company X,3500
+03/01/2018 00:00:00,Book about programming,-22
+03/01/2018 00:00:00,Restaurant,-34
+03/02/2018 00:00:00,Restaurant,-73
 03/03/2018 00:00:00,Medicine,-39
 03/03/2018 00:00:00,Book about Electronics,-118
-04/03/2018 00:00:00,Petrol,-7
-05/03/2018 00:00:00,Your Shop,-17
-05/03/2018 00:00:00,Restaurant,-45
-05/03/2018 00:00:00,Book about Electronics,-901
-05/03/2018 00:00:00,Restaurant,-35
-06/03/2018 00:00:00,Petrol,-8
-06/03/2018 00:00:00,Shoppy,-106
-07/03/2018 00:00:00,Your Shop,-49
-07/03/2018 00:00:00,Football team contribution,-11
-08/03/2018 00:00:00,Your Shop,-22
-08/03/2018 00:00:00,"Clothes from ""Danny"" shop",-80
-09/03/2018 00:00:00,Football team contribution,-35
-09/03/2018 00:00:00,Restaurant,-16
-10/03/2018 00:00:00,Book about programming,-17
-11/03/2018 00:00:00,Book about programming,-24
-11/03/2018 00:00:00,Shoppy,-8
-12/03/2018 00:00:00,Medicine,-73
-12/03/2018 00:00:00,Gym,-50
-13/03/2018 00:00:00,Shoppy,-45
-14/03/2018 00:00:00,Petrol,-17
-15/03/2018 00:00:00,Football team contribution,-13
-15/03/2018 00:00:00,Shoppy,-14
-16/03/2018 00:00:00,Football team contribution,-17
-17/03/2018 00:00:00,Restaurant,-41
-17/03/2018 00:00:00,Petrol,-7
-18/03/2018 00:00:00,Petrol,-2
-20/03/2018 00:00:00,Your Shop,-39
-21/03/2018 00:00:00,Your Shop,-41
-21/03/2018 00:00:00,Gym,-37
-21/03/2018 00:00:00,Petrol,-105
-21/03/2018 00:00:00,Medicine,-901
-21/03/2018 00:00:00,Book about programming,-13
-21/03/2018 00:00:00,Your Shop,-7
-21/03/2018 00:00:00,Petrol,-14
-21/03/2018 00:00:00,Book about programming,-23
-22/03/2018 00:00:00,Football team contribution,-25
-22/03/2018 00:00:00,Gym,-17
-23/03/2018 00:00:00,Shoppy,-17
-23/03/2018 00:00:00,Book about programming,-53
-24/03/2018 00:00:00,Petrol,-16
-24/03/2018 00:00:00,"Clothes from ""Danny"" shop",-83
-25/03/2018 00:00:00,"Clothes from ""Danny"" shop",-62
-26/03/2018 00:00:00,Restaurant,-11
-26/03/2018 00:00:00,Car Repair Shop,-2
-27/03/2018 00:00:00,Restaurant,-59
-27/03/2018 00:00:00,Restaurant,-106
-28/03/2018 00:00:00,Your Shop,-38
-29/03/2018 00:00:00,Your Shop,-22
-30/03/2018 00:00:00,Book about programming,-57
-31/03/2018 00:00:00,Restaurant,-901
-31/03/2018 00:00:00,Gym,-32
-31/03/2018 00:00:00,Book Sale,179
-01/04/2018 00:00:00,Salary from Company X,3500
-01/04/2018 00:00:00,Your Shop,-49
-02/04/2018 00:00:00,Your Shop,-16
-03/04/2018 00:00:00,Car Repair Shop,-80
-03/04/2018 00:00:00,Shoppy,-92
+03/04/2018 00:00:00,Petrol,-7
+03/05/2018 00:00:00,Your Shop,-17
+03/05/2018 00:00:00,Restaurant,-45
+03/05/2018 00:00:00,Book about Electronics,-901
+03/05/2018 00:00:00,Restaurant,-35
+03/06/2018 00:00:00,Petrol,-8
+03/06/2018 00:00:00,Shoppy,-106
+03/07/2018 00:00:00,Your Shop,-49
+03/07/2018 00:00:00,Football team contribution,-11
+03/08/2018 00:00:00,Your Shop,-22
+03/08/2018 00:00:00,"Clothes from ""Danny"" shop",-80
+03/09/2018 00:00:00,Football team contribution,-35
+03/09/2018 00:00:00,Restaurant,-16
+03/10/2018 00:00:00,Book about programming,-17
+03/11/2018 00:00:00,Book about programming,-24
+03/11/2018 00:00:00,Shoppy,-8
+03/12/2018 00:00:00,Medicine,-73
+03/12/2018 00:00:00,Gym,-50
+03/13/2018 00:00:00,Shoppy,-45
+03/14/2018 00:00:00,Petrol,-17
+03/15/2018 00:00:00,Football team contribution,-13
+03/15/2018 00:00:00,Shoppy,-14
+03/16/2018 00:00:00,Football team contribution,-17
+03/17/2018 00:00:00,Restaurant,-41
+03/17/2018 00:00:00,Petrol,-7
+03/18/2018 00:00:00,Petrol,-2
+03/20/2018 00:00:00,Your Shop,-39
+03/21/2018 00:00:00,Your Shop,-41
+03/21/2018 00:00:00,Gym,-37
+03/21/2018 00:00:00,Petrol,-105
+03/21/2018 00:00:00,Medicine,-901
+03/21/2018 00:00:00,Book about programming,-13
+03/21/2018 00:00:00,Your Shop,-7
+03/21/2018 00:00:00,Petrol,-14
+03/21/2018 00:00:00,Book about programming,-23
+03/22/2018 00:00:00,Football team contribution,-25
+03/22/2018 00:00:00,Gym,-17
+03/23/2018 00:00:00,Shoppy,-17
+03/23/2018 00:00:00,Book about programming,-53
+03/24/2018 00:00:00,Petrol,-16
+03/24/2018 00:00:00,"Clothes from ""Danny"" shop",-83
+03/25/2018 00:00:00,"Clothes from ""Danny"" shop",-62
+03/26/2018 00:00:00,Restaurant,-11
+03/26/2018 00:00:00,Car Repair Shop,-2
+03/27/2018 00:00:00,Restaurant,-59
+03/27/2018 00:00:00,Restaurant,-106
+03/28/2018 00:00:00,Your Shop,-38
+03/29/2018 00:00:00,Your Shop,-22
+03/30/2018 00:00:00,Book about programming,-57
+03/31/2018 00:00:00,Restaurant,-901
+03/31/2018 00:00:00,Gym,-32
+03/31/2018 00:00:00,Book Sale,179
+04/01/2018 00:00:00,Salary from Company X,3500
+04/01/2018 00:00:00,Your Shop,-49
+04/02/2018 00:00:00,Your Shop,-16
+04/03/2018 00:00:00,Car Repair Shop,-80
+04/03/2018 00:00:00,Shoppy,-92
 04/04/2018 00:00:00,Shoppy,-77
-05/04/2018 00:00:00,Restaurant,-57
-06/04/2018 00:00:00,Restaurant,-45
-07/04/2018 00:00:00,Shoppy,-27
-08/04/2018 00:00:00,Your Shop,-11
-08/04/2018 00:00:00,Car Repair Shop,-118
-09/04/2018 00:00:00,Book about programming,-17
-09/04/2018 00:00:00,"Clothes from ""Danny"" shop",-118
-10/04/2018 00:00:00,Restaurant,-35
-10/04/2018 00:00:00,Your Shop,-901
-11/04/2018 00:00:00,Book about programming,-36
-12/04/2018 00:00:00,Shoppy,-50
-13/04/2018 00:00:00,Your Shop,-11
-13/04/2018 00:00:00,Car Repair Shop,-901
-13/04/2018 00:00:00,Shoppy,-32
-13/04/2018 00:00:00,Book about programming,-28
-13/04/2018 00:00:00,"Clothes from ""Danny"" shop",-901
-13/04/2018 00:00:00,Restaurant,-17
-13/04/2018 00:00:00,Car Repair Shop,-34
-13/04/2018 00:00:00,"Clothes from ""Danny"" shop",-118
-14/04/2018 00:00:00,Your Shop,-92
-14/04/2018 00:00:00,Your Shop,-82
-15/04/2018 00:00:00,Restaurant,-77
-16/04/2018 00:00:00,Car Repair Shop,-83
-17/04/2018 00:00:00,Restaurant,-14
-18/04/2018 00:00:00,Book about Electronics,-80
-18/04/2018 00:00:00,Shoppy,-59
-19/04/2018 00:00:00,Your Shop,-17
-19/04/2018 00:00:00,Your Shop,-15
-19/04/2018 00:00:00,Shoppy,-676
-19/04/2018 00:00:00,Restaurant,-27
-20/04/2018 00:00:00,Shoppy,-49
-20/04/2018 00:00:00,Gym,-34
-21/04/2018 00:00:00,Your Shop,-37
-22/04/2018 00:00:00,Football team contribution,-13
-22/04/2018 00:00:00,Petrol,-39
-23/04/2018 00:00:00,Football team contribution,-25
-24/04/2018 00:00:00,Book about programming,-37
-25/04/2018 00:00:00,Football team contribution,-24
-26/04/2018 00:00:00,Book about Electronics,-49
-26/04/2018 00:00:00,Medicine,-62
-27/04/2018 00:00:00,Restaurant,-27
-27/04/2018 00:00:00,Petrol,-17
-27/04/2018 00:00:00,Petrol,-16
-27/04/2018 00:00:00,"Clothes from ""Danny"" shop",-82
-27/04/2018 00:00:00,Gym,-27
-27/04/2018 00:00:00,Restaurant,-57
-27/04/2018 00:00:00,Your Shop,-57
-27/04/2018 00:00:00,Medicine,-103
-28/04/2018 00:00:00,Book about programming,-42
-28/04/2018 00:00:00,Football team contribution,-17
-29/04/2018 00:00:00,Book about programming,-11
-30/04/2018 00:00:00,Football team contribution,-50
-30/04/2018 00:00:00,Restaurant,-41
-01/05/2018 00:00:00,Salary from Company X,3500
-02/05/2018 00:00:00,Restaurant,-27
-03/05/2018 00:00:00,Restaurant,-17
-03/05/2018 00:00:00,Football team contribution,-59
-03/05/2018 00:00:00,Shoppy,-35
-03/05/2018 00:00:00,Petrol,-16
-04/05/2018 00:00:00,Car Repair Shop,-103
+04/05/2018 00:00:00,Restaurant,-57
+04/06/2018 00:00:00,Restaurant,-45
+04/07/2018 00:00:00,Shoppy,-27
+04/08/2018 00:00:00,Your Shop,-11
+04/08/2018 00:00:00,Car Repair Shop,-118
+04/09/2018 00:00:00,Book about programming,-17
+04/09/2018 00:00:00,"Clothes from ""Danny"" shop",-118
+04/10/2018 00:00:00,Restaurant,-35
+04/10/2018 00:00:00,Your Shop,-901
+04/11/2018 00:00:00,Book about programming,-36
+04/12/2018 00:00:00,Shoppy,-50
+04/13/2018 00:00:00,Your Shop,-11
+04/13/2018 00:00:00,Car Repair Shop,-901
+04/13/2018 00:00:00,Shoppy,-32
+04/13/2018 00:00:00,Book about programming,-28
+04/13/2018 00:00:00,"Clothes from ""Danny"" shop",-901
+04/13/2018 00:00:00,Restaurant,-17
+04/13/2018 00:00:00,Car Repair Shop,-34
+04/13/2018 00:00:00,"Clothes from ""Danny"" shop",-118
+04/14/2018 00:00:00,Your Shop,-92
+04/14/2018 00:00:00,Your Shop,-82
+04/15/2018 00:00:00,Restaurant,-77
+04/16/2018 00:00:00,Car Repair Shop,-83
+04/17/2018 00:00:00,Restaurant,-14
+04/18/2018 00:00:00,Book about Electronics,-80
+04/18/2018 00:00:00,Shoppy,-59
+04/19/2018 00:00:00,Your Shop,-17
+04/19/2018 00:00:00,Your Shop,-15
+04/19/2018 00:00:00,Shoppy,-676
+04/19/2018 00:00:00,Restaurant,-27
+04/20/2018 00:00:00,Shoppy,-49
+04/20/2018 00:00:00,Gym,-34
+04/21/2018 00:00:00,Your Shop,-37
+04/22/2018 00:00:00,Football team contribution,-13
+04/22/2018 00:00:00,Petrol,-39
+04/23/2018 00:00:00,Football team contribution,-25
+04/24/2018 00:00:00,Book about programming,-37
+04/25/2018 00:00:00,Football team contribution,-24
+04/26/2018 00:00:00,Book about Electronics,-49
+04/26/2018 00:00:00,Medicine,-62
+04/27/2018 00:00:00,Restaurant,-27
+04/27/2018 00:00:00,Petrol,-17
+04/27/2018 00:00:00,Petrol,-16
+04/27/2018 00:00:00,"Clothes from ""Danny"" shop",-82
+04/27/2018 00:00:00,Gym,-27
+04/27/2018 00:00:00,Restaurant,-57
+04/27/2018 00:00:00,Your Shop,-57
+04/27/2018 00:00:00,Medicine,-103
+04/28/2018 00:00:00,Book about programming,-42
+04/28/2018 00:00:00,Football team contribution,-17
+04/29/2018 00:00:00,Book about programming,-11
+04/30/2018 00:00:00,Football team contribution,-50
+04/30/2018 00:00:00,Restaurant,-41
+05/01/2018 00:00:00,Salary from Company X,3500
+05/02/2018 00:00:00,Restaurant,-27
+05/03/2018 00:00:00,Restaurant,-17
+05/03/2018 00:00:00,Football team contribution,-59
+05/03/2018 00:00:00,Shoppy,-35
+05/03/2018 00:00:00,Petrol,-16
+05/04/2018 00:00:00,Car Repair Shop,-103
 05/05/2018 00:00:00,Gym,-59
 05/05/2018 00:00:00,Shoppy,-32
-06/05/2018 00:00:00,Gym,-11
-07/05/2018 00:00:00,Book about programming,-15
-07/05/2018 00:00:00,Football team contribution,-22
-08/05/2018 00:00:00,Petrol,-15
-08/05/2018 00:00:00,Your Shop,-57
-09/05/2018 00:00:00,Your Shop,-2
-10/05/2018 00:00:00,Shoppy,-42
-11/05/2018 00:00:00,Petrol,-32
-11/05/2018 00:00:00,Medicine,-49
-12/05/2018 00:00:00,Petrol,-961
-12/05/2018 00:00:00,Your Shop,-50
-12/05/2018 00:00:00,Car Repair Shop,-39
-12/05/2018 00:00:00,Restaurant,-53
-12/05/2018 00:00:00,Your Shop,-118
-12/05/2018 00:00:00,Your Shop,-27
-12/05/2018 00:00:00,Car Repair Shop,-34
-12/05/2018 00:00:00,Your Shop,-45
-13/05/2018 00:00:00,Restaurant,-2
-14/05/2018 00:00:00,Gym,-25
-14/05/2018 00:00:00,Your Shop,-3
-15/05/2018 00:00:00,"Clothes from ""Danny"" shop",-19
-15/05/2018 00:00:00,Gym,-13
-16/05/2018 00:00:00,Your Shop,-45
-16/05/2018 00:00:00,Car Repair Shop,-676
-16/05/2018 00:00:00,Restaurant,-13
-16/05/2018 00:00:00,Shoppy,-27
-17/05/2018 00:00:00,Shoppy,-73
-17/05/2018 00:00:00,Gym,-50
-18/05/2018 00:00:00,Shoppy,-16
-18/05/2018 00:00:00,Book about programming,-8
-18/05/2018 00:00:00,Your Shop,-17
-18/05/2018 00:00:00,Gym,-13
-18/05/2018 00:00:00,Shoppy,-15
-18/05/2018 00:00:00,Football team contribution,-56
-18/05/2018 00:00:00,Gym,-53
-18/05/2018 00:00:00,Book about Electronics,-2
-19/05/2018 00:00:00,Your Shop,-49
-19/05/2018 00:00:00,Book about Electronics,-7
-20/05/2018 00:00:00,Restaurant,-2
-21/05/2018 00:00:00,Petrol,-22
-21/05/2018 00:00:00,Book about Electronics,-7
-22/05/2018 00:00:00,Restaurant,-49
-22/05/2018 00:00:00,Gym,-17
-23/05/2018 00:00:00,Book about Electronics,-106
-23/05/2018 00:00:00,Restaurant,-676
-24/05/2018 00:00:00,Football team contribution,-25
-25/05/2018 00:00:00,Car Repair Shop,-14
-26/05/2018 00:00:00,Shoppy,-19
-26/05/2018 00:00:00,Shoppy,-57
-27/05/2018 00:00:00,Petrol,-37
-27/05/2018 00:00:00,Gym,-6
-29/05/2018 00:00:00,Your Shop,-7
-29/05/2018 00:00:00,Book about Electronics,-106
-29/05/2018 00:00:00,"Clothes from ""Danny"" shop",-19
-29/05/2018 00:00:00,Football team contribution,-50
-29/05/2018 00:00:00,Car Repair Shop,-41
-29/05/2018 00:00:00,Your Shop,-14
-29/05/2018 00:00:00,Shoppy,-35
-29/05/2018 00:00:00,Book about programming,-18
-30/05/2018 00:00:00,Your Shop,-8
-30/05/2018 00:00:00,Your Shop,-27
-31/05/2018 00:00:00,Your Shop,-23
-01/06/2018 00:00:00,Salary from Company X,3500
-01/06/2018 00:00:00,"Clothes from ""Danny"" shop",-961
-02/06/2018 00:00:00,Shoppy,-34
-02/06/2018 00:00:00,Your Shop,-59
-03/06/2018 00:00:00,Football team contribution,-25
-03/06/2018 00:00:00,Gym,-6
-03/06/2018 00:00:00,Football team contribution,-50
-03/06/2018 00:00:00,"Clothes from ""Danny"" shop",-105
-05/06/2018 00:00:00,Your Shop,-42
-05/06/2018 00:00:00,"Clothes from ""Danny"" shop",-98
+05/06/2018 00:00:00,Gym,-11
+05/07/2018 00:00:00,Book about programming,-15
+05/07/2018 00:00:00,Football team contribution,-22
+05/08/2018 00:00:00,Petrol,-15
+05/08/2018 00:00:00,Your Shop,-57
+05/09/2018 00:00:00,Your Shop,-2
+05/10/2018 00:00:00,Shoppy,-42
+05/11/2018 00:00:00,Petrol,-32
+05/11/2018 00:00:00,Medicine,-49
+05/12/2018 00:00:00,Petrol,-961
+05/12/2018 00:00:00,Your Shop,-50
+05/12/2018 00:00:00,Car Repair Shop,-39
+05/12/2018 00:00:00,Restaurant,-53
+05/12/2018 00:00:00,Your Shop,-118
+05/12/2018 00:00:00,Your Shop,-27
+05/12/2018 00:00:00,Car Repair Shop,-34
+05/12/2018 00:00:00,Your Shop,-45
+05/13/2018 00:00:00,Restaurant,-2
+05/14/2018 00:00:00,Gym,-25
+05/14/2018 00:00:00,Your Shop,-3
+05/15/2018 00:00:00,"Clothes from ""Danny"" shop",-19
+05/15/2018 00:00:00,Gym,-13
+05/16/2018 00:00:00,Your Shop,-45
+05/16/2018 00:00:00,Car Repair Shop,-676
+05/16/2018 00:00:00,Restaurant,-13
+05/16/2018 00:00:00,Shoppy,-27
+05/17/2018 00:00:00,Shoppy,-73
+05/17/2018 00:00:00,Gym,-50
+05/18/2018 00:00:00,Shoppy,-16
+05/18/2018 00:00:00,Book about programming,-8
+05/18/2018 00:00:00,Your Shop,-17
+05/18/2018 00:00:00,Gym,-13
+05/18/2018 00:00:00,Shoppy,-15
+05/18/2018 00:00:00,Football team contribution,-56
+05/18/2018 00:00:00,Gym,-53
+05/18/2018 00:00:00,Book about Electronics,-2
+05/19/2018 00:00:00,Your Shop,-49
+05/19/2018 00:00:00,Book about Electronics,-7
+05/20/2018 00:00:00,Restaurant,-2
+05/21/2018 00:00:00,Petrol,-22
+05/21/2018 00:00:00,Book about Electronics,-7
+05/22/2018 00:00:00,Restaurant,-49
+05/22/2018 00:00:00,Gym,-17
+05/23/2018 00:00:00,Book about Electronics,-106
+05/23/2018 00:00:00,Restaurant,-676
+05/24/2018 00:00:00,Football team contribution,-25
+05/25/2018 00:00:00,Car Repair Shop,-14
+05/26/2018 00:00:00,Shoppy,-19
+05/26/2018 00:00:00,Shoppy,-57
+05/27/2018 00:00:00,Petrol,-37
+05/27/2018 00:00:00,Gym,-6
+05/29/2018 00:00:00,Your Shop,-7
+05/29/2018 00:00:00,Book about Electronics,-106
+05/29/2018 00:00:00,"Clothes from ""Danny"" shop",-19
+05/29/2018 00:00:00,Football team contribution,-50
+05/29/2018 00:00:00,Car Repair Shop,-41
+05/29/2018 00:00:00,Your Shop,-14
+05/29/2018 00:00:00,Shoppy,-35
+05/29/2018 00:00:00,Book about programming,-18
+05/30/2018 00:00:00,Your Shop,-8
+05/30/2018 00:00:00,Your Shop,-27
+05/31/2018 00:00:00,Your Shop,-23
+06/01/2018 00:00:00,Salary from Company X,3500
+06/01/2018 00:00:00,"Clothes from ""Danny"" shop",-961
+06/02/2018 00:00:00,Shoppy,-34
+06/02/2018 00:00:00,Your Shop,-59
+06/03/2018 00:00:00,Football team contribution,-25
+06/03/2018 00:00:00,Gym,-6
+06/03/2018 00:00:00,Football team contribution,-50
+06/03/2018 00:00:00,"Clothes from ""Danny"" shop",-105
+06/05/2018 00:00:00,Your Shop,-42
+06/05/2018 00:00:00,"Clothes from ""Danny"" shop",-98
 06/06/2018 00:00:00,Your Shop,-16
-07/06/2018 00:00:00,Petrol,-6
-07/06/2018 00:00:00,Restaurant,-42
-08/06/2018 00:00:00,Your Shop,-17
-09/06/2018 00:00:00,Car Repair Shop,-19
-09/06/2018 00:00:00,Gym,-50
-10/06/2018 00:00:00,Your Shop,-21
-10/06/2018 00:00:00,Restaurant,-16
-11/06/2018 00:00:00,Football team contribution,-50
-11/06/2018 00:00:00,Car Repair Shop,-2
-12/06/2018 00:00:00,Car Repair Shop,-73
-12/06/2018 00:00:00,Book about Electronics,-7
-13/06/2018 00:00:00,Restaurant,-106
-13/06/2018 00:00:00,Shoppy,-8
-13/06/2018 00:00:00,Book about programming,-45
-13/06/2018 00:00:00,Gym,-14
-13/06/2018 00:00:00,Restaurant,-82
-13/06/2018 00:00:00,Gym,-38
-13/06/2018 00:00:00,Petrol,-7
-13/06/2018 00:00:00,"Clothes from ""Danny"" shop",-105
-14/06/2018 00:00:00,Gym,-56
-14/06/2018 00:00:00,Football team contribution,-22
-15/06/2018 00:00:00,"Clothes from ""Danny"" shop",-34
-16/06/2018 00:00:00,Your Shop,-25
-17/06/2018 00:00:00,Medicine,-62
-17/06/2018 00:00:00,Book about programming,-17
-18/06/2018 00:00:00,Petrol,-45
-19/06/2018 00:00:00,Shoppy,-118
-19/06/2018 00:00:00,Your Shop,-2
-20/06/2018 00:00:00,Your Shop,-37
-20/06/2018 00:00:00,Car Repair Shop,-118
-22/06/2018 00:00:00,Football team contribution,-42
-22/06/2018 00:00:00,Medicine,-98
-23/06/2018 00:00:00,Petrol,-19
-25/06/2018 00:00:00,Restaurant,-118
-25/06/2018 00:00:00,Football team contribution,-53
-26/06/2018 00:00:00,Book about programming,-17
-27/06/2018 00:00:00,Petrol,-106
-28/06/2018 00:00:00,Petrol,-27
-29/06/2018 00:00:00,Shoppy,-37
-29/06/2018 00:00:00,Shoppy,-8
-30/06/2018 00:00:00,Gym,-32
-01/07/2018 00:00:00,Salary from Company X,3500
-01/07/2018 00:00:00,Petrol,-38
-02/07/2018 00:00:00,Petrol,-45
-03/07/2018 00:00:00,"Clothes from ""Danny"" shop",-92
-03/07/2018 00:00:00,"Clothes from ""Danny"" shop",-34
-04/07/2018 00:00:00,Shoppy,-13
-05/07/2018 00:00:00,Gym,-17
-06/07/2018 00:00:00,Your Shop,-24
+06/07/2018 00:00:00,Petrol,-6
+06/07/2018 00:00:00,Restaurant,-42
+06/08/2018 00:00:00,Your Shop,-17
+06/09/2018 00:00:00,Car Repair Shop,-19
+06/09/2018 00:00:00,Gym,-50
+06/10/2018 00:00:00,Your Shop,-21
+06/10/2018 00:00:00,Restaurant,-16
+06/11/2018 00:00:00,Football team contribution,-50
+06/11/2018 00:00:00,Car Repair Shop,-2
+06/12/2018 00:00:00,Car Repair Shop,-73
+06/12/2018 00:00:00,Book about Electronics,-7
+06/13/2018 00:00:00,Restaurant,-106
+06/13/2018 00:00:00,Shoppy,-8
+06/13/2018 00:00:00,Book about programming,-45
+06/13/2018 00:00:00,Gym,-14
+06/13/2018 00:00:00,Restaurant,-82
+06/13/2018 00:00:00,Gym,-38
+06/13/2018 00:00:00,Petrol,-7
+06/13/2018 00:00:00,"Clothes from ""Danny"" shop",-105
+06/14/2018 00:00:00,Gym,-56
+06/14/2018 00:00:00,Football team contribution,-22
+06/15/2018 00:00:00,"Clothes from ""Danny"" shop",-34
+06/16/2018 00:00:00,Your Shop,-25
+06/17/2018 00:00:00,Medicine,-62
+06/17/2018 00:00:00,Book about programming,-17
+06/18/2018 00:00:00,Petrol,-45
+06/19/2018 00:00:00,Shoppy,-118
+06/19/2018 00:00:00,Your Shop,-2
+06/20/2018 00:00:00,Your Shop,-37
+06/20/2018 00:00:00,Car Repair Shop,-118
+06/22/2018 00:00:00,Football team contribution,-42
+06/22/2018 00:00:00,Medicine,-98
+06/23/2018 00:00:00,Petrol,-19
+06/25/2018 00:00:00,Restaurant,-118
+06/25/2018 00:00:00,Football team contribution,-53
+06/26/2018 00:00:00,Book about programming,-17
+06/27/2018 00:00:00,Petrol,-106
+06/28/2018 00:00:00,Petrol,-27
+06/29/2018 00:00:00,Shoppy,-37
+06/29/2018 00:00:00,Shoppy,-8
+06/30/2018 00:00:00,Gym,-32
+07/01/2018 00:00:00,Salary from Company X,3500
+07/01/2018 00:00:00,Petrol,-38
+07/02/2018 00:00:00,Petrol,-45
+07/03/2018 00:00:00,"Clothes from ""Danny"" shop",-92
+07/03/2018 00:00:00,"Clothes from ""Danny"" shop",-34
+07/04/2018 00:00:00,Shoppy,-13
+07/05/2018 00:00:00,Gym,-17
+07/06/2018 00:00:00,Your Shop,-24
 07/07/2018 00:00:00,Petrol,-21
-08/07/2018 00:00:00,Petrol,-106
-09/07/2018 00:00:00,Gym,-15
-09/07/2018 00:00:00,"Clothes from ""Danny"" shop",-2
-10/07/2018 00:00:00,Your Shop,-22
-11/07/2018 00:00:00,Medicine,-118
-12/07/2018 00:00:00,Your Shop,-11
-12/07/2018 00:00:00,Restaurant,-59
-13/07/2018 00:00:00,Book about programming,-45
-14/07/2018 00:00:00,Book about programming,-23
-15/07/2018 00:00:00,Your Shop,-21
-15/07/2018 00:00:00,Your Shop,-11
-16/07/2018 00:00:00,Gym,-13
-17/07/2018 00:00:00,Book about programming,-28
-18/07/2018 00:00:00,Book about programming,-59
-19/07/2018 00:00:00,Book about programming,-21
-19/07/2018 00:00:00,Your Shop,-23
-20/07/2018 00:00:00,Petrol,-17
-20/07/2018 00:00:00,Medicine,-103
-21/07/2018 00:00:00,Restaurant,-24
-21/07/2018 00:00:00,"Clothes from ""Danny"" shop",-92
-22/07/2018 00:00:00,Your Shop,-25
-22/07/2018 00:00:00,Shoppy,-80
-23/07/2018 00:00:00,Your Shop,-38
-24/07/2018 00:00:00,Petrol,-106
-25/07/2018 00:00:00,Football team contribution,-57
-25/07/2018 00:00:00,Book about programming,-50
-26/07/2018 00:00:00,Petrol,-106
-27/07/2018 00:00:00,Football team contribution,-59
-27/07/2018 00:00:00,Petrol,-7
-28/07/2018 00:00:00,Book about Electronics,-118
-28/07/2018 00:00:00,Petrol,-14
-29/07/2018 00:00:00,Restaurant,-17
-29/07/2018 00:00:00,Book Sale,460
-30/07/2018 00:00:00,Your Shop,-53
-31/07/2018 00:00:00,Petrol,-7
-31/07/2018 00:00:00,Petrol,-19
-01/08/2018 00:00:00,Salary from Company X,3500
-01/08/2018 00:00:00,Gym,-6
-02/08/2018 00:00:00,Shoppy,-56
-02/08/2018 00:00:00,Book about programming,-25
-02/08/2018 00:00:00,Medicine,-15
-02/08/2018 00:00:00,Petrol,-82
-02/08/2018 00:00:00,Book about programming,-24
-02/08/2018 00:00:00,Shoppy,-49
-02/08/2018 00:00:00,Book about programming,-56
-02/08/2018 00:00:00,Petrol,-16
-03/08/2018 00:00:00,Your Shop,-14
-05/08/2018 00:00:00,"Clothes from ""Danny"" shop",-83
-06/08/2018 00:00:00,Restaurant,-41
-06/08/2018 00:00:00,Restaurant,-50
-07/08/2018 00:00:00,Restaurant,-17
+07/08/2018 00:00:00,Petrol,-106
+07/09/2018 00:00:00,Gym,-15
+07/09/2018 00:00:00,"Clothes from ""Danny"" shop",-2
+07/10/2018 00:00:00,Your Shop,-22
+07/11/2018 00:00:00,Medicine,-118
+07/12/2018 00:00:00,Your Shop,-11
+07/12/2018 00:00:00,Restaurant,-59
+07/13/2018 00:00:00,Book about programming,-45
+07/14/2018 00:00:00,Book about programming,-23
+07/15/2018 00:00:00,Your Shop,-21
+07/15/2018 00:00:00,Your Shop,-11
+07/16/2018 00:00:00,Gym,-13
+07/17/2018 00:00:00,Book about programming,-28
+07/18/2018 00:00:00,Book about programming,-59
+07/19/2018 00:00:00,Book about programming,-21
+07/19/2018 00:00:00,Your Shop,-23
+07/20/2018 00:00:00,Petrol,-17
+07/20/2018 00:00:00,Medicine,-103
+07/21/2018 00:00:00,Restaurant,-24
+07/21/2018 00:00:00,"Clothes from ""Danny"" shop",-92
+07/22/2018 00:00:00,Your Shop,-25
+07/22/2018 00:00:00,Shoppy,-80
+07/23/2018 00:00:00,Your Shop,-38
+07/24/2018 00:00:00,Petrol,-106
+07/25/2018 00:00:00,Football team contribution,-57
+07/25/2018 00:00:00,Book about programming,-50
+07/26/2018 00:00:00,Petrol,-106
+07/27/2018 00:00:00,Football team contribution,-59
+07/27/2018 00:00:00,Petrol,-7
+07/28/2018 00:00:00,Book about Electronics,-118
+07/28/2018 00:00:00,Petrol,-14
+07/29/2018 00:00:00,Restaurant,-17
+07/29/2018 00:00:00,Book Sale,460
+07/30/2018 00:00:00,Your Shop,-53
+07/31/2018 00:00:00,Petrol,-7
+07/31/2018 00:00:00,Petrol,-19
+08/01/2018 00:00:00,Salary from Company X,3500
+08/01/2018 00:00:00,Gym,-6
+08/02/2018 00:00:00,Shoppy,-56
+08/02/2018 00:00:00,Book about programming,-25
+08/02/2018 00:00:00,Medicine,-15
+08/02/2018 00:00:00,Petrol,-82
+08/02/2018 00:00:00,Book about programming,-24
+08/02/2018 00:00:00,Shoppy,-49
+08/02/2018 00:00:00,Book about programming,-56
+08/02/2018 00:00:00,Petrol,-16
+08/03/2018 00:00:00,Your Shop,-14
+08/05/2018 00:00:00,"Clothes from ""Danny"" shop",-83
+08/06/2018 00:00:00,Restaurant,-41
+08/06/2018 00:00:00,Restaurant,-50
+08/07/2018 00:00:00,Restaurant,-17
 08/08/2018 00:00:00,Petrol,-16
 08/08/2018 00:00:00,Football team contribution,-3
-09/08/2018 00:00:00,Petrol,-49
-09/08/2018 00:00:00,Your Shop,-50
-09/08/2018 00:00:00,Restaurant,-2
-09/08/2018 00:00:00,Petrol,-8
-10/08/2018 00:00:00,Petrol,-27
-10/08/2018 00:00:00,Football team contribution,-14
-11/08/2018 00:00:00,Restaurant,-2
-12/08/2018 00:00:00,Petrol,-676
-13/08/2018 00:00:00,Car Repair Shop,-41
-13/08/2018 00:00:00,Book about programming,-37
-14/08/2018 00:00:00,"Clothes from ""Danny"" shop",-961
-14/08/2018 00:00:00,Petrol,-14
-15/08/2018 00:00:00,Gym,-13
-15/08/2018 00:00:00,Football team contribution,-42
-16/08/2018 00:00:00,Football team contribution,-25
-16/08/2018 00:00:00,Your Shop,-41
-17/08/2018 00:00:00,Medicine,-19
-18/08/2018 00:00:00,Book about Electronics,-73
-19/08/2018 00:00:00,Book about programming,-11
-21/08/2018 00:00:00,Petrol,-3
-21/08/2018 00:00:00,Restaurant,-62
-22/08/2018 00:00:00,Restaurant,-57
-23/08/2018 00:00:00,Gym,-42
-23/08/2018 00:00:00,Your Shop,-14
-24/08/2018 00:00:00,Petrol,-25
-25/08/2018 00:00:00,Football team contribution,-36
-26/08/2018 00:00:00,Book about Electronics,-80
-27/08/2018 00:00:00,Football team contribution,-50
-27/08/2018 00:00:00,Book Sale,332
-29/08/2018 00:00:00,Car Repair Shop,-80
-29/08/2018 00:00:00,Book Sale,324
-30/08/2018 00:00:00,"Clothes from ""Danny"" shop",-41
-30/08/2018 00:00:00,Gym,-37
-31/08/2018 00:00:00,Book about programming,-6
-31/08/2018 00:00:00,Shoppy,-50
-31/08/2018 00:00:00,Shoppy,-13
-31/08/2018 00:00:00,Your Shop,-57
-01/09/2018 00:00:00,Salary from Company X,3500
-01/09/2018 00:00:00,Car Repair Shop,-231
-01/09/2018 00:00:00,Football team contribution,-17
-02/09/2018 00:00:00,Petrol,-42
-02/09/2018 00:00:00,Book about programming,-42
-03/09/2018 00:00:00,Football team contribution,-45
-05/09/2018 00:00:00,Restaurant,-17
-05/09/2018 00:00:00,Football team contribution,-27
-06/09/2018 00:00:00,Restaurant,-105
-08/09/2018 00:00:00,Petrol,-37
+08/09/2018 00:00:00,Petrol,-49
+08/09/2018 00:00:00,Your Shop,-50
+08/09/2018 00:00:00,Restaurant,-2
+08/09/2018 00:00:00,Petrol,-8
+08/10/2018 00:00:00,Petrol,-27
+08/10/2018 00:00:00,Football team contribution,-14
+08/11/2018 00:00:00,Restaurant,-2
+08/12/2018 00:00:00,Petrol,-676
+08/13/2018 00:00:00,Car Repair Shop,-41
+08/13/2018 00:00:00,Book about programming,-37
+08/14/2018 00:00:00,"Clothes from ""Danny"" shop",-961
+08/14/2018 00:00:00,Petrol,-14
+08/15/2018 00:00:00,Gym,-13
+08/15/2018 00:00:00,Football team contribution,-42
+08/16/2018 00:00:00,Football team contribution,-25
+08/16/2018 00:00:00,Your Shop,-41
+08/17/2018 00:00:00,Medicine,-19
+08/18/2018 00:00:00,Book about Electronics,-73
+08/19/2018 00:00:00,Book about programming,-11
+08/21/2018 00:00:00,Petrol,-3
+08/21/2018 00:00:00,Restaurant,-62
+08/22/2018 00:00:00,Restaurant,-57
+08/23/2018 00:00:00,Gym,-42
+08/23/2018 00:00:00,Your Shop,-14
+08/24/2018 00:00:00,Petrol,-25
+08/25/2018 00:00:00,Football team contribution,-36
+08/26/2018 00:00:00,Book about Electronics,-80
+08/27/2018 00:00:00,Football team contribution,-50
+08/27/2018 00:00:00,Book Sale,332
+08/29/2018 00:00:00,Car Repair Shop,-80
+08/29/2018 00:00:00,Book Sale,324
+08/30/2018 00:00:00,"Clothes from ""Danny"" shop",-41
+08/30/2018 00:00:00,Gym,-37
+08/31/2018 00:00:00,Book about programming,-6
+08/31/2018 00:00:00,Shoppy,-50
+08/31/2018 00:00:00,Shoppy,-13
+08/31/2018 00:00:00,Your Shop,-57
+09/01/2018 00:00:00,Salary from Company X,3500
+09/01/2018 00:00:00,Car Repair Shop,-231
+09/01/2018 00:00:00,Football team contribution,-17
+09/02/2018 00:00:00,Petrol,-42
+09/02/2018 00:00:00,Book about programming,-42
+09/03/2018 00:00:00,Football team contribution,-45
+09/05/2018 00:00:00,Restaurant,-17
+09/05/2018 00:00:00,Football team contribution,-27
+09/06/2018 00:00:00,Restaurant,-105
+09/08/2018 00:00:00,Petrol,-37
 09/09/2018 00:00:00,Your Shop,-17
 09/09/2018 00:00:00,Gym,-50
-10/09/2018 00:00:00,Book about Electronics,-39
-11/09/2018 00:00:00,Gym,-17
-12/09/2018 00:00:00,"Clothes from ""Danny"" shop",-7
-13/09/2018 00:00:00,Shoppy,-14
-14/09/2018 00:00:00,Petrol,-42
-14/09/2018 00:00:00,Your Shop,-62
-15/09/2018 00:00:00,Your Shop,-37
-16/09/2018 00:00:00,Book about programming,-25
-17/09/2018 00:00:00,Petrol,-2
-17/09/2018 00:00:00,Gym,-35
-18/09/2018 00:00:00,Petrol,-34
-18/09/2018 00:00:00,Football team contribution,-16
-19/09/2018 00:00:00,Medicine,-118
-20/09/2018 00:00:00,Medicine,-10
-21/09/2018 00:00:00,Car Repair Shop,-45
-21/09/2018 00:00:00,Gym,-6
-22/09/2018 00:00:00,Medicine,-14
-22/09/2018 00:00:00,Restaurant,-23
-23/09/2018 00:00:00,"Clothes from ""Danny"" shop",-77
-24/09/2018 00:00:00,Your Shop,-34
-25/09/2018 00:00:00,Car Repair Shop,-14
-26/09/2018 00:00:00,Car Repair Shop,-77
-26/09/2018 00:00:00,Book Sale,725
-27/09/2018 00:00:00,Petrol,-37
-27/09/2018 00:00:00,Book Sale,964
-28/09/2018 00:00:00,Your Shop,-41
-28/09/2018 00:00:00,Gym,-16
-29/09/2018 00:00:00,Football team contribution,-35
-29/09/2018 00:00:00,Football team contribution,-8
-30/09/2018 00:00:00,Restaurant,-49
-30/09/2018 00:00:00,Gym,-14
-01/10/2018 00:00:00,Salary from Company X,3500
-01/10/2018 00:00:00,Petrol,-35
-01/10/2018 00:00:00,Medicine,-7
-01/10/2018 00:00:00,Shoppy,-16
-01/10/2018 00:00:00,Restaurant,-42
-01/10/2018 00:00:00,Your Shop,-50
-01/10/2018 00:00:00,Shoppy,-118
-01/10/2018 00:00:00,Your Shop,-19
-01/10/2018 00:00:00,Book about Electronics,-10
-02/10/2018 00:00:00,Medicine,-49
-02/10/2018 00:00:00,Petrol,-17
-02/10/2018 00:00:00,Book about programming,-59
-02/10/2018 00:00:00,Petrol,-106
-03/10/2018 00:00:00,Petrol,-59
-04/10/2018 00:00:00,Your Shop,-49
-05/10/2018 00:00:00,Petrol,-50
-05/10/2018 00:00:00,Medicine,-16
-06/10/2018 00:00:00,"Clothes from ""Danny"" shop",-231
-06/10/2018 00:00:00,Gym,-42
-06/10/2018 00:00:00,Petrol,-50
-06/10/2018 00:00:00,Shoppy,-21
-06/10/2018 00:00:00,Your Shop,-32
-06/10/2018 00:00:00,Medicine,-62
-06/10/2018 00:00:00,Book about programming,-57
-06/10/2018 00:00:00,Petrol,-59
-07/10/2018 00:00:00,Restaurant,-37
-07/10/2018 00:00:00,Your Shop,-98
-08/10/2018 00:00:00,Restaurant,-17
-08/10/2018 00:00:00,Football team contribution,-42
-11/10/2018 00:00:00,Restaurant,-15
-12/10/2018 00:00:00,Petrol,-14
-12/10/2018 00:00:00,"Clothes from ""Danny"" shop",-77
-13/10/2018 00:00:00,Shoppy,-901
-14/10/2018 00:00:00,Book about programming,-45
-14/10/2018 00:00:00,Your Shop,-6
-15/10/2018 00:00:00,Football team contribution,-14
-16/10/2018 00:00:00,"Clothes from ""Danny"" shop",-961
-16/10/2018 00:00:00,Car Repair Shop,-14
-17/10/2018 00:00:00,Book about Electronics,-231
-17/10/2018 00:00:00,Petrol,-17
-17/10/2018 00:00:00,Shoppy,-53
-17/10/2018 00:00:00,Medicine,-39
-18/10/2018 00:00:00,Your Shop,-17
-18/10/2018 00:00:00,Gym,-6
-19/10/2018 00:00:00,Your Shop,-15
-19/10/2018 00:00:00,Medicine,-77
-20/10/2018 00:00:00,Shoppy,-42
-20/10/2018 00:00:00,Gym,-6
-21/10/2018 00:00:00,Gym,-16
-21/10/2018 00:00:00,Your Shop,-77
-21/10/2018 00:00:00,Your Shop,-8
-21/10/2018 00:00:00,Gym,-42
-22/10/2018 00:00:00,Car Repair Shop,-676
-22/10/2018 00:00:00,Gym,-32
-23/10/2018 00:00:00,Shoppy,-56
-24/10/2018 00:00:00,Book about Electronics,-62
-24/10/2018 00:00:00,Car Repair Shop,-7
-25/10/2018 00:00:00,Gym,-17
-26/10/2018 00:00:00,Car Repair Shop,-7
-26/10/2018 00:00:00,Restaurant,-11
-26/10/2018 00:00:00,Book about Electronics,-14
-26/10/2018 00:00:00,Gym,-42
-27/10/2018 00:00:00,"Clothes from ""Danny"" shop",-49
-27/10/2018 00:00:00,"Clothes from ""Danny"" shop",-49
-28/10/2018 00:00:00,Your Shop,-14
-29/10/2018 00:00:00,Petrol,-49
-29/10/2018 00:00:00,Gym,-42
-30/10/2018 00:00:00,"Clothes from ""Danny"" shop",-7
-30/10/2018 00:00:00,Shoppy,-18
-31/10/2018 00:00:00,Car Repair Shop,-103
-01/11/2018 00:00:00,Salary from Company X,3500
-01/11/2018 00:00:00,Your Shop,-31
-01/11/2018 00:00:00,Your Shop,-2
-02/11/2018 00:00:00,Petrol,-50
-02/11/2018 00:00:00,Petrol,-92
-03/11/2018 00:00:00,Restaurant,-39
-03/11/2018 00:00:00,Restaurant,-73
-04/11/2018 00:00:00,Shoppy,-11
-04/11/2018 00:00:00,Your Shop,-39
-05/11/2018 00:00:00,Football team contribution,-25
-06/11/2018 00:00:00,Petrol,-77
-07/11/2018 00:00:00,Restaurant,-13
-07/11/2018 00:00:00,Football team contribution,-59
-08/11/2018 00:00:00,Gym,-42
-08/11/2018 00:00:00,Football team contribution,-50
-08/11/2018 00:00:00,Football team contribution,-27
-08/11/2018 00:00:00,Book about Electronics,-2
-08/11/2018 00:00:00,Shoppy,-41
-08/11/2018 00:00:00,Book about programming,-45
-08/11/2018 00:00:00,Book about Electronics,-19
-08/11/2018 00:00:00,Restaurant,-17
-09/11/2018 00:00:00,Restaurant,-37
+09/10/2018 00:00:00,Book about Electronics,-39
+09/11/2018 00:00:00,Gym,-17
+09/12/2018 00:00:00,"Clothes from ""Danny"" shop",-7
+09/13/2018 00:00:00,Shoppy,-14
+09/14/2018 00:00:00,Petrol,-42
+09/14/2018 00:00:00,Your Shop,-62
+09/15/2018 00:00:00,Your Shop,-37
+09/16/2018 00:00:00,Book about programming,-25
+09/17/2018 00:00:00,Petrol,-2
+09/17/2018 00:00:00,Gym,-35
+09/18/2018 00:00:00,Petrol,-34
+09/18/2018 00:00:00,Football team contribution,-16
+09/19/2018 00:00:00,Medicine,-118
+09/20/2018 00:00:00,Medicine,-10
+09/21/2018 00:00:00,Car Repair Shop,-45
+09/21/2018 00:00:00,Gym,-6
+09/22/2018 00:00:00,Medicine,-14
+09/22/2018 00:00:00,Restaurant,-23
+09/23/2018 00:00:00,"Clothes from ""Danny"" shop",-77
+09/24/2018 00:00:00,Your Shop,-34
+09/25/2018 00:00:00,Car Repair Shop,-14
+09/26/2018 00:00:00,Car Repair Shop,-77
+09/26/2018 00:00:00,Book Sale,725
+09/27/2018 00:00:00,Petrol,-37
+09/27/2018 00:00:00,Book Sale,964
+09/28/2018 00:00:00,Your Shop,-41
+09/28/2018 00:00:00,Gym,-16
+09/29/2018 00:00:00,Football team contribution,-35
+09/29/2018 00:00:00,Football team contribution,-8
+09/30/2018 00:00:00,Restaurant,-49
+09/30/2018 00:00:00,Gym,-14
+10/01/2018 00:00:00,Salary from Company X,3500
+10/01/2018 00:00:00,Petrol,-35
+10/01/2018 00:00:00,Medicine,-7
+10/01/2018 00:00:00,Shoppy,-16
+10/01/2018 00:00:00,Restaurant,-42
+10/01/2018 00:00:00,Your Shop,-50
+10/01/2018 00:00:00,Shoppy,-118
+10/01/2018 00:00:00,Your Shop,-19
+10/01/2018 00:00:00,Book about Electronics,-10
+10/02/2018 00:00:00,Medicine,-49
+10/02/2018 00:00:00,Petrol,-17
+10/02/2018 00:00:00,Book about programming,-59
+10/02/2018 00:00:00,Petrol,-106
+10/03/2018 00:00:00,Petrol,-59
+10/04/2018 00:00:00,Your Shop,-49
+10/05/2018 00:00:00,Petrol,-50
+10/05/2018 00:00:00,Medicine,-16
+10/06/2018 00:00:00,"Clothes from ""Danny"" shop",-231
+10/06/2018 00:00:00,Gym,-42
+10/06/2018 00:00:00,Petrol,-50
+10/06/2018 00:00:00,Shoppy,-21
+10/06/2018 00:00:00,Your Shop,-32
+10/06/2018 00:00:00,Medicine,-62
+10/06/2018 00:00:00,Book about programming,-57
+10/06/2018 00:00:00,Petrol,-59
+10/07/2018 00:00:00,Restaurant,-37
+10/07/2018 00:00:00,Your Shop,-98
+10/08/2018 00:00:00,Restaurant,-17
+10/08/2018 00:00:00,Football team contribution,-42
+10/11/2018 00:00:00,Restaurant,-15
+10/12/2018 00:00:00,Petrol,-14
+10/12/2018 00:00:00,"Clothes from ""Danny"" shop",-77
+10/13/2018 00:00:00,Shoppy,-901
+10/14/2018 00:00:00,Book about programming,-45
+10/14/2018 00:00:00,Your Shop,-6
+10/15/2018 00:00:00,Football team contribution,-14
+10/16/2018 00:00:00,"Clothes from ""Danny"" shop",-961
+10/16/2018 00:00:00,Car Repair Shop,-14
+10/17/2018 00:00:00,Book about Electronics,-231
+10/17/2018 00:00:00,Petrol,-17
+10/17/2018 00:00:00,Shoppy,-53
+10/17/2018 00:00:00,Medicine,-39
+10/18/2018 00:00:00,Your Shop,-17
+10/18/2018 00:00:00,Gym,-6
+10/19/2018 00:00:00,Your Shop,-15
+10/19/2018 00:00:00,Medicine,-77
+10/20/2018 00:00:00,Shoppy,-42
+10/20/2018 00:00:00,Gym,-6
+10/21/2018 00:00:00,Gym,-16
+10/21/2018 00:00:00,Your Shop,-77
+10/21/2018 00:00:00,Your Shop,-8
+10/21/2018 00:00:00,Gym,-42
+10/22/2018 00:00:00,Car Repair Shop,-676
+10/22/2018 00:00:00,Gym,-32
+10/23/2018 00:00:00,Shoppy,-56
+10/24/2018 00:00:00,Book about Electronics,-62
+10/24/2018 00:00:00,Car Repair Shop,-7
+10/25/2018 00:00:00,Gym,-17
+10/26/2018 00:00:00,Car Repair Shop,-7
+10/26/2018 00:00:00,Restaurant,-11
+10/26/2018 00:00:00,Book about Electronics,-14
+10/26/2018 00:00:00,Gym,-42
+10/27/2018 00:00:00,"Clothes from ""Danny"" shop",-49
+10/27/2018 00:00:00,"Clothes from ""Danny"" shop",-49
+10/28/2018 00:00:00,Your Shop,-14
+10/29/2018 00:00:00,Petrol,-49
+10/29/2018 00:00:00,Gym,-42
+10/30/2018 00:00:00,"Clothes from ""Danny"" shop",-7
+10/30/2018 00:00:00,Shoppy,-18
+10/31/2018 00:00:00,Car Repair Shop,-103
+11/01/2018 00:00:00,Salary from Company X,3500
+11/01/2018 00:00:00,Your Shop,-31
+11/01/2018 00:00:00,Your Shop,-2
+11/02/2018 00:00:00,Petrol,-50
+11/02/2018 00:00:00,Petrol,-92
+11/03/2018 00:00:00,Restaurant,-39
+11/03/2018 00:00:00,Restaurant,-73
+11/04/2018 00:00:00,Shoppy,-11
+11/04/2018 00:00:00,Your Shop,-39
+11/05/2018 00:00:00,Football team contribution,-25
+11/06/2018 00:00:00,Petrol,-77
+11/07/2018 00:00:00,Restaurant,-13
+11/07/2018 00:00:00,Football team contribution,-59
+11/08/2018 00:00:00,Gym,-42
+11/08/2018 00:00:00,Football team contribution,-50
+11/08/2018 00:00:00,Football team contribution,-27
+11/08/2018 00:00:00,Book about Electronics,-2
+11/08/2018 00:00:00,Shoppy,-41
+11/08/2018 00:00:00,Book about programming,-45
+11/08/2018 00:00:00,Book about Electronics,-19
+11/08/2018 00:00:00,Restaurant,-17
+11/09/2018 00:00:00,Restaurant,-37
 11/11/2018 00:00:00,Shoppy,-41
-12/11/2018 00:00:00,Your Shop,-7
-13/11/2018 00:00:00,Your Shop,-59
-13/11/2018 00:00:00,Restaurant,-14
-13/11/2018 00:00:00,Petrol,-36
-13/11/2018 00:00:00,Book about Electronics,-49
-14/11/2018 00:00:00,Gym,-57
-15/11/2018 00:00:00,Your Shop,-16
-16/11/2018 00:00:00,Petrol,-73
-17/11/2018 00:00:00,Restaurant,-21
-17/11/2018 00:00:00,"Clothes from ""Danny"" shop",-83
-18/11/2018 00:00:00,Restaurant,-14
-18/11/2018 00:00:00,Petrol,-7
-19/11/2018 00:00:00,Your Shop,-83
-19/11/2018 00:00:00,Gym,-17
-20/11/2018 00:00:00,Shoppy,-45
-21/11/2018 00:00:00,Shoppy,-37
-21/11/2018 00:00:00,Car Repair Shop,-961
-22/11/2018 00:00:00,Medicine,-118
-23/11/2018 00:00:00,Your Shop,-59
-23/11/2018 00:00:00,Football team contribution,-17
-24/11/2018 00:00:00,Shoppy,-49
-24/11/2018 00:00:00,Your Shop,-34
-24/11/2018 00:00:00,Car Repair Shop,-45
-24/11/2018 00:00:00,Petrol,-17
-25/11/2018 00:00:00,Restaurant,-80
-25/11/2018 00:00:00,Restaurant,-49
-26/11/2018 00:00:00,Petrol,-23
-27/11/2018 00:00:00,Car Repair Shop,-83
-27/11/2018 00:00:00,Book about programming,-59
-28/11/2018 00:00:00,Shoppy,-2
-28/11/2018 00:00:00,Restaurant,-16
-29/11/2018 00:00:00,Book about Electronics,-14
-30/11/2018 00:00:00,Petrol,-45
-30/11/2018 00:00:00,Book about Electronics,-41
-30/11/2018 00:00:00,Football team contribution,-16
-30/11/2018 00:00:00,Football team contribution,-49
-30/11/2018 00:00:00,Book about programming,-45
-30/11/2018 00:00:00,Gym,-41
-30/11/2018 00:00:00,Petrol,-103
-30/11/2018 00:00:00,Your Shop,-31
-01/12/2018 00:00:00,Salary from Company X,3500
-01/12/2018 00:00:00,Car Repair Shop,-82
-02/12/2018 00:00:00,Medicine,-83
-02/12/2018 00:00:00,Car Repair Shop,-49
-03/12/2018 00:00:00,Book about programming,-17
-03/12/2018 00:00:00,Book about Electronics,-31
-04/12/2018 00:00:00,Car Repair Shop,-231
-05/12/2018 00:00:00,Book about programming,-3
-05/12/2018 00:00:00,Shoppy,-25
-06/12/2018 00:00:00,Gym,-37
-07/12/2018 00:00:00,Your Shop,-8
-07/12/2018 00:00:00,Shoppy,-57
-08/12/2018 00:00:00,Your Shop,-77
-08/12/2018 00:00:00,Gym,-15
-09/12/2018 00:00:00,Restaurant,-77
-11/12/2018 00:00:00,Football team contribution,-37
-11/12/2018 00:00:00,Restaurant,-14
+11/12/2018 00:00:00,Your Shop,-7
+11/13/2018 00:00:00,Your Shop,-59
+11/13/2018 00:00:00,Restaurant,-14
+11/13/2018 00:00:00,Petrol,-36
+11/13/2018 00:00:00,Book about Electronics,-49
+11/14/2018 00:00:00,Gym,-57
+11/15/2018 00:00:00,Your Shop,-16
+11/16/2018 00:00:00,Petrol,-73
+11/17/2018 00:00:00,Restaurant,-21
+11/17/2018 00:00:00,"Clothes from ""Danny"" shop",-83
+11/18/2018 00:00:00,Restaurant,-14
+11/18/2018 00:00:00,Petrol,-7
+11/19/2018 00:00:00,Your Shop,-83
+11/19/2018 00:00:00,Gym,-17
+11/20/2018 00:00:00,Shoppy,-45
+11/21/2018 00:00:00,Shoppy,-37
+11/21/2018 00:00:00,Car Repair Shop,-961
+11/22/2018 00:00:00,Medicine,-118
+11/23/2018 00:00:00,Your Shop,-59
+11/23/2018 00:00:00,Football team contribution,-17
+11/24/2018 00:00:00,Shoppy,-49
+11/24/2018 00:00:00,Your Shop,-34
+11/24/2018 00:00:00,Car Repair Shop,-45
+11/24/2018 00:00:00,Petrol,-17
+11/25/2018 00:00:00,Restaurant,-80
+11/25/2018 00:00:00,Restaurant,-49
+11/26/2018 00:00:00,Petrol,-23
+11/27/2018 00:00:00,Car Repair Shop,-83
+11/27/2018 00:00:00,Book about programming,-59
+11/28/2018 00:00:00,Shoppy,-2
+11/28/2018 00:00:00,Restaurant,-16
+11/29/2018 00:00:00,Book about Electronics,-14
+11/30/2018 00:00:00,Petrol,-45
+11/30/2018 00:00:00,Book about Electronics,-41
+11/30/2018 00:00:00,Football team contribution,-16
+11/30/2018 00:00:00,Football team contribution,-49
+11/30/2018 00:00:00,Book about programming,-45
+11/30/2018 00:00:00,Gym,-41
+11/30/2018 00:00:00,Petrol,-103
+11/30/2018 00:00:00,Your Shop,-31
+12/01/2018 00:00:00,Salary from Company X,3500
+12/01/2018 00:00:00,Car Repair Shop,-82
+12/02/2018 00:00:00,Medicine,-83
+12/02/2018 00:00:00,Car Repair Shop,-49
+12/03/2018 00:00:00,Book about programming,-17
+12/03/2018 00:00:00,Book about Electronics,-31
+12/04/2018 00:00:00,Car Repair Shop,-231
+12/05/2018 00:00:00,Book about programming,-3
+12/05/2018 00:00:00,Shoppy,-25
+12/06/2018 00:00:00,Gym,-37
+12/07/2018 00:00:00,Your Shop,-8
+12/07/2018 00:00:00,Shoppy,-57
+12/08/2018 00:00:00,Your Shop,-77
+12/08/2018 00:00:00,Gym,-15
+12/09/2018 00:00:00,Restaurant,-77
+12/11/2018 00:00:00,Football team contribution,-37
+12/11/2018 00:00:00,Restaurant,-14
 12/12/2018 00:00:00,Your Shop,-35
-13/12/2018 00:00:00,Petrol,-45
-14/12/2018 00:00:00,"Clothes from ""Danny"" shop",-92
-15/12/2018 00:00:00,Petrol,-25
-15/12/2018 00:00:00,Shoppy,-49
-16/12/2018 00:00:00,Shoppy,-3
-16/12/2018 00:00:00,Gym,-37
-17/12/2018 00:00:00,Football team contribution,-56
-17/12/2018 00:00:00,Book about programming,-18
-18/12/2018 00:00:00,Petrol,-16
-18/12/2018 00:00:00,Car Repair Shop,-45
-19/12/2018 00:00:00,Petrol,-17
-19/12/2018 00:00:00,Shoppy,-36
-20/12/2018 00:00:00,Book about programming,-53
-21/12/2018 00:00:00,Restaurant,-13
-22/12/2018 00:00:00,Shoppy,-14
-22/12/2018 00:00:00,Book about programming,-8
-23/12/2018 00:00:00,Restaurant,-17
-24/12/2018 00:00:00,Your Shop,-10
-24/12/2018 00:00:00,Gym,-37
-25/12/2018 00:00:00,Restaurant,-22
-26/12/2018 00:00:00,Your Shop,-118
-26/12/2018 00:00:00,Restaurant,-25
-27/12/2018 00:00:00,Your Shop,-49
-27/12/2018 00:00:00,Football team contribution,-45
-27/12/2018 00:00:00,Book about programming,-14
-27/12/2018 00:00:00,Petrol,-3
-27/12/2018 00:00:00,Football team contribution,-39
-27/12/2018 00:00:00,Book about Electronics,-45
-27/12/2018 00:00:00,Shoppy,-38
-28/12/2018 00:00:00,Shoppy,-59
-29/12/2018 00:00:00,Shoppy,-961
-30/12/2018 00:00:00,Petrol,-231
-30/12/2018 00:00:00,Your Shop,-50
-31/12/2018 00:00:00,Your Shop,-17
+12/13/2018 00:00:00,Petrol,-45
+12/14/2018 00:00:00,"Clothes from ""Danny"" shop",-92
+12/15/2018 00:00:00,Petrol,-25
+12/15/2018 00:00:00,Shoppy,-49
+12/16/2018 00:00:00,Shoppy,-3
+12/16/2018 00:00:00,Gym,-37
+12/17/2018 00:00:00,Football team contribution,-56
+12/17/2018 00:00:00,Book about programming,-18
+12/18/2018 00:00:00,Petrol,-16
+12/18/2018 00:00:00,Car Repair Shop,-45
+12/19/2018 00:00:00,Petrol,-17
+12/19/2018 00:00:00,Shoppy,-36
+12/20/2018 00:00:00,Book about programming,-53
+12/21/2018 00:00:00,Restaurant,-13
+12/22/2018 00:00:00,Shoppy,-14
+12/22/2018 00:00:00,Book about programming,-8
+12/23/2018 00:00:00,Restaurant,-17
+12/24/2018 00:00:00,Your Shop,-10
+12/24/2018 00:00:00,Gym,-37
+12/25/2018 00:00:00,Restaurant,-22
+12/26/2018 00:00:00,Your Shop,-118
+12/26/2018 00:00:00,Restaurant,-25
+12/27/2018 00:00:00,Your Shop,-49
+12/27/2018 00:00:00,Football team contribution,-45
+12/27/2018 00:00:00,Book about programming,-14
+12/27/2018 00:00:00,Petrol,-3
+12/27/2018 00:00:00,Football team contribution,-39
+12/27/2018 00:00:00,Book about Electronics,-45
+12/27/2018 00:00:00,Shoppy,-38
+12/28/2018 00:00:00,Shoppy,-59
+12/29/2018 00:00:00,Shoppy,-961
+12/30/2018 00:00:00,Petrol,-231
+12/30/2018 00:00:00,Your Shop,-50
+12/31/2018 00:00:00,Your Shop,-17

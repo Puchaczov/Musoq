@@ -7,8 +7,6 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
-        private static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
-
         [BindableMethod]
         public string ToHex(byte[] bytes, string delimiter = "")
         {
@@ -59,41 +57,41 @@ namespace Musoq.Plugins
             switch (Type.GetTypeCode(typeof(T)))
             {
                 case TypeCode.Boolean:
-                    return ToHex(GetBytes(value.ToBoolean(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToBoolean(CultureInfo.CurrentCulture)));
                 case TypeCode.Byte:
-                    return ToHex(GetBytes(value.ToByte(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToByte(CultureInfo.CurrentCulture)));
                 case TypeCode.Char:
-                    return ToHex(GetBytes(value.ToChar(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToChar(CultureInfo.CurrentCulture)));
                 case TypeCode.DateTime:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.DBNull:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.Decimal:
-                    return ToHex(GetBytes(value.ToDecimal(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToDecimal(CultureInfo.CurrentCulture)));
                 case TypeCode.Double:
-                    return ToHex(GetBytes(value.ToDouble(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToDouble(CultureInfo.CurrentCulture)));
                 case TypeCode.Empty:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.Int16:
-                    return ToHex(GetBytes(value.ToInt16(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToInt16(CultureInfo.CurrentCulture)));
                 case TypeCode.Int32:
-                    return ToHex(GetBytes(value.ToInt32(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToInt32(CultureInfo.CurrentCulture)));
                 case TypeCode.Int64:
-                    return ToHex(GetBytes(value.ToInt64(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToInt64(CultureInfo.CurrentCulture)));
                 case TypeCode.Object:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.SByte:
-                    return ToHex(GetBytes(value.ToSByte(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToSByte(CultureInfo.CurrentCulture)));
                 case TypeCode.Single:
-                    return ToHex(GetBytes(value.ToSingle(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToSingle(CultureInfo.CurrentCulture)));
                 case TypeCode.String:
-                    return ToHex(GetBytes(value.ToString(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToString(CultureInfo.CurrentCulture)));
                 case TypeCode.UInt16:
-                    return ToHex(GetBytes(value.ToUInt16(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToUInt16(CultureInfo.CurrentCulture)));
                 case TypeCode.UInt32:
-                    return ToHex(GetBytes(value.ToUInt32(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToUInt32(CultureInfo.CurrentCulture)));
                 case TypeCode.UInt64:
-                    return ToHex(GetBytes(value.ToUInt64(InvariantCulture)));
+                    return ToHex(GetBytes(value.ToUInt64(CultureInfo.CurrentCulture)));
             }
 
             return "CONVERSION_NOT_SUPPORTED";
@@ -123,7 +121,7 @@ namespace Musoq.Plugins
             if (value == null)
                 return null;
 
-            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out decimal result))
                 return result;
 
             return null;
@@ -139,7 +137,7 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public TimeSpan? ToTimeSpan(string value) => ToTimeSpan(value, CultureInfo.InvariantCulture.Name);
+        public TimeSpan? ToTimeSpan(string value) => ToTimeSpan(value, CultureInfo.CurrentCulture.Name);
 
         [BindableMethod]
         public TimeSpan? ToTimeSpan(string value, string culture)
@@ -154,7 +152,7 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public DateTime? ToDateTime(string value) => ToDateTime(value, CultureInfo.InvariantCulture.Name);
+        public DateTime? ToDateTime(string value) => ToDateTime(value, CultureInfo.CurrentCulture.Name);
 
         [BindableMethod]
         public DateTime? ToDateTime(string value, string culture)
@@ -285,19 +283,19 @@ namespace Musoq.Plugins
         [BindableMethod]
         public string ToString(DateTimeOffset? date)
         {
-            return date?.ToString(CultureInfo.InvariantCulture);
+            return date?.ToString(CultureInfo.CurrentCulture);
         }
 
         [BindableMethod]
         public string ToString(decimal? value)
         {
-            return value?.ToString(CultureInfo.InvariantCulture);
+            return value?.ToString(CultureInfo.CurrentCulture);
         }
 
         [BindableMethod]
         public string ToString(long? value)
         {
-            return value?.ToString(CultureInfo.InvariantCulture);
+            return value?.ToString(CultureInfo.CurrentCulture);
         }
 
         [BindableMethod]
@@ -380,11 +378,11 @@ namespace Musoq.Plugins
             switch (Type.GetTypeCode(typeof(T)))
             {
                 case TypeCode.Boolean:
-                    return Convert.ToString(value.ToBoolean(InvariantCulture) ? 1 : 0, baseNumber);
+                    return Convert.ToString(value.ToBoolean(CultureInfo.CurrentCulture) ? 1 : 0, baseNumber);
                 case TypeCode.Byte:
-                    return Convert.ToString(value.ToByte(InvariantCulture), baseNumber);
+                    return Convert.ToString(value.ToByte(CultureInfo.CurrentCulture), baseNumber);
                 case TypeCode.Char:
-                    return Convert.ToString(value.ToChar(InvariantCulture), baseNumber);
+                    return Convert.ToString(value.ToChar(CultureInfo.CurrentCulture), baseNumber);
                 case TypeCode.DateTime:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.DBNull:
@@ -392,27 +390,27 @@ namespace Musoq.Plugins
                 case TypeCode.Decimal:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.Double:
-                    return Convert.ToString(BitConverter.DoubleToInt64Bits(value.ToDouble(InvariantCulture)), baseNumber);
+                    return Convert.ToString(BitConverter.DoubleToInt64Bits(value.ToDouble(CultureInfo.CurrentCulture)), baseNumber);
                 case TypeCode.Empty:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.Int16:
-                    return Convert.ToString(value.ToInt16(InvariantCulture), baseNumber);
+                    return Convert.ToString(value.ToInt16(CultureInfo.CurrentCulture), baseNumber);
                 case TypeCode.Int32:
-                    return Convert.ToString(value.ToInt32(InvariantCulture), baseNumber);
+                    return Convert.ToString(value.ToInt32(CultureInfo.CurrentCulture), baseNumber);
                 case TypeCode.Int64:
-                    return Convert.ToString(value.ToInt64(InvariantCulture), baseNumber);
+                    return Convert.ToString(value.ToInt64(CultureInfo.CurrentCulture), baseNumber);
                 case TypeCode.Object:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.SByte:
-                    return Convert.ToString(value.ToSByte(InvariantCulture), baseNumber);
+                    return Convert.ToString(value.ToSByte(CultureInfo.CurrentCulture), baseNumber);
                 case TypeCode.Single:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.String:
                     return "CONVERSION_NOT_SUPPORTED";
                 case TypeCode.UInt16:
-                    return Convert.ToString(value.ToUInt16(InvariantCulture), baseNumber);
+                    return Convert.ToString(value.ToUInt16(CultureInfo.CurrentCulture), baseNumber);
                 case TypeCode.UInt32:
-                    return Convert.ToString(value.ToUInt32(InvariantCulture), baseNumber);
+                    return Convert.ToString(value.ToUInt32(CultureInfo.CurrentCulture), baseNumber);
                 case TypeCode.UInt64:
                     return "CONVERSION_NOT_SUPPORTED";
             }

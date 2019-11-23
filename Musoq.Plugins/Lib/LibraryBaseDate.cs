@@ -39,7 +39,7 @@ namespace Musoq.Plugins
             if (!DateTimeOffset.TryParse(date, culture, DateTimeStyles.None, out var value))
                 throw new NotSupportedException($"'{date}' value looks to be not valid date.");
 
-            switch (partOfDate.ToLowerInvariant())
+            switch (partOfDate.ToLower(culture))
             {
                 case "month":
                     return value.Month;
