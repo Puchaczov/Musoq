@@ -64,6 +64,7 @@ So, we have two programs, `Musoq.Server` which generally you won't do anything w
 --query [
 	--command {query} | 
 	--file {filePath}]
+	--culture "en-EN"
 --wait
 	--save {fileName.csv}
 	--output

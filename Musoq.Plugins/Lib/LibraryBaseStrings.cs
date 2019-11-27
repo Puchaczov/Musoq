@@ -249,21 +249,51 @@ namespace Musoq.Plugins
         }
 
         [BindableMethod]
-        public string ToUpperInvariant(string value)
-        {
-            if (value == null)
-                return null;
+        public string ToUpper(string value)
+            => ToUpper(value, CultureInfo.CurrentCulture);
 
-            return value.ToUpperInvariant();
+        [BindableMethod]
+        public string ToUpper(string value, string culture)
+        {
+            return ToUpper(value, CultureInfo.GetCultureInfo(culture));
         }
 
         [BindableMethod]
-        public string ToLowerInvariant(string value)
+        public string ToUpperInvariant(string value)
+            => ToUpper(value, CultureInfo.InvariantCulture);
+
+        private string ToUpper(string value, CultureInfo culture)
         {
             if (value == null)
                 return null;
 
-            return value.ToLowerInvariant();
+            if (culture == null)
+                return null;
+
+            return value.ToUpper(culture);
+        }
+
+        [BindableMethod]
+        public string ToLower(string value)
+            => ToLower(value, CultureInfo.CurrentCulture);
+
+        [BindableMethod]
+        public string ToLower(string value, string culture)
+            => ToLower(value, CultureInfo.GetCultureInfo(culture));
+
+        [BindableMethod]
+        public string ToLowerInvariant(string value)
+            => ToLower(value, CultureInfo.InvariantCulture);
+
+        private string ToLower(string value, CultureInfo culture)
+        {
+            if (value == null)
+                return null;
+
+            if (culture == null)
+                return null;
+
+            return value.ToLower(culture);
         }
 
         [BindableMethod]

@@ -3,11 +3,10 @@ layout: page
 title: Articles
 permalink: /articles/
 ---
-
 ### Analyzing space consumption on partition with Windows and SQL
 
-Once upon a time in my computer... I faced on a problem that appears to all of us from time to time. I was rumming in the system settings and I suddenly realized that my primary partition is almost full. 
-There were only 30 gigabytes left and I really don't know where all of my empty space disapear as I haven't installed anything big lately. To be honest, it's not that it just disapear, it was a long term process that I just ignored for a long period of time. 
+Once upon a time in my computer... I faced a problem that appears to all of us from time to time. I was rumming in the system settings and I suddenly realized that my primary partition is almost full. 
+There were only 30 gigabytes left and I really don't know where all of my empty space disappear as I haven't installed anything big lately. To be honest, it's not that it just disapear, it was a long term process that I just ignored for a long period of time. 
 I'm aware of how Windows loves to consume all space left so I decided to analyse it and figure out what those files are and can I delete them? 
 
 This is what we want to achieve:
@@ -17,7 +16,7 @@ This is what we want to achieve:
 Clear table with listed directories and the space they occupies (including subdirectories!). 
 As there is a tremendous amount of files in the file system we need something that does quick overview of where to look for losted space.
 
-I prefer to continuously go deeper into there tree only for that directories that have high level of used space. 
+I prefer to continuously go deeper into tree only for that directories that have high level of used space. 
 This way, I can visit only those directories that have something big inside (or aggregated size of files is big) as I don't want to waste of time to look over lowly occupied folders. Let's look a query then:
 
 ```
@@ -63,13 +62,13 @@ C:\Some
 
 then your relative path will be `Very\Long\Path`. 
 
-Do you got it? there is still literal argument `1` passed to this method. 
+Did you get it? there is still literal argument `1` passed to this method. 
 With these argument, we can limit the depth of the relative path (`Some\Very\Long\Path`) by setting it some numeric. 
 With `1`, we end up with `Some`, with `2` it's gonna be `Some\Very`. Based on that, we are able to flattening the whole tree to small subset of top directories.
 We can match the file from nested directory with the top directory as if it would belong to him directly. Every single file will belong to a single group - group that describes one of top directories.
 
 #### Conclusion
 
-I hope it gives you some basic insights how to use the tool. In the future I will probably write about something more advanced using *Musoq*. 
-Primarily I will describe my peripeteia with the tool as it is my swiss army knife I use with combination of other tools. I hope you enjoyed the reading and you will back here for some time.
+I hope it gives you some basic insights how to use the tool and it will be usefull you. In the future I will probably write about something more advanced using *Musoq*. 
+Primarily I will describe my peripeteia with the tool as it is my swiss army knife I use with combination of other tools. If you enjoyed the reading and wants to ask something, please contact me through email or just make an issue within the github project.
 
