@@ -29,5 +29,5 @@ jobs:
         pushd
         cd ./Musoq.Converter/bin/Release
         $name=Get-ChildItem -Path $path -File | Select-Object -First 1 | Select -exp Name
-        dotnet nuget push "./$name" -s https://api.nuget.org/v3/index.json -k ${{ secrets.nuget_musoq_key }} --skip-duplicate
+        nuget.exe push "./$name" -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.nuget_musoq_key }} -skipDuplicate
         popd
