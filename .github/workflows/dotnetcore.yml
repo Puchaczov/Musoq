@@ -9,12 +9,16 @@ jobs:
         runs-on: [windows-latest]
 
     runs-on: ${{ matrix.runs-on }}
-    name: Running tests on ${{ matrix.runs-on }}. 
+    name: Master workflow ${{ matrix.runs-on }}. 
     steps:
     - uses: actions/checkout@master
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.0.100
-    - name: Build & Run tests
-      run: dotnet test --configuration Release
+#    - name: Build & Run tests
+#      run: dotnet test --configuration Release
+    - name: Pack
+      uses: dotnet pack -c Release
+    - name: Publish
+      run: ls ./
