@@ -19,6 +19,6 @@ jobs:
 #    - name: Build & Run tests
 #      run: dotnet test --configuration Release
     - name: Pack
-      run: dotnet pack -c Release
+      run: dotnet pack -c Release Musoq.sln
     - name: Publish
       run: ls ./
