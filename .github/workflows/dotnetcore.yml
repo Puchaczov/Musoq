@@ -22,5 +22,11 @@ jobs:
 #      run: dotnet pack -c Release Musoq.sln
     - name: Build
       run: dotnet build Musoq.sln -c Release
-    - name: Publish
+    - name: Show Directory
       run: ls ./Musoq.Converter/bin/Release
+    - name: Publish
+      run: |
+        pushd
+        cd ./Musoq.Converter/bin/Release
+        dotnet nuget push ./Musoq.Converter/bin/Release/$(ls -1t|head -n 1) -s https://api.nuget.org/v3/index.json -k ${{ secrets.GITHUB_TOKEN }}
+        popd
