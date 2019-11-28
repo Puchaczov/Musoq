@@ -21,4 +21,4 @@ jobs:
 #    - name: Pack
 #      run: dotnet pack -c Release Musoq.sln
     - name: Publish
-      run: ls ./
+      run: ls ./Musoq.Converter/bin/Release
