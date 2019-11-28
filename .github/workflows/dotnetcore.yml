@@ -28,5 +28,6 @@ jobs:
       run: |
         pushd
         cd ./Musoq.Converter/bin/Release
-        dotnet nuget push ./Musoq.Converter/bin/Release/$(ls -1t|head -n 1) -s https://api.nuget.org/v3/index.json -k ${{ secrets.GITHUB_TOKEN }}
+        $name=Get-ChildItem -Path $path -File | Select-Object -First 1 | Select -exp Name
+        dotnet nuget push "./$name" -s https://api.nuget.org/v3/index.json -k ${{ secrets.GITHUB_TOKEN }}
         popd
