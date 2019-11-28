@@ -1,7 +1,7 @@
 ﻿param([String]$project, [String]$apiKey)
 
 $fileName=Get-ChildItem -Path $path -File | Select-Object -First 1 | Select -exp Name
-$text = nuget.exe list Puchaczov | Select-String -Pattern $project | Out-String
+$text = Nuget.exe list Puchaczov | Select-String -Pattern $project | Out-String
 $name,$version = $text.trim().split(" ")
 $publishedFileName = "$name.$version.nupkg"
 
