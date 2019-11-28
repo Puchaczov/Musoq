@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Publish
 
 on: [push]
 
@@ -16,5 +16,18 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.0.100
-    - name: Build & Run tests
-      run: dotnet test --configuration Release
+#    - name: Build & Run tests
+#      run: dotnet test --configuration Release
+#    - name: Pack
+#      run: dotnet pack -c Release Musoq.sln
+    - name: Build
+      run: dotnet build Musoq.sln -c Release
+    - name: Show Directory
+      run: ls ./Musoq.Converter/bin/Release
+    - name: Publish
+      run: |
+        pushd
+        cd ./Musoq.Converter/bin/Release
+        $name=Get-ChildItem -Path $path -File | Select-Object -First 1 | Select -exp Name
+        nuget.exe push "./$name" -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.nuget_musoq_key }} -SkipDuplicate
+        popd
