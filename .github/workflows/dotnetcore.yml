@@ -28,5 +28,5 @@ jobs:
       run: |
         pushd
         cd ./Musoq.Converter/bin/Release
-        ../../Publish.Nuget.ps1 "Musoq.Converter" ${{ secrets.nuget_musoq_key }}
+        ../Publish.Nuget.ps1 "Musoq.Converter" ${{ secrets.nuget_musoq_key }}
         popd
