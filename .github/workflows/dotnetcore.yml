@@ -12,8 +12,8 @@ jobs:
     name: Running tests on ${{ matrix.runs-on }}. 
     steps:
     - uses: actions/checkout@master
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+#    - name: Setup .NET Core
+#      uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.0.100
 #    - name: Build & Run tests
