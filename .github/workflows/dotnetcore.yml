@@ -12,18 +12,10 @@ jobs:
     name: Running tests on ${{ matrix.runs-on }}. 
     steps:
     - uses: actions/checkout@master
-#    - name: Setup .NET Core
-#      uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.0.100
-#    - name: Build & Run tests
-#      run: dotnet test --configuration Release
-#    - name: Pack
-#      run: dotnet pack -c Release Musoq.sln
-    - name: Build
-      run: dotnet build Musoq.sln -c Release
-    - name: Show Directory
-      run: ls ./Musoq.Converter/bin/Release
+    - name: Build & Run tests
+      run: dotnet test --configuration Release
     - name: Publish
       run: |
         $scriptLocationDirectory=(Get-Location).ToString()
