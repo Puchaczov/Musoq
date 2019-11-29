@@ -28,7 +28,8 @@ jobs:
       run: |
         $scriptLocationDirectory=(Get-Location).ToString()
         $scriptLocationFilePath=[System.IO.Path]::Combine($scriptLocationDirectory, "Publish.Nuget.ps1")
+        $nugetExecutable=[System.IO.Path]::Combine($scriptLocationDirectory, "nuget", "nuget.exe")
         pushd
         cd ./Musoq.Converter/bin/Release
-        Invoke-Expression "$scriptLocationFilePath 'Musoq.Converter' '${{ secrets.nuget_musoq_key }}'"
+        Invoke-Expression "$scriptLocationFilePath $nugetExecutable 'Musoq.Converter' '${{ secrets.nuget_musoq_key }}'"
         popd
