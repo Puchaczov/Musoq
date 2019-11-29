@@ -12,8 +12,8 @@ jobs:
     name: Running tests on ${{ matrix.runs-on }}. 
     steps:
     - uses: actions/checkout@master
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+#    - name: Setup .NET Core
+#      uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.0.100
 #    - name: Build & Run tests
@@ -26,8 +26,9 @@ jobs:
       run: ls ./Musoq.Converter/bin/Release
     - name: Publish
       run: |
+        $scriptLocationDirectory=(Get-Location).ToString()
+        $scriptLocationFilePath=[System.IO.Path]::Combine($scriptLocationDirectory, "Publish.Nuget.ps1")
         pushd
         cd ./Musoq.Converter/bin/Release
-        $name=Get-ChildItem -Path $path -File | Select-Object -First 1 | Select -exp Name
-        nuget.exe push "./$name" -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.nuget_musoq_key }} -SkipDuplicate
+        Invoke-Expression "$scriptLocationFilePath 'Musoq.Converter' '${{ secrets.nuget_musoq_key }}'"
         popd
