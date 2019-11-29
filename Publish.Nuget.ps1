@@ -6,7 +6,7 @@ $name,$version = $text.trim().split(" ")
 $publishedFileName = "$name.$version.nupkg"
 
 if ($fileName -ne $publishedFileName){
-	echo "Publishing $publishedFileName...";
+	echo "Publishing $fileName...";
 	Invoke-Expression "$nuget push './$fileName' -Source https://api.nuget.org/v3/index.json -ApiKey $apiKey"
 	echo "done."
 }
