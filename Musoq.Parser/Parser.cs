@@ -7,7 +7,7 @@ using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser
 {
-    public class FqlParser
+    public class Parser
     {
         private static readonly TokenType[] SetOperators =
             {TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect};
@@ -28,7 +28,7 @@ namespace Musoq.Parser
                 {TokenType.Dot, (3, Associativity.Left)}
             };
 
-        public FqlParser(Lexer lexer)
+        public Parser(Lexer lexer)
         {
             _lexer = lexer;
         }
@@ -74,6 +74,8 @@ namespace Musoq.Parser
                 case TokenType.Desc:
                     return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeDesc()), TokenType.Semicolon);
                 case TokenType.Select:
+                    return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeSetOps(0)), TokenType.Semicolon);
+                case TokenType.From:
                     return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeSetOps(0)), TokenType.Semicolon);
                 case TokenType.With:
                     return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeCteExpression()), TokenType.Semicolon);
@@ -200,7 +202,9 @@ namespace Musoq.Parser
         private Node ComposeSetOps(int nestingLevel)
         {
             var isSet = false;
-            var query = ComposeQuery();
+
+            QueryNode query = ComposeQuery();
+
             Node node = query;
             while (IsSetOperator(Current.TokenType))
             {
@@ -275,6 +279,18 @@ namespace Musoq.Parser
 
         private QueryNode ComposeQuery()
         {
+            QueryNode query;
+            if (Current.TokenType == TokenType.Select)
+                query = ComposeRegularQuery();
+            else if (Current.TokenType == TokenType.From)
+                query = ComposeReorderedQuery();
+            else
+                throw new NotSupportedException($"Cannot recognize if query is regular or reordered.");
+            return query;
+        }
+
+        private QueryNode ComposeRegularQuery()
+        {
             var selectNode = ComposeSelectNode();
             var fromNode = ComposeFrom();
 
@@ -282,6 +298,19 @@ namespace Musoq.Parser
 
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGrouByNode();
+            var orderBy = ComposeOrderBy();
+            var skip = ComposeSkip();
+            var take = ComposeTake();
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+        }
+
+        private QueryNode ComposeReorderedQuery()
+        {
+            var fromNode = ComposeFrom();
+            fromNode = ComposeJoin(fromNode);
+            var whereNode = ComposeWhere(false);
+            var groupBy = ComposeGrouByNode();
+            var selectNode = ComposeSelectNode();
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
@@ -394,6 +423,7 @@ namespace Musoq.Parser
             } while (!IsSetOperator(Current.TokenType) && Current.TokenType != TokenType.RightParenthesis &&
                      Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having &&
                      Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
+                     Current.TokenType != TokenType.Select &&
                      ConsumeAndGetToken().TokenType == TokenType.Comma);
 
             return fields.ToArray();
@@ -829,21 +859,21 @@ namespace Musoq.Parser
             return ConsumeAndGetToken(Current.TokenType);
         }
 
-        private TNode SkipComposeSkip<TNode>(TokenType pType, Func<FqlParser, TNode> parserAction,
+        private TNode SkipComposeSkip<TNode>(TokenType pType, Func<Parser, TNode> parserAction,
             TokenType aType)
         {
             Consume(pType);
             return ComposeAndSkip(parserAction, aType);
         }
 
-        private TNode ComposeAndSkip<TNode>(Func<FqlParser, TNode> parserAction, TokenType type)
+        private TNode ComposeAndSkip<TNode>(Func<Parser, TNode> parserAction, TokenType type)
         {
             var node = Compose(parserAction);
             Consume(type);
             return node;
         }
 
-        private TNode ComposeAndSkipIfPresent<TNode>(Func<FqlParser, TNode> parserAction, TokenType type)
+        private TNode ComposeAndSkipIfPresent<TNode>(Func<Parser, TNode> parserAction, TokenType type)
         {
             var node = Compose(parserAction);
             if (Current.TokenType == type)
@@ -852,7 +882,7 @@ namespace Musoq.Parser
             return node;
         }
 
-        private TNode Compose<TNode>(Func<FqlParser, TNode> parserAction)
+        private TNode Compose<TNode>(Func<Parser, TNode> parserAction)
         {
             if (parserAction == null)
                 throw new ArgumentNullException(nameof(parserAction));

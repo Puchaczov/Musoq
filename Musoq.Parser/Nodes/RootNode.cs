@@ -4,9 +4,9 @@ namespace Musoq.Parser.Nodes
 {
     public class RootNode : UnaryNode
     {
-        public RootNode(Node expression) : base(expression)
+        public RootNode(Node node) : base(node)
         {
-            Id = $"{nameof(RootNode)}{expression.Id}";
+            Id = $"{nameof(RootNode)}{node.Id}";
         }
 
         public override Type ReturnType => null;

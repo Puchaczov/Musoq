@@ -8,7 +8,7 @@ namespace Musoq.Converter.Build
         public override void Build(BuildItems items)
         {
             var lexer = new Lexer(items.RawQuery, true);
-            var parser = new FqlParser(lexer);
+            var parser = new Parser.Parser(lexer);
 
             items.RawQueryTree = parser.ComposeAll();
 

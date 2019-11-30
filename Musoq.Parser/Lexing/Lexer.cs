@@ -189,7 +189,7 @@ namespace Musoq.Parser.Lexing
         private static class TokenRegexDefinition
         {
             private const string Keyword = @"(?<=[\s]{1,}|^){keyword}(?=[\s]{1,}|$)";
-            public const string Function = @"[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\d]*(?=[\(])";
+            public const string Function = @"[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{0,}[\d]*(?=[\(])";
 
             public static readonly string KAnd = Format(Keyword, AndToken.TokenText);
             public static readonly string KComma = CommaToken.TokenText;

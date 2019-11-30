@@ -657,6 +657,45 @@ namespace Musoq.Evaluator.Tests.Core
         }
 
         [TestMethod]
+        public void ReorderedGroupByWithWhereAndSkipTakeTest()
+        {
+            var query =
+                "from #A.Entities() where Country = 'POLAND' group by Country, City select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' skip 1 take 1";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(4, table.Columns.Count());
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+            Assert.AreEqual("Count(City, 1)", table.Columns.ElementAt(2).ColumnName);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
+            Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).ColumnName);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
+
+            Assert.AreEqual("POLAND", table[0].Values[0]);
+            Assert.AreEqual("CZESTOCHOWA", table[0].Values[1]);
+            Assert.AreEqual(Convert.ToInt32(3), table[0].Values[2]);
+            Assert.AreEqual(Convert.ToInt32(1), table[0].Values[3]);
+        }
+
+        [TestMethod]
         public void GroupWasNotListedTest()
         {
             var query = "select Count(Country) from #A.entities() group by Country";
