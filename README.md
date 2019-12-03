@@ -2,13 +2,13 @@
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 [![Build & Tests](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)
 
-# A Quick Description of Musoq
-Musoq is handy tool that allows you to use SQL syntax on a variety of data sources.
+# What is Musoq?
+Musoq is handy tool that allows to use SQL syntax on a variety of data sources.
 
 ![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
 
-# What is Musoq? (in depth) 
-Musoq exposes raw data sets as queryable sources. This allows you to query those sources using a syntax very similar to SQL. It uses concepts of schemas and tables to logically define your datasources. What can be used as query source? Virtually anything! Here are some ideas (many of them are already included in this project!):
+# Do you want to know more?
+Musoq exposes raw data sets as queryable sources. This allows to search these data sources using SQL syntax variant. What can be used as query source? Virtually anything! Here are some ideas (many of them are already included in the project!):
 
 - Directories
 - Files
@@ -20,7 +20,7 @@ Musoq exposes raw data sets as queryable sources. This allows you to query those
 - Processes
 - Time
 
-You can also mix sources between each other.
+It is possible to mix sources between each other.
 
 ## What does a query look like?
 
@@ -32,10 +32,11 @@ To run it, visit **[Musoq installation page](https://puchaczov.github.io/Musoq/i
 
 ## Does it work on Linux?
 
-Yes, it does. I have tested it on Ubuntu 18.04. If you try to run it on different distro or version, I will be grateful if you would post an issue reporting either success or fail
+Yes, it does work on linux. I have tested it on Ubuntu 18.04. If you try to run it on different distro or version. I will be grateful if you would post an issue reporting either success or fail.
 
 ## What features does it has?
 
+- Optional query reordering (from ... where ... group by ... having ... select ... skip N take N2)
 - Use of `*` to select all columns.
 - Group by operator.
 - Having operator.
@@ -51,102 +52,159 @@ Yes, it does. I have tested it on Ubuntu 18.04. If you try to run it on differen
 - CTE expressions.
 - Desc for schema, schema table constructors and tables.
 - In syntax.
-- Inner join syntax.
-
-## Plugins
-
-Plugins which have been implemented so far include:
-
-| Plugin | Description |
-| ---    | --- |
-| `#Os`       | Exposes operating system tables. One of them are disk and files sources |
-| `#Zip`      | Exposes compressed (.zip) files from the hard disk so that you can decompress files that fits sophisticated conditions. |
-| `#Json`     | Exposes json file as queryable source. |
-| `#Csv`      | Exposes csv file as queryable source. |
-| `#FlatFile` | Exposes FlatFile file as queryable source. |
-| `#Time`     | Exposes time as queryable source. |
-
+- Inner, Left outer, Right outer join syntax.
 
 ## Query examples
 
-- Gets all files from folder that has extension `.exe` or `.png`
-
-      select * from #os.files('path/to/foder', false) where Extension = '.exe' or Extension = '.png'
-      
-- Gets all hours from 7 to 12 (excludingly) for all saturday and sundays from `01.04.2018 00:00:00` to `30.04.2018 00:00:00`
-
-      select DateTime, DayOfWeek + 1 from #time.interval('01.04.2018 00:00:00', '30.04.2018 00:00:00', 'hours') where Hour >= 7 and Hour < 12 and (DayOfWeek + 1 = 6 or DayOfWeek + 1 = 7)
-
-- Shows `.cs` files from folders `some_path_to_dir_1`, `some_path_to_dir_2`, `some_path_to_dir` and their subfolders (uses disk plugin).
-
-      select Name, Sha256File(), CreationTime, Length from #os.directory('some_path_to_dir_1', true)
-      where Extension = '.cs' take 3
-      union all (Name)
-      select Name, Sha256File(), CreationTime, Length from #os.directory('some_path_to_dir_2', true)
-      where Extension = '.cs' take 4
-      union all (Name)
-      select Name, Sha256File(), CreationTime, Length from #os.directory('some_path_to_dir', true)
-      where Extension = '.cs' take 5
-
-- Groups by `Country` and `City`.
-
-      select Country, City, Count(City) from #A.Entities() group by Country, City
-      
-- Accessing complex objects and passing it to method.
-
-      select Inc(Self.Array[2]) from #A.Entities()
-      
-- Compressing files from folder (uses `AggregateFiles` grouping method)
-
-      select Compress(AggregateFiles(), './Results/some_out_name.zip', 'fastest') from #os.directory('./Files', false)
-      
-- Decompresses only those files that fits the condition. Files are extracted to directory `./Results/DecompressWithFilterTest` 
-
-      select Decompress(AggregateFiles(File), './Results/DecompressWithFilterTest') from #zip.file('./Files.zip') 
-      where Level = 1
-     
-- Querying `.json` file.
-
-      select Name, Age from #json.file('./JsonTestFile_First.json', './JsonTestFile_First.schema.json', ' ')
-     
-where schema is defined as: 
-
-    { 
-       "Age": "int",
-       "Name": "string",
-       "Books": [] 
-    }
-    
-and file to be queried is:
-
-    [
-      {
-        "Name": "Aleksander",
-        "Age": 24,
-        "Books": [
-          {
-            "Name": "A"
-          },
-          {
-            "Name" : "B" 
-          }
-        ]
-      },
-      {
-        "Name": "Mikolaj",
-        "Age": 11,
-        "Books": []
-      },
-      {
-        "Name": "Marek",
-        "Age": 45,
-        "Books": []
-      }
-    ]
+#### Get only files that extension is `.png` or `.jpg`
+```
+SELECT 
+	FullName 
+FROM #os.files('C:/Some/Path/To/Dir', true) 
+WHERE Extension = '.png' OR Extension = '.jpg'
+```
+#### equivalent with `in` operator: 
+```
+SELECT 
+	FullName 
+FROM #os.files('C:/Some/Path/To/Dir', true)
+WHERE Extension IN ('.png', '.jpg')
+```
+#### group by directory and show size of each directories
+```
+SELECT
+	DirectoryName,
+	Sum(Length) / 1024 / 1024 as 'MB',
+	Min(Length) as 'Min',
+	Max(Length) as 'Max',
+	Count(FullName) as 'CountOfFiles',
+FROM #os.files('', true)
+GROUP BY DirectoryName
+```
+#### try to find a file that has part `report` in his name:
+```
+SELECT
+	*
+FROM #os.files('', true)
+WHERE Name like '%report%'
+```
+#### try to find a file that has in it's title word that sounds like:
+```
+SELECT 
+	FullName
+FROM #os.files('E:/', true) 
+WHERE 
+	IsAudio() AND 
+	HasWordThatSoundLike(Name, 'material')
+```
+#### get first, last 5 bits from files and consecutive 10 bytes of file with offset of 5 from tail
+```
+SELECT
+	ToHex(Head(5), '|'),
+	ToHex(Tail(5), '|'),
+	ToHex(GetFileBytes(10, 5), '|')
+FROM #os.files('', false)
+```
+#### compare two directories
+```
+WITH filesOfA AS (
+	SELECT 
+		GetRelativeName('E:\DiffDirsTests\A') AS FullName, 
+		Sha256File() AS ShaedFile 
+	FROM #os.files('E:\DiffDirsTests\A', true)
+), filesOfB AS (
+	SELECT 
+		GetRelativeName('E:\DiffDirsTests\B') AS FullName, 
+		Sha256File() AS ShaedFile 
+	FROM #os.files('E:\DiffDirsTests\B', true)
+), inBothDirs AS (
+	SELECT 
+		a.FullName AS FullName, 
+		(
+			CASE WHEN a.ShaedFile = b.ShaedFile 
+			THEN 'The Same' 
+			ELSE 'Modified' 
+			END
+		) AS Status 
+	FROM filesOfA a INNER JOIN filesOfB b ON a.FullName = b.FullName
+), inSourceDir AS (
+	SELECT 
+		a.FullName AS FullName,
+		'Removed' AS Status
+	FROM filesOfA a LEFT OUTER JOIN filesOfB b ON a.FullName = b.FullName
+), inDestinationDir AS (
+	SELECT 
+		b.FullName AS FullName,
+		'Added' AS Status
+	FROM filesOfA a RIGHT OUTER JOIN filesOfB b ON a.FullName = b.FullName
+)
+SELECT 
+	inBoth.FullName AS FullName, 
+	inBoth.Status AS Status 
+FROM inBothDirs inBoth
+UNION (FullName)
+SELECT 
+	inSource.FullName AS FullName, 
+	inSource.Status AS Status 
+FROM inSourceDir inSource
+UNION (FullName)
+SELECT 
+	inDest.FullName AS FullName, 
+	inDest.Status AS Status 
+FROM inDestinationDir inDest
+```
+#### which basically equivalent with build-in plugin is:
+```
+SELECT 
+	(
+		CASE WHEN SourceFile IS NOT NULL 
+		THEN SourceFileRelative 
+		ELSE DestinationFileRelative 
+		END
+	) AS FullName, 
+	(
+		CASE WHEN State = 'TheSame' 
+		THEN 'The Same' 
+		ELSE State 
+		END
+	) AS Status 
+FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
+```
+#### Look for directories contains zip files
+```
+SELECT
+	DirectoryName, 
+	AggregateValues(Name) 
+FROM #os.files('E:/', true) 
+WHERE IsZipArchive() 
+GROUP BY DirectoryName
+```
+#### Look for files greater than 1 gig
+```
+SELECT 
+	FullName 
+FROM #os.files('', true) 
+WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
+```
+#### Tries to read the text from `.png` file through OCR plugin.
+```	
+SELECT 
+	ocr.GetText(file.FullName) as text
+FROM 
+	#os.files('E:/Path/To/Directory', false) file 
+INNER JOIN 
+	#ocr.single() ocr 
+ON 1 = 1 
+WHERE files.Extension = '.png'
+```
+#### Prints the values from 1 to 9
+```
+SELECT Value FROM #system.range(1, 10)
+```
     
 ## How do I know what columns the source has?
 
-There is a built-in way to list all the columns from a source, all plugins supports it out of the box! The command is: `desc #git.commits('path/to/repo')`. 
+There is a built-in way to list all the columns from a source, all plugins supports it out of the box! The command is: `desc #schema.table(someArg1, someArg2)`. 
 
 ## Architecture for plugins
 
