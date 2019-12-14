@@ -25,6 +25,10 @@ It is possible to mix sources between each other.
 ## What does a query look like?
 
   `select * from #os.files('path/to/folder', false) where Extension = '.exe' or Extension = '.png'`
+  
+or through reordered syntax:
+
+  `from #os.files('path/to/folder', false) where Extension = '.exe' or Extension = '.png' select *`
  
 ## How to run it?
 
