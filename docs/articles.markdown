@@ -3,6 +3,46 @@ layout: page
 title: Articles
 permalink: /articles/
 ---
+### Generating ranged IP addresses
+
+Recently I stumbled upon a necessity to generate IP ranged addresses. 
+I was working on allowing developers to use a single self signed certificate across multiple environments we have.
+To do so, while generating certificate, there must be a section `alt_names` that contains IP entries written in such manner
+
+```
+IP.1 = 10.0.12.13
+IP.2 = 10.0.12.14
+...
+IP.N = 10.0.X.Y
+```
+
+It's necessary to add that asteriks (`*`) sign is not allowed in certificate so the only option is to propagate the range we have mentioned before.
+The problem I had was that I couldn't assume developers will have assigned static ip in the future so I had to use pregenerated ranges that I would include into certificate.
+Based on that I introduce how to generate the range using `Musoq`.
+
+Let's look at the query:
+
+```
+select 
+	Replace(
+		Replace(
+			Replace('IP.{X}=10.0.{A}.{B}', '{A}', ToString(r1.Value)), 
+			'{B}', 
+			ToString(r2.Value)), 
+		'{X}', 
+		ToString(RowNumber())) 
+	from 
+		#system.range(0, 256) r1 inner join 
+		#system.range(0, 256) r2 on 1 = 1
+```
+
+and the result it generates:
+
+![image]({{site.baseurl}}/assets/images/ip_ranges.png)
+
+The way how this query works is pretty easy. We just do the cross join of two ranges and for each pair of `r1` and `r2` replace `{A}` and `{B}` from text. The last thing is to just replace `{X}` with the row number.
+That way, we are also able to customize our range with `where` clause. For example we would mark isles that we are focused on `... where r1.Value > 10 and r1.Value <= 20 and r2.Value > 40 and r2.Value <= 50`
+
 ### Analyzing space consumption on partition with Windows and SQL
 
 Once upon a time in my computer… I faced a problem that appears to all of us from time to time. 
