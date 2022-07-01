@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fastenshtein" Version="1.0.0.5" />
+    <PackageReference Include="Fastenshtein" Version="1.0.0.8" />
   </ItemGroup>
 
 </Project>
