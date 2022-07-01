@@ -10,8 +10,8 @@ namespace Musoq.Evaluator.Utils
     {
         private static int _scopeId;
 
-        private readonly Dictionary<string, string> _attributes = new Dictionary<string, string>();
-        private readonly List<Scope> _scopes = new List<Scope>();
+        private readonly Dictionary<string, string> _attributes = new();
+        private readonly List<Scope> _scopes = new();
 
         public Scope(Scope parent, int selfIndex, string name = "")
         {
@@ -74,9 +74,9 @@ namespace Musoq.Evaluator.Utils
             }
         }
 
-        public SymbolTable ScopeSymbolTable { get; } = new SymbolTable();
+        public SymbolTable ScopeSymbolTable { get; } = new();
 
-        public StringBuilder Script { get; } = new StringBuilder();
+        public StringBuilder Script { get; } = new();
 
         public string this[string key]
         {

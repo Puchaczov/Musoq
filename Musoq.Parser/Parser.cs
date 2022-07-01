@@ -18,7 +18,7 @@ namespace Musoq.Parser
         private Token _replacedToken;
 
         private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precDict =
-            new Dictionary<TokenType, (short Precendence, Associativity Associativity)>
+            new()
             {
                 {TokenType.Plus, (1, Associativity.Left)},
                 {TokenType.Hyphen, (1, Associativity.Left)},

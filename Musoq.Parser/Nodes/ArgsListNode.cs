@@ -13,7 +13,7 @@ namespace Musoq.Parser.Nodes
             Id = $"{nameof(ArgsListNode)}{argsId}";
         }
 
-        public static ArgsListNode Empty => new ArgsListNode(new Node[0]);
+        public static ArgsListNode Empty => new(new Node[0]);
 
         public Node[] Args { get; }
 

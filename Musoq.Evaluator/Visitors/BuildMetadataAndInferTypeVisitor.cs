@@ -24,13 +24,13 @@ namespace Musoq.Evaluator.Visitors
     public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     {
         private readonly ISchemaProvider _provider;
-        private readonly List<AccessMethodNode> _refreshMethods = new List<AccessMethodNode>();
-        private readonly List<object> _schemaFromArgs = new List<object>();
-        private readonly List<string> _generatedAliases = new List<string>();
+        private readonly List<AccessMethodNode> _refreshMethods = new();
+        private readonly List<object> _schemaFromArgs = new();
+        private readonly List<string> _generatedAliases = new();
         private readonly IDictionary<string, ISchemaTable> _explicitlyDefinedTables = new Dictionary<string, ISchemaTable>();
         private readonly IDictionary<string, string> _explicitlyCoupledTablesWithAliases = new Dictionary<string, string>();
         private readonly IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases = new Dictionary<string, SchemaMethodFromNode>();
-        private readonly List<FieldNode> _groupByFields = new List<FieldNode>();
+        private readonly List<FieldNode> _groupByFields = new();
 
         private int _setKey;
         private Scope _currentScope;
@@ -39,16 +39,16 @@ namespace Musoq.Evaluator.Visitors
         private string _queryAlias;
         private QueryPart _queryPart;
 
-        private Stack<string> Methods { get; } = new Stack<string>();
+        private Stack<string> Methods { get; } = new();
 
         public BuildMetadataAndInferTypeVisitor(ISchemaProvider provider)
         {
             _provider = provider;
         }
 
-        protected Stack<Node> Nodes { get; } = new Stack<Node>();
+        protected Stack<Node> Nodes { get; } = new();
 
-        public List<Assembly> Assemblies { get; } = new List<Assembly>();
+        public List<Assembly> Assemblies { get; } = new();
         
         public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 

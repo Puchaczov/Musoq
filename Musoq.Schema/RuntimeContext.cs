@@ -19,6 +19,6 @@ namespace Musoq.Schema
             UsedColumns = usedColumns;
         }
 
-        public static RuntimeContext Empty => new RuntimeContext(CancellationToken.None, new ISchemaColumn[0], new ISchemaColumn[0]);
+        public static RuntimeContext Empty => new(CancellationToken.None, new ISchemaColumn[0], new ISchemaColumn[0]);
     }
 }

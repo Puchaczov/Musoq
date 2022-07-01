@@ -22,7 +22,7 @@ namespace Musoq.Schema.Os
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class OsLibrary : LibraryBase
     {
-        private static readonly HashSet<string> IsZipArchiveSet = new HashSet<string>()
+        private static readonly HashSet<string> IsZipArchiveSet = new()
         {
             ".zip",
             ".jar",
@@ -30,7 +30,7 @@ namespace Musoq.Schema.Os
             ".ear"
         };
 
-        private static readonly HashSet<string> IsArchiveSet = new HashSet<string>()
+        private static readonly HashSet<string> IsArchiveSet = new()
         {
             ".7z",
             ".bz2",
@@ -43,7 +43,7 @@ namespace Musoq.Schema.Os
             ".zip"
         };
 
-        private static readonly HashSet<string> IsAudioSet = new HashSet<string>()
+        private static readonly HashSet<string> IsAudioSet = new()
         {
             ".aac",
             ".aiff",
@@ -68,7 +68,7 @@ namespace Musoq.Schema.Os
             ".webm"
         };
 
-        private static readonly HashSet<string> IsBookSet = new HashSet<string>()
+        private static readonly HashSet<string> IsBookSet = new()
         {
             ".azw3",
             ".chm",
@@ -79,7 +79,7 @@ namespace Musoq.Schema.Os
             ".pdf"
         };
 
-        private static readonly HashSet<string> IsDocSet = new HashSet<string>()
+        private static readonly HashSet<string> IsDocSet = new()
         {
             ".accdb",
             ".doc",
@@ -108,7 +108,7 @@ namespace Musoq.Schema.Os
             ".xps"
         };
 
-        private static readonly HashSet<string> IsImageSet = new HashSet<string>()
+        private static readonly HashSet<string> IsImageSet = new()
         {
             ".bmp",
             ".gif",
@@ -128,7 +128,7 @@ namespace Musoq.Schema.Os
             ".svg"
         };
 
-        private static readonly HashSet<string> IsSourceSet = new HashSet<string>()
+        private static readonly HashSet<string> IsSourceSet = new()
         {
             ".asm",
             ".bas",
@@ -168,7 +168,7 @@ namespace Musoq.Schema.Os
             ".vb"
         };
 
-        private static readonly HashSet<string> IsVideoSet = new HashSet<string>()
+        private static readonly HashSet<string> IsVideoSet = new()
         {
             ".3gp",
             ".avi",

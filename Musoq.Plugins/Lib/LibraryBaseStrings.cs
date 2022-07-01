@@ -9,7 +9,7 @@ namespace Musoq.Plugins
 {
     public abstract partial class LibraryBase
     {
-        private readonly Soundex _soundex = new Soundex();
+        private readonly Soundex _soundex = new();
 
         [BindableMethod]
         public string NewId()
@@ -380,7 +380,7 @@ namespace Musoq.Plugins
 
         [BindableMethod]
         public string LongestCommonSubstring(string source, string pattern)
-            => new string(LongestCommonSequence(source, pattern).ToArray());
+            => new(LongestCommonSequence(source, pattern).ToArray());
 
         [BindableMethod]
         public string Replicate(string value, int integer)

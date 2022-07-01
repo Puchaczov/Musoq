@@ -7,7 +7,7 @@ namespace Musoq.Schema.SeparatedValues
     {
         public const string AutoColumnName = "Column{0}";
 
-        private static readonly Regex NonAlphaNumericCharacters = new Regex("[^a-zA-Z0-9 -]");
+        private static readonly Regex NonAlphaNumericCharacters = new("[^a-zA-Z0-9 -]");
 
         public static string MakeHeaderNameValidColumnName(string header)
         {

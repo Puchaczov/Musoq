@@ -18,16 +18,16 @@ namespace Musoq.Evaluator.Tests.Core
                 new List<EntityResolver<string>>(),
                 new List<EntityResolver<string>>
                 {
-                    new EntityResolver<string>("a", null, null),
-                    new EntityResolver<string>("ab", null, null),
-                    new EntityResolver<string>("abc", null, null),
-                    new EntityResolver<string>("abcd", null, null)
+                    new("a", null, null),
+                    new("ab", null, null),
+                    new("abc", null, null),
+                    new("abcd", null, null)
                 },
                 new List<EntityResolver<string>>(),
                 new List<EntityResolver<string>>
                 {
-                    new EntityResolver<string>("x", null, null),
-                    new EntityResolver<string>("xs", null, null)
+                    new("x", null, null),
+                    new("xs", null, null)
                 },
                 new List<EntityResolver<string>>()
             };

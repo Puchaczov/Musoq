@@ -14,10 +14,10 @@ namespace Musoq.Evaluator.Runtime
     {
         private static MetadataReference[] _references;
         private static bool _hasLoadedReferences;
-        private static readonly object LockGuard = new object();
+        private static readonly object LockGuard = new();
         private static Task _loadingTask;
         private static bool _readInProgress;
-        private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
+        private static readonly ManualResetEvent ManualResetEvent = new(false);
 
         public static MetadataReference[] References
         {
