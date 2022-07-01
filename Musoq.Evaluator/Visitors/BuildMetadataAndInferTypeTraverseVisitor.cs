@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Visitors
 {
     public class BuildMetadataAndInferTypeTraverseVisitor : IQueryPartAwareExpressionVisitor
     {
-        private readonly Stack<Scope> _scopes = new Stack<Scope>();
+        private readonly Stack<Scope> _scopes = new();
         private readonly IAwareExpressionVisitor _visitor;
 
         public BuildMetadataAndInferTypeTraverseVisitor(IAwareExpressionVisitor visitor)
@@ -18,7 +18,7 @@ namespace Musoq.Evaluator.Visitors
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         }
 
-        public Scope Scope { get; private set; } = new Scope(null, -1, "Root");
+        public Scope Scope { get; private set; } = new(null, -1, "Root");
 
         public void Visit(SelectNode node)
         {

@@ -17,7 +17,7 @@ namespace Musoq.Schema.DataSources
         private readonly MethodsAggregator _aggregator;
 
         private IDictionary<string, Reflection.ConstructorInfo[]> Constructors { get; } = new Dictionary<string, Reflection.ConstructorInfo[]>();
-        private List<SchemaMethodInfo> ConstructorsMethods { get; } = new List<SchemaMethodInfo>();
+        private List<SchemaMethodInfo> ConstructorsMethods { get; } = new();
         private IDictionary<string, object[]> AdditionalArguments { get; } = new Dictionary<string, object[]>();
 
         protected SchemaBase(string name, MethodsAggregator methodsAggregator)

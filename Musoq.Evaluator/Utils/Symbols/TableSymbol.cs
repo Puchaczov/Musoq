@@ -10,10 +10,9 @@ namespace Musoq.Evaluator.Utils.Symbols
 {
     public class TableSymbol : Symbol
     {
-        private readonly List<string> _orders = new List<string>();
+        private readonly List<string> _orders = new();
 
-        private readonly Dictionary<string, Tuple<ISchema, ISchemaTable>> _tables =
-            new Dictionary<string, Tuple<ISchema, ISchemaTable>>();
+        private readonly Dictionary<string, Tuple<ISchema, ISchemaTable>> _tables = new();
 
         private string _fullTableName;
 

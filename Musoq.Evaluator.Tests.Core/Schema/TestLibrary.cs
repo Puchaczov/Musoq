@@ -7,7 +7,7 @@ namespace Musoq.Evaluator.Tests.Core.Schema
 {
     public class TestLibrary : LibraryBase
     {
-        private readonly Random _random = new Random();
+        private readonly Random _random = new();
 
         [BindableMethod]
         public string Name([InjectSource] BasicEntity entity)

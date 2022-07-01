@@ -5,7 +5,7 @@ namespace Musoq.Evaluator.Utils
 {
     public class SymbolTable
     {
-        private readonly Dictionary<object, Symbol> _symbols = new Dictionary<object, Symbol>();
+        private readonly Dictionary<object, Symbol> _symbols = new();
 
         public void AddSymbol(object key, Symbol symbol)
         {
