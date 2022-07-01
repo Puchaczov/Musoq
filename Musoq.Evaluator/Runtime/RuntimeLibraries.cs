@@ -68,6 +68,11 @@ namespace Musoq.Evaluator.Runtime
 
                         foreach (var file in directories)
                         {
+                            if (file.Name.ToLowerInvariant().Contains("native"))
+                            {
+                                continue;
+                            }
+                            
                             tasks.Add(Task.Factory.StartNew<MetadataReference>(() =>
                             {
                                 try

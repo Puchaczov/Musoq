@@ -51,7 +51,7 @@ namespace Musoq.Evaluator
                         }
                         else
                         {
-                            if (!e.Data.StartsWith("Microsoft.NETCore.App 2.1")) return;
+                            if (!e.Data.StartsWith("Microsoft.NETCore.App 6")) return;
 
                             var text = e.Data;
                             var startIndex = text.IndexOf('[') + 1;

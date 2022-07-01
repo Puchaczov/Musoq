@@ -20,7 +20,10 @@ namespace Musoq.Converter.Build
                 using (var pdbStream = new MemoryStream())
                 {
 #if DEBUG
-                    var result = items.Compilation.Emit(dllStream, pdbStream, options: new Microsoft.CodeAnalysis.Emit.EmitOptions(false, Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb));
+                    var result = items.Compilation.Emit(
+                        dllStream, 
+                        pdbStream, 
+                        options: new Microsoft.CodeAnalysis.Emit.EmitOptions(false, Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb));
 #else
                     var result = items.Compilation.Emit(dllStream, pdbStream);
 #endif
