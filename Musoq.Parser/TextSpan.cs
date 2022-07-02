@@ -9,7 +9,7 @@ namespace Musoq.Parser
     [DebuggerDisplay("Start: {Start}, Length: {Length}, End: {End}")]
     public struct TextSpan
     {
-        public static TextSpan Empty => new TextSpan(0, 0);
+        public static TextSpan Empty => new(0, 0);
 
         /// <summary>
         ///     Initialize instance.

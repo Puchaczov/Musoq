@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using CsvHelper;
+using CsvHelper.Configuration;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 
@@ -89,18 +90,25 @@ namespace Musoq.Schema.SeparatedValues
             var indexToNameMap = new Dictionary<int, string>();
             var endWorkToken = _context.EndWorkToken;
 
+            var modifiedCulture = new CultureInfo(CultureInfo.InvariantCulture.Name)
+            {
+                TextInfo =
+                {
+                    ListSeparator = csvFile.Separator
+                }
+            };
+
             using (var stream = CreateStreamFromFile(file))
             {
                 using (var reader = new StreamReader(stream, Encoding.UTF8))
                 {
                     SkipLines(reader, csvFile);
-
-                    using (var csvReader = new CsvReader(reader))
+                    
+                    using (var csvReader = new CsvReader(reader,  modifiedCulture))
                     {
-                        csvReader.Configuration.Delimiter = csvFile.Separator;
                         csvReader.Read();
 
-                        var header = csvReader.Context.Record;
+                        var header = csvReader.Context.Parser.Record;
 
                         for (var i = 0; i < header.Length; ++i)
                         {
@@ -120,10 +128,8 @@ namespace Musoq.Schema.SeparatedValues
                 {
                     SkipLines(reader, csvFile);
 
-                    using (var csvReader = new CsvReader(reader))
+                    using (var csvReader = new CsvReader(reader, new CsvConfiguration(modifiedCulture) { BadDataFound = _ => {} }))
                     {
-                        csvReader.Configuration.BadDataFound = context => { };
-                        csvReader.Configuration.Delimiter = csvFile.Separator;
 
                         int i = 1, j = 11;
                         var list = new List<EntityResolver<object[]>>(100);
@@ -135,7 +141,7 @@ namespace Musoq.Schema.SeparatedValues
 
                         while (csvReader.Read())
                         {
-                            var rawRow = csvReader.Context.Record;
+                            var rawRow = csvReader.Context.Parser.Record;
                             list.Add(new EntityResolver<object[]>(ParseRecords(rawRow, indexToNameMap), nameToIndexMap, indexToMethodAccess));
 
                             if (i++ < rowsToRead) continue;

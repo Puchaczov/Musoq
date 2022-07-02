@@ -8,7 +8,7 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
-        private readonly Random _rand = new Random();
+        private readonly Random _rand = new();
 
         [BindableMethod]
         public decimal? Abs(decimal? value)

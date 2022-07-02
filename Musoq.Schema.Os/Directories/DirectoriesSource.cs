@@ -17,7 +17,7 @@ namespace Musoq.Schema.Os.Directories
             _communicator = communicator;
             _sources = new DirectorySourceSearchOptions[] 
             {
-                new DirectorySourceSearchOptions(new DirectoryInfo(path).FullName, recursive)
+                new(new DirectoryInfo(path).FullName, recursive)
             };
         }
 

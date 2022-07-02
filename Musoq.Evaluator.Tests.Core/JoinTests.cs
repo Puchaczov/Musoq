@@ -840,7 +840,7 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                     "#C",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 1 }
+                        new("xX") { Id = 1 }
                     }
                 }
             };
@@ -889,14 +889,14 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                     "#B",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 1 }
+                        new("xX") { Id = 1 }
                     }
                 },
                 {
                     "#C",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 1 }
+                        new("xX") { Id = 1 }
                     }
                 }
             };
@@ -946,7 +946,7 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                 {
                     "#B",
                     new BasicEntity[] {
-                        new BasicEntity("xX") { Id = 1 }
+                        new("xX") { Id = 1 }
                     }
                 }
             };
@@ -988,15 +988,15 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                     "#B",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 1 }
+                        new("xX") { Id = 1 }
                     }
                 },
                 {
                     "#C",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 1 },
-                        new BasicEntity("xX") { Id = 2 }
+                        new("xX") { Id = 1 },
+                        new("xX") { Id = 2 }
                     }
                 }
             };
@@ -1049,14 +1049,14 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                     "#B",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 2 }
+                        new("xX") { Id = 2 }
                     }
                 },
                 {
                     "#C",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 3 }
+                        new("xX") { Id = 3 }
                     }
                 }
             };
@@ -1088,14 +1088,14 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                     "#B",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 2 }
+                        new("xX") { Id = 2 }
                     }
                 },
                 {
                     "#C",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 3 }
+                        new("xX") { Id = 3 }
                     }
                 }
             };
@@ -1127,14 +1127,14 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                     "#B",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 2 }
+                        new("xX") { Id = 2 }
                     }
                 },
                 {
                     "#C",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 3 }
+                        new("xX") { Id = 3 }
                     }
                 }
             };
@@ -1166,14 +1166,14 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                     "#B",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 2 }
+                        new("xX") { Id = 2 }
                     }
                 },
                 {
                     "#C",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 3 }
+                        new("xX") { Id = 3 }
                     }
                 }
             };
@@ -1205,14 +1205,14 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
                     "#B",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 2 }
+                        new("xX") { Id = 2 }
                     }
                 },
                 {
                     "#C",
                     new BasicEntity[]
                     {
-                        new BasicEntity("xX") { Id = 3 }
+                        new("xX") { Id = 3 }
                     }
                 }
             };

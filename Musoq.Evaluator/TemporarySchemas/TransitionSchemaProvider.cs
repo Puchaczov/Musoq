@@ -6,7 +6,7 @@ namespace Musoq.Evaluator.TemporarySchemas
     public class TransitionSchemaProvider : ISchemaProvider
     {
         private readonly ISchemaProvider _schemaProvider;
-        private readonly Dictionary<string, ISchema> _transientSchemas = new Dictionary<string, ISchema>();
+        private readonly Dictionary<string, ISchema> _transientSchemas = new();
 
         public TransitionSchemaProvider(ISchemaProvider schema)
         {

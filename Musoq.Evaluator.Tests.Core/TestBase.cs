@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Tests.Core
 {
     public class TestBase
     {
-        protected CancellationTokenSource TokenSource { get; } = new CancellationTokenSource();
+        protected CancellationTokenSource TokenSource { get; } = new();
 
         protected CompiledQuery CreateAndRunVirtualMachine<T>(
             string script,
