@@ -11,7 +11,7 @@ namespace Musoq.Schema.DataSources
         {
             var list = new List<EntityResolver<string>>
             {
-                new EntityResolver<string>(
+                new(
                 string.Empty,
                 new Dictionary<string, int>()
                 {

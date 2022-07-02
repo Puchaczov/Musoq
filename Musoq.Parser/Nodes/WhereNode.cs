@@ -16,7 +16,7 @@ namespace Musoq.Parser.Nodes
 
         public override string Id { get; }
 
-        public static WhereNode Empty => new WhereNode(new PutTrueNode());
+        public static WhereNode Empty => new(new PutTrueNode());
 
         public override void Accept(IExpressionVisitor visitor)
         {

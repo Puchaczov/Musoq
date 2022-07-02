@@ -8,7 +8,7 @@ namespace Musoq.Evaluator.Helpers
 {
     public static class StringHelpers
     {
-        private static readonly Dictionary<string, string> EscapeMapping = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> EscapeMapping = new()
         {
             {"\"", @"\\\"""},
             {"\\\\", @"\\"},
@@ -22,7 +22,7 @@ namespace Musoq.Evaluator.Helpers
             {"\0", @"\0"}
         };
 
-        private static readonly Regex EscapeRegex = new Regex(string.Join("|", EscapeMapping.Keys.ToArray()));
+        private static readonly Regex EscapeRegex = new(string.Join("|", EscapeMapping.Keys.ToArray()));
 
         /// <summary>
         ///     Found here:
@@ -53,7 +53,7 @@ namespace Musoq.Evaluator.Helpers
             return EscapeMapping[Regex.Escape(m.Value)];
         }
 
-        private static readonly object NamespaceIdentifierGuard = new object();
+        private static readonly object NamespaceIdentifierGuard = new();
         private static long _namespaceUniqueId = 0;
 
         public static long GenerateNamespaceIdentifier()

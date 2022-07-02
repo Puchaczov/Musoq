@@ -30,16 +30,16 @@ namespace Musoq.Evaluator.Visitors
 {
     public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     {
-        private readonly Dictionary<string, int> _inMemoryTableIndexes = new Dictionary<string, int>();
-        private readonly List<string> _loadedAssemblies = new List<string>();
+        private readonly Dictionary<string, int> _inMemoryTableIndexes = new();
+        private readonly List<string> _loadedAssemblies = new();
 
-        private readonly List<SyntaxNode> _members = new List<SyntaxNode>();
-        private readonly Stack<string> _methodNames = new Stack<string>();
+        private readonly List<SyntaxNode> _members = new();
+        private readonly Stack<string> _methodNames = new();
 
-        private readonly List<string> _namespaces = new List<string>();
+        private readonly List<string> _namespaces = new();
         private readonly IDictionary<string, int[]> _setOperatorFieldIndexes;
 
-        private readonly Dictionary<string, Type> _typesToInstantiate = new Dictionary<string, Type>();
+        private readonly Dictionary<string, Type> _typesToInstantiate = new();
         private BlockSyntax _emptyBlock;
         private SyntaxNode _groupHaving;
 
@@ -126,8 +126,8 @@ namespace Musoq.Evaluator.Visitors
 
         private Stack<SyntaxNode> Nodes { get; }
 
-        private List<StatementSyntax> Statements { get; } = new List<StatementSyntax>();
-        private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new Stack<SyntaxNode>();
+        private List<StatementSyntax> Statements { get; } = new();
+        private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new();
         private IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
         public void Visit(Node node)

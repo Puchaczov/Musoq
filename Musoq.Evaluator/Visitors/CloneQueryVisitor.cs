@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Visitors
 {
     public class CloneQueryVisitor : IExpressionVisitor
     {
-        protected Stack<Node> Nodes { get; } = new Stack<Node>();
+        protected Stack<Node> Nodes { get; } = new();
 
         public RootNode Root => (RootNode) Nodes.Peek();
 
