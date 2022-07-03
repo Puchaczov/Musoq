@@ -1,0 +1,1 @@
+﻿text inside Directory2/TextFile2.txt
