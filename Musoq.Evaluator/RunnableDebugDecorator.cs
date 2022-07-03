@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;

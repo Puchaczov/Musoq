@@ -1,11 +1,8 @@
 ﻿using Musoq.Schema.DataSources;
 using Musoq.Schema.Os.Files;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Text;
 
 namespace Musoq.Schema.Os.Dlls
 {

@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void GroupByWithParentSumTest()
         {
-            var query = @"select SumIncome(1, Money), SumOutcome(1, Money) from #A.Entities() group by Month, City";
+            var query = @"select SumIncome(Money, 1), SumOutcome(Money, 1) from #A.Entities() group by Month, City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
@@ -87,9 +87,9 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -124,11 +124,11 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(3, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("RowNumber()", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("RowNumber()", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -169,9 +169,9 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -203,9 +203,9 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -239,9 +239,9 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -272,9 +272,9 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -309,13 +309,13 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(4, table.Columns.Count());
-            Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual("Count(City)", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("Count(City)", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
 
             Assert.AreEqual(5, table.Count);
@@ -345,7 +345,7 @@ namespace Musoq.Evaluator.Tests
         public void GroupBySubstrTest()
         {
             var query =
-                @"select Substr(Name, 0, 2), Count(Substr(Name, 0, 2)) from #A.Entities() group by Substr(Name, 0, 2)";
+                @"select Substring(Name, 0, 2), Count(Substring(Name, 0, 2)) from #A.Entities() group by Substring(Name, 0, 2)";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
@@ -365,9 +365,9 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Substr(Name, 0, 2)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Substring(Name, 0, 2)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Count(Substr(Name, 0, 2))", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Count(Substring(Name, 0, 2))", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -406,31 +406,31 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(4, table.Columns.Count());
-            Assert.AreEqual("Name", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("Inc(10)", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Inc(10)", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual("1", table.Columns.ElementAt(3).Name);
-            Assert.AreEqual(typeof(long), table.Columns.ElementAt(3).ColumnType);
+            Assert.AreEqual("1", table.Columns.ElementAt(3).ColumnName);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
 
             Assert.AreEqual(2, table.Count);
             Assert.AreEqual("ABBA", table[0].Values[0]);
             Assert.AreEqual(Convert.ToInt32(3), table[0].Values[1]);
             Assert.AreEqual(Convert.ToDecimal(11), table[0].Values[2]);
-            Assert.AreEqual(Convert.ToInt64(1), table[0].Values[3]);
+            Assert.AreEqual(Convert.ToInt32(1), table[0].Values[3]);
             Assert.AreEqual("BABBA", table[1].Values[0]);
             Assert.AreEqual(Convert.ToInt32(2), table[1].Values[1]);
             Assert.AreEqual(Convert.ToDecimal(11), table[1].Values[2]);
-            Assert.AreEqual(Convert.ToInt64(1), table[1].Values[3]);
+            Assert.AreEqual(Convert.ToInt32(1), table[1].Values[3]);
         }
 
         [TestMethod]
         public void GroupByColumnSubstringTest()
         {
             var query =
-                "select Country, Substr(City, IndexOf(City, ':')) as 'City', Count(City) as 'Count', Sum(Population) as 'Sum' from #A.Entities() group by Substr(City, IndexOf(City, ':')), Country";
+                "select Country, Substring(City, IndexOf(City, ':')) as 'City', Count(City) as 'Count', Sum(Population) as 'Sum' from #A.Entities() group by Substring(City, IndexOf(City, ':')), Country";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -448,13 +448,13 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(4, table.Columns.Count());
-            Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("Count", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Count", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual("Sum", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("Sum", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(3).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -472,7 +472,7 @@ namespace Musoq.Evaluator.Tests
         public void GroupByWithParentCountTest()
         {
             var query =
-                "select Country, City as 'City', ParentCount(1), Count(City) as 'CountOfCities' from #A.Entities() group by Country, City";
+                "select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' from #A.Entities() group by Country, City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -492,13 +492,13 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(4, table.Columns.Count());
-            Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("ParentCount(1)", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Count(City, 1)", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
 
             Assert.AreEqual(5, table.Count);
@@ -529,10 +529,88 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
+        public void GroupByForFakeWindowTest()
+        {
+            var query =
+                "select Window(Population) from #A.Entities() group by 'fake'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Window(Population)", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(IEnumerable<decimal>), table.Columns.ElementAt(0).ColumnType);
+
+            var window = (IEnumerable<decimal>)table[0][0];
+
+            Assert.AreEqual(5, window.Count());
+            Assert.AreEqual(500, window.ElementAt(0));
+            Assert.AreEqual(400, window.ElementAt(1));
+            Assert.AreEqual(250, window.ElementAt(2));
+            Assert.AreEqual(250, window.ElementAt(3));
+            Assert.AreEqual(350, window.ElementAt(4));
+        }
+
+        [TestMethod]
+        public void GroupByForCountriesWideWindowTest()
+        {
+            var query =
+                "select Window(Population) from #A.Entities() group by Country";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("Window(Population)", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(IEnumerable<decimal>), table.Columns.ElementAt(0).ColumnType);
+
+            var window = (IEnumerable<decimal>)table[0][0];
+
+            Assert.AreEqual(3, window.Count());
+            Assert.AreEqual(500, window.ElementAt(0));
+            Assert.AreEqual(400, window.ElementAt(1));
+            Assert.AreEqual(250, window.ElementAt(2));
+
+            window = (IEnumerable<decimal>)table[1][0];
+
+            Assert.AreEqual(2, window.Count());
+            Assert.AreEqual(250, window.ElementAt(0));
+            Assert.AreEqual(350, window.ElementAt(1));
+        }
+
+        [TestMethod]
         public void GroupByWithWhereTest()
         {
             var query =
-                "select Country, City as 'City', ParentCount(1), Count(City) as 'CountOfCities' from #A.Entities() where Country = 'POLAND' group by Country, City";
+                "select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' from #A.Entities() where Country = 'POLAND' group by Country, City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -552,13 +630,13 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(4, table.Columns.Count());
-            Assert.AreEqual("Country", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("City", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-            Assert.AreEqual("ParentCount(1)", table.Columns.ElementAt(2).Name);
+            Assert.AreEqual("Count(City, 1)", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-            Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).Name);
+            Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
 
             Assert.AreEqual(3, table.Count);
@@ -576,6 +654,45 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("KATOWICE", table[2].Values[1]);
             Assert.AreEqual(Convert.ToInt32(3), table[2].Values[2]);
             Assert.AreEqual(Convert.ToInt32(1), table[2].Values[3]);
+        }
+
+        [TestMethod]
+        public void ReorderedGroupByWithWhereAndSkipTakeTest()
+        {
+            var query =
+                "from #A.Entities() where Country = 'POLAND' group by Country, City select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' skip 1 take 1";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                        new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                        new BasicEntity("KATOWICE", "POLAND", 250),
+                        new BasicEntity("BERLIN", "GERMANY", 250),
+                        new BasicEntity("MUNICH", "GERMANY", 350)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(4, table.Columns.Count());
+            Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+            Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+            Assert.AreEqual("Count(City, 1)", table.Columns.ElementAt(2).ColumnName);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
+            Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).ColumnName);
+            Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
+
+            Assert.AreEqual("POLAND", table[0].Values[0]);
+            Assert.AreEqual("CZESTOCHOWA", table[0].Values[1]);
+            Assert.AreEqual(Convert.ToInt32(3), table[0].Values[2]);
+            Assert.AreEqual(Convert.ToInt32(1), table[0].Values[3]);
         }
 
         [TestMethod]
@@ -601,7 +718,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(2, table.Count);
@@ -632,7 +749,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -662,9 +779,9 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -696,9 +813,9 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("RowNumber()", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("RowNumber()", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(5, table.Count);
@@ -743,9 +860,9 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(2, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).Name);
+            Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
 
             Assert.AreEqual(5, table.Count);
@@ -839,6 +956,138 @@ namespace Musoq.Evaluator.Tests
 
             Assert.AreEqual("feb", table[1].Values[0]);
             Assert.AreEqual(100m, table[1].Values[1]);
+        }
+
+        [TestMethod]
+        public void GroupByWithCaseWhenInSelectTest()
+        {
+            var query = @"select (case when Self.Month = 'jan' then 'JANUARY' when Self.Month = 'feb' then 'FEBRUARY' else 'NONE' end) from #A.Entities() group by Self.Month";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
+                        new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
+                        new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("JANUARY", table[0][0]);
+            Assert.AreEqual("FEBRUARY", table[1][0]);
+            Assert.AreEqual("NONE", table[2][0]);
+        }
+
+        [TestMethod]
+        public void GroupByWithCaseWhenAsGroupingResultFunctionTest()
+        {
+            var query = @"select (case when e.Month = e.Month then e.Month else '' end), Count(case when e.Month = e.Month then e.Month else '' end) from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end)";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
+                        new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
+                        new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual("jan", table[0][0]);
+            Assert.AreEqual("feb", table[1][0]);
+            Assert.AreEqual("march", table[2][0]);
+        }
+
+        [TestMethod]
+        public void GroupByWithFieldLinkSyntaxTest()
+        {
+            var query = @"select ::1, Count(::1), ::2 from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
+                        new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
+                        new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual("::1", column.ColumnName);
+            Assert.AreEqual(typeof(string), column.ColumnType);
+            
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual("Count(::1)", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            column = table.Columns.ElementAt(2);
+            Assert.AreEqual("::2", column.ColumnName);
+            Assert.AreEqual(typeof(string), column.ColumnType);
+
+            Assert.AreEqual("jan", table[0][0]);
+            Assert.AreEqual("feb", table[1][0]);
+            Assert.AreEqual("march", table[2][0]);
+        }
+
+        [TestMethod]
+        public void GroupByWithFieldLinkSyntaxAndCustomColumnNamingTest()
+        {
+            var query = @"select ::1 as firstColumn, Count(::1) as secondColumn, ::2 as thirdColumn from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
+                        new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
+                        new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            var column = table.Columns.ElementAt(0);
+            Assert.AreEqual("firstColumn", column.ColumnName);
+            Assert.AreEqual(typeof(string), column.ColumnType);
+
+            column = table.Columns.ElementAt(1);
+            Assert.AreEqual("secondColumn", column.ColumnName);
+            Assert.AreEqual(typeof(int), column.ColumnType);
+
+            column = table.Columns.ElementAt(2);
+            Assert.AreEqual("thirdColumn", column.ColumnName);
+            Assert.AreEqual(typeof(string), column.ColumnType);
+
+            Assert.AreEqual("jan", table[0][0]);
+            Assert.AreEqual("feb", table[1][0]);
+            Assert.AreEqual("march", table[2][0]);
         }
     }
 }

@@ -1,13 +1,9 @@
-﻿using Musoq.Plugins.Attributes;
-using Musoq.Schema.Attributes;
-using Musoq.Schema.DataSources;
+﻿using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Xml.Linq;
 
 namespace Musoq.Schema.Xml
 {

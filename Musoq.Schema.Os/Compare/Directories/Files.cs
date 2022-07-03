@@ -1,7 +1,6 @@
 ﻿using Musoq.Schema.Os.Files;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 
 namespace Musoq.Schema.Os.Compare.Directories
 {

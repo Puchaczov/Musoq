@@ -13,21 +13,21 @@ namespace Musoq.Evaluator.Tests
         public void EnumerateAllTest()
         {
             var tokenSource = new CancellationTokenSource();
-            var readedChunks = new BlockingCollection<IReadOnlyList<EntityResolver<string>>>
+            var readedChunks = new BlockingCollection<IReadOnlyList<IObjectResolver>>
             {
                 new List<EntityResolver<string>>(),
                 new List<EntityResolver<string>>
                 {
-                    new EntityResolver<string>("a", null, null),
-                    new EntityResolver<string>("ab", null, null),
-                    new EntityResolver<string>("abc", null, null),
-                    new EntityResolver<string>("abcd", null, null)
+                    new("a", null, null),
+                    new("ab", null, null),
+                    new("abc", null, null),
+                    new("abcd", null, null)
                 },
                 new List<EntityResolver<string>>(),
                 new List<EntityResolver<string>>
                 {
-                    new EntityResolver<string>("x", null, null),
-                    new EntityResolver<string>("xs", null, null)
+                    new("x", null, null),
+                    new("xs", null, null)
                 },
                 new List<EntityResolver<string>>()
             };
@@ -40,17 +40,17 @@ namespace Musoq.Evaluator.Tests
             tokenSource.Cancel();
 
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("a", enumerator.Current.Context);
+            Assert.AreEqual("a", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("ab", enumerator.Current.Context);
+            Assert.AreEqual("ab", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("abc", enumerator.Current.Context);
+            Assert.AreEqual("abc", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("abcd", enumerator.Current.Context);
+            Assert.AreEqual("abcd", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("x", enumerator.Current.Context);
+            Assert.AreEqual("x", enumerator.Current.Contexts[0]);
             Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("xs", enumerator.Current.Context);
+            Assert.AreEqual("xs", enumerator.Current.Contexts[0]);
             Assert.IsFalse(enumerator.MoveNext());
         }
     }

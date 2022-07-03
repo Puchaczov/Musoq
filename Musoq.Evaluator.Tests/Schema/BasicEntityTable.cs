@@ -1,4 +1,5 @@
-﻿using Musoq.Schema;
+﻿using System.Linq;
+using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Schema
@@ -26,10 +27,17 @@ namespace Musoq.Evaluator.Tests.Schema
                 new SchemaColumn(nameof(BasicEntity.Time), 17,
                     typeof(BasicEntity).GetProperty(nameof(BasicEntity.Time)).PropertyType),
                 new SchemaColumn(nameof(BasicEntity.Id), 18,
-                    typeof(BasicEntity).GetProperty(nameof(BasicEntity.Id)).PropertyType)
+                    typeof(BasicEntity).GetProperty(nameof(BasicEntity.Id)).PropertyType),
+                new SchemaColumn(nameof(BasicEntity.NullableValue), 19,
+                    typeof(BasicEntity).GetProperty(nameof(BasicEntity.NullableValue)).PropertyType)
             };
         }
 
         public ISchemaColumn[] Columns { get; }
+
+        public ISchemaColumn GetColumnByName(string name)
+        {
+            return Columns.SingleOrDefault(col => col.ColumnName == name);
+        }
     }
 }

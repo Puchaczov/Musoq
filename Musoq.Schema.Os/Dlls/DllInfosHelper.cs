@@ -4,9 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Musoq.Schema.DataSources;
-using Musoq.Schema.Os.Dlls;
 
-namespace Musoq.Schema.Os.Files
+namespace Musoq.Schema.Os.Dlls
 {
     public static class DllInfosHelper
     {

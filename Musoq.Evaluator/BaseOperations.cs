@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Musoq.Evaluator.Tables;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator
 {

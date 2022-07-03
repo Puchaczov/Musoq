@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Musoq.Schema
+﻿namespace Musoq.Schema
 {
     public interface IReadOnlyRow
     {

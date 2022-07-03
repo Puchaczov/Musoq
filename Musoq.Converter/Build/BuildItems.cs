@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using Musoq.Evaluator;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 

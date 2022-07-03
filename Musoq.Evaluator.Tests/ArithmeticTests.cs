@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Tests.Schema;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Evaluator.Tests
 {
@@ -116,21 +113,10 @@ namespace Musoq.Evaluator.Tests
             TestMethodTemplate<long>("1 + 2 * 3 * ( 7 * 8 ) - ( 45 - 10 )", 302);
         }
 
-        private void TestMethodTemplate<TResult>(string operation, TResult score)
+        [TestMethod]
+        public void CaseWhenArithmeticExpressionTest()
         {
-            var query = $"select {operation} from #A.Entities()";
-            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                {"#A", new[] {new BasicEntity("ABCAACBA")}}
-            };
-
-            var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
-
-            Assert.AreEqual(1, table.Count);
-            Assert.AreEqual(typeof(TResult), table.Columns.ElementAt(0).ColumnType);
-
-            Assert.AreEqual(score, table[0][0]);
+            TestMethodTemplate<long>("1 + (case when 2 > 1 then 1 else 0 end) - 1", 1);
         }
     }
 }

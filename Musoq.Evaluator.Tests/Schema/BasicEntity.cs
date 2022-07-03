@@ -51,12 +51,17 @@ namespace Musoq.Evaluator.Tests.Schema
         }
 
         public string Month { get; set; }
+
         public string Name { get; set; }
+
         public string Country { get; set; }
 
         public string City { get; set; }
+
         public decimal Population { get; set; }
+
         public decimal Money { get; set; }
+
         public DateTime Time { get; set; }
 
         public BasicEntity Self => this;
@@ -64,6 +69,8 @@ namespace Musoq.Evaluator.Tests.Schema
         public int Id { get; set; }
 
         public int[] Array => new[] {0, 1, 2};
+
+        public int? NullableValue { get; set; }
 
         public override string ToString()
         {

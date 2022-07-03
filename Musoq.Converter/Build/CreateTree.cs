@@ -1,5 +1,4 @@
-﻿using Musoq.Parser;
-using Musoq.Parser.Lexing;
+﻿using Musoq.Parser.Lexing;
 
 namespace Musoq.Converter.Build
 {

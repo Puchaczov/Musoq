@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace Musoq.Schema.Os.Files
+namespace Musoq.Schema.Os.Dlls
 {
     public class DllBasedTable : ISchemaTable
     {

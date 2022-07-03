@@ -1,6 +1,4 @@
-﻿using Musoq.Parser.Tokens;
-
-namespace Musoq.Parser.Lexing
+﻿namespace Musoq.Parser.Tokens
 {
     public class RBracketToken : Token
     {

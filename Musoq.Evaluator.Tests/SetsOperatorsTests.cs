@@ -595,11 +595,11 @@ select Name from #C.Entities()";
         public void MixedSourcesWithSkipExceptUnionWithConditionsScenarioTest()
         {
             var query =
-                @"select Name from #A.Entities() skip 1 where Extension = '.txt'
+                @"select Name from #A.Entities() skip 1
 except (Name)
-select Name from #B.Entities() skip 2 where Extension = '.txt'
+select Name from #B.Entities() skip 2
 union (Name)
-select Name from #C.Entities() skip 3 where Extension = '.txt'";
+select Name from #C.Entities() skip 3";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
@@ -11,7 +10,6 @@ namespace Musoq.Evaluator.Tests.Schema
     {
         private static readonly IDictionary<string, int> TestNameToIndexMap;
         private static readonly IDictionary<int, Func<T, object>> TestIndexToObjectAccessMap;
-        private readonly MethodsAggregator _aggreagator;
         private readonly IEnumerable<T> _sources;
 
         static TestSchema()
@@ -26,7 +24,8 @@ namespace Musoq.Evaluator.Tests.Schema
                 {nameof(BasicEntity.Money), 15},
                 {nameof(BasicEntity.Month), 16},
                 {nameof(BasicEntity.Time), 17},
-                {nameof(BasicEntity.Id), 18}
+                {nameof(BasicEntity.Id), 18},
+                {nameof(BasicEntity.NullableValue), 19}
             };
 
             TestIndexToObjectAccessMap = new Dictionary<int, Func<T, object>>
@@ -39,7 +38,8 @@ namespace Musoq.Evaluator.Tests.Schema
                 {15, arg => arg.Money},
                 {16, arg => arg.Month},
                 {17, arg => arg.Time},
-                {18, arg => arg.Id}
+                {18, arg => arg.Id},
+                {19, arg => arg.NullableValue},
             };
         }
 
@@ -47,6 +47,8 @@ namespace Musoq.Evaluator.Tests.Schema
             : base("test", CreateLibrary())
         {
             _sources = sources;
+            AddSource<EntitySource<T>>("entities", _sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
+            AddTable<BasicEntityTable>("entities");
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -60,16 +62,6 @@ namespace Musoq.Evaluator.Tests.Schema
             methodManager.RegisterLibraries(lib);
 
             return new MethodsAggregator(methodManager, propertiesManager);
-        }
-
-        public override ISchemaTable GetTableByName(string name, string[] parameters)
-        {
-            return new BasicEntityTable();
-        }
-
-        public override RowSource GetRowSource(string name, string[] parameters)
-        {
-            return new EntitySource<T>(_sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
         }
     }
 }

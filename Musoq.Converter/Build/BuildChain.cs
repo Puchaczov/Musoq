@@ -1,6 +1,4 @@
-﻿using Musoq.Converter.Build;
-
-namespace Musoq.Converter
+﻿namespace Musoq.Converter.Build
 {
     public abstract class BuildChain
     {

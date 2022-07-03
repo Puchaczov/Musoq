@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using Musoq.Evaluator.Tables;
-using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;

@@ -31,7 +31,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
             Assert.AreEqual(1, table.Count());
             Assert.AreEqual("WARSAW", table[0].Values[0]);
@@ -60,7 +60,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
             Assert.AreEqual(2, table.Count());
             Assert.AreEqual("WARSAW", table[0].Values[0]);
@@ -90,7 +90,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
             Assert.AreEqual(2, table.Count());
             Assert.AreEqual("KATOWICE", table[0].Values[0]);
@@ -120,7 +120,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
             Assert.AreEqual(2, table.Count());
             Assert.AreEqual("KATOWICE", table[0].Values[0]);
@@ -151,7 +151,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("City", table.Columns.ElementAt(0).Name);
+            Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
             Assert.AreEqual(3, table.Count());
             Assert.AreEqual("KATOWICE", table[0].Values[0]);
