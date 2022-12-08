@@ -1,1 +1,0 @@
-﻿text inside Directory3/TextFile3.txt
