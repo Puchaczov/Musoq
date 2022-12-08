@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Plugins;
-using Musoq.Schema.System;
 using Musoq.Tests.Common;
 
 namespace Musoq.Converter.Tests
@@ -16,13 +16,13 @@ namespace Musoq.Converter.Tests
         {
             var query = "select 1 from #system.dual()";
 
-            var (DllFile, PdbFile) = CreateForStore(query);
+            var (dllFile, pdbFile) = CreateForStore(query);
 
-            Assert.IsNotNull(DllFile);
-            Assert.IsNotNull(PdbFile);
+            Assert.IsNotNull(dllFile);
+            Assert.IsNotNull(pdbFile);
 
-            Assert.AreNotEqual(0, DllFile.Length);
-            Assert.AreNotEqual(0, PdbFile.Length);
+            Assert.AreNotEqual(0, dllFile.Length);
+            Assert.AreNotEqual(0, pdbFile.Length);
         }
 
         [TestMethod]
