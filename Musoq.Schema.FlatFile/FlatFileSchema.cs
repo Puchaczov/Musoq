@@ -7,15 +7,32 @@ using System.Collections.Generic;
 
 namespace Musoq.Schema.FlatFile
 {
+    /// <summary>
+    /// This library allows for reading flat files.
+    /// </summary>
     public class FlatFileSchema : SchemaBase
     {
         private const string SchemaName = "Flat";
 
+        /// <virtual-constructors>
+        /// <virtual-constructor>
+        /// <virtual-param>Path of the given file</virtual-param>
+        /// <examples>
+        /// <example>
+        /// <from>from #flat.file('C:\\Users\\user\\Desktop\\file.log')</from>
+        /// <columns>
+        /// <column name="LineNumber" type="int">Line number of a given file</column>
+        /// <column name="Line" type="string">Line of a given file</column>
+        /// </columns>
+        /// </example>
+        /// </examples>
+        /// </virtual-constructor>
+        /// </virtual-constructors>
         public FlatFileSchema()
             : base(SchemaName, CreateLibrary())
         {
         }
-
+        
         public override ISchemaTable GetTableByName(string name, params object[] parameters)
         {
             switch (name.ToLowerInvariant())

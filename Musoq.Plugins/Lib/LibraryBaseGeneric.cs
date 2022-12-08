@@ -7,6 +7,13 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
+        /// <summary>
+        /// Skips elements from the beginning of the sequence.
+        /// </summary>
+        /// <param name="values">The values</param>
+        /// <param name="skipCount">How many elements to skip</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Elements without the skipped ones</returns>
         [BindableMethod]
         public IEnumerable<T> Skip<T>(IEnumerable<T> values, int skipCount)
         {
@@ -15,7 +22,14 @@ namespace Musoq.Plugins
 
             return values.Skip(skipCount);
         }
-
+        
+        /// <summary>
+        /// Takes elements from the beginning of the sequence.
+        /// </summary>
+        /// <param name="values">The values</param>
+        /// <param name="takeCount">How many elements to skip</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Only taken ones elements</returns>
         [BindableMethod]
         public IEnumerable<T> Take<T>(IEnumerable<T> values, int takeCount)
         {
@@ -24,7 +38,15 @@ namespace Musoq.Plugins
 
             return values.Take(takeCount);
         }
-
+        
+        /// <summary>
+        /// Skip and takes elements from the beginning of the sequence.
+        /// </summary>
+        /// <param name="values">The values</param>
+        /// <param name="skipCount">How many elements to skip</param>
+        /// <param name="takeCount">How many elements to skip</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Skipped and taken elements</returns>
         [BindableMethod]
         public IEnumerable<T> SkipAndTake<T>(IEnumerable<T> values, int skipCount, int takeCount)
         {
@@ -34,6 +56,12 @@ namespace Musoq.Plugins
             return values.Skip(skipCount).Take(takeCount);
         }
 
+        /// <summary>
+        /// Turn IEnumerable into array.
+        /// </summary>
+        /// <param name="values">The values</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Array of specific type</returns>
         [BindableMethod]
         public T[] ToArray<T>(IEnumerable<T> values)
         {
@@ -43,6 +71,13 @@ namespace Musoq.Plugins
             return values.ToArray();
         }
 
+        /// <summary>
+        /// Computes longest common sequence of two given sequences 
+        /// </summary>
+        /// <param name="source">The source</param>
+        /// <param name="pattern">The pattern</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Longest common subsequence of two sequences</returns>
         [BindableMethod]
         public IEnumerable<T> LongestCommonSequence<T>(IEnumerable<T> source, IEnumerable<T> pattern)
             where T : IEquatable<T>
@@ -57,7 +92,7 @@ namespace Musoq.Plugins
             var patternCount = pattern.Count();
 
             var array = new int[sourceCount, patternCount];
-            var maxSubStringSequnce = 0;
+            var maxSubStringSequence = 0;
 
             var subSequence = (IEnumerable<T>)null;
 
@@ -72,10 +107,10 @@ namespace Musoq.Plugins
                     {
                         array[i, j] = (i == 0 || j == 0) ? 1 : array[i - 1, j - 1] + 1;
 
-                        if (array[i, j] > maxSubStringSequnce)
+                        if (array[i, j] > maxSubStringSequence)
                         {
-                            maxSubStringSequnce = array[i, j];
-                            subSequence = source.Skip(i - maxSubStringSequnce + 1).Take(maxSubStringSequnce);
+                            maxSubStringSequence = array[i, j];
+                            subSequence = source.Skip(i - maxSubStringSequence + 1).Take(maxSubStringSequence);
                         }
                     }
                     else
@@ -91,28 +126,13 @@ namespace Musoq.Plugins
             return subSequence;
         }
 
-        [AggregationSetMethod]
-        public void SetWindow<T>([InjectGroup] Group group, string name, T value, int parent = 0)
-        {
-            var parentGroup = GetParentGroup(group, parent);
-
-            if (value == null)
-            {
-                parentGroup.GetOrCreateValue(name, new List<T>());
-                return;
-            }
-
-            var values = parentGroup.GetOrCreateValue(name, () => new List<T>());
-
-            values.Add(value);
-        }
-
-        [AggregationGetMethod]
-        public IEnumerable<T> Window<T>([InjectGroup] Group group, string name)
-        {
-            return group.GetValue<List<T>>(name);
-        }
-
+        /// <summary>
+        /// Gets the element at the specified index in a sequence
+        /// </summary>
+        /// <param name="enumerable">The enumerable</param>
+        /// <param name="index">The index</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Element of a given index</returns>
         [BindableMethod]
         public T GetElementAt<T>(IEnumerable<T> enumerable, int? index)
         {
@@ -125,6 +145,12 @@ namespace Musoq.Plugins
             return enumerable.ElementAtOrDefault(index.Value);
         }
 
+        /// <summary>
+        /// Gets the length of the sequence
+        /// </summary>
+        /// <param name="enumerable">The enumerable</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Length of sequence</returns>
         [BindableMethod]
         public int? Length<T>(IEnumerable<T> enumerable)
         {
@@ -134,6 +160,12 @@ namespace Musoq.Plugins
             return enumerable.Count();
         }
 
+        /// <summary>
+        /// Gets the length of the array
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Length of sequence</returns>
         [BindableMethod]
         public int? Length<T>(T[] array)
         {

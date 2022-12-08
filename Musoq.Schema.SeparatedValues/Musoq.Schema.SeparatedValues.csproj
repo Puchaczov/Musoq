@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Version>1.1</Version>
     <Authors>Jakub Puchała</Authors>
     <Product>Musoq</Product>
@@ -16,6 +16,8 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,11 +39,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj">
-      <Private>false</Private>
       <PrivateAssets>runtime</PrivateAssets>
+      <ExcludeAssets>runtime</ExcludeAssets>
+      <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj">
       <PrivateAssets>runtime</PrivateAssets>
+      <ExcludeAssets>runtime</ExcludeAssets>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

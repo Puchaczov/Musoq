@@ -6,7 +6,9 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,10 +18,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj">
-      <PrivateAssets>runtime</PrivateAssets>
+      <ExcludeAssets>runtime</ExcludeAssets>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj">
+      <ExcludeAssets>runtime</ExcludeAssets>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

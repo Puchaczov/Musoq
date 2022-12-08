@@ -878,7 +878,7 @@ namespace Musoq.Evaluator.Visitors
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
             var schemaTablePair = tableSymbol.GetTableByAlias(alias);
             var canSkipInjectSource = false;
-            if (!schemaTablePair.Schema.TryResolveAggreationMethod(node.Name, groupArgs.ToArray(), out var method))
+            if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), out var method))
             {
                 if (!schemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
                 {
@@ -912,7 +912,7 @@ namespace Musoq.Evaluator.Visitors
                 var setMethodName = $"Set{method.Name}";
                 var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
 
-                if (!schemaTablePair.Schema.TryResolveAggreationMethod(
+                if (!schemaTablePair.Schema.TryResolveAggregationMethod(
                     setMethodName,
                     argTypes,
                     out var setMethod))

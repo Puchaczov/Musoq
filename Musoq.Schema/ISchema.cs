@@ -24,6 +24,6 @@ namespace Musoq.Schema
 
         bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo);
 
-        bool TryResolveAggreationMethod(string method, Type[] parameters, out MethodInfo methodInfo);
+        bool TryResolveAggregationMethod(string method, Type[] parameters, out MethodInfo methodInfo);
     }
 }

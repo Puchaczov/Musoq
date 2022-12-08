@@ -16,7 +16,7 @@ namespace Musoq.Plugins
     /// <summary>
     /// Provides functionality to retrieve a soundex code for a given word.
     /// </summary>
-    public sealed class Soundex
+    internal sealed class Soundex
     {
         /// <summary>
         /// Returns the soundex code for a specified word.
@@ -54,12 +54,12 @@ namespace Musoq.Plugins
                 // Skip this number if the previous letter was a 'H' or a 'W' 
                 // and this number matches the number assigned before that
                 if (soundexCode.Length > 2 && previousWasHorW &&
-                    numberCharForCurrentLetter == soundexCode[soundexCode.Length - 2])
+                    numberCharForCurrentLetter == soundexCode[^2])
                     continue;
 
                 // Skip this number if it was the last added
                 if (soundexCode.Length > 0 &&
-                    numberCharForCurrentLetter == soundexCode[soundexCode.Length - 1])
+                    numberCharForCurrentLetter == soundexCode[^1])
                     continue;
 
                 soundexCode.Append(numberCharForCurrentLetter);

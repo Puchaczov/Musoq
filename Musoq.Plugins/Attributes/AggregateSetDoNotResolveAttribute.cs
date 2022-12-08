@@ -2,7 +2,10 @@
 
 namespace Musoq.Plugins.Attributes
 {
-    public class AggregateSetDoNotResolveAttribute : Attribute
+    /// <summary>
+    /// This attribute is used to mark method as a function that should not be resolved as it's aggregate set method.
+    /// </summary>
+    public sealed class AggregateSetDoNotResolveAttribute : Attribute
     {
     }
 }

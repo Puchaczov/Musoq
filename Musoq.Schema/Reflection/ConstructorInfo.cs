@@ -22,7 +22,7 @@ namespace Musoq.Schema.Reflection
 
         public static ConstructorInfo Empty<T>()
         {
-            return new ConstructorInfo(null, typeof(T), false, new (string, Type)[0]);
+            return new ConstructorInfo(null, typeof(T), false, Array.Empty<(string, Type)>());
         }
     }
 

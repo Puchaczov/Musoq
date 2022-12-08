@@ -7,6 +7,12 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
+        /// <summary>
+        /// Converts given bytes to hex with defined delimiter
+        /// </summary>
+        /// <param name="bytes">The bytes</param>
+        /// <param name="delimiter">The delimiter</param>
+        /// <returns>Hex representation of a given bytes</returns>
         [BindableMethod]
         public string ToHex(byte[] bytes, string delimiter = "")
         {
@@ -24,12 +30,18 @@ namespace Musoq.Plugins
                     hexBuilder.Append(delimiter);
                 }
 
-                hexBuilder.Append(bytes[bytes.Length - 1].ToString("X2"));
+                hexBuilder.Append(bytes[^1].ToString("X2"));
             }
 
             return hexBuilder.ToString();
         }
 
+        /// <summary>
+        /// Converts given bytes to binary with defined delimiter
+        /// </summary>
+        /// <param name="bytes">The bytes</param>
+        /// <param name="delimiter">The delimiter</param>
+        /// <returns>Binary representation of a given bytes</returns>
         [BindableMethod]
         public string ToBin(byte[] bytes, string delimiter = "")
         {
@@ -38,10 +50,10 @@ namespace Musoq.Plugins
 
             var builder = new StringBuilder();
 
-            for (int i = 0; i < bytes.Length; ++i)
+            foreach (var @byte in bytes)
             {
                 var binaryRepresentation = Convert
-                    .ToString(bytes[i], 2)
+                    .ToString(@byte, 2)
                     .PadLeft(8, '0');
 
                 builder.Append(binaryRepresentation);
@@ -51,6 +63,11 @@ namespace Musoq.Plugins
             return builder.ToString();
         }
 
+        /// <summary>
+        /// Converts given value to binary
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Hex representation of a given bytes</returns>
         [BindableMethod]
         public string ToHex<T>(T value) where T : IConvertible
         {
@@ -97,24 +114,44 @@ namespace Musoq.Plugins
             return "CONVERSION_NOT_SUPPORTED";
         }
 
+        /// <summary>
+        /// Converts given value to binary
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Binary representation of a given bytes</returns>
         [BindableMethod]
         public string ToBin<T>(T value) where T : IConvertible
         {
             return ToBase(value, 2);
         }
 
+        /// <summary>
+        /// Converts given value to octal
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Hex representation of a given bytes</returns>
         [BindableMethod]
         public string ToOcta<T>(T value) where T : IConvertible
         {
             return ToBase(value, 8);
         }
 
+        /// <summary>
+        /// Converts given value to decimal
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Decimal representation of a given value</returns>
         [BindableMethod]
         public string ToDec<T>(T value) where T : IConvertible
         {
             return ToBase(value, 10);
         }
 
+        /// <summary>
+        /// Converts given value to decimal
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to decimal value</returns>
         [BindableMethod]
         public decimal? ToDecimal(string value)
         {
@@ -127,6 +164,12 @@ namespace Musoq.Plugins
             return null;
         }
 
+        /// <summary>
+        /// Converts given value to decimal withing given culture
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="culture">The culture</param>
+        /// <returns>Converted to decimal value</returns>
         [BindableMethod]
         public decimal? ToDecimal(string value, string culture)
         {
@@ -136,9 +179,20 @@ namespace Musoq.Plugins
             return null;
         }
 
+        /// <summary>
+        /// Converts given value to TimeSpan
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to TimeSpan value</returns>
         [BindableMethod]
         public TimeSpan? ToTimeSpan(string value) => ToTimeSpan(value, CultureInfo.CurrentCulture.Name);
 
+        /// <summary>
+        /// Converts given value to TimeSpan
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="culture">The culture</param>
+        /// <returns>Converted to TimeSpan value</returns>
         [BindableMethod]
         public TimeSpan? ToTimeSpan(string value, string culture)
         {
@@ -150,10 +204,21 @@ namespace Musoq.Plugins
 
             return result;
         }
-
+        
+        /// <summary>
+        /// Converts given value to DateTime
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to DateTime value</returns>
         [BindableMethod]
         public DateTime? ToDateTime(string value) => ToDateTime(value, CultureInfo.CurrentCulture.Name);
 
+        /// <summary>
+        /// Converts given value to DateTime
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="culture">The culture</param>
+        /// <returns>Converted to DateTime value</returns>
         [BindableMethod]
         public DateTime? ToDateTime(string value, string culture)
         {
@@ -166,12 +231,22 @@ namespace Musoq.Plugins
             return result;
         }
 
+        /// <summary>
+        /// Converts given value to Decimal
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to Decimal value</returns>
         [BindableMethod]
         public decimal? ToDecimal(long? value)
         {
             return value;
         }
 
+        /// <summary>
+        /// Converts given value to Decimal
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to Decimal value</returns>
         [BindableMethod]
         public decimal? ToDecimal(double? value)
         {
@@ -181,6 +256,11 @@ namespace Musoq.Plugins
             return Convert.ToDecimal(value.Value);
         }
 
+        /// <summary>
+        /// Converts given value to Int64
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to Int64 value</returns>
         [BindableMethod]
         public long? ToInt64(string value)
         {
@@ -190,12 +270,22 @@ namespace Musoq.Plugins
             return null;
         }
 
+        /// <summary>
+        /// Converts given value to long
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to long value</returns>
         [BindableMethod]
         public long? ToInt64(long? value)
         {
             return value;
         }
 
+        /// <summary>
+        /// Converts given value to long
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to long value</returns>
         [BindableMethod]
         public long? ToInt64(decimal? value)
         {
@@ -205,6 +295,11 @@ namespace Musoq.Plugins
             return Convert.ToInt64(value.Value);
         }
 
+        /// <summary>
+        /// Converts given value to int
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to int value</returns>
         [BindableMethod]
         public int? ToInt32(string value)
         {
@@ -214,6 +309,11 @@ namespace Musoq.Plugins
             return null;
         }
 
+        /// <summary>
+        /// Converts given value to int
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to int value</returns>
         [BindableMethod]
         public int? ToInt32(long? value)
         {
@@ -223,6 +323,11 @@ namespace Musoq.Plugins
             return Convert.ToInt32(value.Value);
         }
 
+        /// <summary>
+        /// Converts given value to int
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to int value</returns>
         [BindableMethod]
         public int? ToInt32(decimal? value)
         {
@@ -232,6 +337,11 @@ namespace Musoq.Plugins
             return Convert.ToInt32(value.Value);
         }
 
+        /// <summary>
+        /// Converts given value to character
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to character value</returns>
         [BindableMethod]
         public char? ToChar(string value)
         {
@@ -244,6 +354,11 @@ namespace Musoq.Plugins
             return value[0];
         }
 
+        /// <summary>
+        /// Converts given value to character
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to character value</returns>
         [BindableMethod]
         public char? ToChar(int? value)
         {
@@ -253,6 +368,11 @@ namespace Musoq.Plugins
             return (char)value;
         }
 
+        /// <summary>
+        /// Converts given value to character
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to character value</returns>
         [BindableMethod]
         public char? ToChar(short? value)
         {
@@ -262,6 +382,11 @@ namespace Musoq.Plugins
             return (char)value;
         }
 
+        /// <summary>
+        /// Converts given value to character
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to character value</returns>
         [BindableMethod]
         public char? ToChar(byte? value)
         {
@@ -271,106 +396,163 @@ namespace Musoq.Plugins
             return (char)value;
         }
 
+        /// <summary>
+        /// Converts given value to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString(char? character)
+        public string ToString(char? value)
         {
-            if (character == null)
+            if (value == null)
                 return null;
 
-            return character.ToString();
+            return value.ToString();
         }
 
+        /// <summary>
+        /// Converts given value to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString(DateTimeOffset? date)
+        public string ToString(DateTimeOffset? value)
         {
-            return date?.ToString(CultureInfo.CurrentCulture);
+            return value?.ToString(CultureInfo.CurrentCulture);
         }
 
+        /// <summary>
+        /// Converts given value to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to string value</returns>
         [BindableMethod]
         public string ToString(decimal? value)
         {
             return value?.ToString(CultureInfo.CurrentCulture);
         }
 
+        /// <summary>
+        /// Converts given value to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to string value</returns>
         [BindableMethod]
         public string ToString(long? value)
         {
             return value?.ToString(CultureInfo.CurrentCulture);
         }
 
+        /// <summary>
+        /// Converts given value to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString(object obj)
+        public string ToString(object value)
         {
-            if (obj == null)
+            if (value == null)
                 return null;
 
-            return obj?.ToString();
+            return value.ToString();
         }
 
+        /// <summary>
+        /// Converts given value to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString<T>(T obj)
+        public string ToString<T>(T value)
             where T : class
         {
-            if (obj == default(T))
+            if (value == default(T))
                 return null;
 
-            return obj.ToString();
+            return value.ToString();
         }
 
+        /// <summary>
+        /// Converts given value to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString(string[] obj)
+        public string ToString(string[] value)
         {
             var builder = new StringBuilder();
 
-            for (int i = 0; i < obj.Length - 1; ++i)
+            for (int i = 0; i < value.Length - 1; ++i)
             {
-                builder.Append(obj[i]);
+                builder.Append(value[i]);
                 builder.Append(',');
             }
 
-            if (obj.Length > 0)
+            if (value.Length > 0)
             {
-                builder.Append(obj[obj.Length - 1]);
+                builder.Append(value[^1]);
             }
 
             return builder.ToString();
         }
-
+        
+        /// <summary>
+        /// Converts given value to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString<T>(T[] obj)
+        public string ToString<T>(T[] value)
         {
             var builder = new StringBuilder();
 
-            for (int i = 0; i < obj.Length - 1; ++i)
+            for (int i = 0; i < value.Length - 1; ++i)
             {
-                builder.Append(obj[i].ToString());
+                builder.Append(value[i]);
                 builder.Append(',');
             }
 
-            if (obj.Length > 0)
+            if (value.Length > 0)
             {
-                builder.Append(obj[obj.Length - 1].ToString());
+                builder.Append(value[^1]);
             }
 
             return builder.ToString();
         }
-
+        
+        /// <summary>
+        /// Converts given value to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToBase64(byte[] array)
+        public string ToBase64(byte[] value)
         {
-            return Convert.ToBase64String(array, Base64FormattingOptions.None);
+            return Convert.ToBase64String(value, Base64FormattingOptions.None);
         }
 
+        /// <summary>
+        /// Converts given array of bytes to string
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="offset">The offset of bytes</param>
+        /// <param name="length">The length of bytes</param>
+        /// <returns>Converted to base64 value</returns>
         [BindableMethod]
-        public string ToBase64(byte[] array, int offset, int length)
+        public string ToBase64(byte[] value, int offset, int length)
         {
-            return Convert.ToBase64String(array, offset, length, Base64FormattingOptions.None);
+            return Convert.ToBase64String(value, offset, length, Base64FormattingOptions.None);
         }
 
+        /// <summary>
+        /// Converts given string to bytes array
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to base64 value</returns>
         [BindableMethod]
-        public byte[] FromBase64(string base64String)
+        public byte[] FromBase64(string value)
         {
-            return Convert.FromBase64String(base64String);
+            return Convert.FromBase64String(value);
         }
 
         private string ToBase<T>(T value, int baseNumber) where T : IConvertible

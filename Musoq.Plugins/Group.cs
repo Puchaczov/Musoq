@@ -8,7 +8,7 @@ namespace Musoq.Plugins
 #if DEBUG
     [DebuggerDisplay("{Name}")]
 #endif
-    public class Group
+    public sealed class Group
     {
         public Group(Group parent, string[] fieldNames, object[] values)
         {

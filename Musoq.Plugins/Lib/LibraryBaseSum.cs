@@ -4,16 +4,35 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
+        /// <summary>
+        /// Gets the sum value of a given group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <returns>Sum of group</returns>
         [AggregationGetMethod]
         public decimal Sum([InjectGroup] Group group, string name)
             => Sum(group, name, 0);
 
+        /// <summary>
+        /// Gets the sum value of a given group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <returns>Sum of group</returns>
         [AggregationGetMethod]
         public decimal Sum([InjectGroup] Group group, string name, int parent)
         {
             return GetParentGroup(group, parent).GetValue<decimal>(name);
         }
 
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="number">Number that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
         public void SetSum([InjectGroup] Group group, string name, decimal? number, int parent = 0)
         {
@@ -28,6 +47,13 @@ namespace Musoq.Plugins
             parentGroup.SetValue(name, value + number);
         }
 
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="number">Number that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
         public void SetSum([InjectGroup] Group group, string name, long? number, int parent = 0)
         {

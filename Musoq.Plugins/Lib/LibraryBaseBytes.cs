@@ -7,6 +7,11 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
+        /// <summary>
+        /// Gets the bytes from the given string. 
+        /// </summary>
+        /// <param name="content">The string</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(string content)
         {
@@ -16,6 +21,13 @@ namespace Musoq.Plugins
             return Encoding.UTF8.GetBytes(content);
         }
 
+        /// <summary>
+        /// Gets the bytes from the given string within given offset and length. 
+        /// </summary>
+        /// <param name="content">The string</param>
+        /// <param name="length">The length of substring</param>
+        /// <param name="offset">The offset of substring</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(string content, int length, int offset)
         {
@@ -25,6 +37,11 @@ namespace Musoq.Plugins
             return Encoding.UTF8.GetBytes(content.Substring(offset, length));
         }
 
+        /// <summary>
+        /// Gets the bytes from the given character. 
+        /// </summary>
+        /// <param name="character">The character to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(char? character)
         {
@@ -34,6 +51,11 @@ namespace Musoq.Plugins
             return BitConverter.GetBytes(character.Value);
         }
 
+        /// <summary>
+        /// Gets the bytes from the given boolean. 
+        /// </summary>
+        /// <param name="bit">The boolean to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(bool? bit)
         {
@@ -43,6 +65,11 @@ namespace Musoq.Plugins
             return BitConverter.GetBytes(bit.Value);
         }
 
+        /// <summary>
+        /// Gets the bytes from the given long. 
+        /// </summary>
+        /// <param name="value">The long to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(long? value)
         {
@@ -52,6 +79,11 @@ namespace Musoq.Plugins
             return BitConverter.GetBytes(value.Value);
         }
 
+        /// <summary>
+        /// Gets the bytes from the given int. 
+        /// </summary>
+        /// <param name="value">The int to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(int? value)
         {
@@ -61,6 +93,11 @@ namespace Musoq.Plugins
             return BitConverter.GetBytes(value.Value);
         }
 
+        /// <summary>
+        /// Gets the bytes from the given short. 
+        /// </summary>
+        /// <param name="value">The short to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(short? value)
         {
@@ -70,6 +107,11 @@ namespace Musoq.Plugins
             return BitConverter.GetBytes(value.Value);
         }
 
+        /// <summary>
+        /// Gets the bytes from the given ulong. 
+        /// </summary>
+        /// <param name="value">The ulong to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(ulong? value)
         {
@@ -79,6 +121,11 @@ namespace Musoq.Plugins
             return BitConverter.GetBytes(value.Value);
         }
 
+        /// <summary>
+        /// Gets the bytes from the given ushort. 
+        /// </summary>
+        /// <param name="value">The ushort to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(ushort? value)
         {
@@ -88,6 +135,11 @@ namespace Musoq.Plugins
             return BitConverter.GetBytes(value.Value);
         }
 
+        /// <summary>
+        /// Gets the bytes from the given uint. 
+        /// </summary>
+        /// <param name="value">The uint to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(uint? value)
         {
@@ -97,6 +149,11 @@ namespace Musoq.Plugins
             return BitConverter.GetBytes(value.Value);
         }
 
+        /// <summary>
+        /// Gets the bytes from the given decimal. 
+        /// </summary>
+        /// <param name="value">The decimal to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(decimal? value)
         {
@@ -111,6 +168,11 @@ namespace Musoq.Plugins
             return bytes.ToArray();
         }
 
+        /// <summary>
+        /// Gets the bytes from the given double. 
+        /// </summary>
+        /// <param name="value">The double to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(double? value)
         {
@@ -120,6 +182,11 @@ namespace Musoq.Plugins
             return GetBytes(BitConverter.DoubleToInt64Bits(value.Value));
         }
 
+        /// <summary>
+        /// Gets the bytes from the given float. 
+        /// </summary>
+        /// <param name="value">The float to convert to bytes</param>
+        /// <returns>Bytes of a given content</returns>
         [BindableMethod]
         public byte[] GetBytes(float? value)
         {

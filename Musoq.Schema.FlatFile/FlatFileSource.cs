@@ -26,36 +26,32 @@ namespace Musoq.Schema.FlatFile
             var rowNum = 0;
             var endWorkToken = _communicator.EndWorkToken;
 
-            using (var file = File.OpenRead(_filePath))
+            using var file = File.OpenRead(_filePath);
+            using var reader = new StreamReader(file);
+            var list = new List<EntityResolver<FlatFileEntity>>();
+
+            while (!reader.EndOfStream)
             {
-                using (var reader = new StreamReader(file))
+                var line = reader.ReadLine();
+                var entity = new FlatFileEntity
                 {
-                    var list = new List<EntityResolver<FlatFileEntity>>();
+                    Line = line,
+                    LineNumber = ++rowNum
+                };
 
-                    while (!reader.EndOfStream)
-                    {
-                        var line = reader.ReadLine();
-                        var entity = new FlatFileEntity
-                        {
-                            Line = line,
-                            LineNumber = ++rowNum
-                        };
+                list.Add(new EntityResolver<FlatFileEntity>(entity, FlatFileHelper.FlatNameToIndexMap,
+                    FlatFileHelper.FlatIndexToMethodAccessMap));
 
-                        list.Add(new EntityResolver<FlatFileEntity>(entity, FlatFileHelper.FlatNameToIndexMap,
-                            FlatFileHelper.FlatIndexToMethodAccessMap));
+                if (rowNum <= chunkSize)
+                    continue;
 
-                        if (rowNum <= chunkSize)
-                            continue;
+                rowNum = 0;
+                chunkedSource.Add(list, endWorkToken);
 
-                        rowNum = 0;
-                        chunkedSource.Add(list, endWorkToken);
-
-                        list = new List<EntityResolver<FlatFileEntity>>(chunkSize);
-                    }
-
-                    chunkedSource.Add(list, endWorkToken);
-                }
+                list = new List<EntityResolver<FlatFileEntity>>(chunkSize);
             }
+
+            chunkedSource.Add(list, endWorkToken);
         }
     }
 }

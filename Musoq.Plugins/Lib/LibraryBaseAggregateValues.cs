@@ -8,10 +8,23 @@ namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
+        /// <summary>
+        /// Aggregates values into a single value.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <returns>Aggregated values</returns>
         [AggregationGetMethod]
         public string AggregateValues([InjectGroup] Group group, string name)
             => AggregateValues(group, name, 0);
 
+        /// <summary>
+        /// Aggregates values into a single value.
+        /// </summary>
+        /// <param name="group" injectByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="parent">Which group should be used to retrieve value</param>
+        /// <returns>Aggregated values</returns>
         [AggregationGetMethod]
         public string AggregateValues([InjectGroup] Group group, string name, int parent)
         {
@@ -25,17 +38,31 @@ namespace Musoq.Plugins
                 builder.Append(',');
             }
 
-            builder.Append(list[list.Count - 1]);
+            builder.Append(list[^1]);
 
             return builder.ToString();
         }
 
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
         public void SetAggregateValues([InjectGroup] Group group, string name, string value, int parent = 0)
         {
             AggregateAdd(group, name, value ?? string.Empty, parent);
         }
 
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
         public void SetAggregateValues([InjectGroup] Group group, string name, decimal? value, int parent = 0)
         {
@@ -48,6 +75,13 @@ namespace Musoq.Plugins
             AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
         }
 
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
         public void SetAggregateValues([InjectGroup] Group group, string name, long? value, int parent = 0)
         {
@@ -60,6 +94,13 @@ namespace Musoq.Plugins
             AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
         }
 
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
         public void SetAggregateValues([InjectGroup] Group group, string name, DateTimeOffset? value, int parent = 0)
         {
@@ -71,7 +112,14 @@ namespace Musoq.Plugins
 
             AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
         }
-
+        
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
         public void SetAggregateValues([InjectGroup] Group group, string name, DateTime? value, int parent = 0)
         {
