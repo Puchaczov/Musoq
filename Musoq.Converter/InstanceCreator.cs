@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -40,13 +41,14 @@ namespace Musoq.Converter
             return Task.Factory.StartNew(() => CompileForStore(script, assemblyName, provider));
         }
 
-        public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider)
+        public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
         {
             var items = new BuildItems
             {
                 SchemaProvider = schemaProvider,
                 RawQuery = script,
-                AssemblyName = assemblyName
+                AssemblyName = assemblyName,
+                PositionalEnvironmentVariables = positionalEnvironmentVariables
             };
 
             var compiled = true;
@@ -93,20 +95,16 @@ namespace Musoq.Converter
 
             if (items.DllFile != null && items.DllFile.Length > 0)
             {
-                using (var file = new BinaryWriter(File.Open(assemblyPath, FileMode.Create)))
-                {
-                    if (items.DllFile != null)
-                        file.Write(items.DllFile);
-                }
+                using var file = new BinaryWriter(File.Open(assemblyPath, FileMode.Create));
+                if (items.DllFile != null)
+                    file.Write(items.DllFile);
             }
 
             if (items.PdbFile != null && items.PdbFile.Length > 0)
             {
-                using (var file = new BinaryWriter(File.Open(pdbPath, FileMode.Create)))
-                {
-                    if (items.PdbFile != null)
-                        file.Write(items.PdbFile);
-                }
+                using var file = new BinaryWriter(File.Open(pdbPath, FileMode.Create));
+                if (items.PdbFile != null)
+                    file.Write(items.PdbFile);
             }
 
             if (!compiled && compilationError != null)
@@ -117,9 +115,9 @@ namespace Musoq.Converter
             return new CompiledQuery(runnable);
         }
 
-        public static Task<CompiledQuery> CompileForExecutionAsync(string script, string assemblyName, ISchemaProvider schemaProvider)
+        public static Task<CompiledQuery> CompileForExecutionAsync(string script, string assemblyName, ISchemaProvider schemaProvider, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
         {
-            return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider));
+            return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider, positionalEnvironmentVariables));
         }
 
         private static IRunnable CreateRunnable(BuildItems items, string assemblyPath)
@@ -137,9 +135,17 @@ namespace Musoq.Converter
             var assembly = createAssembly();
 
             var type = assembly.GetType(items.AccessToClassPath);
+            
+            if  (type is null)
+                throw new InvalidOperationException($"Type {items.AccessToClassPath} was not found in assembly {assembly.FullName}.");
 
             var runnable = (IRunnable)Activator.CreateInstance(type);
+            
+            if (runnable is null)
+                throw new InvalidOperationException($"Could not create instance of type {type.FullName}.");
+            
             runnable.Provider = items.SchemaProvider;
+            runnable.PositionalEnvironmentVariables = items.PositionalEnvironmentVariables;
 
             return runnable;
         }

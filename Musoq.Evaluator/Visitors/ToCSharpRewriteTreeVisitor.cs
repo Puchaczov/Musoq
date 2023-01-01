@@ -48,7 +48,8 @@ namespace Musoq.Evaluator.Visitors
 
         private int _inMemoryTableIndex;
         private int _setOperatorMethodIdentifier;
-        private int _caseWhenMethodIndex = 0;
+        private int _caseWhenMethodIndex;
+        private int _schemaFromIndex;
 
         private BlockSyntax _joinBlock;
         private string _queryAlias;
@@ -275,6 +276,33 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("provider"), null),
+                        
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.GenericName(
+                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                .WithTypeArgumentList(
+                                    SyntaxFactory.TypeArgumentList(
+                                        SyntaxFactory.SeparatedList<TypeSyntax>(
+                                            new SyntaxNodeOrToken[]{
+                                                SyntaxFactory.PredefinedType(
+                                                    SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
+                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                SyntaxFactory.GenericName(
+                                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                                    .WithTypeArgumentList(
+                                                        SyntaxFactory.TypeArgumentList(
+                                                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                                new SyntaxNodeOrToken[]{
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))})))})))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
 
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
@@ -1431,7 +1459,18 @@ namespace Musoq.Evaluator.Visitors
                                         SyntaxFactory.SeparatedList(
                                             new []{
                                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(tableInfoVariableName))
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(tableInfoVariableName)),
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.ElementAccessExpression(
+                                                            SyntaxFactory.IdentifierName("positionalEnvironmentVariables"))
+                                                        .WithArgumentList(
+                                                            SyntaxFactory.BracketedArgumentList(
+                                                                SyntaxFactory.SingletonSeparatedList(
+                                                                    SyntaxFactory.Argument(
+                                                                        SyntaxFactory.LiteralExpression(
+                                                                            SyntaxKind.NumericLiteralExpression,
+                                                                            SyntaxFactory.Literal(_schemaFromIndex++))))))
+                                                ),
                                             })))),
                         SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(
@@ -1946,17 +1985,15 @@ namespace Musoq.Evaluator.Visitors
                     {
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
-                            SyntaxTokenList.Create(
-                                new SyntaxToken()),
-                            SyntaxFactory.IdentifierName(nameof(CancellationToken))
-                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxTokenList.Create(new SyntaxToken()),
+                            SyntaxFactory.IdentifierName(nameof(CancellationToken)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("token"), null)
                     })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
-                SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {_methodNames.Pop()}(Provider, token);")),
+                SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, token);")),
                 null);
 
-            var param = SyntaxFactory.PropertyDeclaration(
+            var providerParam = SyntaxFactory.PropertyDeclaration(
                 new SyntaxList<AttributeListSyntax>(),
                 SyntaxFactory.TokenList(
                     SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
@@ -1972,8 +2009,45 @@ namespace Musoq.Evaluator.Visitors
                 null,
                 null);
 
+            var positionalEnvironmentVariablesParam = SyntaxFactory.PropertyDeclaration(
+                new SyntaxList<AttributeListSyntax>(),
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.GenericName(
+                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                    .WithTypeArgumentList(
+                        SyntaxFactory.TypeArgumentList(
+                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                new SyntaxNodeOrToken[]{
+                                    SyntaxFactory.PredefinedType(
+                                        SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
+                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                    SyntaxFactory.GenericName(
+                                            SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                        .WithTypeArgumentList(
+                                            SyntaxFactory.TypeArgumentList(
+                                                SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                    new SyntaxNodeOrToken[]{
+                                                        SyntaxFactory.PredefinedType(
+                                                            SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                        SyntaxFactory.PredefinedType(
+                                                            SyntaxFactory.Token(SyntaxKind.StringKeyword))})))})))
+                    .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                null,
+                SyntaxFactory.Identifier(nameof(IRunnable.PositionalEnvironmentVariables)),
+                SyntaxFactory.AccessorList(
+                    SyntaxFactory.List<AccessorDeclarationSyntax>()
+                        .Add(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))
+                        .Add(SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))),
+                null,
+                null);
+
             _members.Add(method);
-            _members.Add(param);
+            _members.Add(providerParam);
+            _members.Add(positionalEnvironmentVariablesParam);
 
             var inMemoryTables = SyntaxFactory
                 .FieldDeclaration(SyntaxFactory
@@ -1995,7 +2069,7 @@ namespace Musoq.Evaluator.Visitors
 
             _members.Insert(0, inMemoryTables);
 
-            var classDeclaration = Generator.ClassDeclaration(ClassName, new string[0], Accessibility.Public,
+            var classDeclaration = Generator.ClassDeclaration(ClassName, Array.Empty<string>(), Accessibility.Public,
                 DeclarationModifiers.None,
                 null,
                 new SyntaxNode[]
@@ -2049,6 +2123,8 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
                             )));
@@ -2062,6 +2138,8 @@ namespace Musoq.Evaluator.Visitors
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2088,6 +2166,8 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
                         )));
@@ -2101,6 +2181,8 @@ namespace Musoq.Evaluator.Visitors
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2127,6 +2209,8 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
                         )));
@@ -2140,6 +2224,8 @@ namespace Musoq.Evaluator.Visitors
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2166,6 +2252,8 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
                         )));
@@ -2179,6 +2267,8 @@ namespace Musoq.Evaluator.Visitors
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2239,6 +2329,33 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("provider"), null),
+                        
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.GenericName(
+                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                .WithTypeArgumentList(
+                                    SyntaxFactory.TypeArgumentList(
+                                        SyntaxFactory.SeparatedList<TypeSyntax>(
+                                            new SyntaxNodeOrToken[]{
+                                                SyntaxFactory.PredefinedType(
+                                                    SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
+                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                SyntaxFactory.GenericName(
+                                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                                    .WithTypeArgumentList(
+                                                        SyntaxFactory.TypeArgumentList(
+                                                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                                new SyntaxNodeOrToken[]{
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))})))})))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
 
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
@@ -2280,6 +2397,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.SeparatedList(new[]
                             {
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
                             })))));
 
@@ -2301,6 +2419,33 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("provider"), null),
+                        
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.GenericName(
+                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                .WithTypeArgumentList(
+                                    SyntaxFactory.TypeArgumentList(
+                                        SyntaxFactory.SeparatedList<TypeSyntax>(
+                                            new SyntaxNodeOrToken[]{
+                                                SyntaxFactory.PredefinedType(
+                                                    SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
+                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                SyntaxFactory.GenericName(
+                                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                                    .WithTypeArgumentList(
+                                                        SyntaxFactory.TypeArgumentList(
+                                                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                                new SyntaxNodeOrToken[]{
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))})))})))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),                        
 
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
@@ -2335,6 +2480,7 @@ namespace Musoq.Evaluator.Visitors
                             new []
                             {
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
                             }))))));
         }
@@ -2568,8 +2714,42 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.SeparatedList(
                         new []
                         {
-                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("provider")).WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider))),
-                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("token")).WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken)))
+                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("provider"))
+                                .WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider))),
+                            SyntaxFactory.Parameter(
+                                new SyntaxList<AttributeListSyntax>(),
+                                SyntaxTokenList.Create(
+                                    new SyntaxToken()),
+                                SyntaxFactory.GenericName(
+                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                    .WithTypeArgumentList(
+                                        SyntaxFactory.TypeArgumentList(
+                                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                new SyntaxNodeOrToken[]
+                                                {
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
+                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                    SyntaxFactory.GenericName(
+                                                            SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                                        .WithTypeArgumentList(
+                                                            SyntaxFactory.TypeArgumentList(
+                                                                SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                                    new SyntaxNodeOrToken[]
+                                                                    {
+                                                                        SyntaxFactory.PredefinedType(
+                                                                            SyntaxFactory.Token(SyntaxKind
+                                                                                .StringKeyword)),
+                                                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                        SyntaxFactory.PredefinedType(
+                                                                            SyntaxFactory.Token(SyntaxKind
+                                                                                .StringKeyword))
+                                                                    })))
+                                                })))
+                                    .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                                SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
+                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
+                                .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken)))
                         }))).WithBody(
                     SyntaxFactory.Block(
                         SyntaxFactory.SingletonList<StatementSyntax>(

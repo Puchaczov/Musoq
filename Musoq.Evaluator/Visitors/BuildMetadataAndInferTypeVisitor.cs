@@ -33,7 +33,7 @@ namespace Musoq.Evaluator.Visitors
 
         private int _setKey;
         private Scope _currentScope;
-        private FieldNode[] _generatedColumns = new FieldNode[0];
+        private FieldNode[] _generatedColumns = Array.Empty<FieldNode>();
         private string _identifier;
         private string _queryAlias;
         private QueryPart _queryPart;
@@ -334,7 +334,7 @@ namespace Musoq.Evaluator.Visitors
 
             if (candidatesColumns.Length > 0)
             {
-                candidates.Append(candidatesColumns[candidatesColumns.Length - 1].ColumnName);
+                candidates.Append(candidatesColumns[^1].ColumnName);
 
                 throw new UnknownColumnException($"Column '{indetifier}' could not be found. Did you mean to use [{candidates.ToString()}]?");
             }
@@ -478,10 +478,10 @@ namespace Musoq.Evaluator.Visitors
             var schema = _provider.GetSchema(node.Schema);
 
             ISchemaTable table;
-            if(_currentScope.Name != "Desc")
+            if (_currentScope.Name != "Desc")
                 table = schema.GetTableByName(node.Method, _schemaFromArgs.ToArray());
             else
-                table = new DynamicTable(new ISchemaColumn[0]);
+                table = new DynamicTable(Array.Empty<ISchemaColumn>());
 
             _schemaFromArgs.Clear();
 
@@ -961,7 +961,7 @@ namespace Musoq.Evaluator.Visitors
             }
             else
             {
-                accessMethod = func(node.FToken, args, new ArgsListNode(new Node[0]), method, alias, canSkipInjectSource);
+                accessMethod = func(node.FToken, args, new ArgsListNode(Array.Empty<Node>()), method, alias, canSkipInjectSource);
             }
 
             AddAssembly(method.DeclaringType.Assembly);

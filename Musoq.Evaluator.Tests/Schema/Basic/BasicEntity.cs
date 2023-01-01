@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Musoq.Evaluator.Tests.Schema
+namespace Musoq.Evaluator.Tests.Schema.Basic
 {
     public class BasicEntity
     {

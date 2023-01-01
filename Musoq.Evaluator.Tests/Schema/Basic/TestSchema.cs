@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
-namespace Musoq.Evaluator.Tests.Schema
+namespace Musoq.Evaluator.Tests.Schema.Basic
 {
     public class TestSchema<T> : SchemaBase
         where T : BasicEntity

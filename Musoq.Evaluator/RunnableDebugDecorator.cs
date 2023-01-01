@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
@@ -20,6 +21,12 @@ namespace Musoq.Evaluator
         {
             get => _runnable.Provider;
             set => _runnable.Provider = value;
+        }
+
+        public IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables
+        {
+            get => _runnable.PositionalEnvironmentVariables;
+            set => _runnable.PositionalEnvironmentVariables = value;
         }
 
         public Table Run(CancellationToken token)

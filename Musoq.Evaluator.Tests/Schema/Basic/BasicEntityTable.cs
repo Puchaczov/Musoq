@@ -2,7 +2,7 @@
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
-namespace Musoq.Evaluator.Tests.Schema
+namespace Musoq.Evaluator.Tests.Schema.Basic
 {
     public class BasicEntityTable : ISchemaTable
     {

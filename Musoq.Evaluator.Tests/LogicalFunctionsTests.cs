@@ -1,9 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests
 {
     [TestClass]
-    public class LogicalFunctionsTests : TestBase
+    public class LogicalFunctionsTests : BasicEntityTestBase
     {
         [TestMethod]
         public void IfFunctionTrueTest()

@@ -2,11 +2,12 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema;
+using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests
 {
     [TestClass]
-    public class CteTests : TestBase
+    public class CteTests : BasicEntityTestBase
     {
         [TestMethod]
         public void SimpleCteTest()

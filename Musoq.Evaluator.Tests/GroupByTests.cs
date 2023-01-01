@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema;
+using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests
 {
     [TestClass]
-    public class GroupByTests : TestBase
+    public class GroupByTests : BasicEntityTestBase
     {
         [TestMethod]
         public void GroupByWithParentSumTest()

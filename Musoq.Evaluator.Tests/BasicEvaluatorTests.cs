@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Evaluator.Tests.Schema;
+using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests
 {
     [TestClass]
-    public class BasicEvaluatorTests : TestBase
+    public class BasicEvaluatorTests : BasicEntityTestBase
     {
         [TestMethod]
         public void SimpleVNextTest()
@@ -58,7 +58,9 @@ namespace Musoq.Evaluator.Tests
                     "#A",
                     new[]
                     {
-                        new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
+                        new BasicEntity("ABCAACBA"), 
+                        new BasicEntity("AAeqwgQEW"), 
+                        new BasicEntity("XXX"),
                         new BasicEntity("dadsqqAA")
                     }
                 }
@@ -1046,7 +1048,7 @@ namespace Musoq.Evaluator.Tests
             Assert.IsTrue(table.Any(row => (string) row[0] == "Name" && (string) row[2] == "System.String"));
             Assert.IsTrue(table.Any(row => (string) row[0] == "City" && (string) row[2] == "System.String"));
             Assert.IsTrue(table.Any(row => (string) row[0] == "Country" && (string) row[2] == "System.String"));
-            Assert.IsTrue(table.Any(row => (string) row[0] == "Self" && (string) row[2] == "Musoq.Evaluator.Tests.Schema.BasicEntity"));
+            Assert.IsTrue(table.Any(row => (string) row[0] == "Self" && (string) row[2] == "Musoq.Evaluator.Tests.Schema.Basic.BasicEntity"));
             Assert.IsTrue(table.Any(row => (string) row[0] == "Money" && (string) row[2] == "System.Decimal"));
             Assert.IsTrue(table.Any(row => (string) row[0] == "Month" && (string) row[2] == "System.String"));
             Assert.IsTrue(table.Any(row => (string) row[0] == "Time" && (string) row[2] == "System.DateTime"));

@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
-namespace Musoq.Evaluator.Tests.Schema
+namespace Musoq.Evaluator.Tests.Schema.Basic
 {
     public class TestLibrary : LibraryBase
     {

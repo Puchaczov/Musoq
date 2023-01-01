@@ -29,6 +29,8 @@ namespace Musoq.Schema.DataSources
             AddTable<SingleRowSchemaTable>("empty");
         }
 
+        public string Name { get; }
+
         public void AddSource<TType>(string name, params object[] args)
         {
             var sourceName = $"{name.ToLowerInvariant()}{SourcePart}";
@@ -40,22 +42,6 @@ namespace Musoq.Schema.DataSources
         {
             AddToConstructors<TType>($"{name.ToLowerInvariant()}{TablePart}");
         }
-
-        private void AddToConstructors<TType>(string name)
-        {
-            var schemaMethodInfos = TypeHelper
-                .GetSchemaMethodInfosForType<TType>(name);
-
-            ConstructorsMethods.AddRange(schemaMethodInfos);
-
-            var schemaMethods = schemaMethodInfos
-                .Select(schemaMethod => schemaMethod.ConstructorInfo)
-                .ToArray();
-
-            Constructors.Add(name, schemaMethods);
-        }
-
-        public string Name { get; }
 
         public virtual ISchemaTable GetTableByName(string name, params object[] parameters)
         {
@@ -133,7 +119,7 @@ namespace Musoq.Schema.DataSources
             return _aggregator.TryResolveRawMethod(method, parameters, out methodInfo);
         }
 
-        protected bool ParamsMatchConstructor(Reflection.ConstructorInfo constructor, object[] parameters)
+        private bool ParamsMatchConstructor(Reflection.ConstructorInfo constructor, object[] parameters)
         {
             bool matchingResult = true;
 
@@ -149,7 +135,7 @@ namespace Musoq.Schema.DataSources
             return matchingResult;
         }
 
-        protected bool TryMatchConstructorWithParams(Reflection.ConstructorInfo[] constructors, object[] parameters, out Reflection.ConstructorInfo foundedConstructor)
+        private bool TryMatchConstructorWithParams(Reflection.ConstructorInfo[] constructors, object[] parameters, out Reflection.ConstructorInfo foundedConstructor)
         {
             foreach(var constructor in constructors)
             {
@@ -162,6 +148,20 @@ namespace Musoq.Schema.DataSources
 
             foundedConstructor = null;
             return false;
+        }
+
+        private void AddToConstructors<TType>(string name)
+        {
+            var schemaMethodInfos = TypeHelper
+                .GetSchemaMethodInfosForType<TType>(name);
+
+            ConstructorsMethods.AddRange(schemaMethodInfos);
+
+            var schemaMethods = schemaMethodInfos
+                .Select(schemaMethod => schemaMethod.ConstructorInfo)
+                .ToArray();
+
+            Constructors.Add(name, schemaMethods);
         }
     }
 }

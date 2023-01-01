@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema;
+using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
@@ -12,7 +14,7 @@ using Musoq.Schema.Reflection;
 namespace Musoq.Evaluator.Tests
 {
     [TestClass]
-    public class PassPrimitiveTypesTests : TestBase
+    public class PassPrimitiveTypesTests : BasicEntityTestBase
     {
         [TestMethod]
         public void GetSchemaTableAndRowSourcePassedPrimitiveArgumentsTest()
@@ -122,7 +124,7 @@ namespace Musoq.Evaluator.Tests
 
         private class TestTable : ISchemaTable
         {
-            public ISchemaColumn[] Columns => new ISchemaColumn[0];
+            public ISchemaColumn[] Columns => Array.Empty<ISchemaColumn>();
 
             public ISchemaColumn GetColumnByName(string name)
             {
@@ -136,7 +138,10 @@ namespace Musoq.Evaluator.Tests
 
         private CompiledQuery CreateAndRunVirtualMachine(string script, IEnumerable<TestEntity> source, Action<object[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
         {
-            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked));
+            var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
+            environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
+            
+            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked), environmentVariablesMock.Object);
         }
     }
 }

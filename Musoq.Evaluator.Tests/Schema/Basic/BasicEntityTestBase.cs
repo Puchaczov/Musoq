@@ -3,23 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Musoq.Converter;
-using Musoq.Evaluator.Tests.Schema;
 using Musoq.Plugins;
 using Musoq.Tests.Common;
 
-namespace Musoq.Evaluator.Tests
+namespace Musoq.Evaluator.Tests.Schema.Basic
 {
-    public class TestBase
+    public class BasicEntityTestBase
     {
         protected CancellationTokenSource TokenSource { get; } = new();
 
         protected CompiledQuery CreateAndRunVirtualMachine<T>(
             string script,
-            IDictionary<string, IEnumerable<T>> sources)
+            IDictionary<string, IEnumerable<T>> sources,
+            IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
             where T : BasicEntity
         {
-            return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new SchemaProvider<T>(sources));
+            return InstanceCreator.CompileForExecution(
+                script, 
+                Guid.NewGuid().ToString(), 
+                new BasicSchemaProvider<T>(sources),
+                positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
+        }
+
+        private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()
+        {
+            var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
+            environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
+
+            return environmentVariablesMock.Object;
         }
 
         protected void TestMethodTemplate<TResult>(string operation, TResult score)
@@ -39,7 +52,7 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(score, table[0][0]);
         }
 
-        static TestBase()
+        static BasicEntityTestBase()
         {
             new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
 

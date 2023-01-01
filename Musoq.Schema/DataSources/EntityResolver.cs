@@ -9,25 +9,25 @@ namespace Musoq.Schema.DataSources
 #endif
     public class EntityResolver<T> : IObjectResolver
     {
-        private readonly T _entitiy;
+        private readonly T _entity;
         private readonly IDictionary<int, Func<T, object>> _indexToObjectAccessMap;
         private readonly IDictionary<string, int> _nameToIndexMap;
 
         public EntityResolver(T entity, IDictionary<string, int> nameToIndexMap,
             IDictionary<int, Func<T, object>> indexToObjectAccessMap)
         {
-            _entitiy = entity;
+            _entity = entity;
             _nameToIndexMap = nameToIndexMap;
             _indexToObjectAccessMap = indexToObjectAccessMap;
         }
 
-        public object[] Contexts => new object[] { _entitiy };
+        public object[] Contexts => new object[] { _entity };
 
         object IObjectResolver.this[string name]
-            => _indexToObjectAccessMap[_nameToIndexMap[name]](_entitiy);
+            => _indexToObjectAccessMap[_nameToIndexMap[name]](_entity);
 
         object IObjectResolver.this[int index]
-            => _indexToObjectAccessMap[index](_entitiy);
+            => _indexToObjectAccessMap[index](_entity);
 
         public bool HasColumn(string name)
         {
@@ -37,7 +37,7 @@ namespace Musoq.Schema.DataSources
 #if DEBUG
         public string DebugString()
         {
-            return $"{_entitiy.ToString()}";
+            return $"{_entity.ToString()}";
         }
 #endif
     }

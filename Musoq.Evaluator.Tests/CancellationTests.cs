@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema;
+using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests
 {
     [TestClass]
-    public class CancellationTests : TestBase
+    public class CancellationTests : BasicEntityTestBase
     {
         [ExpectedException(typeof(OperationCanceledException))]
         [TestMethod]

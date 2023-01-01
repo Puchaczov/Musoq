@@ -50,6 +50,12 @@ namespace Musoq.Converter.Build
             set => this["SCHEMA_PROVIDER"] = value;
         }
 
+        public IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables
+        {
+            get => (IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>) this["ENVIRONMENT_VARIABLES"];
+            set => this["ENVIRONMENT_VARIABLES"] = value;
+        }
+
         public CSharpCompilation Compilation
         {
             get => (CSharpCompilation) this["COMPILATION"];
