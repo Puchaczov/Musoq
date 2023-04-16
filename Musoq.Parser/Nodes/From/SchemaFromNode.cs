@@ -1,9 +1,21 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes.From
 {
     public class SchemaFromNode : FromNode
     {
-        public SchemaFromNode(string schema, string method, ArgsListNode parameters, string alias)
+        internal SchemaFromNode(string schema, string method, ArgsListNode parameters, string alias)
             : base(alias)
+        {
+            Schema = schema;
+            Method = method;
+            Parameters = parameters;
+            var paramsId = parameters.Id;
+            Id = $"{nameof(SchemaFromNode)}{schema}{method}{paramsId}{Alias}";
+        }
+        
+        public SchemaFromNode(string schema, string method, ArgsListNode parameters, string alias, Type returnType)
+            : base(alias, returnType)
         {
             Schema = schema;
             Method = method;

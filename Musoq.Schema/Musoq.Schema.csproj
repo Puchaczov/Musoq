@@ -21,7 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" >
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj">
       <ExcludeAssets>runtime</ExcludeAssets>
       <Private>false</Private>
     </ProjectReference>

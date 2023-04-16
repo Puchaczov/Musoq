@@ -16,7 +16,7 @@ namespace Musoq.Converter
 {
     public static class InstanceCreator
     {
-        public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider)
+        public static BuildItems CreateForAnalyze(string script, string assemblyName, ISchemaProvider provider)
         {
             var items = new BuildItems
             {
@@ -32,6 +32,13 @@ namespace Musoq.Converter
                     new TurnQueryIntoRunnableCode(null)));
 
             chain.Build(items);
+
+            return items;
+        }
+        
+        public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider)
+        {
+            var items = CreateForAnalyze(script, assemblyName, provider);
 
             return (items.DllFile, items.PdbFile);
         }
@@ -146,6 +153,9 @@ namespace Musoq.Converter
             
             runnable.Provider = items.SchemaProvider;
             runnable.PositionalEnvironmentVariables = items.PositionalEnvironmentVariables;
+            runnable.QueriesInformation =
+                items.UsedColumns.ToDictionary(f => f.Key.Alias,
+                    f => (f.Key, f.Value as IReadOnlyCollection<ISchemaColumn>));
 
             return runnable;
         }

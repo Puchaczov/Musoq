@@ -1,9 +1,22 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes.From
 {
     public class JoinInMemoryWithSourceTableFromNode : FromNode
     {
-        public JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression, JoinType joinType)
+        internal JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression, JoinType joinType)
             : base($"{inMemoryTableAlias}{sourceTable.Alias}")
+        {
+            Id =
+                $"{nameof(JoinInMemoryWithSourceTableFromNode)}{inMemoryTableAlias}{sourceTable.Alias}{expression.ToString()}";
+            InMemoryTableAlias = inMemoryTableAlias;
+            SourceTable = sourceTable;
+            Expression = expression;
+            JoinType = joinType;
+        }
+        
+        public JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression, JoinType joinType, Type returnType)
+            : base($"{inMemoryTableAlias}{sourceTable.Alias}", returnType)
         {
             Id =
                 $"{nameof(JoinInMemoryWithSourceTableFromNode)}{inMemoryTableAlias}{sourceTable.Alias}{expression.ToString()}";

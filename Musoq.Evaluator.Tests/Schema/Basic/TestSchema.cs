@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
     {
         private static readonly IDictionary<string, int> TestNameToIndexMap;
         private static readonly IDictionary<int, Func<T, object>> TestIndexToObjectAccessMap;
-        private readonly IEnumerable<T> _sources;
 
         static TestSchema()
         {
@@ -46,8 +45,7 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
         public TestSchema(IEnumerable<T> sources)
             : base("test", CreateLibrary())
         {
-            _sources = sources;
-            AddSource<EntitySource<T>>("entities", _sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
+            AddSource<EntitySource<T>>("entities", sources, TestNameToIndexMap, TestIndexToObjectAccessMap);
             AddTable<BasicEntityTable>("entities");
         }
 

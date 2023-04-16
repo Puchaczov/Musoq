@@ -1,11 +1,18 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes.From
 {
     public class JoinsNode : FromNode
     {
-        public JoinsNode(JoinFromNode joins)
+        internal JoinsNode(JoinFromNode joins)
             : base(joins.Alias)
+        {
+            Id = $"{nameof(JoinsNode)}{joins.Id}";
+            Joins = joins;
+        }
+        
+        public JoinsNode(JoinFromNode joins, Type returnType)
+            : base(joins.Alias, returnType)
         {
             Id = $"{nameof(JoinsNode)}{joins.Id}";
             Joins = joins;

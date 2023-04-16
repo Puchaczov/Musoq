@@ -61,8 +61,8 @@ namespace Musoq.Schema.DataSources
 
             var methods = GetConstructors(sourceName).Select(c => c.ConstructorInfo).ToArray();
 
-            if (AdditionalArguments.ContainsKey(sourceName))
-                parameters = parameters.ExpandParameters(AdditionalArguments[sourceName]);
+            if (AdditionalArguments.TryGetValue(sourceName, out var argument))
+                parameters = parameters.ExpandParameters(argument);
 
             if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
                 throw new NotSupportedException($"Unrecognized method {name}.");

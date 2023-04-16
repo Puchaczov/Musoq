@@ -9,6 +9,7 @@ using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Visitors
@@ -341,7 +342,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(SchemaFromNode node)
         {
-            Nodes.Push(new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias));
+            Nodes.Push(new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias));
         }
 
         public virtual void Visit(JoinSourcesTableFromNode node)
@@ -353,18 +354,18 @@ namespace Musoq.Evaluator.Visitors
             var exp = Nodes.Pop();
             var right = (FromNode) Nodes.Pop();
             var left = (FromNode) Nodes.Pop();
-            Nodes.Push(new JoinFromNode(left, right, exp, node.JoinType));
+            Nodes.Push(new Parser.JoinFromNode(left, right, exp, node.JoinType));
             _joinedTables.Add(node);
         }
 
         public virtual void Visit(ExpressionFromNode node)
         {
-            Nodes.Push(new ExpressionFromNode((FromNode) Nodes.Pop()));
+            Nodes.Push(new Parser.ExpressionFromNode((FromNode) Nodes.Pop()));
         }
 
         public virtual void Visit(InMemoryTableFromNode node)
         {
-            Nodes.Push(new InMemoryTableFromNode(node.VariableName, node.Alias));
+            Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, node.Alias));
         }
 
         public virtual void Visit(CreateTransformationTableNode node)
@@ -466,8 +467,8 @@ namespace Musoq.Evaluator.Visitors
 
                 var joinedQuery = new InternalQueryNode(
                     new SelectNode(bothForSelect),
-                    new ExpressionFromNode(
-                        new JoinSourcesTableFromNode(
+                    new Parser.ExpressionFromNode(
+                        new Parser.JoinSourcesTableFromNode(
                             current.Source, 
                             current.With,
                             current.Expression, 
@@ -546,8 +547,8 @@ namespace Musoq.Evaluator.Visitors
 
                     joinedQuery = new InternalQueryNode(
                         new SelectNode(bothForSelect),
-                        new ExpressionFromNode(
-                            new JoinInMemoryWithSourceTableFromNode(
+                        new Parser.ExpressionFromNode(
+                            new Parser.JoinInMemoryWithSourceTableFromNode(
                                 current.Source.Alias,
                                 current.With, 
                                 expressionUpdater.Where.Expression,
@@ -581,14 +582,14 @@ namespace Musoq.Evaluator.Visitors
             if (groupBy != null)
             {
                 var nestedFrom = splitNodes.Count > 0
-                    ? new ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
+                    ? new Parser.ExpressionFromNode(new Parser.InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                     : from;
 
-                var splitted = SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
+                var split = SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
                 var refreshMethods = CreateRefreshMethods(usedRefreshMethods);
-                var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(splitted[0], groupBy.Fields)
+                var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(split[0], groupBy.Fields)
                     .Reverse().ToArray());
-                var outSelect = new SelectNode(splitted[1]);
+                var outSelect = new SelectNode(split[1]);
 
                 var scopeCreateTransformingTable = _scope.AddScope("Table");
                 var scopeTransformedQuery = _scope.AddScope("Query");
@@ -655,8 +656,8 @@ namespace Musoq.Evaluator.Visitors
 
                 query = new DetailedQueryNode(
                     outSelect,
-                    new ExpressionFromNode(
-                        new InMemoryGroupedFromNode(returnScore)),
+                    new Parser.ExpressionFromNode(
+                        new Parser.InMemoryGroupedFromNode(returnScore)),
                     null,
                     null,
                     null,
@@ -695,8 +696,8 @@ namespace Musoq.Evaluator.Visitors
                     scopeResultQuery[MetaAttributes.SourceName] = source;
 
                     var newFrom = lastJoinQuery != null
-                        ? new ExpressionFromNode(
-                            new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
+                        ? new Parser.ExpressionFromNode(
+                            new Parser.InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                         : from;
 
                     aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex++);
@@ -721,7 +722,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var exp = Nodes.Pop();
             var from = (FromNode) Nodes.Pop();
-            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
+            Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
         }
 
         public virtual void Visit(InternalQueryNode node)
@@ -811,7 +812,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(JoinsNode node)
         {
-            Nodes.Push(new JoinsNode((JoinFromNode) Nodes.Pop()));
+            Nodes.Push(new Parser.JoinsNode((Parser.JoinFromNode) Nodes.Pop()));
         }
 
         public virtual void Visit(JoinNode node)
@@ -928,7 +929,7 @@ namespace Musoq.Evaluator.Visitors
                 {
                     var subNode = subNodes.Pop();
 
-                    if (subNode is AccessMethodNode aggregateMethod && aggregateMethod.IsAggregateMethod)
+                    if (subNode is AccessMethodNode aggregateMethod && aggregateMethod.IsAggregateMethod())
                     {
                         var subNodeStr = subNode.ToString();
                         if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))

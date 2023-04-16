@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using Musoq.Evaluator.Tables;
+using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator
@@ -27,6 +28,12 @@ namespace Musoq.Evaluator
         {
             get => _runnable.PositionalEnvironmentVariables;
             set => _runnable.PositionalEnvironmentVariables = value;
+        }
+
+        public IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns)> QueriesInformation
+        {
+            get => _runnable.QueriesInformation;
+            set => _runnable.QueriesInformation = value;
         }
 
         public Table Run(CancellationToken token)

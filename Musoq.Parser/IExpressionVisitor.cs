@@ -1,4 +1,5 @@
 ﻿using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Parser
 {

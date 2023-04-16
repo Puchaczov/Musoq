@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis.Emit;
 using Musoq.Converter.Exceptions;
 
 namespace Musoq.Converter.Build

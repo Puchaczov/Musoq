@@ -1,9 +1,18 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes.From
 {
     public class ExpressionFromNode : FromNode
     {
-        public ExpressionFromNode(FromNode from)
+        internal ExpressionFromNode(FromNode from)
             : base(from.Alias)
+        {
+            Expression = from;
+            Id = $"{nameof(ExpressionFromNode)}{from.ToString()}";
+        }
+        
+        public ExpressionFromNode(FromNode from, Type returnType)
+            : base(from.Alias, returnType)
         {
             Expression = from;
             Id = $"{nameof(ExpressionFromNode)}{from.ToString()}";

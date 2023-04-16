@@ -8,6 +8,12 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
     public class TestLibrary : LibraryBase
     {
         private readonly Random _random = new();
+        
+        [BindableMethod]
+        public T DoNothing<T>(T value)
+        {
+            return value;
+        }
 
         [BindableMethod]
         public string Name([InjectSource] BasicEntity entity)

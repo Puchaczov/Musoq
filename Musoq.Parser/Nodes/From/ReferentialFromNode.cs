@@ -1,9 +1,17 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes.From
 {
     public class ReferentialFromNode : FromNode
     {
-        public ReferentialFromNode(string name, string alias)
+        internal ReferentialFromNode(string name, string alias)
             : base(alias)
+        {
+            Name = name;
+        }
+        
+        public ReferentialFromNode(string name, string alias, Type returnType)
+            : base(alias, returnType)
         {
             Name = name;
         }

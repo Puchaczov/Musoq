@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Converter;
+using Musoq.Converter.Build;
 using Musoq.Plugins;
 using Musoq.Tests.Common;
 
@@ -13,6 +14,18 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
     public class BasicEntityTestBase
     {
         protected CancellationTokenSource TokenSource { get; } = new();
+        
+        protected BuildItems CreateBuildItems<T>(
+            string script)
+            where T : BasicEntity
+        {
+            var mock = new Mock<IDictionary<string, IEnumerable<T>>>();
+            mock.Setup(f => f[It.IsAny<string>()]).Returns(new List<T>());
+            return InstanceCreator.CreateForAnalyze(
+                script, 
+                Guid.NewGuid().ToString(), 
+                new BasicSchemaProvider<T>(mock.Object));
+        }
 
         protected CompiledQuery CreateAndRunVirtualMachine<T>(
             string script,

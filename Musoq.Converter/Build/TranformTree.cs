@@ -36,6 +36,7 @@ namespace Musoq.Converter.Build
 
             queryTree.Accept(csharpRewriteTraverser);
 
+            items.UsedColumns = metadataInferer.UsedColumns;
             items.TransformedQueryTree = queryTree;
             items.Compilation = csharpRewriter.Compilation;
             items.AccessToClassPath = csharpRewriter.AccessToClassPath;

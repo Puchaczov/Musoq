@@ -48,7 +48,7 @@ namespace Musoq.Evaluator.Visitors
 
         public override void Visit(AccessMethodNode node)
         {
-            if (node.IsAggregateMethod)
+            if (node.IsAggregateMethod())
             {
                 Nodes.Pop();
 
