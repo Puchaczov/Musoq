@@ -1,9 +1,17 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes.From
 {
     public class InMemoryGroupedFromNode : FromNode
     {
-        public InMemoryGroupedFromNode(string alias)
+        internal InMemoryGroupedFromNode(string alias)
             : base(alias)
+        {
+            Id = $"{nameof(InMemoryTableFromNode)}{Alias}";
+        }
+        
+        public InMemoryGroupedFromNode(string alias, Type returnType)
+            : base(alias, returnType)
         {
             Id = $"{nameof(InMemoryTableFromNode)}{Alias}";
         }

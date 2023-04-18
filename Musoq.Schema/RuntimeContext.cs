@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Schema
 {
@@ -11,14 +13,14 @@ namespace Musoq.Schema
         
         public IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
-        public IReadOnlyCollection<ISchemaColumn> UsedColumns { get; }
+        public (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> Columns, WhereNode WhereNode) QueryInformation { get; }
 
-        public RuntimeContext(CancellationToken endWorkToken, IReadOnlyCollection<ISchemaColumn> originallyInferredColumns, IReadOnlyDictionary<string, string> environmentVariables, IReadOnlyCollection<ISchemaColumn> usedColumns = null)
+        public RuntimeContext(CancellationToken endWorkToken, IReadOnlyCollection<ISchemaColumn> originallyInferredColumns, IReadOnlyDictionary<string, string> environmentVariables, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> Columns, WhereNode WhereNode) queryInformation)
         {
             EndWorkToken = endWorkToken;
             AllColumns = originallyInferredColumns;
             EnvironmentVariables = environmentVariables;
-            UsedColumns = usedColumns;
+            QueryInformation = queryInformation;
         }
     }
 }

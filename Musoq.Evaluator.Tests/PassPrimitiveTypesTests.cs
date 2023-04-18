@@ -76,7 +76,6 @@ namespace Musoq.Evaluator.Tests
 
         private class TestSchema : SchemaBase
         {
-
             private readonly IEnumerable<TestEntity> _entities;
             private readonly Action<object[]> _onGetTableOrRowSource;
             private readonly WhenCheckedParameters _whenChecked;

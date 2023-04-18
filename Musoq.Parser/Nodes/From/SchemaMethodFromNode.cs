@@ -1,9 +1,19 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes.From
 {
     public class SchemaMethodFromNode : FromNode
     {
-        public SchemaMethodFromNode(string schema, string method)
+        internal SchemaMethodFromNode(string schema, string method)
             : base(string.Empty)
+        {
+            Schema = schema;
+            Method = method;
+            Id = $"{nameof(SchemaMethodFromNode)}{schema}{method}";
+        }
+        
+        public SchemaMethodFromNode(string schema, string method, Type returnType)
+            : base(string.Empty, returnType)
         {
             Schema = schema;
             Method = method;

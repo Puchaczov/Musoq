@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser
@@ -297,7 +298,7 @@ namespace Musoq.Parser
             fromNode = ComposeJoin(fromNode);
 
             var whereNode = ComposeWhere(false);
-            var groupBy = ComposeGrouByNode();
+            var groupBy = ComposeGroupByNode();
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
@@ -309,7 +310,7 @@ namespace Musoq.Parser
             var fromNode = ComposeFrom();
             fromNode = ComposeJoin(fromNode);
             var whereNode = ComposeWhere(false);
-            var groupBy = ComposeGrouByNode();
+            var groupBy = ComposeGroupByNode();
             var selectNode = ComposeSelectNode();
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
@@ -382,7 +383,7 @@ namespace Musoq.Parser
             return null;
         }
 
-        private GroupByNode ComposeGrouByNode()
+        private GroupByNode ComposeGroupByNode()
         {
             if (Current.TokenType == TokenType.GroupBy)
             {

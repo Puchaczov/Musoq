@@ -38,6 +38,8 @@ namespace Musoq.Evaluator.Utils.Symbols
         public bool HasAlias { get; }
 
         public string[] CompoundTables => _orders.ToArray();
+        
+        public bool IsCompound => _orders.Count > 1;
 
         public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByColumnName(string column)
         {

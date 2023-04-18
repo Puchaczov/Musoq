@@ -10,13 +10,14 @@ using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
+using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
 namespace Musoq.Converter
 {
     public static class InstanceCreator
     {
-        public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider)
+        public static BuildItems CreateForAnalyze(string script, string assemblyName, ISchemaProvider provider)
         {
             var items = new BuildItems
             {
@@ -32,6 +33,13 @@ namespace Musoq.Converter
                     new TurnQueryIntoRunnableCode(null)));
 
             chain.Build(items);
+
+            return items;
+        }
+        
+        public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider)
+        {
+            var items = CreateForAnalyze(script, assemblyName, provider);
 
             return (items.DllFile, items.PdbFile);
         }
@@ -146,6 +154,19 @@ namespace Musoq.Converter
             
             runnable.Provider = items.SchemaProvider;
             runnable.PositionalEnvironmentVariables = items.PositionalEnvironmentVariables;
+            
+            var usedColumns = items.UsedColumns;
+            var usedWhereNodes = items.UsedWhereNodes;
+
+            if (usedColumns.Count != usedWhereNodes.Count)
+            {
+                throw new InvalidOperationException("Used columns and used where nodes are not equal. This must not happen.");
+            }
+            
+            runnable.QueriesInformation =
+                usedColumns.Join(usedWhereNodes, f => f.Key.Alias, f => f.Key.Alias,
+                    (f, s) => (f.Key, (IReadOnlyCollection<ISchemaColumn>)f.Value, s.Value)
+                ).ToDictionary(f => f.Key.Alias, f => f);
 
             return runnable;
         }

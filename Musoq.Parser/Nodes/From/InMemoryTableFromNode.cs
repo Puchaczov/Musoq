@@ -1,9 +1,17 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes.From
 {
     public class InMemoryTableFromNode : FromNode
     {
-        public InMemoryTableFromNode(string variableName, string alias)
+        internal InMemoryTableFromNode(string variableName, string alias)
             : base(alias)
+        {
+            VariableName = variableName;
+        }
+        
+        public InMemoryTableFromNode(string variableName, string alias, Type returnType)
+            : base(alias, returnType)
         {
             VariableName = variableName;
         }

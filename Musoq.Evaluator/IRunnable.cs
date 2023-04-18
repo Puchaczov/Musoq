@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using Musoq.Evaluator.Tables;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator
@@ -10,6 +12,8 @@ namespace Musoq.Evaluator
         ISchemaProvider Provider { get; set; }
         
         IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables { get; set; }
+        
+        IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode)> QueriesInformation { get; set; }
 
         Table Run(CancellationToken token);
     }

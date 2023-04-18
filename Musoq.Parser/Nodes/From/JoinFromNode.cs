@@ -1,9 +1,20 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes.From
 {
     public class JoinFromNode : FromNode
     {
-        public JoinFromNode(FromNode joinFrom, FromNode from, Node expression, JoinType joinType)
+        internal JoinFromNode(FromNode joinFrom, FromNode from, Node expression, JoinType joinType)
             : base($"{joinFrom.Alias}{from.Alias}")
+        {
+            Source = joinFrom;
+            With = from;
+            Expression = expression;
+            JoinType = joinType;
+        }
+        
+        public JoinFromNode(FromNode joinFrom, FromNode from, Node expression, JoinType joinType, Type returnType)
+            : base($"{joinFrom.Alias}{from.Alias}", returnType)
         {
             Source = joinFrom;
             With = from;

@@ -1,9 +1,18 @@
-﻿namespace Musoq.Parser.Nodes
+﻿using System;
+
+namespace Musoq.Parser.Nodes.From
 {
     public class AliasedFromNode : FromNode
     {
-        public AliasedFromNode(string identifier, ArgsListNode args, string alias)
+        internal AliasedFromNode(string identifier, ArgsListNode args, string alias)
             : base(alias)
+        {
+            Identifier = identifier;
+            Args = args;
+        }
+        
+        public AliasedFromNode(string identifier, ArgsListNode args, string alias, Type returnType)
+            : base(alias, returnType)
         {
             Identifier = identifier;
             Args = args;
