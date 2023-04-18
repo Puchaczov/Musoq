@@ -10,6 +10,7 @@ using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
+using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
 namespace Musoq.Converter
@@ -153,9 +154,19 @@ namespace Musoq.Converter
             
             runnable.Provider = items.SchemaProvider;
             runnable.PositionalEnvironmentVariables = items.PositionalEnvironmentVariables;
+            
+            var usedColumns = items.UsedColumns;
+            var usedWhereNodes = items.UsedWhereNodes;
+
+            if (usedColumns.Count != usedWhereNodes.Count)
+            {
+                throw new InvalidOperationException("Used columns and used where nodes are not equal. This must not happen.");
+            }
+            
             runnable.QueriesInformation =
-                items.UsedColumns.ToDictionary(f => f.Key.Alias,
-                    f => (f.Key, f.Value as IReadOnlyCollection<ISchemaColumn>));
+                usedColumns.Join(usedWhereNodes, f => f.Key.Alias, f => f.Key.Alias,
+                    (f, s) => (f.Key, (IReadOnlyCollection<ISchemaColumn>)f.Value, s.Value)
+                ).ToDictionary(f => f.Key.Alias, f => f);
 
             return runnable;
         }

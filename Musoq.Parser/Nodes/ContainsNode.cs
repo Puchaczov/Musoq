@@ -20,7 +20,7 @@
 
         public override string ToString()
         {
-            return $"{Left.ToString()} contains {Right.ToString()}";
+            return $"{Left.ToString()} contains {ToCompareExpression.ToStringWithBrackets()}";
         }
     }
 }

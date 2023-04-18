@@ -80,5 +80,11 @@ namespace Musoq.Converter.Build
             get => (IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>) this["USED_COLUMNS"];
             set => this["USED_COLUMNS"] = value;
         }
+
+        public IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes
+        {
+            get => (IReadOnlyDictionary<SchemaFromNode, WhereNode>) this["USED_WHERE_NODES"];
+            set => this["USED_WHERE_NODES"] = value;
+        }
     }
 }

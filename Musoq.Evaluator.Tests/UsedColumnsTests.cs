@@ -128,4 +128,28 @@ public class UsedColumnsTests : BasicEntityTestBase
         Assert.AreEqual(1, columnsB.Length);
         Assert.IsTrue(columnsB.Select(f => f.ColumnName).Contains("City"));
     }
+
+    [TestMethod]
+    public void WhenGroupByAndOrderByUsed_ShouldPass()
+    {
+        var query = "select 1 from #A.entities() a inner join #B.entities() b on a.Population = b.Population group by a.City";
+
+        var buildItems = CreateBuildItems<BasicEntity>(query);
+        
+        Assert.AreEqual(2, buildItems.UsedColumns.Count);
+        
+        var columnsA = 
+            buildItems.UsedColumns
+                .Where(f => f.Key.Alias == "a")
+                .Select(f => f.Value).First();
+        
+        Assert.AreEqual(2, columnsA.Length);
+        
+        var columnsB = 
+            buildItems.UsedColumns
+                .Where(f => f.Key.Alias == "b")
+                .Select(f => f.Value).First();
+        
+        Assert.AreEqual(1, columnsB.Length);
+    }
 }

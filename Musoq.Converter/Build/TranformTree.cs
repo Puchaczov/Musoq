@@ -1,6 +1,9 @@
-﻿using Musoq.Evaluator.TemporarySchemas;
+﻿using System.Collections.Generic;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Converter.Build
 {
@@ -37,11 +40,29 @@ namespace Musoq.Converter.Build
             queryTree.Accept(csharpRewriteTraverser);
 
             items.UsedColumns = metadataInferer.UsedColumns;
+            items.UsedWhereNodes = RewriteWhereNodes(metadataInferer.UsedWhereNodes);
             items.TransformedQueryTree = queryTree;
             items.Compilation = csharpRewriter.Compilation;
             items.AccessToClassPath = csharpRewriter.AccessToClassPath;
 
             Successor?.Build(items);
+        }
+
+        private static IReadOnlyDictionary<SchemaFromNode, WhereNode> RewriteWhereNodes(IReadOnlyDictionary<SchemaFromNode, WhereNode> whereNodes)
+        {
+            var result = new Dictionary<SchemaFromNode, WhereNode>();
+            
+            foreach (var whereNode in whereNodes)
+            {
+                var rewriter = new RewriteWhereExpressionToPassItToDataSourceVisitor(whereNode.Key);
+                var rewriteTraverser = new RewriteWhereExpressionToPassItToDataSourceTraverseVisitor(rewriter);
+
+                whereNode.Value.Accept(rewriteTraverser);
+
+                result.Add(whereNode.Key, rewriter.WhereNode);
+            }
+            
+            return result;
         }
     }
 }

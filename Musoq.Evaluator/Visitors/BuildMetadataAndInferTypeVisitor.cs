@@ -31,6 +31,7 @@ namespace Musoq.Evaluator.Visitors
         private readonly IDictionary<string, string> _explicitlyCoupledTablesWithAliases = new Dictionary<string, string>();
         private readonly IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases = new Dictionary<string, SchemaMethodFromNode>();
         private readonly IDictionary<string, List<ISchemaColumn>> _usedColumns = new Dictionary<string, List<ISchemaColumn>>();
+        private readonly IDictionary<string, WhereNode> _usedWhereNodes = new Dictionary<string, WhereNode>();
         private readonly List<FieldNode> _groupByFields = new();
 
         private int _setKey;
@@ -66,6 +67,22 @@ namespace Musoq.Evaluator.Visitors
                 {
                     var schemaFromNode = InferredColumns.Keys.Single(f => f.Alias == aliasColumnsPair.Key);
                     result.Add(schemaFromNode, aliasColumnsPair.Value.ToArray());
+                }
+
+                return result;
+            }
+        }
+
+        public IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes
+        {
+            get
+            {
+                var result = new Dictionary<SchemaFromNode, WhereNode>();
+                
+                foreach (var aliasWherePair in _usedWhereNodes)
+                {
+                    var schemaFromNode = InferredColumns.Keys.Single(f => f.Alias == aliasWherePair.Key);
+                    result.Add(schemaFromNode, aliasWherePair.Value);
                 }
 
                 return result;
@@ -444,7 +461,21 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WhereNode node)
         {
-            Nodes.Push(new WhereNode(Nodes.Pop()));
+            var hasProcessedQueryId = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
+            var identifier = hasProcessedQueryId
+                ? _currentScope[MetaAttributes.ProcessedQueryId]
+                : _identifier;
+
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
+            var rewrittenWhereNode = new WhereNode(Nodes.Pop());
+
+            var usedIdentifiers = _usedWhereNodes.Select(f => f.Key);
+            foreach (var table in tableSymbol.CompoundTables.Join(usedIdentifiers, t => t, f => f, (t, f) => t))
+            {
+                _usedWhereNodes[table] = rewrittenWhereNode;
+            }
+            
+            Nodes.Push(rewrittenWhereNode);
         }
 
         public void Visit(GroupByNode node)
@@ -482,6 +513,9 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new TakeNode((IntegerNode) node.Expression));
         }
 
+        private static WhereNode _allTrueWhereNode =
+            new WhereNode(new EqualityNode(new IntegerNode("1"), new IntegerNode("1")));
+
         public void Visit(SchemaFromNode node)
         {
             var schema = _provider.GetSchema(node.Schema);
@@ -508,6 +542,9 @@ namespace Musoq.Evaluator.Visitors
 
             if (!_usedColumns.ContainsKey(_queryAlias))
                 _usedColumns.Add(_queryAlias, new List<ISchemaColumn>());
+            
+            if (!_usedWhereNodes.ContainsKey(_queryAlias))
+                _usedWhereNodes.Add(_queryAlias, _allTrueWhereNode);
 
             Nodes.Push(aliasedSchemaFromNode);
         }
@@ -541,6 +578,9 @@ namespace Musoq.Evaluator.Visitors
 
             if (!_usedColumns.ContainsKey(_queryAlias))
                 _usedColumns.Add(_queryAlias, new List<ISchemaColumn>());
+            
+            if (!_usedWhereNodes.ContainsKey(_queryAlias))
+                _usedWhereNodes.Add(_queryAlias, _allTrueWhereNode);
 
             Nodes.Push(aliasedSchemaFromNode);
         }
