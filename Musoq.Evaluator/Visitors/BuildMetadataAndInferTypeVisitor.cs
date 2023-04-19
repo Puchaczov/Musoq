@@ -65,45 +65,45 @@ namespace Musoq.Evaluator.Visitors
         public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
 
-        public IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]> InferredColumns
+        public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns
         {
             get
             {
-                var result = new Dictionary<PositionalSchemaFromNode, ISchemaColumn[]>();
+                var result = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
                 
                 foreach (var aliasColumnsPair in _inferredColumns)
                 {
-                    result.Add((PositionalSchemaFromNode)aliasColumnsPair.Key, aliasColumnsPair.Value.ToArray());
+                    result.Add(aliasColumnsPair.Key, aliasColumnsPair.Value.ToArray());
                 }
                 
                 return result;
             }
         }
 
-        public IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]> UsedColumns
+        public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns
         {
             get
             {
-                var result = new Dictionary<PositionalSchemaFromNode, ISchemaColumn[]>();
+                var result = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
                 
                 foreach (var aliasColumnsPair in _usedColumns)
                 {
-                    result.Add((PositionalSchemaFromNode)aliasColumnsPair.Key, aliasColumnsPair.Value.ToArray());
+                    result.Add(aliasColumnsPair.Key, aliasColumnsPair.Value.ToArray());
                 }
 
                 return result;
             }
         }
 
-        public IReadOnlyDictionary<PositionalSchemaFromNode, WhereNode> UsedWhereNodes
+        public IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes
         {
             get
             {
-                var result = new Dictionary<PositionalSchemaFromNode, WhereNode>();
+                var result = new Dictionary<SchemaFromNode, WhereNode>();
                 
                 foreach (var aliasColumnsPair in _usedWhereNodes)
                 {
-                    result.Add((PositionalSchemaFromNode)aliasColumnsPair.Key, aliasColumnsPair.Value);
+                    result.Add(aliasColumnsPair.Key, aliasColumnsPair.Value);
                 }
 
                 return result;
@@ -370,15 +370,10 @@ namespace Musoq.Evaluator.Visitors
             AddAssembly(column.ColumnType.Assembly);
             node.ChangeReturnType(column.ColumnType);
             
-            var columns = _usedColumns.Where(c =>
-            {
-                if (c.Key is PositionalSchemaFromNode positionalSchemaFromNode)
-                {
-                    return positionalSchemaFromNode.Alias == tuple.TableName && positionalSchemaFromNode.InSourcePosition == _schemaFromKey;
-                }
-                
-                return c.Key.Alias == tuple.TableName;
-            }).Select(f => f.Value).FirstOrDefault();
+            var columns = _usedColumns
+                .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == _schemaFromKey)
+                .Select(f => f.Value)
+                .FirstOrDefault();
 
             if (columns is not null)
             {
@@ -500,15 +495,11 @@ namespace Musoq.Evaluator.Visitors
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
             var rewrittenWhereNode = new WhereNode(Nodes.Pop());
 
-            var usedIdentifiers = _usedWhereNodes.Where(f =>
-            {
-                if (f.Key is PositionalSchemaFromNode positionalSchemaFromNode)
-                {
-                    return positionalSchemaFromNode.InSourcePosition == _schemaFromKey;
-                }
-                
-                return true;
-            }).Select(f => f.Key).ToArray();
+            var usedIdentifiers = _usedWhereNodes
+                .Where(f => f.Key.QueryId == _schemaFromKey)
+                .Select(f => f.Key)
+                .ToArray();
+            
             foreach (var aliasSchemaPair in tableSymbol.CompoundTables.Join(usedIdentifiers, t => t, f => f.Alias, (t, f) => (Alias: t, Schema: f)))
             {
                 _usedWhereNodes[aliasSchemaPair.Schema] = rewrittenWhereNode;
@@ -574,7 +565,7 @@ namespace Musoq.Evaluator.Visitors
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
 
-            var aliasedSchemaFromNode = new PositionalSchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias, _schemaFromKey);
+            var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias, node.QueryId);
 
             if(!_inferredColumns.ContainsKey(aliasedSchemaFromNode))
                 _inferredColumns.Add(aliasedSchemaFromNode, table.Columns);
@@ -610,7 +601,7 @@ namespace Musoq.Evaluator.Visitors
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
 
-            var aliasedSchemaFromNode = new PositionalSchemaFromNode(schemaInfo.Schema, schemaInfo.Method, node.Args, _queryAlias, _schemaFromKey);
+            var aliasedSchemaFromNode = new Parser.SchemaFromNode(schemaInfo.Schema, schemaInfo.Method, node.Args, _queryAlias, node.InSourcePosition);
 
             if (!_inferredColumns.ContainsKey(aliasedSchemaFromNode))
                 _inferredColumns.Add(aliasedSchemaFromNode, table.Columns);

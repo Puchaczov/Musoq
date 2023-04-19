@@ -76,15 +76,15 @@ namespace Musoq.Converter.Build
             set => this["EMIT_RESULT"] = value;
         }
 
-        public IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]> UsedColumns 
+        public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns 
         {
-            get => (IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]>) this["USED_COLUMNS"];
+            get => (IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>) this["USED_COLUMNS"];
             set => this["USED_COLUMNS"] = value;
         }
 
-        public IReadOnlyDictionary<PositionalSchemaFromNode, WhereNode> UsedWhereNodes
+        public IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes
         {
-            get => (IReadOnlyDictionary<PositionalSchemaFromNode, WhereNode>) this["USED_WHERE_NODES"];
+            get => (IReadOnlyDictionary<SchemaFromNode, WhereNode>) this["USED_WHERE_NODES"];
             set => this["USED_WHERE_NODES"] = value;
         }
     }

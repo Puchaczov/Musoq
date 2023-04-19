@@ -49,9 +49,9 @@ namespace Musoq.Converter.Build
             Successor?.Build(items);
         }
 
-        private static IReadOnlyDictionary<PositionalSchemaFromNode, WhereNode> RewriteWhereNodes(IReadOnlyDictionary<PositionalSchemaFromNode, WhereNode> whereNodes)
+        private static IReadOnlyDictionary<SchemaFromNode, WhereNode> RewriteWhereNodes(IReadOnlyDictionary<SchemaFromNode, WhereNode> whereNodes)
         {
-            var result = new Dictionary<PositionalSchemaFromNode, WhereNode>();
+            var result = new Dictionary<SchemaFromNode, WhereNode>();
             
             foreach (var whereNode in whereNodes)
             {

@@ -167,10 +167,10 @@ namespace Musoq.Converter
             runnable.QueriesInformation =
                 usedColumns.Join(
                     usedWhereNodes, 
-                    f => f.Key.PositionalId, 
-                    f => f.Key.PositionalId,
+                    f => f.Key.Id, 
+                    f => f.Key.Id,
                     (f, s) => (SchemaFromNode: f.Key, UsedColumns: (IReadOnlyCollection<ISchemaColumn>)f.Value, UsedValues:s.Value)
-                ).ToDictionary(f => f.SchemaFromNode.PositionalId, f => ((SchemaFromNode)f.SchemaFromNode, f.UsedColumns, f.UsedValues));
+                ).ToDictionary(f => f.SchemaFromNode.Id, f => ((SchemaFromNode)f.SchemaFromNode, f.UsedColumns, f.UsedValues));
 
             return runnable;
         }

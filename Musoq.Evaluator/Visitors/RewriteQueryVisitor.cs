@@ -351,12 +351,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(SchemaFromNode node)
         {
-            var positionalSchemaFromNode = node as PositionalSchemaFromNode;
-            
-            if (positionalSchemaFromNode == null)
-                throw new NotSupportedException("Only positional schema is supported");
-            
-            Nodes.Push(new PositionalSchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, positionalSchemaFromNode.InSourcePosition));
+            Nodes.Push(new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId));
         }
 
         public virtual void Visit(JoinSourcesTableFromNode node)

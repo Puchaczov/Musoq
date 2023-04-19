@@ -71,7 +71,7 @@ namespace Musoq.Evaluator.Visitors
         public ToCSharpRewriteTreeVisitor(
             IEnumerable<Assembly> assemblies,
             IDictionary<string, int[]> setOperatorFieldIndexes,
-            IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]> inferredColumns,
+            IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
             string assemblyName)
         {
             _setOperatorFieldIndexes = setOperatorFieldIndexes;
@@ -144,7 +144,7 @@ namespace Musoq.Evaluator.Visitors
 
         private List<StatementSyntax> Statements { get; } = new();
         private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new();
-        private IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
+        private IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
         public void Visit(Node node)
         {
@@ -1487,13 +1487,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
-            if (node is not PositionalSchemaFromNode positionalSchemaFromNode)
-            {
-                throw new InvalidOperationException(
-                    $"Expected {nameof(PositionalSchemaFromNode)} but got {node.GetType().Name}");
-            }
-            
-            var originColumns = InferredColumns[positionalSchemaFromNode];
+            var originColumns = InferredColumns[node];
 
             var listOfColumns = new List<ExpressionSyntax>();
             foreach (var column in originColumns)
@@ -1514,7 +1508,7 @@ namespace Musoq.Evaluator.Visitors
                             }))));
             }
 
-            var tableInfoVariableName = positionalSchemaFromNode.Alias.ToInfoTable();
+            var tableInfoVariableName = node.Alias.ToInfoTable();
             var tableInfoObject = SyntaxHelper.CreateAssignment(
                 tableInfoVariableName,
                 SyntaxHelper.CreateArrayOf(
@@ -1522,14 +1516,14 @@ namespace Musoq.Evaluator.Visitors
                     listOfColumns.ToArray()));
 
             var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
-                positionalSchemaFromNode.Alias,
+                node.Alias,
                 "provider",
                 nameof(ISchemaProvider.GetSchema),
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.Token(SyntaxKind.OpenParenToken),
                     SyntaxFactory.SeparatedList(new[]
                     {
-                        SyntaxHelper.StringLiteralArgument(positionalSchemaFromNode.Schema)
+                        SyntaxHelper.StringLiteralArgument(node.Schema)
                     }),
                     SyntaxFactory.Token(SyntaxKind.CloseParenToken)
                 )
@@ -1540,13 +1534,13 @@ namespace Musoq.Evaluator.Visitors
             args.AddRange(argList.Arguments.Select(arg => arg.Expression));
 
             var createdSchemaRows = SyntaxHelper.CreateAssignmentByMethodCall(
-                $"{positionalSchemaFromNode.Alias}Rows",
-                positionalSchemaFromNode.Alias,
+                $"{node.Alias}Rows",
+                node.Alias,
                 nameof(ISchema.GetRowSource),
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SeparatedList(new[]
                     {
-                        SyntaxHelper.StringLiteralArgument(positionalSchemaFromNode.Method),
+                        SyntaxHelper.StringLiteralArgument(node.Method),
                         SyntaxFactory.Argument(
                             SyntaxFactory.ObjectCreationExpression(
                                     SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
@@ -1580,7 +1574,7 @@ namespace Musoq.Evaluator.Visitors
                                                                     SyntaxFactory.Argument(
                                                                         SyntaxFactory.LiteralExpression(
                                                                             SyntaxKind.StringLiteralExpression,
-                                                                            SyntaxFactory.Literal(positionalSchemaFromNode.PositionalId)))))))
+                                                                            SyntaxFactory.Literal(node.Id)))))))
                                             })))),
                         SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(
