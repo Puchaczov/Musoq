@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Musoq.Evaluator.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build
 {
@@ -75,15 +76,15 @@ namespace Musoq.Converter.Build
             set => this["EMIT_RESULT"] = value;
         }
 
-        public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns 
+        public IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]> UsedColumns 
         {
-            get => (IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>) this["USED_COLUMNS"];
+            get => (IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]>) this["USED_COLUMNS"];
             set => this["USED_COLUMNS"] = value;
         }
 
-        public IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes
+        public IReadOnlyDictionary<PositionalSchemaFromNode, WhereNode> UsedWhereNodes
         {
-            get => (IReadOnlyDictionary<SchemaFromNode, WhereNode>) this["USED_WHERE_NODES"];
+            get => (IReadOnlyDictionary<PositionalSchemaFromNode, WhereNode>) this["USED_WHERE_NODES"];
             set => this["USED_WHERE_NODES"] = value;
         }
     }

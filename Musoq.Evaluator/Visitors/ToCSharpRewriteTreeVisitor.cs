@@ -12,19 +12,28 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
+using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
+using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
+using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
+using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
+using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
+using JoinsNode = Musoq.Parser.Nodes.From.JoinsNode;
+using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
+using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 using TextSpan = Musoq.Parser.TextSpan;
 
 namespace Musoq.Evaluator.Visitors
@@ -62,7 +71,7 @@ namespace Musoq.Evaluator.Visitors
         public ToCSharpRewriteTreeVisitor(
             IEnumerable<Assembly> assemblies,
             IDictionary<string, int[]> setOperatorFieldIndexes,
-            IDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
+            IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]> inferredColumns,
             string assemblyName)
         {
             _setOperatorFieldIndexes = setOperatorFieldIndexes;
@@ -135,7 +144,7 @@ namespace Musoq.Evaluator.Visitors
 
         private List<StatementSyntax> Statements { get; } = new();
         private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new();
-        private IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
+        private IReadOnlyDictionary<PositionalSchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
         public void Visit(Node node)
         {
@@ -1478,7 +1487,13 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaFromNode node)
         {
-            var originColumns = InferredColumns[node];
+            if (node is not PositionalSchemaFromNode positionalSchemaFromNode)
+            {
+                throw new InvalidOperationException(
+                    $"Expected {nameof(PositionalSchemaFromNode)} but got {node.GetType().Name}");
+            }
+            
+            var originColumns = InferredColumns[positionalSchemaFromNode];
 
             var listOfColumns = new List<ExpressionSyntax>();
             foreach (var column in originColumns)
@@ -1499,7 +1514,7 @@ namespace Musoq.Evaluator.Visitors
                             }))));
             }
 
-            var tableInfoVariableName = node.Alias.ToInfoTable();
+            var tableInfoVariableName = positionalSchemaFromNode.Alias.ToInfoTable();
             var tableInfoObject = SyntaxHelper.CreateAssignment(
                 tableInfoVariableName,
                 SyntaxHelper.CreateArrayOf(
@@ -1507,14 +1522,14 @@ namespace Musoq.Evaluator.Visitors
                     listOfColumns.ToArray()));
 
             var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
-                node.Alias,
+                positionalSchemaFromNode.Alias,
                 "provider",
                 nameof(ISchemaProvider.GetSchema),
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.Token(SyntaxKind.OpenParenToken),
                     SyntaxFactory.SeparatedList(new[]
                     {
-                        SyntaxHelper.StringLiteralArgument(node.Schema)
+                        SyntaxHelper.StringLiteralArgument(positionalSchemaFromNode.Schema)
                     }),
                     SyntaxFactory.Token(SyntaxKind.CloseParenToken)
                 )
@@ -1525,13 +1540,13 @@ namespace Musoq.Evaluator.Visitors
             args.AddRange(argList.Arguments.Select(arg => arg.Expression));
 
             var createdSchemaRows = SyntaxHelper.CreateAssignmentByMethodCall(
-                $"{node.Alias}Rows",
-                node.Alias,
+                $"{positionalSchemaFromNode.Alias}Rows",
+                positionalSchemaFromNode.Alias,
                 nameof(ISchema.GetRowSource),
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SeparatedList(new[]
                     {
-                        SyntaxHelper.StringLiteralArgument(node.Method),
+                        SyntaxHelper.StringLiteralArgument(positionalSchemaFromNode.Method),
                         SyntaxFactory.Argument(
                             SyntaxFactory.ObjectCreationExpression(
                                     SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
@@ -1565,7 +1580,7 @@ namespace Musoq.Evaluator.Visitors
                                                                     SyntaxFactory.Argument(
                                                                         SyntaxFactory.LiteralExpression(
                                                                             SyntaxKind.StringLiteralExpression,
-                                                                            SyntaxFactory.Literal(node.Alias)))))))
+                                                                            SyntaxFactory.Literal(positionalSchemaFromNode.PositionalId)))))))
                                             })))),
                         SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(

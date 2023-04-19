@@ -20,6 +20,14 @@ namespace Musoq.Evaluator.Visitors
             _queryPart = part;
         }
 
+        public void QueryBegins()
+        {
+        }
+
+        public void QueryEnds()
+        {
+        }
+
         public void Visit(Node node)
         {
         }

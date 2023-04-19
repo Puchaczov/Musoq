@@ -12,7 +12,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = "select 1 from #A.entities() a where a.Population > 0";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
 
@@ -31,7 +31,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = "select 1 from #A.entities() a where a.City like '%abc%'";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
 
@@ -50,7 +50,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = "select 1 from #A.entities() a where a.City rlike '%abc%'";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
 
@@ -69,7 +69,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = "select 1 from #A.entities() a where a.City contains ('abc', 'def')";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
 
@@ -88,7 +88,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = "select 1 from #A.entities() a where a.City contains (DoNothing('abc'), 'def')";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
 
@@ -107,7 +107,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = "select 1 from #A.entities() a where a.Population > a.Population";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
 
@@ -126,7 +126,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City where a.Population > 0";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(2, buildItems.UsedWhereNodes.Count);
 
@@ -150,7 +150,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City where a.Population > b.Population";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(2, buildItems.UsedWhereNodes.Count);
 
@@ -174,7 +174,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City inner join #C.entities() c on b.City = c.City where a.Population > b.Population and c.Population = 200d";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(3, buildItems.UsedWhereNodes.Count);
         
@@ -207,7 +207,7 @@ with a as (
 )
 select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.City inner join #C.entities() c on b.City = c.City where firstTable.Population > b.Population and c.Population = 200d";
 
-        var buildItems = CreateBuildItems<BasicEntity>(query);
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
         Assert.AreEqual(3, buildItems.UsedWhereNodes.Count);
         

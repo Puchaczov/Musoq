@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build
 {
@@ -48,9 +49,9 @@ namespace Musoq.Converter.Build
             Successor?.Build(items);
         }
 
-        private static IReadOnlyDictionary<SchemaFromNode, WhereNode> RewriteWhereNodes(IReadOnlyDictionary<SchemaFromNode, WhereNode> whereNodes)
+        private static IReadOnlyDictionary<PositionalSchemaFromNode, WhereNode> RewriteWhereNodes(IReadOnlyDictionary<PositionalSchemaFromNode, WhereNode> whereNodes)
         {
-            var result = new Dictionary<SchemaFromNode, WhereNode>();
+            var result = new Dictionary<PositionalSchemaFromNode, WhereNode>();
             
             foreach (var whereNode in whereNodes)
             {
