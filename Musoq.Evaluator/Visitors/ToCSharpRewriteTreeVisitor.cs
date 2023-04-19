@@ -12,19 +12,28 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
+using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
+using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
+using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
+using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
+using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
+using JoinsNode = Musoq.Parser.Nodes.From.JoinsNode;
+using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
+using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 using TextSpan = Musoq.Parser.TextSpan;
 
 namespace Musoq.Evaluator.Visitors
@@ -62,7 +71,7 @@ namespace Musoq.Evaluator.Visitors
         public ToCSharpRewriteTreeVisitor(
             IEnumerable<Assembly> assemblies,
             IDictionary<string, int[]> setOperatorFieldIndexes,
-            IDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
+            IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
             string assemblyName)
         {
             _setOperatorFieldIndexes = setOperatorFieldIndexes;
@@ -135,7 +144,7 @@ namespace Musoq.Evaluator.Visitors
 
         private List<StatementSyntax> Statements { get; } = new();
         private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new();
-        private IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
+        private IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
         public void Visit(Node node)
         {
@@ -1565,7 +1574,7 @@ namespace Musoq.Evaluator.Visitors
                                                                     SyntaxFactory.Argument(
                                                                         SyntaxFactory.LiteralExpression(
                                                                             SyntaxKind.StringLiteralExpression,
-                                                                            SyntaxFactory.Literal(node.Alias)))))))
+                                                                            SyntaxFactory.Literal(node.Id)))))))
                                             })))),
                         SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(

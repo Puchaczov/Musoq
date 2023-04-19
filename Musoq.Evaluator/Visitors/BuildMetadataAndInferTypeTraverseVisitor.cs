@@ -353,7 +353,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
-            LoadScope("Query");
+            LoadQueryScope();
             node.From.Accept(this);
             node.Where?.Accept(this);
             node.GroupBy?.Accept(this);
@@ -364,6 +364,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
             RestoreScope();
             SetQueryPart(QueryPart.None);
+            EndQueryScope();
         }
 
         public void Visit(OrNode node)
@@ -624,6 +625,17 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        private void LoadQueryScope()
+        {
+            LoadScope("Query");
+            _visitor.QueryBegins();
+        }
+        
+        private void EndQueryScope()
+        {
+            _visitor.QueryEnds();
+        }
+
         private void LoadScope(string name)
         {
             var newScope = Scope.AddScope(name);
@@ -715,6 +727,16 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(FieldLinkNode node)
         {
             node.Accept(_visitor);
+        }
+
+        public void QueryBegins()
+        {
+            _visitor.QueryBegins();
+        }
+
+        public void QueryEnds()
+        {
+            _visitor.QueryEnds();
         }
     }
 }

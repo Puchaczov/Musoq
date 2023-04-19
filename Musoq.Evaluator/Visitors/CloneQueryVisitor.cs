@@ -322,7 +322,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(SchemaFromNode node)
         {
-            Nodes.Push(new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias));
+            Nodes.Push(new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId));
         }
 
         public virtual void Visit(JoinSourcesTableFromNode node)
@@ -532,7 +532,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AliasedFromNode node)
         {
-            Nodes.Push(new Parser.AliasedFromNode(node.Identifier, node.Args, node.Alias));
+            Nodes.Push(new Parser.AliasedFromNode(node.Identifier, node.Args, node.Alias, node.InSourcePosition));
         }
 
         public void Visit(SchemaMethodFromNode node)

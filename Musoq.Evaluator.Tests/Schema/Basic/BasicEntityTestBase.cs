@@ -17,14 +17,14 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
         
         protected BuildItems CreateBuildItems<T>(
             string script)
-            where T : BasicEntity
+            where T : UsedColumnsOrUsedWhereEntity
         {
             var mock = new Mock<IDictionary<string, IEnumerable<T>>>();
             mock.Setup(f => f[It.IsAny<string>()]).Returns(new List<T>());
             return InstanceCreator.CreateForAnalyze(
                 script, 
                 Guid.NewGuid().ToString(), 
-                new BasicSchemaProvider<T>(mock.Object));
+                new UsedColumnsOrUsedWhereSchemaProvider<T>(mock.Object));
         }
 
         protected CompiledQuery CreateAndRunVirtualMachine<T>(

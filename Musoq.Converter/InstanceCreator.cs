@@ -11,6 +11,7 @@ using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 
 namespace Musoq.Converter
@@ -164,9 +165,12 @@ namespace Musoq.Converter
             }
             
             runnable.QueriesInformation =
-                usedColumns.Join(usedWhereNodes, f => f.Key.Alias, f => f.Key.Alias,
-                    (f, s) => (f.Key, (IReadOnlyCollection<ISchemaColumn>)f.Value, s.Value)
-                ).ToDictionary(f => f.Key.Alias, f => f);
+                usedColumns.Join(
+                    usedWhereNodes, 
+                    f => f.Key.Id, 
+                    f => f.Key.Id,
+                    (f, s) => (SchemaFromNode: f.Key, UsedColumns: (IReadOnlyCollection<ISchemaColumn>)f.Value, UsedValues:s.Value)
+                ).ToDictionary(f => f.SchemaFromNode.Id, f => ((SchemaFromNode)f.SchemaFromNode, f.UsedColumns, f.UsedValues));
 
             return runnable;
         }

@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build
 {
