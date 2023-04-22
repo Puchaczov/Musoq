@@ -558,7 +558,7 @@ namespace Musoq.Evaluator.Visitors
 
             AddAssembly(schema.GetType().Assembly);
 
-            _queryAlias = StringHelpers.CreateAliasIfEmpty(node.Alias, _generatedAliases);
+            _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
             _generatedAliases.Add(_queryAlias);
 
             var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
@@ -594,7 +594,7 @@ namespace Musoq.Evaluator.Visitors
 
             AddAssembly(schema.GetType().Assembly);
 
-            _queryAlias = StringHelpers.CreateAliasIfEmpty(node.Alias, _generatedAliases);
+            _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
             _generatedAliases.Add(_queryAlias);
 
             var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));

@@ -21,27 +21,27 @@ namespace Musoq.Converter.Build
 
             var queryTree = items.RawQueryTree;
 
-            var metadataInferer = new BuildMetadataAndInferTypeVisitor(items.SchemaProvider);
-            var metadataInfererTraverser = new BuildMetadataAndInferTypeTraverseVisitor(metadataInferer);
+            var metadata = new BuildMetadataAndInferTypeVisitor(items.SchemaProvider);
+            var metadataTraverser = new BuildMetadataAndInferTypeTraverseVisitor(metadata);
 
-            queryTree.Accept(metadataInfererTraverser);
+            queryTree.Accept(metadataTraverser);
 
-            queryTree = metadataInferer.Root;
+            queryTree = metadata.Root;
 
             var rewriter = new RewriteQueryVisitor();
-            var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataInfererTraverser.Scope));
+            var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataTraverser.Scope));
 
             queryTree.Accept(rewriteTraverser);
 
             queryTree = rewriter.RootScript;
 
-            var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadataInferer.Assemblies, metadataInferer.SetOperatorFieldPositions, metadataInferer.InferredColumns, items.AssemblyName);
-            var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, new ScopeWalker(metadataInfererTraverser.Scope));
+            var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadata.Assemblies, metadata.SetOperatorFieldPositions, metadata.InferredColumns, items.AssemblyName);
+            var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, new ScopeWalker(metadataTraverser.Scope));
 
             queryTree.Accept(csharpRewriteTraverser);
 
-            items.UsedColumns = metadataInferer.UsedColumns;
-            items.UsedWhereNodes = RewriteWhereNodes(metadataInferer.UsedWhereNodes);
+            items.UsedColumns = metadata.UsedColumns;
+            items.UsedWhereNodes = RewriteWhereNodes(metadata.UsedWhereNodes);
             items.TransformedQueryTree = queryTree;
             items.Compilation = csharpRewriter.Compilation;
             items.AccessToClassPath = csharpRewriter.AccessToClassPath;

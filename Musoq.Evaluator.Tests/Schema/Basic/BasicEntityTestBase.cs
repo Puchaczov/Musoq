@@ -13,18 +13,23 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
 {
     public class BasicEntityTestBase
     {
+        static BasicEntityTestBase()
+        {
+            new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+            Culture.ApplyWithDefaultCulture();
+        }
+        
         protected CancellationTokenSource TokenSource { get; } = new();
         
-        protected BuildItems CreateBuildItems<T>(
-            string script)
-            where T : UsedColumnsOrUsedWhereEntity
+        protected BuildItems CreateBuildItems<T>(string script)
         {
-            var mock = new Mock<IDictionary<string, IEnumerable<T>>>();
-            mock.Setup(f => f[It.IsAny<string>()]).Returns(new List<T>());
             return InstanceCreator.CreateForAnalyze(
                 script, 
                 Guid.NewGuid().ToString(), 
-                new UsedColumnsOrUsedWhereSchemaProvider<T>(mock.Object));
+                typeof(T) == typeof(UsedColumnsOrUsedWhereEntity) ? 
+                    new UsedColumnsOrUsedWhereSchemaProvider<UsedColumnsOrUsedWhereEntity>(CreateMockObjectFor<UsedColumnsOrUsedWhereEntity>()) :
+                    new BasicSchemaProvider<BasicEntity>(CreateMockObjectFor<BasicEntity>()));
         }
 
         protected CompiledQuery CreateAndRunVirtualMachine<T>(
@@ -65,11 +70,12 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
             Assert.AreEqual(score, table[0][0]);
         }
 
-        static BasicEntityTestBase()
+        private static IDictionary<string, IEnumerable<T>> CreateMockObjectFor<T>()
         {
-            new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
-
-            Culture.ApplyWithDefaultCulture();
+            var mock = new Mock<IDictionary<string, IEnumerable<T>>>();
+            mock.Setup(f => f[It.IsAny<string>()]).Returns(new List<T>());
+            
+            return mock.Object;
         }
     }
 }
