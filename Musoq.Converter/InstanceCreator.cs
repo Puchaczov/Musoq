@@ -83,7 +83,7 @@ namespace Musoq.Converter
             if (compiled && !Debugger.IsAttached) return new CompiledQuery(CreateRunnable(items));
 
             var tempPath = Path.Combine(Path.GetTempPath(), "Musoq");
-            var tempFileName = $"InMemoryAssembly";
+            const string tempFileName = $"InMemoryAssembly";
             var assemblyPath = Path.Combine(tempPath, $"{tempFileName}.dll");
             var pdbPath = Path.Combine(tempPath, $"{tempFileName}.pdb");
             var csPath = Path.Combine(tempPath, $"{tempFileName}.cs");
@@ -102,14 +102,14 @@ namespace Musoq.Converter
                 file.Write(builder.ToString());
             }
 
-            if (items.DllFile != null && items.DllFile.Length > 0)
+            if (items.DllFile is {Length: > 0})
             {
                 using var file = new BinaryWriter(File.Open(assemblyPath, FileMode.Create));
                 if (items.DllFile != null)
                     file.Write(items.DllFile);
             }
 
-            if (items.PdbFile != null && items.PdbFile.Length > 0)
+            if (items.PdbFile is {Length: > 0})
             {
                 using var file = new BinaryWriter(File.Open(pdbPath, FileMode.Create));
                 if (items.PdbFile != null)
@@ -119,7 +119,7 @@ namespace Musoq.Converter
             if (!compiled && compilationError != null)
                 throw compilationError;
 
-            var runnable = new RunnableDebugDecorator(CreateRunnable(items), csPath, assemblyPath, pdbPath);
+            var runnable = new RunnableDebugDecorator(CreateRunnable(items, assemblyPath), csPath, assemblyPath, pdbPath);
 
             return new CompiledQuery(runnable);
         }

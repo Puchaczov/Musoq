@@ -598,7 +598,6 @@ namespace Musoq.Evaluator.Visitors
         {
             LoadScope("CTE");
             foreach (var exp in node.InnerExpression) exp.Accept(this);
-
             node.OuterExpression.Accept(this);
             node.Accept(_visitor);
             RestoreScope();

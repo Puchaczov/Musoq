@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 
 namespace Musoq.Evaluator.Tests;
@@ -125,5 +126,57 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         
         Assert.AreEqual("KEY_4", table[3][0]);
         Assert.AreEqual("VALUE_4", table[3][1]);
+    }
+
+    [TestMethod]
+    public void WhenPreviouslyCteExpressionSaw_ShouldPass()
+    {
+        const string query = @"
+with p as ( 
+    select 1 from #A.entities()
+)
+select Key, Value from #EnvironmentVariables.All()";
+        
+        var basicEntitiesSource = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                Array.Empty<BasicEntity>()
+            }
+        };
+        
+        var environmentVariablesSource = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
+        {
+            {
+                "#EnvironmentVariables",
+                Array.Empty<EnvironmentVariableEntity>()
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(
+            query, 
+            basicEntitiesSource,
+            environmentVariablesSource,
+            new Dictionary<uint, IReadOnlyDictionary<string, string>>()
+        {
+            {
+                0, new Dictionary<string, string>()
+            },
+            {
+                1, new Dictionary<string, string>()
+                {
+                    {"KEY_1", "VALUE_1"},
+                    {"KEY_2", "VALUE_2"}
+                }
+            }
+        });
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual("KEY_1", table[0][0]);
+        Assert.AreEqual("VALUE_1", table[0][1]);
+        Assert.AreEqual("KEY_2", table[1][0]);
+        Assert.AreEqual("VALUE_2", table[1][1]);
     }
 }

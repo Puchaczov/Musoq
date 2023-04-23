@@ -471,8 +471,8 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(CteExpressionNode node)
         {
-            foreach (var exp in node.InnerExpression) exp.Accept(this);
             node.OuterExpression.Accept(this);
+            foreach (var exp in node.InnerExpression) exp.Accept(this);
             node.Accept(Visitor);
         }
 

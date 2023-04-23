@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
