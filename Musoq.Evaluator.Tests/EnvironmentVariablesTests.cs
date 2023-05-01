@@ -10,6 +10,40 @@ namespace Musoq.Evaluator.Tests;
 public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 {
     [TestMethod]
+    public void WhenDescEnvironmentVariables_ShouldListAllColumns()
+    {
+        var query = "desc #EnvironmentVariables.All()";
+        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
+        {
+            {
+                "#EnvironmentVariables",
+                Array.Empty<EnvironmentVariableEntity>()
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources, new Dictionary<uint, IReadOnlyDictionary<string, string>>()
+        {
+            {
+                0, new Dictionary<string, string>()
+                {
+                    {"KEY_1", "VALUE_1"},
+                    {"KEY_2", "VALUE_2"}
+                }
+            }
+        });
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(6, table.Count);
+        Assert.AreEqual("Key", table[0][0]);
+        Assert.AreEqual("Key.Chars", table[1][0]);
+        Assert.AreEqual("Key.Length", table[2][0]);
+        Assert.AreEqual("Value", table[3][0]);
+        Assert.AreEqual("Value.Chars", table[4][0]);
+        Assert.AreEqual("Value.Length", table[5][0]);
+    }
+    
+    [TestMethod]
     public void WhenPassedEnvironmentVariables_ShouldListThemAll()
     {
         var query = "select Key, Value from #EnvironmentVariables.All()";

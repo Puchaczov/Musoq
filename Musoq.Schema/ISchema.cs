@@ -8,7 +8,9 @@ namespace Musoq.Schema
     {
         string Name { get; }
 
-        ISchemaTable GetTableByName(string name, params object[] parameters);
+        ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters);
+
+        RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters);
 
         Reflection.SchemaMethodInfo[] GetConstructors(string methodName);
 
@@ -17,8 +19,6 @@ namespace Musoq.Schema
         Reflection.SchemaMethodInfo[] GetRawConstructors();
 
         Reflection.SchemaMethodInfo[] GetRawConstructors(string methodName);
-
-        RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters);
 
         bool TryResolveMethod(string method, Type[] parameters, out MethodInfo methodInfo);
 

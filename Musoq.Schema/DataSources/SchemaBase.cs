@@ -43,7 +43,7 @@ namespace Musoq.Schema.DataSources
             AddToConstructors<TType>($"{name.ToLowerInvariant()}{TablePart}");
         }
 
-        public virtual ISchemaTable GetTableByName(string name, params object[] parameters)
+        public virtual ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             var tableName = $"{name.ToLowerInvariant()}{TablePart}";
 
@@ -55,7 +55,7 @@ namespace Musoq.Schema.DataSources
             return (ISchemaTable)constructorInfo.OriginConstructor.Invoke(parameters);
         }
 
-        public virtual RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)
+        public virtual RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             var sourceName = $"{name.ToLowerInvariant()}{SourcePart}";
 
@@ -68,7 +68,7 @@ namespace Musoq.Schema.DataSources
                 throw new NotSupportedException($"Unrecognized method {name}.");
 
             if (constructorInfo.SupportsInterCommunicator)
-                parameters = parameters.ExpandParameters(interCommunicator);
+                parameters = parameters.ExpandParameters(runtimeContext);
 
             return (RowSource)constructorInfo.OriginConstructor.Invoke(parameters);
         }

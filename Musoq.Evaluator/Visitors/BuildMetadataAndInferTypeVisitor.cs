@@ -4,9 +4,9 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
@@ -33,6 +33,7 @@ namespace Musoq.Evaluator.Visitors
     public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     {
         private readonly ISchemaProvider _provider;
+        private readonly IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> _positionalEnvironmentVariables;
         private readonly List<AccessMethodNode> _refreshMethods = new();
         private readonly List<object> _schemaFromArgs = new();
         private readonly List<string> _generatedAliases = new();
@@ -46,6 +47,7 @@ namespace Musoq.Evaluator.Visitors
 
         private int _setKey;
         private int _schemaFromKey;
+        private uint _positionalEnvironmentVariablesKey;
         private Scope _currentScope;
         private FieldNode[] _generatedColumns = Array.Empty<FieldNode>();
         private string _identifier;
@@ -53,9 +55,11 @@ namespace Musoq.Evaluator.Visitors
 
         private Stack<string> Methods { get; } = new();
 
-        public BuildMetadataAndInferTypeVisitor(ISchemaProvider provider)
+        public BuildMetadataAndInferTypeVisitor(ISchemaProvider provider, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
         {
             _provider = provider;
+            _positionalEnvironmentVariables = positionalEnvironmentVariables;
+            _positionalEnvironmentVariablesKey = 0;
         }
 
         protected Stack<Node> Nodes { get; } = new();
@@ -543,17 +547,24 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new TakeNode((IntegerNode) node.Expression));
         }
 
-        private static WhereNode _allTrueWhereNode =
-            new WhereNode(new EqualityNode(new IntegerNode("1"), new IntegerNode("1")));
+        private static readonly WhereNode AllTrueWhereNode =
+            new(new EqualityNode(new IntegerNode("1"), new IntegerNode("1")));
 
         public void Visit(SchemaFromNode node)
         {
             var schema = _provider.GetSchema(node.Schema);
 
             var table = _currentScope.Name != "Desc" ? 
-                schema.GetTableByName(node.Method, _schemaFromArgs.ToArray()) : 
+                schema.GetTableByName(node.Method, new RuntimeContext(
+                    CancellationToken.None,
+                    Array.Empty<ISchemaColumn>(),
+                    _positionalEnvironmentVariables.ContainsKey(_positionalEnvironmentVariablesKey) ? 
+                        _positionalEnvironmentVariables[_positionalEnvironmentVariablesKey] : 
+                        new Dictionary<string, string>(),
+                    (node, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)), _schemaFromArgs.ToArray()) : 
                 new DynamicTable(Array.Empty<ISchemaColumn>());
 
+            _positionalEnvironmentVariablesKey += 1;
             _schemaFromArgs.Clear();
 
             AddAssembly(schema.GetType().Assembly);
@@ -574,7 +585,7 @@ namespace Musoq.Evaluator.Visitors
                 _usedColumns.Add(aliasedSchemaFromNode, new List<ISchemaColumn>());
             
             if (!_usedWhereNodes.ContainsKey(aliasedSchemaFromNode))
-                _usedWhereNodes.Add(aliasedSchemaFromNode, _allTrueWhereNode);
+                _usedWhereNodes.Add(aliasedSchemaFromNode, AllTrueWhereNode);
             
             Nodes.Push(aliasedSchemaFromNode);
         }
@@ -610,7 +621,7 @@ namespace Musoq.Evaluator.Visitors
                 _usedColumns.Add(aliasedSchemaFromNode, new List<ISchemaColumn>());
             
             if (!_usedWhereNodes.ContainsKey(aliasedSchemaFromNode))
-                _usedWhereNodes.Add(aliasedSchemaFromNode, _allTrueWhereNode);
+                _usedWhereNodes.Add(aliasedSchemaFromNode, AllTrueWhereNode);
 
             Nodes.Push(aliasedSchemaFromNode);
         }

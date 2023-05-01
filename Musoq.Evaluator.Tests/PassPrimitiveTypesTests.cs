@@ -95,7 +95,7 @@ namespace Musoq.Evaluator.Tests
                 return new EntitySource<TestEntity>(_entities, new Dictionary<string, int>(), new Dictionary<int, Func<TestEntity, object>>());
             }
 
-            public override ISchemaTable GetTableByName(string name, params object[] parameters)
+            public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
             {
                 if (_whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) _onGetTableOrRowSource(parameters);
                 return new TestTable();
@@ -106,7 +106,7 @@ namespace Musoq.Evaluator.Tests
                 var methodManager = new MethodsManager();
                 var propertiesManager = new PropertiesManager();
 
-                var lib = new TestLibrary();
+                var lib = new Library();
 
                 propertiesManager.RegisterProperties(lib);
                 methodManager.RegisterLibraries(lib);

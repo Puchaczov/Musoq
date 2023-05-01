@@ -17,7 +17,7 @@ namespace Musoq.Evaluator.Tables
             _table = table;
         }
 
-        public override ISchemaTable GetTableByName(string name, params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             return _table;
         }

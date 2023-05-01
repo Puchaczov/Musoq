@@ -10,7 +10,7 @@ public class AliasGeneratorQueryTests : BasicEntityTestBase
     [TestMethod]
     public void WhenBuildMultipleTimes_AliasesShouldStayTheSame()
     {
-        var query = "select 1 from #A.entities()";
+        const string query = "select 1 from #A.entities()";
         
         var firstBuild = CreateBuildItems<BasicEntity>(query);
         var secondBuild = CreateBuildItems<BasicEntity>(query);

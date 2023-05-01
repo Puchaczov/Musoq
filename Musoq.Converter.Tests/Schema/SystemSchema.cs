@@ -18,7 +18,7 @@ public partial class SystemSchema : SchemaBase
     {
     }
 
-    public override ISchemaTable GetTableByName(string name, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
         switch (name.ToLowerInvariant())
         {

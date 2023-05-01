@@ -238,8 +238,20 @@ namespace Musoq.Evaluator.Visitors
             {
                 var args = schemaNode.Parameters.Args.Select(arg =>
                     (ExpressionSyntax) Generator.LiteralExpression(((ConstantValueNode) arg).ObjValue)).ToArray();
+                
+                var originallyInferredColumns = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("Array"),
+                            SyntaxFactory.GenericName(
+                                    SyntaxFactory.Identifier("Empty"))
+                                .WithTypeArgumentList(
+                                    SyntaxFactory.TypeArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                            SyntaxFactory.IdentifierName("ISchemaColumn"))))))
+                    .NormalizeWhitespace();
 
-                var gettedTable = SyntaxHelper.CreateAssignmentByMethodCall(
+                var getTable = SyntaxHelper.CreateAssignmentByMethodCall(
                     "schemaTable",
                     "desc",
                     nameof(ISchema.GetTableByName),
@@ -248,6 +260,7 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.SeparatedList(new[]
                         {
                             SyntaxHelper.StringLiteralArgument(schemaNode.Method),
+                            SyntaxFactory.Argument(CreateRuntimeContext(schemaNode, originallyInferredColumns)),
                             SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args))
                         }),
                         SyntaxFactory.Token(SyntaxKind.CloseParenToken)
@@ -259,7 +272,7 @@ namespace Musoq.Evaluator.Visitors
                 Statements.AddRange(new StatementSyntax[]
                 {
                     SyntaxFactory.LocalDeclarationStatement(createdSchema),
-                    SyntaxFactory.LocalDeclarationStatement(gettedTable),
+                    SyntaxFactory.LocalDeclarationStatement(getTable),
                     returnStatement
                 });
             }
@@ -1542,40 +1555,7 @@ namespace Musoq.Evaluator.Visitors
                     {
                         SyntaxHelper.StringLiteralArgument(node.Method),
                         SyntaxFactory.Argument(
-                            SyntaxFactory.ObjectCreationExpression(
-                                    SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
-                                .WithArgumentList(
-                                    SyntaxFactory.ArgumentList(
-                                        SyntaxFactory.SeparatedList(
-                                            new[]
-                                            {
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
-                                                SyntaxFactory.Argument(
-                                                    SyntaxFactory.IdentifierName(tableInfoVariableName)),
-                                                SyntaxFactory.Argument(
-                                                    SyntaxFactory.ElementAccessExpression(
-                                                            SyntaxFactory.IdentifierName(
-                                                                "positionalEnvironmentVariables"))
-                                                        .WithArgumentList(
-                                                            SyntaxFactory.BracketedArgumentList(
-                                                                SyntaxFactory.SingletonSeparatedList(
-                                                                    SyntaxFactory.Argument(
-                                                                        SyntaxFactory.LiteralExpression(
-                                                                            SyntaxKind.NumericLiteralExpression,
-                                                                            SyntaxFactory.Literal(
-                                                                                _schemaFromIndex++))))))
-                                                ),
-                                                SyntaxFactory.Argument(
-                                                    SyntaxFactory.ElementAccessExpression(
-                                                            SyntaxFactory.IdentifierName("queriesInformation"))
-                                                        .WithArgumentList(
-                                                            SyntaxFactory.BracketedArgumentList(
-                                                                SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
-                                                                    SyntaxFactory.Argument(
-                                                                        SyntaxFactory.LiteralExpression(
-                                                                            SyntaxKind.StringLiteralExpression,
-                                                                            SyntaxFactory.Literal(node.Id)))))))
-                                            })))),
+                            CreateRuntimeContext(node, SyntaxFactory.IdentifierName(tableInfoVariableName))),
                         SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(
                                 nameof(Object),
@@ -3389,6 +3369,44 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(FieldLinkNode node)
         {
             throw new NotSupportedException();
+        }
+
+        private ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node, ExpressionSyntax originallyInferredColumns)
+        {
+            return SyntaxFactory.ObjectCreationExpression(
+                    SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new[]
+                            {
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
+                                SyntaxFactory.Argument(
+                                    originallyInferredColumns),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.ElementAccessExpression(
+                                            SyntaxFactory.IdentifierName(
+                                                "positionalEnvironmentVariables"))
+                                        .WithArgumentList(
+                                            SyntaxFactory.BracketedArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(
+                                                            SyntaxKind.NumericLiteralExpression,
+                                                            SyntaxFactory.Literal(
+                                                                _schemaFromIndex++))))))
+                                ),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.ElementAccessExpression(
+                                            SyntaxFactory.IdentifierName("queriesInformation"))
+                                        .WithArgumentList(
+                                            SyntaxFactory.BracketedArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(
+                                                            SyntaxKind.StringLiteralExpression,
+                                                            SyntaxFactory.Literal(node.Id)))))))
+                            })));
         }
     }
 }

@@ -4,13 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
-using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 
@@ -24,7 +24,8 @@ namespace Musoq.Converter
             {
                 SchemaProvider = provider,
                 RawQuery = script,
-                AssemblyName = assemblyName
+                AssemblyName = assemblyName,
+                PositionalEnvironmentVariables = new Dictionary<uint, IReadOnlyDictionary<string, string>>()
             };
 
             RuntimeLibraries.CreateReferences();
@@ -119,7 +120,13 @@ namespace Musoq.Converter
             if (!compiled && compilationError != null)
                 throw compilationError;
 
-            var runnable = new RunnableDebugDecorator(CreateRunnable(items, assemblyPath), csPath, assemblyPath, pdbPath);
+            var assemblyLoadContext = new DebugAssemblyLoadContext();
+            var runnable = new RunnableDebugDecorator(
+                CreateRunnableForDebug(items, () => assemblyLoadContext.LoadFromAssemblyPath(assemblyPath)),
+                assemblyLoadContext,
+                csPath, 
+                assemblyPath, 
+                pdbPath);
 
             return new CompiledQuery(runnable);
         }
@@ -129,9 +136,9 @@ namespace Musoq.Converter
             return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider, positionalEnvironmentVariables));
         }
 
-        private static IRunnable CreateRunnable(BuildItems items, string assemblyPath)
+        private static IRunnable CreateRunnableForDebug(BuildItems items, Func<Assembly> loadAssembly)
         {
-            return CreateRunnable(items, () => Assembly.LoadFrom(assemblyPath));
+            return CreateRunnable(items, loadAssembly);
         }
 
         private static IRunnable CreateRunnable(BuildItems items)
@@ -173,6 +180,13 @@ namespace Musoq.Converter
                 ).ToDictionary(f => f.SchemaFromNode.Id, f => ((SchemaFromNode)f.SchemaFromNode, f.UsedColumns, f.UsedValues));
 
             return runnable;
+        }
+        
+        private class DebugAssemblyLoadContext : AssemblyLoadContext
+        {
+            public DebugAssemblyLoadContext() : base(true)
+            {
+            }
         }
     }
 }

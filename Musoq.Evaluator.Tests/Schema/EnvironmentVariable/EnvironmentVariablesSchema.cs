@@ -37,6 +37,11 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable
             AddTable<EnvironmentVariableEntityTable>("all");
         }
 
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+        {
+            return base.GetTableByName(name, runtimeContext, parameters);
+        }
+
         public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             return new EnvironmentVariablesSource(runtimeContext);

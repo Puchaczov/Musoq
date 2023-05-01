@@ -5,9 +5,9 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Schema.Basic
 {
-    public class TestSchema<T, TTable> : SchemaBase
+    public class GenericSchema<T, TTable> : SchemaBase
     {
-        public TestSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap, IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
+        public GenericSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap, IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
             : base("test", CreateLibrary())
         {
             AddSource<EntitySource<T>>("entities", sources, testNameToIndexMap, testIndexToObjectAccessMap);
@@ -19,7 +19,7 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
             var methodManager = new MethodsManager();
             var propertiesManager = new PropertiesManager();
 
-            var lib = new TestLibrary();
+            var lib = new Library();
 
             propertiesManager.RegisterProperties(lib);
             methodManager.RegisterLibraries(lib);

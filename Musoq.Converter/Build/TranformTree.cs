@@ -20,7 +20,7 @@ namespace Musoq.Converter.Build
 
             var queryTree = items.RawQueryTree;
 
-            var metadata = new BuildMetadataAndInferTypeVisitor(items.SchemaProvider);
+            var metadata = new BuildMetadataAndInferTypeVisitor(items.SchemaProvider, items.PositionalEnvironmentVariables);
             var metadataTraverser = new BuildMetadataAndInferTypeTraverseVisitor(metadata);
 
             queryTree.Accept(metadataTraverser);

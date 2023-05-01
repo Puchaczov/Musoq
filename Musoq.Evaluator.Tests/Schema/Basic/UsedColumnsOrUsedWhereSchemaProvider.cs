@@ -15,6 +15,6 @@ public class UsedColumnsOrUsedWhereSchemaProvider<T> : ISchemaProvider
         
     public ISchema GetSchema(string schema)
     {
-        return new TestSchema<UsedColumnsOrUsedWhereEntity, UsedColumnsOrUsedWhereTable>(_values[schema], UsedColumnsOrUsedWhereEntity.TestNameToIndexMap, UsedColumnsOrUsedWhereEntity.TestIndexToObjectAccessMap);
+        return new GenericSchema<UsedColumnsOrUsedWhereEntity, UsedColumnsOrUsedWhereTable>(_values[schema], UsedColumnsOrUsedWhereEntity.TestNameToIndexMap, UsedColumnsOrUsedWhereEntity.TestIndexToObjectAccessMap);
     }
 }

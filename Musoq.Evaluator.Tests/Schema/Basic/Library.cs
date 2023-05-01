@@ -5,7 +5,7 @@ using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests.Schema.Basic
 {
-    public class TestLibrary : LibraryBase
+    public class Library : LibraryBase
     {
         private readonly Random _random = new();
         
