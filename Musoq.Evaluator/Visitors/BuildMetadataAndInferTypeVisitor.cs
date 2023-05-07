@@ -459,15 +459,9 @@ namespace Musoq.Evaluator.Visitors
             var exp = Nodes.Pop();
             var root = Nodes.Pop();
 
-            if (root.ReturnType == typeof(IDynamicMetaObjectProvider))
-            {
-                Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, typeof(IDynamicMetaObjectProvider)));
-            }
-            else
-            {
-                Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType));
-            }
-
+            Nodes.Push(root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider))
+                ? new DotNode(root, exp, node.IsOuter, string.Empty, typeof(IDynamicMetaObjectProvider))
+                : new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType));
         }
 
         public virtual void Visit(AccessCallChainNode node)
@@ -1199,9 +1193,9 @@ namespace Musoq.Evaluator.Visitors
                     library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
                     library.LevenshteinDistance(col.ColumnName, identifier).Value < 3).ToArray();
 
-            for (int i = 0; i < candidatesColumns.Length - 1; i++)
+            for (var i = 0; i < candidatesColumns.Length - 1; i++)
             {
-                ISchemaColumn candidate = candidatesColumns[i];
+                var candidate = candidatesColumns[i];
                 candidates.Append(candidate.ColumnName);
                 candidates.Append(", ");
             }
