@@ -103,14 +103,7 @@ namespace Musoq.Evaluator.Visitors
         {
             get
             {
-                var result = new Dictionary<SchemaFromNode, WhereNode>();
-                
-                foreach (var aliasColumnsPair in _usedWhereNodes)
-                {
-                    result.Add(aliasColumnsPair.Key, aliasColumnsPair.Value);
-                }
-
-                return result;
+                return _usedWhereNodes.ToDictionary(aliasColumnsPair => aliasColumnsPair.Key, aliasColumnsPair => aliasColumnsPair.Value);
             }
         }
 
@@ -460,7 +453,7 @@ namespace Musoq.Evaluator.Visitors
             var root = Nodes.Pop();
 
             Nodes.Push(root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider))
-                ? new DotNode(root, exp, node.IsOuter, string.Empty, typeof(IDynamicMetaObjectProvider))
+                ? new DotNode(root, exp, node.IsOuter, string.Empty, typeof(object))
                 : new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType));
         }
 
