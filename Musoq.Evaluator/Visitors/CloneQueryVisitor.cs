@@ -247,20 +247,17 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(AccessObjectArrayNode node)
         {
-            var parentNodeType = Nodes.Peek().ReturnType;
-            Nodes.Push(new AccessObjectArrayNode(node.Token, parentNodeType.GetProperty(node.Name)));
+            Nodes.Push(new AccessObjectArrayNode(node.Token, node.PropertyInfo));
         }
 
         public virtual void Visit(AccessObjectKeyNode node)
         {
-            var parentNodeType = Nodes.Peek().ReturnType;
-            Nodes.Push(new AccessObjectKeyNode(node.Token, parentNodeType.GetProperty(node.ObjectName)));
+            Nodes.Push(new AccessObjectKeyNode(node.Token, node.PropertyInfo));
         }
 
         public virtual void Visit(PropertyValueNode node)
         {
-            var parentNodeType = Nodes.Peek().ReturnType;
-            Nodes.Push(new PropertyValueNode(node.Name, parentNodeType.GetProperty(node.Name)));
+            Nodes.Push(new PropertyValueNode(node.Name, node.PropertyInfo));
         }
 
         public virtual void Visit(DotNode node)

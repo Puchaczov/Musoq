@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -432,19 +433,56 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(AccessObjectArrayNode node)
         {
             var parentNodeType = Nodes.Peek().ReturnType;
-            Nodes.Push(new AccessObjectArrayNode(node.Token, parentNodeType.GetProperty(node.Name)));
+            if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+            {
+                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                Nodes.Push(
+                    new AccessObjectArrayNode(
+                        node.Token, 
+                        new ExpandoObjectPropertyInfo(
+                            node.Name,
+                            column.ColumnType)));
+            }
+            else
+            {
+                Nodes.Push(new AccessObjectArrayNode(node.Token, parentNodeType.GetProperty(node.Name)));
+            }
         }
 
         public void Visit(AccessObjectKeyNode node)
         {
             var parentNodeType = Nodes.Peek().ReturnType;
-            Nodes.Push(new AccessObjectKeyNode(node.Token, parentNodeType.GetProperty(node.ObjectName)));
+            if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+            {
+                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                Nodes.Push(
+                    new AccessObjectKeyNode(
+                        node.Token, 
+                        new ExpandoObjectPropertyInfo(
+                            node.Name,
+                            column.ColumnType)));
+            }
+            else
+            {
+                Nodes.Push(new AccessObjectKeyNode(node.Token, parentNodeType.GetProperty(node.Name)));
+            }
         }
 
         public void Visit(PropertyValueNode node)
         {
             var parentNodeType = Nodes.Peek().ReturnType;
-            Nodes.Push(new PropertyValueNode(node.Name, parentNodeType.GetProperty(node.Name)));
+            if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+            {
+                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, column.ColumnType)));
+            }
+            else
+            {
+                Nodes.Push(new PropertyValueNode(node.Name, parentNodeType.GetProperty(node.Name)));
+            }
         }
 
         public void Visit(DotNode node)
@@ -452,9 +490,37 @@ namespace Musoq.Evaluator.Visitors
             var exp = Nodes.Pop();
             var root = Nodes.Pop();
 
-            Nodes.Push(root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider))
-                ? new DotNode(root, exp, node.IsOuter, string.Empty, typeof(object))
-                : new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType));
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+
+            DotNode newNode = null;
+            if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+            {
+                var name = exp switch
+                {
+                    PropertyValueNode propertyValueNode => propertyValueNode.Name,
+                    AccessObjectArrayNode accessObjectArrayNode => accessObjectArrayNode.Name,
+                    AccessObjectKeyNode accessObjectKeyNode => accessObjectKeyNode.Name,
+                    _ => throw new NotSupportedException()
+                };
+
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, name);
+                
+                var type = exp switch
+                {
+                    PropertyValueNode => column.ColumnType,
+                    AccessObjectArrayNode => column.ColumnType.GetElementType(),
+                    AccessObjectKeyNode => column.ColumnType.GetElementType(),
+                    _ => throw new NotSupportedException()
+                };
+                
+                newNode = new DotNode(root, exp, node.IsOuter, string.Empty, type);
+            }
+            else
+            {
+                newNode = new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType);
+            }
+            
+            Nodes.Push(newNode);
         }
 
         public virtual void Visit(AccessCallChainNode node)
@@ -1203,4 +1269,72 @@ namespace Musoq.Evaluator.Visitors
             throw new UnknownColumnException($"Column {identifier} could not be found.");
         }
     }
+}
+
+public class ExpandoObjectPropertyInfo : PropertyInfo
+{
+    public ExpandoObjectPropertyInfo(string name, Type propertyType)
+    {
+        Name = name;
+        ReflectedType = typeof(ExpandoObject);
+        PropertyType = propertyType;
+    }
+
+    public override object[] GetCustomAttributes(bool inherit)
+    {
+        return Array.Empty<object>();
+    }
+
+    public override object[] GetCustomAttributes(Type attributeType, bool inherit)
+    {
+        return Array.Empty<object>();
+    }
+
+    public override bool IsDefined(Type attributeType, bool inherit)
+    {
+        return false;
+    }
+
+    public override Type DeclaringType => typeof(ExpandoObject);
+    
+    public override string Name { get; }
+    
+    public override Type ReflectedType { get; }
+    
+    public override MethodInfo[] GetAccessors(bool nonPublic)
+    {
+        return Array.Empty<MethodInfo>();
+    }
+
+    public override MethodInfo GetGetMethod(bool nonPublic)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override ParameterInfo[] GetIndexParameters()
+    {
+        return Array.Empty<ParameterInfo>();
+    }
+
+    public override MethodInfo GetSetMethod(bool nonPublic)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override object GetValue(object obj, BindingFlags invokeAttr, Binder binder, object[] index, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void SetValue(object obj, object value, BindingFlags invokeAttr, Binder binder, object[] index,
+        CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override PropertyAttributes Attributes => PropertyAttributes.None;
+    public override bool CanRead => true;
+    public override bool CanWrite => false;
+    
+    public override Type PropertyType { get; }
 }

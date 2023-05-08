@@ -1034,7 +1034,7 @@ namespace Musoq.Evaluator.Visitors
 
             foreach (var context in contexts)
             {
-                var rowVariableName = string.Empty;
+                string rowVariableName;
 
                 switch (_type)
                 {
@@ -1045,6 +1045,8 @@ namespace Musoq.Evaluator.Visitors
                     case MethodAccessType.CaseWhen:
                         rowVariableName = "score";
                         break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
 
                 contextsExpressions.Add(
@@ -1276,7 +1278,7 @@ namespace Musoq.Evaluator.Visitors
                     }
 
                     foreach (var column in fullTransitionTable.GetColumns(
-                                 fullTransitionTable.CompoundTables[fullTransitionTable.CompoundTables.Length - 1]))
+                                 fullTransitionTable.CompoundTables[^1]))
                     {
                         expressions.Add(
                             SyntaxFactory.CastExpression(

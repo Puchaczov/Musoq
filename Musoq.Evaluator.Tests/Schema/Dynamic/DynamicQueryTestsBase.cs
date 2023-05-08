@@ -13,9 +13,10 @@ public class DynamicQueryTestsBase
 {
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
-        IReadOnlyCollection<dynamic> values)
+        IReadOnlyCollection<dynamic> values,
+        IReadOnlyDictionary<string, Type> schema = null)
     {
-        var schema = ((IDictionary<string, object>) values.First()).ToDictionary(f => f.Key, f => f.Value?.GetType());
+        schema ??= ((IDictionary<string, object>) values.First()).ToDictionary(f => f.Key, f => f.Value?.GetType());
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(),
