@@ -19,6 +19,8 @@ Musoq exposes raw data sets as queryable sources. This allows to search these da
 - Websites (tables, lists)
 - Processes
 - Time
+- AI - **GPT 3 / 4 (required API-KEY)**
+- Airtable, SQLite, Postgres
 
 It is possible to mix sources between each other.
 
