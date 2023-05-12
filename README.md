@@ -20,9 +20,13 @@ Musoq exposes raw data sets as queryable sources. This allows to search these da
 - Processes
 - Time
 - AI - **GPT 3 / 4 (required API-KEY)**
-- Airtable, SQLite, Postgres
+- Airtable **(reqiuired API-KEY)**, SQLite, Postgres
 
 It is possible to mix sources between each other.
+
+## Where are those data sources?
+
+Please, Visit **[Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSources)** repository where all plugins are stored
 
 ## What does a query look like?
 
