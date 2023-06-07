@@ -31,52 +31,7 @@ namespace Musoq.Evaluator.Utils
 
         public Scope Parent { get; private set; }
 
-        public Scope Root {
-            get
-            {
-                if (Parent == null)
-                    return this;
-
-                var prev = Parent;
-                var rootCandidate = Parent;
-                while (rootCandidate != null)
-                {
-                    prev = rootCandidate;
-                    rootCandidate = rootCandidate.Parent;
-                }
-
-                return prev;
-            }
-        }
-
-        public Scope Query
-        {
-            get
-            {
-                if (Name == "Query")
-                    return this;
-
-                if (Parent == null)
-                    return null;
-
-                var prev = Parent;
-                var rootCandidate = Parent;
-                while (rootCandidate != null)
-                {
-                    if (rootCandidate.Name == "Query")
-                        break;
-
-                    prev = rootCandidate;
-                    rootCandidate = rootCandidate.Parent;
-                }
-
-                return prev;
-            }
-        }
-
         public SymbolTable ScopeSymbolTable { get; } = new();
-
-        public StringBuilder Script { get; } = new();
 
         public string this[string key]
         {
@@ -84,24 +39,11 @@ namespace Musoq.Evaluator.Utils
             set => _attributes[key] = value;
         }
 
-        public Scope AddScope(Func<Scope, int, Scope> createScope)
-        {
-            var scope = createScope(this, _scopes.Count);
-            _scopes.Add(scope);
-            return scope;
-        }
-
         public Scope AddScope(string name = "")
         {
             var scope = new Scope(this, _scopes.Count, name);
             _scopes.Add(scope);
             return scope;
-        }
-
-        public void RemoveScope(Scope scope)
-        {
-            _scopes.Remove(scope);
-            scope.Parent = null;
         }
 
         public bool ContainsAttribute(string attributeName)

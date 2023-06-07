@@ -7,17 +7,16 @@ namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
 public class DynamicSchemaProvider : ISchemaProvider
 {
-    private readonly IReadOnlyDictionary<string, Type> _dynamicSchema;
-    private readonly IEnumerable<dynamic> _values;
-
-    public DynamicSchemaProvider(IReadOnlyDictionary<string, Type> dynamicSchema, IEnumerable<dynamic> values)
+    private readonly
+        IReadOnlyDictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)> _schemas;
+    
+    public DynamicSchemaProvider(IReadOnlyDictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)> schemas)
     {
-        _dynamicSchema = dynamicSchema;
-        _values = values;
+        _schemas = schemas;
     }
 
     public ISchema GetSchema(string schema)
     {
-        return new DynamicSchema(_dynamicSchema, _values);
+        return new DynamicSchema(_schemas[schema].Schema, _schemas[schema].Values);
     }
 }

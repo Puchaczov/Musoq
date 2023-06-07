@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
@@ -409,9 +408,9 @@ namespace Musoq.Evaluator.Visitors
             var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
             var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
 
-            var select = Nodes.Pop() as SelectNode;
+            var select = (SelectNode)Nodes.Pop();
             var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
-            var from = Nodes.Pop() as ExpressionFromNode;
+            var from = (ExpressionFromNode)Nodes.Pop();
 
             var scoreSelect = select;
             var scoreWhere = where;
@@ -436,28 +435,67 @@ namespace Musoq.Evaluator.Visitors
 
             if (from.Expression is JoinsNode)
             {
+                var extractAccessedColumnsVisitor = new ExtractAccessColumnFromQueryVisitor();
+                var extractAccessedColumnsTraverseVisitor = new CloneTraverseVisitor(extractAccessedColumnsVisitor);
+                
+                node.Accept(extractAccessedColumnsTraverseVisitor);
+
+                foreach (var refreshMethod in usedRefreshMethods ?? Array.Empty<AccessMethodNode>())
+                {
+                    refreshMethod.Accept(extractAccessedColumnsTraverseVisitor);
+                }
+                
                 var current = _joinedTables[0];
+                var accessColumns = extractAccessedColumnsVisitor.GetForAliases(current.Source.Alias, current.With.Alias);
                 var left = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.Source.Alias);
                 var right = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.With.Alias);
 
                 var scopeCreateTable = _scope.AddScope("Table");
                 var scopeJoinedQuery = _scope.AddScope("Query");
 
-                var bothForCreateTable = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias,
-                    (name, alias) => NamingHelper.ToColumnName(alias, name));
-                var bothForSelect = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias,
-                    (name, alias) => name);
+                var trimmedLeft = left.LimitColumnsTo(new Dictionary<string, string[]>
+                {
+                    {
+                        left.CompoundTables[0],
+                        accessColumns.Where(f => f.Alias == left.CompoundTables[0]).Select(f => f.Name)
+                            .ToArray()
+                    }
+                });
+                var trimmedRight = right.LimitColumnsTo(new Dictionary<string, string[]>
+                {
+                    {
+                        right.CompoundTables[0],
+                        accessColumns.Where(f => f.Alias == right.CompoundTables[0]).Select(f => f.Name)
+                            .ToArray()
+                    }
+                });
+                var bothForCreateTable = CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
+                    (name, alias) => NamingHelper.ToColumnName(alias, name), IncludeKnownColumns(accessColumns, current));
+                var bothForSelect = CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
+                    (name, alias) => name, IncludeKnownColumns(accessColumns, current));
 
-                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, left);
-                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, right);
+                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, trimmedLeft);
+                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, trimmedRight);
 
                 var targetTableName = $"{current.Source.Alias}{current.With.Alias}";
 
                 aliasesPositionsSymbol.AliasesPositions.Add(current.Source.Alias, aliasIndex++);
                 aliasesPositionsSymbol.AliasesPositions.Add(current.With.Alias, aliasIndex++);
 
-                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
-                    _scope.ScopeSymbolTable.GetSymbol(targetTableName));
+                var targetSymbolTable = (TableSymbol)_scope.ScopeSymbolTable.GetSymbol(targetTableName);
+                var limitedTargetSymbolTable = targetSymbolTable.LimitColumnsTo(new Dictionary<string, string[]>
+                {
+                    {
+                        targetSymbolTable.CompoundTables[0],
+                        accessColumns.Where(f => f.Alias == targetSymbolTable.CompoundTables[0]).Select(f => f.Name).ToArray()
+                    },
+                    {
+                        targetSymbolTable.CompoundTables[1],
+                        accessColumns.Where(f => f.Alias == targetSymbolTable.CompoundTables[1]).Select(f => f.Name).ToArray()
+                    }
+                });
+                
+                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, limitedTargetSymbolTable);
 
                 scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                 scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
@@ -507,23 +545,70 @@ namespace Musoq.Evaluator.Visitors
                     scopeCreateTable = _scope.AddScope("Table");
                     scopeJoinedQuery = _scope.AddScope("Query");
 
-                    bothForCreateTable = CreateAndConcatFields(left, current.Source.Alias, right, current.With.Alias,
-                        (name, alias) => NamingHelper.ToColumnName(alias, name));
-                    bothForSelect = CreateAndConcatFields(
-                        left,
-                        current.Source.Alias,
-                        right,
-                        current.With.Alias,
-                        (name, alias) => NamingHelper.ToColumnName(alias, name),
-                        (name, alias) => name,
-                        (name, alias) => NamingHelper.ToColumnName(alias, name),
-                        (name, alias) => name);
+                    accessColumns = extractAccessedColumnsVisitor.GetForAliases(left.CompoundTables);
+                    IEnumerable<KeyValuePair<string, string[]>> limitColumnsKeyValuePair = Array.Empty<KeyValuePair<string, string[]>>();
 
-                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, left);
-                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, right);
+                    foreach (var compoundTable in left.CompoundTables)
+                    {
+                        var columns = accessColumns.Where(f => f.Alias == compoundTable).Select(f => f.Name).ToArray();
+                        limitColumnsKeyValuePair = limitColumnsKeyValuePair.Concat(new Dictionary<string, string[]>
+                        {
+                            {compoundTable, columns}
+                        });
+                    }
+                    
+                    trimmedLeft = left.LimitColumnsTo(new Dictionary<string, string[]>(limitColumnsKeyValuePair));
+                    trimmedRight = right.LimitColumnsTo(new Dictionary<string, string[]>
+                    {
+                        {
+                            right.CompoundTables[0],
+                            extractAccessedColumnsVisitor.GetForAlias(right.CompoundTables[0])
+                                .Where(f => f.Alias == right.CompoundTables[0]).Select(f => f.Name)
+                                .ToArray()
+                        }
+                    });
+                    bothForCreateTable = 
+                        CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
+                        (name, alias) => NamingHelper.ToColumnName(alias, name), 
+                        IncludeKnownColumnsForWithOnly(extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
+                        startAt: 0);
 
-                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName,
-                        _scope.ScopeSymbolTable.GetSymbol(targetTableName));
+                    bothForSelect = 
+                        CreateAndConcatFields(
+                            trimmedLeft,
+                            current.Source.Alias,
+                            trimmedRight
+                            ,
+                            current.With.Alias,
+                            (name, alias) => NamingHelper.ToColumnName(alias, name),
+                            (name, alias) => name,
+                            (name, alias) => NamingHelper.ToColumnName(alias, name),
+                            (name, alias) => name,
+                            IncludeKnownColumnsForWithOnly(extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
+                            startAt: 0);
+
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, trimmedLeft);
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, trimmedRight);
+                    
+                    targetSymbolTable = (TableSymbol)_scope.ScopeSymbolTable.GetSymbol(targetTableName);
+
+                    IEnumerable<KeyValuePair<string, string[]>> pairs = Array.Empty<KeyValuePair<string, string[]>>();
+                    for (var index = 0; index < targetSymbolTable.CompoundTables.Length - 1; index++)
+                    {
+                        var compoundTable = targetSymbolTable.CompoundTables[index];
+                        var columns = trimmedLeft.GetColumns(compoundTable);
+                        pairs = pairs.Concat(new KeyValuePair<string, string[]>[]
+                        {
+                            new(compoundTable, columns.Select(f => f.ColumnName).ToArray())
+                        });
+                    }
+
+                    pairs = pairs
+                        .Concat(trimmedRight.CompoundTables.Select(compoundTable => new KeyValuePair<string, string[]>(compoundTable, trimmedRight.GetColumns(compoundTable).Select(f => f.ColumnName).ToArray())));
+                    
+                    limitedTargetSymbolTable = targetSymbolTable.LimitColumnsTo(new Dictionary<string, string[]>(pairs));
+
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, limitedTargetSymbolTable);
                     scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                     scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
                     scopeJoinedQuery[MetaAttributes.Contexts] = $"{current.Source.Alias},{current.With.Alias}";
@@ -696,7 +781,7 @@ namespace Musoq.Evaluator.Visitors
 
                     var newFrom = lastJoinQuery != null
                         ? new Parser.ExpressionFromNode(
-                            new Parser.InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
+                            new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                         : from;
 
                     aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex++);
@@ -995,45 +1080,73 @@ namespace Musoq.Evaluator.Visitors
             return fields.ToArray();
         }
 
-        private FieldNode[] CreateAndConcatFields(TableSymbol left, string lAlias, TableSymbol right, string rAlias,
-            Func<string, string, string> func)
+        private FieldNode[] CreateAndConcatFields(TableSymbol left, string lAlias, TableSymbol right, string rAlias, Func<string, string, string> createLeftAndRightFieldName, Func<AccessColumnNode, bool> includeKnownColumn = null, int startAt = 0)
         {
-            return CreateAndConcatFields(left, lAlias, right, rAlias, func, func, (name, alias) => name,
-                (name, alias) => name);
+            return CreateAndConcatFields(
+                left, 
+                lAlias, 
+                right, 
+                rAlias, 
+                createLeftAndRightFieldName, 
+                createLeftAndRightFieldName, 
+                (name, alias) => name,
+                (name, alias) => name,
+                includeKnownColumn, 
+                startAt);
         }
 
-        private FieldNode[] CreateAndConcatFields(TableSymbol left, string lAlias, TableSymbol right, string rAlias,
-            Func<string, string, string> lfunc, Func<string, string, string> rfunc, Func<string, string, string> lcfunc,
-            Func<string, string, string> rcfunc)
+        private FieldNode[] CreateAndConcatFields(
+            TableSymbol left, 
+            string leftAlias, 
+            TableSymbol right, 
+            string rightAlias,
+            Func<string, string, string> createLeftFieldName, 
+            Func<string, string, string> createRightFieldName, 
+            Func<string, string, string> createLeftColumnName,
+            Func<string, string, string> createRightColumnName,
+            Func<AccessColumnNode, bool> isKnownColumn = null,
+            int startAt = 0)
         {
             var fields = new List<FieldNode>();
+            var usedColumns = new List<AccessColumnNode>();
 
-            var i = 0;
+            var i = startAt;
 
             foreach (var compoundTable in left.CompoundTables)
-            foreach (var column in left.GetColumns(compoundTable))
-                fields.Add(
-                    new FieldNode(
-                        new AccessColumnNode(
-                            lcfunc(column.ColumnName, compoundTable),
-                            lAlias,
-                            column.ColumnType,
-                            TextSpan.Empty),
-                        i++,
-                        lfunc(column.ColumnName, compoundTable)));
+            {
+                foreach (var column in left.GetColumns(compoundTable))
+                {
+                    var accessColumnNode = new AccessColumnNode(
+                        createLeftColumnName(column.ColumnName, compoundTable),
+                        leftAlias,
+                        column.ColumnType,
+                        TextSpan.Empty);
+                    
+                    if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
+                        continue;
+                    
+                    fields.Add(new FieldNode(accessColumnNode, i++, createLeftFieldName(column.ColumnName, compoundTable)));
+                }
+            }
 
             foreach (var compoundTable in right.CompoundTables)
-            foreach (var column in right.GetColumns(compoundTable))
-                fields.Add(
-                    new FieldNode(
-                        new AccessColumnNode(
-                            rcfunc(column.ColumnName, compoundTable),
-                            rAlias,
-                            column.ColumnType,
-                            TextSpan.Empty),
-                        i++,
-                        rfunc(column.ColumnName, compoundTable)));
-
+            {
+                foreach (var column in right.GetColumns(compoundTable))
+                {
+                    var accessColumnNode = new AccessColumnNode(
+                        createRightColumnName(column.ColumnName, compoundTable),
+                        rightAlias,
+                        column.ColumnType,
+                        TextSpan.Empty);
+                    
+                    if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
+                        continue;
+                    
+                    fields.Add(
+                        new FieldNode(accessColumnNode, i++, createRightFieldName(column.ColumnName, compoundTable)));
+                }
+            }
+            
             return fields.ToArray();
         }
 
@@ -1056,6 +1169,45 @@ namespace Musoq.Evaluator.Visitors
         private bool HasMethod(IEnumerable<AccessMethodNode> methods, AccessMethodNode node)
         {
             return methods.Any(f => f.ToString() == node.ToString());
+        }
+
+        private static Func<AccessColumnNode, bool> IncludeKnownColumnsForWithOnly(AccessColumnNode[] accessColumnNodes, JoinFromNode joinFromNode)
+        {
+            return accessColumnNode =>
+            {
+                if (accessColumnNode.Alias == joinFromNode.Source.Alias)
+                {
+                    return true;
+                }
+
+                if (accessColumnNode.Alias == joinFromNode.With.Alias)
+                {
+                    return accessColumnNodes.Any(f =>
+                        f.Name == accessColumnNode.Name && f.Alias == joinFromNode.With.Alias);
+                }
+
+                return false;
+            };
+        }
+
+        private static Func<AccessColumnNode, bool> IncludeKnownColumns(AccessColumnNode[] accessColumnNodes, JoinFromNode joinFromNode)
+        {
+            return accessColumnNode =>
+            {
+                if (accessColumnNode.Alias == joinFromNode.Source.Alias)
+                {
+                    return accessColumnNodes.Any(f =>
+                        f.Name == accessColumnNode.Name && f.Alias == joinFromNode.Source.Alias);
+                }
+                        
+                if (accessColumnNode.Alias == joinFromNode.With.Alias)
+                {
+                    return accessColumnNodes.Any(f =>
+                        f.Name == accessColumnNode.Name && f.Alias == joinFromNode.With.Alias);
+                }
+                        
+                return false;
+            };
         }
     }
 }

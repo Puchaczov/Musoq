@@ -20,8 +20,63 @@ public class DynamicQueryTestsBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(),
-            new DynamicSchemaProvider(schema, values),
+            new AnySchemaNameProvider(new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
+            {
+                { "dynamic", (schema, values) }
+            }),
             CreateMockedEnvironmentVariables());
+    }
+    
+    protected CompiledQuery CreateAndRunVirtualMachine(
+        string script,
+        (string Name, IReadOnlyCollection<dynamic> Values, IReadOnlyDictionary<string, Type> Schema)[] sources)
+    {
+        var schemas = new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>();
+        foreach (var source in sources)
+        {
+            schemas.Add(source.Name, (source.Schema, source.Values));
+        }
+        return InstanceCreator.CompileForExecution(
+            script, 
+            Guid.NewGuid().ToString(),
+            new DynamicSchemaProvider(schemas),
+            CreateMockedEnvironmentVariables());
+    }
+    
+    protected static ExpandoObject CreateExpandoObject(ExpandoObject complex)
+    {
+        dynamic obj = new ExpandoObject();
+        obj.Complex = complex;
+        return obj;
+    }
+    
+    protected static ExpandoObject CreateExpandoObject(int id)
+    {
+        dynamic obj = new ExpandoObject();
+        obj.Id = id;
+        return obj;
+    }
+    
+    protected static ExpandoObject CreateExpandoObject(int id, string name)
+    {
+        dynamic obj = new ExpandoObject();
+        obj.Id = id;
+        obj.Name = name;
+        return obj;
+    }
+    
+    protected static ExpandoObject CreateExpandoObject(int[] array)
+    {
+        dynamic obj = new ExpandoObject();
+        obj.Array = array;
+        return obj;
+    }
+    
+    protected static ExpandoObject CreateExpandoObject(ExpandoObject[] array)
+    {
+        dynamic obj = new ExpandoObject();
+        obj.Array = array;
+        return obj;
     }
 
     private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()

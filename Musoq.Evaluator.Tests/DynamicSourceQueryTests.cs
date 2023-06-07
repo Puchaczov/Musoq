@@ -225,40 +225,56 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(2, table[0][0]);
     }
-    
-    private static ExpandoObject CreateExpandoObject(ExpandoObject complex)
+
+    [TestMethod]
+    public void WithRedundantColumn_ShouldBeTrimmed_ShouldPass()
     {
-        dynamic obj = new ExpandoObject();
-        obj.Complex = complex;
-        return obj;
-    }
-    
-    private static ExpandoObject CreateExpandoObject(int id)
-    {
-        dynamic obj = new ExpandoObject();
-        obj.Id = id;
-        return obj;
-    }
-    
-    private static ExpandoObject CreateExpandoObject(int id, string name)
-    {
-        dynamic obj = new ExpandoObject();
-        obj.Id = id;
-        obj.Name = name;
-        return obj;
-    }
-    
-    private static ExpandoObject CreateExpandoObject(int[] array)
-    {
-        dynamic obj = new ExpandoObject();
-        obj.Array = array;
-        return obj;
-    }
-    
-    private static ExpandoObject CreateExpandoObject(ExpandoObject[] array)
-    {
-        dynamic obj = new ExpandoObject();
-        obj.Array = array;
-        return obj;
+        const string query = @"
+select 
+    weather.Location as 'City', 
+    weather.TemperatureInCelsiusDegree as 'TemperatureInCelsiusDegree', 
+    location.Name as 'Location' 
+from #weather.all() weather 
+inner join #location.all() location on weather.Location = location.Name
+";
+        dynamic weather = new ExpandoObject();
+        weather.Location = "London";
+        weather.TemperatureInCelsiusDegree = 10;
+        var weatherSource = new List<dynamic>
+        {
+            weather
+        };
+        var weatherSchema = new Dictionary<string, Type>()
+        {
+            {"Name", typeof(decimal)},
+            {"Location", typeof(string)},
+            {"TemperatureInCelsiusDegree", typeof(int)}
+        };
+        
+        dynamic location = new ExpandoObject();
+        location.Name = "London";
+        var locationSource = new List<dynamic>()
+        {
+            location
+        };
+        var locationSchema = new Dictionary<string, Type>()
+        {
+            {"Name", typeof(string)}
+        };
+        
+        var vm = CreateAndRunVirtualMachine(query, new []
+        {
+            ("#weather", (IReadOnlyCollection<dynamic>)weatherSource, (IReadOnlyDictionary<string, Type>)weatherSchema),
+            ("#location", locationSource, locationSchema)
+        });
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(3, table.Columns.Count());
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("London", table[0][0]);
+        Assert.AreEqual(10, table[0][1]);
+        Assert.AreEqual("London", table[0][2]);
     }
 }

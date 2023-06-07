@@ -38,8 +38,6 @@ namespace Musoq.Evaluator.Utils.Symbols
         public bool HasAlias { get; }
 
         public string[] CompoundTables => _orders.ToArray();
-        
-        public bool IsCompound => _orders.Count > 1;
 
         public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByColumnName(string column)
         {
@@ -188,6 +186,28 @@ namespace Musoq.Evaluator.Utils.Symbols
                 return typeof(Nullable<>).MakeGenericType(columnType);
 
             return columnType;
+        }
+
+        public TableSymbol LimitColumnsTo(IReadOnlyDictionary<string, string[]> columnLimits)
+        {
+            var symbol = new TableSymbol();
+
+            var compoundTableColumns = new List<ISchemaColumn>();
+
+            foreach (var item in _tables)
+            {
+                var dynamicTable = new DynamicTable(item.Value.Item2.Columns.Where(c => columnLimits.ContainsKey(item.Key) && columnLimits[item.Key].Contains(c.ColumnName)).ToArray());
+                symbol._tables.Add(item.Key, new Tuple<ISchema, ISchemaTable>(item.Value.Item1, dynamicTable));
+                symbol._orders.Add(item.Key);
+
+                compoundTableColumns.AddRange(dynamicTable.Columns);
+            }
+
+            symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
+            symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray());
+            symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol._fullTable);
+
+            return symbol;
         }
     }
 }
