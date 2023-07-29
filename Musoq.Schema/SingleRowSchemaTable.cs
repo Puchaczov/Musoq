@@ -22,5 +22,7 @@ namespace Musoq.Schema
         {
             return Columns.SingleOrDefault(column => column.ColumnName == name);
         }
+
+        public SchemaTableMetadata Metadata { get; }
     }
 }

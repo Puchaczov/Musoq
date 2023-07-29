@@ -15,4 +15,6 @@ public class DualTable : ISchemaTable
     {
         return Columns.SingleOrDefault(column => column.ColumnName == name);
     }
+    
+    public SchemaTableMetadata Metadata { get; } = new(typeof(DualEntity));
 }

@@ -1024,10 +1024,11 @@ namespace Musoq.Evaluator.Visitors
 
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
             var schemaTablePair = tableSymbol.GetTableByAlias(alias);
+            var entityType = schemaTablePair.Table.Metadata.TableEntityType;
             var canSkipInjectSource = false;
-            if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), out var method))
+            if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), entityType, out var method))
             {
-                if (!schemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
+                if (!schemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), entityType, out method))
                 {
                     if (!schemaTablePair.Schema.TryResolveRawMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
                     {
@@ -1062,6 +1063,7 @@ namespace Musoq.Evaluator.Visitors
                 if (!schemaTablePair.Schema.TryResolveAggregationMethod(
                     setMethodName,
                     argTypes,
+                    entityType,
                     out var setMethod))
                 {
                     var names = argTypes.Length == 0
@@ -1075,7 +1077,6 @@ namespace Musoq.Evaluator.Visitors
                 {
                     var setParams = setMethod.GetParameters();
                     var genericArguments = setMethod.GetGenericArguments();
-                    var genericArgumentsMap = new Dictionary<int, Type>();
                     var genericArgumentsDistinct = new List<Type>();
 
                     foreach (var genericArgument in genericArguments)
@@ -1086,7 +1087,6 @@ namespace Musoq.Evaluator.Visitors
 
                             if (setParam.ParameterType == genericArgument)
                             {
-                                genericArgumentsMap.Add(i, genericArgument);
                                 genericArgumentsDistinct.Add(newSetArgs.Where((arg, index) => index == i - 1).Single().ReturnType);
                             }
                         }

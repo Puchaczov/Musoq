@@ -32,13 +32,11 @@ public class DynamicSchema : SchemaBase
     private static MethodsAggregator CreateLibrary()
     {
         var methodManager = new MethodsManager();
-        var propertiesManager = new PropertiesManager();
 
         var lib = new DynamicLibrary();
 
-        propertiesManager.RegisterProperties(lib);
         methodManager.RegisterLibraries(lib);
 
-        return new MethodsAggregator(methodManager, propertiesManager);
+        return new MethodsAggregator(methodManager);
     }
 }

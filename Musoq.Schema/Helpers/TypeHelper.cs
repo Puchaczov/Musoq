@@ -107,7 +107,25 @@ namespace Musoq.Schema.Helpers
         public static ParameterInfo[] GetParametersWithAttribute<TType>(this ParameterInfo[] parameters)
             where TType : Attribute
         {
-            return parameters.Where(f => f.GetCustomAttribute<TType>() != null).ToArray();
+            return parameters.Where(f =>
+            {
+                var attributes = f.GetCustomAttributes();
+                return attributes.Any(g => g.GetType().IsAssignableTo(typeof(TType)));
+            }).ToArray();
+        }
+        
+        /// <summary>
+        /// Gets the parameters that are annotated by some attribute
+        /// </summary>
+        /// <param name="parameterInfo">Parameter that attributes will be filtered.</param>
+        /// <typeparam name="TAttribute">Base type.</typeparam>
+        /// <returns>Attribute that specify condition.</returns>
+        public static TAttribute GetCustomAttributeThatInherits<TAttribute>(this ParameterInfo parameterInfo)
+            where TAttribute : Attribute
+        {
+            var attributes = parameterInfo.GetCustomAttributes();
+            var foundAttribute = attributes.FirstOrDefault(g => g.GetType().IsAssignableTo(typeof(TAttribute)));
+            return (TAttribute)foundAttribute;
         }
 
         /// <summary>

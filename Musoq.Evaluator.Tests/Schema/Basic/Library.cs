@@ -16,19 +16,19 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
         }
 
         [BindableMethod]
-        public string Name([InjectSource] BasicEntity entity)
+        public string Name([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
         {
             return entity.Name;
         }
 
         [BindableMethod]
-        public string MyName([InjectSource] BasicEntity entity)
+        public string MyName([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
         {
             return entity.Name;
         }
 
         [BindableMethod]
-        public string Extension([InjectSource] BasicEntity entity)
+        public string Extension([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
         {
             return ".txt";
         }

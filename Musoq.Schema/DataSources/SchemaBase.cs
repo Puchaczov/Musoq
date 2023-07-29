@@ -99,9 +99,9 @@ namespace Musoq.Schema.DataSources
             return GetRawConstructors().Where(constr => constr.MethodName == methodName).ToArray();
         }
 
-        public bool TryResolveAggregationMethod(string method, Type[] parameters, out MethodInfo methodInfo)
+        public bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
         {
-            var founded = _aggregator.TryResolveMethod(method, parameters, out methodInfo);
+            var founded = _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
 
             if (founded)
                 return methodInfo.GetCustomAttribute<AggregationMethodAttribute>() != null;
@@ -109,9 +109,9 @@ namespace Musoq.Schema.DataSources
             return false;
         }
 
-        public bool TryResolveMethod(string method, Type[] parameters, out MethodInfo methodInfo)
+        public bool TryResolveMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
         {
-            return _aggregator.TryResolveMethod(method, parameters, out methodInfo);
+            return _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
         }
 
         public bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo)

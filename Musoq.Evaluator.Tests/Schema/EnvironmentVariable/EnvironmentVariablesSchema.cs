@@ -50,14 +50,12 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable
         private static MethodsAggregator CreateLibrary()
         {
             var methodManager = new MethodsManager();
-            var propertiesManager = new PropertiesManager();
 
             var lib = new EnvironmentVariablesLibrary();
-
-            propertiesManager.RegisterProperties(lib);
+            
             methodManager.RegisterLibraries(lib);
 
-            return new MethodsAggregator(methodManager, propertiesManager);
+            return new MethodsAggregator(methodManager);
         }
         
         private class EnvironmentVariablesSource : RowSource

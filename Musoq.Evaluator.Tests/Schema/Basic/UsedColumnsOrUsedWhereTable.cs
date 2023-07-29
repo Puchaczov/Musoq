@@ -31,4 +31,6 @@ public class UsedColumnsOrUsedWhereTable : ISchemaTable
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }
+
+    public SchemaTableMetadata Metadata { get; } = new(typeof(UsedColumnsOrUsedWhereEntity));
 }

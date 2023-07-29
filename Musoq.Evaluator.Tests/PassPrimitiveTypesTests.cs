@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Converter;
-using Musoq.Evaluator.Tests.Schema;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -111,7 +110,7 @@ namespace Musoq.Evaluator.Tests
                 propertiesManager.RegisterProperties(lib);
                 methodManager.RegisterLibraries(lib);
 
-                return new MethodsAggregator(methodManager, propertiesManager);
+                return new MethodsAggregator(methodManager);
             }
 
             public override SchemaMethodInfo[] GetConstructors()
@@ -129,6 +128,8 @@ namespace Musoq.Evaluator.Tests
             {
                 return Columns.Single(column => column.ColumnName == name);
             }
+
+            public SchemaTableMetadata Metadata { get; } = new(typeof(TestEntity));
         }
 
         private class TestEntity

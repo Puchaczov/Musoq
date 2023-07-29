@@ -20,10 +20,10 @@ namespace Musoq.Schema
 
         Reflection.SchemaMethodInfo[] GetRawConstructors(string methodName);
 
-        bool TryResolveMethod(string method, Type[] parameters, out MethodInfo methodInfo);
+        bool TryResolveMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo);
 
         bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo);
 
-        bool TryResolveAggregationMethod(string method, Type[] parameters, out MethodInfo methodInfo);
+        bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo);
     }
 }

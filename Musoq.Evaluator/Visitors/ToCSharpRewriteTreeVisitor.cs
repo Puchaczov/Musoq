@@ -701,8 +701,11 @@ namespace Musoq.Evaluator.Visitors
 
             foreach (var parameterInfo in parameters)
             {
-                switch (parameterInfo.GetCustomAttribute<InjectTypeAttribute>())
+                var attribute = parameterInfo.GetCustomAttributeThatInherits<InjectTypeAttribute>();
+                
+                switch (attribute)
                 {
+                    case InjectSpecificSourceAttribute _:
                     case InjectSourceAttribute _:
 
                         if (node.CanSkipInjectSource)
@@ -769,7 +772,7 @@ namespace Musoq.Evaluator.Visitors
                         break;
                     case InjectGroupAccessName _:
                         break;
-                    case InjectQueryStats _:
+                    case InjectQueryStatsAttribute _:
                         args.Add(
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("stats")));

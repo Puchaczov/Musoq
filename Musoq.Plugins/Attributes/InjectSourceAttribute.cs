@@ -2,7 +2,7 @@
 
 namespace Musoq.Plugins.Attributes
 {
-    public class InjectSourceAttribute : InjectTypeAttribute
+    internal class InjectSourceAttribute : InjectTypeAttribute
     {
         public override Type InjectType => null;
     }

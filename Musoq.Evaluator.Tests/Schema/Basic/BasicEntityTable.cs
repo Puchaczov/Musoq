@@ -37,5 +37,7 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
         {
             return Columns.SingleOrDefault(col => col.ColumnName == name);
         }
+
+        public SchemaTableMetadata Metadata { get; } = new(typeof(BasicEntity));
     }
 }

@@ -21,4 +21,6 @@ public class DynamicTable : ISchemaTable
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }
+
+    public SchemaTableMetadata Metadata { get; } = new(typeof(object));
 }

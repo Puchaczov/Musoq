@@ -16,5 +16,7 @@ namespace Musoq.Evaluator.Tables
         {
             return Columns.SingleOrDefault(column => column.ColumnName == name);
         }
+
+        public SchemaTableMetadata Metadata { get; } = new(typeof(object));
     }
 }

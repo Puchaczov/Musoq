@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -39,6 +40,13 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
         }
         
         _accessColumns.Add(node.Alias, new List<AccessColumnNode> {node});
+        base.Visit(node);
+    }
+
+    public override void Visit(SchemaFromNode node)
+    {
+        _accessColumns.TryAdd(node.Alias, new List<AccessColumnNode>());
+        
         base.Visit(node);
     }
 }

@@ -73,13 +73,8 @@ namespace Musoq.Plugins
                 .PadRight(maxSoundexCodeLength, '0')
                 .Substring(0, maxSoundexCodeLength);
         }
-
-        /// <summary>
-        /// Retrieves the soundex number for a given letter.
-        /// </summary>
-        /// <param name="letter">Letter to get the soundex number for.</param>
-        /// <returns>Soundex number (as a character) for letter.</returns>
-        private char GetCharNumberForLetter(char letter)
+        
+        private static char GetCharNumberForLetter(char letter)
         {
             if ("BFPV".Contains(letter)) return '1';
             if ("CGJKQSXZ".Contains(letter)) return '2';

@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests
 {
     [TestClass]
-    public class BasicEvaluatorTests : BasicEntityTestBase
+    public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     {
         [TestMethod]
         public void SimpleVNextTest()

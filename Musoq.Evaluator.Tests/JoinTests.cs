@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -8,6 +9,34 @@ namespace Musoq.Evaluator.Tests
     [TestClass]
     public class JoinTests : BasicEntityTestBase
     {
+        [TestMethod]
+        public void WhenSomeColumnsAreUsedAndNotEveryUsedTableHasUsedOwnColumns_MustNotThrow()
+        {
+            const string query = @"
+select 
+    countries.Country
+from #A.entities() countries 
+inner join #B.entities() cities on 1 = 1 
+inner join #C.entities() population on 1 = 1";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", Array.Empty<BasicEntity>()
+                },
+                {
+                    "#B", Array.Empty<BasicEntity>()
+                },
+                {
+                    "#C", Array.Empty<BasicEntity>()
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+            
+            Assert.AreEqual(0, table.Count);
+        }
 
         [TestMethod]
         public void SimpleJoinTest()
