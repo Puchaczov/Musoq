@@ -222,21 +222,22 @@ public class MethodsMetadata
             if (entityType is not null)
             {
                 var injectTypeAttributes = GetInjectTypeAttribute(methodInfo);
+                var injectTypeAttribute = injectTypeAttributes.SingleOrDefault(f => f is InjectSpecificSourceAttribute, injectTypeAttributes.FirstOrDefault());
                 
-                if (injectTypeAttributes is null)
+                if (injectTypeAttribute is null)
                     goto breakAll;
                 
-                var isGroupAttribute = injectTypeAttributes is InjectGroupAttribute;
+                var isGroupAttribute = injectTypeAttribute is InjectGroupAttribute;
 
                 if (isGroupAttribute)
                     goto breakAll;
                 
-                var isQueryStatsAttribute = injectTypeAttributes is InjectQueryStatsAttribute;
+                var isQueryStatsAttribute = injectTypeAttribute is InjectQueryStatsAttribute;
                 
                 if (isQueryStatsAttribute)
                     goto breakAll;
                 
-                if (!IsEntityTypeInjectableIntoMethod(entityType, injectTypeAttributes))
+                if (!IsEntityTypeInjectableIntoMethod(entityType, injectTypeAttribute))
                     continue;
             }
             breakAll:
@@ -299,14 +300,16 @@ public class MethodsMetadata
 
     private static bool IsEntityTypeInjectableIntoMethod(Type entityType, InjectTypeAttribute injectTypeAttribute)
     {
-        return entityType == injectTypeAttribute.InjectType;
+        return entityType.IsAssignableTo(injectTypeAttribute.InjectType);
     }
 
-    private static InjectTypeAttribute GetInjectTypeAttribute(MethodInfo methodInfo)
+    private static InjectTypeAttribute[] GetInjectTypeAttribute(MethodInfo methodInfo)
     {
         return methodInfo
             .GetParameters()
             .SelectMany(f => f.GetCustomAttributes())
-            .SingleOrDefault(f => f.GetType().IsAssignableTo(typeof(InjectTypeAttribute))) as InjectTypeAttribute;
+            .Where(f => f.GetType().IsAssignableTo(typeof(InjectTypeAttribute)))
+            .Cast<InjectTypeAttribute>()
+            .ToArray();
     }
 }

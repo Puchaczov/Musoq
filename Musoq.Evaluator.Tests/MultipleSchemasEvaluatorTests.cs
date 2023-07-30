@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Multi;
 using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Evaluator.Tests.Schema.Multi.Second;
@@ -106,5 +107,37 @@ public class MultipleSchemasEvaluatorTests : MultiQueryTestBase
         Assert.AreEqual(1, table.Count);
         
         Assert.AreEqual(0, table[0].Values[0]);
+    }
+
+    [TestMethod]
+    public void WhenMultipleInjectsWithinMethod_ShouldNotThrow()
+    {
+        const string query = "select AggregateMethodA() from #schema.first()";
+        
+        var vm = CreateAndRunVirtualMachine(query, new FirstEntity[]
+        {
+            new()
+        }, Array.Empty<SecondEntity>());
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Count);
+    }
+    
+    [TestMethod]
+    public void WhenInjectingEntityUsesCommonInterfaceWithMethod_ShouldMatchMethodAndCall()
+    {
+        const string query = "select MethodC() from #schema.first()";
+        
+        var vm = CreateAndRunVirtualMachine(query, new FirstEntity[]
+        {
+            new()
+        }, Array.Empty<SecondEntity>());
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Count);
+        
+        Assert.AreEqual(5, table[0].Values[0]);
     }
 }
