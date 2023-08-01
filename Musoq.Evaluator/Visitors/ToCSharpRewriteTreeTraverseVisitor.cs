@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -157,9 +158,13 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
+            _visitor.SetInsideJoin(true);
+            
             node.SourceTable.Accept(this);
             node.Expression.Accept(this);
             node.Accept(_visitor);
+            
+            _visitor.SetInsideJoin(false);
         }
 
         public void Visit(SchemaFromNode node)
@@ -170,11 +175,15 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinSourcesTableFromNode node)
         {
+            _visitor.SetInsideJoin(true);
+            
             node.Expression.Accept(this);
             node.First.Accept(this);
             node.Second.Accept(this);
 
             node.Accept(_visitor);
+            
+            _visitor.SetInsideJoin(false);
         }
 
         public void Visit(InMemoryTableFromNode node)
@@ -526,7 +535,7 @@ namespace Musoq.Evaluator.Visitors
         {
             _walker = _walker.NextChild();
             _visitor.SetScope(_walker.Scope);
-
+            
             foreach (var cNode in node.Nodes)
                 cNode.Accept(this);
             node.Accept(_visitor);

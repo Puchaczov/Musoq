@@ -435,6 +435,8 @@ namespace Musoq.Evaluator.Visitors
 
             if (from.Expression is JoinsNode)
             {
+                var indexBasedContextsPositionsSymbol = new IndexBasedContextsPositionsSymbol();
+                var orderNumber = 0;
                 var extractAccessedColumnsVisitor = new ExtractAccessColumnFromQueryVisitor();
                 var extractAccessedColumnsTraverseVisitor = new CloneTraverseVisitor(extractAccessedColumnsVisitor);
                 
@@ -496,11 +498,21 @@ namespace Musoq.Evaluator.Visitors
                 });
                 
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, limitedTargetSymbolTable);
+                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(MetaAttributes.PreformatedContexts, indexBasedContextsPositionsSymbol);
 
                 scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                 scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
                 scopeJoinedQuery[MetaAttributes.Contexts] = $"{current.Source.Alias},{current.With.Alias}";
+                scopeJoinedQuery[MetaAttributes.OrderNumber] = orderNumber.ToString();
                 scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
+                scopeCreateTable[MetaAttributes.PreformatedContexts] = $"{current.Source.Alias},{current.With.Alias}";
+
+                orderNumber += 1;
+
+                var previousAliases = new Stack<string>();
+                
+                previousAliases.Push($"{current.Source.Alias},{current.With.Alias}");
+                previousAliases.Push(string.Join("|", current.Source.Alias, current.With.Alias));
 
                 var joinedQuery = new InternalQueryNode(
                     new SelectNode(bothForSelect),
@@ -531,11 +543,17 @@ namespace Musoq.Evaluator.Visitors
                     {current.With.Alias, targetTableName}
                 };
 
-                for (var i = 1; i < _joinedTables.Count; i++)
+                for (var i = 1; i < _joinedTables.Count; i++, orderNumber++)
                 {
                     current = _joinedTables[i];
+                    previousAliases.Push(current.With.Alias);
                     left = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.Source.Alias);
                     right = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.With.Alias);
+                    
+                    var secondAlias = previousAliases.Pop();
+                    var firstAlias = previousAliases.Pop();
+                    previousAliases.Push($"{firstAlias},{secondAlias}");
+                    previousAliases.Push(string.Join("|", firstAlias, secondAlias));
 
                     targetTableName = $"{current.Source.Alias}{current.With.Alias}";
 
@@ -609,10 +627,13 @@ namespace Musoq.Evaluator.Visitors
                     limitedTargetSymbolTable = targetSymbolTable.LimitColumnsTo(new Dictionary<string, string[]>(pairs));
 
                     scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, limitedTargetSymbolTable);
+                    scopeJoinedQuery.ScopeSymbolTable.AddSymbol(MetaAttributes.PreformatedContexts, indexBasedContextsPositionsSymbol);
+                    
                     scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                     scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
                     scopeJoinedQuery[MetaAttributes.Contexts] = $"{current.Source.Alias},{current.With.Alias}";
                     scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
+                    scopeJoinedQuery[MetaAttributes.OrderNumber] = orderNumber.ToString();
 
                     scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
                         MetaAttributes.OuterJoinSelect,
@@ -661,12 +682,15 @@ namespace Musoq.Evaluator.Visitors
 
                 scoreSelect = rewriter.ChangedSelect;
                 scoreWhere = rewriter.ChangedWhere;
+
+                previousAliases.Pop();
+                indexBasedContextsPositionsSymbol.Add(previousAliases.ToArray());
             }
 
             if (groupBy != null)
             {
                 var nestedFrom = splitNodes.Count > 0
-                    ? new Parser.ExpressionFromNode(new Parser.InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
+                    ? new Parser.ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                     : from;
 
                 var split = SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
@@ -741,7 +765,7 @@ namespace Musoq.Evaluator.Visitors
                 query = new DetailedQueryNode(
                     outSelect,
                     new Parser.ExpressionFromNode(
-                        new Parser.InMemoryGroupedFromNode(returnScore)),
+                        new InMemoryGroupedFromNode(returnScore)),
                     null,
                     null,
                     null,

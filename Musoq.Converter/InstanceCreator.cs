@@ -84,7 +84,7 @@ namespace Musoq.Converter
             if (compiled && !Debugger.IsAttached) return new CompiledQuery(CreateRunnable(items));
 
             var tempPath = Path.Combine(Path.GetTempPath(), "Musoq");
-            const string tempFileName = $"InMemoryAssembly";
+            var tempFileName = Guid.NewGuid().ToString();
             var assemblyPath = Path.Combine(tempPath, $"{tempFileName}.dll");
             var pdbPath = Path.Combine(tempPath, $"{tempFileName}.pdb");
             var csPath = Path.Combine(tempPath, $"{tempFileName}.cs");

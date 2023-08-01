@@ -7,5 +7,7 @@
         MethodAccessType SetMethodAccessType(MethodAccessType type);
 
         void IncrementMethodIdentifier();
+        
+        void SetInsideJoin(bool value);
     }
 }

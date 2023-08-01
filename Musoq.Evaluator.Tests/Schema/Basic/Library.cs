@@ -90,5 +90,23 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
             Assert.AreEqual("text", text);
             return 1;
         }
+        
+        [BindableMethod]
+        public string GetCity([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
+        {
+            return entity.City;
+        }
+        
+        [BindableMethod]
+        public string GetCountry([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
+        {
+            return entity.Country;
+        }
+        
+        [BindableMethod]
+        public decimal GetPopulation([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
+        {
+            return entity.Population;
+        }
     }
 }

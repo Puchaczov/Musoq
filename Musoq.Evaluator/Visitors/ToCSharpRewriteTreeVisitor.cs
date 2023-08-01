@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
@@ -67,6 +66,7 @@ namespace Musoq.Evaluator.Visitors
         private BlockSyntax _selectBlock;
         private MethodAccessType _oldType;
         private MethodAccessType _type;
+        private bool _isInsideJoin;
 
         public ToCSharpRewriteTreeVisitor(
             IEnumerable<Assembly> assemblies,
@@ -710,13 +710,16 @@ namespace Musoq.Evaluator.Visitors
 
                         if (node.CanSkipInjectSource)
                             continue;
+                        
+                        var componentsOfComplexTable = _scope[MetaAttributes.Contexts].Split(',');
 
                         string objectName;
 
                         switch (_type)
                         {
                             case MethodAccessType.TransformingQuery:
-                                objectName = $"{_queryAlias}Row";
+                                var naive = componentsOfComplexTable.Single(f => f.Contains(node.Alias));
+                                objectName = $"{naive}Row";
                                 break;
                             case MethodAccessType.ResultQuery:
                             case MethodAccessType.CaseWhen:
@@ -734,10 +737,22 @@ namespace Musoq.Evaluator.Visitors
                             typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
                         }
 
-                        var aliases =
-                            _scope.Parent.ScopeSymbolTable.GetSymbol<AliasesPositionsSymbol>(MetaAttributes
-                                .AllQueryContexts);
-                        var currentContext = aliases.AliasesPositions[node.Alias];
+                        int currentContext;
+                        if (_isInsideJoin)
+                        {
+                            var preformatedContexts = 
+                                (IndexBasedContextsPositionsSymbol)_scope.ScopeSymbolTable.GetSymbol(MetaAttributes.PreformatedContexts);
+                            var orderNumber = int.Parse(_scope[MetaAttributes.OrderNumber]);
+                            currentContext = preformatedContexts.GetIndexFor(orderNumber, node.Alias);
+                        }
+                        else
+                        {
+                            var aliases =
+                                _scope.Parent.ScopeSymbolTable.GetSymbol<AliasesPositionsSymbol>(MetaAttributes
+                                    .AllQueryContexts);
+                            
+                            currentContext = aliases.GetContextIndexOf(node.Alias);
+                        }
 
                         args.Add(
                             SyntaxFactory.Argument(
@@ -2798,6 +2813,11 @@ namespace Musoq.Evaluator.Visitors
         public void IncrementMethodIdentifier()
         {
             _setOperatorMethodIdentifier += 1;
+        }
+
+        public void SetInsideJoin(bool state)
+        {
+            _isInsideJoin = state;
         }
 
         private void AddNamespace(string columnTypeNamespace)
