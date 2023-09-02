@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -47,6 +48,11 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(WordNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(NullNode node)
         {
             node.Accept(_visitor);
         }
@@ -620,6 +626,24 @@ namespace Musoq.Evaluator.Visitors
                 node.WhenThenPairs[i].Then.Accept(this);
             }
 
+            node.Accept(_visitor);
+        }
+
+        public void Visit(WhenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(ThenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(ElseNode node)
+        {
+            node.Expression.Accept(this);
             node.Accept(_visitor);
         }
 

@@ -37,6 +37,11 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable
             AddTable<EnvironmentVariableEntityTable>("all");
         }
 
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+        {
+            return base.GetTableByName(name, runtimeContext, parameters);
+        }
+
         public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             return new EnvironmentVariablesSource(runtimeContext);
@@ -45,14 +50,12 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable
         private static MethodsAggregator CreateLibrary()
         {
             var methodManager = new MethodsManager();
-            var propertiesManager = new PropertiesManager();
 
             var lib = new EnvironmentVariablesLibrary();
-
-            propertiesManager.RegisterProperties(lib);
+            
             methodManager.RegisterLibraries(lib);
 
-            return new MethodsAggregator(methodManager, propertiesManager);
+            return new MethodsAggregator(methodManager);
         }
         
         private class EnvironmentVariablesSource : RowSource

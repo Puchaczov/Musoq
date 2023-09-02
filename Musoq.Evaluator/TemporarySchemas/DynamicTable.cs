@@ -16,5 +16,7 @@ namespace Musoq.Evaluator.TemporarySchemas
         {
             return Columns.SingleOrDefault(column => column.ColumnName == name);
         }
+
+        public SchemaTableMetadata Metadata { get; } = new SchemaTableMetadata(typeof(object));
     }
 }

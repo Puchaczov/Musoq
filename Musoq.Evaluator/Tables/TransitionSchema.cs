@@ -17,7 +17,7 @@ namespace Musoq.Evaluator.Tables
             _table = table;
         }
 
-        public override ISchemaTable GetTableByName(string name, params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             return _table;
         }
@@ -30,14 +30,12 @@ namespace Musoq.Evaluator.Tables
         private static MethodsAggregator CreateLibrary()
         {
             var methodsManager = new MethodsManager();
-            var propertiesManager = new PropertiesManager();
 
             var library = new TransitionLibrary();
 
             methodsManager.RegisterLibraries(library);
-            propertiesManager.RegisterProperties(library);
 
-            return new MethodsAggregator(methodsManager, propertiesManager);
+            return new MethodsAggregator(methodsManager);
         }
 
         public override SchemaMethodInfo[] GetConstructors()

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Musoq.Schema.Helpers;
 
 namespace Musoq.Parser.Helpers
 {
@@ -51,6 +50,15 @@ namespace Musoq.Parser.Helpers
         public static Type GetReturnTypeMap(Type left, Type right)
         {
             return BinaryTypes[(left.GetUnderlyingNullable(), right.GetUnderlyingNullable())];
+        }
+        
+        private static Type GetUnderlyingNullable(this Type type)
+        {
+            var nullableType = Nullable.GetUnderlyingType(type);
+
+            var isNullableType = nullableType != null;
+
+            return isNullableType ? nullableType : type;
         }
     }
 }

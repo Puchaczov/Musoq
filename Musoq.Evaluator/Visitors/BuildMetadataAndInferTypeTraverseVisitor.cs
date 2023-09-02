@@ -5,6 +5,7 @@ using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -49,6 +50,11 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(WordNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(NullNode node)
         {
             node.Accept(_visitor);
         }
@@ -352,7 +358,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
-            LoadScope("Query");
+            LoadQueryScope();
             node.From.Accept(this);
             node.Where?.Accept(this);
             node.GroupBy?.Accept(this);
@@ -363,6 +369,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
             RestoreScope();
             SetQueryPart(QueryPart.None);
+            EndQueryScope();
         }
 
         public void Visit(OrNode node)
@@ -596,7 +603,6 @@ namespace Musoq.Evaluator.Visitors
         {
             LoadScope("CTE");
             foreach (var exp in node.InnerExpression) exp.Accept(this);
-
             node.OuterExpression.Accept(this);
             node.Accept(_visitor);
             RestoreScope();
@@ -621,6 +627,17 @@ namespace Musoq.Evaluator.Visitors
             node.From.Accept(this);
             node.Expression.Accept(this);
             node.Accept(_visitor);
+        }
+
+        private void LoadQueryScope()
+        {
+            LoadScope("Query");
+            _visitor.QueryBegins();
+        }
+        
+        private void EndQueryScope()
+        {
+            _visitor.QueryEnds();
         }
 
         private void LoadScope(string name)
@@ -699,10 +716,10 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CaseNode node)
-        {
+        {   
             node.Else.Accept(this);
             
-            for(int i = node.WhenThenPairs.Length - 1; i >= 0; --i)
+            for (var i = node.WhenThenPairs.Length - 1; i >= 0; --i)
             {
                 node.WhenThenPairs[i].When.Accept(this);
                 node.WhenThenPairs[i].Then.Accept(this);
@@ -711,9 +728,37 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(WhenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(ThenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(ElseNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
         public void Visit(FieldLinkNode node)
         {
             node.Accept(_visitor);
+        }
+
+        public void QueryBegins()
+        {
+            _visitor.QueryBegins();
+        }
+
+        public void QueryEnds()
+        {
+            _visitor.QueryEnds();
         }
     }
 }

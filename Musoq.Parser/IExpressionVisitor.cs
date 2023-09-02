@@ -1,4 +1,5 @@
 ﻿using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Parser
 {
@@ -32,6 +33,7 @@ namespace Musoq.Parser
         void Visit(IntegerNode node);
         void Visit(BooleanNode node);
         void Visit(WordNode node);
+        void Visit(NullNode node);
         void Visit(ContainsNode node);
         void Visit(AccessMethodNode node);
         void Visit(AccessRawIdentifierNode node);
@@ -89,6 +91,9 @@ namespace Musoq.Parser
         void Visit(CreateTableNode node);
         void Visit(CoupleNode node);
         void Visit(CaseNode node);
+        void Visit(WhenNode node);
+        void Visit(ThenNode node);
+        void Visit(ElseNode node);
         void Visit(FieldLinkNode node);
     }
 }

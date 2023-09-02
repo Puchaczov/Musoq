@@ -24,6 +24,15 @@ using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
+using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
+using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
+using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
+using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
+using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
+using JoinsNode = Musoq.Parser.Nodes.From.JoinsNode;
+using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
+using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 using TextSpan = Musoq.Parser.TextSpan;
 
 namespace Musoq.Evaluator.Visitors
@@ -57,11 +66,12 @@ namespace Musoq.Evaluator.Visitors
         private BlockSyntax _selectBlock;
         private MethodAccessType _oldType;
         private MethodAccessType _type;
+        private bool _isInsideJoin;
 
         public ToCSharpRewriteTreeVisitor(
             IEnumerable<Assembly> assemblies,
-            IDictionary<string, int[]> setOperatorFieldIndexes, 
-            IDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
+            IDictionary<string, int[]> setOperatorFieldIndexes,
+            IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
             string assemblyName)
         {
             _setOperatorFieldIndexes = setOperatorFieldIndexes;
@@ -77,7 +87,8 @@ namespace Musoq.Evaluator.Visitors
 
             var env = new Plugins.Environment();
             Compilation = Compilation
-                .AddReferences(MetadataReference.CreateFromFile(env.Value<string>(Constants.NetStandardDllEnvironmentName)));
+                .AddReferences(
+                    MetadataReference.CreateFromFile(env.Value<string>(Constants.NetStandardDllEnvironmentName)));
 
             AddReference(typeof(object));
             AddReference(typeof(CancellationToken));
@@ -86,6 +97,7 @@ namespace Musoq.Evaluator.Visitors
             AddReference(typeof(Table));
             AddReference(typeof(SyntaxFactory));
             AddReference(typeof(ExpandoObject));
+            AddReference(typeof(SchemaFromNode));
             AddReference(assemblies.ToArray());
 
             Compilation = Compilation.WithOptions(
@@ -108,12 +120,15 @@ namespace Musoq.Evaluator.Visitors
             AddNamespace("Musoq.Plugins");
             AddNamespace("Musoq.Schema");
             AddNamespace("Musoq.Evaluator");
+            AddNamespace("Musoq.Parser.Nodes.From");
+            AddNamespace("Musoq.Parser.Nodes");
             AddNamespace("Musoq.Evaluator.Tables");
             AddNamespace("Musoq.Evaluator.Helpers");
             AddNamespace("System.Dynamic");
         }
 
-        public string Namespace { get; } = $"{Resources.Compilation.NamespaceConstantPart}_{StringHelpers.GenerateNamespaceIdentifier()}";
+        public string Namespace { get; } =
+            $"{Resources.Compilation.NamespaceConstantPart}_{StringHelpers.GenerateNamespaceIdentifier()}";
 
         public string ClassName { get; } = "CompiledQuery";
 
@@ -129,7 +144,7 @@ namespace Musoq.Evaluator.Visitors
 
         private List<StatementSyntax> Statements { get; } = new();
         private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new();
-        private IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
+        private IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
         public void Visit(Node node)
         {
@@ -139,7 +154,7 @@ namespace Musoq.Evaluator.Visitors
         {
             AddNamespace(typeof(EvaluationHelper).Namespace);
 
-            switch(node.Type)
+            switch (node.Type)
             {
                 case DescForType.Constructors:
                     CreateDescForConstructors(node);
@@ -194,15 +209,17 @@ namespace Musoq.Evaluator.Visitors
                     .WithArgumentList(
                         SyntaxFactory.ArgumentList(
                             SyntaxFactory.SeparatedList(
-                                new[] {
+                                new[]
+                                {
                                     SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
-                                    SyntaxHelper.StringLiteralArgument(((SchemaFromNode)node.From).Method)
+                                    SyntaxHelper.StringLiteralArgument(((SchemaFromNode) node.From).Method)
                                 }))), false);
         }
 
-        private void CreateDescMethod(DescNode node, InvocationExpressionSyntax invocationExpression, bool useProvidedTable)
+        private void CreateDescMethod(DescNode node, InvocationExpressionSyntax invocationExpression,
+            bool useProvidedTable)
         {
-            var schemaNode = (SchemaFromNode)node.From;
+            var schemaNode = (SchemaFromNode) node.From;
             var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
                 "desc",
                 "provider",
@@ -219,9 +236,22 @@ namespace Musoq.Evaluator.Visitors
 
             if (useProvidedTable)
             {
-                var args = schemaNode.Parameters.Args.Select(arg => (ExpressionSyntax)Generator.LiteralExpression(((ConstantValueNode)arg).ObjValue)).ToArray();
+                var args = schemaNode.Parameters.Args.Select(arg =>
+                    (ExpressionSyntax) Generator.LiteralExpression(((ConstantValueNode) arg).ObjValue)).ToArray();
+                
+                var originallyInferredColumns = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("Array"),
+                            SyntaxFactory.GenericName(
+                                    SyntaxFactory.Identifier("Empty"))
+                                .WithTypeArgumentList(
+                                    SyntaxFactory.TypeArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                            SyntaxFactory.IdentifierName("ISchemaColumn"))))))
+                    .NormalizeWhitespace();
 
-                var gettedTable = SyntaxHelper.CreateAssignmentByMethodCall(
+                var getTable = SyntaxHelper.CreateAssignmentByMethodCall(
                     "schemaTable",
                     "desc",
                     nameof(ISchema.GetTableByName),
@@ -230,6 +260,7 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.SeparatedList(new[]
                         {
                             SyntaxHelper.StringLiteralArgument(schemaNode.Method),
+                            SyntaxFactory.Argument(CreateRuntimeContext(schemaNode, originallyInferredColumns)),
                             SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args))
                         }),
                         SyntaxFactory.Token(SyntaxKind.CloseParenToken)
@@ -241,7 +272,7 @@ namespace Musoq.Evaluator.Visitors
                 Statements.AddRange(new StatementSyntax[]
                 {
                     SyntaxFactory.LocalDeclarationStatement(createdSchema),
-                    SyntaxFactory.LocalDeclarationStatement(gettedTable),
+                    SyntaxFactory.LocalDeclarationStatement(getTable),
                     returnStatement
                 });
             }
@@ -276,7 +307,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("provider"), null),
-                        
+
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
                             SyntaxTokenList.Create(
@@ -286,7 +317,8 @@ namespace Musoq.Evaluator.Visitors
                                 .WithTypeArgumentList(
                                     SyntaxFactory.TypeArgumentList(
                                         SyntaxFactory.SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]{
+                                            new SyntaxNodeOrToken[]
+                                            {
                                                 SyntaxFactory.PredefinedType(
                                                     SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
@@ -295,14 +327,61 @@ namespace Musoq.Evaluator.Visitors
                                                     .WithTypeArgumentList(
                                                         SyntaxFactory.TypeArgumentList(
                                                             SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                                new SyntaxNodeOrToken[]{
+                                                                new SyntaxNodeOrToken[]
+                                                                {
                                                                     SyntaxFactory.PredefinedType(
                                                                         SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                                                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                                     SyntaxFactory.PredefinedType(
-                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))})))})))
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))
+                                                                })))
+                                            })))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
+
+                        SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("queriesInformation"))
+                            .WithType(
+                                SyntaxFactory.GenericName(
+                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                    .WithTypeArgumentList(
+                                        SyntaxFactory.TypeArgumentList(
+                                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                new SyntaxNodeOrToken[]
+                                                {
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                    SyntaxFactory.TupleType(
+                                                        SyntaxFactory.SeparatedList<TupleElementSyntax>(
+                                                            new SyntaxNodeOrToken[]
+                                                            {
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.IdentifierName("SchemaFromNode"))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("FromNode")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.GenericName(
+                                                                                SyntaxFactory.Identifier(
+                                                                                    "IReadOnlyCollection"))
+                                                                            .WithTypeArgumentList(
+                                                                                SyntaxFactory.TypeArgumentList(
+                                                                                    SyntaxFactory
+                                                                                        .SingletonSeparatedList<
+                                                                                            TypeSyntax>(
+                                                                                            SyntaxFactory
+                                                                                                .IdentifierName(
+                                                                                                    "ISchemaColumn")))))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("UsedColumns")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.IdentifierName("WhereNode"))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("WhereNode"))
+                                                            }))
+                                                })))),
 
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
@@ -485,7 +564,7 @@ namespace Musoq.Evaluator.Visitors
 
             Visit(new AccessMethodNode(
                 new FunctionToken(nameof(Operators.RLike), TextSpan.Empty),
-                new ArgsListNode(new[] { node.Left, node.Right }), null, false,
+                new ArgsListNode(new[] {node.Left, node.Right}), null, false,
                 typeof(Operators).GetMethod(nameof(Operators.RLike))));
         }
 
@@ -523,7 +602,7 @@ namespace Musoq.Evaluator.Visitors
             AddNamespace(types);
 
             var typeIdentifier = SyntaxFactory.IdentifierName(
-                    EvaluationHelper.GetCastableType(node.ReturnType));
+                EvaluationHelper.GetCastableType(node.ReturnType));
 
             if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
             {
@@ -540,7 +619,7 @@ namespace Musoq.Evaluator.Visitors
         {
             Nodes.Push(
                 SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression, 
+                    SyntaxKind.StringLiteralExpression,
                     SyntaxFactory.Literal($"@\"{node.Value}\"", node.Value)));
         }
 
@@ -564,15 +643,20 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(Generator.LiteralExpression(node.Value));
         }
 
+        public void Visit(NullNode node)
+        {
+            Nodes.Push(GenerateNullableNull(node.ReturnType));
+        }
+
         public void Visit(ContainsNode node)
         {
-            var comparsionValues = (ArgumentListSyntax) Nodes.Pop();
+            var comparisonValues = (ArgumentListSyntax) Nodes.Pop();
             var a = Nodes.Pop();
 
-            var expressions = new ExpressionSyntax[comparsionValues.Arguments.Count];
-            for (var index = 0; index < comparsionValues.Arguments.Count; index++)
+            var expressions = new ExpressionSyntax[comparisonValues.Arguments.Count];
+            for (var index = 0; index < comparisonValues.Arguments.Count; index++)
             {
-                var argument = comparsionValues.Arguments[index];
+                var argument = comparisonValues.Arguments[index];
                 expressions[index] = argument.Expression;
             }
 
@@ -622,19 +706,25 @@ namespace Musoq.Evaluator.Visitors
 
             foreach (var parameterInfo in parameters)
             {
-                switch (parameterInfo.GetCustomAttribute<InjectTypeAttribute>())
+                var attribute = parameterInfo.GetCustomAttributeThatInherits<InjectTypeAttribute>();
+                
+                switch (attribute)
                 {
+                    case InjectSpecificSourceAttribute _:
                     case InjectSourceAttribute _:
 
                         if (node.CanSkipInjectSource)
                             continue;
+                        
+                        var componentsOfComplexTable = _scope[MetaAttributes.Contexts].Split(',');
 
                         string objectName;
 
                         switch (_type)
                         {
                             case MethodAccessType.TransformingQuery:
-                                objectName = $"{_queryAlias}Row";
+                                var naive = componentsOfComplexTable.Single(f => f.Contains(node.Alias));
+                                objectName = $"{naive}Row";
                                 break;
                             case MethodAccessType.ResultQuery:
                             case MethodAccessType.CaseWhen:
@@ -645,15 +735,29 @@ namespace Musoq.Evaluator.Visitors
                         }
 
                         var typeIdentifier = SyntaxFactory.IdentifierName(
-                                        EvaluationHelper.GetCastableType(parameterInfo.ParameterType));
+                            EvaluationHelper.GetCastableType(parameterInfo.ParameterType));
 
                         if (parameterInfo.ParameterType == typeof(ExpandoObject))
                         {
                             typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
                         }
 
-                        var aliases = _scope.Parent.ScopeSymbolTable.GetSymbol<AliasesPositionsSymbol>(MetaAttributes.AllQueryContexts);
-                        var currentContext = aliases.AliasesPositions[node.Alias];
+                        int currentContext;
+                        if (_isInsideJoin)
+                        {
+                            var preformatedContexts = 
+                                (IndexBasedContextsPositionsSymbol)_scope.ScopeSymbolTable.GetSymbol(MetaAttributes.PreformatedContexts);
+                            var orderNumber = int.Parse(_scope[MetaAttributes.OrderNumber]);
+                            currentContext = preformatedContexts.GetIndexFor(orderNumber, node.Alias);
+                        }
+                        else
+                        {
+                            var aliases =
+                                _scope.Parent.ScopeSymbolTable.GetSymbol<AliasesPositionsSymbol>(MetaAttributes
+                                    .AllQueryContexts);
+                            
+                            currentContext = aliases.GetContextIndexOf(node.Alias);
+                        }
 
                         args.Add(
                             SyntaxFactory.Argument(
@@ -661,16 +765,18 @@ namespace Musoq.Evaluator.Visitors
                                     typeIdentifier,
                                     SyntaxFactory.ElementAccessExpression(
                                         SyntaxFactory.MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.IdentifierName(objectName),
-                                        SyntaxFactory.IdentifierName(nameof(IObjectResolver.Contexts))),
-                                    SyntaxFactory.BracketedArgumentList(
-                                        SyntaxFactory.SeparatedList(
-                                            new[] 
-                                            {
-                                                SyntaxFactory.Argument(
-                                                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(currentContext)))
-                                            }))))));
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.IdentifierName(objectName),
+                                            SyntaxFactory.IdentifierName(nameof(IObjectResolver.Contexts))),
+                                        SyntaxFactory.BracketedArgumentList(
+                                            SyntaxFactory.SeparatedList(
+                                                new[]
+                                                {
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(
+                                                            SyntaxKind.NumericLiteralExpression,
+                                                            SyntaxFactory.Literal(currentContext)))
+                                                }))))));
                         break;
                     case InjectGroupAttribute _:
 
@@ -686,7 +792,7 @@ namespace Musoq.Evaluator.Visitors
                         break;
                     case InjectGroupAccessName _:
                         break;
-                    case InjectQueryStats _:
+                    case InjectQueryStatsAttribute _:
                         args.Add(
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("stats")));
@@ -709,7 +815,7 @@ namespace Musoq.Evaluator.Visitors
                 var genericArgs = node.Method.GetGenericArguments();
                 var syntaxArgs = new List<SyntaxNodeOrToken>();
 
-                for(int i = 0; i < genericArgs.Length - 1; ++i)
+                for (int i = 0; i < genericArgs.Length - 1; ++i)
                 {
                     syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[i].FullName));
                     syntaxArgs.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
@@ -722,7 +828,7 @@ namespace Musoq.Evaluator.Visitors
                 {
                     typeArgs = SyntaxFactory.TypeArgumentList(
                         SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            (IdentifierNameSyntax)syntaxArgs[0]));
+                            (IdentifierNameSyntax) syntaxArgs[0]));
                 }
                 else
                 {
@@ -735,10 +841,10 @@ namespace Musoq.Evaluator.Visitors
                     .GenericName(node.Name)
                     .WithTypeArgumentList(
                         typeArgs
-                        .WithLessThanToken(
-                            SyntaxFactory.Token(SyntaxKind.LessThanToken))
-                        .WithGreaterThanToken(
-                            SyntaxFactory.Token(SyntaxKind.GreaterThanToken)));
+                            .WithLessThanToken(
+                                SyntaxFactory.Token(SyntaxKind.LessThanToken))
+                            .WithGreaterThanToken(
+                                SyntaxFactory.Token(SyntaxKind.GreaterThanToken)));
 
                 accessMethodExpr = Generator.InvocationExpression(
                     Generator.MemberAccessExpression(
@@ -772,7 +878,9 @@ namespace Musoq.Evaluator.Visitors
             {
                 Nodes.Pop();
                 Nodes.Push(
-                    node.IsNegated ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression) : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+                    node.IsNegated
+                        ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                        : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
                 return;
             }
 
@@ -786,7 +894,7 @@ namespace Musoq.Evaluator.Visitors
                 Nodes.Push(
                     SyntaxFactory.BinaryExpression(
                         SyntaxKind.EqualsExpression,
-                        (ExpressionSyntax)Nodes.Pop(),
+                        (ExpressionSyntax) Nodes.Pop(),
                         SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
         }
 
@@ -814,7 +922,7 @@ namespace Musoq.Evaluator.Visitors
                 Generator.IdentifierName(variableName),
                 SyntaxFactory.Argument(
                     SyntaxFactory.LiteralExpression(
-                        SyntaxKind.StringLiteralExpression, 
+                        SyntaxKind.StringLiteralExpression,
                         SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
 
             var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
@@ -850,9 +958,9 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.BracketedArgumentList(
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
         }
 
         public void Visit(AccessObjectArrayNode node)
@@ -949,7 +1057,7 @@ namespace Musoq.Evaluator.Visitors
 
             foreach (var context in contexts)
             {
-                var rowVariableName = string.Empty;
+                string rowVariableName;
 
                 switch (_type)
                 {
@@ -960,6 +1068,8 @@ namespace Musoq.Evaluator.Visitors
                     case MethodAccessType.CaseWhen:
                         rowVariableName = "score";
                         break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
 
                 contextsExpressions.Add(
@@ -1002,14 +1112,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WhereNode node)
         {
-            var ifStatement = 
+            var ifStatement =
                 Generator.IfStatement(
                         Generator.LogicalNotExpression(Nodes.Pop()),
                         new SyntaxNode[]
                         {
                             SyntaxFactory.ContinueStatement()
                         })
-                .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+                    .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
 
             NullSuspiciousNodes.Clear();
             Nodes.Push(ifStatement);
@@ -1064,7 +1174,8 @@ namespace Musoq.Evaluator.Visitors
                 fieldNames.Append(',');
             }
 
-            fieldName = $"new string[]{{{groupFields.Names.Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
+            fieldName =
+                $"new string[]{{{groupFields.Names.Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
             fieldNames.Append(fieldName);
             fieldNames.Append("};");
 
@@ -1161,19 +1272,20 @@ namespace Musoq.Evaluator.Visitors
                                         SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
                                         SyntaxFactory.Block(
                                             GenerateCancellationExpression(),
-                                            (StatementSyntax)ifStatement,
+                                            (StatementSyntax) ifStatement,
                                             _emptyBlock))))));
                     break;
                 case JoinType.OuterLeft:
 
                     var fullTransitionTable = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(_queryAlias);
-                    var fieldNames = _scope.ScopeSymbolTable.GetSymbol<FieldsNamesSymbol>(MetaAttributes.OuterJoinSelect);
+                    var fieldNames =
+                        _scope.ScopeSymbolTable.GetSymbol<FieldsNamesSymbol>(MetaAttributes.OuterJoinSelect);
                     var expressions = new List<ExpressionSyntax>();
 
                     int j = 0;
                     for (int i = 0; i < fullTransitionTable.CompoundTables.Length - 1; i++)
                     {
-                        foreach(var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[i]))
+                        foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[i]))
                         {
                             expressions.Add(
                                 SyntaxFactory.ElementAccessExpression(
@@ -1181,27 +1293,29 @@ namespace Musoq.Evaluator.Visitors
                                     SyntaxFactory.BracketedArgumentList(
                                         SyntaxFactory.SingletonSeparatedList(
                                             SyntaxFactory.Argument(
-                                                (LiteralExpressionSyntax)Generator.LiteralExpression(fieldNames.Names[j]))))));
+                                                (LiteralExpressionSyntax) Generator.LiteralExpression(
+                                                    fieldNames.Names[j]))))));
 
                             j += 1;
                         }
                     }
 
-                    foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[fullTransitionTable.CompoundTables.Length - 1]))
+                    foreach (var column in fullTransitionTable.GetColumns(
+                                 fullTransitionTable.CompoundTables[^1]))
                     {
                         expressions.Add(
                             SyntaxFactory.CastExpression(
                                 SyntaxFactory.IdentifierName(
                                     EvaluationHelper.GetCastableType(column.ColumnType)),
-                                (LiteralExpressionSyntax)Generator.NullLiteralExpression()));
+                                (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
                     }
 
                     var arrayType = SyntaxFactory.ArrayType(
-                                        SyntaxFactory.IdentifierName("object"),
-                                        new SyntaxList<ArrayRankSpecifierSyntax>(
-                                            SyntaxFactory.ArrayRankSpecifier(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                (ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
+                        SyntaxFactory.IdentifierName("object"),
+                        new SyntaxList<ArrayRankSpecifierSyntax>(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    (ExpressionSyntax) SyntaxFactory.OmittedArraySizeExpression()))));
 
                     var rewriteSelect =
                         SyntaxFactory.VariableDeclaration(
@@ -1218,7 +1332,6 @@ namespace Musoq.Evaluator.Visitors
                                                 SyntaxFactory.SeparatedList(expressions)))))));
 
 
-
                     var invocation = SyntaxHelper.CreateMethodInvocation(
                         _scope[MetaAttributes.SelectIntoVariableName],
                         nameof(Table.Add),
@@ -1226,7 +1339,8 @@ namespace Musoq.Evaluator.Visitors
                         {
                             SyntaxFactory.Argument(
                                 SyntaxFactory.ObjectCreationExpression(
-                                    SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                                    SyntaxFactory.Token(SyntaxKind.NewKeyword)
+                                        .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                                     SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
                                     SyntaxFactory.ArgumentList(
                                         SyntaxFactory.SeparatedList(
@@ -1235,15 +1349,17 @@ namespace Musoq.Evaluator.Visitors
                                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
                                                 SyntaxFactory.Argument(
                                                     SyntaxFactory.MemberAccessExpression(
-                                                        SyntaxKind.SimpleMemberAccessExpression, 
+                                                        SyntaxKind.SimpleMemberAccessExpression,
                                                         SyntaxFactory.IdentifierName($"{node.InMemoryTableAlias}Row"),
-                                                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}"))),
+                                                        SyntaxFactory.IdentifierName(
+                                                            $"{nameof(IObjectResolver.Contexts)}"))),
                                                 SyntaxFactory.Argument(
-                                                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
+                                                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
                                             })
                                     ),
                                     SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
-                            )});
+                            )
+                        });
 
                     computingBlock = computingBlock.AddStatements(
                         SyntaxFactory.ForEachStatement(
@@ -1253,25 +1369,29 @@ namespace Musoq.Evaluator.Visitors
                                 $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
                             SyntaxFactory.Block(
                                 SyntaxFactory.LocalDeclarationStatement(
-                                    SyntaxHelper.CreateAssignment("hasAnyRowMatched", SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
+                                    SyntaxHelper.CreateAssignment("hasAnyRowMatched",
+                                        SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
                                 SyntaxFactory.ForEachStatement(
-                                        SyntaxFactory.IdentifierName("var"),
-                                        SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
-                                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
-                                        SyntaxFactory.Block(
-                                            GenerateCancellationExpression(),
-                                            (StatementSyntax)ifStatement,
-                                            _emptyBlock,
-                                            SyntaxFactory.IfStatement(
-                                                (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                                SyntaxFactory.Block(
-                                                    SyntaxFactory.ExpressionStatement(
-                                                        SyntaxFactory.AssignmentExpression(
-                                                            SyntaxKind.SimpleAssignmentExpression, 
-                                                            SyntaxFactory.IdentifierName("hasAnyRowMatched"), 
-                                                            (LiteralExpressionSyntax) Generator.TrueLiteralExpression())))))),
+                                    SyntaxFactory.IdentifierName("var"),
+                                    SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
+                                    SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
+                                    SyntaxFactory.Block(
+                                        GenerateCancellationExpression(),
+                                        (StatementSyntax) ifStatement,
+                                        _emptyBlock,
+                                        SyntaxFactory.IfStatement(
+                                            (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
+                                                SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                            SyntaxFactory.Block(
+                                                SyntaxFactory.ExpressionStatement(
+                                                    SyntaxFactory.AssignmentExpression(
+                                                        SyntaxKind.SimpleAssignmentExpression,
+                                                        SyntaxFactory.IdentifierName("hasAnyRowMatched"),
+                                                        (LiteralExpressionSyntax) Generator
+                                                            .TrueLiteralExpression())))))),
                                 SyntaxFactory.IfStatement(
-                                    (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                    (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
+                                        SyntaxFactory.IdentifierName("hasAnyRowMatched")),
                                     SyntaxFactory.Block(
                                         SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
                                         SyntaxFactory.ExpressionStatement(invocation))))));
@@ -1291,13 +1411,14 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.CastExpression(
                                     SyntaxFactory.IdentifierName(
                                         EvaluationHelper.GetCastableType(column.ColumnType)),
-                                    (LiteralExpressionSyntax)Generator.NullLiteralExpression()));
+                                    (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
 
                             j += 1;
                         }
                     }
 
-                    foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[fullTransitionTable.CompoundTables.Length - 1]))
+                    foreach (var column in fullTransitionTable.GetColumns(
+                                 fullTransitionTable.CompoundTables[fullTransitionTable.CompoundTables.Length - 1]))
                     {
                         expressions.Add(
                             SyntaxFactory.ElementAccessExpression(
@@ -1305,15 +1426,16 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.BracketedArgumentList(
                                     SyntaxFactory.SingletonSeparatedList(
                                         SyntaxFactory.Argument(
-                                            (LiteralExpressionSyntax)Generator.LiteralExpression(fieldNames.Names[j++]))))));
+                                            (LiteralExpressionSyntax) Generator.LiteralExpression(
+                                                fieldNames.Names[j++]))))));
                     }
 
                     arrayType = SyntaxFactory.ArrayType(
-                                        SyntaxFactory.IdentifierName("object"),
-                                        new SyntaxList<ArrayRankSpecifierSyntax>(
-                                            SyntaxFactory.ArrayRankSpecifier(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                (ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
+                        SyntaxFactory.IdentifierName("object"),
+                        new SyntaxList<ArrayRankSpecifierSyntax>(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    (ExpressionSyntax) SyntaxFactory.OmittedArraySizeExpression()))));
 
                     rewriteSelect =
                         SyntaxFactory.VariableDeclaration(
@@ -1330,7 +1452,6 @@ namespace Musoq.Evaluator.Visitors
                                                 SyntaxFactory.SeparatedList(expressions)))))));
 
 
-
                     invocation = SyntaxHelper.CreateMethodInvocation(
                         _scope[MetaAttributes.SelectIntoVariableName],
                         nameof(Table.Add),
@@ -1338,7 +1459,8 @@ namespace Musoq.Evaluator.Visitors
                         {
                             SyntaxFactory.Argument(
                                 SyntaxFactory.ObjectCreationExpression(
-                                    SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                                    SyntaxFactory.Token(SyntaxKind.NewKeyword)
+                                        .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                                     SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
                                     SyntaxFactory.ArgumentList(
                                         SyntaxFactory.SeparatedList(
@@ -1346,16 +1468,18 @@ namespace Musoq.Evaluator.Visitors
                                             {
                                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
                                                 SyntaxFactory.Argument(
-                                                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                                                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
                                                 SyntaxFactory.Argument(
                                                     SyntaxFactory.MemberAccessExpression(
                                                         SyntaxKind.SimpleMemberAccessExpression,
                                                         SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Row"),
-                                                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}")))
+                                                        SyntaxFactory.IdentifierName(
+                                                            $"{nameof(IObjectResolver.Contexts)}")))
                                             })
                                     ),
                                     SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
-                            )});    
+                            )
+                        });
 
                     computingBlock = computingBlock.AddStatements(
                         SyntaxFactory.ForEachStatement(
@@ -1364,26 +1488,30 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
                             SyntaxFactory.Block(
                                 SyntaxFactory.LocalDeclarationStatement(
-                                    SyntaxHelper.CreateAssignment("hasAnyRowMatched", SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
+                                    SyntaxHelper.CreateAssignment("hasAnyRowMatched",
+                                        SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
                                 SyntaxFactory.ForEachStatement(
-                                        SyntaxFactory.IdentifierName("var"),
-                                        SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
-                                        SyntaxFactory.IdentifierName(
-                                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
-                                        SyntaxFactory.Block(
-                                            GenerateCancellationExpression(),
-                                            (StatementSyntax)ifStatement,
-                                            _emptyBlock,
-                                            SyntaxFactory.IfStatement(
-                                                (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                                SyntaxFactory.Block(
-                                                    SyntaxFactory.ExpressionStatement(
-                                                        SyntaxFactory.AssignmentExpression(
-                                                            SyntaxKind.SimpleAssignmentExpression,
-                                                            SyntaxFactory.IdentifierName("hasAnyRowMatched"),
-                                                            (LiteralExpressionSyntax)Generator.TrueLiteralExpression())))))),
+                                    SyntaxFactory.IdentifierName("var"),
+                                    SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
+                                    SyntaxFactory.IdentifierName(
+                                        $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
+                                    SyntaxFactory.Block(
+                                        GenerateCancellationExpression(),
+                                        (StatementSyntax) ifStatement,
+                                        _emptyBlock,
+                                        SyntaxFactory.IfStatement(
+                                            (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
+                                                SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                            SyntaxFactory.Block(
+                                                SyntaxFactory.ExpressionStatement(
+                                                    SyntaxFactory.AssignmentExpression(
+                                                        SyntaxKind.SimpleAssignmentExpression,
+                                                        SyntaxFactory.IdentifierName("hasAnyRowMatched"),
+                                                        (LiteralExpressionSyntax) Generator
+                                                            .TrueLiteralExpression())))))),
                                 SyntaxFactory.IfStatement(
-                                    (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                    (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
+                                        SyntaxFactory.IdentifierName("hasAnyRowMatched")),
                                     SyntaxFactory.Block(
                                         SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
                                         SyntaxFactory.ExpressionStatement(invocation))))));
@@ -1408,13 +1536,13 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.ArgumentList(
                             SyntaxFactory.SeparatedList(new[]
                             {
-                                    SyntaxFactory.Argument(
-                                        SyntaxFactory.LiteralExpression(
-                                            SyntaxKind.StringLiteralExpression,
-                                            SyntaxFactory.Literal(column.ColumnName))),
-                                    SyntaxHelper.TypeLiteralArgument(
-                                        EvaluationHelper.GetCastableType(column.ColumnType)),
-                                    SyntaxHelper.IntLiteralArgument(column.ColumnIndex)
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.StringLiteralExpression,
+                                        SyntaxFactory.Literal(column.ColumnName))),
+                                SyntaxHelper.TypeLiteralArgument(
+                                    EvaluationHelper.GetCastableType(column.ColumnType)),
+                                SyntaxHelper.IntLiteralArgument(column.ColumnIndex)
                             }))));
             }
 
@@ -1452,26 +1580,7 @@ namespace Musoq.Evaluator.Visitors
                     {
                         SyntaxHelper.StringLiteralArgument(node.Method),
                         SyntaxFactory.Argument(
-                            SyntaxFactory.ObjectCreationExpression(
-                                SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
-                                .WithArgumentList(
-                                    SyntaxFactory.ArgumentList(
-                                        SyntaxFactory.SeparatedList(
-                                            new []{
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(tableInfoVariableName)),
-                                                SyntaxFactory.Argument(
-                                                    SyntaxFactory.ElementAccessExpression(
-                                                            SyntaxFactory.IdentifierName("positionalEnvironmentVariables"))
-                                                        .WithArgumentList(
-                                                            SyntaxFactory.BracketedArgumentList(
-                                                                SyntaxFactory.SingletonSeparatedList(
-                                                                    SyntaxFactory.Argument(
-                                                                        SyntaxFactory.LiteralExpression(
-                                                                            SyntaxKind.NumericLiteralExpression,
-                                                                            SyntaxFactory.Literal(_schemaFromIndex++))))))
-                                                ),
-                                            })))),
+                            CreateRuntimeContext(node, SyntaxFactory.IdentifierName(tableInfoVariableName))),
                         SyntaxFactory.Argument(
                             SyntaxHelper.CreateArrayOf(
                                 nameof(Object),
@@ -1496,21 +1605,21 @@ namespace Musoq.Evaluator.Visitors
             switch (node.JoinType)
             {
                 case JoinType.Inner:
-                    computingBlock = 
+                    computingBlock =
                         computingBlock.AddStatements(
                             SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
-                            SyntaxFactory.Identifier($"{node.First.Alias}Row"),
-                            SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
-                            SyntaxFactory.Block(
-                                SyntaxFactory.SingletonList<StatementSyntax>(
-                                    SyntaxFactory.ForEachStatement(
-                                        SyntaxFactory.IdentifierName("var"), 
-                                        SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
-                                        SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
-                                        SyntaxFactory.Block(
-                                            GenerateCancellationExpression(),
-                                            (StatementSyntax)ifStatement,
-                                            _emptyBlock))))));
+                                SyntaxFactory.Identifier($"{node.First.Alias}Row"),
+                                SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
+                                SyntaxFactory.Block(
+                                    SyntaxFactory.SingletonList<StatementSyntax>(
+                                        SyntaxFactory.ForEachStatement(
+                                            SyntaxFactory.IdentifierName("var"),
+                                            SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
+                                            SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
+                                            SyntaxFactory.Block(
+                                                GenerateCancellationExpression(),
+                                                (StatementSyntax) ifStatement,
+                                                _emptyBlock))))));
                     break;
                 case JoinType.OuterLeft:
 
@@ -1521,11 +1630,12 @@ namespace Musoq.Evaluator.Visitors
                     {
                         expressions.Add(
                             SyntaxFactory.ElementAccessExpression(
-                                SyntaxFactory.IdentifierName($"{node.First.Alias}Row"), 
+                                SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
                                 SyntaxFactory.BracketedArgumentList(
                                     SyntaxFactory.SingletonSeparatedList(
                                         SyntaxFactory.Argument(
-                                            (LiteralExpressionSyntax)Generator.LiteralExpression(column.ColumnName))))));
+                                            (LiteralExpressionSyntax) Generator.LiteralExpression(
+                                                column.ColumnName))))));
                     }
 
                     foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
@@ -1534,17 +1644,17 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.CastExpression(
                                 SyntaxFactory.IdentifierName(
                                     EvaluationHelper.GetCastableType(column.ColumnType)),
-                                (LiteralExpressionSyntax)Generator.NullLiteralExpression()));
+                                (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
                     }
 
                     var arrayType = SyntaxFactory.ArrayType(
-                                        SyntaxFactory.IdentifierName("object"),
-                                        new SyntaxList<ArrayRankSpecifierSyntax>(
-                                            SyntaxFactory.ArrayRankSpecifier(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                (ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
+                        SyntaxFactory.IdentifierName("object"),
+                        new SyntaxList<ArrayRankSpecifierSyntax>(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    (ExpressionSyntax) SyntaxFactory.OmittedArraySizeExpression()))));
 
-                    var rewriteSelect = 
+                    var rewriteSelect =
                         SyntaxFactory.VariableDeclaration(
                             SyntaxFactory.IdentifierName("var"),
                             SyntaxFactory.SingletonSeparatedList(
@@ -1559,7 +1669,6 @@ namespace Musoq.Evaluator.Visitors
                                                 SyntaxFactory.SeparatedList(expressions)))))));
 
 
-
                     var invocation = SyntaxHelper.CreateMethodInvocation(
                         _scope[MetaAttributes.SelectIntoVariableName],
                         nameof(Table.Add),
@@ -1567,7 +1676,8 @@ namespace Musoq.Evaluator.Visitors
                         {
                             SyntaxFactory.Argument(
                                 SyntaxFactory.ObjectCreationExpression(
-                                    SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                                    SyntaxFactory.Token(SyntaxKind.NewKeyword)
+                                        .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                                     SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
                                     SyntaxFactory.ArgumentList(
                                         SyntaxFactory.SeparatedList(
@@ -1578,43 +1688,49 @@ namespace Musoq.Evaluator.Visitors
                                                     SyntaxFactory.MemberAccessExpression(
                                                         SyntaxKind.SimpleMemberAccessExpression,
                                                         SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
-                                                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}"))),
+                                                        SyntaxFactory.IdentifierName(
+                                                            $"{nameof(IObjectResolver.Contexts)}"))),
                                                 SyntaxFactory.Argument(
-                                                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
+                                                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
                                             })
                                     ),
                                     SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
-                            )});
+                            )
+                        });
 
                     computingBlock =
                         computingBlock.AddStatements(
                             SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
-                            SyntaxFactory.Identifier($"{node.First.Alias}Row"),
-                            SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
-                            SyntaxFactory.Block(
-                                SyntaxFactory.LocalDeclarationStatement(
-                                    SyntaxHelper.CreateAssignment("hasAnyRowMatched", (LiteralExpressionSyntax)Generator.FalseLiteralExpression())),
-                                SyntaxFactory.ForEachStatement(
-                                    SyntaxFactory.IdentifierName("var"),
-                                    SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
-                                    SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
-                                    SyntaxFactory.Block(
-                                        GenerateCancellationExpression(),
-                                        (StatementSyntax)ifStatement,
-                                        _emptyBlock,
-                                        SyntaxFactory.IfStatement(
-                                            (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                            SyntaxFactory.Block(
-                                                SyntaxFactory.ExpressionStatement(
-                                                    SyntaxFactory.AssignmentExpression(
-                                                        SyntaxKind.SimpleAssignmentExpression,
-                                                        SyntaxFactory.IdentifierName("hasAnyRowMatched"),
-                                                        (LiteralExpressionSyntax)Generator.TrueLiteralExpression())))))),
-                                SyntaxFactory.IfStatement(
-                                    (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                    SyntaxFactory.Block(
-                                        SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
-                                        SyntaxFactory.ExpressionStatement(invocation))))));
+                                SyntaxFactory.Identifier($"{node.First.Alias}Row"),
+                                SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
+                                SyntaxFactory.Block(
+                                    SyntaxFactory.LocalDeclarationStatement(
+                                        SyntaxHelper.CreateAssignment("hasAnyRowMatched",
+                                            (LiteralExpressionSyntax) Generator.FalseLiteralExpression())),
+                                    SyntaxFactory.ForEachStatement(
+                                        SyntaxFactory.IdentifierName("var"),
+                                        SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
+                                        SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
+                                        SyntaxFactory.Block(
+                                            GenerateCancellationExpression(),
+                                            (StatementSyntax) ifStatement,
+                                            _emptyBlock,
+                                            SyntaxFactory.IfStatement(
+                                                (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
+                                                    SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                                SyntaxFactory.Block(
+                                                    SyntaxFactory.ExpressionStatement(
+                                                        SyntaxFactory.AssignmentExpression(
+                                                            SyntaxKind.SimpleAssignmentExpression,
+                                                            SyntaxFactory.IdentifierName("hasAnyRowMatched"),
+                                                            (LiteralExpressionSyntax) Generator
+                                                                .TrueLiteralExpression())))))),
+                                    SyntaxFactory.IfStatement(
+                                        (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
+                                            SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                        SyntaxFactory.Block(
+                                            SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
+                                            SyntaxFactory.ExpressionStatement(invocation))))));
                     break;
                 case JoinType.OuterRight:
 
@@ -1627,7 +1743,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.CastExpression(
                                 SyntaxFactory.IdentifierName(
                                     EvaluationHelper.GetCastableType(column.ColumnType)),
-                                (LiteralExpressionSyntax)Generator.NullLiteralExpression()));
+                                (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
                     }
 
                     foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
@@ -1638,15 +1754,16 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.BracketedArgumentList(
                                     SyntaxFactory.SingletonSeparatedList(
                                         SyntaxFactory.Argument(
-                                            (LiteralExpressionSyntax)Generator.LiteralExpression(column.ColumnName))))));
+                                            (LiteralExpressionSyntax) Generator.LiteralExpression(
+                                                column.ColumnName))))));
                     }
 
                     arrayType = SyntaxFactory.ArrayType(
-                                        SyntaxFactory.IdentifierName("object"),
-                                        new SyntaxList<ArrayRankSpecifierSyntax>(
-                                            SyntaxFactory.ArrayRankSpecifier(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                (ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
+                        SyntaxFactory.IdentifierName("object"),
+                        new SyntaxList<ArrayRankSpecifierSyntax>(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    (ExpressionSyntax) SyntaxFactory.OmittedArraySizeExpression()))));
 
                     rewriteSelect =
                         SyntaxFactory.VariableDeclaration(
@@ -1670,7 +1787,8 @@ namespace Musoq.Evaluator.Visitors
                         {
                             SyntaxFactory.Argument(
                                 SyntaxFactory.ObjectCreationExpression(
-                                    SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                                    SyntaxFactory.Token(SyntaxKind.NewKeyword)
+                                        .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                                     SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
                                     SyntaxFactory.ArgumentList(
                                         SyntaxFactory.SeparatedList(
@@ -1678,46 +1796,52 @@ namespace Musoq.Evaluator.Visitors
                                             {
                                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
                                                 SyntaxFactory.Argument(
-                                                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                                                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
                                                 SyntaxFactory.Argument(
                                                     SyntaxFactory.MemberAccessExpression(
                                                         SyntaxKind.SimpleMemberAccessExpression,
                                                         SyntaxFactory.IdentifierName($"{node.Second.Alias}Row"),
-                                                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}")))
+                                                        SyntaxFactory.IdentifierName(
+                                                            $"{nameof(IObjectResolver.Contexts)}")))
                                             })
                                     ),
                                     SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
-                            )});
+                            )
+                        });
 
                     computingBlock =
                         computingBlock.AddStatements(
                             SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
-                            SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
-                            SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
-                            SyntaxFactory.Block(
-                                SyntaxFactory.LocalDeclarationStatement(
-                                    SyntaxHelper.CreateAssignment("hasAnyRowMatched", (LiteralExpressionSyntax)Generator.FalseLiteralExpression())),
-                                SyntaxFactory.ForEachStatement(
-                                    SyntaxFactory.IdentifierName("var"),
-                                    SyntaxFactory.Identifier($"{node.First.Alias}Row"),
-                                    SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
-                                    SyntaxFactory.Block(
-                                        GenerateCancellationExpression(),
-                                        (StatementSyntax)ifStatement,
-                                        _emptyBlock,
-                                        SyntaxFactory.IfStatement(
-                                            (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                            SyntaxFactory.Block(
-                                                SyntaxFactory.ExpressionStatement(
-                                                    SyntaxFactory.AssignmentExpression(
-                                                        SyntaxKind.SimpleAssignmentExpression,
-                                                        SyntaxFactory.IdentifierName("hasAnyRowMatched"),
-                                                        (LiteralExpressionSyntax)Generator.TrueLiteralExpression())))))),
-                                SyntaxFactory.IfStatement(
-                                    (PrefixUnaryExpressionSyntax)Generator.LogicalNotExpression(SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                    SyntaxFactory.Block(
-                                        SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
-                                        SyntaxFactory.ExpressionStatement(invocation))))));
+                                SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
+                                SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
+                                SyntaxFactory.Block(
+                                    SyntaxFactory.LocalDeclarationStatement(
+                                        SyntaxHelper.CreateAssignment("hasAnyRowMatched",
+                                            (LiteralExpressionSyntax) Generator.FalseLiteralExpression())),
+                                    SyntaxFactory.ForEachStatement(
+                                        SyntaxFactory.IdentifierName("var"),
+                                        SyntaxFactory.Identifier($"{node.First.Alias}Row"),
+                                        SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
+                                        SyntaxFactory.Block(
+                                            GenerateCancellationExpression(),
+                                            (StatementSyntax) ifStatement,
+                                            _emptyBlock,
+                                            SyntaxFactory.IfStatement(
+                                                (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
+                                                    SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                                SyntaxFactory.Block(
+                                                    SyntaxFactory.ExpressionStatement(
+                                                        SyntaxFactory.AssignmentExpression(
+                                                            SyntaxKind.SimpleAssignmentExpression,
+                                                            SyntaxFactory.IdentifierName("hasAnyRowMatched"),
+                                                            (LiteralExpressionSyntax) Generator
+                                                                .TrueLiteralExpression())))))),
+                                    SyntaxFactory.IfStatement(
+                                        (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
+                                            SyntaxFactory.IdentifierName("hasAnyRowMatched")),
+                                        SyntaxFactory.Block(
+                                            SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
+                                            SyntaxFactory.ExpressionStatement(invocation))))));
                     break;
             }
 
@@ -1783,8 +1907,8 @@ namespace Musoq.Evaluator.Visitors
                                 {
                                     SyntaxFactory.Argument(
                                         SyntaxFactory.LiteralExpression(
-                                            SyntaxKind.StringLiteralExpression, 
-                                            SyntaxFactory.Literal( $"@\"{field.FieldName}\"", field.FieldName))),
+                                            SyntaxKind.StringLiteralExpression,
+                                            SyntaxFactory.Literal($"@\"{field.FieldName}\"", field.FieldName))),
                                     SyntaxHelper.TypeLiteralArgument(
                                         EvaluationHelper.GetCastableType(type)),
                                     SyntaxHelper.IntLiteralArgument(field.FieldOrder)
@@ -1817,6 +1941,7 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.ArgumentList()));
                 Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
             }
+
             NullSuspiciousNodes.Clear();
         }
 
@@ -1901,7 +2026,7 @@ namespace Musoq.Evaluator.Visitors
 
                 block = block.AddStatements(GenerateCancellationExpression());
 
-                if(where != null)
+                if (where != null)
                     block = block.AddStatements(where);
 
                 block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(_groupKeys));
@@ -1963,11 +2088,11 @@ namespace Musoq.Evaluator.Visitors
         {
             return SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("token"),
-                    SyntaxFactory.IdentifierName(
-                        nameof(CancellationToken.ThrowIfCancellationRequested)))));
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("token"),
+                        SyntaxFactory.IdentifierName(
+                            nameof(CancellationToken.ThrowIfCancellationRequested)))));
         }
 
         public void Visit(RootNode node)
@@ -1981,16 +2106,18 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.Identifier(nameof(IRunnable.Run)),
                 null,
                 SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(new []
+                    SyntaxFactory.SeparatedList(new[]
                     {
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
                             SyntaxTokenList.Create(new SyntaxToken()),
-                            SyntaxFactory.IdentifierName(nameof(CancellationToken)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.IdentifierName(nameof(CancellationToken))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("token"), null)
                     })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
-                SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, token);")),
+                SyntaxFactory.Block(SyntaxFactory.ParseStatement(
+                    $"return {_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, QueriesInformation, token);")),
                 null);
 
             var providerParam = SyntaxFactory.PropertyDeclaration(
@@ -2018,7 +2145,8 @@ namespace Musoq.Evaluator.Visitors
                     .WithTypeArgumentList(
                         SyntaxFactory.TypeArgumentList(
                             SyntaxFactory.SeparatedList<TypeSyntax>(
-                                new SyntaxNodeOrToken[]{
+                                new SyntaxNodeOrToken[]
+                                {
                                     SyntaxFactory.PredefinedType(
                                         SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
@@ -2027,12 +2155,15 @@ namespace Musoq.Evaluator.Visitors
                                         .WithTypeArgumentList(
                                             SyntaxFactory.TypeArgumentList(
                                                 SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                    new SyntaxNodeOrToken[]{
+                                                    new SyntaxNodeOrToken[]
+                                                    {
                                                         SyntaxFactory.PredefinedType(
                                                             SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                                                         SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                         SyntaxFactory.PredefinedType(
-                                                            SyntaxFactory.Token(SyntaxKind.StringKeyword))})))})))
+                                                            SyntaxFactory.Token(SyntaxKind.StringKeyword))
+                                                    })))
+                                })))
                     .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                 null,
                 SyntaxFactory.Identifier(nameof(IRunnable.PositionalEnvironmentVariables)),
@@ -2045,9 +2176,68 @@ namespace Musoq.Evaluator.Visitors
                 null,
                 null);
 
+            var queriesInformationParam = SyntaxFactory.PropertyDeclaration(
+                    SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SeparatedList<TypeSyntax>(
+                                    new SyntaxNodeOrToken[]
+                                    {
+                                        SyntaxFactory.PredefinedType(
+                                            SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                        SyntaxFactory.TupleType(
+                                            SyntaxFactory.SeparatedList<TupleElementSyntax>(
+                                                new SyntaxNodeOrToken[]
+                                                {
+                                                    SyntaxFactory.TupleElement(
+                                                            SyntaxFactory.IdentifierName("SchemaFromNode"))
+                                                        .WithIdentifier(
+                                                            SyntaxFactory.Identifier("FromNode")),
+                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                    SyntaxFactory.TupleElement(
+                                                            SyntaxFactory.GenericName(
+                                                                    SyntaxFactory.Identifier("IReadOnlyCollection"))
+                                                                .WithTypeArgumentList(
+                                                                    SyntaxFactory.TypeArgumentList(
+                                                                        SyntaxFactory
+                                                                            .SingletonSeparatedList<TypeSyntax>(
+                                                                                SyntaxFactory.IdentifierName(
+                                                                                    "ISchemaColumn")))))
+                                                        .WithIdentifier(
+                                                            SyntaxFactory.Identifier("UsedColumns")),
+                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                    SyntaxFactory.TupleElement(
+                                                            SyntaxFactory.IdentifierName("WhereNode"))
+                                                        .WithIdentifier(
+                                                            SyntaxFactory.Identifier("WhereNode"))
+                                                }))
+                                    }))),
+                    SyntaxFactory.Identifier("QueriesInformation"))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(
+                        SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .WithAccessorList(
+                    SyntaxFactory.AccessorList(
+                        SyntaxFactory.List(
+                            new[]
+                            {
+                                SyntaxFactory.AccessorDeclaration(
+                                        SyntaxKind.GetAccessorDeclaration)
+                                    .WithSemicolonToken(
+                                        SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                SyntaxFactory.AccessorDeclaration(
+                                        SyntaxKind.SetAccessorDeclaration)
+                                    .WithSemicolonToken(
+                                        SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                            })))
+                .NormalizeWhitespace();
+
             _members.Add(method);
             _members.Add(providerParam);
             _members.Add(positionalEnvironmentVariablesParam);
+            _members.Add(queriesInformationParam);
 
             var inMemoryTables = SyntaxFactory
                 .FieldDeclaration(SyntaxFactory
@@ -2118,28 +2308,32 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                                 SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("queriesInformation")),
+                                SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
-                            )));
+                        )));
 
             var bInvocation = SyntaxFactory
                 .InvocationExpression(SyntaxFactory.IdentifierName(b))
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("queriesInformation")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2161,12 +2355,14 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("queriesInformation")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2177,12 +2373,14 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("queriesInformation")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2204,12 +2402,14 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("queriesInformation")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2220,12 +2420,14 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("queriesInformation")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2247,12 +2449,14 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("queriesInformation")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2263,12 +2467,14 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.IdentifierName("queriesInformation")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("token"))
                             }
@@ -2329,7 +2535,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("provider"), null),
-                        
+
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
                             SyntaxTokenList.Create(
@@ -2339,7 +2545,8 @@ namespace Musoq.Evaluator.Visitors
                                 .WithTypeArgumentList(
                                     SyntaxFactory.TypeArgumentList(
                                         SyntaxFactory.SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]{
+                                            new SyntaxNodeOrToken[]
+                                            {
                                                 SyntaxFactory.PredefinedType(
                                                     SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
@@ -2348,14 +2555,61 @@ namespace Musoq.Evaluator.Visitors
                                                     .WithTypeArgumentList(
                                                         SyntaxFactory.TypeArgumentList(
                                                             SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                                new SyntaxNodeOrToken[]{
+                                                                new SyntaxNodeOrToken[]
+                                                                {
                                                                     SyntaxFactory.PredefinedType(
                                                                         SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                                                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                                     SyntaxFactory.PredefinedType(
-                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))})))})))
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))
+                                                                })))
+                                            })))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
+
+                        SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("queriesInformation"))
+                            .WithType(
+                                SyntaxFactory.GenericName(
+                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                    .WithTypeArgumentList(
+                                        SyntaxFactory.TypeArgumentList(
+                                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                new SyntaxNodeOrToken[]
+                                                {
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                    SyntaxFactory.TupleType(
+                                                        SyntaxFactory.SeparatedList<TupleElementSyntax>(
+                                                            new SyntaxNodeOrToken[]
+                                                            {
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.IdentifierName("SchemaFromNode"))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("FromNode")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.GenericName(
+                                                                                SyntaxFactory.Identifier(
+                                                                                    "IReadOnlyCollection"))
+                                                                            .WithTypeArgumentList(
+                                                                                SyntaxFactory.TypeArgumentList(
+                                                                                    SyntaxFactory
+                                                                                        .SingletonSeparatedList<
+                                                                                            TypeSyntax>(
+                                                                                            SyntaxFactory
+                                                                                                .IdentifierName(
+                                                                                                    "ISchemaColumn")))))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("UsedColumns")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.IdentifierName("WhereNode"))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("WhereNode"))
+                                                            }))
+                                                })))),
 
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
@@ -2398,6 +2652,7 @@ namespace Musoq.Evaluator.Visitors
                             {
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queriesInformation")),
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
                             })))));
 
@@ -2419,7 +2674,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("provider"), null),
-                        
+
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
                             SyntaxTokenList.Create(
@@ -2429,7 +2684,8 @@ namespace Musoq.Evaluator.Visitors
                                 .WithTypeArgumentList(
                                     SyntaxFactory.TypeArgumentList(
                                         SyntaxFactory.SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]{
+                                            new SyntaxNodeOrToken[]
+                                            {
                                                 SyntaxFactory.PredefinedType(
                                                     SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
@@ -2438,14 +2694,61 @@ namespace Musoq.Evaluator.Visitors
                                                     .WithTypeArgumentList(
                                                         SyntaxFactory.TypeArgumentList(
                                                             SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                                new SyntaxNodeOrToken[]{
+                                                                new SyntaxNodeOrToken[]
+                                                                {
                                                                     SyntaxFactory.PredefinedType(
                                                                         SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                                                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                                     SyntaxFactory.PredefinedType(
-                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))})))})))
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))
+                                                                })))
+                                            })))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                            SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),                        
+                            SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
+
+                        SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("queriesInformation"))
+                            .WithType(
+                                SyntaxFactory.GenericName(
+                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                    .WithTypeArgumentList(
+                                        SyntaxFactory.TypeArgumentList(
+                                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                new SyntaxNodeOrToken[]
+                                                {
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                    SyntaxFactory.TupleType(
+                                                        SyntaxFactory.SeparatedList<TupleElementSyntax>(
+                                                            new SyntaxNodeOrToken[]
+                                                            {
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.IdentifierName("SchemaFromNode"))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("FromNode")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.GenericName(
+                                                                                SyntaxFactory.Identifier(
+                                                                                    "IReadOnlyCollection"))
+                                                                            .WithTypeArgumentList(
+                                                                                SyntaxFactory.TypeArgumentList(
+                                                                                    SyntaxFactory
+                                                                                        .SingletonSeparatedList<
+                                                                                            TypeSyntax>(
+                                                                                            SyntaxFactory
+                                                                                                .IdentifierName(
+                                                                                                    "ISchemaColumn")))))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("UsedColumns")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.IdentifierName("WhereNode"))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("WhereNode"))
+                                                            }))
+                                                })))),
 
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
@@ -2477,10 +2780,11 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(_methodNames.Peek())).WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new []
+                            new[]
                             {
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queriesInformation")),
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
                             }))))));
         }
@@ -2516,6 +2820,11 @@ namespace Musoq.Evaluator.Visitors
             _setOperatorMethodIdentifier += 1;
         }
 
+        public void SetInsideJoin(bool state)
+        {
+            _isInsideJoin = state;
+        }
+
         private void AddNamespace(string columnTypeNamespace)
         {
             if (!_namespaces.Contains(columnTypeNamespace))
@@ -2532,12 +2841,11 @@ namespace Musoq.Evaluator.Visitors
         {
             foreach (var type in types)
             {
-                if (!_loadedAssemblies.Contains(type.Assembly.Location))
-                {
-                    _loadedAssemblies.Add(type.Assembly.Location);
-                    Compilation =
-                        Compilation.AddReferences(MetadataReference.CreateFromFile(type.Assembly.Location));
-                }
+                if (_loadedAssemblies.Contains(type.Assembly.Location)) continue;
+
+                _loadedAssemblies.Add(type.Assembly.Location);
+                Compilation =
+                    Compilation.AddReferences(MetadataReference.CreateFromFile(type.Assembly.Location));
             }
         }
 
@@ -2566,9 +2874,9 @@ namespace Musoq.Evaluator.Visitors
             return SyntaxFactory.Block(
                 SyntaxFactory.ForEachStatement(
                     SyntaxFactory.IdentifierName("var"),
-                    SyntaxFactory.Identifier(variableName), 
+                    SyntaxFactory.Identifier(variableName),
                     SyntaxFactory.IdentifierName(tableVariable),
-                foreachInstructions).NormalizeWhitespace());
+                    foreachInstructions).NormalizeWhitespace());
         }
 
         private StatementSyntax AddGroupStatement(string scoreTable)
@@ -2712,7 +3020,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                 .WithParameterList(SyntaxFactory.ParameterList(
                     SyntaxFactory.SeparatedList(
-                        new []
+                        new[]
                         {
                             SyntaxFactory.Parameter(SyntaxFactory.Identifier("provider"))
                                 .WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider))),
@@ -2748,6 +3056,50 @@ namespace Musoq.Evaluator.Visitors
                                                 })))
                                     .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                                 SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
+                            SyntaxFactory.Parameter(
+                                    SyntaxFactory.Identifier("queriesInformation"))
+                                .WithType(
+                                    SyntaxFactory.GenericName(
+                                            SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                        .WithTypeArgumentList(
+                                            SyntaxFactory.TypeArgumentList(
+                                                SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                    new SyntaxNodeOrToken[]
+                                                    {
+                                                        SyntaxFactory.PredefinedType(
+                                                            SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                        SyntaxFactory.TupleType(
+                                                            SyntaxFactory.SeparatedList<TupleElementSyntax>(
+                                                                new SyntaxNodeOrToken[]
+                                                                {
+                                                                    SyntaxFactory.TupleElement(
+                                                                            SyntaxFactory.IdentifierName(
+                                                                                "SchemaFromNode"))
+                                                                        .WithIdentifier(
+                                                                            SyntaxFactory.Identifier("FromNode")),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.TupleElement(
+                                                                            SyntaxFactory.GenericName(
+                                                                                    SyntaxFactory.Identifier(
+                                                                                        "IReadOnlyCollection"))
+                                                                                .WithTypeArgumentList(
+                                                                                    SyntaxFactory.TypeArgumentList(
+                                                                                        SyntaxFactory
+                                                                                            .SingletonSeparatedList<
+                                                                                                TypeSyntax>(
+                                                                                                SyntaxFactory
+                                                                                                    .IdentifierName(
+                                                                                                        "ISchemaColumn")))))
+                                                                        .WithIdentifier(
+                                                                            SyntaxFactory.Identifier("UsedColumns")),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.TupleElement(
+                                                                            SyntaxFactory.IdentifierName("WhereNode"))
+                                                                        .WithIdentifier(
+                                                                            SyntaxFactory.Identifier("WhereNode"))
+                                                                }))
+                                                    })))),
                             SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
                                 .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken)))
                         }))).WithBody(
@@ -2842,14 +3194,14 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxKind.LogicalAndExpression,
                             SyntaxFactory.BinaryExpression(
                                 SyntaxKind.NotEqualsExpression,
-                                (ExpressionSyntax)NullSuspiciousNodes.Pop(),
+                                (ExpressionSyntax) NullSuspiciousNodes.Pop(),
                                 SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
                             SyntaxFactory.BinaryExpression(
                                 SyntaxKind.NotEqualsExpression,
-                                (ExpressionSyntax)NullSuspiciousNodes.Pop(),
+                                (ExpressionSyntax) NullSuspiciousNodes.Pop(),
                                 SyntaxFactory.LiteralExpression(
                                     SyntaxKind.NullLiteralExpression))),
-                        (BinaryExpressionSyntax)rawNode));
+                        (BinaryExpressionSyntax) rawNode));
             }
             else if (NullSuspiciousNodes.Count == 1)
             {
@@ -2858,9 +3210,9 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxKind.LogicalAndExpression,
                         SyntaxFactory.BinaryExpression(
                             SyntaxKind.NotEqualsExpression,
-                            (ExpressionSyntax)NullSuspiciousNodes.Pop(),
+                            (ExpressionSyntax) NullSuspiciousNodes.Pop(),
                             SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                        (BinaryExpressionSyntax)rawNode));
+                        (BinaryExpressionSyntax) rawNode));
             }
 
             return rawNode;
@@ -2901,13 +3253,13 @@ namespace Musoq.Evaluator.Visitors
             var then = Nodes.Pop();
             var when = Nodes.Pop();
 
-            var ifStatement = 
+            var ifStatement =
                 SyntaxFactory.IfStatement(
-                    (ExpressionSyntax)when,
+                    (ExpressionSyntax) when,
                     SyntaxFactory.Block(
                         SyntaxFactory.SingletonList<StatementSyntax>(
                             SyntaxFactory.ReturnStatement(
-                                (ExpressionSyntax)then))));
+                                (ExpressionSyntax) then))));
 
             var ifStatements = new List<IfStatementSyntax>
             {
@@ -2921,30 +3273,30 @@ namespace Musoq.Evaluator.Visitors
                 when = Nodes.Pop();
 
                 ifStatements.Add(
-                        SyntaxFactory.IfStatement(
-                            (ExpressionSyntax)when,
-                            SyntaxFactory.Block(
-                                SyntaxFactory.SingletonList<StatementSyntax>(
+                    SyntaxFactory.IfStatement(
+                        (ExpressionSyntax) when,
+                        SyntaxFactory.Block(
+                            SyntaxFactory.SingletonList<StatementSyntax>(
                                 SyntaxFactory.ReturnStatement(
-                                    (ExpressionSyntax)then)))));
+                                    (ExpressionSyntax) then)))));
             }
 
             var elseNode = Nodes.Pop();
 
-            ifStatements[ifStatements.Count - 1] = 
-                ifStatements[ifStatements.Count - 1].WithElse(
+            ifStatements[^1] =
+                ifStatements[^1].WithElse(
                     SyntaxFactory.ElseClause(
                         SyntaxFactory.Block(
-                                SyntaxFactory.SingletonList<StatementSyntax>(
+                            SyntaxFactory.SingletonList<StatementSyntax>(
                                 SyntaxFactory.ReturnStatement(
-                                    (ExpressionSyntax)elseNode)))));
+                                    (ExpressionSyntax) elseNode)))));
 
             IfStatementSyntax first;
             IfStatementSyntax second;
 
             IfStatementSyntax newIfStatement = null;
 
-            for(int i = ifStatements.Count - 2; i >= 1; i-=1)
+            for (var i = ifStatements.Count - 2; i >= 1; i -= 1)
             {
                 first = ifStatements[i];
                 second = ifStatements[i + 1];
@@ -2952,14 +3304,14 @@ namespace Musoq.Evaluator.Visitors
                 ifStatements.RemoveAt(i + 1);
                 ifStatements.RemoveAt(i);
 
-                newIfStatement = 
+                newIfStatement =
                     first.WithElse(
                         SyntaxFactory.ElseClause(second));
 
                 ifStatements.Add(newIfStatement);
             }
 
-            if(ifStatements.Count == 2)
+            if (ifStatements.Count == 2)
             {
                 first = ifStatements[0];
                 second = ifStatements[1];
@@ -2986,14 +3338,14 @@ namespace Musoq.Evaluator.Visitors
             var methodName = $"CaseWhen_{_caseWhenMethodIndex++}";
 
             var parameters = new List<ParameterSyntax>();
-            var callParameters = new List<SyntaxNode>();
+            var callParameters = new List<ArgumentSyntax>();
 
             parameters.Add(
                 SyntaxFactory.Parameter(
                     SyntaxFactory.Identifier("score")
-            ).WithType(
-                  SyntaxFactory.IdentifierName(nameof(IObjectResolver))
-            ));
+                ).WithType(
+                    SyntaxFactory.IdentifierName(nameof(IObjectResolver))
+                ));
 
             var rowVariableName = string.Empty;
             switch (_oldType)
@@ -3005,6 +3357,7 @@ namespace Musoq.Evaluator.Visitors
                     rowVariableName = "score";
                     break;
             }
+
             callParameters.Add(
                 SyntaxFactory.Argument(
                     SyntaxFactory.IdentifierName(rowVariableName)));
@@ -3014,7 +3367,7 @@ namespace Musoq.Evaluator.Visitors
                 parameters.Add(
                     SyntaxFactory.Parameter(
                         SyntaxFactory.Identifier(variableNameTypePair.Key)
-                    ).WithType (
+                    ).WithType(
                         SyntaxFactory.IdentifierName(variableNameTypePair.Value.Name)
                     ));
 
@@ -3025,7 +3378,7 @@ namespace Musoq.Evaluator.Visitors
 
             var method = SyntaxFactory
                 .MethodDeclaration(
-                    SyntaxFactory.IdentifierName(node.ReturnType.FullName),
+                    SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(node.ReturnType)),
                     SyntaxFactory.Identifier(methodName))
                 .WithModifiers(
                     SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
@@ -3043,9 +3396,82 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray()));
         }
 
+        public void Visit(WhenNode node)
+        {
+        }
+
+        public void Visit(ThenNode node)
+        {
+        }
+
+        public void Visit(ElseNode node)
+        {
+        }
+
         public void Visit(FieldLinkNode node)
         {
             throw new NotSupportedException();
+        }
+
+        private ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node, ExpressionSyntax originallyInferredColumns)
+        {
+            return SyntaxFactory.ObjectCreationExpression(
+                    SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new[]
+                            {
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
+                                SyntaxFactory.Argument(
+                                    originallyInferredColumns),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.ElementAccessExpression(
+                                            SyntaxFactory.IdentifierName(
+                                                "positionalEnvironmentVariables"))
+                                        .WithArgumentList(
+                                            SyntaxFactory.BracketedArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(
+                                                            SyntaxKind.NumericLiteralExpression,
+                                                            SyntaxFactory.Literal(
+                                                                _schemaFromIndex++))))))
+                                ),
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.ElementAccessExpression(
+                                            SyntaxFactory.IdentifierName("queriesInformation"))
+                                        .WithArgumentList(
+                                            SyntaxFactory.BracketedArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(
+                                                            SyntaxKind.StringLiteralExpression,
+                                                            SyntaxFactory.Literal(node.Id)))))))
+                            })));
+        }
+
+        private SyntaxNode GenerateNullableNull(Type nodeReturnType)
+        {
+            if (CheckIfNullable(nodeReturnType))
+            {
+                return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+            }
+            
+            var typeIdentifier = SyntaxFactory.IdentifierName(
+                EvaluationHelper.GetCastableType(nodeReturnType));
+            
+            return Generator.CastExpression(Generator.NullableTypeExpression(typeIdentifier), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+        }
+        
+        private static bool CheckIfNullable(Type type)
+        {
+            if (type.IsValueType)
+            {
+                return Nullable.GetUnderlyingType(type) != null;
+            }
+            
+            return true;
         }
     }
 }

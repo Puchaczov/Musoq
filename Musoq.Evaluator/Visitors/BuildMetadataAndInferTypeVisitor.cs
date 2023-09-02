@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
@@ -17,32 +18,51 @@ using Musoq.Parser.Tokens;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
+using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
+using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
+using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
+using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
+using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
+using JoinsNode = Musoq.Parser.Nodes.From.JoinsNode;
+using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
+using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 
 namespace Musoq.Evaluator.Visitors
 {
     public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     {
         private readonly ISchemaProvider _provider;
+        private readonly IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> _positionalEnvironmentVariables;
         private readonly List<AccessMethodNode> _refreshMethods = new();
         private readonly List<object> _schemaFromArgs = new();
         private readonly List<string> _generatedAliases = new();
         private readonly IDictionary<string, ISchemaTable> _explicitlyDefinedTables = new Dictionary<string, ISchemaTable>();
         private readonly IDictionary<string, string> _explicitlyCoupledTablesWithAliases = new Dictionary<string, string>();
         private readonly IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases = new Dictionary<string, SchemaMethodFromNode>();
+        private readonly IDictionary<SchemaFromNode, ISchemaColumn[]> _inferredColumns = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
+        private readonly IDictionary<SchemaFromNode, List<ISchemaColumn>> _usedColumns = new Dictionary<SchemaFromNode, List<ISchemaColumn>>();
+        private readonly IDictionary<SchemaFromNode, WhereNode> _usedWhereNodes = new Dictionary<SchemaFromNode, WhereNode>();
         private readonly List<FieldNode> _groupByFields = new();
+        private readonly List<Type> _nullSuspiciousTypes;
 
         private int _setKey;
+        private int _schemaFromKey;
+        private uint _positionalEnvironmentVariablesKey;
         private Scope _currentScope;
         private FieldNode[] _generatedColumns = Array.Empty<FieldNode>();
         private string _identifier;
         private string _queryAlias;
-        private QueryPart _queryPart;
 
         private Stack<string> Methods { get; } = new();
 
-        public BuildMetadataAndInferTypeVisitor(ISchemaProvider provider)
+        public BuildMetadataAndInferTypeVisitor(ISchemaProvider provider, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
         {
             _provider = provider;
+            _positionalEnvironmentVariables = positionalEnvironmentVariables;
+            _positionalEnvironmentVariablesKey = 0;
+            _nullSuspiciousTypes = new List<Type>();
         }
 
         protected Stack<Node> Nodes { get; } = new();
@@ -51,8 +71,44 @@ namespace Musoq.Evaluator.Visitors
         
         public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
-        
-        public IDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
+
+        public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns
+        {
+            get
+            {
+                var result = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
+                
+                foreach (var aliasColumnsPair in _inferredColumns)
+                {
+                    result.Add(aliasColumnsPair.Key, aliasColumnsPair.Value.ToArray());
+                }
+                
+                return result;
+            }
+        }
+
+        public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns
+        {
+            get
+            {
+                var result = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
+                
+                foreach (var aliasColumnsPair in _usedColumns)
+                {
+                    result.Add(aliasColumnsPair.Key, aliasColumnsPair.Value.ToArray());
+                }
+
+                return result;
+            }
+        }
+
+        public IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes
+        {
+            get
+            {
+                return _usedWhereNodes.ToDictionary(aliasColumnsPair => aliasColumnsPair.Key, aliasColumnsPair => aliasColumnsPair.Value);
+            }
+        }
 
         public RootNode Root => (RootNode) Nodes.Peek();
 
@@ -251,6 +307,11 @@ namespace Musoq.Evaluator.Visitors
             _schemaFromArgs.Add(node.Value);
         }
 
+        public void Visit(NullNode node)
+        {
+            Nodes.Push(new NullNode(node.ReturnType));
+        }
+
         public void Visit(ContainsNode node)
         {
             var right = Nodes.Pop();
@@ -284,17 +345,16 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessColumnNode node)
         {
-            var identifier = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId)
+            var hasProcessedQueryId = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
+            var identifier = hasProcessedQueryId
                 ? _currentScope[MetaAttributes.ProcessedQueryId]
                 : _identifier;
 
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
-            (ISchema Schema, ISchemaTable Table, string TableName) tuple;
-            if (!string.IsNullOrEmpty(node.Alias))
-                tuple = tableSymbol.GetTableByAlias(node.Alias);
-            else
-                tuple = tableSymbol.GetTableByColumnName(node.Name);
+            var tuple = !string.IsNullOrEmpty(node.Alias) ? 
+                tableSymbol.GetTableByAlias(node.Alias) : 
+                tableSymbol.GetTableByColumnName(node.Name);
 
             ISchemaColumn column;
             try
@@ -307,39 +367,30 @@ namespace Musoq.Evaluator.Visitors
             }
 
             if (column == null)
+            {
                 PrepareAndThrowUnknownColumnExceptionMessage(node.Name, tuple.Table.Columns);
+                return;
+            }
 
             AddAssembly(column.ColumnType.Assembly);
             node.ChangeReturnType(column.ColumnType);
+            
+            var columns = _usedColumns
+                .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == _schemaFromKey)
+                .Select(f => f.Value)
+                .FirstOrDefault();
+
+            if (columns is not null)
+            {
+                if (columns.All(c => c.ColumnName != column.ColumnName))
+                {
+                    columns.Add(column);
+                }
+            }
 
             var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span);
+            
             Nodes.Push(accessColumn);
-        }
-
-        private static void PrepareAndThrowUnknownColumnExceptionMessage(string indetifier, ISchemaColumn[] columns)
-        {
-            var library = new TransitionLibrary();
-            var candidates = new StringBuilder();
-
-            var candidatesColumns = columns.Where(col =>
-                library.Soundex(col.ColumnName) == library.Soundex(indetifier) ||
-                library.LevenshteinDistance(col.ColumnName, indetifier).Value < 3).ToArray();
-
-            for (int i = 0; i < candidatesColumns.Length - 1; i++)
-            {
-                ISchemaColumn candidate = candidatesColumns[i];
-                candidates.Append(candidate.ColumnName);
-                candidates.Append(", ");
-            }
-
-            if (candidatesColumns.Length > 0)
-            {
-                candidates.Append(candidatesColumns[^1].ColumnName);
-
-                throw new UnknownColumnException($"Column '{indetifier}' could not be found. Did you mean to use [{candidates.ToString()}]?");
-            }
-
-            throw new UnknownColumnException($"Column {indetifier} could not be found.");
         }
 
         public void Visit(AllColumnsNode node)
@@ -356,7 +407,13 @@ namespace Musoq.Evaluator.Visitors
                 AddAssembly(column.ColumnType.Assembly);
                 _generatedColumns[i] =
                     new FieldNode(
-                        new AccessColumnNode(column.ColumnName, _identifier, column.ColumnType, TextSpan.Empty), i,
+                        new AccessColumnNode(
+                            column.ColumnName, 
+                            _identifier, 
+                            column.ColumnType, 
+                            TextSpan.Empty
+                        ), 
+                        i,
                         tableSymbol.HasAlias ? _identifier : column.ColumnName);
             }
 
@@ -383,19 +440,56 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(AccessObjectArrayNode node)
         {
             var parentNodeType = Nodes.Peek().ReturnType;
-            Nodes.Push(new AccessObjectArrayNode(node.Token, parentNodeType.GetProperty(node.Name)));
+            if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+            {
+                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                Nodes.Push(
+                    new AccessObjectArrayNode(
+                        node.Token, 
+                        new ExpandoObjectPropertyInfo(
+                            node.Name,
+                            column.ColumnType)));
+            }
+            else
+            {
+                Nodes.Push(new AccessObjectArrayNode(node.Token, parentNodeType.GetProperty(node.Name)));
+            }
         }
 
         public void Visit(AccessObjectKeyNode node)
         {
             var parentNodeType = Nodes.Peek().ReturnType;
-            Nodes.Push(new AccessObjectKeyNode(node.Token, parentNodeType.GetProperty(node.ObjectName)));
+            if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+            {
+                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                Nodes.Push(
+                    new AccessObjectKeyNode(
+                        node.Token, 
+                        new ExpandoObjectPropertyInfo(
+                            node.Name,
+                            column.ColumnType)));
+            }
+            else
+            {
+                Nodes.Push(new AccessObjectKeyNode(node.Token, parentNodeType.GetProperty(node.Name)));
+            }
         }
 
         public void Visit(PropertyValueNode node)
         {
             var parentNodeType = Nodes.Peek().ReturnType;
-            Nodes.Push(new PropertyValueNode(node.Name, parentNodeType.GetProperty(node.Name)));
+            if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+            {
+                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, column.ColumnType)));
+            }
+            else
+            {
+                Nodes.Push(new PropertyValueNode(node.Name, parentNodeType.GetProperty(node.Name)));
+            }
         }
 
         public void Visit(DotNode node)
@@ -403,15 +497,37 @@ namespace Musoq.Evaluator.Visitors
             var exp = Nodes.Pop();
             var root = Nodes.Pop();
 
-            if (root.ReturnType == typeof(IDynamicMetaObjectProvider))
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+
+            DotNode newNode = null;
+            if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
             {
-                Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, typeof(IDynamicMetaObjectProvider)));
+                var name = exp switch
+                {
+                    PropertyValueNode propertyValueNode => propertyValueNode.Name,
+                    AccessObjectArrayNode accessObjectArrayNode => accessObjectArrayNode.Name,
+                    AccessObjectKeyNode accessObjectKeyNode => accessObjectKeyNode.Name,
+                    _ => throw new NotSupportedException()
+                };
+
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, name);
+                
+                var type = exp switch
+                {
+                    PropertyValueNode => column.ColumnType,
+                    AccessObjectArrayNode => column.ColumnType.GetElementType(),
+                    AccessObjectKeyNode => column.ColumnType.GetElementType(),
+                    _ => throw new NotSupportedException()
+                };
+                
+                newNode = new DotNode(root, exp, node.IsOuter, string.Empty, type);
             }
             else
             {
-                Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType));
+                newNode = new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType);
             }
-
+            
+            Nodes.Push(newNode);
         }
 
         public virtual void Visit(AccessCallChainNode node)
@@ -435,7 +551,25 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WhereNode node)
         {
-            Nodes.Push(new WhereNode(Nodes.Pop()));
+            var hasProcessedQueryId = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
+            var identifier = hasProcessedQueryId
+                ? _currentScope[MetaAttributes.ProcessedQueryId]
+                : _identifier;
+
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
+            var rewrittenWhereNode = new WhereNode(Nodes.Pop());
+
+            var usedIdentifiers = _usedWhereNodes
+                .Where(f => f.Key.QueryId == _schemaFromKey)
+                .Select(f => f.Key)
+                .ToArray();
+            
+            foreach (var aliasSchemaPair in tableSymbol.CompoundTables.Join(usedIdentifiers, t => t, f => f.Alias, (t, f) => (Alias: t, Schema: f)))
+            {
+                _usedWhereNodes[aliasSchemaPair.Schema] = rewrittenWhereNode;
+            }
+            
+            Nodes.Push(rewrittenWhereNode);
         }
 
         public void Visit(GroupByNode node)
@@ -473,38 +607,52 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new TakeNode((IntegerNode) node.Expression));
         }
 
+        private static readonly WhereNode AllTrueWhereNode =
+            new(new EqualityNode(new IntegerNode("1"), new IntegerNode("1")));
+
         public void Visit(SchemaFromNode node)
         {
             var schema = _provider.GetSchema(node.Schema);
 
-            ISchemaTable table;
-            if (_currentScope.Name != "Desc")
-                table = schema.GetTableByName(node.Method, _schemaFromArgs.ToArray());
-            else
-                table = new DynamicTable(Array.Empty<ISchemaColumn>());
+            var table = _currentScope.Name != "Desc" ? 
+                schema.GetTableByName(node.Method, new RuntimeContext(
+                    CancellationToken.None,
+                    Array.Empty<ISchemaColumn>(),
+                    _positionalEnvironmentVariables.ContainsKey(_positionalEnvironmentVariablesKey) ? 
+                        _positionalEnvironmentVariables[_positionalEnvironmentVariablesKey] : 
+                        new Dictionary<string, string>(),
+                    (node, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)), _schemaFromArgs.ToArray()) : 
+                new DynamicTable(Array.Empty<ISchemaColumn>());
 
+            _positionalEnvironmentVariablesKey += 1;
             _schemaFromArgs.Clear();
 
             AddAssembly(schema.GetType().Assembly);
 
-            _queryAlias = StringHelpers.CreateAliasIfEmpty(node.Alias, _generatedAliases);
+            _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
             _generatedAliases.Add(_queryAlias);
 
             var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
 
-            var aliasedSchemaFromNode = new SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias);
+            var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), _queryAlias, node.QueryId);
 
-            if(!InferredColumns.ContainsKey(aliasedSchemaFromNode))
-                InferredColumns.Add(aliasedSchemaFromNode, table.Columns);
+            if(!_inferredColumns.ContainsKey(aliasedSchemaFromNode))
+                _inferredColumns.Add(aliasedSchemaFromNode, table.Columns);
 
+            if (!_usedColumns.ContainsKey(aliasedSchemaFromNode))
+                _usedColumns.Add(aliasedSchemaFromNode, new List<ISchemaColumn>());
+            
+            if (!_usedWhereNodes.ContainsKey(aliasedSchemaFromNode))
+                _usedWhereNodes.Add(aliasedSchemaFromNode, AllTrueWhereNode);
+            
             Nodes.Push(aliasedSchemaFromNode);
         }
 
         public void Visit(SchemaMethodFromNode node)
         {
-            Nodes.Push(new SchemaMethodFromNode(node.Schema, node.Method));
+            Nodes.Push(new Parser.SchemaMethodFromNode(node.Schema, node.Method));
         }
 
         public void Visit(AliasedFromNode node)
@@ -517,17 +665,23 @@ namespace Musoq.Evaluator.Visitors
 
             AddAssembly(schema.GetType().Assembly);
 
-            _queryAlias = StringHelpers.CreateAliasIfEmpty(node.Alias, _generatedAliases);
+            _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
             _generatedAliases.Add(_queryAlias);
 
             var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
 
-            var aliasedSchemaFromNode = new SchemaFromNode(schemaInfo.Schema, schemaInfo.Method, node.Args, _queryAlias);
+            var aliasedSchemaFromNode = new Parser.SchemaFromNode(schemaInfo.Schema, schemaInfo.Method, node.Args, _queryAlias, node.InSourcePosition);
 
-            if (!InferredColumns.ContainsKey(aliasedSchemaFromNode))
-                InferredColumns.Add(aliasedSchemaFromNode, table.Columns);
+            if (!_inferredColumns.ContainsKey(aliasedSchemaFromNode))
+                _inferredColumns.Add(aliasedSchemaFromNode, table.Columns);
+
+            if (!_usedColumns.ContainsKey(aliasedSchemaFromNode))
+                _usedColumns.Add(aliasedSchemaFromNode, new List<ISchemaColumn>());
+            
+            if (!_usedWhereNodes.ContainsKey(aliasedSchemaFromNode))
+                _usedWhereNodes.Add(aliasedSchemaFromNode, AllTrueWhereNode);
 
             Nodes.Push(aliasedSchemaFromNode);
         }
@@ -538,7 +692,7 @@ namespace Musoq.Evaluator.Visitors
             var b = (FromNode) Nodes.Pop();
             var a = (FromNode) Nodes.Pop();
 
-            Nodes.Push(new JoinSourcesTableFromNode(a, b, exp, node.JoinType));
+            Nodes.Push(new Parser.JoinSourcesTableFromNode(a, b, exp, node.JoinType));
         }
 
         public void Visit(InMemoryTableFromNode node)
@@ -565,7 +719,7 @@ namespace Musoq.Evaluator.Visitors
                 new TableSymbol(_queryAlias, tableSchemaPair.Schema, tableSchemaPair.Table, node.Alias == _queryAlias));
             _currentScope[node.Id] = _queryAlias;
 
-            Nodes.Push(new InMemoryTableFromNode(node.VariableName, _queryAlias));
+            Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, _queryAlias));
         }
 
         public void Visit(JoinFromNode node)
@@ -573,7 +727,7 @@ namespace Musoq.Evaluator.Visitors
             var expression = Nodes.Pop();
             var joinedTable = (FromNode) Nodes.Pop();
             var source = (FromNode) Nodes.Pop();
-            var joinedFrom = new JoinFromNode(source, joinedTable, expression, node.JoinType);
+            var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType);
             _identifier = joinedFrom.Alias;
             _schemaFromArgs.Clear();
             Nodes.Push(joinedFrom);
@@ -583,7 +737,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var from = (FromNode) Nodes.Pop();
             _identifier = from.Alias;
-            Nodes.Push(new ExpressionFromNode(from));
+            Nodes.Push(new Parser.ExpressionFromNode(from));
 
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
 
@@ -663,7 +817,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var exp = Nodes.Pop();
             var from = (FromNode) Nodes.Pop();
-            Nodes.Push(new JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
+            Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
         }
 
         public void Visit(InternalQueryNode node)
@@ -812,7 +966,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(JoinsNode node)
         {
             _identifier = node.Alias;
-            Nodes.Push(new JoinsNode((JoinFromNode) Nodes.Pop()));
+            Nodes.Push(new Parser.JoinsNode((Parser.JoinFromNode) Nodes.Pop()));
         }
 
         public void Visit(JoinNode node)
@@ -877,10 +1031,11 @@ namespace Musoq.Evaluator.Visitors
 
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
             var schemaTablePair = tableSymbol.GetTableByAlias(alias);
+            var entityType = schemaTablePair.Table.Metadata.TableEntityType;
             var canSkipInjectSource = false;
-            if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), out var method))
+            if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), entityType, out var method))
             {
-                if (!schemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
+                if (!schemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), entityType, out method))
                 {
                     if (!schemaTablePair.Schema.TryResolveRawMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
                     {
@@ -915,6 +1070,7 @@ namespace Musoq.Evaluator.Visitors
                 if (!schemaTablePair.Schema.TryResolveAggregationMethod(
                     setMethodName,
                     argTypes,
+                    entityType,
                     out var setMethod))
                 {
                     var names = argTypes.Length == 0
@@ -928,7 +1084,6 @@ namespace Musoq.Evaluator.Visitors
                 {
                     var setParams = setMethod.GetParameters();
                     var genericArguments = setMethod.GetGenericArguments();
-                    var genericArgumentsMap = new Dictionary<int, Type>();
                     var genericArgumentsDistinct = new List<Type>();
 
                     foreach (var genericArgument in genericArguments)
@@ -939,7 +1094,6 @@ namespace Musoq.Evaluator.Visitors
 
                             if (setParam.ParameterType == genericArgument)
                             {
-                                genericArgumentsMap.Add(i, genericArgument);
                                 genericArgumentsDistinct.Add(newSetArgs.Where((arg, index) => index == i - 1).Single().ReturnType);
                             }
                         }
@@ -963,6 +1117,9 @@ namespace Musoq.Evaluator.Visitors
             {
                 accessMethod = func(node.FToken, args, new ArgsListNode(Array.Empty<Node>()), method, alias, canSkipInjectSource);
             }
+            
+            if (method.DeclaringType == null)
+                throw new InvalidOperationException("Method must have a declaring type.");
 
             AddAssembly(method.DeclaringType.Assembly);
             AddAssembly(method.ReturnType.Assembly);
@@ -1010,18 +1167,18 @@ namespace Musoq.Evaluator.Visitors
         {
             var columns = new List<ISchemaColumn>();
 
-            for (int i = 0; i < node.TableTypePairs.Length; i++)
+            for (var i = 0; i < node.TableTypePairs.Length; i++)
             {
-                (string ColumnName, string TypeName) = node.TableTypePairs[i];
+                var (columnName, typeName) = node.TableTypePairs[i];
 
-                var remappedType = EvaluationHelper.RemapPrimitiveTypes(TypeName);
+                var remappedType = EvaluationHelper.RemapPrimitiveTypes(typeName);
 
                 var type = EvaluationHelper.GetType(remappedType);
 
                 if (type == null)
                     throw new TypeNotFoundException($"Type '{remappedType}' could not be found.");
 
-                columns.Add(new SchemaColumn(ColumnName, i, type));
+                columns.Add(new SchemaColumn(columnName, i, type));
             }
 
             var table = new DynamicTable(columns.ToArray());
@@ -1037,15 +1194,10 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new CoupleNode(node.SchemaMethodNode, node.TableName, node.MappedSchemaName));
         }
 
-        public void SetQueryPart(QueryPart part)
-        {
-            _queryPart = part;
-        }
-
         public void Visit(StatementsArrayNode node)
         {
             var statements = new StatementNode[node.Statements.Length];
-            for (int i = 0; i < node.Statements.Length; ++i)
+            for (var i = 0; i < node.Statements.Length; ++i)
             {
                 statements[node.Statements.Length - 1 - i] = (StatementNode)Nodes.Pop();
             }
@@ -1062,7 +1214,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var whenThenPairs = new List<(Node When, Node Then)>();
 
-            for(int i = 0; i < node.WhenThenPairs.Length; ++i)
+            for (var i = 0; i < node.WhenThenPairs.Length; ++i)
             {
                 var then = Nodes.Pop();
                 var when = Nodes.Pop();
@@ -1071,7 +1223,57 @@ namespace Musoq.Evaluator.Visitors
 
             var elseNode = Nodes.Pop();
 
-            Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, elseNode.ReturnType));
+            if (_nullSuspiciousTypes.All(type => type != NullNode.NullType.Instance))
+            {
+                var anyWasNullable = _nullSuspiciousTypes.Any(type => type.GetUnderlyingNullable() != null);
+                var greatestCommonSubtype = FindGreatestCommonSubtype();
+                var caseNode = anyWasNullable ? 
+                    new CaseNode(whenThenPairs.ToArray(), elseNode, greatestCommonSubtype) : 
+                    new CaseNode(whenThenPairs.ToArray(), elseNode, MakeTypeNullable(greatestCommonSubtype));
+
+                Nodes.Push(caseNode);
+            }
+            else
+            {
+                var greatestCommonSubtype = FindGreatestCommonSubtype();
+                var nullableGreatestCommonSubtype = MakeTypeNullable(greatestCommonSubtype);
+                var caseNode = new CaseNode(whenThenPairs.ToArray(), elseNode, nullableGreatestCommonSubtype);
+            
+                var rewritePartsWithProperNullHandling = new RewritePartsWithProperNullHandlingVisitor(greatestCommonSubtype);
+                var rewritePartsWithProperNullHandlingTraverser =
+                    new RewritePartsWithProperNullHandlingTraverseVisitor(rewritePartsWithProperNullHandling);
+            
+                caseNode.Accept(rewritePartsWithProperNullHandlingTraverser);
+            
+                Nodes.Push(rewritePartsWithProperNullHandling.RewrittenNode);
+            }
+            
+            _nullSuspiciousTypes.Clear();
+        }
+
+        public void Visit(WhenNode node)
+        {
+            var newNode = new WhenNode(Nodes.Pop());
+            
+            Nodes.Push(newNode);
+        }
+
+        public void Visit(ThenNode node)
+        {
+            var newNode = new ThenNode(Nodes.Pop());
+            
+            _nullSuspiciousTypes.Add(newNode.ReturnType);
+            
+            Nodes.Push(newNode);
+        }
+
+        public void Visit(ElseNode node)
+        {
+            var newNode = new ElseNode(Nodes.Pop());
+            
+            _nullSuspiciousTypes.Add(newNode.ReturnType);
+            
+            Nodes.Push(newNode);
         }
 
         public void Visit(FieldLinkNode node)
@@ -1082,6 +1284,126 @@ namespace Musoq.Evaluator.Visitors
                 throw new FieldLinkIndexOutOfRangeException(index, _groupByFields.Count);
 
             Nodes.Push(_groupByFields[index].Expression);
+        }
+
+        public void SetQueryPart(QueryPart part)
+        {
+        }
+
+        public void QueryBegins()
+        {
+            _schemaFromKey += 1;
+        }
+
+        public void QueryEnds()
+        {
+        }
+
+        private Type FindGreatestCommonSubtype()
+        {
+            var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance).Select(StripNullable).Distinct().ToArray();
+            
+            if (types.Length == 0)
+            {
+                return null;
+            }
+
+            var greatestCommonSubtype = types[0];
+
+            foreach (var currentType in types.Skip(1))
+            {
+                if (greatestCommonSubtype.IsAssignableTo(currentType))
+                {
+                    continue;
+                }
+
+                greatestCommonSubtype = 
+                    currentType.IsAssignableTo(greatestCommonSubtype) ? 
+                        currentType : 
+                        FindClosestCommonParent(greatestCommonSubtype, currentType);
+            }
+
+            return greatestCommonSubtype;
+        }
+
+        private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns)
+        {
+            var library = new TransitionLibrary();
+            var candidates = new StringBuilder();
+
+            var candidatesColumns = columns.Where(
+                col => 
+                    library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
+                    library.LevenshteinDistance(col.ColumnName, identifier).Value < 3).ToArray();
+
+            for (var i = 0; i < candidatesColumns.Length - 1; i++)
+            {
+                var candidate = candidatesColumns[i];
+                candidates.Append(candidate.ColumnName);
+                candidates.Append(", ");
+            }
+
+            if (candidatesColumns.Length > 0)
+            {
+                candidates.Append(candidatesColumns[^1].ColumnName);
+
+                throw new UnknownColumnException($"Column '{identifier}' could not be found. Did you mean to use [{candidates}]?");
+            }
+
+            throw new UnknownColumnException($"Column {identifier} could not be found.");
+        }
+
+        private static Type FindClosestCommonParent(Type type1, Type type2)
+        {
+            var type1Ancestors = new HashSet<Type>();
+            
+            while (type1 != null)
+            {
+                type1Ancestors.Add(type1);
+                type1 = type1.BaseType;
+            }
+
+            while (type2 != null)
+            {
+                if (type1Ancestors.Contains(type2))
+                {
+                    return type2;
+                }
+                type2 = type2.BaseType;
+            }
+
+            return typeof(object);
+        }
+        
+        private static Type MakeTypeNullable(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>)
+                || !type.IsValueType)
+            {
+                return type;
+            }
+
+            return typeof(Nullable<>).MakeGenericType(type);
+        }
+        
+        private static Type StripNullable(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return Nullable.GetUnderlyingType(type);
+            }
+
+            return type;
         }
     }
 }

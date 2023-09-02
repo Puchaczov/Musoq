@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Musoq.Parser.Tokens;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Parser.Nodes
 {
@@ -11,7 +10,7 @@ namespace Musoq.Parser.Nodes
         public readonly FunctionToken FToken;
 
         public AccessMethodNode(FunctionToken fToken, ArgsListNode args, ArgsListNode extraAggregateArguments, bool canSkipInjectSource,
-            MethodInfo method = (MethodInfo) null, string alias = "")
+            MethodInfo method = null, string alias = "")
         {
             FToken = fToken;
             Arguments = args;
@@ -31,9 +30,6 @@ namespace Musoq.Parser.Nodes
         public string Name => FToken.Value;
 
         public string Alias { get; }
-
-        public bool IsAggregateMethod =>
-            Method != null && Method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
         public ArgsListNode ExtraAggregateArguments { get; }
 

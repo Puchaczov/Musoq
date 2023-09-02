@@ -14,8 +14,7 @@ namespace Musoq.Evaluator.Utils
 
         public void AddSymbolIfNotExist(object key, Symbol symbol)
         {
-            if (!_symbols.ContainsKey(key))
-                _symbols.Add(key, symbol);
+            _symbols.TryAdd(key, symbol);
         }
 
         public Symbol GetSymbol(object key)

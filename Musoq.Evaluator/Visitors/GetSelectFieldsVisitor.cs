@@ -2,6 +2,7 @@
 using System.Linq;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
@@ -17,6 +18,14 @@ namespace Musoq.Evaluator.Visitors
         public void SetQueryPart(QueryPart part)
         {
             _queryPart = part;
+        }
+
+        public void QueryBegins()
+        {
+        }
+
+        public void QueryEnds()
+        {
         }
 
         public void Visit(Node node)
@@ -130,6 +139,10 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(WordNode node)
+        {
+        }
+
+        public void Visit(NullNode node)
         {
         }
 
@@ -358,6 +371,18 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CaseNode node)
+        {
+        }
+
+        public void Visit(WhenNode node)
+        {
+        }
+
+        public void Visit(ThenNode node)
+        {
+        }
+
+        public void Visit(ElseNode node)
         {
         }
 

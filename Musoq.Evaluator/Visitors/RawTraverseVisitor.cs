@@ -1,6 +1,7 @@
 ﻿using System;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -42,6 +43,11 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public virtual void Visit(WordNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(NullNode node)
         {
             node.Accept(Visitor);
         }
@@ -470,8 +476,8 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(CteExpressionNode node)
         {
-            foreach (var exp in node.InnerExpression) exp.Accept(this);
             node.OuterExpression.Accept(this);
+            foreach (var exp in node.InnerExpression) exp.Accept(this);
             node.Accept(Visitor);
         }
 
@@ -551,6 +557,24 @@ namespace Musoq.Evaluator.Visitors
                 node.WhenThenPairs[i].Then.Accept(this);
             }
 
+            node.Accept(Visitor);
+        }
+
+        public void Visit(WhenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(Visitor);
+        }
+
+        public void Visit(ThenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(Visitor);
+        }
+
+        public void Visit(ElseNode node)
+        {
+            node.Expression.Accept(this);
             node.Accept(Visitor);
         }
 

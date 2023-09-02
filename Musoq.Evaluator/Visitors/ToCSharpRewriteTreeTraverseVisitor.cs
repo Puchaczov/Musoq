@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors
 {
@@ -47,6 +48,11 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(WordNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(NullNode node)
         {
             node.Accept(_visitor);
         }
@@ -156,9 +162,13 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
+            _visitor.SetInsideJoin(true);
+            
             node.SourceTable.Accept(this);
             node.Expression.Accept(this);
             node.Accept(_visitor);
+            
+            _visitor.SetInsideJoin(false);
         }
 
         public void Visit(SchemaFromNode node)
@@ -169,11 +179,15 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinSourcesTableFromNode node)
         {
+            _visitor.SetInsideJoin(true);
+            
             node.Expression.Accept(this);
             node.First.Accept(this);
             node.Second.Accept(this);
 
             node.Accept(_visitor);
+            
+            _visitor.SetInsideJoin(false);
         }
 
         public void Visit(InMemoryTableFromNode node)
@@ -525,7 +539,7 @@ namespace Musoq.Evaluator.Visitors
         {
             _walker = _walker.NextChild();
             _visitor.SetScope(_walker.Scope);
-
+            
             foreach (var cNode in node.Nodes)
                 cNode.Accept(this);
             node.Accept(_visitor);
@@ -634,6 +648,24 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
 
             _visitor.SetMethodAccessType(oldMethodAccessType);
+        }
+
+        public void Visit(WhenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(ThenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(ElseNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
         }
 
         public void Visit(FieldLinkNode node)

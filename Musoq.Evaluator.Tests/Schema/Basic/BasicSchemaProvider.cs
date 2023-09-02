@@ -15,7 +15,7 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
 
         public ISchema GetSchema(string schema)
         {
-            return new TestSchema<T>(_values[schema]);
+            return new GenericSchema<BasicEntity, BasicEntityTable>(_values[schema], BasicEntity.TestNameToIndexMap, BasicEntity.TestIndexToObjectAccessMap);
         }
     }
 }

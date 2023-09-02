@@ -17,7 +17,7 @@ namespace Musoq.Evaluator.TemporarySchemas
             _columns = columns;
         }
 
-        public override ISchemaTable GetTableByName(string name, params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             return _table;
         }
@@ -29,9 +29,7 @@ namespace Musoq.Evaluator.TemporarySchemas
 
         public override SchemaMethodInfo[] GetConstructors()
         {
-            var constructors = new List<SchemaMethodInfo>();
-
-            constructors.Add(new SchemaMethodInfo(nameof(TableMetadataSource), ConstructorInfo.Empty<TableMetadataSource>()));
+            var constructors = new List<SchemaMethodInfo> {new(nameof(TableMetadataSource), ConstructorInfo.Empty<TableMetadataSource>())};
 
             return constructors.ToArray();
         }

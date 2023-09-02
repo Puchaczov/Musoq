@@ -44,10 +44,10 @@ namespace Musoq.Evaluator.Tables
 
         public void AddColumns(params Column[] columns)
         {
-            for (var i = 0; i < columns.Length; i++)
+            foreach (var column in columns)
             {
-                _columnsByIndex.Add(columns[i].ColumnIndex, columns[i]);
-                _columnsByName.Add(columns[i].ColumnName, columns[i]);
+                _columnsByIndex.Add(column.ColumnIndex, column);
+                _columnsByName.Add(column.ColumnName, column);
             }
         }
 

@@ -13,7 +13,7 @@ namespace Musoq.Parser.Nodes
             Id = $"{nameof(ArgsListNode)}{argsId}";
         }
 
-        public static ArgsListNode Empty => new(new Node[0]);
+        public static ArgsListNode Empty => new(Array.Empty<Node>());
 
         public Node[] Args { get; }
 
@@ -32,6 +32,14 @@ namespace Musoq.Parser.Nodes
                 ? string.Empty
                 : Args.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
             return str;
+        }
+        
+        public string ToStringWithBrackets()
+        {
+            var str = Args.Length == 0
+                ? string.Empty
+                : Args.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
+            return $"({str})";
         }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build
 {
@@ -72,6 +73,18 @@ namespace Musoq.Converter.Build
         {
             get => (EmitResult) this["EMIT_RESULT"];
             set => this["EMIT_RESULT"] = value;
+        }
+
+        public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns 
+        {
+            get => (IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>) this["USED_COLUMNS"];
+            set => this["USED_COLUMNS"] = value;
+        }
+
+        public IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes
+        {
+            get => (IReadOnlyDictionary<SchemaFromNode, WhereNode>) this["USED_WHERE_NODES"];
+            set => this["USED_WHERE_NODES"] = value;
         }
     }
 }

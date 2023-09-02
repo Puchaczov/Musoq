@@ -4,25 +4,28 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
+using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 
 namespace Musoq.Converter
 {
     public static class InstanceCreator
     {
-        public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider)
+        public static BuildItems CreateForAnalyze(string script, string assemblyName, ISchemaProvider provider)
         {
             var items = new BuildItems
             {
                 SchemaProvider = provider,
                 RawQuery = script,
-                AssemblyName = assemblyName
+                AssemblyName = assemblyName,
+                PositionalEnvironmentVariables = new Dictionary<uint, IReadOnlyDictionary<string, string>>()
             };
 
             RuntimeLibraries.CreateReferences();
@@ -32,6 +35,13 @@ namespace Musoq.Converter
                     new TurnQueryIntoRunnableCode(null)));
 
             chain.Build(items);
+
+            return items;
+        }
+        
+        public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider)
+        {
+            var items = CreateForAnalyze(script, assemblyName, provider);
 
             return (items.DllFile, items.PdbFile);
         }
@@ -74,7 +84,7 @@ namespace Musoq.Converter
             if (compiled && !Debugger.IsAttached) return new CompiledQuery(CreateRunnable(items));
 
             var tempPath = Path.Combine(Path.GetTempPath(), "Musoq");
-            var tempFileName = $"InMemoryAssembly";
+            var tempFileName = Guid.NewGuid().ToString();
             var assemblyPath = Path.Combine(tempPath, $"{tempFileName}.dll");
             var pdbPath = Path.Combine(tempPath, $"{tempFileName}.pdb");
             var csPath = Path.Combine(tempPath, $"{tempFileName}.cs");
@@ -93,14 +103,14 @@ namespace Musoq.Converter
                 file.Write(builder.ToString());
             }
 
-            if (items.DllFile != null && items.DllFile.Length > 0)
+            if (items.DllFile is {Length: > 0})
             {
                 using var file = new BinaryWriter(File.Open(assemblyPath, FileMode.Create));
                 if (items.DllFile != null)
                     file.Write(items.DllFile);
             }
 
-            if (items.PdbFile != null && items.PdbFile.Length > 0)
+            if (items.PdbFile is {Length: > 0})
             {
                 using var file = new BinaryWriter(File.Open(pdbPath, FileMode.Create));
                 if (items.PdbFile != null)
@@ -110,7 +120,13 @@ namespace Musoq.Converter
             if (!compiled && compilationError != null)
                 throw compilationError;
 
-            var runnable = new RunnableDebugDecorator(CreateRunnable(items), csPath, assemblyPath, pdbPath);
+            var assemblyLoadContext = new DebugAssemblyLoadContext();
+            var runnable = new RunnableDebugDecorator(
+                CreateRunnableForDebug(items, () => assemblyLoadContext.LoadFromAssemblyPath(assemblyPath)),
+                assemblyLoadContext,
+                csPath, 
+                assemblyPath, 
+                pdbPath);
 
             return new CompiledQuery(runnable);
         }
@@ -120,9 +136,9 @@ namespace Musoq.Converter
             return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider, positionalEnvironmentVariables));
         }
 
-        private static IRunnable CreateRunnable(BuildItems items, string assemblyPath)
+        private static IRunnable CreateRunnableForDebug(BuildItems items, Func<Assembly> loadAssembly)
         {
-            return CreateRunnable(items, () => Assembly.LoadFrom(assemblyPath));
+            return CreateRunnable(items, loadAssembly);
         }
 
         private static IRunnable CreateRunnable(BuildItems items)
@@ -146,8 +162,31 @@ namespace Musoq.Converter
             
             runnable.Provider = items.SchemaProvider;
             runnable.PositionalEnvironmentVariables = items.PositionalEnvironmentVariables;
+            
+            var usedColumns = items.UsedColumns;
+            var usedWhereNodes = items.UsedWhereNodes;
+
+            if (usedColumns.Count != usedWhereNodes.Count)
+            {
+                throw new InvalidOperationException("Used columns and used where nodes are not equal. This must not happen.");
+            }
+            
+            runnable.QueriesInformation =
+                usedColumns.Join(
+                    usedWhereNodes, 
+                    f => f.Key.Id, 
+                    f => f.Key.Id,
+                    (f, s) => (SchemaFromNode: f.Key, UsedColumns: (IReadOnlyCollection<ISchemaColumn>)f.Value, UsedValues:s.Value)
+                ).ToDictionary(f => f.SchemaFromNode.Id, f => ((SchemaFromNode)f.SchemaFromNode, f.UsedColumns, f.UsedValues));
 
             return runnable;
+        }
+        
+        private class DebugAssemblyLoadContext : AssemblyLoadContext
+        {
+            public DebugAssemblyLoadContext() : base(true)
+            {
+            }
         }
     }
 }

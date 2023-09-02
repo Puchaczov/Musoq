@@ -147,4 +147,10 @@
   <data name="SourceName" xml:space="preserve">
     <value>SourceName</value>
   </data>
+  <data name="PreformatedContexts" xml:space="preserve">
+    <value>PerformatedContexts</value>
+  </data>
+  <data name="OrderNumber" xml:space="preserve">
+    <value>OrderNumber</value>
+  </data>
 </root>

@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Tests.Schema;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests
@@ -9,12 +9,47 @@ namespace Musoq.Evaluator.Tests
     [TestClass]
     public class JoinTests : BasicEntityTestBase
     {
+        [TestMethod]
+        public void WhenSomeColumnsAreUsedAndNotEveryUsedTableHasUsedOwnColumns_MustNotThrow()
+        {
+            const string query = @"
+select 
+    countries.Country
+from #A.entities() countries 
+inner join #B.entities() cities on 1 = 1 
+inner join #C.entities() population on 1 = 1";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", Array.Empty<BasicEntity>()
+                },
+                {
+                    "#B", Array.Empty<BasicEntity>()
+                },
+                {
+                    "#C", Array.Empty<BasicEntity>()
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+            
+            Assert.AreEqual(0, table.Count);
+        }
 
         [TestMethod]
         public void SimpleJoinTest()
         {
             var query =
-                "select countries.Country, cities.City, population.Population from #A.entities() countries inner join #B.entities() cities on countries.Country = cities.Country inner join #C.entities() population on cities.City = population.City";
+                @"
+select 
+    countries.Country, 
+    cities.City, 
+    population.Population 
+from #A.entities() countries 
+inner join #B.entities() cities on countries.Country = cities.Country 
+inner join #C.entities() population on cities.City = population.City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -88,8 +123,14 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void JoinWithCaseWhen2Test()
         {
-            var query =
-                "select countries.Country, (case when population.Population > 400 then cities.ToUpperInvariant(cities.City) else cities.City end) as 'cities.City', population.Population from #A.entities() countries inner join #B.entities() cities on countries.Country = cities.Country inner join #C.entities() population on cities.City = population.City";
+            var query = @"
+select 
+    countries.Country, 
+    (case when population.Population > 400 then cities.ToUpperInvariant(cities.City) else cities.City end) as 'cities.City', 
+    population.Population 
+from #A.entities() countries 
+inner join #B.entities() cities on countries.Country = cities.Country 
+inner join #C.entities() population on cities.City = population.City";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -238,8 +279,14 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void JoinWithGroupByTest()
         {
-            var query =
-                "select cities.Country, countries.Sum(population.Population) from #A.entities() countries inner join #B.entities() cities on countries.Country = cities.Country inner join #C.entities() population on cities.City = population.City group by cities.Country";
+            var query = @"
+select 
+    cities.Country, 
+    countries.Sum(population.Population) 
+from #A.entities() countries 
+inner join #B.entities() cities on countries.Country = cities.Country 
+inner join #C.entities() population on cities.City = population.City 
+group by cities.Country";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -772,7 +819,7 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
         [TestMethod]
         public void MultipleLeftJoinTest()
         {
-            var query = "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #B.entities() c on b.Id = c.Id";
+            const string query = "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #B.entities() c on b.Id = c.Id";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -1075,7 +1122,11 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
         public void LeftOuterJoinPassMethodContextTest()
         {
 
-            var query = "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) from #A.entities() a left outer join #B.entities() b on 1 = 1 left outer join #C.entities() c on 1 = 1";
+            var query = @"
+select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) 
+from #A.entities() a 
+left outer join #B.entities() b on 1 = 1 
+left outer join #C.entities() c on 1 = 1";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -1108,6 +1159,58 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             Assert.AreEqual(1m, table[0][0]);
             Assert.AreEqual(2m, table[0][1]);
             Assert.AreEqual(3m, table[0][2]);
+        }
+        
+        [TestMethod]
+        public void LeftOuterJoinWithFourOtherJoinsTest()
+        {
+
+            var query = @"
+select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id), d.ToDecimal(d.Id) 
+from #A.entities() a 
+left outer join #B.entities() b on 1 = 1 
+left outer join #C.entities() c on 1 = 1 
+left outer join #D.entities() d on 1 = 1";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("xX") { Id = 1 }
+                    }
+                },
+                {
+                    "#B",
+                    new BasicEntity[]
+                    {
+                        new("xX") { Id = 2 }
+                    }
+                },
+                {
+                    "#C",
+                    new BasicEntity[]
+                    {
+                        new("xX") { Id = 3 }
+                    }
+                },
+                {
+                    "#D",
+                    new BasicEntity[]
+                    {
+                        new("xX") { Id = 4 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(1m, table[0][0]);
+            Assert.AreEqual(2m, table[0][1]);
+            Assert.AreEqual(3m, table[0][2]);
+            Assert.AreEqual(4m, table[0][3]);
         }
 
         [TestMethod]
@@ -1192,7 +1295,12 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
         public void InnerJoinJoinPassMethodContextTest()
         {
 
-            var query = "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) from #A.entities() a inner join #B.entities() b on 1 = 1 inner join #C.entities() c on 1 = 1";
+            var query = @"
+select 
+    a.ToDecimal(a.Id), 
+    b.ToDecimal(b.Id), 
+    c.ToDecimal(c.Id) 
+from #A.entities() a inner join #B.entities() b on 1 = 1 inner join #C.entities() c on 1 = 1";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -1225,6 +1333,77 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             Assert.AreEqual(1m, table[0][0]);
             Assert.AreEqual(2m, table[0][1]);
             Assert.AreEqual(3m, table[0][2]);
+        }
+        
+        [TestMethod]
+        public void WhenJoinedByMethodInvocations_ShouldRetrieveValues()
+        {
+            var query =
+                @"
+select 
+    countries.GetCountry(), 
+    cities.GetCity(), 
+    population.GetPopulation()
+from #A.entities() countries 
+inner join #B.entities() cities on countries.GetCountry() = cities.GetCountry() 
+inner join #C.entities() population on cities.GetCity() = population.GetCity()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("Poland", "Krakow"),
+                        new BasicEntity("Germany", "Berlin")
+                    }
+                },
+                {
+                    "#B", new[]
+                    {
+                        new BasicEntity("Poland", "Krakow"),
+                        new BasicEntity("Poland", "Wroclaw"),
+                        new BasicEntity("Poland", "Warszawa"),
+                        new BasicEntity("Poland", "Gdansk"),
+                        new BasicEntity("Germany", "Berlin")
+                    }
+                },
+                {
+                    "#C", new[]
+                    {
+                        new BasicEntity {City = "Krakow", Population = 400},
+                        new BasicEntity {City = "Wroclaw", Population = 500},
+                        new BasicEntity {City = "Warszawa", Population = 1000},
+                        new BasicEntity {City = "Gdansk", Population = 200},
+                        new BasicEntity {City = "Berlin", Population = 400}
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(3, table.Columns.Count());
+            Assert.AreEqual(5, table.Count);
+
+            Assert.AreEqual("Poland", table[0][0]);
+            Assert.AreEqual("Krakow", table[0][1]);
+            Assert.AreEqual(400m, table[0][2]);
+
+            Assert.AreEqual("Poland", table[1][0]);
+            Assert.AreEqual("Wroclaw", table[1][1]);
+            Assert.AreEqual(500m, table[1][2]);
+
+            Assert.AreEqual("Poland", table[2][0]);
+            Assert.AreEqual("Warszawa", table[2][1]);
+            Assert.AreEqual(1000m, table[2][2]);
+
+            Assert.AreEqual("Poland", table[3][0]);
+            Assert.AreEqual("Gdansk", table[3][1]);
+            Assert.AreEqual(200m, table[3][2]);
+
+            Assert.AreEqual("Germany", table[4][0]);
+            Assert.AreEqual("Berlin", table[4][1]);
+            Assert.AreEqual(400m, table[4][2]);
         }
     }
 }

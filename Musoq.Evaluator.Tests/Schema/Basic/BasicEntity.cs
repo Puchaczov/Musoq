@@ -1,9 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Musoq.Evaluator.Tests.Schema.Basic
 {
     public class BasicEntity
     {
+        public static readonly IDictionary<string, int> TestNameToIndexMap;
+        public static readonly IDictionary<int, Func<BasicEntity, object>> TestIndexToObjectAccessMap;
+
+        static BasicEntity()
+        {
+            TestNameToIndexMap = new Dictionary<string, int>
+            {
+                {nameof(Name), 10},
+                {nameof(City), 11},
+                {nameof(Country), 12},
+                {nameof(Population), 13},
+                {nameof(Self), 14},
+                {nameof(Money), 15},
+                {nameof(Month), 16},
+                {nameof(Time), 17},
+                {nameof(Id), 18},
+                {nameof(NullableValue), 19}
+            };
+
+            TestIndexToObjectAccessMap = new Dictionary<int, Func<BasicEntity, object>>
+            {
+                {10, arg => arg.Name},
+                {11, arg => arg.City},
+                {12, arg => arg.Country},
+                {13, arg => arg.Population},
+                {14, arg => arg.Self},
+                {15, arg => arg.Money},
+                {16, arg => arg.Month},
+                {17, arg => arg.Time},
+                {18, arg => arg.Id},
+                {19, arg => arg.NullableValue},
+            };
+        }
+        
         public BasicEntity()
         {
         }

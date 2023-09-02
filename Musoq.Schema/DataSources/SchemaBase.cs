@@ -43,7 +43,7 @@ namespace Musoq.Schema.DataSources
             AddToConstructors<TType>($"{name.ToLowerInvariant()}{TablePart}");
         }
 
-        public virtual ISchemaTable GetTableByName(string name, params object[] parameters)
+        public virtual ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             var tableName = $"{name.ToLowerInvariant()}{TablePart}";
 
@@ -55,20 +55,20 @@ namespace Musoq.Schema.DataSources
             return (ISchemaTable)constructorInfo.OriginConstructor.Invoke(parameters);
         }
 
-        public virtual RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)
+        public virtual RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             var sourceName = $"{name.ToLowerInvariant()}{SourcePart}";
 
             var methods = GetConstructors(sourceName).Select(c => c.ConstructorInfo).ToArray();
 
-            if (AdditionalArguments.ContainsKey(sourceName))
-                parameters = parameters.ExpandParameters(AdditionalArguments[sourceName]);
+            if (AdditionalArguments.TryGetValue(sourceName, out var argument))
+                parameters = parameters.ExpandParameters(argument);
 
             if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
                 throw new NotSupportedException($"Unrecognized method {name}.");
 
             if (constructorInfo.SupportsInterCommunicator)
-                parameters = parameters.ExpandParameters(interCommunicator);
+                parameters = parameters.ExpandParameters(runtimeContext);
 
             return (RowSource)constructorInfo.OriginConstructor.Invoke(parameters);
         }
@@ -99,9 +99,9 @@ namespace Musoq.Schema.DataSources
             return GetRawConstructors().Where(constr => constr.MethodName == methodName).ToArray();
         }
 
-        public bool TryResolveAggregationMethod(string method, Type[] parameters, out MethodInfo methodInfo)
+        public bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
         {
-            var founded = _aggregator.TryResolveMethod(method, parameters, out methodInfo);
+            var founded = _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
 
             if (founded)
                 return methodInfo.GetCustomAttribute<AggregationMethodAttribute>() != null;
@@ -109,9 +109,9 @@ namespace Musoq.Schema.DataSources
             return false;
         }
 
-        public bool TryResolveMethod(string method, Type[] parameters, out MethodInfo methodInfo)
+        public bool TryResolveMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
         {
-            return _aggregator.TryResolveMethod(method, parameters, out methodInfo);
+            return _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
         }
 
         public bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo)

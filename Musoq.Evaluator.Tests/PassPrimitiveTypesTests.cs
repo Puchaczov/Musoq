@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Converter;
-using Musoq.Evaluator.Tests.Schema;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -76,7 +75,6 @@ namespace Musoq.Evaluator.Tests
 
         private class TestSchema : SchemaBase
         {
-
             private readonly IEnumerable<TestEntity> _entities;
             private readonly Action<object[]> _onGetTableOrRowSource;
             private readonly WhenCheckedParameters _whenChecked;
@@ -96,7 +94,7 @@ namespace Musoq.Evaluator.Tests
                 return new EntitySource<TestEntity>(_entities, new Dictionary<string, int>(), new Dictionary<int, Func<TestEntity, object>>());
             }
 
-            public override ISchemaTable GetTableByName(string name, params object[] parameters)
+            public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
             {
                 if (_whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) _onGetTableOrRowSource(parameters);
                 return new TestTable();
@@ -107,12 +105,12 @@ namespace Musoq.Evaluator.Tests
                 var methodManager = new MethodsManager();
                 var propertiesManager = new PropertiesManager();
 
-                var lib = new TestLibrary();
+                var lib = new Library();
 
                 propertiesManager.RegisterProperties(lib);
                 methodManager.RegisterLibraries(lib);
 
-                return new MethodsAggregator(methodManager, propertiesManager);
+                return new MethodsAggregator(methodManager);
             }
 
             public override SchemaMethodInfo[] GetConstructors()
@@ -130,6 +128,8 @@ namespace Musoq.Evaluator.Tests
             {
                 return Columns.Single(column => column.ColumnName == name);
             }
+
+            public SchemaTableMetadata Metadata { get; } = new(typeof(TestEntity));
         }
 
         private class TestEntity

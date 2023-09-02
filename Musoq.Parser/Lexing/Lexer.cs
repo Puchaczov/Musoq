@@ -238,7 +238,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
 
             public static readonly string KMethodAccess =
-                "([a-zA-Z_-]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
+                "([a-zA-Z1-9_-]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
 
             public static readonly string KSkip = Format(Keyword, SkipToken.TokenText);
             public static readonly string KTake = Format(Keyword, TakeToken.TokenText);

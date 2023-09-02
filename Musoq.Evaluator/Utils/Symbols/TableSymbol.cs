@@ -129,23 +129,23 @@ namespace Musoq.Evaluator.Utils.Symbols
         {
             var symbol = new TableSymbol();
 
-            var compundTableColumns = new List<ISchemaColumn>();
+            var compoundTableColumns = new List<ISchemaColumn>();
 
             foreach (var item in _tables)
             {
                 symbol._tables.Add(item.Key, item.Value);
                 symbol._orders.Add(item.Key);
 
-                compundTableColumns.AddRange(item.Value.Item2.Columns);
+                compoundTableColumns.AddRange(item.Value.Item2.Columns);
             }
 
             symbol._tables.Add(other._fullTableName, new Tuple<ISchema, ISchemaTable>(other._fullSchema, other._fullTable));
             symbol._orders.Add(other._fullTableName);
 
-            compundTableColumns.AddRange(other._fullTable.Columns);
+            compoundTableColumns.AddRange(other._fullTable.Columns);
 
             symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
-            symbol._fullTable = new DynamicTable(compundTableColumns.ToArray());
+            symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray());
             symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol._fullTable);
 
             return symbol;
@@ -154,11 +154,11 @@ namespace Musoq.Evaluator.Utils.Symbols
         public TableSymbol MakeNullableIfPossible()
         {
             var symbol = new TableSymbol();
-            var compundTableColumns = new List<ISchemaColumn>();
+            var compoundTableColumns = new List<ISchemaColumn>();
             
             foreach (var column in _fullTable.Columns)
             {
-                compundTableColumns.Add(ConvertColumnToNullable(column));
+                compoundTableColumns.Add(ConvertColumnToNullable(column));
             }
 
             foreach (var item in _tables)
@@ -169,7 +169,7 @@ namespace Musoq.Evaluator.Utils.Symbols
             }
 
             symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
-            symbol._fullTable = new DynamicTable(compundTableColumns.ToArray());
+            symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray());
             symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol._fullTable);
 
             return symbol;
@@ -186,6 +186,28 @@ namespace Musoq.Evaluator.Utils.Symbols
                 return typeof(Nullable<>).MakeGenericType(columnType);
 
             return columnType;
+        }
+
+        public TableSymbol LimitColumnsTo(IReadOnlyDictionary<string, string[]> columnLimits)
+        {
+            var symbol = new TableSymbol();
+
+            var compoundTableColumns = new List<ISchemaColumn>();
+
+            foreach (var item in _tables)
+            {
+                var dynamicTable = new DynamicTable(item.Value.Item2.Columns.Where(c => columnLimits.ContainsKey(item.Key) && columnLimits[item.Key].Contains(c.ColumnName)).ToArray());
+                symbol._tables.Add(item.Key, new Tuple<ISchema, ISchemaTable>(item.Value.Item1, dynamicTable));
+                symbol._orders.Add(item.Key);
+
+                compoundTableColumns.AddRange(dynamicTable.Columns);
+            }
+
+            symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
+            symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray());
+            symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol._fullTable);
+
+            return symbol;
         }
     }
 }

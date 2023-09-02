@@ -5,5 +5,7 @@
         ISchemaColumn[] Columns { get; }
 
         ISchemaColumn GetColumnByName(string name);
+        
+        SchemaTableMetadata Metadata { get; }
     }
 }

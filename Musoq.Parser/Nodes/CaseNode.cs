@@ -50,17 +50,11 @@ namespace Musoq.Parser.Nodes
 
             foreach(var pair in WhenThenPairs)
             {
-                builder.Append(WhenToken.TokenText);
-                builder.Append(" ");
                 builder.Append(pair.When.ToString());
-                builder.Append(" ");
-                builder.Append(ThenToken.TokenText);
                 builder.Append(" ");
                 builder.Append(pair.Then.ToString());
             }
 
-            builder.Append(" ");
-            builder.Append(ElseToken.TokenText);
             builder.Append(" ");
             builder.Append(Else.ToString());
             builder.Append(" ");

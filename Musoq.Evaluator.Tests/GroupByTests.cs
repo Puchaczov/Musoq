@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Tests.Schema;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests
@@ -1089,6 +1088,61 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("jan", table[0][0]);
             Assert.AreEqual("feb", table[1][0]);
             Assert.AreEqual("march", table[2][0]);
+        }
+        
+        
+        
+        [TestMethod]
+        public void WhenGroupByUsedWithJoinsByMethodInvocation_ShouldRetrieveValues()
+        {
+            var query =
+                @"
+select 
+    countries.GetCountry() as Country,
+    Sum(population.GetPopulation()) as Population
+from #A.entities() countries 
+inner join #B.entities() cities on countries.GetCountry() = cities.GetCountry() 
+inner join #C.entities() population on cities.GetCity() = population.GetCity()
+group by countries.GetCountry()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity {Country = "Poland"},
+                        new BasicEntity {Country = "Germany"},
+                    }
+                },
+                {
+                    "#B", new[]
+                    {
+                        new BasicEntity {Country = "Poland", City = "Krakow"},
+                        new BasicEntity {Country = "Poland", City = "Wroclaw"},
+                        new BasicEntity {Country = "Poland", City = "Warszawa"},
+                        new BasicEntity {Country = "Poland", City = "Gdansk"},
+                        new BasicEntity {Country = "Germany", City = "Berlin"}
+                    }
+                },
+                {
+                    "#C", new[]
+                    {
+                        new BasicEntity {City = "Krakow", Population = 400},
+                        new BasicEntity {City = "Wroclaw", Population = 500},
+                        new BasicEntity {City = "Warszawa", Population = 1000},
+                        new BasicEntity {City = "Gdansk", Population = 200},
+                        new BasicEntity {City = "Berlin", Population = 400}
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+            
+            Assert.AreEqual("Poland", table[0][0]);
+            Assert.AreEqual(2100m, table[0][1]);
+            Assert.AreEqual("Germany", table[1][0]);
+            Assert.AreEqual(400m, table[1][1]);
         }
     }
 }

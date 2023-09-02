@@ -5,7 +5,7 @@ using Musoq.Plugins.Attributes;
 
 namespace Musoq.Schema.Managers
 {
-    public class MethodsManager : MethodsMetadatas
+    public class MethodsManager : MethodsMetadata
     {
         public void RegisterLibraries(LibraryBase library)
         {

@@ -18,11 +18,10 @@ namespace Musoq.Evaluator.Visitors
 
         public override void Visit(AccessColumnNode node)
         {
-            if (_aliases.ContainsKey(node.Alias))
-                base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), _aliases[node.Alias],
-                    node.ReturnType, TextSpan.Empty));
-            else
-                base.Visit(node);
+            base.Visit(_aliases.TryGetValue(node.Alias, out var alias)
+                ? new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), alias, node.ReturnType,
+                    TextSpan.Empty)
+                : node);
         }
 
         public override void Visit(WhereNode node)

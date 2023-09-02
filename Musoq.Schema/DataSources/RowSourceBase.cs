@@ -12,9 +12,6 @@ namespace Musoq.Schema.DataSources
         {
             get
             {
-#if DEBUG
-                Debug.WriteLine($"IM HERE: {Thread.CurrentThread.Name} => {Thread.CurrentThread.ManagedThreadId}");
-#endif
                 var chunkedSource = new BlockingCollection<IReadOnlyList<IObjectResolver>>();
                 var workFinishedSignalizer = new CancellationTokenSource();
 

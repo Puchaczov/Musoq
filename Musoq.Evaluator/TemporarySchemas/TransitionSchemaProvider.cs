@@ -15,10 +15,7 @@ namespace Musoq.Evaluator.TemporarySchemas
 
         public ISchema GetSchema(string schema)
         {
-            if (_transientSchemas.ContainsKey(schema))
-                return _transientSchemas[schema];
-
-            return _schemaProvider.GetSchema(schema);
+            return _transientSchemas.TryGetValue(schema, out var foundSchema) ? foundSchema : _schemaProvider.GetSchema(schema);
         }
 
         public void AddTransitionSchema(ISchema schema)
