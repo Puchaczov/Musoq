@@ -142,6 +142,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(NullNode node)
+        {
+        }
+
         public void Visit(ContainsNode node)
         {
         }
@@ -367,6 +371,18 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CaseNode node)
+        {
+        }
+
+        public void Visit(WhenNode node)
+        {
+        }
+
+        public void Visit(ThenNode node)
+        {
+        }
+
+        public void Visit(ElseNode node)
         {
         }
 

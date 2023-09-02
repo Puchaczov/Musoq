@@ -14,23 +14,23 @@ namespace Musoq.Evaluator.Helpers
 
         public static InvocationExpressionSyntax CreateMethodInvocation(string variableName, string methodName)
         {
-            return CreateMethodInvocation(variableName, methodName, new List<SyntaxNode>());
+            return CreateMethodInvocation(variableName, methodName, new List<ArgumentSyntax>());
         }
 
         public static InvocationExpressionSyntax CreateMethodInvocation(ExpressionSyntax variableName,
             string methodName)
         {
-            return CreateMethodInvocation(variableName, methodName, new List<SyntaxNode>());
+            return CreateMethodInvocation(variableName, methodName, new List<ArgumentSyntax>());
         }
 
         public static InvocationExpressionSyntax CreateMethodInvocation(string variableName, string methodName,
-            IEnumerable<SyntaxNode> arguments)
+            IEnumerable<ArgumentSyntax> arguments)
         {
             return CreateMethodInvocation(SyntaxFactory.IdentifierName(variableName), methodName, arguments);
         }
 
         public static InvocationExpressionSyntax CreateMethodInvocation(ExpressionSyntax exp, string methodName,
-            IEnumerable<SyntaxNode> arguments)
+            IEnumerable<ArgumentSyntax> arguments)
         {
             return SyntaxFactory
                 .InvocationExpression(

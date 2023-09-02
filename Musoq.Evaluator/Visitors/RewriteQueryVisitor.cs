@@ -223,6 +223,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new WordNode(node.Value));
         }
 
+        public void Visit(NullNode node)
+        {
+            Nodes.Push(new NullNode(node.ReturnType));
+        }
+
         public virtual void Visit(ContainsNode node)
         {
             var right = Nodes.Pop();
@@ -982,14 +987,32 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType));
         }
 
+        public void Visit(WhenNode node)
+        {
+            var expression = Nodes.Pop();
+            Nodes.Push(new WhenNode(expression));
+        }
+
+        public void Visit(ThenNode node)
+        {
+            var expression = Nodes.Pop();
+            Nodes.Push(new ThenNode(expression));
+        }
+
+        public void Visit(ElseNode node)
+        {
+            var expression = Nodes.Pop();
+            Nodes.Push(new ElseNode(expression));
+        }
+
         public virtual void Visit(FieldLinkNode node)
         {
             Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
         }
 
-        private bool IsQueryWithMixedAggregateAndNonAggregateMethods(FieldNode[][] splitted)
+        private bool IsQueryWithMixedAggregateAndNonAggregateMethods(FieldNode[][] split)
         {
-            return splitted[0].Length > 0 && splitted[0].Length != splitted[1].Length;
+            return split[0].Length > 0 && split[0].Length != split[1].Length;
         }
 
         private FieldNode[] ConcatAggregateFieldsWithGroupByFields(FieldNode[] selectFields, FieldNode[] groupByFields)
@@ -1037,26 +1060,30 @@ namespace Musoq.Evaluator.Visitors
                 {
                     var subNode = subNodes.Pop();
 
-                    if (subNode is AccessMethodNode aggregateMethod && aggregateMethod.IsAggregateMethod())
+                    switch (subNode)
                     {
-                        var subNodeStr = subNode.ToString();
-                        if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
-                            continue;
+                        case AccessMethodNode aggregateMethod when aggregateMethod.IsAggregateMethod():
+                        {
+                            var subNodeStr = subNode.ToString();
+                            if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
+                                continue;
 
-                        var nameArg = (WordNode) aggregateMethod.Arguments.Args[0];
-                        nestedFields.Add(new FieldNode(subNode, fieldOrder, nameArg.Value));
-                        rawNestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
-                        fieldOrder += 1;
-                    }
-                    else if (subNode is AccessMethodNode method)
-                    {
-                        foreach (var arg in method.Arguments.Args)
-                            subNodes.Push(arg);
-                    }
-                    else if (subNode is BinaryNode binary)
-                    {
-                        subNodes.Push(binary.Left);
-                        subNodes.Push(binary.Right);
+                            var nameArg = (WordNode) aggregateMethod.Arguments.Args[0];
+                            nestedFields.Add(new FieldNode(subNode, fieldOrder, nameArg.Value));
+                            rawNestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
+                            fieldOrder += 1;
+                            break;
+                        }
+                        case AccessMethodNode method:
+                        {
+                            foreach (var arg in method.Arguments.Args)
+                                subNodes.Push(arg);
+                            break;
+                        }
+                        case BinaryNode binary:
+                            subNodes.Push(binary.Left);
+                            subNodes.Push(binary.Right);
+                            break;
                     }
                 }
 

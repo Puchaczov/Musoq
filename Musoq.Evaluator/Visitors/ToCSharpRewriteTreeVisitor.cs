@@ -643,15 +643,20 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(Generator.LiteralExpression(node.Value));
         }
 
+        public void Visit(NullNode node)
+        {
+            Nodes.Push(GenerateNullableNull(node.ReturnType));
+        }
+
         public void Visit(ContainsNode node)
         {
-            var comparsionValues = (ArgumentListSyntax) Nodes.Pop();
+            var comparisonValues = (ArgumentListSyntax) Nodes.Pop();
             var a = Nodes.Pop();
 
-            var expressions = new ExpressionSyntax[comparsionValues.Arguments.Count];
-            for (var index = 0; index < comparsionValues.Arguments.Count; index++)
+            var expressions = new ExpressionSyntax[comparisonValues.Arguments.Count];
+            for (var index = 0; index < comparisonValues.Arguments.Count; index++)
             {
-                var argument = comparsionValues.Arguments[index];
+                var argument = comparisonValues.Arguments[index];
                 expressions[index] = argument.Expression;
             }
 
@@ -2303,7 +2308,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
@@ -2321,7 +2326,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
@@ -2350,7 +2355,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
@@ -2368,7 +2373,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
@@ -2397,7 +2402,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
@@ -2415,7 +2420,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
@@ -2444,7 +2449,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
@@ -2462,7 +2467,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new SyntaxNode[]
+                            new[]
                             {
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.IdentifierName("provider")),
@@ -3333,7 +3338,7 @@ namespace Musoq.Evaluator.Visitors
             var methodName = $"CaseWhen_{_caseWhenMethodIndex++}";
 
             var parameters = new List<ParameterSyntax>();
-            var callParameters = new List<SyntaxNode>();
+            var callParameters = new List<ArgumentSyntax>();
 
             parameters.Add(
                 SyntaxFactory.Parameter(
@@ -3373,7 +3378,7 @@ namespace Musoq.Evaluator.Visitors
 
             var method = SyntaxFactory
                 .MethodDeclaration(
-                    SyntaxFactory.IdentifierName(node.ReturnType.FullName),
+                    SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(node.ReturnType)),
                     SyntaxFactory.Identifier(methodName))
                 .WithModifiers(
                     SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
@@ -3389,6 +3394,18 @@ namespace Musoq.Evaluator.Visitors
 
             Nodes.Push(
                 SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray()));
+        }
+
+        public void Visit(WhenNode node)
+        {
+        }
+
+        public void Visit(ThenNode node)
+        {
+        }
+
+        public void Visit(ElseNode node)
+        {
         }
 
         public void Visit(FieldLinkNode node)
@@ -3432,6 +3449,29 @@ namespace Musoq.Evaluator.Visitors
                                                             SyntaxKind.StringLiteralExpression,
                                                             SyntaxFactory.Literal(node.Id)))))))
                             })));
+        }
+
+        private SyntaxNode GenerateNullableNull(Type nodeReturnType)
+        {
+            if (CheckIfNullable(nodeReturnType))
+            {
+                return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+            }
+            
+            var typeIdentifier = SyntaxFactory.IdentifierName(
+                EvaluationHelper.GetCastableType(nodeReturnType));
+            
+            return Generator.CastExpression(Generator.NullableTypeExpression(typeIdentifier), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+        }
+        
+        private static bool CheckIfNullable(Type type)
+        {
+            if (type.IsValueType)
+            {
+                return Nullable.GetUnderlyingType(type) != null;
+            }
+            
+            return true;
         }
     }
 }

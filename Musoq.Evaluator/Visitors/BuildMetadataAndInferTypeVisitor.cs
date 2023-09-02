@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -19,6 +18,7 @@ using Musoq.Parser.Tokens;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
 using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
 using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
@@ -45,6 +45,7 @@ namespace Musoq.Evaluator.Visitors
         private readonly IDictionary<SchemaFromNode, List<ISchemaColumn>> _usedColumns = new Dictionary<SchemaFromNode, List<ISchemaColumn>>();
         private readonly IDictionary<SchemaFromNode, WhereNode> _usedWhereNodes = new Dictionary<SchemaFromNode, WhereNode>();
         private readonly List<FieldNode> _groupByFields = new();
+        private readonly List<Type> _nullSuspiciousTypes;
 
         private int _setKey;
         private int _schemaFromKey;
@@ -61,6 +62,7 @@ namespace Musoq.Evaluator.Visitors
             _provider = provider;
             _positionalEnvironmentVariables = positionalEnvironmentVariables;
             _positionalEnvironmentVariablesKey = 0;
+            _nullSuspiciousTypes = new List<Type>();
         }
 
         protected Stack<Node> Nodes { get; } = new();
@@ -303,6 +305,11 @@ namespace Musoq.Evaluator.Visitors
             AddAssembly(typeof(string).Assembly);
             Nodes.Push(new WordNode(node.Value));
             _schemaFromArgs.Add(node.Value);
+        }
+
+        public void Visit(NullNode node)
+        {
+            Nodes.Push(new NullNode(node.ReturnType));
         }
 
         public void Visit(ContainsNode node)
@@ -1160,9 +1167,9 @@ namespace Musoq.Evaluator.Visitors
         {
             var columns = new List<ISchemaColumn>();
 
-            for (int i = 0; i < node.TableTypePairs.Length; i++)
+            for (var i = 0; i < node.TableTypePairs.Length; i++)
             {
-                (string columnName, string typeName) = node.TableTypePairs[i];
+                var (columnName, typeName) = node.TableTypePairs[i];
 
                 var remappedType = EvaluationHelper.RemapPrimitiveTypes(typeName);
 
@@ -1190,7 +1197,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(StatementsArrayNode node)
         {
             var statements = new StatementNode[node.Statements.Length];
-            for (int i = 0; i < node.Statements.Length; ++i)
+            for (var i = 0; i < node.Statements.Length; ++i)
             {
                 statements[node.Statements.Length - 1 - i] = (StatementNode)Nodes.Pop();
             }
@@ -1207,7 +1214,7 @@ namespace Musoq.Evaluator.Visitors
         {
             var whenThenPairs = new List<(Node When, Node Then)>();
 
-            for(int i = 0; i < node.WhenThenPairs.Length; ++i)
+            for (var i = 0; i < node.WhenThenPairs.Length; ++i)
             {
                 var then = Nodes.Pop();
                 var when = Nodes.Pop();
@@ -1216,7 +1223,57 @@ namespace Musoq.Evaluator.Visitors
 
             var elseNode = Nodes.Pop();
 
-            Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, elseNode.ReturnType));
+            if (_nullSuspiciousTypes.All(type => type != NullNode.NullType.Instance))
+            {
+                var anyWasNullable = _nullSuspiciousTypes.Any(type => type.GetUnderlyingNullable() != null);
+                var greatestCommonSubtype = FindGreatestCommonSubtype();
+                var caseNode = anyWasNullable ? 
+                    new CaseNode(whenThenPairs.ToArray(), elseNode, greatestCommonSubtype) : 
+                    new CaseNode(whenThenPairs.ToArray(), elseNode, MakeTypeNullable(greatestCommonSubtype));
+
+                Nodes.Push(caseNode);
+            }
+            else
+            {
+                var greatestCommonSubtype = FindGreatestCommonSubtype();
+                var nullableGreatestCommonSubtype = MakeTypeNullable(greatestCommonSubtype);
+                var caseNode = new CaseNode(whenThenPairs.ToArray(), elseNode, nullableGreatestCommonSubtype);
+            
+                var rewritePartsWithProperNullHandling = new RewritePartsWithProperNullHandlingVisitor(greatestCommonSubtype);
+                var rewritePartsWithProperNullHandlingTraverser =
+                    new RewritePartsWithProperNullHandlingTraverseVisitor(rewritePartsWithProperNullHandling);
+            
+                caseNode.Accept(rewritePartsWithProperNullHandlingTraverser);
+            
+                Nodes.Push(rewritePartsWithProperNullHandling.RewrittenNode);
+            }
+            
+            _nullSuspiciousTypes.Clear();
+        }
+
+        public void Visit(WhenNode node)
+        {
+            var newNode = new WhenNode(Nodes.Pop());
+            
+            Nodes.Push(newNode);
+        }
+
+        public void Visit(ThenNode node)
+        {
+            var newNode = new ThenNode(Nodes.Pop());
+            
+            _nullSuspiciousTypes.Add(newNode.ReturnType);
+            
+            Nodes.Push(newNode);
+        }
+
+        public void Visit(ElseNode node)
+        {
+            var newNode = new ElseNode(Nodes.Pop());
+            
+            _nullSuspiciousTypes.Add(newNode.ReturnType);
+            
+            Nodes.Push(newNode);
         }
 
         public void Visit(FieldLinkNode node)
@@ -1242,6 +1299,33 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        private Type FindGreatestCommonSubtype()
+        {
+            var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance).Select(StripNullable).Distinct().ToArray();
+            
+            if (types.Length == 0)
+            {
+                return null;
+            }
+
+            var greatestCommonSubtype = types[0];
+
+            foreach (var currentType in types.Skip(1))
+            {
+                if (greatestCommonSubtype.IsAssignableTo(currentType))
+                {
+                    continue;
+                }
+
+                greatestCommonSubtype = 
+                    currentType.IsAssignableTo(greatestCommonSubtype) ? 
+                        currentType : 
+                        FindClosestCommonParent(greatestCommonSubtype, currentType);
+            }
+
+            return greatestCommonSubtype;
+        }
+
         private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns)
         {
             var library = new TransitionLibrary();
@@ -1263,78 +1347,63 @@ namespace Musoq.Evaluator.Visitors
             {
                 candidates.Append(candidatesColumns[^1].ColumnName);
 
-                throw new UnknownColumnException($"Column '{identifier}' could not be found. Did you mean to use [{candidates.ToString()}]?");
+                throw new UnknownColumnException($"Column '{identifier}' could not be found. Did you mean to use [{candidates}]?");
             }
 
             throw new UnknownColumnException($"Column {identifier} could not be found.");
         }
-    }
-}
 
-public class ExpandoObjectPropertyInfo : PropertyInfo
-{
-    public ExpandoObjectPropertyInfo(string name, Type propertyType)
-    {
-        Name = name;
-        ReflectedType = typeof(ExpandoObject);
-        PropertyType = propertyType;
-    }
+        private static Type FindClosestCommonParent(Type type1, Type type2)
+        {
+            var type1Ancestors = new HashSet<Type>();
+            
+            while (type1 != null)
+            {
+                type1Ancestors.Add(type1);
+                type1 = type1.BaseType;
+            }
 
-    public override object[] GetCustomAttributes(bool inherit)
-    {
-        return Array.Empty<object>();
-    }
+            while (type2 != null)
+            {
+                if (type1Ancestors.Contains(type2))
+                {
+                    return type2;
+                }
+                type2 = type2.BaseType;
+            }
 
-    public override object[] GetCustomAttributes(Type attributeType, bool inherit)
-    {
-        return Array.Empty<object>();
-    }
+            return typeof(object);
+        }
+        
+        private static Type MakeTypeNullable(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
 
-    public override bool IsDefined(Type attributeType, bool inherit)
-    {
-        return false;
-    }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>)
+                || !type.IsValueType)
+            {
+                return type;
+            }
 
-    public override Type DeclaringType => typeof(ExpandoObject);
-    
-    public override string Name { get; }
-    
-    public override Type ReflectedType { get; }
-    
-    public override MethodInfo[] GetAccessors(bool nonPublic)
-    {
-        return Array.Empty<MethodInfo>();
-    }
+            return typeof(Nullable<>).MakeGenericType(type);
+        }
+        
+        private static Type StripNullable(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
 
-    public override MethodInfo GetGetMethod(bool nonPublic)
-    {
-        throw new NotImplementedException();
-    }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return Nullable.GetUnderlyingType(type);
+            }
 
-    public override ParameterInfo[] GetIndexParameters()
-    {
-        return Array.Empty<ParameterInfo>();
+            return type;
+        }
     }
-
-    public override MethodInfo GetSetMethod(bool nonPublic)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override object GetValue(object obj, BindingFlags invokeAttr, Binder binder, object[] index, CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void SetValue(object obj, object value, BindingFlags invokeAttr, Binder binder, object[] index,
-        CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override PropertyAttributes Attributes => PropertyAttributes.None;
-    public override bool CanRead => true;
-    public override bool CanWrite => false;
-    
-    public override Type PropertyType { get; }
 }

@@ -35,6 +35,31 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
+        public void WhenOneOfResultsAreExplicitlyNull_ShouldInferNullabilityTypeFromQueryContext()
+        {
+            var query = "select (case when NullableValue is null then 0 else null end) from #A.Entities()";
+            
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity{NullableValue = null},
+                        new BasicEntity{NullableValue = 125}
+                    }
+                }
+            };
+            
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+            
+            Assert.AreEqual(2, table.Count);
+            Assert.AreEqual(0, table[0].Values[0]);
+            Assert.AreEqual(null, table[1].Values[0]);
+        }
+
+        [TestMethod]
         public void QueryWithWhereWithNullableMethodResultTest()
         {
             var query = "select NullableValue from #A.Entities() where NullableMethod(NullableValue) <> 5";
@@ -243,6 +268,33 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(0, table.Count);
+        }
+        
+        [TestMethod]
+        public void WhenMethodCalledWithNullValue_ShouldReturnNull()
+        {
+            var query = @"select NullableMethod(null) from #A.Entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity{ NullableValue = 1 },
+                        new BasicEntity{ NullableValue = null },
+                        new BasicEntity{ NullableValue = 2 }
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(3, table.Count);
+            Assert.AreEqual(null, table[0].Values[0]);
+            Assert.AreEqual(null, table[1].Values[0]);
+            Assert.AreEqual(null, table[2].Values[0]);
         }
     }
 }

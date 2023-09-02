@@ -802,6 +802,9 @@ namespace Musoq.Parser
                     return new CaseNode(WhenThenNodes, ElseNode);
                 case TokenType.FieldLink:
                     return new FieldLinkNode(ConsumeAndGetToken().Value);
+                case TokenType.Null:
+                    Consume(TokenType.Null);
+                    return new NullNode();
             }
 
             throw new NotSupportedException($"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.");
@@ -820,14 +823,17 @@ namespace Musoq.Parser
                 var whenNode = ComposeOperations();
                 Consume(TokenType.Then);
                 var thenNode = ComposeEqualityOperators();
-                whenThenNodes.Add((whenNode, thenNode));
+                
+                whenThenNodes.Add((
+                    new WhenNode(whenNode), 
+                    new ThenNode(thenNode)));
             }
 
             Consume(TokenType.Else);
             var elseNode = ComposeEqualityOperators();
             Consume(TokenType.End);
 
-            return (whenThenNodes.ToArray(), elseNode);
+            return (whenThenNodes.ToArray(), new ElseNode(elseNode));
         }
 
         private IntegerNode ComposeInteger()
