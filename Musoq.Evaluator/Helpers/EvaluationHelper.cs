@@ -180,7 +180,7 @@ namespace Musoq.Evaluator.Helpers
             var builder = new StringBuilder();
             var name = type.Name;
             var index = name.IndexOf("`", StringComparison.Ordinal);
-            builder.AppendFormat("{0}.{1}", type.Namespace, name.Substring(0, index));
+            builder.AppendFormat("{0}.{1}", type.Namespace, name[..index]);
             builder.Append('<');
             var first = true;
             foreach (var arg in type.GetGenericArguments())

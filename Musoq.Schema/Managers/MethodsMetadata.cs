@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
+using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Helpers;
 
@@ -151,9 +152,9 @@ public class MethodsMetadata
     }
 
     /// <summary>
-    ///     Determine if there are registered functions with specific names and types of arguments.
+    ///     Determine if there are registered methods with specific names and types of arguments.
     /// </summary>
-    /// <param name="name">Function name</param>
+    /// <param name="name">Method name</param>
     /// <param name="methodArgs">Types of method arguments</param>
     /// <param name="index">Index of method that fits requirements.</param>
     /// <returns>True if some method fits, else false.</returns>
@@ -183,18 +184,18 @@ public class MethodsMetadata
                  !CanUseSomeArgumentsAsDefaultParameters(methodArgs, notAnnotatedParametersCount, optionalParametersCount)))
                 continue;
 
-            var parametersToSkip = parametersToInject;
-
             var hasMatchedArgTypes = true;
             for (int f = 0, g = paramsParameter.HasParameters() ? Math.Min(methodArgs.Count - (parameters.Length - 1), parameters.Length) : methodArgs.Count; f < g; ++f)
             {
                 //1. When constant value, it won't be nullable<type> but type.
                 //So it is possible to call function with such value. 
                 //That's why GetUnderlyingNullable exists here.
-                var param = parameters[f + parametersToSkip].ParameterType.GetUnderlyingNullable();
+                var rawParam = parameters[f + parametersToInject].ParameterType;
+                var param = rawParam.GetUnderlyingNullable();
                 var arg = methodArgs[f].GetUnderlyingNullable();
 
-                if (IsTypePossibleToConvert(param, arg) || 
+                if (IsTypePossibleToConvert(param, arg) ||
+                    CanSafelyPassNull(rawParam, arg) ||
                     param.IsGenericParameter ||
                     arg.IsArray && param.IsGenericType && param.Name == "IEnumerable`1" || 
                     param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" && arg.Name == "IEnumerable`1" ||
@@ -218,7 +219,7 @@ public class MethodsMetadata
                 continue;
 
             //When both methods X(A a) and X(B b) exists, we must rely on in what context that method was called.
-            //EntityType is used to determine that. It provides information about type of entity that called method.
+            //EntityType is used to determine that. It provides information about type of entity that called method was invoked with.
             if (entityType is not null)
             {
                 var injectTypeAttributes = GetInjectTypeAttribute(methodInfo);
@@ -276,15 +277,6 @@ public class MethodsMetadata
         return methodArgs.Count > parametersCount;
     }
         
-    private static bool IsTypePossibleToConvert(Type to, Type from)
-    {
-        if (from == typeof(IDynamicMetaObjectProvider))
-            return true;
-        if (TypeCompatibilityTable.TryGetValue(to, out var value))
-            return value.Any(f => f == from);
-        return to == from || to.IsAssignableFrom(from);
-    }
-        
     private void RegisterMethod(string name, MethodInfo methodInfo)
     {
         if (_methods.TryGetValue(name, out var method))
@@ -311,5 +303,24 @@ public class MethodsMetadata
             .Where(f => f.GetType().IsAssignableTo(typeof(InjectTypeAttribute)))
             .Cast<InjectTypeAttribute>()
             .ToArray();
+    }
+        
+    private static bool IsTypePossibleToConvert(Type to, Type from)
+    {
+        if (from == typeof(IDynamicMetaObjectProvider))
+            return true;
+        if (TypeCompatibilityTable.TryGetValue(to, out var value))
+            return value.Any(f => f == from);
+        return to == from || to.IsAssignableFrom(from);
+    }
+        
+    private static bool CanSafelyPassNull(Type to, Type from)
+    {
+        if (from.FullName != typeof(NullNode.NullType).FullName)
+            return false;
+        //when it's nullable value type or generic parameter or reference type, we can safely pass null as the compiler will match the method we chose.
+        return to.IsGenericType && to.GetGenericTypeDefinition() == typeof(Nullable<>)
+               || to.IsGenericParameter
+               || !to.IsValueType;
     }
 }

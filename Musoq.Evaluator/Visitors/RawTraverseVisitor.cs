@@ -47,6 +47,11 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
+        public void Visit(NullNode node)
+        {
+            node.Accept(Visitor);
+        }
+
         public virtual void Visit(ContainsNode node)
         {
             node.Left.Accept(this);
@@ -552,6 +557,24 @@ namespace Musoq.Evaluator.Visitors
                 node.WhenThenPairs[i].Then.Accept(this);
             }
 
+            node.Accept(Visitor);
+        }
+
+        public void Visit(WhenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(Visitor);
+        }
+
+        public void Visit(ThenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(Visitor);
+        }
+
+        public void Visit(ElseNode node)
+        {
+            node.Expression.Accept(this);
             node.Accept(Visitor);
         }
 

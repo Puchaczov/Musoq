@@ -25,7 +25,7 @@ namespace Musoq.Schema.Tests
         [TestMethod]
         public void TestMethod1()
         {
-            var (NameToIndexMap, IndexToMethodAccessMap, Columns) = TypeHelper.GetEntityMap<TestEntity>();
+            var (nameToIndexMap, indexToMethodAccessMap, columns) = TypeHelper.GetEntityMap<TestEntity>();
 
             var test = new TestEntity()
             {
@@ -35,34 +35,34 @@ namespace Musoq.Schema.Tests
                 Prop4 = true
             };
 
-            Assert.AreEqual(4, Columns.Length);
-            Assert.AreEqual(4, IndexToMethodAccessMap.Count);
-            Assert.AreEqual(4, NameToIndexMap.Count);
+            Assert.AreEqual(4, columns.Length);
+            Assert.AreEqual(4, indexToMethodAccessMap.Count);
+            Assert.AreEqual(4, nameToIndexMap.Count);
 
-            Assert.AreEqual(0, Columns[0].ColumnIndex);
-            Assert.AreEqual(1, Columns[1].ColumnIndex);
-            Assert.AreEqual(2, Columns[2].ColumnIndex);
-            Assert.AreEqual(3, Columns[3].ColumnIndex);
+            Assert.AreEqual(0, columns[0].ColumnIndex);
+            Assert.AreEqual(1, columns[1].ColumnIndex);
+            Assert.AreEqual(2, columns[2].ColumnIndex);
+            Assert.AreEqual(3, columns[3].ColumnIndex);
 
-            Assert.AreEqual(nameof(TestEntity.Prop1), Columns[0].ColumnName);
-            Assert.AreEqual(nameof(TestEntity.Prop2), Columns[1].ColumnName);
-            Assert.AreEqual(nameof(TestEntity.Prop3), Columns[2].ColumnName);
-            Assert.AreEqual(nameof(TestEntity.Prop4), Columns[3].ColumnName);
+            Assert.AreEqual(nameof(TestEntity.Prop1), columns[0].ColumnName);
+            Assert.AreEqual(nameof(TestEntity.Prop2), columns[1].ColumnName);
+            Assert.AreEqual(nameof(TestEntity.Prop3), columns[2].ColumnName);
+            Assert.AreEqual(nameof(TestEntity.Prop4), columns[3].ColumnName);
 
-            Assert.AreEqual(typeof(int), Columns[0].ColumnType);
-            Assert.AreEqual(typeof(string), Columns[1].ColumnType);
-            Assert.AreEqual(typeof(decimal), Columns[2].ColumnType);
-            Assert.AreEqual(typeof(bool), Columns[3].ColumnType);
+            Assert.AreEqual(typeof(int), columns[0].ColumnType);
+            Assert.AreEqual(typeof(string), columns[1].ColumnType);
+            Assert.AreEqual(typeof(decimal), columns[2].ColumnType);
+            Assert.AreEqual(typeof(bool), columns[3].ColumnType);
 
-            Assert.AreEqual(NameToIndexMap[nameof(TestEntity.Prop1)], 0);
-            Assert.AreEqual(NameToIndexMap[nameof(TestEntity.Prop2)], 1);
-            Assert.AreEqual(NameToIndexMap[nameof(TestEntity.Prop3)], 2);
-            Assert.AreEqual(NameToIndexMap[nameof(TestEntity.Prop4)], 3);
+            Assert.AreEqual(nameToIndexMap[nameof(TestEntity.Prop1)], 0);
+            Assert.AreEqual(nameToIndexMap[nameof(TestEntity.Prop2)], 1);
+            Assert.AreEqual(nameToIndexMap[nameof(TestEntity.Prop3)], 2);
+            Assert.AreEqual(nameToIndexMap[nameof(TestEntity.Prop4)], 3);
 
-            Assert.AreEqual(4, IndexToMethodAccessMap[0](test));
-            Assert.AreEqual("Test", IndexToMethodAccessMap[1](test));
-            Assert.AreEqual(5.3m, IndexToMethodAccessMap[2](test));
-            Assert.AreEqual(true, IndexToMethodAccessMap[3](test));
+            Assert.AreEqual(4, indexToMethodAccessMap[0](test));
+            Assert.AreEqual("Test", indexToMethodAccessMap[1](test));
+            Assert.AreEqual(5.3m, indexToMethodAccessMap[2](test));
+            Assert.AreEqual(true, indexToMethodAccessMap[3](test));
         }
     }
 }

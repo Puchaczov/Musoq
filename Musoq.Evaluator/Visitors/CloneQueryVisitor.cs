@@ -204,6 +204,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new WordNode(node.Value));
         }
 
+        public virtual void Visit(NullNode node)
+        {
+            Nodes.Push(new NullNode());
+        }
+
         public virtual void Visit(ContainsNode node)
         {
             var right = Nodes.Pop();
@@ -566,7 +571,22 @@ namespace Musoq.Evaluator.Visitors
 
             var elseNode = Nodes.Pop();
 
-            Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, elseNode.ReturnType));
+            Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType));
+        }
+
+        public void Visit(WhenNode node)
+        {
+            Nodes.Push(new WhenNode(Nodes.Pop()));
+        }
+
+        public void Visit(ThenNode node)
+        {
+            Nodes.Push(new ThenNode(Nodes.Pop()));
+        }
+
+        public void Visit(ElseNode node)
+        {
+            Nodes.Push(new ElseNode(Nodes.Pop()));
         }
 
         public virtual void Visit(FieldLinkNode node)

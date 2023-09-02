@@ -54,6 +54,11 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(NullNode node)
+        {
+            node.Accept(_visitor);
+        }
+
         public void Visit(ContainsNode node)
         {
             node.Left.Accept(this);
@@ -711,15 +716,33 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CaseNode node)
-        {
+        {   
             node.Else.Accept(this);
             
-            for(int i = node.WhenThenPairs.Length - 1; i >= 0; --i)
+            for (var i = node.WhenThenPairs.Length - 1; i >= 0; --i)
             {
                 node.WhenThenPairs[i].When.Accept(this);
                 node.WhenThenPairs[i].Then.Accept(this);
             }
 
+            node.Accept(_visitor);
+        }
+
+        public void Visit(WhenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(ThenNode node)
+        {
+            node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(ElseNode node)
+        {
+            node.Expression.Accept(this);
             node.Accept(_visitor);
         }
 
