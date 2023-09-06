@@ -12,5 +12,13 @@ public class FirstEntityTable : ISchemaTable
         return Columns[FirstEntity.TestNameToIndexMap[name]];
     }
 
+    public ISchemaColumn[] GetColumnsByName(string name)
+    {
+        return new []
+        {
+            Columns[FirstEntity.TestNameToIndexMap[name]]
+        };
+    }
+
     public SchemaTableMetadata Metadata { get; } = new(typeof(FirstEntity));
 }
