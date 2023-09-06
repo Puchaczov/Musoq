@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests
@@ -1404,6 +1405,64 @@ inner join #C.entities() population on cities.GetCity() = population.GetCity()";
             Assert.AreEqual("Germany", table[4][0]);
             Assert.AreEqual("Berlin", table[4][1]);
             Assert.AreEqual(400m, table[4][2]);
+        }
+        
+        [TestMethod]
+        public void WhenSelfJoined_ShouldRetrieveValues()
+        {
+            var query =
+                @"
+select 
+    countries.GetCountry(), 
+    cities.GetCity()
+from #A.entities() countries
+inner join #A.entities() cities on countries.Country = cities.Country
+";
+                
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("Poland", "Krakow"),
+                        new BasicEntity("Germany", "Berlin")
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+            
+            Assert.AreEqual(2, table.Columns.Count());
+            Assert.AreEqual(2, table.Count);
+            
+            Assert.AreEqual("Poland", table[0][0]);
+            Assert.AreEqual("Krakow", table[0][1]);
+            
+            Assert.AreEqual("Germany", table[1][0]);
+            Assert.AreEqual("Berlin", table[1][1]);
+        }
+        
+        [TestMethod]
+        public void WhenMissingAlias_ShouldThrow()
+        {
+            var query = @"
+select 
+    countries.GetCountry(), 
+    cities.GetCity()
+from #A.entities() countries
+inner join #A.entities() cities on countries.Country = cities.Country
+where Country = 'Poland'
+";
+                
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", Array.Empty<BasicEntity>()
+                }
+            };
+
+            Assert.ThrowsException<AmbiguousColumnException>(() => CreateAndRunVirtualMachine(query, sources));
         }
     }
 }
