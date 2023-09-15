@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Musoq.Parser.Nodes
@@ -22,7 +23,19 @@ namespace Musoq.Parser.Nodes
 
         public string ObjectName => Token.Name;
 
-        public override Type ReturnType => PropertyInfo.PropertyType.GetElementType();
+        public override Type ReturnType
+        {
+            get
+            {
+                if (PropertyInfo == null)
+                    return null;
+                
+                if (PropertyInfo.PropertyType.IsArray)
+                    return PropertyInfo.PropertyType.GetElementType();
+
+                return (from propertyInfo in PropertyInfo.PropertyType.GetProperties() where propertyInfo.GetIndexParameters().Length == 1 select propertyInfo.PropertyType).FirstOrDefault();
+            }
+        }
 
         public override string Id { get; }
         public PropertyInfo PropertyInfo { get; private set; }

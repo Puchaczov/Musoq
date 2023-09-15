@@ -1,6 +1,7 @@
 ﻿using Musoq.Plugins.Attributes;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Musoq.Plugins
 {
@@ -20,11 +21,7 @@ namespace Musoq.Plugins
             var parentGroup = GetParentGroup(group, parent);
             var values = parentGroup.GetValue<List<double>>($"{name}:itemsStDev");
 
-            double sum = 0;
-            foreach (var value in values)
-            {
-                sum += Math.Pow((value - avg), 2);
-            }
+            var sum = values.Sum(value => Math.Pow(value - avg, 2));
 
             var variance = sum / values.Count;
 
