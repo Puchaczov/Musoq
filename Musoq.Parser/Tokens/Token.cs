@@ -6,7 +6,7 @@ namespace Musoq.Parser.Tokens
     [DebuggerDisplay("{Value} of type {TokenType},nq")]
     public class Token : GenericToken<TokenType>, IEquatable<Token>
     {
-        public Token(string value, TokenType type, TextSpan span)
+        protected Token(string value, TokenType type, TextSpan span)
             : base(value, type, span)
         {
         }

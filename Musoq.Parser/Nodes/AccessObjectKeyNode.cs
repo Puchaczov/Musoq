@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Musoq.Parser.Nodes
@@ -8,7 +9,8 @@ namespace Musoq.Parser.Nodes
         public AccessObjectKeyNode(KeyAccessToken token)
             : base(token.Name)
         {
-            Token = token;
+            Token = new KeyAccessToken(token.Name, token.Key.Trim('\''), token.Span);
+            DestinationKind = token.Value.StartsWith('\'') && token.Value.EndsWith('\'') ? Destination.Constant : Destination.Variable;
             Id = $"{nameof(AccessObjectKeyNode)}{token.Value}";
         }
 
@@ -22,11 +24,22 @@ namespace Musoq.Parser.Nodes
 
         public string ObjectName => Token.Name;
 
-        public override Type ReturnType => PropertyInfo.PropertyType.GetElementType();
+        public override Type ReturnType
+        {
+            get
+            {
+                if (PropertyInfo == null)
+                    return null;
+
+                return (from propertyInfo in PropertyInfo.PropertyType.GetProperties() where propertyInfo.GetIndexParameters().Length == 1 select propertyInfo.PropertyType).FirstOrDefault();
+            }
+        }
 
         public override string Id { get; }
 
         public PropertyInfo PropertyInfo { get; }
+        
+        public Destination DestinationKind { get; set; }
 
         public override void Accept(IExpressionVisitor visitor)
         {
@@ -35,7 +48,15 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"{ObjectName}[{Token.Key}]";
+            var key = DestinationKind == Destination.Constant ? $"'{Token.Key}'" : Token.Key;
+            
+            return $"{ObjectName}[{key}]";
+        }
+
+        public enum Destination
+        {
+            Constant,
+            Variable
         }
     }
 }

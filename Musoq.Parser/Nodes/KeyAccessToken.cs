@@ -4,10 +4,10 @@ namespace Musoq.Parser.Nodes
 {
     public class KeyAccessToken : Token
     {
-        public KeyAccessToken(string name, string value, TextSpan span)
-            : base(value, TokenType.KeyAccess, span)
+        public KeyAccessToken(string name, string key, TextSpan span)
+            : base(key, TokenType.KeyAccess, span)
         {
-            Key = value;
+            Key = key;
             Name = name;
         }
 
