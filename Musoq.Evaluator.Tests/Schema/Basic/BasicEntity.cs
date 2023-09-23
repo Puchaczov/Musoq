@@ -21,7 +21,10 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
                 {nameof(Month), 16},
                 {nameof(Time), 17},
                 {nameof(Id), 18},
-                {nameof(NullableValue), 19}
+                {nameof(NullableValue), 19},
+                {nameof(Other), 20},
+                {nameof(Array), 21},
+                {nameof(Dictionary), 22}
             };
 
             TestIndexToObjectAccessMap = new Dictionary<int, Func<BasicEntity, object>>
@@ -36,6 +39,9 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
                 {17, arg => arg.Time},
                 {18, arg => arg.Id},
                 {19, arg => arg.NullableValue},
+                {20, arg => arg.Other},
+                {21, arg => arg.Array},
+                {22, arg => arg.Dictionary}
             };
         }
         
@@ -101,9 +107,19 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
 
         public BasicEntity Self => this;
 
+        public BasicEntity Other => this;
+
         public int Id { get; set; }
 
         public int[] Array => new[] {0, 1, 2};
+        
+        public Dictionary<string, string> Dictionary => new()
+        {
+            {"A", "B"},
+            {"C", "D"},
+            {"AA", "BB"},
+            {"CC", "DD"}
+        };
 
         public int? NullableValue { get; set; }
 

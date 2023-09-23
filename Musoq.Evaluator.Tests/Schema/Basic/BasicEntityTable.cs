@@ -38,6 +38,11 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
             return Columns.SingleOrDefault(col => col.ColumnName == name);
         }
 
+        public ISchemaColumn[] GetColumnsByName(string name)
+        {
+            return Columns.Where(col => col.ColumnName == name).ToArray();
+        }
+
         public SchemaTableMetadata Metadata { get; } = new(typeof(BasicEntity));
     }
 }

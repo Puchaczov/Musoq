@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Schema;
@@ -45,10 +46,16 @@ namespace Musoq.Evaluator.Utils.Symbols
 
             foreach (var table in _tables)
             {
-                var col = table.Value.Item2.GetColumnByName(column);
+                var col = table.Value.Item2.GetColumnsByName(column);
 
                 if (col == null)
+                    throw new NotSupportedException();
+                
+                if (col.Length == 0)
                     throw new NotSupportedException($"Unrecognized column ({column})");
+                
+                if (col.Length > 1)
+                    throw new AmbiguousColumnException(column, _orders[0], _orders[1]);
 
                 score = (table.Value.Item1, table.Value.Item2, table.Key);
             }
@@ -65,32 +72,12 @@ namespace Musoq.Evaluator.Utils.Symbols
 
         public ISchemaColumn GetColumnByAliasAndName(string alias, string columnName)
         {
-            if (_fullTableName == alias)
-                return _fullTable.GetColumnByName(columnName);
-
-            return _tables[alias].Item2.GetColumnByName(columnName);
-        }
-
-        public ISchemaColumn GetColumn(string columnName)
-        {
-            ISchemaColumn column = null;
-            foreach (var table in _orders)
-            {
-                var tmpColumn = _tables[table].Item2.GetColumnByName(columnName);
-
-                if (column != null)
-                    throw new NotSupportedException("Multiple column with the same identifier");
-
-                if (tmpColumn == null)
-                    continue;
-
-                column = tmpColumn;
-            }
-
-            if (column == null)
-                throw new NotSupportedException("No such column.");
-
-            return column;
+            var columns = _fullTableName == alias ? _fullTable.GetColumnsByName(columnName) : _tables[alias].Item2.GetColumnsByName(columnName);
+            
+            if (columns.Length > 1)
+                throw new AmbiguousColumnException(columnName, _orders[0], _orders[1]);
+            
+            return columns.SingleOrDefault();
         }
 
         public ISchemaColumn[] GetColumns(string alias)
@@ -104,25 +91,6 @@ namespace Musoq.Evaluator.Utils.Symbols
             foreach (var table in _orders) columns.AddRange(GetColumns(table));
 
             return columns.ToArray();
-        }
-
-        public int GetColumnIndex(string alias, string columnName)
-        {
-            var i = 0;
-            var count = 0;
-            while (_orders[i] != alias)
-            {
-                count += _tables[_orders[i]].Item2.Columns.Length;
-                i++;
-            }
-
-            var columns = _tables[_orders[i]].Item2.Columns;
-            var j = 0;
-            for (; j < columns.Length; j++)
-                if (columns[j].ColumnName == columnName)
-                    break;
-
-            return count + j + 1;
         }
 
         public TableSymbol MergeSymbols(TableSymbol other)

@@ -152,7 +152,9 @@ namespace Musoq.Parser.Lexing
                 return TokenType.NotRLike;
             if (regex == TokenRegexDefinition.KMethodAccess)
                 return TokenType.MethodAccess;
-            if (regex == TokenRegexDefinition.KKeyObjectAccess)
+            if (regex == TokenRegexDefinition.KKeyObjectAccessConst)
+                return TokenType.KeyAccess;
+            if (regex == TokenRegexDefinition.KKeyObjectAccessVariable)
                 return TokenType.KeyAccess;
             if (regex == TokenRegexDefinition.KNumericArrayAccess)
                 return TokenType.NumericAccess;
@@ -167,7 +169,7 @@ namespace Musoq.Parser.Lexing
             if (regex == TokenRegexDefinition.Function)
                 return TokenType.Function;
             var last = Current();
-            if (regex == TokenRegexDefinition.KColumn && last != null && last.TokenType == TokenType.Dot)
+            if (regex == TokenRegexDefinition.KColumn && last is {TokenType: TokenType.Dot})
                 return TokenType.Property;
             if (regex == TokenRegexDefinition.KColumn)
                 return TokenType.Identifier;
@@ -235,7 +237,8 @@ namespace Musoq.Parser.Lexing
             public static readonly string KDecimal = @"[\-]?([0-9]+(\.[0-9]{1,})?)[dD]?";
             public static readonly string KFieldLink = @"::[1-9]{1,}";
             public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
-            public static readonly string KKeyObjectAccess = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
+            public static readonly string KKeyObjectAccessVariable = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
+            public static readonly string KKeyObjectAccessConst = "([\\w*?_]{1,})\\[('[a-zA-Z0-9]{1,}')\\]";
 
             public static readonly string KMethodAccess =
                 "([a-zA-Z1-9_-]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
@@ -339,7 +342,8 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNumericArrayAccess),
                 new TokenDefinition(TokenRegexDefinition.KMethodAccess),
-                new TokenDefinition(TokenRegexDefinition.KKeyObjectAccess),
+                new TokenDefinition(TokenRegexDefinition.KKeyObjectAccessConst),
+                new TokenDefinition(TokenRegexDefinition.KKeyObjectAccessVariable),
                 new TokenDefinition(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KOrderBy, RegexOptions.IgnoreCase),
