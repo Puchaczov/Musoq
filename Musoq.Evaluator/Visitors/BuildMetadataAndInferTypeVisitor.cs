@@ -459,14 +459,29 @@ namespace Musoq.Evaluator.Visitors
             var parentNodeType = Nodes.Peek().ReturnType;
             if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
             {
-                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                var typeHintingAttributes = 
+                    parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
+
+                foreach (var t in typeHintingAttributes)
+                {
+                    if (t.Name != node.Name) continue;
+                    
+                    Nodes.Push(new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
+                    return;
+                }
+                
+                var defaultTypeHintingAttributes = 
+                    parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
+
+                if (defaultTypeHintingAttributes is not null)
+                {
+                    Nodes.Push(new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
+                    return;
+                }
+                
+                var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? typeof(ExpandoObject[]);
                 Nodes.Push(
-                    new AccessObjectArrayNode(
-                        node.Token,
-                        new ExpandoObjectPropertyInfo(
-                            node.Name,
-                            column.ColumnType)));
+                    new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, type)));
             }
             else
             {
@@ -518,15 +533,29 @@ namespace Musoq.Evaluator.Visitors
             var parentNodeType = parentNode.ReturnType;
             if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
             {
-                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+                var typeHintingAttributes = 
+                    parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
 
+                foreach (var t in typeHintingAttributes)
+                {
+                    if (t.Name != node.Name) continue;
+                    
+                    Nodes.Push(new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
+                    return;
+                }
+                
+                var defaultTypeHintingAttributes = 
+                    parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
+
+                if (defaultTypeHintingAttributes is not null)
+                {
+                    Nodes.Push(new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
+                    return;
+                }
+                
+                var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? typeof(ExpandoObject);
                 Nodes.Push(
-                    new AccessObjectKeyNode(
-                        node.Token,
-                        new ExpandoObjectPropertyInfo(
-                            node.Name,
-                            column.ColumnType)));
+                    new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, type)));
             }
             else
             {
@@ -565,13 +594,32 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(PropertyValueNode node)
         {
-            var parentNodeType = Nodes.Peek().ReturnType;
+            var parentNode = Nodes.Peek();
+            var parentNodeType = parentNode.ReturnType;
             if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
             {
-                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
-                Nodes.Push(
-                    new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, column.ColumnType)));
+                var typeHintingAttributes = 
+                    parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
+
+                foreach (var t in typeHintingAttributes)
+                {
+                    if (t.Name != node.Name) continue;
+                    
+                    Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
+                    return;
+                }
+                
+                var defaultTypeHintingAttributes = 
+                    parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
+
+                if (defaultTypeHintingAttributes is not null)
+                {
+                    Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
+                    return;
+                }
+                
+                var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? typeof(ExpandoObject);
+                Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, type)));
             }
             else
             {
@@ -583,31 +631,11 @@ namespace Musoq.Evaluator.Visitors
         {
             var exp = Nodes.Pop();
             var root = Nodes.Pop();
-
-            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-
+            
             DotNode newNode;
             if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
             {
-                var name = exp switch
-                {
-                    PropertyValueNode propertyValueNode => propertyValueNode.Name,
-                    AccessObjectArrayNode accessObjectArrayNode => accessObjectArrayNode.Name,
-                    AccessObjectKeyNode accessObjectKeyNode => accessObjectKeyNode.Name,
-                    _ => throw new NotSupportedException()
-                };
-
-                var column = tableSymbol.GetColumnByAliasAndName(_identifier, name);
-
-                var type = exp switch
-                {
-                    PropertyValueNode => column.ColumnType,
-                    AccessObjectArrayNode => column.ColumnType.GetElementType(),
-                    AccessObjectKeyNode => column.ColumnType.GetElementType(),
-                    _ => throw new NotSupportedException()
-                };
-
-                newNode = new DotNode(root, exp, node.IsOuter, string.Empty, type);
+                newNode = new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType);
             }
             else
             {

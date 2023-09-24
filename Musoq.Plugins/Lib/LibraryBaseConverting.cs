@@ -14,7 +14,7 @@ namespace Musoq.Plugins
         /// <param name="delimiter">The delimiter</param>
         /// <returns>Hex representation of a given bytes</returns>
         [BindableMethod]
-        public string ToHex(byte[] bytes, string delimiter = "")
+        public string? ToHex(byte[]? bytes, string delimiter = "")
         {
             if (bytes == null)
                 return null;
@@ -43,7 +43,7 @@ namespace Musoq.Plugins
         /// <param name="delimiter">The delimiter</param>
         /// <returns>Binary representation of a given bytes</returns>
         [BindableMethod]
-        public string ToBin(byte[] bytes, string delimiter = "")
+        public string ToBin(byte[]? bytes, string delimiter = "")
         {
             if (bytes == null)
                 return null;
@@ -69,7 +69,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Hex representation of a given bytes</returns>
         [BindableMethod]
-        public string ToHex<T>(T value) where T : IConvertible
+        public string? ToHex<T>(T value) where T : IConvertible
         {
             switch (Type.GetTypeCode(typeof(T)))
             {
@@ -153,7 +153,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Converted to decimal value</returns>
         [BindableMethod]
-        public decimal? ToDecimal(string value)
+        public decimal? ToDecimal(string? value)
         {
             if (value == null)
                 return null;
@@ -257,6 +257,20 @@ namespace Musoq.Plugins
         }
 
         /// <summary>
+        /// Converts given value to Decimal
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to Decimal value</returns>
+        [BindableMethod]
+        public decimal? ToDecimal(object? value)
+        {
+            if (value == null)
+                return null;
+
+            return Convert.ToDecimal(value);
+        }
+
+        /// <summary>
         /// Converts given value to Int64
         /// </summary>
         /// <param name="value">The value</param>
@@ -293,6 +307,20 @@ namespace Musoq.Plugins
                 return null;
 
             return Convert.ToInt64(value.Value);
+        }
+
+        /// <summary>
+        /// Converts given value to long
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to long value</returns>
+        [BindableMethod]
+        public long? ToInt64(object? value)
+        {
+            if (value == null)
+                return null;
+
+            return Convert.ToInt64(value);
         }
 
         /// <summary>
@@ -336,6 +364,20 @@ namespace Musoq.Plugins
 
             return Convert.ToInt32(value.Value);
         }
+        
+        /// <summary>
+        /// Converts given value to int
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to int value</returns>
+        [BindableMethod]
+        public int? ToInt32(object? value)
+        {
+            if (value == null)
+                return null;
+
+            return Convert.ToInt32(value);
+        }
 
         /// <summary>
         /// Converts given value to character
@@ -343,7 +385,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Converted to character value</returns>
         [BindableMethod]
-        public char? ToChar(string value)
+        public char? ToChar(string? value)
         {
             if (value == null)
                 return null;
@@ -395,6 +437,20 @@ namespace Musoq.Plugins
 
             return (char)value;
         }
+        
+        /// <summary>
+        /// Converts given value to character
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Converted to character value</returns>
+        [BindableMethod]
+        public char? ToChar(object? value)
+        {
+            if (value == null)
+                return null;
+
+            return Convert.ToChar(value);
+        }
 
         /// <summary>
         /// Converts given value to string
@@ -402,7 +458,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString(char? value)
+        public string? ToString(char? value)
         {
             if (value == null)
                 return null;
@@ -416,7 +472,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString(DateTimeOffset? value)
+        public string? ToString(DateTimeOffset? value)
         {
             return value?.ToString(CultureInfo.CurrentCulture);
         }
@@ -427,7 +483,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString(decimal? value)
+        public string? ToString(decimal? value)
         {
             return value?.ToString(CultureInfo.CurrentCulture);
         }
@@ -438,7 +494,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString(long? value)
+        public string? ToString(long? value)
         {
             return value?.ToString(CultureInfo.CurrentCulture);
         }
@@ -449,7 +505,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString(object value)
+        public string? ToString(object? value)
         {
             if (value == null)
                 return null;
@@ -463,7 +519,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Converted to string value</returns>
         [BindableMethod]
-        public string ToString<T>(T value)
+        public string ToString<T>(T? value)
             where T : class
         {
             if (value == default(T))

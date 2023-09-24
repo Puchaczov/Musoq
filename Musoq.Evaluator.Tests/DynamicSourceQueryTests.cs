@@ -92,8 +92,6 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         var schema = new Dictionary<string, Type>()
         {
             {"Complex", typeof(ExpandoObject)},
-            {"Id", typeof(int)},
-            {"Name", typeof(string)}
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
@@ -101,8 +99,8 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(object), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0][0]);
@@ -117,11 +115,9 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         {
             CreateExpandoObject(CreateExpandoObject(CreateExpandoObject(1, "Test1")))
         };
-        var schema = new Dictionary<string, Type>()
+        var schema = new Dictionary<string, Type>
         {
-            {"Complex", typeof(ExpandoObject)},
-            {"Id", typeof(int)},
-            {"Name", typeof(string)}
+            {"Complex", typeof(ExpandoObject)}
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
@@ -129,8 +125,8 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(object), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0][0]);
@@ -147,8 +143,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         };
         var schema = new Dictionary<string, Type>()
         {
-            {"Complex", typeof(ExpandoObject)},
-            {"Array", typeof(int[])}
+            {"Complex", typeof(ExpandoObject)}
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
@@ -156,8 +151,8 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(object), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0][0]);
@@ -175,12 +170,9 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
                 CreateExpandoObject(1, "Test1"),
             }))
         };
-        var schema = new Dictionary<string, Type>()
+        var schema = new Dictionary<string, Type>
         {
-            {"Complex", typeof(ExpandoObject)},
-            {"Array", typeof(ExpandoObject[])},
-            {"Id", typeof(int)},
-            {"Name", typeof(string)}
+            {"Complex", typeof(ExpandoObject)}
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
@@ -188,8 +180,8 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(object), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0][0]);
@@ -208,11 +200,9 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
                 CreateExpandoObject(1),
             }))
         };
-        var schema = new Dictionary<string, Type>()
+        var schema = new Dictionary<string, Type>
         {
-            {"Complex", typeof(ExpandoObject)},
-            {"Array", typeof(ExpandoObject[])},
-            {"Id", typeof(int)}
+            {"Complex", typeof(ExpandoObject)}
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);

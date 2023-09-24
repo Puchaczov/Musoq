@@ -28,7 +28,7 @@ namespace Musoq.Plugins
         /// <param name="length">The length</param>
         /// <returns>Substring of a string</returns>
         [BindableMethod]
-        public string Substring(string value, int? index, int? length)
+        public string? Substring(string value, int? index, int? length)
         {
             if (string.IsNullOrEmpty(value))
                 return value;
@@ -55,7 +55,7 @@ namespace Musoq.Plugins
         /// <param name="length">The length</param>
         /// <returns>Substring of a string</returns>
         [BindableMethod]
-        public string Substring(string value, int? length)
+        public string? Substring(string value, int? length)
         {
             return Substring(value, 0, length);
         }
@@ -66,7 +66,7 @@ namespace Musoq.Plugins
         /// <param name="strings">The strings</param>
         /// <returns>Concatenated values</returns>
         [BindableMethod]
-        public string Concat(params string[] strings)
+        public string? Concat(params string[]? strings)
         {
             if (strings == null)
                 return null;
@@ -85,7 +85,7 @@ namespace Musoq.Plugins
         /// <param name="characters">The characters</param>
         /// <returns>Concatenated characters</returns>
         [BindableMethod]
-        public string Concat(params char[] characters)
+        public string? Concat(params char[]? characters)
         {
             if (characters == null)
                 return null;
@@ -105,7 +105,7 @@ namespace Musoq.Plugins
         /// <param name="chars">The characters</param>
         /// <returns>Concatenated string</returns>
         [BindableMethod]
-        public string Concat(string firstString, params char[] chars)
+        public string? Concat(string? firstString, params char[]? chars)
         {
             if (firstString == null || chars == null)
                 return null;
@@ -126,7 +126,7 @@ namespace Musoq.Plugins
         /// <param name="firstChar">The character</param>
         /// <param name="strings">The strings</param>
         /// <returns>Concatenated string</returns>
-        public string Concat(char? firstChar, params string[] strings)
+        public string? Concat(char? firstChar, params string[]? strings)
         {
             if (firstChar == null || strings == null)
                 return null;
@@ -147,7 +147,7 @@ namespace Musoq.Plugins
         /// <param name="objects">The objects</param>
         /// <returns>Concatenated string</returns>
         [BindableMethod]
-        public string Concat(params object[] objects)
+        public string? Concat(params object[]? objects)
         {
             if (objects == null)
                 return null;
@@ -166,7 +166,7 @@ namespace Musoq.Plugins
         /// <param name="objects">The objects</param>
         /// <returns>Concatenated string</returns>
         [BindableMethod]
-        public string Concat<T>(params T[] objects)
+        public string? Concat<T>(params T[]? objects)
         {
             if (objects == null)
                 return null;
@@ -186,7 +186,7 @@ namespace Musoq.Plugins
         /// <param name="what">The what</param>
         /// <returns>True if contains; otherwise false</returns>
         [BindableMethod]
-        public bool? Contains(string content, string what)
+        public bool? Contains(string? content, string? what)
         {
             if (content == null || what == null)
                 return null;
@@ -201,7 +201,7 @@ namespace Musoq.Plugins
         /// <param name="text">The text</param>
         /// <returns>Index of specific text</returns>
         [BindableMethod]
-        public int? IndexOf(string value, string text)
+        public int? IndexOf(string? value, string? text)
         {
             if (value == null || text == null)
                 return null;
@@ -215,7 +215,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Soundex code</returns>
         [BindableMethod]
-        public string Soundex(string value)
+        public string Soundex(string? value)
         {
             if (value == null)
                 return null;
@@ -348,7 +348,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Uppercased string</returns>
         [BindableMethod]
-        public string ToUpper(string value)
+        public string? ToUpper(string value)
             => ToUpper(value, CultureInfo.CurrentCulture);
 
         /// <summary>
@@ -358,7 +358,7 @@ namespace Musoq.Plugins
         /// <param name="culture">The culture</param>
         /// <returns>Uppercased string</returns>
         [BindableMethod]
-        public string ToUpper(string value, string culture)
+        public string? ToUpper(string value, string culture)
         {
             return ToUpper(value, CultureInfo.GetCultureInfo(culture));
         }
@@ -369,7 +369,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Uppercased string</returns>
         [BindableMethod]
-        public string ToUpperInvariant(string value)
+        public string? ToUpperInvariant(string value)
             => ToUpper(value, CultureInfo.InvariantCulture);
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <param name="culture">The culture</param>
         /// <returns>Uppercased string</returns>
-        private string ToUpper(string value, CultureInfo culture)
+        private string? ToUpper(string? value, CultureInfo? culture)
         {
             if (value == null)
                 return null;
@@ -395,7 +395,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Lowercased string</returns>
         [BindableMethod]
-        public string ToLower(string value)
+        public string? ToLower(string value)
             => ToLower(value, CultureInfo.CurrentCulture);
 
         /// <summary>
@@ -405,7 +405,7 @@ namespace Musoq.Plugins
         /// <param name="culture">The culture</param>
         /// <returns>Lowercased string</returns>
         [BindableMethod]
-        public string ToLower(string value, string culture)
+        public string? ToLower(string value, string culture)
             => ToLower(value, CultureInfo.GetCultureInfo(culture));
 
         /// <summary>
@@ -414,7 +414,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Lowercased string</returns>
         [BindableMethod]
-        public string ToLowerInvariant(string value)
+        public string? ToLowerInvariant(string value)
             => ToLower(value, CultureInfo.InvariantCulture);
 
         /// <summary>
@@ -423,7 +423,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <param name="culture">The culture</param>
         /// <returns>Lowercased string</returns>
-        private string ToLower(string value, CultureInfo culture)
+        private string? ToLower(string? value, CultureInfo? culture)
         {
             if (value == null)
                 return null;
@@ -442,7 +442,7 @@ namespace Musoq.Plugins
         /// <param name="totalWidth">The total width</param>
         /// <returns>Left aligned value</returns>
         [BindableMethod]
-        public string PadLeft(string value, string character, int? totalWidth)
+        public string PadLeft(string? value, string? character, int? totalWidth)
         {
             if (value == null || character == null)
                 return null;
@@ -461,7 +461,7 @@ namespace Musoq.Plugins
         /// <param name="totalWidth">The total width</param>
         /// <returns>Right aligned value</returns>
         [BindableMethod]
-        public string PadRight(string value, string character, int? totalWidth)
+        public string PadRight(string? value, string? character, int? totalWidth)
         {
             if (value == null || character == null)
                 return null;
@@ -479,7 +479,7 @@ namespace Musoq.Plugins
         /// <param name="length">The length</param>
         /// <returns>First characters of string</returns>
         [BindableMethod]
-        public string Head(string value, int? length = 10)
+        public string Head(string? value, int? length = 10)
         {
             if (value == null)
                 return null;
@@ -497,7 +497,7 @@ namespace Musoq.Plugins
         /// <param name="length">The length</param>
         /// <returns>Last characters of string</returns>
         [BindableMethod]
-        public string Tail(string value, int? length = 10)
+        public string Tail(string? value, int? length = 10)
         {
             if (value == null)
                 return null;
@@ -515,7 +515,7 @@ namespace Musoq.Plugins
         /// <param name="secondValue">The secondValue</param>
         /// <returns>Levenshtein distance</returns>
         [BindableMethod]
-        public int? LevenshteinDistance(string firstValue, string secondValue)
+        public int? LevenshteinDistance(string? firstValue, string? secondValue)
         {
             if (firstValue == null || secondValue == null)
                 return null;
@@ -544,7 +544,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Reversed string</returns>
         [BindableMethod]
-        public string Reverse(string value)
+        public string? Reverse(string? value)
         {
             if (value == null)
                 return null;
@@ -574,8 +574,15 @@ namespace Musoq.Plugins
         /// <param name="pattern">The pattern</param>
         /// <returns>Longest common subsequence</returns>
         [BindableMethod]
-        public string LongestCommonSubstring(string source, string pattern)
-            => new(LongestCommonSequence(source, pattern).ToArray());
+        public string? LongestCommonSubstring(string source, string pattern)
+        {
+            var sequence = LongestCommonSequence(source, pattern);
+            
+            if (sequence == null)
+                return null;
+            
+            return string.Concat(sequence);
+        }
 
         /// <summary>
         /// Clones the value n times
@@ -602,7 +609,7 @@ namespace Musoq.Plugins
         /// <param name="translations">The translations</param>
         /// <returns>Translated value</returns>
         [BindableMethod]
-        public string Translate(string value, string characters, string translations)
+        public string? Translate(string? value, string? characters, string? translations)
         {
             if (value == null)
                 return null;
@@ -633,7 +640,7 @@ namespace Musoq.Plugins
         /// <param name="changeTo">The changeTo</param>
         /// <returns>Changed value</returns>
         [BindableMethod]
-        public string Replace(string text, string lookFor, string changeTo)
+        public string? Replace(string? text, string lookFor, string? changeTo)
         {
             if (text == null)
                 return null;
@@ -653,7 +660,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Capitalized text</returns>
         [BindableMethod]
-        public string CapitalizeFirstLetterOfWords(string value)
+        public string? CapitalizeFirstLetterOfWords(string? value)
         {
             if (value == null)
                 return null;
@@ -669,7 +676,7 @@ namespace Musoq.Plugins
         /// <param name="separator">The separator</param>
         /// <returns>Nth word</returns>
         [BindableMethod]
-        public string GetNthWord(string text, int wordIndex, string separator)
+        public string? GetNthWord(string? text, int wordIndex, string? separator)
         {
             if (text == null || separator == null)
                 return null;
@@ -689,7 +696,7 @@ namespace Musoq.Plugins
         /// <param name="separator">The separator</param>
         /// <returns>First word</returns>
         [BindableMethod]
-        public string GetFirstWord(string text, string separator)
+        public string? GetFirstWord(string text, string separator)
         {
             return GetNthWord(text, 1, separator);
         }
@@ -701,7 +708,7 @@ namespace Musoq.Plugins
         /// <param name="separator">The separator</param>
         /// <returns>Second word</returns>
         [BindableMethod]
-        public string GetSecondWord(string text, string separator)
+        public string? GetSecondWord(string text, string separator)
         {
             return GetNthWord(text, 2, separator);
         }
@@ -713,7 +720,7 @@ namespace Musoq.Plugins
         /// <param name="separator">The separator</param>
         /// <returns>Third word</returns>
         [BindableMethod]
-        public string GetThirdWord(string text, string separator)
+        public string? GetThirdWord(string text, string separator)
         {
             return GetNthWord(text, 3, separator);
         }
@@ -725,7 +732,7 @@ namespace Musoq.Plugins
         /// <param name="separator">The separator</param>
         /// <returns>Last word</returns>
         [BindableMethod]
-        public string GetLastWord(string text, string separator)
+        public string? GetLastWord(string? text, string? separator)
         {
             if (text == null || separator == null)
                 return null;

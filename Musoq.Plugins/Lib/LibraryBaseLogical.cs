@@ -13,7 +13,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Value of specified index</returns>
         [BindableMethod]
-        public T Choose<T>(int index, params T[] values)
+        public T? Choose<T>(int index, params T[] values)
         {
             if (values.Length <= index)
                 return default;
@@ -45,7 +45,7 @@ namespace Musoq.Plugins
         /// <param name="content">The content</param>
         /// <returns>True if matches, otherwise false</returns>
         [BindableMethod]
-        public bool? Match(string regex, string content)
+        public bool? Match(string? regex, string? content)
         {
             if (regex == null || content == null)
                 return null;
@@ -77,7 +77,7 @@ namespace Musoq.Plugins
         /// <param name="array">The array</param>
         /// <returns>First non-null value</returns>
         [BindableMethod]
-        public T Coalesce<T>(params T[] array)
+        public T? Coalesce<T>(params T[] array)
         {
             foreach (var obj in array)
             {

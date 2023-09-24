@@ -30,7 +30,7 @@ namespace Musoq.Plugins
         /// <param name="content">The content string</param>
         /// <returns>The sha256 value</returns>
         [BindableMethod]
-        public string Sha512(string content)
+        public string Sha512(string? content)
         {
             if (content == null)
                 return null;
@@ -44,7 +44,7 @@ namespace Musoq.Plugins
         /// <param name="content">The content string</param>
         /// <returns>The sha256 value</returns>
         [BindableMethod]
-        public string Sha256(string content)
+        public string Sha256(string? content)
         {
             if (content == null)
                 return null;
@@ -58,7 +58,7 @@ namespace Musoq.Plugins
         /// <param name="content">The content string</param>
         /// <returns>The sha256 value</returns>
         [BindableMethod]
-        public string Md5(string content)
+        public string? Md5(string? content)
         {
             if (content == null)
                 return null;
@@ -72,7 +72,7 @@ namespace Musoq.Plugins
         /// <param name="obj">Object of unknown type that the typename have to be retrieved</param>
         /// <returns>The typename value</returns>
         [BindableMethod]
-        public string GetTypeName(object obj)
+        public string? GetTypeName(object? obj)
         {
             return obj?.GetType().FullName;
         }

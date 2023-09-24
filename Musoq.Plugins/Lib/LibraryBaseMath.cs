@@ -253,7 +253,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Percent rank of a given value</returns>
         [BindableMethod]
-        public double? PercentRank<T>(IEnumerable<T> window, T value)
+        public double? PercentRank<T>(IEnumerable<T>? window, T? value)
             where T : IComparable<T>
         {
             if (window == null || value == null)
