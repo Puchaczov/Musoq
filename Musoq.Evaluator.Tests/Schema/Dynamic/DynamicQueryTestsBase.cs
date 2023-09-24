@@ -29,7 +29,8 @@ public class DynamicQueryTestsBase
     
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
-        (string Name, IReadOnlyCollection<dynamic> Values, IReadOnlyDictionary<string, Type> Schema)[] sources)
+        (string Name, IReadOnlyCollection<dynamic> Values, IReadOnlyDictionary<string, Type> Schema)[] sources
+    )
     {
         var schemas = new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>();
         foreach (var source in sources)
@@ -79,7 +80,7 @@ public class DynamicQueryTestsBase
         return obj;
     }
 
-    private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()
+    protected IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()
     {
         var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
         environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());

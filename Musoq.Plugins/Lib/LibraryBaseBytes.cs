@@ -13,7 +13,7 @@ namespace Musoq.Plugins
         /// <param name="content">The string</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(string content)
+        public byte[] GetBytes(string? content)
         {
             if (content == null)
                 return null;
@@ -29,7 +29,7 @@ namespace Musoq.Plugins
         /// <param name="offset">The offset of substring</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(string content, int length, int offset)
+        public byte[] GetBytes(string? content, int length, int offset)
         {
             if (content == null)
                 return null;
@@ -43,7 +43,7 @@ namespace Musoq.Plugins
         /// <param name="character">The character to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(char? character)
+        public byte[]? GetBytes(char? character)
         {
             if (character == null)
                 return null;
@@ -57,7 +57,7 @@ namespace Musoq.Plugins
         /// <param name="bit">The boolean to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(bool? bit)
+        public byte[]? GetBytes(bool? bit)
         {
             if (bit == null)
                 return null;
@@ -71,7 +71,7 @@ namespace Musoq.Plugins
         /// <param name="value">The long to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(long? value)
+        public byte[]? GetBytes(long? value)
         {
             if (value == null)
                 return null;
@@ -85,7 +85,7 @@ namespace Musoq.Plugins
         /// <param name="value">The int to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(int? value)
+        public byte[]? GetBytes(int? value)
         {
             if (value == null)
                 return null;
@@ -99,7 +99,7 @@ namespace Musoq.Plugins
         /// <param name="value">The short to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(short? value)
+        public byte[]? GetBytes(short? value)
         {
             if (value == null)
                 return null;
@@ -113,7 +113,7 @@ namespace Musoq.Plugins
         /// <param name="value">The ulong to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(ulong? value)
+        public byte[]? GetBytes(ulong? value)
         {
             if (value == null)
                 return null;
@@ -127,7 +127,7 @@ namespace Musoq.Plugins
         /// <param name="value">The ushort to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(ushort? value)
+        public byte[]? GetBytes(ushort? value)
         {
             if (value == null)
                 return null;
@@ -141,7 +141,7 @@ namespace Musoq.Plugins
         /// <param name="value">The uint to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(uint? value)
+        public byte[]? GetBytes(uint? value)
         {
             if (value == null)
                 return null;
@@ -155,7 +155,7 @@ namespace Musoq.Plugins
         /// <param name="value">The decimal to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(decimal? value)
+        public byte[]? GetBytes(decimal? value)
         {
             if (value == null)
                 return null;
@@ -174,7 +174,7 @@ namespace Musoq.Plugins
         /// <param name="value">The double to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(double? value)
+        public byte[]? GetBytes(double? value)
         {
             if (value == null)
                 return null;
@@ -188,7 +188,7 @@ namespace Musoq.Plugins
         /// <param name="value">The float to convert to bytes</param>
         /// <returns>Bytes of a given content</returns>
         [BindableMethod]
-        public byte[] GetBytes(float? value)
+        public byte[]? GetBytes(float? value)
         {
             if (value == null)
                 return null;

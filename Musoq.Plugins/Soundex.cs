@@ -23,7 +23,7 @@ namespace Musoq.Plugins
         /// </summary>
         /// <param name="word">Word to get the soundex for.</param>
         /// <returns>Soundex code for word.</returns>
-        public string For(string word)
+        public string For(string? word)
         {
             const int maxSoundexCodeLength = 4;
 

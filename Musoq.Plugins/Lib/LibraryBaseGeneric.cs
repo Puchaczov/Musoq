@@ -15,7 +15,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Elements without the skipped ones</returns>
         [BindableMethod]
-        public IEnumerable<T> Skip<T>(IEnumerable<T> values, int skipCount)
+        public IEnumerable<T>? Skip<T>(IEnumerable<T>? values, int skipCount)
         {
             if (values == null)
                 return null;
@@ -31,7 +31,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Only taken ones elements</returns>
         [BindableMethod]
-        public IEnumerable<T> Take<T>(IEnumerable<T> values, int takeCount)
+        public IEnumerable<T> Take<T>(IEnumerable<T>? values, int takeCount)
         {
             if (values == null)
                 return null;
@@ -48,7 +48,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Skipped and taken elements</returns>
         [BindableMethod]
-        public IEnumerable<T> SkipAndTake<T>(IEnumerable<T> values, int skipCount, int takeCount)
+        public IEnumerable<T> SkipAndTake<T>(IEnumerable<T>? values, int skipCount, int takeCount)
         {
             if (values == null)
                 return null;
@@ -63,7 +63,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Array of specific type</returns>
         [BindableMethod]
-        public T[] ToArray<T>(IEnumerable<T> values)
+        public T[] ToArray<T>(IEnumerable<T>? values)
         {
             if (values == null)
                 return null;
@@ -79,7 +79,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Longest common subsequence of two sequences</returns>
         [BindableMethod]
-        public IEnumerable<T> LongestCommonSequence<T>(IEnumerable<T> source, IEnumerable<T> pattern)
+        public IEnumerable<T>? LongestCommonSequence<T>(IEnumerable<T>? source, IEnumerable<T>? pattern)
             where T : IEquatable<T>
         {
             if (source == null)
@@ -87,21 +87,23 @@ namespace Musoq.Plugins
 
             if (pattern == null)
                 return null;
-            
-            var sourceCount = source.Count();
-            var patternCount = pattern.Count();
+
+            var sourceArray = source.ToArray();
+            var patternArray = pattern.ToArray();
+            var sourceCount = sourceArray.Length;
+            var patternCount = patternArray.Length;
 
             var array = new int[sourceCount, patternCount];
             var maxSubStringSequence = 0;
 
-            var subSequence = (IEnumerable<T>)null;
+            var subSequence = (IEnumerable<T>?)null;
 
             for (int i = 0; i < sourceCount; ++i)
             {
-                var sourceElement = source.ElementAt(i);
+                var sourceElement = sourceArray.ElementAt(i);
                 for (int j = 0; j < patternCount; ++j)
                 {
-                    var patternElement = pattern.ElementAt(j);
+                    var patternElement = patternArray.ElementAt(j);
 
                     if (sourceElement.Equals(patternElement))
                     {
@@ -110,7 +112,7 @@ namespace Musoq.Plugins
                         if (array[i, j] > maxSubStringSequence)
                         {
                             maxSubStringSequence = array[i, j];
-                            subSequence = source.Skip(i - maxSubStringSequence + 1).Take(maxSubStringSequence);
+                            subSequence = sourceArray.Skip(i - maxSubStringSequence + 1).Take(maxSubStringSequence);
                         }
                     }
                     else
@@ -134,7 +136,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Element of a given index</returns>
         [BindableMethod]
-        public T GetElementAt<T>(IEnumerable<T> enumerable, int? index)
+        public T? GetElementAt<T>(IEnumerable<T>? enumerable, int? index)
         {
             if (enumerable == null)
                 return default;
@@ -152,7 +154,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Length of sequence</returns>
         [BindableMethod]
-        public int? Length<T>(IEnumerable<T> enumerable)
+        public int? Length<T>(IEnumerable<T>? enumerable)
         {
             if (enumerable == null)
                 return null;
@@ -167,7 +169,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Length of sequence</returns>
         [BindableMethod]
-        public int? Length<T>(T[] array)
+        public int? Length<T>(T[]? array)
         {
             if (array == null)
                 return null;

@@ -6,10 +6,28 @@ using System.Linq;
 namespace Musoq.Plugins
 {
 #if DEBUG
+    /// <summary>
+    /// Represents a group of rows.
+    /// </summary>
     [DebuggerDisplay("{Name}")]
 #endif
     public sealed class Group
     {
+#if DEBUG
+        private string Name { get; }
+#endif
+
+        private IDictionary<string, object?> Values { get; } = new Dictionary<string, object?>();
+
+        private IDictionary<string, Func<object?, object?>> Converters { get; } =
+            new Dictionary<string, Func<object?, object?>>();
+        
+        /// <summary>
+        /// Creates a new group.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="fieldNames"></param>
+        /// <param name="values"></param>
         public Group(Group parent, string[] fieldNames, object[] values)
         {
             Parent = parent;
@@ -19,64 +37,108 @@ namespace Musoq.Plugins
             for (var i = 0; i < fieldNames.Length; i++) Values.Add(fieldNames[i], values[i]);
         }
 
-#if DEBUG
-        private string Name { get; }
-#endif
-
-        public Group Parent { get; }
+        /// <summary>
+        /// Gets the parent group.
+        /// </summary>
+        public Group? Parent { get; }
+        
+        /// <summary>
+        /// Gets the number of hits.
+        /// </summary>
         public int Count { get; private set; }
 
-        private IDictionary<string, object> Values { get; } = new Dictionary<string, object>();
-
-        private IDictionary<string, Func<object, object>> Converters { get; } =
-            new Dictionary<string, Func<object, object>>();
-
+        /// <summary>
+        /// Increments the number of hits.
+        /// </summary>
         public void Hit()
         {
             Count += 1;
         }
 
-        public T GetValue<T>(string name)
+        /// <summary>
+        /// Gets the value of the group.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public T? GetValue<T>(string name)
         {
             if (!Values.ContainsKey(name))
                 throw new KeyNotFoundException($"Group does not have value {name}.");
 
-            if (Converters.ContainsKey(name))
-                return (T) Converters[name](Values[name]);
+            if (Converters.TryGetValue(name, out var converter))
+                return (T?) converter(Values[name]);
 
-            return (T) Values[name];
+            return (T?) Values[name];
         }
 
-        public T GetRawValue<T>(string name)
+        /// <summary>
+        /// Gets the value of the group.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public T? GetRawValue<T>(string name)
         {
             if (!Values.ContainsKey(name))
                 throw new KeyNotFoundException($"Group does not have value {name}.");
 
-            return (T) Values[name];
+            return (T?) Values[name];
         }
 
-        public T GetOrCreateValue<T>(string name, T defValue = default)
+        /// <summary>
+        /// Gets the value of the group or creates a new one.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="defValue"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T? GetOrCreateValue<T>(string name, T? defValue = default)
         {
             if (!Values.ContainsKey(name))
                 Values.Add(name, defValue);
 
-            return (T) Values[name];
+            return (T?) Values[name];
         }
 
-        public T GetOrCreateValue<T>(string name, Func<T> createDefault)
+        /// <summary>
+        /// Gets the value of the group or creates a new one.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="createDefault"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T? GetOrCreateValue<T>(string name, Func<T> createDefault)
         {
             if (!Values.ContainsKey(name))
                 Values.Add(name, createDefault());
 
-            return (T)Values[name];
+            return (T?)Values[name];
         }
 
-        public void SetValue<T>(string name, T value)
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <typeparam name="T"></typeparam>
+        public void SetValue<T>(string name, T? value)
         {
             Values[name] = value;
         }
 
-        public TR GetOrCreateValueWithConverter<T, TR>(string name, T value, Func<object, object> converter)
+        /// <summary>
+        /// Gets the value of the group or creates a new one.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <param name="converter"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TR"></typeparam>
+        /// <returns></returns>
+        public TR? GetOrCreateValueWithConverter<T, TR>(string name, T value, Func<object?, object?> converter)
         {
             if (!Values.ContainsKey(name))
                 Values.Add(name, value);
@@ -84,7 +146,7 @@ namespace Musoq.Plugins
             if (!Converters.ContainsKey(name))
                 Converters.Add(name, converter);
 
-            return (TR) Converters[name](Values[name]);
+            return (TR?) Converters[name](Values[name]);
         }
     }
 }

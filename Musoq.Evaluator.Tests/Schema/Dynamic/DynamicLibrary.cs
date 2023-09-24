@@ -10,4 +10,10 @@ public class DynamicLibrary : LibraryBase
     {
         return value + 1;
     }
+
+    [BindableMethod]
+    public int Increment(dynamic value)
+    {
+        return value + 1;
+    }
 }

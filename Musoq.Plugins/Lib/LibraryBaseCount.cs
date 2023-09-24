@@ -37,7 +37,7 @@ namespace Musoq.Plugins
         /// <param name="value">Value that should be aggregated</param>
         /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
-        public void SetCount([InjectGroup] Group group, string name, string value, int parent = 0)
+        public void SetCount([InjectGroup] Group group, string name, string? value, int parent = 0)
         {
             var parentGroup = GetParentGroup(group, parent);
 
