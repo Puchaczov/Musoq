@@ -464,11 +464,19 @@ namespace Musoq.Evaluator.Visitors
 
                 foreach (var t in typeHintingAttributes)
                 {
-                    if (t.Name == node.Name)
-                    {
-                        Nodes.Push(new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
-                        return;
-                    }
+                    if (t.Name != node.Name) continue;
+                    
+                    Nodes.Push(new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
+                    return;
+                }
+                
+                var defaultTypeHintingAttributes = 
+                    parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
+
+                if (defaultTypeHintingAttributes is not null)
+                {
+                    Nodes.Push(new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
+                    return;
                 }
                 
                 var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? typeof(ExpandoObject[]);
@@ -530,11 +538,19 @@ namespace Musoq.Evaluator.Visitors
 
                 foreach (var t in typeHintingAttributes)
                 {
-                    if (t.Name == node.Name)
-                    {
-                        Nodes.Push(new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
-                        return;
-                    }
+                    if (t.Name != node.Name) continue;
+                    
+                    Nodes.Push(new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
+                    return;
+                }
+                
+                var defaultTypeHintingAttributes = 
+                    parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
+
+                if (defaultTypeHintingAttributes is not null)
+                {
+                    Nodes.Push(new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
+                    return;
                 }
                 
                 var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? typeof(ExpandoObject);
@@ -587,11 +603,19 @@ namespace Musoq.Evaluator.Visitors
 
                 foreach (var t in typeHintingAttributes)
                 {
-                    if (t.Name == node.Name)
-                    {
-                        Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
-                        return;
-                    }
+                    if (t.Name != node.Name) continue;
+                    
+                    Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
+                    return;
+                }
+                
+                var defaultTypeHintingAttributes = 
+                    parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
+
+                if (defaultTypeHintingAttributes is not null)
+                {
+                    Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
+                    return;
                 }
                 
                 var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? typeof(ExpandoObject);
