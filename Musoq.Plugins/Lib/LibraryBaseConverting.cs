@@ -611,6 +611,151 @@ namespace Musoq.Plugins
             return Convert.FromBase64String(value);
         }
 
+        /// <summary>
+        /// Converts boolean value to bytes.
+        /// </summary>
+        /// <param name="value">Value to convert.</param>
+        /// <returns>Bytes.</returns>
+        [BindableMethod]
+        public byte[] ToBytes(bool value)
+        {
+            return BitConverter.GetBytes(value);
+        }
+
+        /// <summary>
+        /// Converts short value to bytes.
+        /// </summary>
+        /// <param name="value">Value to convert.</param>
+        /// <returns>Bytes.</returns>
+        [BindableMethod]
+        public byte[] ToBytes(short value)
+        {
+            return BitConverter.GetBytes(value);
+        }
+
+        /// <summary>
+        /// Converts ushort value to bytes.
+        /// </summary>
+        /// <param name="value">Value to convert.</param>
+        /// <returns>Bytes.</returns>
+        [BindableMethod]
+        public byte[] ToBytes(ushort value)
+        {
+            return BitConverter.GetBytes(value);
+        }
+
+        /// <summary>
+        /// Converts int value to bytes.
+        /// </summary>
+        /// <param name="value">Value to convert.</param>
+        /// <returns>Bytes.</returns>
+        [BindableMethod]
+        public byte[] ToBytes(int value)
+        {
+            return BitConverter.GetBytes(value);
+        }
+
+
+        /// <summary>
+        /// Converts uint value to bytes.
+        /// </summary>
+        /// <param name="value">Value to convert.</param>
+        /// <returns>Bytes.</returns>
+        [BindableMethod]
+        public byte[] ToBytes(uint value)
+        {
+            return BitConverter.GetBytes(value);
+        }
+
+
+        /// <summary>
+        /// Converts long value to bytes.
+        /// </summary>
+        /// <param name="value">Value to convert.</param>
+        /// <returns>Bytes.</returns>
+        [BindableMethod]
+        public byte[] ToBytes(long value)
+        {
+            return BitConverter.GetBytes(value);
+        }
+
+
+        /// <summary>
+        /// Converts ulong value to bytes.
+        /// </summary>
+        /// <param name="value">Value to convert.</param>
+        /// <returns>Bytes.</returns>
+        [BindableMethod]
+        public byte[] ToBytes(ulong value)
+        {
+            return BitConverter.GetBytes(value);
+        }
+        /// <summary>
+        /// Converts bytes to boolean value.
+        /// </summary>
+        /// <param name="value">Byte array containing the value to convert.</param>
+        /// <returns>Converted boolean value.</returns>
+        [BindableMethod]
+        public bool FromBytesToBool(byte[] value)
+        {
+            return BitConverter.ToBoolean(value, 0);
+        }
+
+        /// <summary>
+        /// Converts bytes to a 16-bit signed integer.
+        /// </summary>
+        /// <param name="value">Byte array containing the value to convert.</param>
+        /// <returns>Converted 16-bit signed integer.</returns>
+        [BindableMethod]
+        public short FromBytesToInt16(byte[] value)
+        {
+            return BitConverter.ToInt16(value, 0);
+        }
+
+        /// <summary>
+        /// Converts bytes to a 16-bit unsigned integer.
+        /// </summary>
+        /// <param name="value">Byte array containing the value to convert.</param>
+        /// <returns>Converted 16-bit unsigned integer.</returns>
+        [BindableMethod]
+        public ushort FromBytesToUInt16(byte[] value)
+        {
+            return BitConverter.ToUInt16(value, 0);
+        }
+
+        /// <summary>
+        /// Converts bytes to a 32-bit signed integer.
+        /// </summary>
+        /// <param name="value">Byte array containing the value to convert.</param>
+        /// <returns>Converted 32-bit signed integer.</returns>
+        [BindableMethod]
+        public int FromBytesToInt32(byte[] value)
+        {
+            return BitConverter.ToInt32(value, 0);
+        }
+
+        /// <summary>
+        /// Converts bytes to a 32-bit unsigned integer.
+        /// </summary>
+        /// <param name="value">Byte array containing the value to convert.</param>
+        /// <returns>Converted 32-bit unsigned integer.</returns>
+        [BindableMethod]
+        public uint FromBytesToUInt32(byte[] value)
+        {
+            return BitConverter.ToUInt32(value, 0);
+        }
+
+        /// <summary>
+        /// Converts bytes to a 64-bit signed integer.
+        /// </summary>
+        /// <param name="value">Byte array containing the value to convert.</param>
+        /// <returns>Converted 64-bit signed integer.</returns>
+        [BindableMethod]
+        public long FromBytesToInt64(byte[] value)
+        {
+            return BitConverter.ToInt64(value, 0);
+        }
+
         private string ToBase<T>(T value, int baseNumber) where T : IConvertible
         {
             switch (Type.GetTypeCode(typeof(T)))

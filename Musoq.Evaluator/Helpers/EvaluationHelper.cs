@@ -142,8 +142,8 @@ namespace Musoq.Evaluator.Helpers
 
         public static string GetCastableType(Type type)
         {
-            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(type)) return "object";
             if (type.IsGenericType) return GetFriendlyTypeName(type);
+            if (type.IsNested) return $"{GetCastableType(type.DeclaringType)}.{type.Name}";
 
             return $"{type.Namespace}.{type.Name}";
         }

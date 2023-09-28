@@ -67,6 +67,7 @@ namespace Musoq.Evaluator.Visitors
         private FieldNode[] _generatedColumns = Array.Empty<FieldNode>();
         private string _identifier;
         private string _queryAlias;
+        private IdentifierNode _theMostInnerIdentifier;
 
         private Stack<string> Methods { get; } = new();
 
@@ -479,7 +480,7 @@ namespace Musoq.Evaluator.Visitors
                     return;
                 }
                 
-                var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? typeof(ExpandoObject[]);
+                var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? (_theMostInnerIdentifier.Name == node.Name ? typeof(object[]) : typeof(ExpandoObject[]));
                 Nodes.Push(
                     new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, type)));
             }
@@ -553,7 +554,7 @@ namespace Musoq.Evaluator.Visitors
                     return;
                 }
                 
-                var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? typeof(ExpandoObject);
+                var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? (_theMostInnerIdentifier.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
                 Nodes.Push(
                     new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, type)));
             }
@@ -618,7 +619,7 @@ namespace Musoq.Evaluator.Visitors
                     return;
                 }
                 
-                var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? typeof(ExpandoObject);
+                var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? (_theMostInnerIdentifier.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
                 Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, type)));
             }
             else
@@ -635,7 +636,7 @@ namespace Musoq.Evaluator.Visitors
             DotNode newNode;
             if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
             {
-                newNode = new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType);
+                newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
             }
             else
             {
@@ -652,7 +653,7 @@ namespace Musoq.Evaluator.Visitors
                         root.ReturnType.GetProperties());
                 }
 
-                newNode = new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType);
+                newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
             }
 
             Nodes.Push(newNode);
@@ -1435,6 +1436,11 @@ namespace Musoq.Evaluator.Visitors
 
         public void QueryEnds()
         {
+        }
+
+        public void SetTheMostInnerIdentifierOfDotNode(IdentifierNode node)
+        {
+            _theMostInnerIdentifier = node;
         }
 
         private Type FindGreatestCommonSubtype()

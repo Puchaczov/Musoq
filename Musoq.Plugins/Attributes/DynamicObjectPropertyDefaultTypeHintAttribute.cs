@@ -11,18 +11,11 @@ public sealed class DynamicObjectPropertyDefaultTypeHintAttribute : Attribute
     /// <summary>
     /// Creates the attribute.
     /// </summary>
-    /// <param name="name">The name.</param>
     /// <param name="type">The type.</param>
-    public DynamicObjectPropertyDefaultTypeHintAttribute(string name, Type type)
+    public DynamicObjectPropertyDefaultTypeHintAttribute(Type type)
     {
-        Name = name;
         Type = type;
     }
-
-    /// <summary>
-    /// Gets the name of the property.
-    /// </summary>
-    public string Name { get; }
     
     
     /// <summary>
