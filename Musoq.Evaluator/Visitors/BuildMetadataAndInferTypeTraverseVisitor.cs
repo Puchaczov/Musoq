@@ -13,6 +13,7 @@ namespace Musoq.Evaluator.Visitors
     {
         private readonly Stack<Scope> _scopes = new();
         private readonly IAwareExpressionVisitor _visitor;
+        private IdentifierNode _theMostInnerIdentifier;
 
         public BuildMetadataAndInferTypeTraverseVisitor(IAwareExpressionVisitor visitor)
         {
@@ -122,33 +123,44 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(DotNode node)
         {
             var self = node;
-
-            var theMostInner = self;
+            var theMostOuter = self;
             while (!(self is null))
             {
-                theMostInner = self;
+                theMostOuter = self;
                 self = self.Root as DotNode;
             }
 
-            var ident = (IdentifierNode) theMostInner.Root;
-            if (node == theMostInner && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
+            var ident = (IdentifierNode) theMostOuter.Root;
+            if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
             {
-                if (theMostInner.Expression is DotNode dotNode)
+                if (theMostOuter.Expression is DotNode dotNode)
                 {
                     var col = (IdentifierNode) dotNode.Root;
                     Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
                 }
                 else
                 {
-                    var col = (IdentifierNode) theMostInner.Expression;
+                    var col = (IdentifierNode) theMostOuter.Expression;
                     Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
                 }
 
                 return;
             }
 
-            self = node;
+            var setTheMostInnerIdentifier = false;
+            if (_theMostInnerIdentifier is null)
+            {
+                _theMostInnerIdentifier = (IdentifierNode)node.Expression;
+                setTheMostInnerIdentifier = true;
+            }
 
+            if (_theMostInnerIdentifier is not null && setTheMostInnerIdentifier)
+            {
+                _visitor.SetTheMostInnerIdentifierOfDotNode(_theMostInnerIdentifier);
+            }
+
+            self = node;
+            
             while (!(self is null))
             {
                 self.Root.Accept(this);
@@ -156,6 +168,12 @@ namespace Musoq.Evaluator.Visitors
                 self.Accept(_visitor);
 
                 self = self.Expression as DotNode;
+            }
+            
+            if (_theMostInnerIdentifier is not null && setTheMostInnerIdentifier)
+            {
+                _visitor.SetTheMostInnerIdentifierOfDotNode(null);
+                _theMostInnerIdentifier = null;
             }
         }
 

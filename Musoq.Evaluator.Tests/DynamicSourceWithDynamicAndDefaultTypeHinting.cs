@@ -45,8 +45,8 @@ public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBa
     }
 
     [DynamicObjectPropertyTypeHint("AsInt", typeof(int))]
-    [DynamicObjectPropertyDefaultTypeHint("AsDouble", typeof(double))]
-    private class MultiformType : DynamicObject
+    [DynamicObjectPropertyDefaultTypeHint(typeof(double))]
+    public class MultiformType : DynamicObject
     {
         private readonly double _value;
 

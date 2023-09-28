@@ -270,7 +270,7 @@ namespace Musoq.Evaluator.Visitors
             var exp = Nodes.Pop();
             var root = Nodes.Pop();
 
-            Nodes.Push(new DotNode(root, exp, node.IsOuter, string.Empty, exp.ReturnType));
+            Nodes.Push(new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType));
         }
 
         public virtual void Visit(AccessCallChainNode node)

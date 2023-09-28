@@ -680,12 +680,9 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(AccessMethodNode node)
         {
             var args = new List<ArgumentSyntax>();
-
             var parameters = node.Method.GetParameters().GetParametersWithAttribute<InjectTypeAttribute>();
-
             var method = node.Method;
-
-            var variableName = $"{node.Alias}{method.ReflectedType.Name}Lib";
+            var variableName = $"{node.Alias}{method.ReflectedType!.Name}Lib";
 
             if (!_typesToInstantiate.ContainsKey(variableName))
             {

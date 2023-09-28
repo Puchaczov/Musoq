@@ -555,7 +555,7 @@ namespace Musoq.Parser
                         left = new ModuloNode(left, right);
                         break;
                     case TokenType.Dot:
-                        left = new DotNode(left, right, false, string.Empty);
+                        left = new DotNode(left, right, string.Empty);
                         break;
                     default:
                         throw new NotSupportedException($"{curr.TokenType} is not supported while parsing expression.");
@@ -818,7 +818,6 @@ namespace Musoq.Parser
         private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode) ComposeCase()
         {
             Consume(TokenType.Case);
-
 
             var whenThenNodes = new List<(Node When, Node Then)>();
 

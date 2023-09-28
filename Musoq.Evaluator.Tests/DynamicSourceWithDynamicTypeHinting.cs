@@ -120,7 +120,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     public void WithDynamicSource_AccessArray_ShouldPass()
     {
         const string query = "select Complex.Array[0], Complex.Array[1] from #dynamic.all()";
-        var sources = new List<dynamic>()
+        var sources = new List<dynamic>
         {
             CreateExpandoObject(new ComplexArrayOfShortsType(new short[] {1, 2}))
         };
@@ -199,6 +199,28 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         Assert.AreEqual(2, table[0][0]);
     }
 
+    [TestMethod]
+    public void WithDynamicSource_IncrementAccessedProperty_ShouldPass2()
+    {
+        const string query = "select TrueWhenCalled() from #dynamic.all()";
+        var sources = new List<dynamic>()
+        {
+            new ComplexType(1, "test1")
+        };
+        var schema = new Dictionary<string, Type>
+        {
+            {"Complex", typeof(ComplexType)}
+        };
+        
+        var vm = CreateAndRunVirtualMachine(query, sources, schema);
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(true, table[0][0]);
+    }
+
     private ExpandoObject CreateExpandoObject(ComplexType complexType)
     {
         var expandoObject = new ExpandoObject();
@@ -216,17 +238,10 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         return expandoObject;
     }
-    
-    private NestedExpandoType CreateNestedExpandoObject(DynamicObject dynamicObject)
-    {
-        var expandoObject = new NestedExpandoType(dynamicObject);
-        
-        return expandoObject;
-    }
 
     [DynamicObjectPropertyTypeHint("Id", typeof(int))]
     [DynamicObjectPropertyTypeHint("Name", typeof(string))]
-    private class ComplexType : DynamicObject
+    public class ComplexType : DynamicObject
     {
         private readonly int _intValue;
         private readonly string _stringValue;
@@ -239,45 +254,41 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            if (binder.Name == "Id")
+            switch (binder.Name)
             {
-                result = _intValue;
-                return true;
+                case "Id":
+                    result = _intValue;
+                    return true;
+                case "Name":
+                    result = _stringValue;
+                    return true;
+                default:
+                    return base.TryGetMember(binder, out result);
             }
-
-            if (binder.Name == "Name")
-            {
-                result = _stringValue;
-                return true;
-            }
-            
-            return base.TryGetMember(binder, out result);
         }
     }
 
-    private class ComplexArrayType<TType> : DynamicObject
+    public class ComplexArrayType<TType> : DynamicObject
     {
         private readonly TType[] _arrayValue;
 
-        public ComplexArrayType(TType[] arrayValue)
+        protected ComplexArrayType(TType[] arrayValue)
         {
             _arrayValue = arrayValue;
         }
         
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            if (binder.Name == "Array")
-            {
-                result = _arrayValue;
-                return true;
-            }
+            if (binder.Name != "Array") return base.TryGetMember(binder, out result);
             
-            return base.TryGetMember(binder, out result);
+            result = _arrayValue;
+            return true;
+
         }
     }
     
     [DynamicObjectPropertyTypeHint("Array", typeof(short[]))]
-    private class ComplexArrayOfShortsType : ComplexArrayType<short>
+    public class ComplexArrayOfShortsType : ComplexArrayType<short>
     {
         public ComplexArrayOfShortsType(short[] arrayValue) 
             : base(arrayValue)
@@ -286,7 +297,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     }
     
     [DynamicObjectPropertyTypeHint("Array", typeof(ComplexType[]))]
-    private class ComplexArrayOfComplexTypeType : ComplexArrayType<ComplexType>
+    public class ComplexArrayOfComplexTypeType : ComplexArrayType<ComplexType>
     {
         public ComplexArrayOfComplexTypeType(ComplexType[] arrayValue) 
             : base(arrayValue)
@@ -295,7 +306,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     }
     
     [DynamicObjectPropertyTypeHint("Complex", typeof(ComplexType))]
-    private class ComplexExpandoType : DynamicObject
+    public class ComplexExpandoType : DynamicObject
     {
         private readonly ComplexType _expandoType;
 
@@ -317,7 +328,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     }
 
     [DynamicObjectPropertyTypeHint("NestedExpando", typeof(DynamicObject))]
-    private class NestedExpandoType : DynamicObject
+    public class NestedExpandoType : DynamicObject
     {
         private readonly DynamicObject _nestedExpandoType;
 
