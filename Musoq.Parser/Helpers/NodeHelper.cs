@@ -27,23 +27,23 @@ namespace Musoq.Parser.Helpers
 
             dict.Add((typeof(int), typeof(decimal)), typeof(decimal));
             dict.Add((typeof(int), typeof(long)), typeof(long));
-            dict.Add((typeof(int), typeof(int)), typeof(long));
-            dict.Add((typeof(int), typeof(short)), typeof(long));
+            dict.Add((typeof(int), typeof(int)), typeof(int));
+            dict.Add((typeof(int), typeof(short)), typeof(int));
 
             dict.Add((typeof(uint), typeof(decimal)), typeof(decimal));
             dict.Add((typeof(uint), typeof(ulong)), typeof(ulong));
             dict.Add((typeof(uint), typeof(uint)), typeof(uint));
-            dict.Add((typeof(uint), typeof(ushort)), typeof(ulong));
+            dict.Add((typeof(uint), typeof(ushort)), typeof(uint));
 
             dict.Add((typeof(short), typeof(decimal)), typeof(decimal));
             dict.Add((typeof(short), typeof(long)), typeof(long));
-            dict.Add((typeof(short), typeof(int)), typeof(long));
-            dict.Add((typeof(short), typeof(short)), typeof(long));
+            dict.Add((typeof(short), typeof(int)), typeof(int));
+            dict.Add((typeof(short), typeof(short)), typeof(short));
 
             dict.Add((typeof(ushort), typeof(decimal)), typeof(decimal));
             dict.Add((typeof(ushort), typeof(ulong)), typeof(ulong));
-            dict.Add((typeof(ushort), typeof(uint)), typeof(ulong));
-            dict.Add((typeof(ushort), typeof(ushort)), typeof(ulong));
+            dict.Add((typeof(ushort), typeof(uint)), typeof(uint));
+            dict.Add((typeof(ushort), typeof(ushort)), typeof(ushort));
 
             dict.Add((typeof(string), typeof(string)), typeof(string));
 

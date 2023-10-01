@@ -18,9 +18,9 @@ namespace Musoq.Parser.Nodes
             Id = $"{nameof(IntegerNode)}{value}{ReturnType.Name}";
         }
 
-        public override object ObjValue { get; }
+        public sealed override object ObjValue { get; }
 
-        public override Type ReturnType => ObjValue.GetType();
+        public sealed override Type ReturnType => ObjValue.GetType();
 
         public override string Id { get; }
 
