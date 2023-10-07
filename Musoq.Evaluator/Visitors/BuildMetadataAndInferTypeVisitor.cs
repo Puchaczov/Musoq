@@ -305,7 +305,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(IntegerNode node)
         {
             AddAssembly(typeof(int).Assembly);
-            Nodes.Push(new IntegerNode(node.ObjValue.ToString()));
+            Nodes.Push(new IntegerNode(node.ObjValue));
             _schemaFromArgs.Add(node.ObjValue);
         }
 
@@ -737,7 +737,7 @@ namespace Musoq.Evaluator.Visitors
         }
 
         private static readonly WhereNode AllTrueWhereNode =
-            new(new EqualityNode(new IntegerNode("1"), new IntegerNode("1")));
+            new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
 
         public void Visit(SchemaFromNode node)
         {
@@ -928,7 +928,7 @@ namespace Musoq.Evaluator.Visitors
             if (groupBy == null && _refreshMethods.Count > 0)
             {
                 groupBy = new GroupByNode(
-                    new[] {new FieldNode(new IntegerNode("1"), 0, string.Empty)}, null);
+                    new[] {new FieldNode(new IntegerNode("1", "s"), 0, string.Empty)}, null);
             }
 
             _currentScope.ScopeSymbolTable.AddSymbol(from.Alias.ToRefreshMethodsSymbolName(),

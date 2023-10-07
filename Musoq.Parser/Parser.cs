@@ -801,7 +801,7 @@ namespace Musoq.Parser
                         TokenType.RightParenthesis);
                 case TokenType.Hyphen:
                     Consume(TokenType.Hyphen);
-                    return new StarNode(new IntegerNode("-1"), Compose(f => f.ComposeArithmeticExpression(minPrecedence)));
+                    return new StarNode(new IntegerNode("-1", "s"), Compose(f => f.ComposeArithmeticExpression(minPrecedence)));
                 case TokenType.Case:
                     var (whenThenNodes, elseNode) = ComposeCase();
                     return new CaseNode(whenThenNodes, elseNode);
@@ -842,8 +842,8 @@ namespace Musoq.Parser
 
         private IntegerNode ComposeInteger()
         {
-            var token = ConsumeAndGetToken(TokenType.Integer);
-            return new IntegerNode(token.Value);
+            var token = (IntegerToken)ConsumeAndGetToken(TokenType.Integer);
+            return new IntegerNode(token.Value, token.Abbreviation);
         }
 
         private WordNode ComposeWord()

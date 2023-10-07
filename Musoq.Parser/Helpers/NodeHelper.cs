@@ -7,60 +7,105 @@ namespace Musoq.Parser.Helpers
     {
         static NodeHelper()
         {
-            var dict = new Dictionary<(Type, Type), Type>();
+            var dict = new Dictionary<(Type, Type), Type>
+            {
+                {(typeof(byte), typeof(byte)), typeof(byte)},
+                {(typeof(byte), typeof(sbyte)), typeof(int)},
+                {(typeof(byte), typeof(short)), typeof(int)},
+                {(typeof(byte), typeof(ushort)), typeof(int)},
+                {(typeof(byte), typeof(int)), typeof(int)},
+                {(typeof(byte), typeof(uint)), typeof(uint)},
+                {(typeof(byte), typeof(long)), typeof(long)},
+                {(typeof(byte), typeof(ulong)), typeof(ulong)},
+                {(typeof(byte), typeof(decimal)), typeof(decimal)},
+
+                {(typeof(sbyte), typeof(byte)), typeof(int)},
+                {(typeof(sbyte), typeof(sbyte)), typeof(sbyte)},
+                {(typeof(sbyte), typeof(short)), typeof(int)},
+                {(typeof(sbyte), typeof(ushort)), typeof(int)},
+                {(typeof(sbyte), typeof(int)), typeof(int)},
+                {(typeof(sbyte), typeof(uint)), typeof(uint)},
+                {(typeof(sbyte), typeof(long)), typeof(long)},
+                {(typeof(sbyte), typeof(decimal)), typeof(decimal)},
+
+                {(typeof(short), typeof(byte)), typeof(int)},
+                {(typeof(short), typeof(sbyte)), typeof(int)},
+                {(typeof(short), typeof(short)), typeof(short)},
+                {(typeof(short), typeof(ushort)), typeof(int)},
+                {(typeof(short), typeof(int)), typeof(int)},
+                {(typeof(short), typeof(uint)), typeof(uint)},
+                {(typeof(short), typeof(long)), typeof(long)},
+                {(typeof(short), typeof(decimal)), typeof(decimal)},
+
+                {(typeof(ushort), typeof(byte)), typeof(int)},
+                {(typeof(ushort), typeof(sbyte)), typeof(int)},
+                {(typeof(ushort), typeof(short)), typeof(int)},
+                {(typeof(ushort), typeof(ushort)), typeof(ushort)},
+                {(typeof(ushort), typeof(int)), typeof(int)},
+                {(typeof(ushort), typeof(uint)), typeof(uint)},
+                {(typeof(ushort), typeof(long)), typeof(long)},
+                {(typeof(ushort), typeof(ulong)), typeof(ulong)},
+                {(typeof(ushort), typeof(decimal)), typeof(decimal)},
+
+                {(typeof(int), typeof(byte)), typeof(int)},
+                {(typeof(int), typeof(sbyte)), typeof(int)},
+                {(typeof(int), typeof(short)), typeof(int)},
+                {(typeof(int), typeof(ushort)), typeof(int)},
+                {(typeof(int), typeof(int)), typeof(int)},
+                {(typeof(int), typeof(uint)), typeof(uint)},
+                {(typeof(int), typeof(long)), typeof(long)},
+                {(typeof(int), typeof(decimal)), typeof(decimal)},
+
+                {(typeof(uint), typeof(byte)), typeof(uint)},
+                {(typeof(uint), typeof(sbyte)), typeof(uint)},
+                {(typeof(uint), typeof(short)), typeof(uint)},
+                {(typeof(uint), typeof(ushort)), typeof(uint)},
+                {(typeof(uint), typeof(int)), typeof(uint)},
+                {(typeof(uint), typeof(uint)), typeof(uint)},
+                {(typeof(uint), typeof(long)), typeof(ulong)},
+                {(typeof(uint), typeof(ulong)), typeof(ulong)},
+                {(typeof(uint), typeof(decimal)), typeof(decimal)},
+
+                {(typeof(long), typeof(byte)), typeof(long)},
+                {(typeof(long), typeof(sbyte)), typeof(long)},
+                {(typeof(long), typeof(short)), typeof(long)},
+                {(typeof(long), typeof(ushort)), typeof(long)},
+                {(typeof(long), typeof(int)), typeof(long)},
+                {(typeof(long), typeof(uint)), typeof(ulong)},
+                {(typeof(long), typeof(long)), typeof(long)},
+                {(typeof(long), typeof(decimal)), typeof(decimal)},
+
+                {(typeof(ulong), typeof(byte)), typeof(ulong)},
+                {(typeof(ulong), typeof(ushort)), typeof(ulong)},
+                {(typeof(ulong), typeof(uint)), typeof(ulong)},
+                {(typeof(ulong), typeof(ulong)), typeof(ulong)},
+                {(typeof(ulong), typeof(decimal)), typeof(decimal)},
+
+                {(typeof(decimal), typeof(byte)), typeof(decimal)},
+                {(typeof(decimal), typeof(sbyte)), typeof(decimal)},
+                {(typeof(decimal), typeof(short)), typeof(decimal)},
+                {(typeof(decimal), typeof(ushort)), typeof(decimal)},
+                {(typeof(decimal), typeof(int)), typeof(decimal)},
+                {(typeof(decimal), typeof(uint)), typeof(decimal)},
+                {(typeof(decimal), typeof(long)), typeof(decimal)},
+                {(typeof(decimal), typeof(ulong)), typeof(decimal)},
+                {(typeof(decimal), typeof(decimal)), typeof(decimal)},
+                
+                {(typeof(object), typeof(object)), typeof(object)},
+                {(typeof(string), typeof(string)), typeof(string)},
+                {(typeof(bool), typeof(bool)), typeof(bool)},
+                
+                {(typeof(DateTimeOffset), typeof(DateTimeOffset)), typeof(DateTimeOffset)},
+                {(typeof(DateTimeOffset), typeof(TimeSpan)), typeof(DateTimeOffset)},
+                {(typeof(DateTime), typeof(DateTime)), typeof(DateTime)},
+                {(typeof(DateTime), typeof(TimeSpan)), typeof(DateTime)},
+                {(typeof(TimeSpan), typeof(TimeSpan)), typeof(TimeSpan)}
+            };
+            
             BinaryTypes = dict;
-
-            dict.Add((typeof(decimal), typeof(decimal)), typeof(decimal));
-            dict.Add((typeof(decimal), typeof(long)), typeof(decimal));
-            dict.Add((typeof(decimal), typeof(int)), typeof(decimal));
-            dict.Add((typeof(decimal), typeof(short)), typeof(decimal));
-
-            dict.Add((typeof(long), typeof(decimal)), typeof(decimal));
-            dict.Add((typeof(long), typeof(long)), typeof(long));
-            dict.Add((typeof(long), typeof(int)), typeof(long));
-            dict.Add((typeof(long), typeof(short)), typeof(long));
-
-            dict.Add((typeof(ulong), typeof(decimal)), typeof(decimal));
-            dict.Add((typeof(ulong), typeof(ulong)), typeof(ulong));
-            dict.Add((typeof(ulong), typeof(uint)), typeof(ulong));
-            dict.Add((typeof(ulong), typeof(ushort)), typeof(ulong));
-
-            dict.Add((typeof(int), typeof(decimal)), typeof(decimal));
-            dict.Add((typeof(int), typeof(long)), typeof(long));
-            dict.Add((typeof(int), typeof(int)), typeof(int));
-            dict.Add((typeof(int), typeof(short)), typeof(int));
-
-            dict.Add((typeof(uint), typeof(decimal)), typeof(decimal));
-            dict.Add((typeof(uint), typeof(ulong)), typeof(ulong));
-            dict.Add((typeof(uint), typeof(uint)), typeof(uint));
-            dict.Add((typeof(uint), typeof(ushort)), typeof(uint));
-
-            dict.Add((typeof(short), typeof(decimal)), typeof(decimal));
-            dict.Add((typeof(short), typeof(long)), typeof(long));
-            dict.Add((typeof(short), typeof(int)), typeof(int));
-            dict.Add((typeof(short), typeof(short)), typeof(short));
-
-            dict.Add((typeof(ushort), typeof(decimal)), typeof(decimal));
-            dict.Add((typeof(ushort), typeof(ulong)), typeof(ulong));
-            dict.Add((typeof(ushort), typeof(uint)), typeof(uint));
-            dict.Add((typeof(ushort), typeof(ushort)), typeof(ushort));
-
-            dict.Add((typeof(string), typeof(string)), typeof(string));
-
-            dict.Add((typeof(bool), typeof(bool)), typeof(bool));
-
-            dict.Add((typeof(DateTimeOffset), typeof(DateTimeOffset)), typeof(DateTimeOffset));
-            dict.Add((typeof(DateTimeOffset), typeof(TimeSpan)), typeof(DateTimeOffset));
-
-            dict.Add((typeof(DateTime), typeof(DateTime)), typeof(DateTime));
-            dict.Add((typeof(DateTime), typeof(TimeSpan)), typeof(DateTime));
-
-            dict.Add((typeof(object), typeof(object)), typeof(object));
-
-            dict.Add((typeof(TimeSpan), typeof(TimeSpan)), typeof(TimeSpan));
         }
 
-        public static IReadOnlyDictionary<(Type, Type), Type> BinaryTypes { get; }
+        private static IReadOnlyDictionary<(Type, Type), Type> BinaryTypes { get; }
 
         public static Type GetReturnTypeMap(Type left, Type right)
         {

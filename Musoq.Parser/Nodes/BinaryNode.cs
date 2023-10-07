@@ -7,7 +7,7 @@ namespace Musoq.Parser.Nodes
     {
         private readonly Node[] _nodes;
 
-        public BinaryNode(Node left, Node right)
+        protected BinaryNode(Node left, Node right)
         {
             _nodes = new[] {left, right};
         }

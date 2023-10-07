@@ -14,7 +14,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
     public RewriteWhereExpressionToPassItToDataSourceVisitor(SchemaFromNode schemaFromNode)
     {
         _schemaFromNode = schemaFromNode;
-        _equalityNode = new EqualityNode(new IntegerNode("1"), new IntegerNode("1"));
+        _equalityNode = new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s"));
     }
 
     public override void Visit(GreaterNode node)

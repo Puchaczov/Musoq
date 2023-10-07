@@ -156,17 +156,16 @@ namespace Musoq.Parser.Lexing
                 {
                     match = rule.Regex.Match(Input, Position);
 
-                    if (match.Success && match.Index - Position == 0)
-                    {
-                        matchedDefinition = rule;
-                        matchLength = match.Length;
-                        break;
-                    }
+                    if (!match.Success || match.Index - Position != 0) continue;
+                    
+                    matchedDefinition = rule;
+                    matchLength = match.Length;
+                    break;
                 }
 
                 if (matchedDefinition == null)
                     throw new UnknownTokenException(Position, Input[Position],
-                        $"Unrecognized token exception at {Position} for {Input.Substring(Position)}");
+                        $"Unrecognized token exception at {Position} for {Input[Position..]}");
                 var token = GetToken(matchedDefinition, match);
                 Position += matchLength;
 
