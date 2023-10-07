@@ -9,7 +9,7 @@ namespace Musoq.Parser.Helpers
         {
             var dict = new Dictionary<(Type, Type), Type>
             {
-                {(typeof(byte), typeof(byte)), typeof(byte)},
+                {(typeof(byte), typeof(byte)), typeof(int)},
                 {(typeof(byte), typeof(sbyte)), typeof(int)},
                 {(typeof(byte), typeof(short)), typeof(int)},
                 {(typeof(byte), typeof(ushort)), typeof(int)},
@@ -20,7 +20,7 @@ namespace Musoq.Parser.Helpers
                 {(typeof(byte), typeof(decimal)), typeof(decimal)},
 
                 {(typeof(sbyte), typeof(byte)), typeof(int)},
-                {(typeof(sbyte), typeof(sbyte)), typeof(sbyte)},
+                {(typeof(sbyte), typeof(sbyte)), typeof(int)},
                 {(typeof(sbyte), typeof(short)), typeof(int)},
                 {(typeof(sbyte), typeof(ushort)), typeof(int)},
                 {(typeof(sbyte), typeof(int)), typeof(int)},

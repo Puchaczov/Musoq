@@ -13,7 +13,7 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     [TestMethod]
     public void WhenSByteAndSByteUsed_ShouldHaveColumnOfThatType()
     {
-        TestMethodTemplate<byte>("1ub + 1ub", 2);
+        TestMethodTemplate<int>("1ub + 1ub", 2);
     }
 
     [TestMethod]
@@ -73,7 +73,7 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     [TestMethod]
     public void WhenSByteAndSByteUsed_ShouldHaveColumnOfSByteType()
     {
-        TestMethodTemplate<sbyte>("1b + 1b", 2);
+        TestMethodTemplate<int>("1b + 1b", 2);
     }
 
     [TestMethod]

@@ -625,12 +625,149 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DecimalNode node)
         {
-            Nodes.Push(Generator.LiteralExpression(node.Value));
+            Nodes.Push(
+                SyntaxFactory.CastExpression(
+                        SyntaxFactory.PredefinedType(
+                            SyntaxFactory.Token(SyntaxKind.DecimalKeyword)),
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(node.Value)))
+                    .WithOpenParenToken(
+                        SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                    .WithCloseParenToken(
+                        SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+                    .NormalizeWhitespace());
         }
 
         public void Visit(IntegerNode node)
         {
-            Nodes.Push(Generator.LiteralExpression(node.ObjValue));
+            switch (node.ReturnType)
+            {
+                case { } t when t == typeof(sbyte):
+                {
+                    Nodes.Push(
+                        SyntaxFactory.CastExpression(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.SByteKeyword)),
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal((sbyte)node.ObjValue)))
+                            .WithOpenParenToken(
+                                SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                            .WithCloseParenToken(
+                                SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+                    break;
+                }
+                case { } t when t == typeof(byte):
+                {
+                    Nodes.Push(
+                        SyntaxFactory.CastExpression(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.ByteKeyword)),
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal((byte)node.ObjValue)))
+                            .WithOpenParenToken(
+                                SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                            .WithCloseParenToken(
+                                SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+                    break;
+                }
+                case { } t when t == typeof(short):
+                {
+                    Nodes.Push(
+                        SyntaxFactory.CastExpression(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.ShortKeyword)),
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal((short)node.ObjValue)))
+                            .WithOpenParenToken(
+                                SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                            .WithCloseParenToken(
+                                SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+                    break;
+                }
+                case { } t when t == typeof(ushort):
+                {
+                    Nodes.Push(
+                        SyntaxFactory.CastExpression(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.UShortKeyword)),
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal((ushort)node.ObjValue)))
+                            .WithOpenParenToken(
+                                SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                            .WithCloseParenToken(
+                                SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+                    break;
+                }
+                case { } t when t == typeof(int):
+                {
+                    Nodes.Push(
+                        SyntaxFactory.CastExpression(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal((int)node.ObjValue)))
+                            .WithOpenParenToken(
+                                SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                            .WithCloseParenToken(
+                                SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+                    break;
+                }
+                case { } t when t == typeof(uint):
+                {
+                    Nodes.Push(
+                        SyntaxFactory.CastExpression(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal((uint)node.ObjValue)))
+                            .WithOpenParenToken(
+                                SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                            .WithCloseParenToken(
+                                SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+                    break;
+                }
+                case { } t when t == typeof(long):
+                {
+                    Nodes.Push(
+                        SyntaxFactory.CastExpression(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.LongKeyword)),
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal((long)node.ObjValue)))
+                            .WithOpenParenToken(
+                                SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                            .WithCloseParenToken(
+                                SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+                    break;
+                }
+                case { } t when t == typeof(ulong):
+                {
+                    Nodes.Push(
+                        SyntaxFactory.CastExpression(
+                                SyntaxFactory.PredefinedType(
+                                    SyntaxFactory.Token(SyntaxKind.ULongKeyword)),
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal((ulong)node.ObjValue)))
+                            .WithOpenParenToken(
+                                SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                            .WithCloseParenToken(
+                                SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+                    break;
+                }
+                default:
+                {
+                    throw new NotSupportedException($"Type {node.ReturnType} is not supported.");
+                }
+            }
         }
 
         public void Visit(BooleanNode node)
