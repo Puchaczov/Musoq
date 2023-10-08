@@ -197,7 +197,7 @@ public class MethodsMetadata
                 if (IsTypePossibleToConvert(param, arg) ||
                     CanSafelyPassNull(rawParam, arg) ||
                     param.IsGenericParameter ||
-                    arg.IsArray && param.IsGenericType && param.Name == "IEnumerable`1" || 
+                    (arg.IsArray || arg.GetInterface("IEnumerable") != null) && param.IsGenericType && param.Name == "IEnumerable`1" || 
                     param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" && arg.Name == "IEnumerable`1" ||
                     param.IsArray && param.GetElementType().IsGenericParameter ||
                     arg.IsArray && arg.GetElementType().IsGenericParameter)

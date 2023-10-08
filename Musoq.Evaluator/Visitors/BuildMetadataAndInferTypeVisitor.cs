@@ -1443,6 +1443,11 @@ namespace Musoq.Evaluator.Visitors
             _theMostInnerIdentifier = node;
         }
 
+        public void PushNode(Node node)
+        {
+            Nodes.Push(node);
+        }
+
         private Type FindGreatestCommonSubtype()
         {
             var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance).Select(StripNullable)

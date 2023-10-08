@@ -22,147 +22,147 @@ using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class RewriteQueryVisitor : IScopeAwareExpressionVisitor
+    public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         private readonly List<JoinFromNode> _joinedTables = new();
         private int _queryIndex = 0;
         private Scope _scope;
 
-        protected Stack<Node> Nodes { get; } = new();
+        private Stack<Node> Nodes { get; } = new();
 
         public RootNode RootScript { get; private set; }
 
-        public virtual void Visit(Node node)
+        public void Visit(Node node)
         {
         }
 
-        public virtual void Visit(DescNode node)
+        public void Visit(DescNode node)
         {
             var from = (SchemaFromNode) Nodes.Pop();
             Nodes.Push(new DescNode(from, node.Type));
         }
 
-        public virtual void Visit(StarNode node)
+        public void Visit(StarNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new StarNode(left, right));
         }
 
-        public virtual void Visit(FSlashNode node)
+        public void Visit(FSlashNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new FSlashNode(left, right));
         }
 
-        public virtual void Visit(ModuloNode node)
+        public void Visit(ModuloNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new ModuloNode(left, right));
         }
 
-        public virtual void Visit(AddNode node)
+        public void Visit(AddNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new AddNode(left, right));
         }
 
-        public virtual void Visit(HyphenNode node)
+        public void Visit(HyphenNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new HyphenNode(left, right));
         }
 
-        public virtual void Visit(AndNode node)
+        public void Visit(AndNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new AndNode(left, right));
         }
 
-        public virtual void Visit(OrNode node)
+        public void Visit(OrNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new OrNode(left, right));
         }
 
-        public virtual void Visit(ShortCircuitingNodeLeft node)
+        public void Visit(ShortCircuitingNodeLeft node)
         {
             Nodes.Push(new ShortCircuitingNodeLeft(Nodes.Pop(), node.UsedFor));
         }
 
-        public virtual void Visit(ShortCircuitingNodeRight node)
+        public void Visit(ShortCircuitingNodeRight node)
         {
             Nodes.Push(new ShortCircuitingNodeRight(Nodes.Pop(), node.UsedFor));
         }
 
-        public virtual void Visit(EqualityNode node)
+        public void Visit(EqualityNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new EqualityNode(left, right));
         }
 
-        public virtual void Visit(GreaterOrEqualNode node)
+        public void Visit(GreaterOrEqualNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new GreaterOrEqualNode(left, right));
         }
 
-        public virtual void Visit(LessOrEqualNode node)
+        public void Visit(LessOrEqualNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new LessOrEqualNode(left, right));
         }
 
-        public virtual void Visit(GreaterNode node)
+        public void Visit(GreaterNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new GreaterNode(left, right));
         }
 
-        public virtual void Visit(LessNode node)
+        public void Visit(LessNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new LessNode(left, right));
         }
 
-        public virtual void Visit(DiffNode node)
+        public void Visit(DiffNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new DiffNode(left, right));
         }
 
-        public virtual void Visit(NotNode node)
+        public void Visit(NotNode node)
         {
             Nodes.Push(new NotNode(Nodes.Pop()));
         }
 
-        public virtual void Visit(LikeNode node)
+        public void Visit(LikeNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new LikeNode(left, right));
         }
 
-        public virtual void Visit(RLikeNode node)
+        public void Visit(RLikeNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new RLikeNode(left, right));
         }
 
-        public virtual void Visit(InNode node)
+        public void Visit(InNode node)
         {
             var right = (ArgsListNode)Nodes.Pop();
             var left = Nodes.Pop();
@@ -177,48 +177,48 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(exp);
         }
 
-        public virtual void Visit(FieldNode node)
+        public void Visit(FieldNode node)
         {
             Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));
         }
 
-        public virtual void Visit(FieldOrderedNode node)
+        public void Visit(FieldOrderedNode node)
         {
             Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.Order));
         }
 
-        public virtual void Visit(SelectNode node)
+        public void Visit(SelectNode node)
         {
             var fields = CreateFields(node.Fields);
 
             Nodes.Push(new SelectNode(fields.ToArray()));
         }
 
-        public virtual void Visit(GroupSelectNode node)
+        public void Visit(GroupSelectNode node)
         {
         }
 
-        public virtual void Visit(StringNode node)
+        public void Visit(StringNode node)
         {
             Nodes.Push(new StringNode(node.Value));
         }
 
-        public virtual void Visit(DecimalNode node)
+        public void Visit(DecimalNode node)
         {
             Nodes.Push(new DecimalNode(node.Value));
         }
 
-        public virtual void Visit(IntegerNode node)
+        public void Visit(IntegerNode node)
         {
             Nodes.Push(new IntegerNode(node.ObjValue));
         }
 
-        public virtual void Visit(BooleanNode node)
+        public void Visit(BooleanNode node)
         {
             Nodes.Push(new BooleanNode(node.Value));
         }
 
-        public virtual void Visit(WordNode node)
+        public void Visit(WordNode node)
         {
             Nodes.Push(new WordNode(node.Value));
         }
@@ -228,64 +228,64 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new NullNode(node.ReturnType));
         }
 
-        public virtual void Visit(ContainsNode node)
+        public void Visit(ContainsNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new ContainsNode(left, right as ArgsListNode));
         }
 
-        public virtual void Visit(AccessMethodNode node)
+        public void Visit(AccessMethodNode node)
         {
             VisitAccessMethod(node);
         }
 
-        public virtual void Visit(AccessRawIdentifierNode node)
+        public void Visit(AccessRawIdentifierNode node)
         {
             Nodes.Push(new AccessRawIdentifierNode(node.Name, node.ReturnType));
         }
 
-        public virtual void Visit(IsNullNode node)
+        public void Visit(IsNullNode node)
         {
             Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
         }
 
-        public virtual void Visit(AccessRefreshAggreationScoreNode node)
+        public void Visit(AccessRefreshAggreationScoreNode node)
         {
             VisitAccessMethod(node);
         }
 
-        public virtual void Visit(AccessColumnNode node)
+        public void Visit(AccessColumnNode node)
         {
             Nodes.Push(new AccessColumnNode(node.Name, node.Alias, node.ReturnType, node.Span));
         }
 
-        public virtual void Visit(AllColumnsNode node)
+        public void Visit(AllColumnsNode node)
         {
             Nodes.Push(new AllColumnsNode());
         }
 
-        public virtual void Visit(IdentifierNode node)
+        public void Visit(IdentifierNode node)
         {
             Nodes.Push(new IdentifierNode(node.Name));
         }
 
-        public virtual void Visit(AccessObjectArrayNode node)
+        public void Visit(AccessObjectArrayNode node)
         {
             Nodes.Push(new AccessObjectArrayNode(node.Token, node.PropertyInfo));
         }
 
-        public virtual void Visit(AccessObjectKeyNode node)
+        public void Visit(AccessObjectKeyNode node)
         {
             Nodes.Push(new AccessObjectKeyNode(node.Token, node.PropertyInfo));
         }
 
-        public virtual void Visit(PropertyValueNode node)
+        public void Visit(PropertyValueNode node)
         {
             Nodes.Push(new PropertyValueNode(node.Name, node.PropertyInfo));
         }
 
-        public virtual void Visit(DotNode node)
+        public void Visit(DotNode node)
         {
             var exp = Nodes.Pop();
             var root = Nodes.Pop();
@@ -293,11 +293,11 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new DotNode(root, exp, node.IsTheMostInner, node.Name, exp.ReturnType));
         }
 
-        public virtual void Visit(AccessCallChainNode node)
+        public void Visit(AccessCallChainNode node)
         {
         }
 
-        public virtual void Visit(ArgsListNode node)
+        public void Visit(ArgsListNode node)
         {
             var args = new Node[node.Args.Length];
 
@@ -307,12 +307,12 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new ArgsListNode(args));
         }
 
-        public virtual void Visit(WhereNode node)
+        public void Visit(WhereNode node)
         {
             Nodes.Push(new WhereNode(Nodes.Pop()));
         }
 
-        public virtual void Visit(GroupByNode node)
+        public void Visit(GroupByNode node)
         {
             var having = Nodes.Peek() as HavingNode;
 
@@ -328,31 +328,31 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new GroupByNode(fields, having));
         }
 
-        public virtual void Visit(HavingNode node)
+        public void Visit(HavingNode node)
         {
             Nodes.Push(new HavingNode(Nodes.Pop()));
         }
 
-        public virtual void Visit(SkipNode node)
+        public void Visit(SkipNode node)
         {
             Nodes.Push(new SkipNode((IntegerNode) node.Expression));
         }
 
-        public virtual void Visit(TakeNode node)
+        public void Visit(TakeNode node)
         {
             Nodes.Push(new TakeNode((IntegerNode) node.Expression));
         }
 
-        public virtual void Visit(SchemaFromNode node)
+        public void Visit(SchemaFromNode node)
         {
             Nodes.Push(new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId));
         }
 
-        public virtual void Visit(JoinSourcesTableFromNode node)
+        public void Visit(JoinSourcesTableFromNode node)
         {
         }
 
-        public virtual void Visit(JoinFromNode node)
+        public void Visit(JoinFromNode node)
         {
             var exp = Nodes.Pop();
             var right = (FromNode) Nodes.Pop();
@@ -361,51 +361,51 @@ namespace Musoq.Evaluator.Visitors
             _joinedTables.Add(node);
         }
 
-        public virtual void Visit(ExpressionFromNode node)
+        public void Visit(ExpressionFromNode node)
         {
             Nodes.Push(new Parser.ExpressionFromNode((FromNode) Nodes.Pop()));
         }
 
-        public virtual void Visit(InMemoryTableFromNode node)
+        public void Visit(InMemoryTableFromNode node)
         {
             Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, node.Alias));
         }
 
-        public virtual void Visit(CreateTransformationTableNode node)
+        public void Visit(CreateTransformationTableNode node)
         {
             var fields = CreateFields(node.Fields);
 
             Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, fields, node.ForGrouping));
         }
 
-        public virtual void Visit(RenameTableNode node)
+        public void Visit(RenameTableNode node)
         {
             Nodes.Push(new RenameTableNode(node.TableSourceName, node.TableDestinationName));
         }
 
-        public virtual void Visit(TranslatedSetTreeNode node)
+        public void Visit(TranslatedSetTreeNode node)
         {
         }
 
-        public virtual void Visit(IntoNode node)
+        public void Visit(IntoNode node)
         {
             Nodes.Push(new IntoNode(node.Name));
         }
 
-        public virtual void Visit(QueryScope node)
+        public void Visit(QueryScope node)
         {
         }
 
-        public virtual void Visit(ShouldBePresentInTheTable node)
+        public void Visit(ShouldBePresentInTheTable node)
         {
             Nodes.Push(new ShouldBePresentInTheTable(node.Table, node.ExpectedResult, node.Keys));
         }
 
-        public virtual void Visit(TranslatedSetOperatorNode node)
+        public void Visit(TranslatedSetOperatorNode node)
         {
         }
 
-        public virtual void Visit(QueryNode node)
+        public void Visit(QueryNode node)
         {
             var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
             var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
@@ -729,6 +729,8 @@ namespace Musoq.Evaluator.Visitors
 
                     groupBy.Accept(selectTraverser);
                     groupBy = selectRewriter.ChangedGroupBy;
+                    where?.Accept(selectTraverser);
+                    where = selectRewriter.ChangedWhere;
 
                     scopeTransformedQuery.ScopeSymbolTable.AddSymbol("groupFields",
                         new FieldsNamesSymbol(groupBy.Fields.Select(f => f.FieldName).ToArray()));
@@ -765,7 +767,7 @@ namespace Musoq.Evaluator.Visitors
                 scopeResultQuery[MetaAttributes.Contexts] = $"{nestedFrom.Alias}";
 
                 aliasesPositionsSymbol.AliasesPositions.Add(nestedFrom.Alias, aliasIndex++);
-                aliasesPositionsSymbol.AliasesPositions.Add(returnScore, aliasIndex++);
+                aliasesPositionsSymbol.AliasesPositions.Add(returnScore, aliasIndex);
 
                 query = new DetailedQueryNode(
                     outSelect,
@@ -790,9 +792,9 @@ namespace Musoq.Evaluator.Visitors
             }
             else
             {
-                var splitted = SplitBetweenAggregateAndNonAggregate(select.Fields, Array.Empty<FieldNode>(), true);
+                var split = SplitBetweenAggregateAndNonAggregate(select.Fields, Array.Empty<FieldNode>(), true);
                 
-                if (IsQueryWithMixedAggregateAndNonAggregateMethods(splitted))
+                if (IsQueryWithMixedAggregateAndNonAggregateMethods(split))
                 {
                     query = new InternalQueryNode(select, from, where, null, null, skip, take,
                         CreateRefreshMethods(usedRefreshMethods));
@@ -813,7 +815,7 @@ namespace Musoq.Evaluator.Visitors
                             new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                         : from;
 
-                    aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex++);
+                    aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex);
 
                     splitNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], Array.Empty<string>(), select.Fields, false));
                     splitNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, null, skip, take,
@@ -831,24 +833,24 @@ namespace Musoq.Evaluator.Visitors
             _joinedTables.Clear();
         }
 
-        public virtual void Visit(JoinInMemoryWithSourceTableFromNode node)
+        public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
             var exp = Nodes.Pop();
             var from = (FromNode) Nodes.Pop();
             Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
         }
 
-        public virtual void Visit(InternalQueryNode node)
+        public void Visit(InternalQueryNode node)
         {
             throw new NotSupportedException();
         }
 
-        public virtual void Visit(RootNode node)
+        public void Visit(RootNode node)
         {
             RootScript = new RootNode(Nodes.Pop());
         }
 
-        public virtual void Visit(SingleSetNode node)
+        public void Visit(SingleSetNode node)
         {
             var query = (InternalQueryNode) Nodes.Pop();
 
@@ -857,18 +859,18 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new MultiStatementNode(nodes, null));
         }
 
-        public virtual void Visit(RefreshNode node)
+        public void Visit(RefreshNode node)
         {
         }
 
-        public virtual void Visit(UnionNode node)
+        public void Visit(UnionNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
-        public virtual void Visit(UnionAllNode node)
+        public void Visit(UnionAllNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
@@ -876,14 +878,14 @@ namespace Musoq.Evaluator.Visitors
                 node.IsTheLastOne));
         }
 
-        public virtual void Visit(ExceptNode node)
+        public void Visit(ExceptNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
             Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
-        public virtual void Visit(IntersectNode node)
+        public void Visit(IntersectNode node)
         {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
@@ -891,12 +893,12 @@ namespace Musoq.Evaluator.Visitors
                 new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
         }
 
-        public virtual void Visit(PutTrueNode node)
+        public void Visit(PutTrueNode node)
         {
             Nodes.Push(new PutTrueNode());
         }
 
-        public virtual void Visit(MultiStatementNode node)
+        public void Visit(MultiStatementNode node)
         {
             var items = new Node[node.Nodes.Length];
 
@@ -906,7 +908,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new MultiStatementNode(items, node.ReturnType));
         }
 
-        public virtual void Visit(CteExpressionNode node)
+        public void Visit(CteExpressionNode node)
         {
             var sets = new CteInnerExpressionNode[node.InnerExpression.Length];
 
@@ -918,21 +920,21 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new CteExpressionNode(sets, set));
         }
 
-        public virtual void Visit(CteInnerExpressionNode node)
+        public void Visit(CteInnerExpressionNode node)
         {
             Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name));
         }
 
-        public virtual void Visit(JoinsNode node)
+        public void Visit(JoinsNode node)
         {
             Nodes.Push(new Parser.JoinsNode((Parser.JoinFromNode) Nodes.Pop()));
         }
 
-        public virtual void Visit(JoinNode node)
+        public void Visit(JoinNode node)
         {
         }
 
-        public virtual void Visit(OrderByNode node)
+        public void Visit(OrderByNode node)
         {
             var fields = new FieldOrderedNode[node.Fields.Length];
 
@@ -942,36 +944,36 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new OrderByNode(fields));
         }
 
-        public virtual void SetScope(Scope scope)
+        public void SetScope(Scope scope)
         {
             _scope = scope;
         }
 
-        public virtual void Visit(CreateTableNode node)
+        public void Visit(CreateTableNode node)
         {
         }
 
-        public virtual void Visit(CoupleNode node)
+        public void Visit(CoupleNode node)
         {
         }
 
-        public virtual void Visit(SchemaMethodFromNode node)
+        public void Visit(SchemaMethodFromNode node)
         {
         }
 
-        public virtual void Visit(AliasedFromNode node)
+        public void Visit(AliasedFromNode node)
         {
         }
 
-        public virtual void Visit(StatementsArrayNode node)
+        public void Visit(StatementsArrayNode node)
         {
         }
 
-        public virtual void Visit(StatementNode node)
+        public void Visit(StatementNode node)
         {
         }
 
-        public virtual void Visit(CaseNode node)
+        public void Visit(CaseNode node)
         {
             var whenThenPairs = new List<(Node When, Node Then)>();
 
@@ -1005,7 +1007,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new ElseNode(expression));
         }
 
-        public virtual void Visit(FieldLinkNode node)
+        public void Visit(FieldLinkNode node)
         {
             Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
         }

@@ -133,17 +133,17 @@ namespace Musoq.Evaluator.Visitors
             var ident = (IdentifierNode) theMostOuter.Root;
             if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
             {
+                IdentifierNode column;
                 if (theMostOuter.Expression is DotNode dotNode)
                 {
-                    var col = (IdentifierNode) dotNode.Root;
-                    Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
+                    column = (IdentifierNode) dotNode.Root;
                 }
                 else
                 {
-                    var col = (IdentifierNode) theMostOuter.Expression;
-                    Visit(new AccessColumnNode(col.Name, ident.Name, TextSpan.Empty));
+                    column = (IdentifierNode) theMostOuter.Expression;
                 }
 
+                Visit(new AccessColumnNode(column.Name, ident.Name, TextSpan.Empty));
                 return;
             }
 
@@ -161,7 +161,7 @@ namespace Musoq.Evaluator.Visitors
 
             self = node;
             
-            while (!(self is null))
+            while (self is not null)
             {
                 self.Root.Accept(this);
                 self.Expression.Accept(this);

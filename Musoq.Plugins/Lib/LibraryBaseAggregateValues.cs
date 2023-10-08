@@ -131,6 +131,25 @@ namespace Musoq.Plugins
 
             AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
         }
+        
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetAggregateValues([InjectGroup] Group group, string name, char? value, int parent = 0)
+        {
+            if (!value.HasValue)
+            {
+                AggregateAdd(group, name, string.Empty, parent);
+                return;
+            }
+
+            AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
+        }
 
         private static void AggregateAdd<TType>(Group group, string name, TType value, int parent)
         {
