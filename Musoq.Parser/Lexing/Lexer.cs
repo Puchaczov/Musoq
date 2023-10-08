@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -8,6 +9,13 @@ namespace Musoq.Parser.Lexing
     public class Lexer : LexerBase<Token>
     {
         private readonly bool _skipWhiteSpaces;
+
+        private readonly Regex[] _decimalCandidates = new[]
+        {
+            new Regex(TokenRegexDefinition.KDecimalWithDot),
+            new Regex(TokenRegexDefinition.KDecimalWithSuffix),
+            new Regex(TokenRegexDefinition.KDecimalWithDotAndSuffix)
+        };
 
         /// <summary>
         ///     Initialize instance.
@@ -139,11 +147,8 @@ namespace Musoq.Parser.Lexing
             if (string.IsNullOrWhiteSpace(tokenText))
                 return TokenType.WhiteSpace;
 
-            if (int.TryParse(tokenText, out _) && !tokenText.Contains(" "))
-                return TokenType.Integer;
-
             var regex = matchedDefinition.Regex.ToString();
-
+            
             if (regex == TokenRegexDefinition.KNotIn)
                 return TokenType.NotIn;
             if (regex == TokenRegexDefinition.KNotLike)
@@ -158,8 +163,6 @@ namespace Musoq.Parser.Lexing
                 return TokenType.KeyAccess;
             if (regex == TokenRegexDefinition.KNumericArrayAccess)
                 return TokenType.NumericAccess;
-            if (regex == TokenRegexDefinition.KDecimal)
-                return TokenType.Decimal;
             if (regex == TokenRegexDefinition.KGroupBy)
                 return TokenType.GroupBy;
             if (regex == TokenRegexDefinition.KUnionAll)
@@ -181,8 +184,25 @@ namespace Musoq.Parser.Lexing
                 return TokenType.Word;
             if (regex == TokenRegexDefinition.KFieldLink)
                 return TokenType.FieldLink;
+            if (regex != TokenRegexDefinition.KDecimalOrInteger) 
+                return TokenType.Word;
+            
+            if (_decimalCandidates.Any(decimalCandidate => decimalCandidate.IsMatch(tokenText)))
+            {
+                return TokenType.Decimal;
+            }
+                
+            var regexSignedInteger = new Regex(TokenRegexDefinition.KSignedInteger);
+                
+            if (regexSignedInteger.IsMatch(tokenText))
+                return TokenType.Integer;
+            
+            var regexUnsignedInteger = new Regex(TokenRegexDefinition.KUnsignedInteger);
+            
+            if (regexUnsignedInteger.IsMatch(tokenText))
+                return TokenType.Integer;
 
-            return TokenType.Word;
+            throw new NotSupportedException($"Token {tokenText} is not supported.");
         }
 
         /// <summary>
@@ -234,11 +254,16 @@ namespace Musoq.Parser.Lexing
             public static readonly string KGroupBy = @"(?<=[\s]{1,}|^)group[\s]{1,}by(?=[\s]{1,}|$)";
             public static readonly string KHaving = Format(Keyword, HavingToken.TokenText);
             public static readonly string KContains = Format(Keyword, ContainsToken.TokenText);
-            public static readonly string KDecimal = @"[\-]?([0-9]+(\.[0-9]{1,})?)[dD]?";
-            public static readonly string KFieldLink = @"::[1-9]{1,}";
+            public static readonly string KFieldLink = "::[1-9]{1,}";
             public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
             public static readonly string KKeyObjectAccessVariable = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
             public static readonly string KKeyObjectAccessConst = "([\\w*?_]{1,})\\[('[a-zA-Z0-9]{1,}')\\]";
+            public static readonly string KDecimalWithSuffix = @"[\-]?([0-9]+)[dD]{1}";
+            public static readonly string KDecimalWithDot = @"[\-]?([0-9]+\.[0-9]{1,})";
+            public static readonly string KDecimalWithDotAndSuffix = @"[\-]?([0-9]+\.[0-9]{1,})[dD]{1}";
+            public static readonly string KSignedInteger = @"-?\d+(?:I|i|L|l|S|s|B|b)?";
+            public static readonly string KUnsignedInteger = "[0-9]+(?:UI|ui|UL|ul|US|us|UB|ub){1}";
+            public static readonly string KDecimalOrInteger = $"({KDecimalWithDotAndSuffix}|{KDecimalWithDot}|{KDecimalWithSuffix}|{KUnsignedInteger}|{KSignedInteger})";
 
             public static readonly string KMethodAccess =
                 "([a-zA-Z1-9_-]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
@@ -273,14 +298,7 @@ namespace Musoq.Parser.Lexing
 
             private static string Format(string keyword, string arg)
             {
-                try
-                {
-                    return keyword.Replace("{keyword}", arg);
-                }
-                catch(Exception exc)
-                {
-                    throw exc;
-                }
+                return keyword.Replace("{keyword}", arg);
             }
         }
 
@@ -294,14 +312,14 @@ namespace Musoq.Parser.Lexing
             /// </summary>
             public static TokenDefinition[] General => new[]
             {
+                new TokenDefinition(TokenRegexDefinition.KDecimalOrInteger),
                 new TokenDefinition(TokenRegexDefinition.KDesc),
                 new TokenDefinition(TokenRegexDefinition.KAsc),
                 new TokenDefinition(TokenRegexDefinition.KLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNotLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KRLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KRNotLike, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KNotIn, RegexOptions.IgnoreCase), 
-                new TokenDefinition(TokenRegexDefinition.KDecimal),
+                new TokenDefinition(TokenRegexDefinition.KNotIn, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KAs, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KAnd, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KComma),
@@ -438,7 +456,9 @@ namespace Musoq.Parser.Lexing
                 case TokenType.Decimal:
                     return new DecimalToken(tokenText.TrimEnd('d'), new TextSpan(Position, tokenText.Length));
                 case TokenType.Integer:
-                    return new IntegerToken(tokenText, new TextSpan(Position, tokenText.Length));
+                    var abbreviation = GetAbbreviation(tokenText);
+                    var unAbbreviatedValue = abbreviation.Length > 0 ? tokenText.Replace(abbreviation, string.Empty) : tokenText;
+                    return new IntegerToken(unAbbreviatedValue, new TextSpan(Position, tokenText.Length), abbreviation);
                 case TokenType.Or:
                     return new OrToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Plus:
@@ -558,6 +578,22 @@ namespace Musoq.Parser.Lexing
                 return new WordToken(string.Empty, new TextSpan(Position + 1, 0));
 
             return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+        }
+
+        private static string GetAbbreviation(string tokenText)
+        {
+            if (tokenText.Length == 1)
+            {
+                return string.Empty;
+            }
+            
+            var position = 1;
+            while (position < tokenText.Length && char.IsDigit(tokenText[position]))
+            {
+                position++;
+            }
+            
+            return tokenText[position..];
         }
 
         #endregion

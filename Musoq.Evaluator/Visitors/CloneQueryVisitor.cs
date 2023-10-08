@@ -191,7 +191,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(IntegerNode node)
         {
-            Nodes.Push(new IntegerNode(node.ObjValue.ToString()));
+            Nodes.Push(new IntegerNode(node.ObjValue));
         }
 
         public void Visit(BooleanNode node)

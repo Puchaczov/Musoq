@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Musoq.Schema.DataSources
 {
@@ -21,8 +22,7 @@ namespace Musoq.Schema.DataSources
         {
             get
             {
-                foreach (var item in _entities)
-                    yield return new EntityResolver<T>(item, _nameToIndexMap, _indexToObjectAccessMap);
+                return _entities.Select(item => new EntityResolver<T>(item, _nameToIndexMap, _indexToObjectAccessMap));
             }
         }
     }

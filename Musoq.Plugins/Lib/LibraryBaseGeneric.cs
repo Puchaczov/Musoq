@@ -31,7 +31,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Only taken ones elements</returns>
         [BindableMethod]
-        public IEnumerable<T> Take<T>(IEnumerable<T>? values, int takeCount)
+        public IEnumerable<T>? Take<T>(IEnumerable<T>? values, int takeCount)
         {
             if (values == null)
                 return null;
@@ -48,7 +48,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Skipped and taken elements</returns>
         [BindableMethod]
-        public IEnumerable<T> SkipAndTake<T>(IEnumerable<T>? values, int skipCount, int takeCount)
+        public IEnumerable<T>? SkipAndTake<T>(IEnumerable<T>? values, int skipCount, int takeCount)
         {
             if (values == null)
                 return null;
@@ -63,7 +63,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Array of specific type</returns>
         [BindableMethod]
-        public T[] ToArray<T>(IEnumerable<T>? values)
+        public T[]? ToArray<T>(IEnumerable<T>? values)
         {
             if (values == null)
                 return null;
@@ -171,10 +171,7 @@ namespace Musoq.Plugins
         [BindableMethod]
         public int? Length<T>(T[]? array)
         {
-            if (array == null)
-                return null;
-
-            return array.Length;
+            return array?.Length;
         }
     }
 }

@@ -1090,8 +1090,6 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("march", table[2][0]);
         }
         
-        
-        
         [TestMethod]
         public void WhenGroupByUsedWithJoinsByMethodInvocation_ShouldRetrieveValues()
         {
@@ -1143,6 +1141,146 @@ group by countries.GetCountry()";
             Assert.AreEqual(2100m, table[0][1]);
             Assert.AreEqual("Germany", table[1][0]);
             Assert.AreEqual(400m, table[1][1]);
+        }
+
+        [TestMethod]
+        public void WhenGroupByWithWhereUsed_WhereUsesFieldThatWillBeUsedInResultingTable_ShouldSuccess()
+        {
+            var query = @"
+select 
+    a.Country,
+    AggregateValues(b.City)
+from #A.entities() a     
+inner join #B.entities() b on a.Country = b.Country
+where a.Country = 'Poland'
+group by a.Country";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity {Country = "Poland"},
+                    }
+                },
+                {
+                    "#B", new[]
+                    {
+                        new BasicEntity {City = "Warsaw", Country = "Poland"},
+                        new BasicEntity {City = "Gdansk", Country = "Poland"},
+                    }
+                }
+            };
+            
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            
+            var table = vm.Run();
+            
+            Assert.AreEqual("Poland", table[0][0]);
+            Assert.AreEqual("Warsaw,Gdansk", table[0][1]);
+        }
+
+        [TestMethod]
+        public void WhenGroupByWithWhereUsed_WhereUsesFieldThatWontBeUsedInResultingTable_ShouldSuccess()
+        {
+            var query = @"
+select 
+    a.Country,
+    AggregateValues(b.City)
+from #A.entities() a     
+inner join #B.entities() b on a.Country = b.Country
+where b.Population > 200
+group by a.Country";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity {Country = "Poland"},
+                    }
+                },
+                {
+                    "#B", new[]
+                    {
+                        new BasicEntity {City = "Warsaw", Country = "Poland", Population = 200},
+                        new BasicEntity {City = "Gdansk", Country = "Poland", Population = 300},
+                    }
+                }
+            };
+            
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            
+            var table = vm.Run();
+            
+            Assert.AreEqual("Poland", table[0][0]);
+            Assert.AreEqual("Gdansk", table[0][1]);
+        }
+
+        [Ignore("WORK IN PROGRESS")]
+        [TestMethod]
+        public void WhenAccessingTheFirstLetterWithMethodCallInsideAggregation_ShouldSucceed()
+        {
+            var query = @"
+select 
+    a.Country,
+    AggregateValues(GetElementAt(a.Country, 0))
+from #A.entities() a
+group by a.Country";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity {Country = "Poland"},
+                        new BasicEntity {Country = "Brazil"}
+                    }
+                }
+            };
+            
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            
+            var table = vm.Run();
+            
+            Assert.AreEqual("Poland", table[0][0]);
+            Assert.AreEqual("P", table[0][1]);
+            
+            Assert.AreEqual("Brazil", table[1][0]);
+            Assert.AreEqual("B", table[1][1]);
+        }
+
+        [Ignore("WORK IN PROGRESS")]
+        [TestMethod]
+        public void WhenAccessingTheFirstLetterWithIndexerInsideAggregation_ShouldSucceed()
+        {
+            var query = @"
+select 
+    a.Country,
+    AggregateValues(a.Country[0])
+from #A.entities() a
+group by a.Country";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity {Country = "Poland"},
+                        new BasicEntity {Country = "Brazil"}
+                    }
+                }
+            };
+            
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            
+            var table = vm.Run();
+            
+            Assert.AreEqual("Poland", table[0][0]);
+            Assert.AreEqual("P", table[0][1]);
+            
+            Assert.AreEqual("Brazil", table[1][0]);
+            Assert.AreEqual("B", table[1][1]);
         }
     }
 }
