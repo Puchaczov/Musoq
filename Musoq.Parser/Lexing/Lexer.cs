@@ -36,7 +36,18 @@ namespace Musoq.Parser.Lexing
         /// <returns>Statement type.</returns>
         private TokenType GetTokenCandidate(string tokenText, TokenDefinition matchedDefinition)
         {
-            switch (tokenText.ToLowerInvariant())
+            var regex = matchedDefinition.Regex.ToString();
+            var loweredToken = tokenText.ToLowerInvariant();
+            if (regex == TokenRegexDefinition.Function && loweredToken == AndToken.TokenText)
+                return TokenType.Function;
+            
+            if (regex == TokenRegexDefinition.Function && loweredToken == OrToken.TokenText)
+                return TokenType.Function;
+            
+            if (regex == TokenRegexDefinition.Function && loweredToken == NotToken.TokenText)
+                return TokenType.Function;
+            
+            switch (loweredToken)
             {
                 case DescToken.TokenText:
                     return TokenType.Desc;
@@ -146,8 +157,6 @@ namespace Musoq.Parser.Lexing
 
             if (string.IsNullOrWhiteSpace(tokenText))
                 return TokenType.WhiteSpace;
-
-            var regex = matchedDefinition.Regex.ToString();
             
             if (regex == TokenRegexDefinition.KNotIn)
                 return TokenType.NotIn;
@@ -321,6 +330,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KRNotLike, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNotIn, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KAs, RegexOptions.IgnoreCase),
+                new TokenDefinition(TokenRegexDefinition.Function),
                 new TokenDefinition(TokenRegexDefinition.KAnd, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KComma),
                 new TokenDefinition(TokenRegexDefinition.KDiff),
@@ -346,7 +356,6 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KContains, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KWhiteSpace),
                 new TokenDefinition(TokenRegexDefinition.KUnionAll, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.Function),
                 new TokenDefinition(TokenRegexDefinition.KEmptyString),
                 new TokenDefinition(TokenRegexDefinition.KWordBracketed, RegexOptions.ECMAScript),
                 new TokenDefinition(TokenRegexDefinition.KSelect, RegexOptions.IgnoreCase),
@@ -359,9 +368,9 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KSkip, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KNumericArrayAccess),
-                new TokenDefinition(TokenRegexDefinition.KMethodAccess),
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccessConst),
                 new TokenDefinition(TokenRegexDefinition.KKeyObjectAccessVariable),
+                new TokenDefinition(TokenRegexDefinition.KMethodAccess),
                 new TokenDefinition(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KOrderBy, RegexOptions.IgnoreCase),

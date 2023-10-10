@@ -21,17 +21,16 @@ namespace Musoq.Plugins
 
             var hexBuilder = new StringBuilder();
 
-            if (bytes.Length > 0)
+            if (bytes.Length <= 0) return hexBuilder.ToString();
+            
+            for (var i = 0; i < bytes.Length - 1; i++)
             {
-                for (int i = 0; i < bytes.Length - 1; i++)
-                {
-                    var byteValue = bytes[i];
-                    hexBuilder.Append(byteValue.ToString("X2"));
-                    hexBuilder.Append(delimiter);
-                }
-
-                hexBuilder.Append(bytes[^1].ToString("X2"));
+                var byteValue = bytes[i];
+                hexBuilder.Append(byteValue.ToString("X2"));
+                hexBuilder.Append(delimiter);
             }
+
+            hexBuilder.Append(bytes[^1].ToString("X2"));
 
             return hexBuilder.ToString();
         }

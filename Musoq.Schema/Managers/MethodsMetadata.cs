@@ -156,6 +156,7 @@ public class MethodsMetadata
     /// </summary>
     /// <param name="name">Method name</param>
     /// <param name="methodArgs">Types of method arguments</param>
+    /// <param name="entityType">Type of entity.</param>
     /// <param name="index">Index of method that fits requirements.</param>
     /// <returns>True if some method fits, else false.</returns>
     private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index)
@@ -166,7 +167,7 @@ public class MethodsMetadata
             return false;
         }
 
-        var methods = _methods[name];
+        var methods = _methods[name].OrderByDescending(MeasureHowCloseTheMethodIsAgainstTheArguments).ToList();
 
         for (int i = 0, j = methods.Count; i < j; ++i)
         {
@@ -243,12 +244,35 @@ public class MethodsMetadata
             }
             breakAll:
 
-            index = i;
+            index = _methods[name].IndexOf(methodInfo);
             return true;
         }
 
         index = -1;
         return false;
+
+        int MeasureHowCloseTheMethodIsAgainstTheArguments(MethodInfo registeredMethod)
+        {
+            var parameters = registeredMethod.GetParameters();
+            var howClosePassedTypesAre = 0;
+
+            if (parameters.Length < methodArgs.Count) return 0;
+
+            for (int i = methodArgs.Count - 1, j = 0; i >= j; --i)
+            {
+                var param = parameters[i].ParameterType.GetUnderlyingNullable();
+                var arg = methodArgs[i].GetUnderlyingNullable();
+
+                if (param == arg)
+                    howClosePassedTypesAre += 2;
+                else if (param.IsAssignableFrom(arg))
+                    howClosePassedTypesAre += 1;
+                else
+                    break;
+            }
+
+            return howClosePassedTypesAre;
+        }
     }
 
     /// <summary>
