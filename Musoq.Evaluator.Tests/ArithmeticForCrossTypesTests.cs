@@ -59,6 +59,18 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void WhenByteAndFloatUsed_ShouldHaveColumnOfFloatType()
+    {
+        TestMethodTemplate<float>("1ub + ToFloat(1)", 2);
+    }
+
+    [TestMethod]
+    public void WhenByteAndDoubleUsed_ShouldHaveColumnOfDoubleType()
+    {
+        TestMethodTemplate<double>("1ub + ToDouble(1)", 2);
+    }
+
+    [TestMethod]
     public void WhenByteAndDecimalUsed_ShouldHaveColumnOfDecimalType()
     {
         TestMethodTemplate<decimal>("1ub + 1d", 2);
@@ -104,6 +116,18 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     public void WhenSByteAndLongUsed_ShouldHaveColumnOfLongType()
     {
         TestMethodTemplate<long>("1b + 1l", 2);
+    }
+    
+    [TestMethod]
+    public void WhenSByteAndFloatUsed_ShouldHaveColumnOfFloatType()
+    {
+        TestMethodTemplate<float>("1b + ToFloat(1)", 2);
+    }
+    
+    [TestMethod]
+    public void WhenSByteAndDoubleUsed_ShouldHaveColumnOfDoubleType()
+    {
+        TestMethodTemplate<double>("1b + ToDouble(1)", 2);
     }
 
     [TestMethod]
@@ -152,6 +176,18 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     public void WhenShortAndLongUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<long>("1s + 1l", 2);
+    }
+    
+    [TestMethod]
+    public void WhenShortAndFloatUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("1s + ToFloat(1)", 2);
+    }
+    
+    [TestMethod]
+    public void WhenShortAndDoubleUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("1s + ToDouble(1)", 2);
     }
 
     [TestMethod]
@@ -207,12 +243,26 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong>("1us + 1ul", 2);
     }
+    
+    [TestMethod]
+    public void WhenUShortAndFloatUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("1us + ToFloat(1)", 2);
+    }
+    
+    [TestMethod]
+    public void WhenUShortAndDoubleUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("1us + ToDouble(1)", 2);
+    }
 
     [TestMethod]
     public void WhenUShortAndDecimalUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<decimal>("1us + 1d", 2);
-    }[TestMethod]
+    }
+    
+    [TestMethod]
     public void WhenIntAndByteUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<int>("1i + 1ub", 2);
@@ -252,6 +302,18 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     public void WhenIntAndLongUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<long>("1i + 1l", 2);
+    }
+    
+    [TestMethod]
+    public void WhenIntAndFloatUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("1i + ToFloat(1)", 2);
+    }
+    
+    [TestMethod]
+    public void WhenIntAndDoubleUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("1i + ToDouble(1)", 2);
     }
 
     [TestMethod]
@@ -307,6 +369,18 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong>("1ui + 1ul", 2ul);
     }
+    
+    [TestMethod]
+    public void WhenUIntAndFloatUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("1ui + ToFloat(1)", 2);
+    }
+    
+    [TestMethod]
+    public void WhenUIntAndDoubleUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("1ui + ToDouble(1)", 2);
+    }
 
     [TestMethod]
     public void WhenUIntAndDecimalUsed_ShouldHaveColumnOfThatType()
@@ -355,6 +429,18 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     {
         TestMethodTemplate<long>("1l + 1l", 2);
     }
+    
+    [TestMethod]
+    public void WhenLongAndFloatUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("1l + ToFloat(1)", 2);
+    }
+    
+    [TestMethod]
+    public void WhenLongAndDoubleUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("1l + ToDouble(1)", 2);
+    }
 
     [TestMethod]
     public void WhenLongAndDecimalUsed_ShouldHaveColumnOfThatType()
@@ -394,6 +480,114 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     public void WhenByteAndULongUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<ulong>("1ub + 1ul", 2);
+    }
+    
+    [TestMethod]
+    public void WhenByteAndFloatUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("1ub + ToFloat(1)", 2);
+    }
+    
+    [TestMethod]
+    public void WhenByteAndDoubleUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("1ub + ToDouble(1)", 2);
+    }
+    
+    [TestMethod]
+    public void WhenFloatAndSByteUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("ToFloat(1) + 1b", 2.0f);
+    }
+
+    [TestMethod]
+    public void WhenFloatAndByteUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("ToFloat(1) + 1ub", 2.0f);
+    }
+
+    [TestMethod]
+    public void WhenFloatAndShortUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("ToFloat(1) + 1s", 2.0f);
+    }
+
+    [TestMethod]
+    public void WhenFloatAndUShortUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("ToFloat(1) + 1us", 2.0f);
+    }
+
+    [TestMethod]
+    public void WhenFloatAndIntUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("ToFloat(1) + 1i", 2.0f);
+    }
+
+    [TestMethod]
+    public void WhenFloatAndUIntUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("ToFloat(1) + 1ui", 2.0f);
+    }
+
+    [TestMethod]
+    public void WhenFloatAndLongUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("ToFloat(1) + 1l", 2.0f);
+    }
+
+    [TestMethod]
+    public void WhenFloatAndULongUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<float>("ToFloat(1) + 1ul", 2.0f);
+    }
+    
+    [TestMethod]
+    public void WhenDoubleAndSByteUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("ToDouble(1) + 1b", 2.0);
+    }
+
+    [TestMethod]
+    public void WhenDoubleAndByteUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("ToDouble(1) + 1ub", 2.0);
+    }
+
+    [TestMethod]
+    public void WhenDoubleAndShortUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("ToDouble(1) + 1s", 2.0);
+    }
+
+    [TestMethod]
+    public void WhenDoubleAndUShortUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("ToDouble(1) + 1us", 2.0);
+    }
+
+    [TestMethod]
+    public void WhenDoubleAndIntUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("ToDouble(1) + 1i", 2.0);
+    }
+
+    [TestMethod]
+    public void WhenDoubleAndUIntUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("ToDouble(1) + 1ui", 2.0);
+    }
+
+    [TestMethod]
+    public void WhenDoubleAndLongUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("ToDouble(1) + 1l", 2.0);
+    }
+
+    [TestMethod]
+    public void WhenDoubleAndULongUsed_ShouldHaveColumnOfThatType()
+    {
+        TestMethodTemplate<double>("ToDouble(1) + 1ul", 2.0);
     }
 
     [TestMethod]

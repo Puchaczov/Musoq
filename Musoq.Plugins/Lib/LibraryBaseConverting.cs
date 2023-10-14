@@ -1,40 +1,47 @@
 ﻿using System;
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using Musoq.Plugins.Attributes;
+using Musoq.Plugins.Helpers;
 
 namespace Musoq.Plugins
 {
     public partial class LibraryBase
     {
         /// <summary>
-        /// Converts given bytes to hex with defined delimiter
+        /// Gets the sha256 hash of the given string.
         /// </summary>
-        /// <param name="bytes">The bytes</param>
-        /// <param name="delimiter">The delimiter</param>
-        /// <returns>Hex representation of a given bytes</returns>
+        /// <param name="content">The content string</param>
+        /// <returns>The sha256 value</returns>
         [BindableMethod]
-        public string? ToHex(byte[]? bytes, string delimiter = "")
+        public string? Sha512(string? content)
         {
-            if (bytes == null)
-                return null;
-
-            var hexBuilder = new StringBuilder();
-
-            if (bytes.Length <= 0) return hexBuilder.ToString();
-            
-            for (var i = 0; i < bytes.Length - 1; i++)
-            {
-                var byteValue = bytes[i];
-                hexBuilder.Append(byteValue.ToString("X2"));
-                hexBuilder.Append(delimiter);
-            }
-
-            hexBuilder.Append(bytes[^1].ToString("X2"));
-
-            return hexBuilder.ToString();
+            return content == null ? null : HashHelper.ComputeHash<SHA512Managed>(content);
         }
 
+        /// <summary>
+        /// Gets the sha256 hash of the given string.
+        /// </summary>
+        /// <param name="content">The content string</param>
+        /// <returns>The sha256 value</returns>
+        [BindableMethod]
+        public string? Sha256(string? content)
+        {
+            return content == null ? null : HashHelper.ComputeHash<SHA256Managed>(content);
+        }
+
+        /// <summary>
+        /// Gets the md5 hash of the given string.
+        /// </summary>
+        /// <param name="content">The content string</param>
+        /// <returns>The sha256 value</returns>
+        [BindableMethod]
+        public string? Md5(string? content)
+        {
+            return content == null ? null : HashHelper.ComputeHash<MD5CryptoServiceProvider>(content);
+        }
+        
         /// <summary>
         /// Converts given bytes to binary with defined delimiter
         /// </summary>
@@ -42,7 +49,7 @@ namespace Musoq.Plugins
         /// <param name="delimiter">The delimiter</param>
         /// <returns>Binary representation of a given bytes</returns>
         [BindableMethod]
-        public string ToBin(byte[]? bytes, string delimiter = "")
+        public string? ToBin(byte[]? bytes, string delimiter = "")
         {
             if (bytes == null)
                 return null;
@@ -60,57 +67,6 @@ namespace Musoq.Plugins
             }
 
             return builder.ToString();
-        }
-
-        /// <summary>
-        /// Converts given value to binary
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Hex representation of a given bytes</returns>
-        [BindableMethod]
-        public string? ToHex<T>(T value) where T : IConvertible
-        {
-            switch (Type.GetTypeCode(typeof(T)))
-            {
-                case TypeCode.Boolean:
-                    return ToHex(GetBytes(value.ToBoolean(CultureInfo.CurrentCulture)));
-                case TypeCode.Byte:
-                    return ToHex(GetBytes(value.ToByte(CultureInfo.CurrentCulture)));
-                case TypeCode.Char:
-                    return ToHex(GetBytes(value.ToChar(CultureInfo.CurrentCulture)));
-                case TypeCode.DateTime:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.DBNull:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.Decimal:
-                    return ToHex(GetBytes(value.ToDecimal(CultureInfo.CurrentCulture)));
-                case TypeCode.Double:
-                    return ToHex(GetBytes(value.ToDouble(CultureInfo.CurrentCulture)));
-                case TypeCode.Empty:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.Int16:
-                    return ToHex(GetBytes(value.ToInt16(CultureInfo.CurrentCulture)));
-                case TypeCode.Int32:
-                    return ToHex(GetBytes(value.ToInt32(CultureInfo.CurrentCulture)));
-                case TypeCode.Int64:
-                    return ToHex(GetBytes(value.ToInt64(CultureInfo.CurrentCulture)));
-                case TypeCode.Object:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.SByte:
-                    return ToHex(GetBytes(value.ToSByte(CultureInfo.CurrentCulture)));
-                case TypeCode.Single:
-                    return ToHex(GetBytes(value.ToSingle(CultureInfo.CurrentCulture)));
-                case TypeCode.String:
-                    return ToHex(GetBytes(value.ToString(CultureInfo.CurrentCulture)));
-                case TypeCode.UInt16:
-                    return ToHex(GetBytes(value.ToUInt16(CultureInfo.CurrentCulture)));
-                case TypeCode.UInt32:
-                    return ToHex(GetBytes(value.ToUInt32(CultureInfo.CurrentCulture)));
-                case TypeCode.UInt64:
-                    return ToHex(GetBytes(value.ToUInt64(CultureInfo.CurrentCulture)));
-            }
-
-            return "CONVERSION_NOT_SUPPORTED";
         }
 
         /// <summary>
@@ -144,564 +100,6 @@ namespace Musoq.Plugins
         public string ToDec<T>(T value) where T : IConvertible
         {
             return ToBase(value, 10);
-        }
-
-        /// <summary>
-        /// Converts given value to decimal
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to decimal value</returns>
-        [BindableMethod]
-        public decimal? ToDecimal(string? value)
-        {
-            if (value == null)
-                return null;
-
-            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out decimal result))
-                return result;
-
-            return null;
-        }
-
-        /// <summary>
-        /// Converts given value to decimal withing given culture
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <param name="culture">The culture</param>
-        /// <returns>Converted to decimal value</returns>
-        [BindableMethod]
-        public decimal? ToDecimal(string value, string culture)
-        {
-            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.GetCultureInfo(culture), out decimal result))
-                return result;
-
-            return null;
-        }
-
-        /// <summary>
-        /// Converts given value to TimeSpan
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to TimeSpan value</returns>
-        [BindableMethod]
-        public TimeSpan? ToTimeSpan(string value) => ToTimeSpan(value, CultureInfo.CurrentCulture.Name);
-
-        /// <summary>
-        /// Converts given value to TimeSpan
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <param name="culture">The culture</param>
-        /// <returns>Converted to TimeSpan value</returns>
-        [BindableMethod]
-        public TimeSpan? ToTimeSpan(string value, string culture)
-        {
-            if (string.IsNullOrEmpty(value))
-                return null;
-
-            if (!TimeSpan.TryParse(value, CultureInfo.GetCultureInfo(culture), out var result))
-                return null;
-
-            return result;
-        }
-        
-        /// <summary>
-        /// Converts given value to DateTime
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to DateTime value</returns>
-        [BindableMethod]
-        public DateTime? ToDateTime(string value) => ToDateTime(value, CultureInfo.CurrentCulture.Name);
-
-        /// <summary>
-        /// Converts given value to DateTime
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <param name="culture">The culture</param>
-        /// <returns>Converted to DateTime value</returns>
-        [BindableMethod]
-        public DateTime? ToDateTime(string value, string culture)
-        {
-            if (string.IsNullOrEmpty(value))
-                return null;
-
-            if (!DateTime.TryParse(value, CultureInfo.GetCultureInfo(culture), DateTimeStyles.None, out var result))
-                return null;
-
-            return result;
-        }
-
-        /// <summary>
-        /// Converts given value to Decimal
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to Decimal value</returns>
-        [BindableMethod]
-        public decimal? ToDecimal(long? value)
-        {
-            return value;
-        }
-
-        /// <summary>
-        /// Converts given value to Decimal
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to Decimal value</returns>
-        [BindableMethod]
-        public decimal? ToDecimal(double? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDecimal(value.Value);
-        }
-
-        /// <summary>
-        /// Converts given value to Decimal
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to Decimal value</returns>
-        [BindableMethod]
-        public decimal? ToDecimal(object? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDecimal(value);
-        }
-
-        /// <summary>
-        /// Converts given value to Int64
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to Int64 value</returns>
-        [BindableMethod]
-        public long? ToInt64(string value)
-        {
-            if (long.TryParse(value, out var number))
-                return number;
-
-            return null;
-        }
-
-        /// <summary>
-        /// Converts given value to long
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to long value</returns>
-        [BindableMethod]
-        public long? ToInt64(long? value)
-        {
-            return value;
-        }
-
-        /// <summary>
-        /// Converts given value to long
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to long value</returns>
-        [BindableMethod]
-        public long? ToInt64(decimal? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToInt64(value.Value);
-        }
-
-        /// <summary>
-        /// Converts given value to long
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to long value</returns>
-        [BindableMethod]
-        public long? ToInt64(object? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToInt64(value);
-        }
-
-        /// <summary>
-        /// Converts given value to int
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to int value</returns>
-        [BindableMethod]
-        public int? ToInt32(string value)
-        {
-            if (int.TryParse(value, out var number))
-                return number;
-
-            return null;
-        }
-
-        /// <summary>
-        /// Converts given value to int
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to int value</returns>
-        [BindableMethod]
-        public int? ToInt32(long? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToInt32(value.Value);
-        }
-
-        /// <summary>
-        /// Converts given value to int
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to int value</returns>
-        [BindableMethod]
-        public int? ToInt32(decimal? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToInt32(value.Value);
-        }
-        
-        /// <summary>
-        /// Converts given value to int
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to int value</returns>
-        [BindableMethod]
-        public int? ToInt32(object? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToInt32(value);
-        }
-
-        /// <summary>
-        /// Converts given value to double
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to double value</returns>
-        [BindableMethod]
-        public double? ToDouble(object? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDouble(value);
-        }
-        
-        /// <summary>
-        /// Converts given value to double
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to double value</returns>
-        [BindableMethod]
-        public double? ToDouble(string? value)
-        {
-            if (value == null)
-                return null;
-
-            if (double.TryParse(value, out var number))
-                return number;
-
-            return null;
-        }
-        
-        /// <summary>
-        /// Converts given value to double
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to double value</returns>
-        [BindableMethod]
-        public double? ToDouble(short? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDouble(value.Value);
-        }
-        
-        /// <summary>
-        /// Converts given value to double
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to double value</returns>
-        [BindableMethod]
-        public double? ToDouble(ushort? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDouble(value.Value);
-        }
-        
-        /// <summary>
-        /// Converts given value to double
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to double value</returns>
-        [BindableMethod]
-        public double? ToDouble(int? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDouble(value.Value);
-        }
-        
-        /// <summary>
-        /// Converts given value to double
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to double value</returns>
-        [BindableMethod]
-        public double? ToDouble(uint? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDouble(value.Value);
-        }
-        
-        /// <summary>
-        /// Converts given value to double
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to double value</returns>
-        [BindableMethod]
-        public double? ToDouble(long? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDouble(value.Value);
-        }
-        
-        /// <summary>
-        /// Converts given value to double
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to double value</returns>
-        [BindableMethod]
-        public double? ToDouble(ulong? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDouble(value.Value);
-        }
-        
-        /// <summary>
-        /// Converts given value to double
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to double value</returns>
-        [BindableMethod]
-        public double? ToDouble(float? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToDouble(value.Value);
-        }
-
-        /// <summary>
-        /// Converts given value to character
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to character value</returns>
-        [BindableMethod]
-        public char? ToChar(string? value)
-        {
-            if (value == null)
-                return null;
-
-            if (value == string.Empty)
-                return null;
-
-            return value[0];
-        }
-
-        /// <summary>
-        /// Converts given value to character
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to character value</returns>
-        [BindableMethod]
-        public char? ToChar(int? value)
-        {
-            if (value == null)
-                return null;
-
-            return (char)value;
-        }
-
-        /// <summary>
-        /// Converts given value to character
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to character value</returns>
-        [BindableMethod]
-        public char? ToChar(short? value)
-        {
-            if (value == null)
-                return null;
-
-            return (char)value;
-        }
-
-        /// <summary>
-        /// Converts given value to character
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to character value</returns>
-        [BindableMethod]
-        public char? ToChar(byte? value)
-        {
-            if (value == null)
-                return null;
-
-            return (char)value;
-        }
-        
-        /// <summary>
-        /// Converts given value to character
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to character value</returns>
-        [BindableMethod]
-        public char? ToChar(object? value)
-        {
-            if (value == null)
-                return null;
-
-            return Convert.ToChar(value);
-        }
-
-        /// <summary>
-        /// Converts given value to string
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to string value</returns>
-        [BindableMethod]
-        public string? ToString(char? value)
-        {
-            if (value == null)
-                return null;
-
-            return value.ToString();
-        }
-
-        /// <summary>
-        /// Converts given value to string
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to string value</returns>
-        [BindableMethod]
-        public string? ToString(DateTimeOffset? value)
-        {
-            return value?.ToString(CultureInfo.CurrentCulture);
-        }
-
-        /// <summary>
-        /// Converts given value to string
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to string value</returns>
-        [BindableMethod]
-        public string? ToString(decimal? value)
-        {
-            return value?.ToString(CultureInfo.CurrentCulture);
-        }
-
-        /// <summary>
-        /// Converts given value to string
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to string value</returns>
-        [BindableMethod]
-        public string? ToString(long? value)
-        {
-            return value?.ToString(CultureInfo.CurrentCulture);
-        }
-
-        /// <summary>
-        /// Converts given value to string
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to string value</returns>
-        [BindableMethod]
-        public string? ToString(object? value)
-        {
-            if (value == null)
-                return null;
-
-            return value.ToString();
-        }
-
-        /// <summary>
-        /// Converts given value to string
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to string value</returns>
-        [BindableMethod]
-        public string ToString<T>(T? value)
-            where T : class
-        {
-            if (value == default(T))
-                return null;
-
-            return value.ToString();
-        }
-
-        /// <summary>
-        /// Converts given value to string
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to string value</returns>
-        [BindableMethod]
-        public string ToString(string[] value)
-        {
-            var builder = new StringBuilder();
-
-            for (int i = 0; i < value.Length - 1; ++i)
-            {
-                builder.Append(value[i]);
-                builder.Append(',');
-            }
-
-            if (value.Length > 0)
-            {
-                builder.Append(value[^1]);
-            }
-
-            return builder.ToString();
-        }
-        
-        /// <summary>
-        /// Converts given value to string
-        /// </summary>
-        /// <param name="value">The value</param>
-        /// <returns>Converted to string value</returns>
-        [BindableMethod]
-        public string ToString<T>(T[] value)
-        {
-            var builder = new StringBuilder();
-
-            for (int i = 0; i < value.Length - 1; ++i)
-            {
-                builder.Append(value[i]);
-                builder.Append(',');
-            }
-
-            if (value.Length > 0)
-            {
-                builder.Append(value[^1]);
-            }
-
-            return builder.ToString();
         }
         
         /// <summary>
@@ -739,194 +137,31 @@ namespace Musoq.Plugins
             return Convert.FromBase64String(value);
         }
 
-        /// <summary>
-        /// Converts boolean value to bytes.
-        /// </summary>
-        /// <param name="value">Value to convert.</param>
-        /// <returns>Bytes.</returns>
-        [BindableMethod]
-        public byte[] ToBytes(bool value)
-        {
-            return BitConverter.GetBytes(value);
-        }
-
-        /// <summary>
-        /// Converts short value to bytes.
-        /// </summary>
-        /// <param name="value">Value to convert.</param>
-        /// <returns>Bytes.</returns>
-        [BindableMethod]
-        public byte[] ToBytes(short value)
-        {
-            return BitConverter.GetBytes(value);
-        }
-
-        /// <summary>
-        /// Converts ushort value to bytes.
-        /// </summary>
-        /// <param name="value">Value to convert.</param>
-        /// <returns>Bytes.</returns>
-        [BindableMethod]
-        public byte[] ToBytes(ushort value)
-        {
-            return BitConverter.GetBytes(value);
-        }
-
-        /// <summary>
-        /// Converts int value to bytes.
-        /// </summary>
-        /// <param name="value">Value to convert.</param>
-        /// <returns>Bytes.</returns>
-        [BindableMethod]
-        public byte[] ToBytes(int value)
-        {
-            return BitConverter.GetBytes(value);
-        }
-
-
-        /// <summary>
-        /// Converts uint value to bytes.
-        /// </summary>
-        /// <param name="value">Value to convert.</param>
-        /// <returns>Bytes.</returns>
-        [BindableMethod]
-        public byte[] ToBytes(uint value)
-        {
-            return BitConverter.GetBytes(value);
-        }
-
-
-        /// <summary>
-        /// Converts long value to bytes.
-        /// </summary>
-        /// <param name="value">Value to convert.</param>
-        /// <returns>Bytes.</returns>
-        [BindableMethod]
-        public byte[] ToBytes(long value)
-        {
-            return BitConverter.GetBytes(value);
-        }
-
-
-        /// <summary>
-        /// Converts ulong value to bytes.
-        /// </summary>
-        /// <param name="value">Value to convert.</param>
-        /// <returns>Bytes.</returns>
-        [BindableMethod]
-        public byte[] ToBytes(ulong value)
-        {
-            return BitConverter.GetBytes(value);
-        }
-        /// <summary>
-        /// Converts bytes to boolean value.
-        /// </summary>
-        /// <param name="value">Byte array containing the value to convert.</param>
-        /// <returns>Converted boolean value.</returns>
-        [BindableMethod]
-        public bool FromBytesToBool(byte[] value)
-        {
-            return BitConverter.ToBoolean(value, 0);
-        }
-
-        /// <summary>
-        /// Converts bytes to a 16-bit signed integer.
-        /// </summary>
-        /// <param name="value">Byte array containing the value to convert.</param>
-        /// <returns>Converted 16-bit signed integer.</returns>
-        [BindableMethod]
-        public short FromBytesToInt16(byte[] value)
-        {
-            return BitConverter.ToInt16(value, 0);
-        }
-
-        /// <summary>
-        /// Converts bytes to a 16-bit unsigned integer.
-        /// </summary>
-        /// <param name="value">Byte array containing the value to convert.</param>
-        /// <returns>Converted 16-bit unsigned integer.</returns>
-        [BindableMethod]
-        public ushort FromBytesToUInt16(byte[] value)
-        {
-            return BitConverter.ToUInt16(value, 0);
-        }
-
-        /// <summary>
-        /// Converts bytes to a 32-bit signed integer.
-        /// </summary>
-        /// <param name="value">Byte array containing the value to convert.</param>
-        /// <returns>Converted 32-bit signed integer.</returns>
-        [BindableMethod]
-        public int FromBytesToInt32(byte[] value)
-        {
-            return BitConverter.ToInt32(value, 0);
-        }
-
-        /// <summary>
-        /// Converts bytes to a 32-bit unsigned integer.
-        /// </summary>
-        /// <param name="value">Byte array containing the value to convert.</param>
-        /// <returns>Converted 32-bit unsigned integer.</returns>
-        [BindableMethod]
-        public uint FromBytesToUInt32(byte[] value)
-        {
-            return BitConverter.ToUInt32(value, 0);
-        }
-
-        /// <summary>
-        /// Converts bytes to a 64-bit signed integer.
-        /// </summary>
-        /// <param name="value">Byte array containing the value to convert.</param>
-        /// <returns>Converted 64-bit signed integer.</returns>
-        [BindableMethod]
-        public long FromBytesToInt64(byte[] value)
-        {
-            return BitConverter.ToInt64(value, 0);
-        }
-
         private string ToBase<T>(T value, int baseNumber) where T : IConvertible
         {
-            switch (Type.GetTypeCode(typeof(T)))
+            return Type.GetTypeCode(typeof(T)) switch
             {
-                case TypeCode.Boolean:
-                    return Convert.ToString(value.ToBoolean(CultureInfo.CurrentCulture) ? 1 : 0, baseNumber);
-                case TypeCode.Byte:
-                    return Convert.ToString(value.ToByte(CultureInfo.CurrentCulture), baseNumber);
-                case TypeCode.Char:
-                    return Convert.ToString(value.ToChar(CultureInfo.CurrentCulture), baseNumber);
-                case TypeCode.DateTime:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.DBNull:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.Decimal:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.Double:
-                    return Convert.ToString(BitConverter.DoubleToInt64Bits(value.ToDouble(CultureInfo.CurrentCulture)), baseNumber);
-                case TypeCode.Empty:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.Int16:
-                    return Convert.ToString(value.ToInt16(CultureInfo.CurrentCulture), baseNumber);
-                case TypeCode.Int32:
-                    return Convert.ToString(value.ToInt32(CultureInfo.CurrentCulture), baseNumber);
-                case TypeCode.Int64:
-                    return Convert.ToString(value.ToInt64(CultureInfo.CurrentCulture), baseNumber);
-                case TypeCode.Object:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.SByte:
-                    return Convert.ToString(value.ToSByte(CultureInfo.CurrentCulture), baseNumber);
-                case TypeCode.Single:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.String:
-                    return "CONVERSION_NOT_SUPPORTED";
-                case TypeCode.UInt16:
-                    return Convert.ToString(value.ToUInt16(CultureInfo.CurrentCulture), baseNumber);
-                case TypeCode.UInt32:
-                    return Convert.ToString(value.ToUInt32(CultureInfo.CurrentCulture), baseNumber);
-                case TypeCode.UInt64:
-                    return "CONVERSION_NOT_SUPPORTED";
-            }
-
-            return "CONVERSION_NOT_SUPPORTED";
+                TypeCode.Boolean => Convert.ToString(value.ToBoolean(CultureInfo.CurrentCulture) ? 1 : 0, baseNumber),
+                TypeCode.Byte => Convert.ToString(value.ToByte(CultureInfo.CurrentCulture), baseNumber),
+                TypeCode.Char => Convert.ToString(value.ToChar(CultureInfo.CurrentCulture), baseNumber),
+                TypeCode.DateTime => "CONVERSION_NOT_SUPPORTED",
+                TypeCode.DBNull => "CONVERSION_NOT_SUPPORTED",
+                TypeCode.Decimal => "CONVERSION_NOT_SUPPORTED",
+                TypeCode.Double => Convert.ToString(
+                    BitConverter.DoubleToInt64Bits(value.ToDouble(CultureInfo.CurrentCulture)), baseNumber),
+                TypeCode.Empty => "CONVERSION_NOT_SUPPORTED",
+                TypeCode.Int16 => Convert.ToString(value.ToInt16(CultureInfo.CurrentCulture), baseNumber),
+                TypeCode.Int32 => Convert.ToString(value.ToInt32(CultureInfo.CurrentCulture), baseNumber),
+                TypeCode.Int64 => Convert.ToString(value.ToInt64(CultureInfo.CurrentCulture), baseNumber),
+                TypeCode.Object => "CONVERSION_NOT_SUPPORTED",
+                TypeCode.SByte => Convert.ToString(value.ToSByte(CultureInfo.CurrentCulture), baseNumber),
+                TypeCode.Single => "CONVERSION_NOT_SUPPORTED",
+                TypeCode.String => "CONVERSION_NOT_SUPPORTED",
+                TypeCode.UInt16 => Convert.ToString(value.ToUInt16(CultureInfo.CurrentCulture), baseNumber),
+                TypeCode.UInt32 => Convert.ToString(value.ToUInt32(CultureInfo.CurrentCulture), baseNumber),
+                TypeCode.UInt64 => "CONVERSION_NOT_SUPPORTED",
+                _ => "CONVERSION_NOT_SUPPORTED"
+            };
         }
     }
 }

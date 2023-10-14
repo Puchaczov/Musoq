@@ -35,7 +35,106 @@ namespace Musoq.Plugins
         /// <param name="value">Value that should be aggregated</param>
         /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
+        public void SetMax([InjectGroup] Group group, string name, byte? value, int parent = 0)
+            => SetMax(group, name, (decimal?) value, parent);
+
+        /// <summary>
+        /// Sets the value of the max group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetMax([InjectGroup] Group group, string name, sbyte? value, int parent = 0)
+            => SetMax(group, name, (decimal?) value, parent);
+
+        /// <summary>
+        /// Sets the value of the max group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetMax([InjectGroup] Group group, string name, short? value, int parent = 0)
+            => SetMax(group, name, (decimal?) value, parent);
+
+        /// <summary>
+        /// Sets the value of the max group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetMax([InjectGroup] Group group, string name, ushort? value, int parent = 0)
+            => SetMax(group, name, (decimal?) value, parent);
+
+        /// <summary>
+        /// Sets the value of the max group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetMax([InjectGroup] Group group, string name, int? value, int parent = 0)
+            => SetMax(group, name, (decimal?) value, parent);
+
+        /// <summary>
+        /// Sets the value of the max group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetMax([InjectGroup] Group group, string name, uint? value, int parent = 0)
+            => SetMax(group, name, (decimal?) value, parent);
+
+        /// <summary>
+        /// Sets the value of the max group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
         public void SetMax([InjectGroup] Group group, string name, long? value, int parent = 0)
+            => SetMax(group, name, (decimal?) value, parent);
+
+        /// <summary>
+        /// Sets the value of the max group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetMax([InjectGroup] Group group, string name, ulong? value, int parent = 0)
+            => SetMax(group, name, (decimal?) value, parent);
+
+        /// <summary>
+        /// Sets the value of the max group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetMax([InjectGroup] Group group, string name, float? value, int parent = 0)
+            => SetMax(group, name, (decimal?) value, parent);
+
+        /// <summary>
+        /// Sets the value of the max group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="value">Value that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetMax([InjectGroup] Group group, string name, double? value, int parent = 0)
             => SetMax(group, name, (decimal?) value, parent);
 
         /// <summary>

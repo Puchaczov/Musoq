@@ -5,7 +5,6 @@
         private readonly ScopeWalker _parent;
         private int _childIndex;
 
-
         public ScopeWalker(Scope scope)
         {
             Scope = scope;
@@ -22,16 +21,6 @@
         public ScopeWalker NextChild()
         {
             return new ScopeWalker(Scope.Child[_childIndex++], this);
-        }
-
-        public ScopeWalker Child()
-        {
-            return new ScopeWalker(Scope.Child[_childIndex], this);
-        }
-
-        public ScopeWalker PrevChild()
-        {
-            return new ScopeWalker(Scope.Child[_childIndex--], this);
         }
 
         public ScopeWalker Parent()

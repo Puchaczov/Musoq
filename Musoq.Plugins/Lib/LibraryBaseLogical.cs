@@ -59,8 +59,8 @@ namespace Musoq.Plugins
         /// <param name="array">The array</param>
         /// <returns>First non-null value</returns>
         [BindableMethod]
-        public decimal? Coalesce(params decimal?[] array)
-            => Coalesce<decimal?>(array);
+        public byte? Coalesce(params byte?[] array)
+            => Coalesce<byte?>(array);
         
         /// <summary>
         /// Gets the first non-null value in a list 
@@ -68,8 +68,71 @@ namespace Musoq.Plugins
         /// <param name="array">The array</param>
         /// <returns>First non-null value</returns>
         [BindableMethod]
-        public long? Coalesce(params long?[] array)
+        public sbyte? Coalesce(params sbyte?[] array)
+            => Coalesce<sbyte?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public short? Coalesce(params short?[] array)
+            => Coalesce<short?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public ushort? Coalesce(params ushort?[] array)
+            => Coalesce<ushort?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public int? Coalesce(params int?[] array)
+            => Coalesce<int?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public decimal? Coalesce(params uint?[] array)
+            => Coalesce<uint?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public decimal? Coalesce(params long?[] array)
             => Coalesce<long?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public decimal? Coalesce(params ulong?[] array)
+            => Coalesce<ulong?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public decimal? Coalesce(params decimal?[] array)
+            => Coalesce<decimal?>(array);
         
         /// <summary>
         /// Gets the first non-null value in a list 
