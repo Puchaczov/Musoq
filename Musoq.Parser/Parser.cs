@@ -205,8 +205,7 @@ namespace Musoq.Parser
         private Node ComposeSetOps(int nestingLevel)
         {
             var isSet = false;
-
-            QueryNode query = ComposeQuery();
+            var query = ComposeQuery();
 
             Node node = query;
             while (IsSetOperator(Current.TokenType))
@@ -217,24 +216,18 @@ namespace Musoq.Parser
 
                 var keys = ComposeSetOperatorKeys();
 
-                var currentLevel = nestingLevel;
-                var nextSet = ComposeSetOps(currentLevel + 1);
+                var nextSet = ComposeSetOps(nestingLevel + 1);
                 var isQuery = nextSet is QueryNode;
-                switch (setOperatorType)
+                node = setOperatorType switch
                 {
-                    case TokenType.Except:
-                        node = new ExceptNode(string.Empty, keys, node, nextSet, currentLevel != 0, isQuery);
-                        break;
-                    case TokenType.Union:
-                        node = new UnionNode(string.Empty, keys, node, nextSet, currentLevel != 0, isQuery);
-                        break;
-                    case TokenType.UnionAll:
-                        node = new UnionAllNode(string.Empty, keys, node, nextSet, currentLevel != 0, isQuery);
-                        break;
-                    case TokenType.Intersect:
-                        node = new IntersectNode(string.Empty, keys, node, nextSet, currentLevel != 0, isQuery);
-                        break;
-                }
+                    TokenType.Except => new ExceptNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery),
+                    TokenType.Union => new UnionNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery),
+                    TokenType.UnionAll => new UnionAllNode(string.Empty, keys, node, nextSet, nestingLevel != 0,
+                        isQuery),
+                    TokenType.Intersect => new IntersectNode(string.Empty, keys, node, nextSet, nestingLevel != 0,
+                        isQuery),
+                    _ => node
+                };
             }
 
             return isSet || nestingLevel > 0 ? node : new SingleSetNode(query);

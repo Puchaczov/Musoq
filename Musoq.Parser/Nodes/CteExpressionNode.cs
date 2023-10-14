@@ -40,7 +40,7 @@ namespace Musoq.Parser.Nodes
             }
 
             query.Append("(");
-            query.Append(InnerExpression[InnerExpression.Length - 1].ToString());
+            query.Append(InnerExpression[^1].ToString());
             query.Append(") ");
             query.Append(Environment.NewLine);
             query.Append(OuterExpression.ToString());

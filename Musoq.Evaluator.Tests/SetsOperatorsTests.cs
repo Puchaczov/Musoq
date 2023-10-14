@@ -64,6 +64,100 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
+        public void MultipleUnionAllTest()
+        {
+            var query = @"
+select Name from #A.Entities() union all (Name) 
+select Name from #A.Entities() union all (Name) 
+select Name from #A.Entities() union all (Name) 
+select Name from #A.Entities() union all (Name) 
+select Name from #A.Entities()";
+            
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("005")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(5, table.Count);
+            Assert.AreEqual("005", table[0].Values[0]);
+            Assert.AreEqual("005", table[1].Values[0]);
+            Assert.AreEqual("005", table[2].Values[0]);
+            Assert.AreEqual("005", table[3].Values[0]);
+            Assert.AreEqual("005", table[4].Values[0]);
+        }
+
+        [TestMethod]
+        public void UnionAllWhenMultipleSelectsCombinedWithUnionAllWithinCteExpression_ShouldSucceed()
+        {
+            var query = @"
+with p as (
+    select 1 as Id, 'EMPTY' as Name from #A.Entities()
+    union all (Name)
+    select 2 as Id, 'EMPTY2' as Name from #A.Entities()
+    union all (Name)
+    select 3 as Id, 'EMPTY3' as Name from #A.Entities()
+)
+select Id, Name from p
+";
+            
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("005")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+            
+            Assert.AreEqual(3, table.Count);
+            
+            Assert.AreEqual(1, table[0].Values[0]);
+            Assert.AreEqual("EMPTY", table[0].Values[1]);
+            
+            Assert.AreEqual(2, table[1].Values[0]);
+            Assert.AreEqual("EMPTY2", table[1].Values[1]);
+            
+            Assert.AreEqual(3, table[2].Values[0]);
+            Assert.AreEqual("EMPTY3", table[2].Values[1]);
+        }
+
+        [TestMethod]
+        public void UnionWhenMultipleSelectsCombinedWithUnionWithinCteExpression_ShouldSucceed()
+        {
+            var query = @"
+with p as (
+    select 1 as Id, 'EMPTY' as Name from #A.Entities()
+    union (Name)
+    select 2 as Id, 'EMPTY2' as Name from #A.Entities()
+    union (Name)
+    select 3 as Id, 'EMPTY3' as Name from #A.Entities()
+)
+select Id, Name from p
+";
+            
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {"#A", new[] {new BasicEntity("005")}}
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+            
+            Assert.AreEqual(3, table.Count);
+            
+            Assert.AreEqual(1, table[0].Values[0]);
+            Assert.AreEqual("EMPTY", table[0].Values[1]);
+            
+            Assert.AreEqual(2, table[1].Values[0]);
+            Assert.AreEqual("EMPTY2", table[1].Values[1]);
+            
+            Assert.AreEqual(3, table[2].Values[0]);
+            Assert.AreEqual("EMPTY3", table[2].Values[1]);
+        }
+
+        [TestMethod]
         public void MultipleUnionAllWithSkipTest()
         {
             var query = @"

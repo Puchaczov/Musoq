@@ -680,6 +680,7 @@ namespace Musoq.Evaluator.Visitors
 
             if (node.Right is SetOperatorNode)
             {
+                var howManyTimesChildWereUsed = 0;
                 var nodes = new Stack<SetOperatorNode>();
                 nodes.Push(node);
 
@@ -701,14 +702,21 @@ namespace Musoq.Evaluator.Visitors
                         _visitor.IncrementMethodIdentifier();
 
                         current.Accept(_visitor);
+                        howManyTimesChildWereUsed += 1;
+                        continue;
                     }
-                    else
-                    {
-                        current.Right.Accept(this);
-                        _visitor.IncrementMethodIdentifier();
+                    current.Right.Accept(this);
+                    _visitor.IncrementMethodIdentifier();
 
-                        current.Accept(_visitor);
-                    }
+                    current.Accept(_visitor);
+                    
+                    howManyTimesChildWereUsed += 1;
+                }
+
+                for (var i = 0; i < howManyTimesChildWereUsed; ++i)
+                {
+                    _walker = _walker.Parent();
+                    _visitor.SetScope(_walker.Scope);
                 }
             }
             else
