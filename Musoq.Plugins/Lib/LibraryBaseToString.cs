@@ -36,11 +36,35 @@ public partial class LibraryBase
     /// Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(DateTimeOffset? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
     [BindableMethod]
     public string? ToString(byte? value)
     {
         return value?.ToString(CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(byte? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
     }
 
     /// <summary>
@@ -58,11 +82,35 @@ public partial class LibraryBase
     /// Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(sbyte? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
     [BindableMethod]
     public string? ToString(int? value)
     {
         return value?.ToString(CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(int? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
     }
 
     /// <summary>
@@ -80,11 +128,35 @@ public partial class LibraryBase
     /// Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(uint? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
     [BindableMethod]
     public string? ToString(long? value)
     {
         return value?.ToString(CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(long? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
     }
 
     /// <summary>
@@ -102,11 +174,35 @@ public partial class LibraryBase
     /// Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(ulong? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
     [BindableMethod]
     public string? ToString(float? value)
     {
         return value?.ToString(CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(float? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
     }
 
     /// <summary>
@@ -124,11 +220,35 @@ public partial class LibraryBase
     /// Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(double? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
     [BindableMethod]
     public string? ToString(decimal? value)
     {
         return value?.ToString(CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(decimal? value, string format)
+    {
+        return value?.ToString(format, CultureInfo.CurrentCulture);
     }
 
     /// <summary>
@@ -178,7 +298,7 @@ public partial class LibraryBase
     {
         var builder = new StringBuilder();
 
-        for (int i = 0; i < value.Length - 1; ++i)
+        for (var i = 0; i < value.Length - 1; ++i)
         {
             builder.Append(value[i]);
             builder.Append(',');
@@ -202,7 +322,7 @@ public partial class LibraryBase
     {
         var builder = new StringBuilder();
 
-        for (int i = 0; i < value.Length - 1; ++i)
+        for (var i = 0; i < value.Length - 1; ++i)
         {
             builder.Append(value[i]);
             builder.Append(',');
