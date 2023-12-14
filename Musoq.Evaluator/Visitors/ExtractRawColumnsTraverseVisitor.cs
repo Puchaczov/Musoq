@@ -9,19 +9,14 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class BuildMetadataAndInferTypeTraverseVisitor : IQueryPartAwareExpressionVisitor
+    public class ExtractRawColumnsTraverseVisitor : IExpressionVisitor
     {
-        private readonly Stack<Scope> _scopes = new();
-        private readonly IAwareExpressionVisitor _visitor;
-        
-        private IdentifierNode _theMostInnerIdentifier;
+        private readonly IQueryPartAwareExpressionVisitor _visitor;
 
-        public BuildMetadataAndInferTypeTraverseVisitor(IAwareExpressionVisitor visitor)
+        public ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor visitor)
         {
             _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         }
-
-        public Scope Scope { get; private set; } = new(null, -1, "Root");
 
         public void Visit(SelectNode node)
         {
@@ -132,7 +127,7 @@ namespace Musoq.Evaluator.Visitors
             }
 
             var ident = (IdentifierNode) theMostOuter.Root;
-            if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
+            if (node == theMostOuter)
             {
                 IdentifierNode column;
                 if (theMostOuter.Expression is DotNode dotNode)
@@ -148,18 +143,6 @@ namespace Musoq.Evaluator.Visitors
                 return;
             }
 
-            var setTheMostInnerIdentifier = false;
-            if (_theMostInnerIdentifier is null)
-            {
-                _theMostInnerIdentifier = (IdentifierNode)node.Expression;
-                setTheMostInnerIdentifier = true;
-            }
-
-            if (_theMostInnerIdentifier is not null && setTheMostInnerIdentifier)
-            {
-                _visitor.SetTheMostInnerIdentifierOfDotNode(_theMostInnerIdentifier);
-            }
-
             self = node;
             
             while (self is not null)
@@ -169,12 +152,6 @@ namespace Musoq.Evaluator.Visitors
                 self.Accept(_visitor);
 
                 self = self.Expression as DotNode;
-            }
-            
-            if (_theMostInnerIdentifier is not null && setTheMostInnerIdentifier)
-            {
-                _visitor.SetTheMostInnerIdentifierOfDotNode(null);
-                _theMostInnerIdentifier = null;
             }
         }
 
@@ -265,30 +242,6 @@ namespace Musoq.Evaluator.Visitors
             join.Source.Accept(this);
             join.With.Accept(this);
 
-            var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.Source.Id]);
-            var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
-
-            switch (join.JoinType)
-            {
-                case JoinType.Inner:
-                    break;
-                case JoinType.OuterLeft:
-                    secondTableSymbol = secondTableSymbol.MakeNullableIfPossible();
-                    Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.With.Id], secondTableSymbol);
-                    break;
-                case JoinType.OuterRight:
-                    firstTableSymbol = firstTableSymbol.MakeNullableIfPossible();
-                    Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.Source.Id], firstTableSymbol);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            var id = $"{Scope[join.Source.Id]}{Scope[join.With.Id]}";
-
-            Scope.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
-            Scope[MetaAttributes.ProcessedQueryId] = id;
-
             join.Expression.Accept(this);
             join.Accept(_visitor);
 
@@ -296,31 +249,6 @@ namespace Musoq.Evaluator.Visitors
             {
                 join = joins.Pop();
                 join.With.Accept(this);
-
-                var currentTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
-                var previousTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(id);
-
-                switch (join.JoinType)
-                {
-                    case JoinType.Inner:
-                        break;
-                    case JoinType.OuterLeft:
-                        currentTableSymbol = currentTableSymbol.MakeNullableIfPossible();
-                        Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.With.Id], currentTableSymbol);
-                        break;
-                    case JoinType.OuterRight:
-                        previousTableSymbol = previousTableSymbol.MakeNullableIfPossible();
-                        Scope.ScopeSymbolTable.UpdateSymbol(id, previousTableSymbol);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
-                id = $"{id}{Scope[join.With.Id]}";
-
-                Scope.ScopeSymbolTable.AddSymbol(id, previousTableSymbol.MergeSymbols(currentTableSymbol));
-                Scope[MetaAttributes.ProcessedQueryId] = id;
-
                 join.Expression.Accept(this);
                 join.Accept(_visitor);
             }
@@ -381,7 +309,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(QueryNode node)
         {
-            LoadQueryScope();
+            _visitor.QueryBegins();
             node.From.Accept(this);
             node.Where?.Accept(this);
             node.GroupBy?.Accept(this);
@@ -390,9 +318,8 @@ namespace Musoq.Evaluator.Visitors
             node.Take?.Accept(this);
             node.OrderBy?.Accept(this);
             node.Accept(_visitor);
-            RestoreScope();
             SetQueryPart(QueryPart.None);
-            EndQueryScope();
+            _visitor.QueryEnds();
         }
 
         public void Visit(OrNode node)
@@ -528,10 +455,8 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(DescNode node)
         {
-            LoadScope("Desc");
             node.From.Accept(this);
             node.Accept(_visitor);
-            RestoreScope();
         }
 
         public void Visit(StarNode node)
@@ -580,19 +505,16 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(UnionNode node)
         {
-            LoadScope("Union");
             TraverseSetOperator(node);
         }
 
         public void Visit(UnionAllNode node)
         {
-            LoadScope("UnionAll");
             TraverseSetOperator(node);
         }
 
         public void Visit(ExceptNode node)
         {
-            LoadScope("Except");
             TraverseSetOperator(node);
         }
 
@@ -606,7 +528,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(IntersectNode node)
         {
-            LoadScope("Intersect");
             TraverseSetOperator(node);
         }
 
@@ -624,19 +545,15 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CteExpressionNode node)
         {
-            LoadScope("CTE");
             foreach (var exp in node.InnerExpression) exp.Accept(this);
             node.OuterExpression.Accept(this);
             node.Accept(_visitor);
-            RestoreScope();
         }
 
         public void Visit(CteInnerExpressionNode node)
         {
-            LoadScope("CTE Inner Expression");
             node.Value.Accept(this);
             node.Accept(_visitor);
-            RestoreScope();
         }
 
         public void Visit(JoinsNode node)
@@ -650,32 +567,6 @@ namespace Musoq.Evaluator.Visitors
             node.From.Accept(this);
             node.Expression.Accept(this);
             node.Accept(_visitor);
-        }
-
-        private void LoadQueryScope()
-        {
-            LoadScope("Query");
-            _visitor.QueryBegins();
-        }
-        
-        private void EndQueryScope()
-        {
-            _visitor.QueryEnds();
-        }
-
-        private void LoadScope(string name)
-        {
-            var newScope = Scope.AddScope(name);
-            _scopes.Push(Scope);
-            Scope = newScope;
-
-            _visitor.SetScope(newScope);
-        }
-
-        private void RestoreScope()
-        {
-            Scope = _scopes.Pop();
-            _visitor.SetScope(Scope);
         }
 
         public void Visit(FromNode node)
@@ -696,7 +587,6 @@ namespace Musoq.Evaluator.Visitors
             node.Left.Accept(this);
             node.Right.Accept(this);
             node.Accept(_visitor);
-            RestoreScope();
         }
 
         public void SetQueryPart(QueryPart part)

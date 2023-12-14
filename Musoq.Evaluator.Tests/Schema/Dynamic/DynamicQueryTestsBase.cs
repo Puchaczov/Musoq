@@ -29,14 +29,12 @@ public class DynamicQueryTestsBase
     
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
-        (string Name, IReadOnlyCollection<dynamic> Values, IReadOnlyDictionary<string, Type> Schema)[] sources
+        IEnumerable<(string Name, IReadOnlyCollection<dynamic> Values, IReadOnlyDictionary<string, Type> Schema)> sources
     )
     {
-        var schemas = new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>();
-        foreach (var source in sources)
-        {
-            schemas.Add(source.Name, (source.Schema, source.Values));
-        }
+        var schemas = sources
+            .ToDictionary<(string Name, IReadOnlyCollection<dynamic> Values, IReadOnlyDictionary<string, Type> Schema), string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>(source => source.Name, source => (source.Schema, source.Values));
+        
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(),

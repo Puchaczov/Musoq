@@ -8,7 +8,8 @@ namespace Musoq.Evaluator;
 
 public static class AliasGenerator
 {
-    public static string CreateAliasIfEmpty(string alias, IReadOnlyList<string> usedAliases, string seed = "defaultSeed")
+    public static string 
+        CreateAliasIfEmpty(string alias, IReadOnlyList<string> usedAliases, string seed = "defaultSeed")
     {
         if (!string.IsNullOrEmpty(alias))
             return alias;

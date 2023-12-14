@@ -20,11 +20,15 @@ namespace Musoq.Converter.Build
 
             var queryTree = items.RawQueryTree;
 
-            var metadata = new BuildMetadataAndInferTypeVisitor(items.SchemaProvider, items.PositionalEnvironmentVariables);
+            var extractColumnsVisitor = new ExtractRawColumnsVisitor();
+            var extractRawColumnsTraverseVisitor = new ExtractRawColumnsTraverseVisitor(extractColumnsVisitor);
+
+            queryTree.Accept(extractRawColumnsTraverseVisitor);
+
+            var metadata = new BuildMetadataAndInferTypeVisitor(items.SchemaProvider, items.PositionalEnvironmentVariables, extractColumnsVisitor.Columns);
             var metadataTraverser = new BuildMetadataAndInferTypeTraverseVisitor(metadata);
 
             queryTree.Accept(metadataTraverser);
-
             queryTree = metadata.Root;
 
             var rewriter = new RewriteQueryVisitor();

@@ -41,7 +41,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     {
         const string query = "select Id, Name from #dynamic.all()";
         var sources =
-            new List<dynamic>()
+            new List<dynamic>
             {
                 CreateExpandoObject(1, "Test1"),
                 CreateExpandoObject(2, "Test2")
