@@ -232,7 +232,7 @@ namespace Musoq.Evaluator.Helpers
             return typeName;
         }
 
-        public static Type GetType(string typeName)
+        public static Type RemapPrimitiveTypeAsNullable(string typeName)
         {
             switch (typeName)
             {

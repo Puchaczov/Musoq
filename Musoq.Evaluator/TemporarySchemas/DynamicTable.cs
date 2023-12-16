@@ -1,6 +1,5 @@
 ﻿using Musoq.Schema;
 using System.Linq;
-using Musoq.Evaluator.Exceptions;
 
 namespace Musoq.Evaluator.TemporarySchemas
 {

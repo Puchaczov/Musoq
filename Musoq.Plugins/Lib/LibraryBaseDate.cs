@@ -13,7 +13,7 @@ namespace Musoq.Plugins
         /// <param name="partOfDate">Part of the date</param>
         /// <returns>Extracted part of the date</returns>
         [BindableMethod]
-        public int ExtractFromDate(string date, string partOfDate)
+        public int ExtractFromDate(string? date, string partOfDate)
             => ExtractFromDate(date, CultureInfo.CurrentCulture, partOfDate);
 
         /// <summary>
@@ -69,23 +69,70 @@ namespace Musoq.Plugins
         [BindableMethod]
         public int? Day(DateTimeOffset? value)
             => value?.Day;
+        
+        /// <summary>
+        /// Gets the hour from DateTimeOffset
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Hour from a given date</returns>
+        [BindableMethod]
+        public int? Hour(DateTimeOffset? value)
+            => value?.Hour;
+        
+        /// <summary>
+        /// Gets the minute from DateTimeOffset
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Minute from a given date</returns>
+        [BindableMethod]
+        public int? Minute(DateTimeOffset? value)
+            => value?.Minute;
+        
+        /// <summary>
+        /// Gets the second from DateTimeOffset
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Second from a given date</returns>
+        [BindableMethod]
+        public int? Second(DateTimeOffset? value)
+            => value?.Second;
+        
+        /// <summary>
+        /// Gets the millisecond from DateTimeOffset
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Millisecond from a given date</returns>
+        [BindableMethod]
+        public int? Milliseconds(DateTimeOffset? value)
+            => value?.Millisecond;
 
-        private static int ExtractFromDate(string date, CultureInfo culture, string partOfDate)
+        /// <summary>
+        /// Extracts time from DateTimeOffset
+        /// </summary>
+        /// <param name="dateTimeOffset">The value</param>
+        /// <returns>Time from a given date</returns>
+        [BindableMethod]
+        public TimeSpan? ExtractTimeSpan(DateTimeOffset? dateTimeOffset)
+        {
+            return dateTimeOffset?.TimeOfDay;
+        }
+
+        private static int ExtractFromDate(string? date, CultureInfo culture, string partOfDate)
         {
             if (!DateTimeOffset.TryParse(date, culture, DateTimeStyles.None, out var value))
                 throw new NotSupportedException($"'{date}' value looks to be not valid date.");
 
-            switch (partOfDate.ToLower(culture))
+            return partOfDate.ToLower(culture) switch
             {
-                case "month":
-                    return value.Month;
-                case "year":
-                    return value.Year;
-                case "day":
-                    return value.Day;
-            }
-
-            throw new NotSupportedException($"specified part of date value ({partOfDate}) is not valid.");
+                "month" => value.Month,
+                "year" => value.Year,
+                "day" => value.Day,
+                "hour" => value.Hour,
+                "minute" => value.Minute,
+                "second" => value.Second,
+                "millisecond" => value.Millisecond,
+                _ => throw new NotSupportedException($"specified part of date value ({partOfDate}) is not valid.")
+            };
         }
     }
 }

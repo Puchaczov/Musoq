@@ -28,7 +28,7 @@ namespace Musoq.Plugins
         /// <param name="length">The length</param>
         /// <returns>Substring of a string</returns>
         [BindableMethod]
-        public string? Substring(string value, int? index, int? length)
+        public string? Substring(string? value, int? index, int? length)
         {
             if (string.IsNullOrEmpty(value))
                 return value;
@@ -44,8 +44,8 @@ namespace Musoq.Plugins
 
             if (valueLastIndex < computedLastIndex)
                 length = ((value.Length - 1) - index) + 1;
-
-            return value.Substring(index.Value, length.Value);
+            
+            return length is null ? null : value.Substring(index.Value, length.Value);
         }
 
         /// <summary>

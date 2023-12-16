@@ -1180,6 +1180,9 @@ namespace Musoq.Evaluator.Visitors
             Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
         {
             var args = Nodes.Pop() as ArgsListNode;
+            
+            if (args is null)
+                throw new NotSupportedException($"Cannot resolve method {node.Name}. Arguments are null.");
 
             var groupArgs = new List<Type> {typeof(string)};
             groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
@@ -1336,7 +1339,7 @@ namespace Musoq.Evaluator.Visitors
 
                 var remappedType = EvaluationHelper.RemapPrimitiveTypes(typeName);
 
-                var type = EvaluationHelper.GetType(remappedType);
+                var type = EvaluationHelper.RemapPrimitiveTypeAsNullable(remappedType);
 
                 if (type == null)
                     throw new TypeNotFoundException($"Type '{remappedType}' could not be found.");
