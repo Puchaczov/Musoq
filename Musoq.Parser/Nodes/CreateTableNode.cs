@@ -36,7 +36,7 @@ namespace Musoq.Parser.Nodes
                 cols.Append($"{TableTypePairs[i].ColumnName} {TableTypePairs[i].TypeName}");
             }
 
-            cols.Append($"{TableTypePairs[TableTypePairs.Length - 1].ColumnName} {TableTypePairs[TableTypePairs.Length - 1].TypeName}");
+            cols.Append($"{TableTypePairs[^1].ColumnName} {TableTypePairs[^1].TypeName}");
             return $"CREATE TABLE {Name}";
         }
     }

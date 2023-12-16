@@ -12,18 +12,21 @@ namespace Musoq.Plugins.Tests
             Assert.AreEqual(2, Library.ExtractFromDate("01/02/2001 00:00:00 +00:00", "month"));
             Assert.AreEqual(1, Library.ExtractFromDate("01/02/2001 00:00:00 +00:00", "day"));
             Assert.AreEqual(2001, Library.ExtractFromDate("01/02/2001 00:00:00 +00:00", "year"));
+            Assert.AreEqual(9, Library.ExtractFromDate("01/02/2001 09:00:00 +00:00", "hour"));
+            Assert.AreEqual(9, Library.ExtractFromDate("01/02/2001 00:09:00 +00:00", "minute"));
+            Assert.AreEqual(9, Library.ExtractFromDate("01/02/2001 00:00:09 +00:00", "second"));
         }
 
         [ExpectedException(typeof(NotSupportedException))]
         [TestMethod]
-        public void ExtracFromDateWrongDateTest()
+        public void ExtractFromDateWrongDateTest()
         {
             Library.ExtractFromDate("error", "month");
         }
 
         [ExpectedException(typeof(NotSupportedException))]
         [TestMethod]
-        public void ExtracFromDateWrongPartOfDateTest()
+        public void ExtractFromDateWrongPartOfDateTest()
         {
             Library.ExtractFromDate("01/02/2001 00:00:00 +00:00", "error");
         }

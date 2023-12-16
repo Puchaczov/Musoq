@@ -1,4 +1,5 @@
-﻿using Musoq.Plugins.Attributes;
+﻿using System;
+using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins
 {

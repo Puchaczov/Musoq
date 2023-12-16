@@ -15,7 +15,7 @@ namespace Musoq.Parser.Nodes
 
         public override void Accept(IExpressionVisitor visitor)
         {
-            visitor.Visit(this);
+             visitor.Visit(this);
         }
 
         public override string ToString()

@@ -26,7 +26,7 @@ namespace Musoq.Parser.Nodes.From
         
         public int InSourcePosition { get; }
 
-        public override string Id => Identifier;
+        public override string Id => $"{Identifier}-{Alias}";
 
         public override void Accept(IExpressionVisitor visitor)
         {

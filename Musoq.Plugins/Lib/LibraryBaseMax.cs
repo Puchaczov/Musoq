@@ -19,6 +19,7 @@ namespace Musoq.Plugins
         /// </summary>
         /// <param name="group" injectedByRuntime="true">The group object</param>
         /// <param name="name">Name of the group</param>
+        /// <param name="parent">Which group should be used to retrieve value</param>
         /// <returns>Max of group</returns>
         [AggregationGetMethod]
         public decimal Max([InjectGroup] Group group, string name, int parent)

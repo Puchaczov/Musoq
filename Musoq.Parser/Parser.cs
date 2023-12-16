@@ -638,7 +638,7 @@ namespace Musoq.Parser
         {
             var schemaNode = ComposeWord();
             Consume(TokenType.Dot);
-            var identifierNode = ((IdentifierNode)ComposeBaseTypes());
+            var identifierNode = (IdentifierNode)ComposeBaseTypes();
 
             return new SchemaMethodFromNode(schemaNode.Value, identifierNode.Name);
         }
