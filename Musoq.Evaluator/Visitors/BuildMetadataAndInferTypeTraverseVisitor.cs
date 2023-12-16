@@ -721,6 +721,8 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AliasedFromNode node)
         {
+            SetQueryPart(QueryPart.From);
+            node.Args.Accept(this);
             node.Accept(_visitor);
         }
 

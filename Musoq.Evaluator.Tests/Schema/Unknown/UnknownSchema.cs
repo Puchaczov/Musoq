@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
-namespace Musoq.Evaluator.Tests.Schema.Dynamic;
+namespace Musoq.Evaluator.Tests.Schema.Unknown;
 
 public class UnknownSchema : SchemaBase
 {
@@ -14,6 +15,12 @@ public class UnknownSchema : SchemaBase
         : base(SchemaName, CreateLibrary())
     {
         _values = values;
+    }
+    
+    public UnknownSchema()
+        : base(SchemaName, CreateLibrary())
+    {
+        _values = new List<dynamic>();
     }
     
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)

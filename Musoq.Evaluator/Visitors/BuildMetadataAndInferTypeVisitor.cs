@@ -806,7 +806,7 @@ namespace Musoq.Evaluator.Visitors
             _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
             _generatedAliases.Add(_queryAlias);
 
-            var aliasedSchemaFromNode = new Parser.SchemaFromNode(schemaInfo.Schema, schemaInfo.Method, node.Args,
+            var aliasedSchemaFromNode = new Parser.SchemaFromNode(schemaInfo.Schema, schemaInfo.Method, (ArgsListNode) Nodes.Pop(),
                 _queryAlias, node.InSourcePosition);
 
             var tableSymbol = new TableSymbol(
@@ -821,10 +821,14 @@ namespace Musoq.Evaluator.Visitors
                             ? _positionalEnvironmentVariables[_positionalEnvironmentVariablesKey]
                             : new Dictionary<string, string>(),
                         (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)
-                    )
+                    ),
+                    _schemaFromArgs.ToArray()
                 ) ?? table, 
                 !string.IsNullOrEmpty(node.Alias)
             );
+            
+            _schemaFromArgs.Clear();
+            
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
 

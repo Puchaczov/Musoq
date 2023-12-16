@@ -2,7 +2,7 @@
 using System.Linq;
 using Musoq.Schema;
 
-namespace Musoq.Evaluator.Tests.Schema.Dynamic;
+namespace Musoq.Evaluator.Tests.Schema.Unknown;
 
 public class UnknownTable : ISchemaTable
 {

@@ -1,7 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Evaluator.Tests.Schema.Dynamic;
+using Musoq.Evaluator.Tests.Schema.Unknown;
+using Musoq.Schema;
+using Musoq.Schema.DataSources;
+using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -143,5 +151,120 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual("AAeqwgQEW", table[1].Values[0]);
         Assert.AreEqual("XXX", table[2].Values[0]);
         Assert.AreEqual("dadsqqAA", table[3].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenArgumentPassedToAliasedSchema_ShouldBeProperlyRecognized()
+    {
+        const string query = "table DummyTable {" +
+                             "   Parameter0 'System.Boolean'," +
+                             "   Parameter1 'System.String'" +
+                             "};" +
+                             "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
+                             "select Parameter0, Parameter1 from SourceOfDummyRows(true, 'test');";
+
+        var vm = CreateAndRunVirtualMachine(query, null, new ParametersSchemaProvider());
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        
+        Assert.AreEqual("Parameter0", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(bool), table.Columns.ElementAt(0).ColumnType);
+        
+        Assert.AreEqual("Parameter1", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+    }
+    
+    private class ParametersSchemaProvider : ISchemaProvider
+    {
+        public ISchema GetSchema(string schema)
+        {
+            return new ParametersSchema();
+        }
+    }
+    
+    private class ParametersSchema : SchemaBase
+    {
+        private const string SchemaName = "Parameters";
+    
+        public ParametersSchema()
+            : base(SchemaName, CreateLibrary())
+        {
+        }
+    
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+        {
+            return new ParametersTable(parameters);
+        }
+    
+        public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+        {
+            return new ParametersRowsSource(parameters);
+        }
+
+        private static MethodsAggregator CreateLibrary()
+        {
+            var methodManager = new MethodsManager();
+
+            var lib = new DynamicLibrary();
+
+            methodManager.RegisterLibraries(lib);
+
+            return new MethodsAggregator(methodManager);
+        }
+    }
+    
+    private class ParametersTable : ISchemaTable
+    {
+        public ParametersTable(object[] values)
+        {
+            Columns = values
+                .Select((t, i) => new SchemaColumn($"Parameter{i}", i, t.GetType()))
+                .Cast<ISchemaColumn>()
+                .ToArray();
+        }
+        
+        public ISchemaColumn[] Columns { get; }
+
+        public SchemaTableMetadata Metadata { get; } = new(typeof(object));
+        
+        public ISchemaColumn GetColumnByName(string name)
+        {
+            return Columns.First(c => c.ColumnName == name);
+        }
+
+        public ISchemaColumn[] GetColumnsByName(string name)
+        {
+            return Columns.Where(c => c.ColumnName == name).ToArray();
+        }
+    }
+    
+    private class ParametersRowsSource : RowSourceBase<dynamic>
+    {
+        private readonly object[] _values;
+
+        public ParametersRowsSource(object[] values)
+        {
+            _values = values;
+        }
+
+        protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
+        {
+            var index = 0;
+            var indexToNameMap = new Dictionary<int, string>();
+            var accessMap = new Dictionary<string, object>();
+            
+            foreach (var value in _values)
+            {
+                indexToNameMap.Add(index, $"Parameter{index}");
+                accessMap.Add($"Parameter{index}", value);
+                index++;
+            }
+            
+            _values.ToList().ForEach(v => chunkedSource.Add(new List<IObjectResolver>
+            {
+                new DynamicDictionaryResolver(accessMap, indexToNameMap)
+            }));
+        }
     }
 }

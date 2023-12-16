@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Musoq.Schema;
 
-namespace Musoq.Evaluator.Tests.Schema.Dynamic;
+namespace Musoq.Evaluator.Tests.Schema.Unknown;
 
 public class UnknownSchemaProvider : ISchemaProvider
 {

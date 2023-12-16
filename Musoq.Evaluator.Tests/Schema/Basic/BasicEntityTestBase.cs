@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Converter;
 using Musoq.Converter.Build;
+using Musoq.Evaluator.Tests.Schema.Dynamic;
+using Musoq.Evaluator.Tests.Schema.Unknown;
 using Musoq.Plugins;
+using Musoq.Schema;
 using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Basic
@@ -42,6 +46,18 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
                 script, 
                 Guid.NewGuid().ToString(), 
                 new BasicSchemaProvider<T>(sources),
+                positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
+        }
+
+        protected CompiledQuery CreateAndRunVirtualMachine(
+            string script,
+            IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null,
+            ISchemaProvider schemaProvider = null)
+        {
+            return InstanceCreator.CompileForExecution(
+                script, 
+                Guid.NewGuid().ToString(), 
+                schemaProvider,
                 positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
         }
 
