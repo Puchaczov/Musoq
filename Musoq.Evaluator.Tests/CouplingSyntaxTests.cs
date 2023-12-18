@@ -173,8 +173,46 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         
         Assert.AreEqual("Parameter1", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(true, table[0].Values[0]);
+        Assert.AreEqual("test", table[0].Values[1]);
     }
-    
+
+    [TestMethod]
+    public void WhenDataSourceIsBasedOnAnotherDataSource_ShouldPass()
+    {
+        var query = "" +
+                    "table Values {" +
+                    "   Text 'System.String'" +
+                    "};" +
+                    "couple #unknown.others with table Values as SourceOfValues;" +
+                    "with Anything as (" +
+                    "   select Text from #unknown.anything()" +
+                    ")" +
+                    "select Text from SourceOfValues(Anything)";
+
+        dynamic first = new ExpandoObject();
+
+        first.Text = "test1";
+
+        dynamic second = new ExpandoObject();
+
+        second.Text = "test2";
+
+        var vm = CreateAndRunVirtualMachine(query, null, new UnknownSchemaProvider(new[] {first, second}));
+        var table = vm.Run();
+
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual("Text", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+        Assert.AreEqual(2, table.Count);
+
+        Assert.AreEqual("test1", table[0].Values[0]);
+        Assert.AreEqual("test2", table[1].Values[0]);
+    }
+
     private class ParametersSchemaProvider : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
@@ -261,10 +299,10 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                 index++;
             }
             
-            _values.ToList().ForEach(v => chunkedSource.Add(new List<IObjectResolver>
+            chunkedSource.Add(new List<IObjectResolver>
             {
                 new DynamicDictionaryResolver(accessMap, indexToNameMap)
-            }));
+            });
         }
     }
 }

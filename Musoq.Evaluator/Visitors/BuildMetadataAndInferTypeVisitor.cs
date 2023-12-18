@@ -444,7 +444,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(IdentifierNode node)
         {
-            if (node.Name != _identifier)
+            if (node.Name != _identifier && _queryPart != QueryPart.From)
             {
                 var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
                 var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
@@ -743,6 +743,8 @@ namespace Musoq.Evaluator.Visitors
 
         private static readonly WhereNode AllTrueWhereNode =
             new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
+
+        private QueryPart _queryPart;
 
         public void Visit(SchemaFromNode node)
         {
@@ -1459,6 +1461,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void SetQueryPart(QueryPart part)
         {
+            _queryPart = part;
         }
 
         public void QueryBegins()
