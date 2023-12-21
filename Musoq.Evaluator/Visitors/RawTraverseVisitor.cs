@@ -530,6 +530,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(AliasedFromNode node)
         {
+            node.Args.Accept(this);
             node.Accept(Visitor);
         }
 
