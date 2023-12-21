@@ -574,17 +574,17 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType));
         }
 
-        public void Visit(WhenNode node)
+        public virtual void Visit(WhenNode node)
         {
             Nodes.Push(new WhenNode(Nodes.Pop()));
         }
 
-        public void Visit(ThenNode node)
+        public virtual void Visit(ThenNode node)
         {
             Nodes.Push(new ThenNode(Nodes.Pop()));
         }
 
-        public void Visit(ElseNode node)
+        public virtual void Visit(ElseNode node)
         {
             Nodes.Push(new ElseNode(Nodes.Pop()));
         }

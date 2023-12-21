@@ -513,27 +513,27 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(CreateTableNode node)
+        public virtual void Visit(CreateTableNode node)
         {
             node.Accept(Visitor);
         }
 
-        public void Visit(CoupleNode node)
+        public virtual void Visit(CoupleNode node)
         {
             node.Accept(Visitor);
         }
 
-        public void Visit(SchemaMethodFromNode node)
+        public virtual void Visit(SchemaMethodFromNode node)
         {
             node.Accept(Visitor);
         }
 
-        public void Visit(AliasedFromNode node)
+        public virtual void Visit(AliasedFromNode node)
         {
             node.Accept(Visitor);
         }
 
-        public void Visit(StatementsArrayNode node)
+        public virtual void Visit(StatementsArrayNode node)
         {
             foreach (var statement in node.Statements)
                 statement.Accept(this);
@@ -541,13 +541,13 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(StatementNode node)
+        public virtual void Visit(StatementNode node)
         {
             node.Node.Accept(this);
             node.Accept(Visitor);
         }
 
-        public void Visit(CaseNode node)
+        public virtual void Visit(CaseNode node)
         {
             node.Else.Accept(this);
 
@@ -560,25 +560,25 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(WhenNode node)
+        public virtual void Visit(WhenNode node)
         {
             node.Expression.Accept(this);
             node.Accept(Visitor);
         }
 
-        public void Visit(ThenNode node)
+        public virtual void Visit(ThenNode node)
         {
             node.Expression.Accept(this);
             node.Accept(Visitor);
         }
 
-        public void Visit(ElseNode node)
+        public virtual void Visit(ElseNode node)
         {
             node.Expression.Accept(this);
             node.Accept(Visitor);
         }
 
-        public void Visit(FieldLinkNode node)
+        public virtual void Visit(FieldLinkNode node)
         {
             node.Accept(Visitor);
         }
