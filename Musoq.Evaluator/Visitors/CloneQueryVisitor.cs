@@ -534,7 +534,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(AliasedFromNode node)
         {
-            Nodes.Push(new Parser.AliasedFromNode(node.Identifier, node.Args, node.Alias, node.InSourcePosition));
+            Nodes.Push(new Parser.AliasedFromNode(node.Identifier, (ArgsListNode)Nodes.Pop(), node.Alias, node.InSourcePosition));
         }
 
         public virtual void Visit(SchemaMethodFromNode node)
