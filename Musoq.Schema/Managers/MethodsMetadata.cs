@@ -311,7 +311,16 @@ public class MethodsMetadata
 
     private bool CanBeAssignedFromGeneric(Type paramType, Type arrayType)
     {
-        return paramType.IsArray && paramType.GetElementType()!.IsGenericParameter && arrayType.IsArray;
+        var isParamArray = paramType.IsArray;
+
+        if (!isParamArray)
+            return false;
+        
+        var paramElementType = paramType.GetElementType()!;
+        var isParamGeneric = paramElementType.IsGenericParameter || paramElementType.IsArray;
+        var isArrayArray = arrayType.IsArray;
+        
+        return isParamGeneric && isArrayArray;
     }
 
     private static bool IsEntityTypeInjectableIntoMethod(Type entityType, InjectTypeAttribute injectTypeAttribute)

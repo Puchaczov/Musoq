@@ -14,25 +14,40 @@ namespace Musoq.Plugins.Helpers
         /// Computes the hash of a string using the THashProvider algorithm.
         /// </summary>
         /// <param name="content">The content</param>
+        /// <param name="create">The provider</param>
         /// <typeparam name="THashProvider">The provider</typeparam>
         /// <returns>Hash of a value</returns>
-        public static string ComputeHash<THashProvider>(string content)
-            where THashProvider : HashAlgorithm, new()
+        public static string ComputeHash<THashProvider>(string content, Func<THashProvider> create)
+            where THashProvider : HashAlgorithm
         {
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-            return ComputeHash<THashProvider>(stream);
+            return ComputeHash(Encoding.UTF8.GetBytes(content), create);
         }
         
         /// <summary>
         /// Computes the hash of a string using the THashProvider algorithm.
         /// </summary>
-        /// <param name="stream">The content</param>
+        /// <param name="content">The content</param>
+        /// <param name="create">The provider</param>
         /// <typeparam name="THashProvider">The provider</typeparam>
         /// <returns>Hash of a value</returns>
-        public static string ComputeHash<THashProvider>(Stream stream)
-            where THashProvider : HashAlgorithm, new()
+        public static string ComputeHash<THashProvider>(byte[] content, Func<THashProvider> create)
+            where THashProvider : HashAlgorithm
         {
-            using var hashProvider = new THashProvider();
+            using var stream = new MemoryStream(content);
+            return ComputeHash(stream, create);
+        }
+
+        /// <summary>
+        /// Computes the hash of a string using the THashProvider algorithm.
+        /// </summary>
+        /// <param name="stream">The content</param>
+        /// <param name="create">The provider</param>
+        /// <typeparam name="THashProvider">The provider</typeparam>
+        /// <returns>Hash of a value</returns>
+        public static string ComputeHash<THashProvider>(Stream stream, Func<THashProvider> create)
+            where THashProvider : HashAlgorithm
+        {
+            using var hashProvider = create();
             var hash = hashProvider.ComputeHash(stream);
             return BitConverter.ToString(hash).Replace("-", string.Empty);
         }

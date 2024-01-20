@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Converter;
 using Musoq.Converter.Build;
+using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Evaluator.Tests.Schema.Unknown;
 using Musoq.Plugins;
@@ -71,6 +72,16 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
 
         protected void TestMethodTemplate<TResult>(string operation, TResult score)
         {
+            var table = TestResultMethodTemplate(operation);
+
+            Assert.AreEqual(1, table.Count);
+            Assert.AreEqual(typeof(TResult), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(score, table[0][0]);
+        }
+
+        protected Table TestResultMethodTemplate(string operation)
+        {
             var query = $"select {operation} from #A.Entities()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -78,12 +89,7 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
-
-            Assert.AreEqual(1, table.Count);
-            Assert.AreEqual(typeof(TResult), table.Columns.ElementAt(0).ColumnType);
-
-            Assert.AreEqual(score, table[0][0]);
+            return vm.Run();
         }
 
         private static IDictionary<string, IEnumerable<T>> CreateMockObjectFor<T>()

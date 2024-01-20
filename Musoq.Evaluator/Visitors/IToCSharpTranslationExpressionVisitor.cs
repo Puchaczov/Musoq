@@ -9,5 +9,9 @@
         void IncrementMethodIdentifier();
         
         void SetInsideJoin(bool value);
+
+        void AddNullSuspiciousSection();
+        
+        void RemoveNullSuspiciousSection();
     }
 }

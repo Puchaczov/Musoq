@@ -143,7 +143,7 @@ namespace Musoq.Evaluator.Visitors
         private Stack<SyntaxNode> Nodes { get; }
 
         private List<StatementSyntax> Statements { get; } = new();
-        private Stack<SyntaxNode> NullSuspiciousNodes { get; } = new();
+        private List<Stack<SyntaxNode>> NullSuspiciousNodes { get; } = new();
         private IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
         public void Visit(Node node)
@@ -165,6 +165,10 @@ namespace Musoq.Evaluator.Visitors
                 case DescForType.SpecificConstructor:
                     CreateDescForSpecificConstructor(node);
                     break;
+                case DescForType.None:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             Statements.Clear();
@@ -835,8 +839,10 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.ArgumentList()))));
             }
 
-            _scope.ScopeSymbolTable.AddSymbolIfNotExist(method.ReflectedType.Name,
-                new TypeSymbol(method.ReflectedType));
+            _scope.ScopeSymbolTable.AddSymbolIfNotExist(
+                method.ReflectedType.Name,
+                new TypeSymbol(method.ReflectedType)
+            );
 
             foreach (var parameterInfo in parameters)
             {
@@ -995,8 +1001,8 @@ namespace Musoq.Evaluator.Visitors
                     args);
             }
 
-            if (!node.ReturnType.IsTrueValueType())
-                NullSuspiciousNodes.Push(accessMethodExpr);
+            if (!node.ReturnType.IsTrueValueType() && NullSuspiciousNodes.Count > 0)
+                NullSuspiciousNodes[^1].Push(accessMethodExpr);
 
             Nodes.Push(accessMethodExpr);
         }
@@ -1075,8 +1081,8 @@ namespace Musoq.Evaluator.Visitors
 
             sNode = Generator.CastExpression(typeIdentifier, sNode);
 
-            if (!node.ReturnType.IsTrueValueType())
-                NullSuspiciousNodes.Push(sNode);
+            if (!node.ReturnType.IsTrueValueType() && NullSuspiciousNodes.Count > 0)
+                NullSuspiciousNodes[^1].Push(sNode);
 
             Nodes.Push(sNode);
         }
@@ -1235,8 +1241,7 @@ namespace Musoq.Evaluator.Visitors
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
             var a2 = SyntaxFactory.ExpressionStatement(invocation)
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-
-            NullSuspiciousNodes.Clear();
+            
             _selectBlock = SyntaxFactory.Block(a1, a2);
         }
 
@@ -1254,8 +1259,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.ContinueStatement()
                         })
                     .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-
-            NullSuspiciousNodes.Clear();
+            
             Nodes.Push(ifStatement);
         }
 
@@ -1314,14 +1318,13 @@ namespace Musoq.Evaluator.Visitors
             fieldNames.Append("};");
 
             Statements.Add(SyntaxFactory.ParseStatement(fieldNames.ToString()));
-            NullSuspiciousNodes.Clear();
 
             AddNamespace(typeof(GroupKey).Namespace);
         }
 
         public void Visit(HavingNode node)
         {
-            NullSuspiciousNodes.Clear();
+            
             Nodes.Push(Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
                     new SyntaxNode[] {SyntaxFactory.ContinueStatement()})
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
@@ -1652,8 +1655,6 @@ namespace Musoq.Evaluator.Visitors
                     break;
             }
 
-            NullSuspiciousNodes.Clear();
-
             _joinBlock = computingBlock;
         }
 
@@ -1978,8 +1979,7 @@ namespace Musoq.Evaluator.Visitors
                                             SyntaxFactory.ExpressionStatement(invocation))))));
                     break;
             }
-
-            NullSuspiciousNodes.Clear();
+            
             _joinBlock = computingBlock;
         }
 
@@ -2075,8 +2075,6 @@ namespace Musoq.Evaluator.Visitors
                         SyntaxFactory.ArgumentList()));
                 Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
             }
-
-            NullSuspiciousNodes.Clear();
         }
 
         public void Visit(RenameTableNode node)
@@ -2137,8 +2135,6 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName)));
 
             Statements.AddRange(fullBlock.Statements);
-
-            NullSuspiciousNodes.Clear();
         }
 
         public void Visit(InternalQueryNode node)
@@ -2214,8 +2210,6 @@ namespace Musoq.Evaluator.Visitors
                 _joinBlock = _joinBlock.ReplaceNode(_emptyBlock, select.Statements);
                 Statements.AddRange(_joinBlock.Statements);
             }
-
-            NullSuspiciousNodes.Clear();
         }
 
         private StatementSyntax GenerateCancellationExpression()
@@ -2959,6 +2953,16 @@ namespace Musoq.Evaluator.Visitors
             _isInsideJoin = state;
         }
 
+        public void AddNullSuspiciousSection()
+        {
+            NullSuspiciousNodes.Add(new Stack<SyntaxNode>());
+        }
+
+        public void RemoveNullSuspiciousSection()
+        {
+            NullSuspiciousNodes.RemoveAt(NullSuspiciousNodes.Count - 1);
+        }
+
         private void AddNamespace(string columnTypeNamespace)
         {
             if (!_namespaces.Contains(columnTypeNamespace))
@@ -3319,7 +3323,7 @@ namespace Musoq.Evaluator.Visitors
 
         private SyntaxNode GenerateNullGuards(SyntaxNode rawNode)
         {
-            if (NullSuspiciousNodes.Count > 1)
+            if (NullSuspiciousNodes[^1].Count > 1)
             {
                 rawNode = SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.BinaryExpression(
@@ -3328,23 +3332,23 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxKind.LogicalAndExpression,
                             SyntaxFactory.BinaryExpression(
                                 SyntaxKind.NotEqualsExpression,
-                                (ExpressionSyntax) NullSuspiciousNodes.Pop(),
+                                (ExpressionSyntax) NullSuspiciousNodes[^1].Pop(),
                                 SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
                             SyntaxFactory.BinaryExpression(
                                 SyntaxKind.NotEqualsExpression,
-                                (ExpressionSyntax) NullSuspiciousNodes.Pop(),
+                                (ExpressionSyntax) NullSuspiciousNodes[^1].Pop(),
                                 SyntaxFactory.LiteralExpression(
                                     SyntaxKind.NullLiteralExpression))),
                         (BinaryExpressionSyntax) rawNode));
             }
-            else if (NullSuspiciousNodes.Count == 1)
+            else if (NullSuspiciousNodes[^1].Count == 1)
             {
                 rawNode = SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.BinaryExpression(
                         SyntaxKind.LogicalAndExpression,
                         SyntaxFactory.BinaryExpression(
                             SyntaxKind.NotEqualsExpression,
-                            (ExpressionSyntax) NullSuspiciousNodes.Pop(),
+                            (ExpressionSyntax) NullSuspiciousNodes[^1].Pop(),
                             SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
                         (BinaryExpressionSyntax) rawNode));
             }

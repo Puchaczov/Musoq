@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Tests.Common;
 
 namespace Musoq.Plugins.Tests
@@ -7,19 +8,24 @@ namespace Musoq.Plugins.Tests
     public class LibraryBaseBaseTests
     {
         private class EmptyLibrary : LibraryBase { }
+        private Group _root;
 
         protected LibraryBase Library;
         protected Group Group;
-        protected Group Root;
 
         [TestInitialize]
         public void Initialize()
         {
-            Library = new EmptyLibrary();
-            Root = new Group(null, new string[0], new object[0]);
-            Group = new Group(Root, new string[0], new object[0]);
+            Library = CreateLibrary();
+            _root = new Group(null, Array.Empty<string>(), Array.Empty<object>());
+            Group = new Group(_root, Array.Empty<string>(), Array.Empty<object>());
 
             Culture.ApplyWithDefaultCulture();
+        }
+        
+        protected virtual LibraryBase CreateLibrary()
+        {
+            return new EmptyLibrary();
         }
     }
 }

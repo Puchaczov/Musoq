@@ -1221,6 +1221,17 @@ namespace Musoq.Evaluator.Visitors
 
             var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
+            if (!isAggregateMethod && method.IsGenericMethod && TryReduceDimensions(method, args, out var reducedMethod))
+            {
+                method = reducedMethod;
+            }
+
+            if (!isAggregateMethod && method.IsGenericMethod && !method.IsConstructedGenericMethod &&
+                TryConstructGenericMethod(method, args, out var constructedMethod))
+            {
+                method = constructedMethod;
+            }
+
             AccessMethodNode accessMethod;
             if (isAggregateMethod)
             {
@@ -1299,30 +1310,6 @@ namespace Musoq.Evaluator.Visitors
             node.ChangeMethod(method);
 
             Nodes.Push(accessMethod);
-        }
-
-        private int[] CreateSetOperatorPositionIndexes(QueryNode node, string[] keys)
-        {
-            var indexes = new int[keys.Length];
-
-            var fieldIndex = 0;
-            var index = 0;
-
-            foreach (var field in node.Select.Fields)
-            {
-                if (keys.Contains(field.FieldName))
-                    indexes[index++] = fieldIndex;
-
-                fieldIndex += 1;
-            }
-
-            return indexes;
-        }
-
-        private string CreateSetOperatorPositionKey()
-        {
-            var key = _setKey++;
-            return key.ToString().ToSetOperatorKey(key.ToString());
         }
 
         public void Visit(OrderByNode node)
@@ -1506,6 +1493,30 @@ namespace Musoq.Evaluator.Visitors
             return greatestCommonSubtype;
         }
 
+        private string CreateSetOperatorPositionKey()
+        {
+            var key = _setKey++;
+            return key.ToString().ToSetOperatorKey(key.ToString());
+        }
+
+        private static int[] CreateSetOperatorPositionIndexes(QueryNode node, string[] keys)
+        {
+            var indexes = new int[keys.Length];
+
+            var fieldIndex = 0;
+            var index = 0;
+
+            foreach (var field in node.Select.Fields)
+            {
+                if (keys.Contains(field.FieldName))
+                    indexes[index++] = fieldIndex;
+
+                fieldIndex += 1;
+            }
+
+            return indexes;
+        }
+
         private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns)
         {
             var library = new TransitionLibrary();
@@ -1619,6 +1630,93 @@ namespace Musoq.Evaluator.Visitors
         private static bool HasIndexer(Type type)
         {
             return type is not null && type.GetProperties().Any(f => f.GetIndexParameters().Length > 0);
+        }
+
+        private static bool TryReduceDimensions(MethodInfo method, ArgsListNode args, out MethodInfo reducedMethod)
+        {
+            var parameters = method.GetParameters();
+            var paramsParameter = parameters
+                .FirstOrDefault(f => f.GetCustomAttribute<ParamArrayAttribute>() != null);
+
+            if (paramsParameter is null)
+            {
+                reducedMethod = null;
+                return false;
+            }
+            
+            var paramsParameterIndex = paramsParameter.Position;
+            var typesToReduce = args.Args.Skip(paramsParameterIndex).Select(f => f.ReturnType).ToArray();
+
+            var typeToReduce = typesToReduce.Length > 1 ? typesToReduce.First().MakeArrayType() : typesToReduce.First();
+
+            if (typeToReduce is null)
+            {
+                reducedMethod = null;
+                return false;
+            }
+
+            var lastNonNullType = typeToReduce;
+            while (typeToReduce is not null)
+            {
+                lastNonNullType = typeToReduce;
+                typeToReduce = typeToReduce.GetElementType();
+            }
+                
+            reducedMethod = method.MakeGenericMethod(lastNonNullType);
+            return true;
+        }
+
+        private static bool TryConstructGenericMethod(MethodInfo methodInfo, ArgsListNode args, out MethodInfo constructedMethod)
+        {
+            var genericArguments = methodInfo.GetGenericArguments();
+            var genericArgumentsDistinct = new List<Type>();
+            var parameters = methodInfo.GetParameters();
+            
+            foreach (var genericArgument in genericArguments)
+            {
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var parameter = parameters[i];
+                    var returnType = args.Args.Where((arg, index) => index == i).Single().ReturnType;
+                    var elementType = returnType.GetElementType();
+
+                    if (parameter.ParameterType.IsGenericType && parameter.ParameterType.IsAssignableTo(typeof(IEnumerable<>).MakeGenericType(genericArgument)) && elementType is not null)
+                    {
+                        genericArgumentsDistinct.Add(elementType);
+                    }
+                    
+                    if (parameter.ParameterType.IsGenericType)
+                    {
+                        var assignableInterfaces = returnType
+                            .GetInterfaces()
+                            .Where(type => type.IsConstructedGenericType)
+                            .Select(type => new { type, definition = type.GetGenericTypeDefinition() })
+                            .ToArray();
+
+                        var firstAssignableInterface =
+                            assignableInterfaces.FirstOrDefault(f => f.definition.IsAssignableFrom(typeof(IEnumerable<>)));
+
+                        if (firstAssignableInterface is null)
+                        {
+                            continue;
+                        }
+                        
+                        var elementTypeOfFirstAssignableInterface = firstAssignableInterface.type.GetElementType() ?? firstAssignableInterface.type.GetGenericArguments()[0];
+                        
+                        genericArgumentsDistinct.Add(elementTypeOfFirstAssignableInterface);
+                    }
+
+                    if (parameter.ParameterType == genericArgument)
+                    {
+                        genericArgumentsDistinct.Add(returnType);
+                    }
+                }
+            }
+            
+            var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
+            
+            constructedMethod = methodInfo.MakeGenericMethod(genericArgumentsConcreteTypes);
+            return true;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
@@ -107,6 +108,12 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
         public decimal GetPopulation([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
         {
             return entity.Population;
+        }
+        
+        [BindableMethod]
+        public string ThrowException()
+        {
+            throw new MethodCallThrownException();
         }
     }
 }

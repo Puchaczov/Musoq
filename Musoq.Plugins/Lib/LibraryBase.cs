@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
 using Musoq.Plugins.Attributes;
-using Musoq.Plugins.Helpers;
 
 namespace Musoq.Plugins
 {

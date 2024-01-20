@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Musoq.Plugins
 {
@@ -57,18 +58,40 @@ namespace Musoq.Plugins
         }
 
         /// <summary>
-        /// Turn IEnumerable into array.
+        /// Turn array arguments of T into a single array.
         /// </summary>
         /// <param name="values">The values</param>
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Array of specific type</returns>
         [BindableMethod]
-        public T[]? ToArray<T>(IEnumerable<T>? values)
+        public T[]? EnumerableToArray<T>(IEnumerable<T>? values)
         {
             if (values == null)
                 return null;
 
             return values.ToArray();
+        }
+
+        /// <summary>
+        /// Turn array arguments of T into a single array.
+        /// </summary>
+        /// <param name="values">The values</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Array of specific type</returns>
+        [BindableMethod]
+        public T[]? MergeArrays<T>(params T[][]? values)
+        {
+            if (values == null)
+                return null;
+
+            var result = new List<T>();
+            
+            foreach (var value in values)
+            {
+                result.AddRange(value);
+            }
+            
+            return result.ToArray();
         }
 
         /// <summary>
@@ -107,7 +130,7 @@ namespace Musoq.Plugins
 
                     if (sourceElement.Equals(patternElement))
                     {
-                        array[i, j] = (i == 0 || j == 0) ? 1 : array[i - 1, j - 1] + 1;
+                        array[i, j] = i == 0 || j == 0 ? 1 : array[i - 1, j - 1] + 1;
 
                         if (array[i, j] > maxSubStringSequence)
                         {
@@ -136,7 +159,7 @@ namespace Musoq.Plugins
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Element of a given index</returns>
         [BindableMethod]
-        public T? GetElementAt<T>(IEnumerable<T>? enumerable, int? index)
+        public T? GetElementAtOrDefault<T>(IEnumerable<T>? enumerable, int? index)
         {
             if (enumerable == null)
                 return default;
@@ -172,6 +195,152 @@ namespace Musoq.Plugins
         public int? Length<T>(T[]? array)
         {
             return array?.Length;
+        }
+        
+        /// <summary>
+        /// Gets the value of an array at the specified index
+        /// </summary>
+        /// <param name="index">The index</param>
+        /// <param name="values">The values</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Value of specified index</returns>
+        [BindableMethod]
+        public T? Choose<T>(int index, params T[] values)
+        {
+            if (values.Length <= index)
+                return default;
+
+            return values[index];
+        }
+
+        /// <summary>
+        /// Chose a or b value based on the expression result
+        /// </summary>
+        /// <param name="expressionResult">The expression result</param>
+        /// <param name="a">The A parameter</param>
+        /// <param name="b">The B parameter</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Value a or b</returns>
+        [BindableMethod]
+        public T If<T>(bool expressionResult, T a, T b)
+        {
+            if (expressionResult)
+                return a;
+
+            return b;
+        }
+        
+        /// <summary>
+        /// Determine whether content matches the specified pattern
+        /// </summary>
+        /// <param name="regex">The regex</param>
+        /// <param name="content">The content</param>
+        /// <returns>True if matches, otherwise false</returns>
+        [BindableMethod]
+        public bool? Match(string? regex, string? content)
+        {
+            if (regex == null || content == null)
+                return null;
+
+            return Regex.IsMatch(content, regex);
+        }
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public byte? Coalesce(params byte?[] array)
+            => Coalesce<byte?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public sbyte? Coalesce(params sbyte?[] array)
+            => Coalesce<sbyte?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public short? Coalesce(params short?[] array)
+            => Coalesce<short?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public ushort? Coalesce(params ushort?[] array)
+            => Coalesce<ushort?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public int? Coalesce(params int?[] array)
+            => Coalesce<int?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public decimal? Coalesce(params uint?[] array)
+            => Coalesce<uint?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public decimal? Coalesce(params long?[] array)
+            => Coalesce<long?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public decimal? Coalesce(params ulong?[] array)
+            => Coalesce<ulong?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public decimal? Coalesce(params decimal?[] array)
+            => Coalesce<decimal?>(array);
+        
+        /// <summary>
+        /// Gets the first non-null value in a list 
+        /// </summary>
+        /// <param name="array">The array</param>
+        /// <returns>First non-null value</returns>
+        [BindableMethod]
+        public T? Coalesce<T>(params T[] array)
+        {
+            foreach (var obj in array)
+            {
+                if (!Equals(obj, default(T)))
+                    return obj;
+            }
+
+            return default;
         }
     }
 }

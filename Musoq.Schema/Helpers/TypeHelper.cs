@@ -35,7 +35,7 @@ namespace Musoq.Schema.Helpers
         }
 
         /// <summary>
-        /// Checks if the can be considered as contextual value type.
+        /// Checks if the type can be considered as contextual value type.
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>True if is pure value type. False if is Nullable[T] type or is reference type.</returns>

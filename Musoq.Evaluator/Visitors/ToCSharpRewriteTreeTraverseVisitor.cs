@@ -131,8 +131,10 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(WhereNode node)
         {
+            _visitor.AddNullSuspiciousSection();
             node.Expression.Accept(this);
             node.Accept(_visitor);
+            _visitor.RemoveNullSuspiciousSection();
         }
 
         public void Visit(GroupByNode node)
@@ -146,8 +148,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(HavingNode node)
         {
+            _visitor.AddNullSuspiciousSection();
             node.Expression.Accept(this);
             node.Accept(_visitor);
+            _visitor.RemoveNullSuspiciousSection();
         }
 
         public void Visit(SkipNode node)
@@ -163,12 +167,14 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
             _visitor.SetInsideJoin(true);
+            _visitor.AddNullSuspiciousSection();
             
             node.SourceTable.Accept(this);
             node.Expression.Accept(this);
             node.Accept(_visitor);
             
             _visitor.SetInsideJoin(false);
+            _visitor.RemoveNullSuspiciousSection();
         }
 
         public void Visit(SchemaFromNode node)
@@ -180,6 +186,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(JoinSourcesTableFromNode node)
         {
             _visitor.SetInsideJoin(true);
+            _visitor.AddNullSuspiciousSection();
             
             node.Expression.Accept(this);
             node.First.Accept(this);
@@ -188,6 +195,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
             
             _visitor.SetInsideJoin(false);
+            _visitor.RemoveNullSuspiciousSection();
         }
 
         public void Visit(InMemoryTableFromNode node)
@@ -420,7 +428,11 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(ArgsListNode node)
         {
             foreach (var item in node.Args)
+            {
+                _visitor.AddNullSuspiciousSection();
                 item.Accept(this);
+                _visitor.RemoveNullSuspiciousSection();
+            }
             node.Accept(_visitor);
         }
 
@@ -636,10 +648,10 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(CaseNode node)
         {
             var oldMethodAccessType = _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
-            
+         
             node.Else.Accept(this);
 
-            for (int i = node.WhenThenPairs.Length - 1; i >= 0; --i)
+            for (var i = node.WhenThenPairs.Length - 1; i >= 0; --i)
             {
                 node.WhenThenPairs[i].When.Accept(this);
                 node.WhenThenPairs[i].Then.Accept(this);
@@ -652,20 +664,26 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WhenNode node)
         {
+            _visitor.AddNullSuspiciousSection();
             node.Expression.Accept(this);
             node.Accept(_visitor);
+            _visitor.RemoveNullSuspiciousSection();
         }
 
         public void Visit(ThenNode node)
         {
+            _visitor.AddNullSuspiciousSection();
             node.Expression.Accept(this);
             node.Accept(_visitor);
+            _visitor.RemoveNullSuspiciousSection();
         }
 
         public void Visit(ElseNode node)
         {
+            _visitor.AddNullSuspiciousSection();
             node.Expression.Accept(this);
             node.Accept(_visitor);
+            _visitor.RemoveNullSuspiciousSection();
         }
 
         public void Visit(FieldLinkNode node)

@@ -28,7 +28,7 @@ namespace Musoq.Plugins
         /// <param name="parent"></param>
         /// <param name="fieldNames"></param>
         /// <param name="values"></param>
-        public Group(Group parent, string[] fieldNames, object[] values)
+        public Group(Group? parent, string[] fieldNames, object[] values)
         {
             Parent = parent;
 #if DEBUG

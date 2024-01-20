@@ -10,39 +10,6 @@ namespace Musoq.Plugins
     public partial class LibraryBase
     {
         /// <summary>
-        /// Gets the sha256 hash of the given string.
-        /// </summary>
-        /// <param name="content">The content string</param>
-        /// <returns>The sha256 value</returns>
-        [BindableMethod]
-        public string? Sha512(string? content)
-        {
-            return content == null ? null : HashHelper.ComputeHash<SHA512Managed>(content);
-        }
-
-        /// <summary>
-        /// Gets the sha256 hash of the given string.
-        /// </summary>
-        /// <param name="content">The content string</param>
-        /// <returns>The sha256 value</returns>
-        [BindableMethod]
-        public string? Sha256(string? content)
-        {
-            return content == null ? null : HashHelper.ComputeHash<SHA256Managed>(content);
-        }
-
-        /// <summary>
-        /// Gets the md5 hash of the given string.
-        /// </summary>
-        /// <param name="content">The content string</param>
-        /// <returns>The sha256 value</returns>
-        [BindableMethod]
-        public string? Md5(string? content)
-        {
-            return content == null ? null : HashHelper.ComputeHash<MD5CryptoServiceProvider>(content);
-        }
-        
-        /// <summary>
         /// Converts given bytes to binary with defined delimiter
         /// </summary>
         /// <param name="bytes">The bytes</param>

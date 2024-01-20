@@ -215,7 +215,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Soundex code</returns>
         [BindableMethod]
-        public string Soundex(string? value)
+        public string? Soundex(string? value)
         {
             if (value == null)
                 return null;
@@ -278,7 +278,7 @@ namespace Musoq.Plugins
         }
         
         /// <summary>
-        /// Matches whether the specified word is present after being fuzified within the specified text
+        /// Matches whether the specified word is present after being fuzzified within the specified text
         /// </summary>
         /// <param name="text">The text</param>
         /// <param name="word">The word</param>
