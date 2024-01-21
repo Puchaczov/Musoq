@@ -49,4 +49,11 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
         
         base.Visit(node);
     }
+    
+    public override void Visit(InMemoryTableFromNode node)
+    {
+        _accessColumns.TryAdd(node.Alias, new List<AccessColumnNode>());
+        
+        base.Visit(node);
+    }
 }

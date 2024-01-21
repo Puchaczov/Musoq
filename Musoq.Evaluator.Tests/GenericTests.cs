@@ -124,4 +124,31 @@ public class GenericTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(5, (int)table[0].Values[0]);
     }
+    
+    [TestMethod]
+    public void WhenSkipWithoutReductionRequired_ShouldPass()
+    {
+        var table = TestResultMethodTemplate("EnumerableToArray(Skip(GetBytes('test1'), 1))");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("est1", Encoding.UTF8.GetString((byte[])table[0].Values[0]));
+    }
+    
+    [TestMethod]
+    public void WhenTakeWithoutReductionRequired_ShouldPass()
+    {
+        var table = TestResultMethodTemplate("EnumerableToArray(Take(GetBytes('test1'), 1))");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("t", Encoding.UTF8.GetString((byte[])table[0].Values[0]));
+    }
+    
+    [TestMethod]
+    public void WhenSkipAndTakeWithoutReductionRequired_ShouldPass()
+    {
+        var table = TestResultMethodTemplate("EnumerableToArray(SkipAndTake(GetBytes('test1'), 1, 1))");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("e", Encoding.UTF8.GetString((byte[])table[0].Values[0]));
+    }
 }

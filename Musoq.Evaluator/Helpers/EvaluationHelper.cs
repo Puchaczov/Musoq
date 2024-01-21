@@ -296,7 +296,7 @@ namespace Musoq.Evaluator.Helpers
             _item = item;
         }
 
-        public object[] Contexts => new object[] { _item };
+        public object[] Contexts => Array.Empty<object>();
 
         public object this[string name]
         {

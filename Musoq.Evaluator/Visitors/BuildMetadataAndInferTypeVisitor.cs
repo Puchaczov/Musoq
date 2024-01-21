@@ -1674,15 +1674,22 @@ namespace Musoq.Evaluator.Visitors
             
             foreach (var genericArgument in genericArguments)
             {
-                for (int i = 0; i < parameters.Length; i++)
+                for (var i = 0; i < parameters.Length; i++)
                 {
                     var parameter = parameters[i];
                     var returnType = args.Args.Where((arg, index) => index == i).Single().ReturnType;
                     var elementType = returnType.GetElementType();
 
+                    if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition())
+                    {
+                        genericArgumentsDistinct.Add(returnType.GetGenericArguments()[0]);
+                        continue;
+                    }
+                    
                     if (parameter.ParameterType.IsGenericType && parameter.ParameterType.IsAssignableTo(typeof(IEnumerable<>).MakeGenericType(genericArgument)) && elementType is not null)
                     {
                         genericArgumentsDistinct.Add(elementType);
+                        continue;
                     }
                     
                     if (parameter.ParameterType.IsGenericType)
