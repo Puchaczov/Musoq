@@ -3,7 +3,7 @@
 [![Build & Tests](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)
 
 # What is Musoq?
-Musoq is handy tool that allows to use SQL syntax on a variety of data sources.
+Musoq is handy engine that allows to use SQL syntax on a variety of data sources.
 
 ![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
 
@@ -35,14 +35,10 @@ Please, Visit **[Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSourc
 or through reordered syntax:
 
   `from #os.files('path/to/folder', false) where Extension = '.exe' or Extension = '.png' select *`
- 
-## How to run it?
-
-To run it, visit **[Musoq installation page](https://puchaczov.github.io/Musoq/installation)**. You will find there latest release with installation process description.
 
 ## Does it work on Linux?
 
-Yes, it does work on linux. I have tested it on Ubuntu 18.04. If you try to run it on different distro or version. I will be grateful if you would post an issue reporting either success or fail.
+The engine is compatible with Linux, Windows, and Docker environments. It is also expected to run on macOS, although it has not been explicitly tested on this platform.
 
 ## What features does it has?
 
