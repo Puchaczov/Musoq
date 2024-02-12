@@ -62,6 +62,23 @@ The engine is compatible with Linux, Windows, and Docker environments. It is als
 
 ## Query examples
 
+API of the engine were improved so it is possible now to integrate seamlessly with LLMs. For example, I made a custom plugin that uses enhanced syntax and query the invoice file based on pdf.co and GPT 4. This is the query I have constructed:
+
+```sql
+table PdfInvoice {
+    ItemPosition 'int',
+    ItemName 'string',
+    ItemPrice 'decimal'
+};
+couple #custom.invoices with table PdfInvoice as SourceOfInvoiceValues;
+select 
+    ItemPosition,
+    ItemName,
+    ItemPrice
+from SourceOfInvoiceValues('./Invoice.pdf') where ItemPrice > 0
+```
+Query above will effectivelly extract table from invoice with the column you asking for based on LLM inference on requested columns and their data types.
+
 #### Use GPT to compute sentiment on a comment
 
 ```sql
@@ -88,6 +105,31 @@ SELECT
 FROM #os.files('C:/Some/Path/To/Dir', true)
 WHERE Extension IN ('.png', '.jpg')
 ```
+
+#### query CAN DBC files:
+
+```sql
+SELECT  
+	ID,
+	Name,
+	DLC,
+	CycleTime
+from #can.messages('./file.dbc')
+```
+
+or signals:
+
+```sql
+SELECT
+	Name,
+	ByteOrder,
+	Length,
+	StartBit,
+	Factor,
+	...
+from #can.signals('./file.dbc')
+```
+
 #### group by directory and show size of each directories
 ```sql
 SELECT
