@@ -130,6 +130,12 @@ SELECT
 from #can.signals('./file.dbc')
 ```
 
+#### concat two columns in csv file:
+
+```sql
+SELECT Concat(Column1, Column2) as ConcatenatedColumn from #separatedvalues.csv('./file.csv', true, 0)
+```
+
 #### group by directory and show size of each directories
 ```sql
 SELECT
