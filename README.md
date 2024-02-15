@@ -2,45 +2,20 @@
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 [![Build & Tests](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)
 
-# What is Musoq?
-Musoq is handy engine that allows to use SQL syntax on a variety of data sources.
+# What is Musoq
+Musoq is a powerful engine designed to apply SQL syntax across a variety of data sources, making data querying more intuitive and accessible. Whether it's files, directories, comma separated values, or even complex data structures, Musoq simplifies data access.
 
 ![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
 
-# Do you want to know more?
+# Features
 Musoq exposes raw data sets as queryable sources. This allows to search these data sources using SQL syntax variant. What can be used as query source? Virtually anything! Here are some ideas (many of them are already included in the project!):
 
-- Directories
-- Files
-- Structured files (.csv, .json, .xml, logs)
-- Photos (by exif attributes)
-- Archived files (.zip)
-- Git, Svn, TFS
-- Websites (tables, lists)
-- Processes
-- Time
-- AI - **GPT 3 / 4 (required API-KEY)**
-- Airtable **(reqiuired API-KEY)**, SQLite, Postgres
+- **Versatile Data Sources:** Visit **[Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSources)** repository where all plugins are stored.
+- **SQL Syntax Variant:** Use familiar SQL syntax for querying, including support for complex queries and user-defined functions.
+- **Cross-Platform:** Runs on Linux, Windows, and Docker. macOS compatibility is anticipated.
+- **Extensible:** Easily extend Musoq with plugins to add custom data sources.
 
-It is possible to mix sources between each other.
-
-## Where are those data sources?
-
-Please, Visit **[Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSources)** repository where all plugins are stored
-
-## What does a query look like?
-
-  `select * from #os.files('path/to/folder', false) where Extension = '.exe' or Extension = '.png'`
-  
-or through reordered syntax:
-
-  `from #os.files('path/to/folder', false) where Extension = '.exe' or Extension = '.png' select *`
-
-## Does it work on Linux?
-
-The engine is compatible with Linux, Windows, and Docker environments. It is also expected to run on macOS, although it has not been explicitly tested on this platform.
-
-## What features does it has?
+## Syntax features
 
 - Optional query reordering (from ... where ... group by ... having ... select ... skip N take N2)
 - Use of `*` to select all columns.
@@ -267,24 +242,14 @@ WHERE files.Extension = '.png'
 ```sql
 SELECT Value FROM #system.range(1, 10)
 ```
-    
-## How do I know what columns the source has?
-
-There is a built-in way to list all the columns from a source, all plugins supports it out of the box! The command is: `desc #schema.table(someArg1, someArg2)`. 
 
 ## Architecture for plugins
 
 You can easily plug-in your own data source. There is fairly simple plugin api that all sources use. To read in details how to do it, jump into wiki section of this repo [click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
 
-## Roughly about performance
+## Motivation
 
-[![Maintenance](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)
-
-Tested on laptop with i7 7700HQ, 12 GB RAM, Windows 10, Main Disk (250 GB SSD), Secondary Disk (1TB HDD). Files were placed on the HDD. The query tested was counting how many rows the files has. The file tested was a single 6GB csv file with 11 columns. For each test the file was split to reflect sizes you can observe in chart. This should give you some guidance on what data processing rate you can expect using this tool.
-
-## Motivation for creating this project
-
-On the one hand, I needed something that allowed me to perform queries on my own bank account file, at the same time something that filters with respect to file names and their content. I had the idea that I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writing" multiple scripts manually, however I found it useful to automate this process and as a result minimizing the amount of time to create it. Fast querying was my goal. Looking at it another way, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing C# code is redundant when all you have to do is to write a query and it will do the magic with your data source.
+Developed out of a need for a versatile tool that could query various data sources with SQL syntax, Musoq aims to minimize the effort and time required for data querying and analysis.
 
 ## Please, be aware of
 
@@ -292,4 +257,4 @@ As the language looks like sql, it doesn't mean it is fully SQL compliant. It us
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+Musoq is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
