@@ -8,12 +8,12 @@ Musoq is a powerful engine designed to apply SQL syntax across a variety of data
 ![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
 
 # Features
-Musoq exposes raw data sets as queryable sources. This allows to search these data sources using SQL syntax variant. What can be used as query source? Virtually anything! Here are some ideas (many of them are already included in the project!):
+Musoq exposes raw data sets as queryable sources. This allows to search these data sources using SQL syntax variant. Here are some points I'm heading towards to:
 
 - **Versatile Data Sources:** Visit **[Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSources)** repository where all plugins are stored.
-- **SQL Syntax Variant:** Use familiar SQL syntax for querying, including support for complex queries and user-defined functions.
-- **Cross-Platform:** Runs on Linux, Windows, and Docker. macOS compatibility is anticipated.
-- **Extensible:** Easily extend Musoq with plugins to add custom data sources.
+- **SQL Syntax Variant:** For users familiar with SQL syntax for querying, support for complex queries and user-defined functions.
+- **Cross-Platform:** Runs on Linux, Windows, and Docker. MacOS compatibility is anticipated.
+- **Extensible:** Extending Musoq with plugins must be straigthforward.
 
 ## Syntax features
 
