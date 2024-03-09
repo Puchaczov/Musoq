@@ -11,6 +11,8 @@ Musoq is a powerful engine designed to apply SQL syntax across a variety of data
 - **Versatility:** Data sources comes as plugins, you can visit the **[repository](https://github.com/Puchaczov/Musoq.DataSources)** where all are stored.
 - **SQL Syntax Variant:** The engine uses SQL syntax variant with support for complex queries.
 - **Cross-Platform:** Runs on Linux, Windows, and Docker. MacOS compatibility is anticipated.
+- **In-place querying without data movement**: Musoq allows users to query data where it resides, without the need to move or load it into a central data store. This eliminates the cost, complexity, and latency of data movement
+- **Extensible architecture for custom data sources**: Musoq provides an extensible plugin architecture that allows users to add support for custom data sources
 
 ## Example Data Sources
 
