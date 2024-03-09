@@ -255,6 +255,10 @@ WHERE files.Extension = '.png'
 SELECT Value FROM #system.range(1, 10)
 ```
 
+## Architecture - high level overview
+
+![Png](https://github.com/Puchaczov/Musoq/blob/master/Musoq-Architecture-Engine.png)
+
 ## Architecture for plugins
 
 You can easily plug-in your own data source. There is fairly simple plugin api that all sources use. To read in details how to do it, jump into wiki section of this repo [click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
