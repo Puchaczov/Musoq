@@ -1,50 +1,33 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Puchaczov/Musoq/graphs/code-frequency)
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
-[![Build & Tests](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)](https://github.com/Puchaczov/Musoq/workflows/Unit%20Tests/badge.svg)
 
-# What is Musoq?
-Musoq is handy tool that allows to use SQL syntax on a variety of data sources.
+# What is Musoq
+Musoq is a powerful engine designed to apply SQL syntax across a variety of data sources, making data querying more intuitive and accessible. Whether it's files, directories, comma separated values, or even complex data structures, Musoq simplifies data access.
 
 ![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
 
-# Do you want to know more?
-Musoq exposes raw data sets as queryable sources. This allows to search these data sources using SQL syntax variant. What can be used as query source? Virtually anything! Here are some ideas (many of them are already included in the project!):
+## Features
 
-- Directories
-- Files
-- Structured files (.csv, .json, .xml, logs)
-- Photos (by exif attributes)
-- Archived files (.zip)
-- Git, Svn, TFS
-- Websites (tables, lists)
-- Processes
-- Time
-- AI - **GPT 3 / 4 (required API-KEY)**
-- Airtable **(reqiuired API-KEY)**, SQLite, Postgres
+- **Versatility:** Data sources comes as plugins, you can visit the **[repository](https://github.com/Puchaczov/Musoq.DataSources)** where all are stored.
+- **SQL Syntax Variant:** The engine uses SQL syntax variant with support for complex queries.
+- **Cross-Platform:** Runs on Linux, Windows, and Docker. MacOS compatibility is anticipated.
+- **In-place querying without data movement**: Musoq allows users to query data where it resides, without the need to move or load it into a central data store. This eliminates the cost, complexity, and latency of data movement
+- **Extensible architecture for custom data sources**: Musoq provides an extensible plugin architecture that allows users to add support for custom data sources
 
-It is possible to mix sources between each other.
+## Example Data Sources
 
-## Where are those data sources?
+- SeparatedValues (allows to treat separated values files as tables)
+- CANBus (allows to treat CAN .dbc files and corresponding .csv files that contains records of a CAN bus as tables)
+- Archives (allows to treat archives as tables)
+- OS (allows to treat your hard disk as a data source)
 
-Please, Visit **[Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSources)** repository where all plugins are stored
+...and many more
 
-## What does a query look like?
+## How to try it out
 
-  `select * from #os.files('path/to/folder', false) where Extension = '.exe' or Extension = '.png'`
-  
-or through reordered syntax:
+You can run it from your CLI. Just follow the instructions from **[CLI repository](https://github.com/Puchaczov/Musoq.CLI)**
 
-  `from #os.files('path/to/folder', false) where Extension = '.exe' or Extension = '.png' select *`
- 
-## How to run it?
-
-To run it, visit **[Musoq installation page](https://puchaczov.github.io/Musoq/installation)**. You will find there latest release with installation process description.
-
-## Does it work on Linux?
-
-Yes, it does work on linux. I have tested it on Ubuntu 18.04. If you try to run it on different distro or version. I will be grateful if you would post an issue reporting either success or fail.
-
-## What features does it has?
+## Syntax features
 
 - Optional query reordering (from ... where ... group by ... having ... select ... skip N take N2)
 - Use of `*` to select all columns.
@@ -66,22 +49,82 @@ Yes, it does work on linux. I have tested it on Ubuntu 18.04. If you try to run 
 
 ## Query examples
 
-#### Get only files that extension is `.png` or `.jpg`
+API of the engine were improved so it is possible now to integrate seamlessly with LLMs. For example, I made a custom plugin that uses enhanced syntax and query the invoice file based on pdf.co and GPT 4. This is the query I have constructed:
+
+```sql
+table PdfInvoice {
+    ItemPosition 'int',
+    ItemName 'string',
+    ItemPrice 'decimal'
+};
+couple #custom.invoices with table PdfInvoice as SourceOfInvoiceValues;
+select 
+    ItemPosition,
+    ItemName,
+    ItemPrice
+from SourceOfInvoiceValues('./Invoice.pdf') where ItemPrice > 0
 ```
+Query above will effectivelly extract table from invoice with the column you asking for based on LLM inference on requested columns and their data types.
+
+#### Use GPT to compute sentiment on a comment
+
+```sql
+select 
+    csv.PostId,
+    csv.Comment,
+    gpt.Sentiment(csv.Comment) as Sentiment,
+    csv.Date
+from #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
+inner join #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
+```
+
+#### Get only files that extension is `.png` or `.jpg`
+```sql
 SELECT 
 	FullName 
 FROM #os.files('C:/Some/Path/To/Dir', true) 
 WHERE Extension = '.png' OR Extension = '.jpg'
 ```
 #### equivalent with `in` operator: 
-```
+```sql
 SELECT 
 	FullName 
 FROM #os.files('C:/Some/Path/To/Dir', true)
 WHERE Extension IN ('.png', '.jpg')
 ```
-#### group by directory and show size of each directories
+
+#### query CAN DBC files:
+
+```sql
+SELECT  
+	ID,
+	Name,
+	DLC,
+	CycleTime
+from #can.messages('./file.dbc')
 ```
+
+or signals:
+
+```sql
+SELECT
+	Name,
+	ByteOrder,
+	Length,
+	StartBit,
+	Factor,
+	...
+from #can.signals('./file.dbc')
+```
+
+#### concat two columns in csv file:
+
+```sql
+SELECT Concat(Column1, Column2) as ConcatenatedColumn from #separatedvalues.csv('./file.csv', true, 0)
+```
+
+#### group by directory and show size of each directories
+```sql
 SELECT
 	DirectoryName,
 	Sum(Length) / 1024 / 1024 as 'MB',
@@ -92,14 +135,14 @@ FROM #os.files('', true)
 GROUP BY DirectoryName
 ```
 #### try to find a file that has part `report` in his name:
-```
+```sql
 SELECT
 	*
 FROM #os.files('', true)
 WHERE Name like '%report%'
 ```
 #### try to find a file that has in it's title word that sounds like:
-```
+```sql
 SELECT 
 	FullName
 FROM #os.files('E:/', true) 
@@ -108,7 +151,7 @@ WHERE
 	HasWordThatSoundLike(Name, 'material')
 ```
 #### get first, last 5 bits from files and consecutive 10 bytes of file with offset of 5 from tail
-```
+```sql
 SELECT
 	ToHex(Head(5), '|'),
 	ToHex(Tail(5), '|'),
@@ -116,7 +159,7 @@ SELECT
 FROM #os.files('', false)
 ```
 #### compare two directories
-```
+```sql
 WITH filesOfA AS (
 	SELECT 
 		GetRelativeName('E:\DiffDirsTests\A') AS FullName, 
@@ -164,7 +207,7 @@ SELECT
 FROM inDestinationDir inDest
 ```
 #### which basically equivalent with build-in plugin is:
-```
+```sql
 SELECT 
 	(
 		CASE WHEN SourceFile IS NOT NULL 
@@ -181,7 +224,7 @@ SELECT
 FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
 ```
 #### Look for directories contains zip files
-```
+```sql
 SELECT
 	DirectoryName, 
 	AggregateValues(Name) 
@@ -190,14 +233,14 @@ WHERE IsZipArchive()
 GROUP BY DirectoryName
 ```
 #### Look for files greater than 1 gig
-```
+```sql
 SELECT 
 	FullName 
 FROM #os.files('', true) 
 WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
 ```
 #### Tries to read the text from `.png` file through OCR plugin.
-```	
+```sql	
 SELECT 
 	ocr.GetText(file.FullName) as text
 FROM 
@@ -208,27 +251,21 @@ ON 1 = 1
 WHERE files.Extension = '.png'
 ```
 #### Prints the values from 1 to 9
-```
+```sql
 SELECT Value FROM #system.range(1, 10)
 ```
-    
-## How do I know what columns the source has?
 
-There is a built-in way to list all the columns from a source, all plugins supports it out of the box! The command is: `desc #schema.table(someArg1, someArg2)`. 
+## Architecture - high level overview
+
+![Png](https://github.com/Puchaczov/Musoq/blob/master/Musoq-Architecture-Engine.png)
 
 ## Architecture for plugins
 
 You can easily plug-in your own data source. There is fairly simple plugin api that all sources use. To read in details how to do it, jump into wiki section of this repo [click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
 
-## Roughly about performance
+## Motivation
 
-[![Maintenance](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)](https://github.com/Puchaczov/Musoq/blob/master/musoq_sim_agg_pict.png)
-
-Tested on laptop with i7 7700HQ, 12 GB RAM, Windows 10, Main Disk (250 GB SSD), Secondary Disk (1TB HDD). Files were placed on the HDD. The query tested was counting how many rows the files has. The file tested was a single 6GB csv file with 11 columns. For each test the file was split to reflect sizes you can observe in chart. This should give you some guidance on what data processing rate you can expect using this tool.
-
-## Motivation for creating this project
-
-On the one hand, I needed something that allowed me to perform queries on my own bank account file, at the same time something that filters with respect to file names and their content. I had the idea that I would like it to be a single tool rather than a set of tools. That's how the musoq was born in my mind, with extensible plugins system and user defined grouping operators. All that Musoq does, you can achieve by "hand writing" multiple scripts manually, however I found it useful to automate this process and as a result minimizing the amount of time to create it. Fast querying was my goal. Looking at it another way, you might see that Musoq transpiles SQL code into C# code and then compiles it with Roslyn. In that case, writing C# code is redundant when all you have to do is to write a query and it will do the magic with your data source.
+Developed out of a need for a versatile tool that could query various data sources with SQL syntax, Musoq aims to minimize the effort and time required for data querying and analysis.
 
 ## Please, be aware of
 
@@ -236,4 +273,4 @@ As the language looks like sql, it doesn't mean it is fully SQL compliant. It us
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+Musoq is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
