@@ -29,10 +29,8 @@ url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: puchaczov
 github_username:  puchaczov
 header_pages:
-  - articles.markdown
   - installation.markdown
-  - examples.markdown
-  - docs.markdown
+  - articles.markdown
 
 # Build settings
 theme: minima
