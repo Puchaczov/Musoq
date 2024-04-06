@@ -2990,12 +2990,13 @@ namespace Musoq.Evaluator.Visitors
         private void AddReference(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
-                if (!_loadedAssemblies.Contains(assembly.Location))
-                {
-                    _loadedAssemblies.Add(assembly.Location);
-                    Compilation =
-                        Compilation.AddReferences(MetadataReference.CreateFromFile(assembly.Location));
-                }
+            {
+                if (_loadedAssemblies.Contains(assembly.Location)) continue;
+                
+                _loadedAssemblies.Add(assembly.Location);
+                Compilation =
+                    Compilation.AddReferences(MetadataReference.CreateFromFile(assembly.Location));
+            }
         }
 
         private StatementSyntax GenerateStatsUpdateStatements()

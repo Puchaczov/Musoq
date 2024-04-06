@@ -522,6 +522,11 @@ namespace Musoq.Parser
         {
             var left = ComposeBaseTypes(minPrecedence);
 
+            if (IsNumericToken(Current))
+            {
+                left = new AddNode(left, ComposeBaseTypes(minPrecedence));
+            }
+
             while (IsArithmeticBinaryOperator(Current) && _precDict[Current.TokenType].Precendence >= minPrecedence)
             {
                 var curr = Current;
@@ -530,29 +535,16 @@ namespace Musoq.Parser
                 Consume(Current.TokenType);
                 var right = ComposeArithmeticExpression(nextMinPrecedence);
 
-                switch (curr.TokenType)
+                left = curr.TokenType switch
                 {
-                    case TokenType.Plus:
-                        left = new AddNode(left, right);
-                        break;
-                    case TokenType.Hyphen:
-                        left = new HyphenNode(left, right);
-                        break;
-                    case TokenType.Star:
-                        left = new StarNode(left, right);
-                        break;
-                    case TokenType.FSlash:
-                        left = new FSlashNode(left, right);
-                        break;
-                    case TokenType.Mod:
-                        left = new ModuloNode(left, right);
-                        break;
-                    case TokenType.Dot:
-                        left = new DotNode(left, right, string.Empty);
-                        break;
-                    default:
-                        throw new NotSupportedException($"{curr.TokenType} is not supported while parsing expression.");
-                }
+                    TokenType.Plus => new AddNode(left, right),
+                    TokenType.Hyphen => new HyphenNode(left, right),
+                    TokenType.Star => new StarNode(left, right),
+                    TokenType.FSlash => new FSlashNode(left, right),
+                    TokenType.Mod => new ModuloNode(left, right),
+                    TokenType.Dot => new DotNode(left, right, string.Empty),
+                    _ => throw new NotSupportedException($"{curr.TokenType} is not supported while parsing expression.")
+                };
             }
 
             return left;
@@ -902,36 +894,22 @@ namespace Musoq.Parser
 
         private static bool IsArithmeticBinaryOperator(Token currentToken)
         {
-            return currentToken.TokenType == TokenType.Star ||
-                   currentToken.TokenType == TokenType.FSlash ||
-                   currentToken.TokenType == TokenType.Mod ||
-                   currentToken.TokenType == TokenType.Plus ||
-                   currentToken.TokenType == TokenType.Hyphen ||
-                   currentToken.TokenType == TokenType.Dot;
+            return currentToken.TokenType is TokenType.Star or TokenType.FSlash or TokenType.Mod or TokenType.Plus or TokenType.Hyphen or TokenType.Dot;
         }
 
         private static bool IsEqualityOperator(Token currentToken)
         {
-            return currentToken.TokenType == TokenType.Greater ||
-                   currentToken.TokenType == TokenType.GreaterEqual ||
-                   currentToken.TokenType == TokenType.Less ||
-                   currentToken.TokenType == TokenType.LessEqual ||
-                   currentToken.TokenType == TokenType.Equality ||
-                   currentToken.TokenType == TokenType.Not ||
-                   currentToken.TokenType == TokenType.Diff ||
-                   currentToken.TokenType == TokenType.Like ||
-                   currentToken.TokenType == TokenType.NotLike ||
-                   currentToken.TokenType == TokenType.Contains ||
-                   currentToken.TokenType == TokenType.Is ||
-                   currentToken.TokenType == TokenType.In ||
-                   currentToken.TokenType == TokenType.NotIn ||
-                   currentToken.TokenType == TokenType.RLike ||
-                   currentToken.TokenType == TokenType.NotRLike;
+            return currentToken.TokenType is TokenType.Greater or TokenType.GreaterEqual or TokenType.Less or TokenType.LessEqual or TokenType.Equality or TokenType.Not or TokenType.Diff or TokenType.Like or TokenType.NotLike or TokenType.Contains or TokenType.Is or TokenType.In or TokenType.NotIn or TokenType.RLike or TokenType.NotRLike;
         }
 
         private static bool IsQueryOperator(Token currentToken)
         {
-            return currentToken.TokenType == TokenType.And || currentToken.TokenType == TokenType.Or;
+            return currentToken.TokenType is TokenType.And or TokenType.Or;
+        }
+
+        private static bool IsNumericToken(Token current)
+        {
+            return current.TokenType is TokenType.Decimal or TokenType.Integer;
         }
 
         private enum Associativity

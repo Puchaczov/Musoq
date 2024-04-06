@@ -1157,6 +1157,15 @@ namespace Musoq.Evaluator.Visitors
             Assemblies.Add(asm);
         }
 
+        private void AddBaseTypeAssembly(Type entityType)
+        {
+            if (entityType.BaseType == null)
+                return;
+
+            AddAssembly(entityType.BaseType.Assembly);
+            AddBaseTypeAssembly(entityType.BaseType);
+        }
+
         private FieldNode[] CreateFields(FieldNode[] oldFields)
         {
             var reorderedList = new FieldNode[oldFields.Length];
@@ -1198,6 +1207,10 @@ namespace Musoq.Evaluator.Visitors
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
             var schemaTablePair = tableSymbol.GetTableByAlias(alias);
             var entityType = schemaTablePair.Table.Metadata.TableEntityType;
+            
+            AddAssembly(entityType.Assembly);
+            AddBaseTypeAssembly(entityType);
+            
             var canSkipInjectSource = false;
             if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), entityType,
                     out var method))

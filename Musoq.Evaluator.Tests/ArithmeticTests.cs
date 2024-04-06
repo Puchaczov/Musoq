@@ -7,6 +7,24 @@ namespace Musoq.Evaluator.Tests
     public class ArithmeticTests : BasicEntityTestBase
     {
         [TestMethod]
+        public void SimpleAdditionSubtractionTest()
+        {
+            TestMethodTemplate("1 + 1 + 2 - 2", 2);
+        }
+        
+        [TestMethod]
+        public void SimpleAdditionSubtraction2Test()
+        {
+            TestMethodTemplate("1 + 1 + 2 + (-2)", 2);
+        }
+        
+        [TestMethod]
+        public void SimpleAdditionSubtraction3Test()
+        {
+            TestMethodTemplate("1 + 1 + 2 + -2", 2);
+        }
+        
+        [TestMethod]
         public void MultiDividingTest()
         {
             TestMethodTemplate("256 / 8 / 8", 4);
