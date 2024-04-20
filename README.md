@@ -4,7 +4,7 @@
 # What is Musoq
 Musoq is a powerful engine designed to apply SQL syntax across a variety of data sources, making data querying more intuitive and accessible. Whether it's files, directories, comma separated values, or even complex data structures, Musoq simplifies data access.
 
-![Anim](https://github.com/Puchaczov/Musoq/blob/master/musoq_anim_3.gif)
+![Anim](https://github.com/Puchaczov/Musoq/blob/59603028e8fbe90ce8444077cf3561ff8e698afd/musoq.gif)
 
 ## Features
 
