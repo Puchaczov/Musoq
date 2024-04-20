@@ -109,6 +109,18 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
         {
             return entity.Population;
         }
+
+        [BindableMethod]
+        public string GetCountryOrDefault([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, string @default)
+        {
+            return entity.Country ?? @default;
+        }
+
+        [BindableMethod]
+        public string GetCountryOrDefaultGeneric<TColumn>([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, TColumn @default)
+        {
+            return entity.Country ?? @default.ToString();
+        }
         
         [BindableMethod]
         public string ThrowException()

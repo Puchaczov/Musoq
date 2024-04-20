@@ -1687,10 +1687,17 @@ namespace Musoq.Evaluator.Visitors
             
             foreach (var genericArgument in genericArguments)
             {
-                for (var i = 0; i < parameters.Length; i++)
+                var i = 0;
+                var shiftArgsWhenInjectSpecificSourcePresent = 0;
+                if (parameters[0].GetCustomAttribute<InjectSpecificSourceAttribute>() != null)
+                {
+                    i = 1;
+                    shiftArgsWhenInjectSpecificSourcePresent = 1;
+                }
+                for (; i < parameters.Length; i++)
                 {
                     var parameter = parameters[i];
-                    var returnType = args.Args.Where((arg, index) => index == i).Single().ReturnType;
+                    var returnType = args.Args.Where((_, index) => index == i - shiftArgsWhenInjectSpecificSourcePresent).Single().ReturnType;
                     var elementType = returnType.GetElementType();
 
                     if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition())
