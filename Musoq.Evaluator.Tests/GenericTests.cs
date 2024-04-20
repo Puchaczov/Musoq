@@ -151,4 +151,22 @@ public class GenericTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("e", Encoding.UTF8.GetString((byte[])table[0].Values[0]));
     }
+    
+    [TestMethod]
+    public void WhenInferredValueIsNull_ShouldUseDefaultValue()
+    {
+        var table = TestResultMethodTemplate("GetCountryOrDefault('test')");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("test", table[0].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenResolvedMethodIsGenericWithInjectSpecificSourceAttribute_ShouldConcretizeItAccordingly()
+    {
+        var table = TestResultMethodTemplate("GetCountryOrDefaultGeneric('test')");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("test", table[0].Values[0]);
+    }
 }
