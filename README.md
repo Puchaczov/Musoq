@@ -66,6 +66,27 @@ from SourceOfInvoiceValues('./Invoice.pdf') where ItemPrice > 0
 ```
 Query above will effectivelly extract table from invoice with the column you asking for based on LLM inference on requested columns and their data types.
 
+
+#### Describes images from a specified directory using the Ollama and llava:13b model
+
+```sql
+select
+    llava.DescribeImage(photo.Base64File()),
+    photo.FullName
+from #os.files('/path/to/directory', false) photo 
+inner join #ollama.models('llava:13b', 0.0) llava on 1 = 1
+```
+
+#### Counts the total number of tokens in Markdown and C files within a specified directory (tiktoken library involved)
+
+```sql
+select 
+   Sum(gpt.CountTokens(f.GetFileContent())) as TokensCount 
+from #os.files('/path/to/directory', true) f 
+inner join #openai.gpt('gpt-4') gpt on 1 = 1 
+where f.Extension = '.md' or f.Extension = '.c'
+```
+
 #### Use GPT to compute sentiment on a comment
 
 ```sql
@@ -238,17 +259,6 @@ SELECT
 	FullName 
 FROM #os.files('', true) 
 WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
-```
-#### Tries to read the text from `.png` file through OCR plugin.
-```sql	
-SELECT 
-	ocr.GetText(file.FullName) as text
-FROM 
-	#os.files('E:/Path/To/Directory', false) file 
-INNER JOIN 
-	#ocr.single() ocr 
-ON 1 = 1 
-WHERE files.Extension = '.png'
 ```
 #### Prints the values from 1 to 9
 ```sql
