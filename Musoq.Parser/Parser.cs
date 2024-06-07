@@ -423,6 +423,7 @@ namespace Musoq.Parser
                      Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having &&
                      Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
                      Current.TokenType != TokenType.Select &&
+                     Current.TokenType != TokenType.OrderBy &&
                      ConsumeAndGetToken().TokenType == TokenType.Comma);
 
             return fields.ToArray();
@@ -488,6 +489,8 @@ namespace Musoq.Parser
                 case TokenType.Comma:
                     return Order.Ascending;
                 case TokenType.EndOfFile:
+                    return Order.Ascending;
+                case TokenType.RightParenthesis:
                     return Order.Ascending;
                 default:
                     throw new NotSupportedException($"Unrecognized token for ComposeOrder(), the token was {Current.TokenType}");

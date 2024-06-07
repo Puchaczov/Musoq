@@ -17,8 +17,8 @@ namespace Musoq.Plugins
 
         public T Value<T>(string name)
         {
-            if (Converters.ContainsKey(name))
-                return (T) Converters[name](Objects[name]);
+            if (Converters.TryGetValue(name, out var converter))
+                return (T) converter(Objects[name]);
 
             return (T) Objects[name];
         }

@@ -154,7 +154,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));
         }
 
-        public void Visit(FieldOrderedNode node)
+        public virtual void Visit(FieldOrderedNode node)
         {
             Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.Order));
         }
