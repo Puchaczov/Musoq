@@ -188,84 +188,25 @@ namespace Musoq.Evaluator.Helpers
             }
             
             var sourceTable = source.Replace(".Rows", string.Empty);
-            if (orderByFields[0].Field.Order == Order.Ascending)
-            {
-                orderByExpression = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.IdentifierName("OrderBy")
-                ).WithArgumentList(
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                            new SyntaxNodeOrToken[]{
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.IdentifierName(sourceTable)),
-                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.SimpleLambdaExpression(
-                                            SyntaxFactory.Parameter(
-                                                SyntaxFactory.Identifier(variable)))
-                                        .WithExpressionBody(
-                                            orderByFields[0].Syntax))}))
-                );
-            }
-            else
-            {
-                orderByExpression = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.IdentifierName("OrderByDescending")
-                ).WithArgumentList(
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                            new SyntaxNodeOrToken[]{
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.IdentifierName(sourceTable)),
-                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.SimpleLambdaExpression(
-                                            SyntaxFactory.Parameter(
-                                                SyntaxFactory.Identifier(variable)))
-                                        .WithExpressionBody(
-                                            orderByFields[0].Syntax))}))
-                );
-            }
+            
+            orderByExpression = 
+                CreateOrderByExpression(
+                    variable, 
+                    orderByFields, 
+                    sourceTable, 
+                    orderByFields[0].Field.Order == Order.Ascending ? "OrderBy" : "OrderByDescending", 
+                    0);
 
             for (var index = 1; index < orderByFields.Length; index++)
             {
                 var fieldSyntaxTuple = orderByFields[index];
-                if (fieldSyntaxTuple.Field.Order == Order.Ascending)
-                {
-                    orderByExpression = SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.IdentifierName("ThenBy")
-                    ).WithArgumentList(
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                new SyntaxNodeOrToken[]{
-                                    SyntaxFactory.Argument(orderByExpression),
-                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                    SyntaxFactory.Argument(
-                                        SyntaxFactory.SimpleLambdaExpression(
-                                                SyntaxFactory.Parameter(
-                                                    SyntaxFactory.Identifier(variable)))
-                                            .WithExpressionBody(
-                                                orderByFields[index].Syntax))}))
-                    );
-                }
-                else
-                {
-                    orderByExpression = SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.IdentifierName("ThenByDescending")
-                    ).WithArgumentList(
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                new SyntaxNodeOrToken[]{
-                                    SyntaxFactory.Argument(orderByExpression),
-                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                    SyntaxFactory.Argument(
-                                        SyntaxFactory.SimpleLambdaExpression(
-                                                SyntaxFactory.Parameter(
-                                                    SyntaxFactory.Identifier(variable)))
-                                            .WithExpressionBody(
-                                                orderByFields[index].Syntax))}))
-                    );
-                }
+                orderByExpression = CreateThenByExpression(
+                    variable, 
+                    orderByFields, 
+                    orderByExpression, 
+                    fieldSyntaxTuple.Field.Order == Order.Ascending ? "ThenBy" : "ThenByDescending", 
+                    index
+                );
             }
 
             return SyntaxFactory.ForEachStatement(
@@ -308,6 +249,45 @@ namespace Musoq.Evaluator.Helpers
                 newKeyword,
                 SyntaxFactory.ArrayType(SyntaxFactory.IdentifierName(typeName), rankSpecifiers),
                 SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, syntaxList));
+        }
+
+        private static InvocationExpressionSyntax CreateOrderByExpression(string variable, (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields, string sourceTable, string methodName, int index)
+        {
+            return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.IdentifierName(methodName)
+            ).WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                        new SyntaxNodeOrToken[]{
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName(sourceTable)),
+                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.SimpleLambdaExpression(
+                                        SyntaxFactory.Parameter(
+                                            SyntaxFactory.Identifier(variable)))
+                                    .WithExpressionBody(
+                                        orderByFields[index].Syntax))}))
+            );
+        }
+
+        private static InvocationExpressionSyntax CreateThenByExpression(string variable, (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields, ExpressionSyntax orderByExpression, string methodName, int index)
+        {
+            return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.IdentifierName(methodName)
+            ).WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                        new SyntaxNodeOrToken[]{
+                            SyntaxFactory.Argument(orderByExpression),
+                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.SimpleLambdaExpression(
+                                        SyntaxFactory.Parameter(
+                                            SyntaxFactory.Identifier(variable)))
+                                    .WithExpressionBody(
+                                        orderByFields[index].Syntax))}))
+            );
         }
     }
 }
