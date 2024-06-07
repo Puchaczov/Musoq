@@ -46,6 +46,7 @@ You can run it from your CLI. Just follow the instructions from **[CLI repositor
 - Desc for schema, schema table constructors and tables.
 - In syntax.
 - Inner, Left outer, Right outer join syntax.
+- Order by clause.
 
 ## Query examples
 
