@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Musoq.Evaluator.Tables;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator
 {
@@ -50,6 +51,56 @@ namespace Musoq.Evaluator
                     result.Add(row);
 
             return result;
+        }
+        
+        public IOrderedEnumerable<Row> OrderBy<T>(Table table, Func<Row, T> selector)
+        { 
+            return table.OrderBy(selector);
+        }
+        
+        public IOrderedEnumerable<IObjectResolver> OrderBy<T>(RowSource rowSource, Func<IObjectResolver, T> selector)
+        { 
+            return rowSource.Rows.OrderBy(selector);
+        }
+        
+        public IOrderedEnumerable<IObjectResolver> OrderBy<T>(IOrderedEnumerable<IObjectResolver> rowSource, Func<IObjectResolver, T> selector)
+        { 
+            return rowSource.OrderBy(selector);
+        }
+        
+        public IOrderedEnumerable<Row> OrderByDescending<T>(Table table, Func<Row, T> selector)
+        {
+            return table.OrderByDescending(selector);
+        }
+        
+        public IOrderedEnumerable<IObjectResolver> OrderByDescending<T>(RowSource rowSource, Func<IObjectResolver, T> selector)
+        { 
+            return rowSource.Rows.OrderByDescending(selector);
+        }
+        
+        public IOrderedEnumerable<IObjectResolver> OrderByDescending<T>(IOrderedEnumerable<IObjectResolver> rowSource, Func<IObjectResolver, T> selector)
+        { 
+            return rowSource.OrderByDescending(selector);
+        }
+        
+        public IOrderedEnumerable<Row> ThenBy<T>(IOrderedEnumerable<Row> table, Func<Row, T> selector)
+        {
+            return table.ThenBy(selector);
+        }
+        
+        public IOrderedEnumerable<IObjectResolver> ThenBy<T>(IOrderedEnumerable<IObjectResolver> rowSource, Func<IObjectResolver, T> selector)
+        { 
+            return rowSource.ThenBy(selector);
+        }
+        
+        public IOrderedEnumerable<Row> ThenByDescending<T>(IOrderedEnumerable<Row> table, Func<Row, T> selector)
+        {
+            return table.ThenByDescending(selector);
+        }
+        
+        public IOrderedEnumerable<IObjectResolver> ThenByDescending<T>(IOrderedEnumerable<IObjectResolver> rowSource, Func<IObjectResolver, T> selector)
+        { 
+            return rowSource.ThenByDescending(selector);
         }
     }
 }

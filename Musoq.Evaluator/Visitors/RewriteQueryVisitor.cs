@@ -698,8 +698,8 @@ namespace Musoq.Evaluator.Visitors
                     ? new Parser.ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                     : from;
 
-                var split = SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
                 var refreshMethods = CreateRefreshMethods(usedRefreshMethods);
+                var split = SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
                 var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(split[0], groupBy.Fields)
                     .Reverse().ToArray());
                 var outSelect = new SelectNode(split[1]);
@@ -769,13 +769,21 @@ namespace Musoq.Evaluator.Visitors
                 aliasesPositionsSymbol.AliasesPositions.Add(nestedFrom.Alias, aliasIndex++);
                 aliasesPositionsSymbol.AliasesPositions.Add(returnScore, aliasIndex);
 
+                var modifiedOrderBy = orderBy;
+                
+                if (orderBy != null)
+                {
+                    var splitOrderBy = CreateAfterGroupByOrderByAccessFields(orderBy.Fields, groupBy.Fields);
+                    modifiedOrderBy = new OrderByNode(splitOrderBy);
+                }
+
                 query = new DetailedQueryNode(
                     outSelect,
                     new Parser.ExpressionFromNode(
                         new InMemoryGroupedFromNode(returnScore)),
                     null,
                     null,
-                    null,
+                    modifiedOrderBy,
                     skip,
                     take,
                     returnScore);
@@ -796,8 +804,9 @@ namespace Musoq.Evaluator.Visitors
                 
                 if (IsQueryWithMixedAggregateAndNonAggregateMethods(split))
                 {
-                    query = new InternalQueryNode(select, from, where, null, null, skip, take,
+                    query = new InternalQueryNode(select, from, where, null, orderBy, skip, take,
                         CreateRefreshMethods(usedRefreshMethods));
+                    throw new NotImplementedException("Mixing aggregate and non aggregate methods is not implemented yet");
                 }
                 else
                 {
@@ -818,7 +827,7 @@ namespace Musoq.Evaluator.Visitors
                     aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex);
 
                     splitNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], Array.Empty<string>(), select.Fields, false));
-                    splitNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, null, skip, take,
+                    splitNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, orderBy, skip, take,
                         scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
 
                     Nodes.Push(
@@ -1043,8 +1052,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new AccessMethodNode(node.FToken, args, null, node.CanSkipInjectSource, node.Method, node.Alias));
         }
 
-        private FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields,
-            bool useOuterFields)
+        private FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields, bool useOuterFields)
         {
             var nestedFields = new List<FieldNode>();
             var outerFields = new List<FieldNode>();
@@ -1109,13 +1117,29 @@ namespace Musoq.Evaluator.Visitors
             return retFields;
         }
 
+        private FieldOrderedNode[] CreateAfterGroupByOrderByAccessFields(FieldOrderedNode[] fieldsToSplit, FieldNode[] groupByFields)
+        {
+            var outerFields = new List<FieldOrderedNode>();
+
+            foreach (var root in fieldsToSplit)
+            {
+                var rewriter = new RewriteFieldOrderedWithGroupMethodCall(groupByFields);
+                var traverser = new CloneTraverseVisitor(rewriter);
+
+                root.Accept(traverser);
+
+                outerFields.Add(rewriter.Expression);
+            }
+
+            return outerFields.ToArray();
+        }
+
         private FieldNode[] CreateFields(FieldNode[] oldFields)
         {
             var reorderedList = new FieldNode[oldFields.Length];
             var fields = new List<FieldNode>(reorderedList.Length);
 
             for (var i = reorderedList.Length - 1; i >= 0; i--) reorderedList[i] = Nodes.Pop() as FieldNode;
-
 
             for (int i = 0, j = reorderedList.Length, p = 0; i < j; ++i)
             {

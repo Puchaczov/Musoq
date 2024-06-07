@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>5.6.9</Version>
+    <Version>5.7.0</Version>
     <Authors>Jakub Puchała</Authors>
     <Product>Musoq</Product>
     <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
@@ -43,6 +43,12 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>MetaAttributes.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteFieldOrderedWithGroupMethodCall.cs">
+      <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteFieldWithGroupMethodCall.cs">
+      <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 
