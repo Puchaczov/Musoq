@@ -7,7 +7,7 @@ namespace Musoq.Parser.Helpers
     {
         static NodeHelper()
         {
-            var dict = new Dictionary<(Type, Type), Type>
+            var binaryTypes = new Dictionary<(Type, Type), Type>
             {
                 {(typeof(byte), typeof(byte)), typeof(int)},
                 {(typeof(byte), typeof(sbyte)), typeof(int)},
@@ -140,7 +140,7 @@ namespace Musoq.Parser.Helpers
                 {(typeof(TimeSpan), typeof(TimeSpan)), typeof(TimeSpan)}
             };
             
-            BinaryTypes = dict;
+            BinaryTypes = binaryTypes;
         }
 
         private static IReadOnlyDictionary<(Type, Type), Type> BinaryTypes { get; }

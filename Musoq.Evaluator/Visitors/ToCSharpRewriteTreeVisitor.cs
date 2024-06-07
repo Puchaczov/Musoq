@@ -942,9 +942,8 @@ namespace Musoq.Evaluator.Visitors
 
             var tmpArgs = (ArgumentListSyntax) Nodes.Pop();
 
-            for (var index = 0; index < tmpArgs.Arguments.Count; index++)
+            foreach (var item in tmpArgs.Arguments)
             {
-                var item = tmpArgs.Arguments[index];
                 args.Add(item);
             }
 
@@ -1044,19 +1043,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessColumnNode node)
         {
-            string variableName;
-            switch (_type)
+            var variableName = _type switch
             {
-                case MethodAccessType.TransformingQuery:
-                    variableName = $"{node.Alias}Row";
-                    break;
-                case MethodAccessType.ResultQuery:
-                case MethodAccessType.CaseWhen:
-                    variableName = "score";
-                    break;
-                default:
-                    throw new NotSupportedException($"Unrecognized method access type ({_type})");
-            }
+                MethodAccessType.TransformingQuery => $"{node.Alias}Row",
+                MethodAccessType.ResultQuery or MethodAccessType.CaseWhen => "score",
+                _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
+            };
 
             var sNode = Generator.ElementAccessExpression(
                 Generator.IdentifierName(variableName),
@@ -2105,6 +2097,18 @@ namespace Musoq.Evaluator.Visitors
         {
             var detailedQuery = (DetailedQueryNode) node;
 
+            var orderByFields = detailedQuery.OrderBy is not null ? 
+                new (FieldOrderedNode Field, ExpressionSyntax Syntax)[detailedQuery.OrderBy.Fields.Length] :
+                Array.Empty<(FieldOrderedNode Field, ExpressionSyntax Syntax)>();
+            
+            for (var i = orderByFields.Length - 1; i >= 0 ; i--)
+            {
+                var orderBy = detailedQuery.OrderBy!;
+                var field = orderBy.Fields[i];
+                var syntax = (ExpressionSyntax) Nodes.Pop();
+                orderByFields[i] = (field, syntax);
+            }
+            
             var skip = node.Skip != null ? Nodes.Pop() as StatementSyntax : null;
             var take = node.Take != null ? Nodes.Pop() as BlockSyntax : null;
 
@@ -2128,8 +2132,9 @@ namespace Musoq.Evaluator.Visitors
             block = block.AddStatements(select.Statements.ToArray());
             var fullBlock = SyntaxFactory.Block();
 
-            fullBlock = fullBlock.AddStatements(SyntaxHelper.Foreach("score", _scope[MetaAttributes.SourceName],
-                block));
+            fullBlock = fullBlock.AddStatements(
+                SyntaxHelper.Foreach("score", _scope[MetaAttributes.SourceName], block, orderByFields));
+            
             fullBlock = fullBlock.AddStatements(
                 (StatementSyntax) Generator.ReturnStatement(
                     SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName)));
@@ -3359,7 +3364,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(OrderByNode node)
         {
-            AddNamespace("System.Linq");
+            AddNamespace("Musoq.Evaluator");
         }
 
         public void Visit(CreateTableNode node)
@@ -3388,7 +3393,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(CaseNode node)
         {
-            (Node When, Node Then) whenThenPair = node.WhenThenPairs[0];
             var then = Nodes.Pop();
             var when = Nodes.Pop();
 
@@ -3407,7 +3411,6 @@ namespace Musoq.Evaluator.Visitors
 
             for (int i = 1; i < node.WhenThenPairs.Length; i++)
             {
-                whenThenPair = node.WhenThenPairs[i];
                 then = Nodes.Pop();
                 when = Nodes.Pop();
 
@@ -3486,16 +3489,12 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.IdentifierName(nameof(IObjectResolver))
                 ));
 
-            var rowVariableName = string.Empty;
-            switch (_oldType)
+            var rowVariableName = _oldType switch
             {
-                case MethodAccessType.TransformingQuery:
-                    rowVariableName = $"{_queryAlias}Row";
-                    break;
-                case MethodAccessType.ResultQuery:
-                    rowVariableName = "score";
-                    break;
-            }
+                MethodAccessType.TransformingQuery => $"{_queryAlias}Row",
+                MethodAccessType.ResultQuery => "score",
+                _ => string.Empty
+            };
 
             callParameters.Add(
                 SyntaxFactory.Argument(

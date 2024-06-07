@@ -64,11 +64,11 @@ namespace Musoq.Plugins
         /// <exception cref="KeyNotFoundException"></exception>
         public T? GetValue<T>(string name)
         {
-            if (!Values.ContainsKey(name))
+            if (!Values.TryGetValue(name, out var value))
                 throw new KeyNotFoundException($"Group does not have value {name}.");
 
             if (Converters.TryGetValue(name, out var converter))
-                return (T?) converter(Values[name]);
+                return (T?) converter(value);
 
             return (T?) Values[name];
         }
@@ -82,10 +82,10 @@ namespace Musoq.Plugins
         /// <exception cref="KeyNotFoundException"></exception>
         public T? GetRawValue<T>(string name)
         {
-            if (!Values.ContainsKey(name))
+            if (!Values.TryGetValue(name, out var value))
                 throw new KeyNotFoundException($"Group does not have value {name}.");
 
-            return (T?) Values[name];
+            return (T?) value;
         }
 
         /// <summary>
