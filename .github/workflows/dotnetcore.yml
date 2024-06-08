@@ -11,9 +11,10 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     name: Running tests on ${{ matrix.runs-on }}. 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v4
       with:
-        dotnet-version: 6.0.4
+        dotnet-version: 8.0.x
+        ref: master
     - name: Build & Run tests
       run: dotnet test --configuration Release
     - name: Publish
