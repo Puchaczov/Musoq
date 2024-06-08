@@ -419,6 +419,7 @@ namespace Musoq.Evaluator.Visitors
 
             var scoreSelect = select;
             var scoreWhere = where;
+            var scoreOrderBy = orderBy;
 
             QueryNode query;
 
@@ -684,9 +685,11 @@ namespace Musoq.Evaluator.Visitors
 
                 select.Accept(partsTraverser);
                 where?.Accept(partsTraverser);
+                orderBy?.Accept(partsTraverser);
 
                 scoreSelect = rewriter.ChangedSelect;
                 scoreWhere = rewriter.ChangedWhere;
+                scoreOrderBy = rewriter.ChangedOrderBy;
 
                 previousAliases.Pop();
                 indexBasedContextsPositionsSymbol.Add(previousAliases.ToArray());
@@ -808,33 +811,31 @@ namespace Musoq.Evaluator.Visitors
                         CreateRefreshMethods(usedRefreshMethods));
                     throw new NotImplementedException("Mixing aggregate and non aggregate methods is not implemented yet");
                 }
-                else
-                {
-                    var scopeCreateResultTable = _scope.AddScope("Table");
-                    var scopeResultQuery = _scope.AddScope("Query");
 
-                    scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = from.Alias.ToScoreTable();
-                    scopeCreateResultTable[MetaAttributes.OriginAlias] = from.Alias;
-                    scopeResultQuery[MetaAttributes.SelectIntoVariableName] = from.Alias.ToScoreTable();
-                    scopeResultQuery[MetaAttributes.Contexts] = from.Alias;
-                    scopeResultQuery[MetaAttributes.SourceName] = source;
+                var scopeCreateResultTable = _scope.AddScope("Table");
+                var scopeResultQuery = _scope.AddScope("Query");
 
-                    var newFrom = lastJoinQuery != null
-                        ? new Parser.ExpressionFromNode(
-                            new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
-                        : from;
+                scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = from.Alias.ToScoreTable();
+                scopeCreateResultTable[MetaAttributes.OriginAlias] = from.Alias;
+                scopeResultQuery[MetaAttributes.SelectIntoVariableName] = from.Alias.ToScoreTable();
+                scopeResultQuery[MetaAttributes.Contexts] = from.Alias;
+                scopeResultQuery[MetaAttributes.SourceName] = source;
 
-                    aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex);
+                var newFrom = lastJoinQuery != null
+                    ? new Parser.ExpressionFromNode(
+                        new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
+                    : from;
 
-                    splitNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], Array.Empty<string>(), select.Fields, false));
-                    splitNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, orderBy, skip, take,
-                        scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
+                aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex);
 
-                    Nodes.Push(
-                        new MultiStatementNode(
-                            splitNodes.ToArray(),
-                            null));
-                }
+                splitNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], Array.Empty<string>(), select.Fields, false));
+                splitNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, scoreOrderBy, skip, take,
+                    scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
+
+                Nodes.Push(
+                    new MultiStatementNode(
+                        splitNodes.ToArray(),
+                        null));
             }
 
             _scope.ScopeSymbolTable.AddSymbol(MetaAttributes.AllQueryContexts, aliasesPositionsSymbol);

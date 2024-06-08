@@ -12,54 +12,10 @@ namespace Musoq.Evaluator.Helpers
     {
         public static SyntaxTrivia WhiteSpace => SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
-        public static SyntaxTrivia DoubleQuoteTrivia => SyntaxFactory.SyntaxTrivia(SyntaxKind.DoubleQuoteToken, "\"");
-
-        public static InvocationExpressionSyntax CreateMethodInvocation(string variableName, string methodName)
-        {
-            return CreateMethodInvocation(variableName, methodName, new List<ArgumentSyntax>());
-        }
-
-        public static InvocationExpressionSyntax CreateMethodInvocation(ExpressionSyntax variableName,
-            string methodName)
-        {
-            return CreateMethodInvocation(variableName, methodName, new List<ArgumentSyntax>());
-        }
-
         public static InvocationExpressionSyntax CreateMethodInvocation(string variableName, string methodName,
             IEnumerable<ArgumentSyntax> arguments)
         {
             return CreateMethodInvocation(SyntaxFactory.IdentifierName(variableName), methodName, arguments);
-        }
-
-        public static InvocationExpressionSyntax CreateMethodInvocation(ExpressionSyntax exp, string methodName,
-            IEnumerable<ArgumentSyntax> arguments)
-        {
-            return SyntaxFactory
-                .InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        exp,
-                        SyntaxFactory.Token(SyntaxKind.DotToken),
-                        SyntaxFactory.IdentifierName(methodName)
-                    ),
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList(arguments)));
-        }
-
-        public static ElementAccessExpressionSyntax CreateElementAccess(string objectName,
-            IEnumerable<ArgumentSyntax> arguments)
-        {
-            return SyntaxFactory.ElementAccessExpression(
-                SyntaxFactory.IdentifierName(objectName),
-                SyntaxFactory.BracketedArgumentList(
-                    new SeparatedSyntaxList<ArgumentSyntax>().AddRange(arguments)));
-        }
-
-        public static VariableDeclarationSyntax CreateAssignment(params VariableDeclaratorSyntax[] declarations)
-        {
-            return SyntaxFactory.VariableDeclaration(
-                SyntaxFactory.IdentifierName("var").WithTrailingTrivia(WhiteSpace),
-                SyntaxFactory.SeparatedList(new List<VariableDeclaratorSyntax>(declarations)));
         }
 
         public static VariableDeclarationSyntax CreateAssignmentByMethodCall(string variableName, string objectName,
@@ -111,35 +67,9 @@ namespace Musoq.Evaluator.Helpers
                 );
         }
 
-        public static LiteralExpressionSyntax StringLiteral(string text)
-        {
-            return SyntaxFactory.LiteralExpression(
-                SyntaxKind.StringLiteralExpression,
-                SyntaxFactory.Token(
-                    SyntaxFactory.TriviaList(WhiteSpace),
-                    SyntaxKind.StringLiteralToken,
-                    $"\"{text}\"",
-                    "",
-                    SyntaxFactory.TriviaList(WhiteSpace))
-            );
-        }
-
         public static ArgumentSyntax TypeLiteralArgument(string typeName)
         {
             return SyntaxFactory.Argument(TypeOf(typeName));
-        }
-
-        public static LiteralExpressionSyntax IntLiteral(int value)
-        {
-            return SyntaxFactory.LiteralExpression(
-                SyntaxKind.NumericLiteralExpression,
-                SyntaxFactory.Literal(value)
-            );
-        }
-
-        public static TypeOfExpressionSyntax TypeOf(string typeName)
-        {
-            return SyntaxFactory.TypeOfExpression(SyntaxFactory.IdentifierName(typeName));
         }
 
         public static ArrayCreationExpressionSyntax CreateArrayOfObjects(ExpressionSyntax[] expressions)
@@ -269,6 +199,54 @@ namespace Musoq.Evaluator.Helpers
                                     .WithExpressionBody(
                                         orderByFields[index].Syntax))}))
             );
+        }
+
+        private static LiteralExpressionSyntax StringLiteral(string text)
+        {
+            return SyntaxFactory.LiteralExpression(
+                SyntaxKind.StringLiteralExpression,
+                SyntaxFactory.Token(
+                    SyntaxFactory.TriviaList(WhiteSpace),
+                    SyntaxKind.StringLiteralToken,
+                    $"\"{text}\"",
+                    "",
+                    SyntaxFactory.TriviaList(WhiteSpace))
+            );
+        }
+
+        private static LiteralExpressionSyntax IntLiteral(int value)
+        {
+            return SyntaxFactory.LiteralExpression(
+                SyntaxKind.NumericLiteralExpression,
+                SyntaxFactory.Literal(value)
+            );
+        }
+
+        private static TypeOfExpressionSyntax TypeOf(string typeName)
+        {
+            return SyntaxFactory.TypeOfExpression(SyntaxFactory.IdentifierName(typeName));
+        }
+
+        private static InvocationExpressionSyntax CreateMethodInvocation(ExpressionSyntax exp, string methodName,
+            IEnumerable<ArgumentSyntax> arguments)
+        {
+            return SyntaxFactory
+                .InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        exp,
+                        SyntaxFactory.Token(SyntaxKind.DotToken),
+                        SyntaxFactory.IdentifierName(methodName)
+                    ),
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(arguments)));
+        }
+
+        private static VariableDeclarationSyntax CreateAssignment(params VariableDeclaratorSyntax[] declarations)
+        {
+            return SyntaxFactory.VariableDeclaration(
+                SyntaxFactory.IdentifierName("var").WithTrailingTrivia(WhiteSpace),
+                SyntaxFactory.SeparatedList(new List<VariableDeclaratorSyntax>(declarations)));
         }
 
         private static InvocationExpressionSyntax CreateThenByExpression(string variable, (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields, ExpressionSyntax orderByExpression, string methodName, int index)
