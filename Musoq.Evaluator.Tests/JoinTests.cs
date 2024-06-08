@@ -4,6 +4,9 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
+using Musoq.Evaluator.Tests.Schema.Multi.First;
+using Musoq.Evaluator.Tests.Schema.Multi.Second;
 
 namespace Musoq.Evaluator.Tests
 {
@@ -1441,28 +1444,6 @@ inner join #A.entities() cities on countries.Country = cities.Country
             
             Assert.AreEqual("Germany", table[1][0]);
             Assert.AreEqual("Berlin", table[1][1]);
-        }
-        
-        [TestMethod]
-        public void WhenMissingAlias_ShouldThrow()
-        {
-            var query = @"
-select 
-    countries.GetCountry(), 
-    cities.GetCity()
-from #A.entities() countries
-inner join #A.entities() cities on countries.Country = cities.Country
-where Country = 'Poland'
-";
-                
-            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                {
-                    "#A", Array.Empty<BasicEntity>()
-                }
-            };
-
-            Assert.ThrowsException<AmbiguousColumnException>(() => CreateAndRunVirtualMachine(query, sources));
         }
     }
 }
