@@ -14,7 +14,7 @@ namespace Musoq.Parser.Nodes
 
         public FieldOrderedNode[] Fields { get; }
 
-        public override Type ReturnType { get; }
+        public override Type ReturnType { get; } = typeof(void);
 
         public override string Id { get; }
 
@@ -31,9 +31,9 @@ namespace Musoq.Parser.Nodes
             return $"order by {fieldsTxt}";
         }
 
-        private string FieldToString(FieldNode node)
+        private static string FieldToString(FieldOrderedNode node)
         {
-            return string.IsNullOrEmpty(node.FieldName) ? node.Expression.ToString() : node.FieldName;
+            return node.ToString();
         }
     }
 }
