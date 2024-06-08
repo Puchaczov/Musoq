@@ -45,7 +45,7 @@ public static class AliasGenerator
             hashBytes = hasher.ComputeHash(Encoding.UTF8.GetBytes(counter.ToString()));
         }
 
-        for (int i = 0; i < hashBytes.Length && result.Length < length; ++i)
+        for (var i = 0; i < hashBytes.Length && result.Length < length; ++i)
         {
             var outOfRangeStart = byteSize - byteSize % allowedCharSet.Length;
             if (outOfRangeStart <= hashBytes[i]) continue;

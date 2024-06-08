@@ -26,10 +26,10 @@ namespace Musoq.Evaluator.Tables
             get
             {
 #if DEBUG
-                if (!_nameToIndexMap.ContainsKey(name))
-                    throw new System.Exception(name);
+                if (!_nameToIndexMap.TryGetValue(name, out var value))
+                    throw new System.Exception($"Column with name {name} does not exist in the row.");
                 
-                return _row[_nameToIndexMap[name]];
+                return _row[value];
 #else
                 return _row[_nameToIndexMap[name]];
 #endif

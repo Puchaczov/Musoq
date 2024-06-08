@@ -13,9 +13,13 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public SelectNode ChangedSelect { get; private set; }
+        
         public GroupByNode ChangedGroupBy { get; private set; }
 
         public WhereNode ChangedWhere { get; private set; }
+        
+        public OrderByNode ChangedOrderBy { get; private set; }
+        
         public Node RewrittenNode => Nodes.Pop();
 
         public override void Visit(AccessColumnNode node)
@@ -49,6 +53,15 @@ namespace Musoq.Evaluator.Visitors
         public override void Visit(WhereNode node)
         {
             ChangedWhere = new WhereNode(Nodes.Pop());
+        }
+        
+        public override void Visit(OrderByNode node)
+        {
+            var fields = new FieldOrderedNode[node.Fields.Length];
+
+            for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldOrderedNode) Nodes.Pop();
+
+            ChangedOrderBy = new OrderByNode(fields);
         }
     }
 }

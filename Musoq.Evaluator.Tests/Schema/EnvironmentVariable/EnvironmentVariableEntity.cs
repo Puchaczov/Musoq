@@ -1,14 +1,8 @@
 namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 
-public class EnvironmentVariableEntity
+public class EnvironmentVariableEntity(string key, string value)
 {
-    public EnvironmentVariableEntity(string key, string value)
-    {
-        Key = key;
-        Value = value;
-    }
+    public string Key { get; set; } = key;
 
-    public string Key { get; set; }
-        
-    public string Value { get; set; }
+    public string Value { get; set; } = value;
 }

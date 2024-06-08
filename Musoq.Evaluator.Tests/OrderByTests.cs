@@ -673,5 +673,121 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("cracow", table[3].Values[0]);
             Assert.AreEqual("glasgow", table[4].Values[0]);
         }
+        
+        [TestMethod]
+        public void WhenOrderByWithInnerJoin_ShouldSucceed()
+        {
+            var query = @"select City from #A.Entities() a inner join #A.Entities() b on a.City = b.City order by a.Money";
+            
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
+                        new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    }
+                }
+            };
+            
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            
+            var table = vm.Run();
+            
+            Assert.AreEqual(4, table.Count);
+            Assert.AreEqual("glasgow", table[0].Values[0]);
+            Assert.AreEqual("cracow", table[1].Values[0]);
+            Assert.AreEqual("katowice", table[2].Values[0]);
+            Assert.AreEqual("czestochowa", table[3].Values[0]);
+        }
+        
+        [TestMethod]
+        public void WhenOrderByDescendingWithInnerJoin_ShouldSucceed()
+        {
+            var query = @"select City from #A.Entities() a inner join #A.Entities() b on a.City = b.City order by a.Money desc";
+            
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
+                        new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    }
+                }
+            };
+            
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            
+            var table = vm.Run();
+            
+            Assert.AreEqual(4, table.Count);
+            Assert.AreEqual("czestochowa", table[0].Values[0]);
+            Assert.AreEqual("katowice", table[1].Values[0]);
+            Assert.AreEqual("cracow", table[2].Values[0]);
+            Assert.AreEqual("glasgow", table[3].Values[0]);
+        }
+        
+        [TestMethod]
+        public void WhenOrderByWithInnerJoinAndGroupBy_ShouldSucceed()
+        {
+            var query = @"select a.City from #A.Entities() a inner join #A.Entities() b on a.City = b.City group by a.City order by a.City";
+            
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
+                        new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    }
+                }
+            };
+            
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            
+            var table = vm.Run();
+            
+            Assert.AreEqual(4, table.Count);
+            Assert.AreEqual("cracow", table[0].Values[0]);
+            Assert.AreEqual("czestochowa", table[1].Values[0]);
+            Assert.AreEqual("glasgow", table[2].Values[0]);
+            Assert.AreEqual("katowice", table[3].Values[0]);
+        }
+        
+        [TestMethod]
+        public void WhenOrderByDescendingWithInnerJoinAndGroupBy_ShouldSucceed()
+        {
+            var query = @"select a.City from #A.Entities() a inner join #A.Entities() b on a.City = b.City group by a.City order by a.City desc";
+            
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
+                        new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
+                        new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
+                        new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    }
+                }
+            };
+            
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            
+            var table = vm.Run();
+            
+            Assert.AreEqual(4, table.Count);
+            Assert.AreEqual("katowice", table[0].Values[0]);
+            Assert.AreEqual("glasgow", table[1].Values[0]);
+            Assert.AreEqual("czestochowa", table[2].Values[0]);
+            Assert.AreEqual("cracow", table[3].Values[0]);
+        }
     }
 }
