@@ -8,9 +8,9 @@ namespace Musoq.Parser.Nodes
 
         public FieldNode(Node expression, int fieldOrder, string fieldName)
         {
+            _fieldName = fieldName;
             Expression = expression;
             FieldOrder = fieldOrder;
-            _fieldName = fieldName;
             Id = $"{nameof(FieldNode)}{expression.Id}";
         }
 
