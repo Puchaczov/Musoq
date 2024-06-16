@@ -253,6 +253,31 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(string.Empty, table[0][0]);
         }
 
+        [TestMethod]
+        public void NullColumnTest()
+        {
+            var query =
+                "select null from #A.Entities()";
+            
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("null", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(null, table[0][0]);
+        }
 
         [TestMethod]
         public void CaseWhenWithEmptyStringTest()
@@ -278,6 +303,32 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(string.Empty, table[0][0]);
+        }
+
+        [TestMethod]
+        public void CaseWhenWithNullTest()
+        {
+            var query =
+                $"select (case when 1 = 2 then 'test' else null end) from #A.Entities()";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A", new[]
+                    {
+                        new BasicEntity("WARSAW", "POLAND", 500),
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Columns.Count());
+            Assert.AreEqual("case when 1 = 2 then 'test' else null end", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+            Assert.AreEqual(null, table[0][0]);
         }
 
         [TestMethod]

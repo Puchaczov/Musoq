@@ -5,12 +5,8 @@ using Musoq.Converter.Exceptions;
 
 namespace Musoq.Converter.Build
 {
-    public class TurnQueryIntoRunnableCode : BuildChain {
-        public TurnQueryIntoRunnableCode(BuildChain successor) 
-            : base(successor)
-        {
-        }
-
+    public class TurnQueryIntoRunnableCode(BuildChain successor) : BuildChain(successor)
+    {
         public override void Build(BuildItems items)
         {
             using (var dllStream = new MemoryStream())

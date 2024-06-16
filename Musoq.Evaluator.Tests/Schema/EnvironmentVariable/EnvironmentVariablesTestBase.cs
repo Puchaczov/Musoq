@@ -60,7 +60,7 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable
         {
             new Plugins.Environment()
                 .SetValue(
-                    Constants.NetStandardDllEnvironmentName, 
+                    Constants.NetStandardDllEnvironmentVariableName, 
                     EnvironmentUtils.GetOrCreateEnvironmentVariable());
 
             Culture.ApplyWithDefaultCulture();

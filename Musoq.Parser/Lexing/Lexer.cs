@@ -10,12 +10,12 @@ namespace Musoq.Parser.Lexing
     {
         private readonly bool _skipWhiteSpaces;
 
-        private readonly Regex[] _decimalCandidates = new[]
-        {
+        private readonly Regex[] _decimalCandidates =
+        [
             new Regex(TokenRegexDefinition.KDecimalWithDot),
             new Regex(TokenRegexDefinition.KDecimalWithSuffix),
             new Regex(TokenRegexDefinition.KDecimalWithDotAndSuffix)
-        };
+        ];
 
         /// <summary>
         ///     Initialize instance.
@@ -243,11 +243,11 @@ namespace Musoq.Parser.Lexing
             public static readonly string KWhere = Format(Keyword, WhereToken.TokenText);
             public static readonly string KWhiteSpace = @"[\s]{1,}";
             public static readonly string KWordBracketed = @"'(.*?[^\\])'";
-            public static readonly string KEmptyString = @"''";
+            public static readonly string KEmptyString = "''";
             public static readonly string KEqual = Format(Keyword, EqualityToken.TokenText);
             public static readonly string KSelect = Format(Keyword, SelectToken.TokenText);
             public static readonly string KFrom = Format(Keyword, FromToken.TokenText);
-            public static readonly string KColumn = @"[\w*?_]{1,}";
+            public static readonly string KColumn = @"\[(\w+)\]|(\w+)|(\*)";
             public static readonly string KHFrom = @"#[\w*?_]{1,}";
             public static readonly string KLike = Format(Keyword, LikeToken.TokenText);
             public static readonly string KNotLike = @"(?<=[\s]{1,}|^)not[\s]{1,}like(?=[\s]{1,}|$)";

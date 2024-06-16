@@ -741,5 +741,25 @@ namespace Musoq.Plugins
 
             return split[^1];
         }
+        
+        /// <summary>
+        /// Determines whether the string is null or empty
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>True if null or empty; otherwise false</returns>
+        public bool IsNullOrEmpty(string? value)
+        {
+            return string.IsNullOrEmpty(value);
+        }
+        
+        /// <summary>
+        /// Determines whether the string is null or whitespace
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>True if null or whitespace; otherwise false</returns>
+        public bool IsNullOrWhiteSpace(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value);
+        }
     }
 }

@@ -88,7 +88,7 @@ namespace Musoq.Evaluator.Visitors
             var env = new Plugins.Environment();
             Compilation = Compilation
                 .AddReferences(
-                    MetadataReference.CreateFromFile(env.Value<string>(Constants.NetStandardDllEnvironmentName)));
+                    MetadataReference.CreateFromFile(env.Value<string>(Constants.NetStandardDllEnvironmentVariableName)));
 
             AddReference(typeof(object));
             AddReference(typeof(CancellationToken));
@@ -587,6 +587,11 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.IdentifierName(
                     EvaluationHelper.GetCastableType(node.ReturnType));
 
+            if (node.ReturnType is NullNode.NullType)
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("object");
+            }
+
             if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
             {
                 typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
@@ -607,6 +612,11 @@ namespace Musoq.Evaluator.Visitors
 
             var typeIdentifier = SyntaxFactory.IdentifierName(
                 EvaluationHelper.GetCastableType(node.ReturnType));
+            
+            if (node.ReturnType is NullNode.NullType)
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("object");
+            }
 
             if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
             {
@@ -885,10 +895,10 @@ namespace Musoq.Evaluator.Visitors
                         int currentContext;
                         if (_isInsideJoin)
                         {
-                            var preformatedContexts = 
+                            var preformattedContexts = 
                                 (IndexBasedContextsPositionsSymbol)_scope.ScopeSymbolTable.GetSymbol(MetaAttributes.PreformatedContexts);
                             var orderNumber = int.Parse(_scope[MetaAttributes.OrderNumber]);
-                            currentContext = preformatedContexts.GetIndexFor(orderNumber, node.Alias);
+                            currentContext = preformattedContexts.GetIndexFor(orderNumber, node.Alias);
                         }
                         else
                         {
@@ -952,6 +962,10 @@ namespace Musoq.Evaluator.Visitors
             if (node.Method.IsGenericMethod && method.GetCustomAttribute<AggregationMethodAttribute>() != null)
             {
                 var genericArgs = node.Method.GetGenericArguments();
+                
+                if (genericArgs.Length == 0)
+                    throw new NotSupportedException("Generic method without generic arguments.");
+                
                 var syntaxArgs = new List<SyntaxNodeOrToken>();
 
                 for (int i = 0; i < genericArgs.Length - 1; ++i)
@@ -1065,6 +1079,11 @@ namespace Musoq.Evaluator.Visitors
             var typeIdentifier =
                 SyntaxFactory.IdentifierName(
                     EvaluationHelper.GetCastableType(node.ReturnType));
+            
+            if (node.ReturnType is NullNode.NullType)
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("object");
+            }
 
             if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
             {
@@ -2098,8 +2117,7 @@ namespace Musoq.Evaluator.Visitors
             var detailedQuery = (DetailedQueryNode) node;
 
             var orderByFields = detailedQuery.OrderBy is not null ? 
-                new (FieldOrderedNode Field, ExpressionSyntax Syntax)[detailedQuery.OrderBy.Fields.Length] :
-                Array.Empty<(FieldOrderedNode Field, ExpressionSyntax Syntax)>();
+                new (FieldOrderedNode Field, ExpressionSyntax Syntax)[detailedQuery.OrderBy.Fields.Length] : [];
             
             for (var i = orderByFields.Length - 1; i >= 0 ; i--)
             {
@@ -2116,19 +2134,19 @@ namespace Musoq.Evaluator.Visitors
             var where = node.Where != null ? Nodes.Pop() as StatementSyntax : null;
 
             var block = (BlockSyntax) Nodes.Pop();
-
-            block = block.AddStatements(GenerateStatsUpdateStatements());
+            
             block = block.AddStatements(GenerateCancellationExpression());
 
             if (where != null)
                 block = block.AddStatements(where);
+
+            block = block.AddStatements(GenerateStatsUpdateStatements());
 
             if (skip != null)
                 block = block.AddStatements(skip);
 
             if (take != null)
                 block = block.AddStatements(take.Statements.ToArray());
-
             block = block.AddStatements(select.Statements.ToArray());
             var fullBlock = SyntaxFactory.Block();
 
@@ -2422,7 +2440,7 @@ namespace Musoq.Evaluator.Visitors
             var formatted = Formatter.Format(compilationUnit, Workspace);
 
             Compilation = Compilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(formatted.ToFullString(),
-                new CSharpParseOptions(LanguageVersion.CSharp7_3), null, Encoding.ASCII));
+                new CSharpParseOptions(LanguageVersion.CSharp8), null, Encoding.ASCII));
         }
 
         public void Visit(SingleSetNode node)
