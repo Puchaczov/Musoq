@@ -16,7 +16,7 @@ public class MultiQueryTestBase
     
     static MultiQueryTestBase()
     {
-        new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+        new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
 
         Culture.ApplyWithDefaultCulture();
     }

@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Reflection;
 using System.Text;
 using Musoq.Evaluator.Tables;
+using Musoq.Parser.Nodes;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -142,6 +143,7 @@ namespace Musoq.Evaluator.Helpers
 
         public static string GetCastableType(Type type)
         {
+            if (type is NullNode.NullType) return "System.Object";
             if (type.IsGenericType) return GetFriendlyTypeName(type);
             if (type.IsNested) return $"{GetCastableType(type.DeclaringType)}.{type.Name}";
 

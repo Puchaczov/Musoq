@@ -13,7 +13,7 @@ namespace Musoq.Parser.Tokens
 
         public bool Equals(Token other)
         {
-            return other.TokenType == TokenType && other.Value == Value;
+            return other != null && other.TokenType == TokenType && other.Value == Value;
         }
 
         public override GenericToken<TokenType> Clone()

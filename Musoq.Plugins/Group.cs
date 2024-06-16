@@ -143,8 +143,7 @@ namespace Musoq.Plugins
             if (!Values.ContainsKey(name))
                 Values.Add(name, value);
 
-            if (!Converters.ContainsKey(name))
-                Converters.Add(name, converter);
+            Converters.TryAdd(name, converter);
 
             return (TR?) Converters[name](Values[name]);
         }

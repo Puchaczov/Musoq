@@ -7,13 +7,8 @@ using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build
 {
-    public class TransformTree : BuildChain
+    public class TransformTree(BuildChain successor) : BuildChain(successor)
     {
-        public TransformTree(BuildChain successor) 
-            : base(successor)
-        {
-        }
-
         public override void Build(BuildItems items)
         {
             items.SchemaProvider = new TransitionSchemaProvider(items.SchemaProvider);

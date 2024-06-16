@@ -12,10 +12,10 @@ namespace Musoq.Evaluator
     {
         public static string GetOrCreateEnvironmentVariable()
         {
-            var envRuntime = System.Environment.GetEnvironmentVariable(Constants.NetCoreRuntimePath,
+            var envRuntime = System.Environment.GetEnvironmentVariable(Constants.NetCoreRuntimePathEnvironmentVariableName,
                 EnvironmentVariableTarget.Process);
 
-            var envVersion = System.Environment.GetEnvironmentVariable(Constants.NetCoreRuntimeVersion,
+            var envVersion = System.Environment.GetEnvironmentVariable(Constants.NetCoreRuntimeEnvironmentVariableVersion,
                 EnvironmentVariableTarget.Process);
 
             if (envRuntime != null && envVersion != null) return Path.Combine(envRuntime, envVersion, Constants.NetStandardDllFile);
@@ -88,8 +88,8 @@ namespace Musoq.Evaluator
                     {
                         var runtimePath = path.ToString();
                         var runtimeVersion = version.ToString();
-                        System.Environment.SetEnvironmentVariable(Constants.NetCoreRuntimePath, runtimePath);
-                        System.Environment.SetEnvironmentVariable(Constants.NetCoreRuntimeVersion, runtimeVersion);
+                        System.Environment.SetEnvironmentVariable(Constants.NetCoreRuntimePathEnvironmentVariableName, runtimePath);
+                        System.Environment.SetEnvironmentVariable(Constants.NetCoreRuntimeEnvironmentVariableVersion, runtimeVersion);
                         envRuntime = runtimePath;
                         envVersion = runtimeVersion;
                     }

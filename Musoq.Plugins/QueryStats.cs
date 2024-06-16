@@ -1,7 +1,12 @@
-﻿namespace Musoq.Plugins
+﻿namespace Musoq.Plugins;
+
+/// <summary>
+/// Represents statistics of the query.
+/// </summary>
+public class QueryStats
 {
-    public class QueryStats
-    {
-        public int RowNumber { get; protected set; } = 0;
-    }
+    /// <summary>
+    /// Number of rows in the result set.
+    /// </summary>
+    public int RowNumber { get; protected set; }
 }

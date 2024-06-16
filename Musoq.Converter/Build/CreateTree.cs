@@ -2,7 +2,7 @@
 
 namespace Musoq.Converter.Build
 {
-    public class CreateTree : BuildChain
+    public class CreateTree(BuildChain successor) : BuildChain(successor)
     {
         public override void Build(BuildItems items)
         {
@@ -12,11 +12,6 @@ namespace Musoq.Converter.Build
             items.RawQueryTree = parser.ComposeAll();
 
             Successor?.Build(items);
-        }
-
-        public CreateTree(BuildChain successor) 
-            : base(successor)
-        {
         }
     }
 }

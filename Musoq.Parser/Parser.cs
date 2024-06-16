@@ -8,12 +8,10 @@ using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser
 {
-    public class Parser
+    public class Parser(Lexer lexer)
     {
         private static readonly TokenType[] SetOperators =
-            {TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect};
-
-        private readonly Lexer _lexer;
+            [TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect];
 
         private bool _hasReplacedToken;
         private Token _replacedToken;
@@ -30,11 +28,6 @@ namespace Musoq.Parser
                 {TokenType.Dot, (3, Associativity.Left)}
             };
 
-        public Parser(Lexer lexer)
-        {
-            _lexer = lexer;
-        }
-
         private Token Current
         {
             get
@@ -42,7 +35,7 @@ namespace Musoq.Parser
                 if (_hasReplacedToken)
                     return _replacedToken;
 
-                return _lexer.Current();
+                return lexer.Current();
             }
         }
 
@@ -54,7 +47,7 @@ namespace Musoq.Parser
 
         public RootNode ComposeAll()
         {
-            _lexer.Next();
+            lexer.Next();
             var statements = new List<StatementNode>();
             while (Current.TokenType != TokenType.EndOfFile)
             {
@@ -62,11 +55,6 @@ namespace Musoq.Parser
             }
 
             return new RootNode(new StatementsArrayNode(statements.ToArray()));
-        }
-
-        public WhereNode ComposeWhereConditions()
-        {
-            return ComposeWhere(true);
         }
 
         private StatementNode ComposeStatement()
@@ -110,13 +98,11 @@ namespace Musoq.Parser
                     fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, string.Empty, 1);
                     return new DescNode(fromNode, DescForType.SpecificConstructor);
                 }
-                else
-                {
-                    var methodName = new WordNode(ConsumeAndGetToken(TokenType.Property).Value);
 
-                    fromNode = new SchemaFromNode(name.Value, methodName.Value, ArgsListNode.Empty, string.Empty, 1);
-                    return new DescNode(fromNode, DescForType.Constructors);
-                }
+                var methodName = new WordNode(ConsumeAndGetToken(TokenType.Property).Value);
+
+                fromNode = new SchemaFromNode(name.Value, methodName.Value, ArgsListNode.Empty, string.Empty, 1);
+                return new DescNode(fromNode, DescForType.Constructors);
             }
             else
             {
@@ -492,6 +478,10 @@ namespace Musoq.Parser
                     return Order.Ascending;
                 case TokenType.RightParenthesis:
                     return Order.Ascending;
+                case TokenType.Skip:
+                    return Order.Ascending;
+                case TokenType.Take:
+                    return Order.Ascending;
                 default:
                     throw new NotSupportedException($"Unrecognized token for ComposeOrder(), the token was {Current.TokenType}");
             }
@@ -705,11 +695,11 @@ namespace Musoq.Parser
             if (Current.TokenType.Equals(tokenType))
             {
                 _hasReplacedToken = false;
-                _lexer.Next();
+                lexer.Next();
                 return;
             }
 
-            throw new UnexpectedTokenException<TokenType>(_lexer.Position, Current);
+            throw new UnexpectedTokenException<TokenType>(lexer.Position, Current);
         }
 
         private ArgsListNode ComposeArgs()
@@ -753,7 +743,7 @@ namespace Musoq.Parser
                     return ComposeAccessMethod(string.Empty);
                 case TokenType.Identifier:
 
-                    if (!(Current is ColumnToken column))
+                    if (Current is not ColumnToken column)
                         throw new ArgumentNullException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}");
 
                     Consume(TokenType.Identifier);

@@ -267,4 +267,32 @@ inner join #location.all() location on weather.Location = location.Name
         Assert.AreEqual(10, table[0][1]);
         Assert.AreEqual("London", table[0][2]);
     }
+    
+    [TestMethod]
+    public void WithDynamicSource_SyntaxKeywordAsColumnNameUSed_ShouldPass()
+    {
+        const string query = "select [case], [end] from #dynamic.all()";
+        IDictionary<string, object> expando = new ExpandoObject();
+        
+        expando.Add("case", "case");
+        expando.Add("end", "end");
+        
+        var sources =
+            new List<dynamic>
+            {
+                (dynamic)expando
+            };
+        
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("case", table[0][0]);
+        Assert.AreEqual("end", table[0][1]);
+    }
 }
