@@ -20,14 +20,16 @@ jobs:
     - name: Build & Run tests
       run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx"
     - name: Convert TRX to JUnit
-      run: ~/.dotnet/tools/trx2junit **/test-results.trx --output test-results.xml
+      run: |
+        $trxFile = Get-ChildItem -Recurse -Filter test-results.trx | Select-Object -First 1
+        ~/.dotnet/tools/trx2junit $trxFile.FullName --output test-results.xml
     - name: Parse test results
       id: parse
       run: |
-        total=$(grep -oP 'tests="\K[0-9]+' test-results.xml)
-        passed=$(grep -oP 'passed="\K[0-9]+' test-results.xml)
-        failed=$(grep -oP 'failed="\K[0-9]+' test-results.xml)
-        skipped=$(grep -oP 'skipped="\K[0-9]+' test-results.xml)
+        $total = Select-String -Path test-results.xml -Pattern 'tests="\K\d+' -AllMatches | % { $_.Matches } | % { $_.Value }
+        $passed = Select-String -Path test-results.xml -Pattern 'passed="\K\d+' -AllMatches | % { $_.Matches } | % { $_.Value }
+        $failed = Select-String -Path test-results.xml -Pattern 'failed="\K\d+' -AllMatches | % { $_.Matches } | % { $_.Value }
+        $skipped = Select-String -Path test-results.xml -Pattern 'skipped="\K\d+' -AllMatches | % { $_.Matches } | % { $_.Value }
         echo "::set-output name=total::$total"
         echo "::set-output name=passed::$passed"
         echo "::set-output name=failed::$failed"
