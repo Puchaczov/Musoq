@@ -1,6 +1,11 @@
 name: Publish
 
-on: [push]
+on:
+  push:
+    branches:
+      - '*'
+    paths-ignore:
+      - 'badges/**'  # Ignore pushes to the badges directory to prevent infinite loops
 
 jobs:
   build:
@@ -9,6 +14,7 @@ jobs:
         runs-on: [windows-latest]
 
     runs-on: ${{ matrix.runs-on }}
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     name: Running tests on ${{ matrix.runs-on }}.
     steps:
     - uses: actions/checkout@v4
@@ -53,11 +59,15 @@ jobs:
     - name: Create badge
       run: |
         curl -o tests-badge.svg "https://img.shields.io/badge/tests-${{ env.total }}%20%2F%20${{ env.passed }}-green"
-    - name: Upload badge
-      uses: actions/upload-artifact@v2
-      with:
-        name: tests-badge
-        path: tests-badge.svg
+    - name: Commit badge
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        mkdir -p badges
+        mv tests-badge.svg badges/tests-badge.svg
+        git add badges/tests-badge.svg
+        git commit -m "Update test results badge [skip ci]"
+        git push
     - name: Publish
       if: github.ref == 'refs/heads/master'
       run: |
