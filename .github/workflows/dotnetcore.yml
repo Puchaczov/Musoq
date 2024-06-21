@@ -15,13 +15,12 @@ jobs:
       with:
         dotnet-version: '8.0.x'
         ref: ${{ github.ref }}
-    - name: Build & Run tests
-      run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx"
     - name: Install trx2junit
       run: dotnet tool install -g trx2junit
+    - name: Build & Run tests
+      run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx"
     - name: Convert TRX to JUnit
-      run: |
-        ~/.dotnet/tools/trx2junit test-results.trx --output test-results.xml
+      run: ~/.dotnet/tools/trx2junit **/test-results.trx --output test-results.xml
     - name: Parse test results
       id: parse
       run: |
