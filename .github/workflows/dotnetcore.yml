@@ -52,12 +52,12 @@ jobs:
         echo "skipped=$skipped" >> $GITHUB_ENV
     - name: Create badge
       run: |
-        curl -o badge.svg "https://img.shields.io/badge/tests-${{ env.total }}%20%2F%20${{ env.passed }}-green"
+        curl -o tests-badge.svg "https://img.shields.io/badge/tests-${{ env.total }}%20%2F%20${{ env.passed }}-green"
     - name: Upload badge
       uses: actions/upload-artifact@v2
       with:
-        name: test-badge
-        path: badge.svg
+        name: tests-badge
+        path: tests-badge.svg
     - name: Publish
       if: github.ref == 'refs/heads/master'
       run: |
