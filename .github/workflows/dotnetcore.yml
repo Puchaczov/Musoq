@@ -14,7 +14,6 @@ jobs:
         runs-on: [windows-latest]
 
     runs-on: ${{ matrix.runs-on }}
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     name: Running tests on ${{ matrix.runs-on }}.
     steps:
     - uses: actions/checkout@v4
@@ -57,9 +56,11 @@ jobs:
         echo "failed=$failures" >> $GITHUB_ENV
         echo "skipped=$skipped" >> $GITHUB_ENV
     - name: Create badge
+      if: "!contains(github.event.head_commit.message, '[skip ci]')"
       run: |
         curl -o tests-badge.svg "https://img.shields.io/badge/tests-${{ env.total }}%20%2F%20${{ env.passed }}-green"
     - name: Commit badge
+      if: "!contains(github.event.head_commit.message, '[skip ci]')"
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
