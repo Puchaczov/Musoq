@@ -17,13 +17,14 @@ jobs:
         ref: ${{ github.ref }}
     - name: Build & Run tests
       run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx"
-    - name: Parse TRX results
+    - name: Install trx2junit
+      run: dotnet tool install -g trx2junit
+    - name: Convert TRX to JUnit
+      run: |
+        ~/.dotnet/tools/trx2junit test-results.trx --output test-results.xml
+    - name: Parse test results
       id: parse
       run: |
-        mkdir -p test-results
-        dotnet tool install -g trx2junit
-        export PATH="$PATH:~/.dotnet/tools"
-        trx2junit test-results.trx --output test-results.xml
         total=$(grep -oP 'tests="\K[0-9]+' test-results.xml)
         passed=$(grep -oP 'passed="\K[0-9]+' test-results.xml)
         failed=$(grep -oP 'failed="\K[0-9]+' test-results.xml)
