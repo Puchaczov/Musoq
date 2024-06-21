@@ -26,10 +26,11 @@ jobs:
     - name: Parse test results
       id: parse
       run: |
-        $total = Select-String -Path test-results.xml -Pattern 'tests="\K\d+' -AllMatches | % { $_.Matches } | % { $_.Value }
-        $passed = Select-String -Path test-results.xml -Pattern 'passed="\K\d+' -AllMatches | % { $_.Matches } | % { $_.Value }
-        $failed = Select-String -Path test-results.xml -Pattern 'failed="\K\d+' -AllMatches | % { $_.Matches } | % { $_.Value }
-        $skipped = Select-String -Path test-results.xml -Pattern 'skipped="\K\d+' -AllMatches | % { $_.Matches } | % { $_.Value }
+        [xml]$testResults = Get-Content test-results.xml
+        $total = $testResults.testsuite.tests
+        $passed = $testResults.testsuite.passed
+        $failed = $testResults.testsuite.failures
+        $skipped = $testResults.testsuite.skipped
         echo "::set-output name=total::$total"
         echo "::set-output name=passed::$passed"
         echo "::set-output name=failed::$failed"
