@@ -2,8 +2,6 @@ name: Publish
 
 on:
   push:
-    branches:
-      - '*'
     paths-ignore:
       - 'badges/**'  # Ignore pushes to the badges directory to prevent infinite loops
 
