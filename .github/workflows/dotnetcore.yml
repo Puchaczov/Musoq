@@ -21,21 +21,34 @@ jobs:
       run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx"
     - name: Convert TRX to JUnit
       run: |
-        $trxFile = Get-ChildItem -Recurse -Filter test-results.trx | Select-Object -First 1
-        ~/.dotnet/tools/trx2junit $trxFile.FullName --output test-results.xml
-        Get-ChildItem -Path . -Filter 'test-results.xml' -Recurse | Select-Object -First 1
+        $trxFiles = Get-ChildItem -Recurse -Filter test-results.trx
+        $trx2junitPath = (Get-Command trx2junit).Source
+        foreach ($trxFile in $trxFiles) {
+          & $trx2junitPath $trxFile.FullName --output ($trxFile.DirectoryName + "\test-results.xml")
+        }
+    - name: Merge JUnit results
+      run: |
+        $xmlFiles = Get-ChildItem -Recurse -File -Filter test-results.xml
+        $mergedXml = [xml]"<testsuites></testsuites>"
+        foreach ($xmlFile in $xmlFiles) {
+          $content = [xml](Get-Content $xmlFile.FullName)
+          foreach ($testsuite in $content.testsuites.testsuite) {
+            $importedNode = $mergedXml.ImportNode($testsuite, $true)
+            $mergedXml.DocumentElement.AppendChild($importedNode) > $null
+          }
+        }
+        $mergedXml.Save("merged-test-results.xml")
     - name: Parse test results
       id: parse
       run: |
-        $xmlPath = (Get-ChildItem -Path . -Filter 'test-results.xml' -Recurse | Select-Object -First 1).FullName
-        [xml]$testResults = Get-Content $xmlPath
-        $total = $testResults.testsuite.tests
-        $passed = $testResults.testsuite.passed
-        $failed = $testResults.testsuite.failures
-        $skipped = $testResults.testsuite.skipped
+        [xml]$testResults = Get-Content merged-test-results.xml
+        $total = ($testResults.testsuites.testsuite | Measure-Object -Property tests -Sum).Sum
+        $failures = ($testResults.testsuites.testsuite | Measure-Object -Property failures -Sum).Sum
+        $skipped = ($testResults.testsuites.testsuite | Measure-Object -Property skipped -Sum).Sum
+        $passed = $total - $failures - $skipped
         echo "::set-output name=total::$total"
         echo "::set-output name=passed::$passed"
-        echo "::set-output name=failed::$failed"
+        echo "::set-output name=failed::$failures"
         echo "::set-output name=skipped::$skipped"
     - name: Create badge
       run: |

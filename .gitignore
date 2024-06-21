@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 /Musoq.Tools.CopyReleased/conf.mrf
+merged-test-results.xml
