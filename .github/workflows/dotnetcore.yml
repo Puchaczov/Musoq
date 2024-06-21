@@ -23,10 +23,12 @@ jobs:
       run: |
         $trxFile = Get-ChildItem -Recurse -Filter test-results.trx | Select-Object -First 1
         ~/.dotnet/tools/trx2junit $trxFile.FullName --output test-results.xml
+        Get-ChildItem -Path . -Filter 'test-results.xml' -Recurse | Select-Object -First 1
     - name: Parse test results
       id: parse
       run: |
-        [xml]$testResults = Get-Content test-results.xml
+        $xmlPath = (Get-ChildItem -Path . -Filter 'test-results.xml' -Recurse | Select-Object -First 1).FullName
+        [xml]$testResults = Get-Content $xmlPath
         $total = $testResults.testsuite.tests
         $passed = $testResults.testsuite.passed
         $failed = $testResults.testsuite.failures
