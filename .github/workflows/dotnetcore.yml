@@ -6,17 +6,41 @@ jobs:
   build:
     strategy:
       matrix:
-        runs-on: [windows-latest]
+        runs-on: [ubuntu-latest]
 
     runs-on: ${{ matrix.runs-on }}
-    name: Running tests on ${{ matrix.runs-on }}. 
+    name: Running tests on ${{ matrix.runs-on }}.
     steps:
     - uses: actions/checkout@v4
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 8.0.x
-        ref: master
+        dotnet-version: '8.0.x'
     - name: Build & Run tests
-      run: dotnet test --configuration Release
+      run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx"
+    - name: Parse TRX results
+      id: parse
+      run: |
+        mkdir -p test-results
+        dotnet tool install -g trx2junit
+        export PATH="$PATH:~/.dotnet/tools"
+        trx2junit test-results.trx --output test-results.xml
+        total=$(grep -oP 'tests="\K[0-9]+' test-results.xml)
+        passed=$(grep -oP 'passed="\K[0-9]+' test-results.xml)
+        failed=$(grep -oP 'failed="\K[0-9]+' test-results.xml)
+        skipped=$(grep -oP 'skipped="\K[0-9]+' test-results.xml)
+        echo "::set-output name=total::$total"
+        echo "::set-output name=passed::$passed"
+        echo "::set-output name=failed::$failed"
+        echo "::set-output name=skipped::$skipped"
+    - name: Create badge
+      run: |
+        curl -o badge.svg "https://img.shields.io/badge/tests-${{ steps.parse.outputs.total }}%20%2F%20${{ steps.parse.outputs.passed }}-green"
+    - name: Upload badge
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-badge
+        path: badge.svg
     - name: Publish
       if: github.ref == 'refs/heads/master'
       run: |
