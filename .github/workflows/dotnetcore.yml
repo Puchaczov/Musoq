@@ -64,7 +64,7 @@ jobs:
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
-        rm -f badges/tests-badge.svg
+        rm ./badges/tests-badge.svg
         mv tests-badge.svg badges/tests-badge.svg
         git add badges/tests-badge.svg
         git commit -m "Update test results badge [skip ci]"
