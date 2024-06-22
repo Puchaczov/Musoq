@@ -23,7 +23,7 @@ jobs:
     - name: Build & Run tests
       run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx"
     - name: Convert TRX to JUnit
-      if: "github.ref == 'refs/heads/master'"
+      if: "github.ref != 'refs/heads/master'"
       run: |
         $trxFiles = Get-ChildItem -Recurse -Filter test-results.trx
         $trx2junitPath = (Get-Command trx2junit).Source
@@ -31,7 +31,7 @@ jobs:
           & $trx2junitPath $trxFile.FullName --output ($trxFile.DirectoryName + "\test-results.xml")
         }
     - name: Merge JUnit results
-      if: "github.ref == 'refs/heads/master'"
+      if: "github.ref != 'refs/heads/master'"
       run: |
         $xmlFiles = Get-ChildItem -Recurse -File -Filter test-results.xml
         $mergedXml = [xml]"<testsuites></testsuites>"
@@ -44,7 +44,7 @@ jobs:
         }
         $mergedXml.Save("merged-test-results.xml")
     - name: Parse test results
-      if: "github.ref == 'refs/heads/master'"
+      if: "github.ref != 'refs/heads/master'"
       shell: pwsh
       id: parse
       run: |
@@ -58,7 +58,7 @@ jobs:
         "FAILURES=$failures" >> $env:GITHUB_ENV
         "SKIPPED=$skipped" >> $env:GITHUB_ENV
     - name: Create badge
-      if: "!contains(github.event.head_commit.message, '[skip ci]') && github.ref == 'refs/heads/master'"
+      if: "!contains(github.event.head_commit.message, '[skip ci]') && github.ref != 'refs/heads/master'"
       shell: bash
       run: |
         PASSED=${PASSED:-0}
@@ -81,7 +81,7 @@ jobs:
         curl -o tests-badge.svg "${BADGE_URL}"
     - name: Commit badge
       shell: bash
-      if: "!contains(github.event.head_commit.message, '[skip ci]') && github.ref == 'refs/heads/master'"
+      if: "!contains(github.event.head_commit.message, '[skip ci]') && github.ref != 'refs/heads/master'"
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
@@ -91,7 +91,7 @@ jobs:
         git add badges/tests-badge.svg
         if ! git diff --cached --quiet; then
           git commit -m "Update test results badge [skip ci]"
-          git push
+          git push --force
         else
           echo "No changes to commit"
         fi
