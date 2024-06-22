@@ -59,7 +59,7 @@ jobs:
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
       shell: bash
       run: |
-        curl -o tests-badge.svg "https://img.shields.io/badge/tests-$passed%2F$total-green"
+        curl -o tests-badge.svg "https://img.shields.io/badge/tests-${passed}%2F${total}-green"
     - name: Commit badge
       shell: bash
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
@@ -69,9 +69,13 @@ jobs:
         mkdir -p badges
         rm -f badges/tests-badge.svg
         mv tests-badge.svg badges/tests-badge.svg
-        git add badges/tests-badge.svg README.md
-        git commit -m "Update test results badge [skip ci]"
-        git push
+        git add badges/tests-badge.svg
+        if ! git diff --cached --quiet; then
+          git commit -m "Update test results badge [skip ci]"
+          git push
+        else
+          echo "No changes to commit"
+        fi
     - name: Publish
       if: github.ref == 'refs/heads/master'
       run: |
