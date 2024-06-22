@@ -49,10 +49,8 @@ jobs:
         $failures = ($testResults.testsuites.testsuite | Measure-Object -Property failures -Sum).Sum
         $skipped = ($testResults.testsuites.testsuite | Measure-Object -Property skipped -Sum).Sum
         $passed = $total - $failures - $skipped
-        echo "total=$total" >> $GITHUB_ENV
-        echo "passed=$passed" >> $GITHUB_ENV
-        echo "total=$total"
-        echo "passed=$passed"
+        echo "total=$total" >> $env:GITHUB_ENV
+        echo "passed=$passed" >> $env:GITHUB_ENV
     - name: Create badge
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
       shell: bash
@@ -62,7 +60,7 @@ jobs:
       run: |
         echo "Total: $TOTAL"
         echo "Passed: $PASSED"
-        curl -o tests-badge.svg "https://img.shields.io/badge/tests-${PASSED}%2F${TOTAL}-green"
+        curl -o tests-badge.svg "https://img.shields.io/badge/tests-$PASSED%2F$TOTAL-green.svg"
     - name: Commit badge
       shell: bash
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
