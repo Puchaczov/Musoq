@@ -1,5 +1,6 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Puchaczov/Musoq/graphs/code-frequency)
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
+![Tests](https://github.com/puchaczov/musoq/badges/tests-badge.svg)
 
 # What is Musoq
 Musoq is a powerful engine designed to apply SQL syntax across a variety of data sources, making data querying more intuitive and accessible. Whether it's files, directories, comma separated values, or even complex data structures, Musoq simplifies data access.
