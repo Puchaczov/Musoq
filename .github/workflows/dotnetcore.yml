@@ -53,10 +53,12 @@ jobs:
         echo "passed=$passed" >> $GITHUB_ENV
         echo "failed=$failures" >> $GITHUB_ENV
         echo "skipped=$skipped" >> $GITHUB_ENV
+        echo "total=$total" >> $GITHUB_OUTPUT
+        echo "passed=$passed" >> $GITHUB_OUTPUT
     - name: Create badge
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
       run: |
-        curl -o tests-badge.svg "https://img.shields.io/badge/tests-${{ env.total }}%20%2F%20${{ env.passed }}-green"
+        curl -o tests-badge.svg "https://img.shields.io/badge/tests-${{ steps.parse.outputs.total }}%20%2F%20${{ steps.parse.outputs.passed }}-green"
     - name: Commit badge
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
       run: |
