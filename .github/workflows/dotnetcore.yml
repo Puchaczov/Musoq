@@ -42,6 +42,7 @@ jobs:
         }
         $mergedXml.Save("merged-test-results.xml")
     - name: Parse test results
+      shell: pwsh
       id: parse
       run: |
         [xml]$testResults = Get-Content merged-test-results.xml
