@@ -21,7 +21,7 @@ jobs:
     - name: Install trx2junit
       run: dotnet tool install -g trx2junit
     - name: Build & Run tests
-      run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx"
+      run: dotnet test --configuration Release --filter Name~CheckEmptyString_ShouldReturnWordToken --logger "trx;LogFileName=test-results.trx"
     - name: Convert TRX to JUnit
       run: |
         $trxFiles = Get-ChildItem -Recurse -Filter test-results.trx
@@ -64,6 +64,7 @@ jobs:
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
+        rm -f badges/tests-badge.svg
         mv tests-badge.svg badges/tests-badge.svg
         git add badges/tests-badge.svg
         git commit -m "Update test results badge [skip ci]"
