@@ -52,13 +52,30 @@ jobs:
         $passed = $total - $failures - $skipped
         "TOTAL=$total" >> $env:GITHUB_ENV
         "PASSED=$passed" >> $env:GITHUB_ENV
+        "FAILURES=$failures" >> $env:GITHUB_ENV
+        "SKIPPED=$skipped" >> $env:GITHUB_ENV
     - name: Create badge
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
       shell: bash
       run: |
-        echo "Total: $TOTAL"
-        echo "Passed: $PASSED"
-        curl -o tests-badge.svg "https://img.shields.io/badge/tests-${PASSED}%2F${TOTAL}-green.svg"
+        PASSED=${PASSED:-0}
+        FAILED=${FAILED:-0}
+        SKIPPED=${SKIPPED:-0}
+        TOTAL=$((PASSED + FAILED + SKIPPED))
+
+        if [ "$FAILED" -gt 0 ]; then
+          COLOR="red"
+        elif [ "$SKIPPED" -gt 0 ]; then
+          COLOR="yellow"
+        else
+          COLOR="green"
+        fi
+
+        # Generate the badge URL
+        BADGE_URL="https://img.shields.io/badge/tests-${PASSED}%2F${TOTAL}%20%28${FAILED}%20failed%2C%20${SKIPPED}%20skipped%29-${COLOR}.svg"
+
+        # Fetch the badge
+        curl -o tests-badge.svg "${BADGE_URL}"
     - name: Commit badge
       shell: bash
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
