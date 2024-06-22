@@ -51,8 +51,6 @@ jobs:
         $passed = $total - $failures - $skipped
         echo "total=$total" >> $GITHUB_ENV
         echo "passed=$passed" >> $GITHUB_ENV
-        echo "failed=$failures" >> $GITHUB_ENV
-        echo "skipped=$skipped" >> $GITHUB_ENV
         echo "total=$total" >> $GITHUB_OUTPUT
         echo "passed=$passed" >> $GITHUB_OUTPUT
     - name: Create badge
