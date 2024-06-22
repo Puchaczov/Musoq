@@ -58,8 +58,11 @@ jobs:
     - name: Create badge
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
       shell: bash
+      env:
+        TOTAL: ${{ steps.parse.outputs.total }}
+        PASSED: ${{ steps.parse.outputs.passed }}
       run: |
-        curl -o tests-badge.svg "https://img.shields.io/badge/tests-${passed}%2F${total}-green"
+        curl -o tests-badge.svg "https://img.shields.io/badge/tests-${PASSED}%2F${TOTAL}-green"
     - name: Commit badge
       shell: bash
       if: "!contains(github.event.head_commit.message, '[skip ci]')"
