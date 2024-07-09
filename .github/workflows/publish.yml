@@ -1,0 +1,31 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    
+  workflow_run:
+    workflows: ["CI"]
+    types:
+    - completed
+
+jobs:
+  publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        dotnet-version: '8.0.x'
+    - name: Publish
+      run: |
+        $scriptLocationDirectory=(Get-Location).ToString()
+        $scriptLocationFilePath=[System.IO.Path]::Combine($scriptLocationDirectory, "Publish.Nuget.ps1")
+        $nugetExecutable=[System.IO.Path]::Combine($scriptLocationDirectory, "nuget", "nuget.exe")
+        $projects = @('Musoq.Converter', 'Musoq.Evaluator', 'Musoq.Parser', 'Musoq.Plugins', 'Musoq.Schema')
+        
+        foreach ($project in $projects) {
+          pushd
+          cd "./$project/bin/Release"
+          Invoke-Expression "$scriptLocationFilePath $nugetExecutable $project '${{ secrets.nuget_musoq_key }}'"
+          popd
+        }

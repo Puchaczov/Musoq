@@ -1,7 +1,9 @@
-name: Publish
+name: CI
 
 on:
   push:
+    branches:
+      - '**'
     paths-ignore:
       - 'badges/**'
 
@@ -58,7 +60,7 @@ jobs:
         "FAILURES=$failures" >> $env:GITHUB_ENV
         "SKIPPED=$skipped" >> $env:GITHUB_ENV
     - name: Create badge
-      if: "!contains(github.event.head_commit.message, '[skip ci]') && github.ref != 'refs/heads/master'"
+      if: "!contains(github.event.head_commit.message, [skip ci]' && github.ref != 'rfs/heads/master'""
       shell: bash
       run: |
         PASSED=${PASSED:-0}
