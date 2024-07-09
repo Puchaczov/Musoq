@@ -11,29 +11,13 @@ using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Multi;
 
-public class MultiQueryTestBase
+public class MultiSchemaTestBase
 {
-    
-    static MultiQueryTestBase()
+    static MultiSchemaTestBase()
     {
         new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
 
         Culture.ApplyWithDefaultCulture();
-    }
-
-    protected CompiledQuery CreateAndRunVirtualMachine(
-        string script,
-        ISchema schema,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
-    {
-        return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
-            new MultiSchemaProvider(new Dictionary<string, ISchema>()
-            {
-                {"#schema", schema}
-            }),
-            positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -55,5 +39,20 @@ public class MultiQueryTestBase
         environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
 
         return environmentVariablesMock.Object;
+    }
+
+    private CompiledQuery CreateAndRunVirtualMachine(
+        string script,
+        ISchema schema,
+        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
+    {
+        return InstanceCreator.CompileForExecution(
+            script, 
+            Guid.NewGuid().ToString(), 
+            new MultiSchemaProvider(new Dictionary<string, ISchema>()
+            {
+                {"#schema", schema}
+            }),
+            positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
     }
 }

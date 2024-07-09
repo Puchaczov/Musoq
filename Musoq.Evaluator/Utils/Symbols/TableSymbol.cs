@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Utils.Symbols
     {
         private readonly List<string> _orders = new();
 
-        private readonly Dictionary<string, Tuple<ISchema, ISchemaTable>> _tables = new();
+        private readonly Dictionary<string, (ISchema Schema, ISchemaTable SchemaTable)> _tables = new();
 
         private string _fullTableName;
 
@@ -22,7 +22,7 @@ namespace Musoq.Evaluator.Utils.Symbols
 
         public TableSymbol(string alias, ISchema schema, ISchemaTable table, bool hasAlias)
         {
-            _tables.Add(alias, new Tuple<ISchema, ISchemaTable>(schema, table));
+            _tables.Add(alias, (schema, table));
             _orders.Add(alias);
             HasAlias = hasAlias;
             _fullTableName = alias;
@@ -42,22 +42,26 @@ namespace Musoq.Evaluator.Utils.Symbols
 
         public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByColumnName(string column)
         {
-            (ISchema, ISchemaTable, string) score = (null, null, null);
+            (ISchema Schema, ISchemaTable Table, string Alias) score = (null, null, null);
 
             foreach (var table in _tables)
             {
-                var col = table.Value.Item2.GetColumnsByName(column);
+                var col = table.Value.SchemaTable.GetColumnsByName(column);
 
                 if (col == null)
                     throw new NotSupportedException();
                 
                 if (col.Length == 0)
-                    throw new NotSupportedException($"Unrecognized column ({column})");
+                    continue;
                 
                 if (col.Length > 1)
                     throw new AmbiguousColumnException(column, _orders[0], _orders[1]);
+                
+                if (score is not (null, null, null))
+                    if (score.Schema != table.Value.Schema || score.Table != table.Value.SchemaTable)
+                        throw new AmbiguousColumnException(column, score.Alias, table.Key);
 
-                score = (table.Value.Item1, table.Value.Item2, table.Key);
+                score = (table.Value.Schema, table.Value.SchemaTable, table.Key);
             }
 
             return score;
@@ -107,7 +111,7 @@ namespace Musoq.Evaluator.Utils.Symbols
                 compoundTableColumns.AddRange(item.Value.Item2.Columns);
             }
 
-            symbol._tables.Add(other._fullTableName, new Tuple<ISchema, ISchemaTable>(other._fullSchema, other._fullTable));
+            symbol._tables.Add(other._fullTableName, (other._fullSchema, other._fullTable));
             symbol._orders.Add(other._fullTableName);
 
             compoundTableColumns.AddRange(other._fullTable.Columns);
@@ -131,8 +135,8 @@ namespace Musoq.Evaluator.Utils.Symbols
 
             foreach (var item in _tables)
             {
-                var dynamicTable = new DynamicTable(item.Value.Item2.Columns.Select(c => ConvertColumnToNullable(c)).ToArray());
-                symbol._tables.Add(item.Key, new Tuple<ISchema, ISchemaTable>(item.Value.Item1, dynamicTable));
+                var dynamicTable = new DynamicTable(item.Value.Item2.Columns.Select(ConvertColumnToNullable).ToArray());
+                symbol._tables.Add(item.Key, (item.Value.Item1, dynamicTable));
                 symbol._orders.Add(item.Key);
             }
 
@@ -165,7 +169,7 @@ namespace Musoq.Evaluator.Utils.Symbols
             foreach (var item in _tables)
             {
                 var dynamicTable = new DynamicTable(item.Value.Item2.Columns.Where(c => columnLimits.ContainsKey(item.Key) && columnLimits[item.Key].Contains(c.ColumnName)).ToArray());
-                symbol._tables.Add(item.Key, new Tuple<ISchema, ISchemaTable>(item.Value.Item1, dynamicTable));
+                symbol._tables.Add(item.Key, (item.Value.Item1, dynamicTable));
                 symbol._orders.Add(item.Key);
 
                 compoundTableColumns.AddRange(dynamicTable.Columns);

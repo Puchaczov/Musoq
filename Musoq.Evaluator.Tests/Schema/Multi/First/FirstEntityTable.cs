@@ -17,10 +17,15 @@ public class FirstEntityTable : ISchemaTable
 
     public ISchemaColumn[] GetColumnsByName(string name)
     {
-        return
-        [
-            Columns[FirstEntity.TestNameToIndexMap[name]]
-        ];
+        if (FirstEntity.TestNameToIndexMap.TryGetValue(name, out var index))
+        {
+            return [
+                Columns[index]
+            ];
+        
+        }
+        
+        return [];
     }
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(FirstEntity));

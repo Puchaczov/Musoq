@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema.Multi.Second;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class MultipleSchemasEvaluatorTests : MultiQueryTestBase
+public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
 {
     [TestMethod]
     public void WhenCompilerMustDecideWhichOneOfTheMethodsUse_ShouldChoseTheFirstOne()

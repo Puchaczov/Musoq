@@ -1,22 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using Musoq.Evaluator.Resources;
-using Musoq.Evaluator.Utils;
-using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class ExtractRawColumnsTraverseVisitor : IExpressionVisitor
+    public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor visitor) : IExpressionVisitor
     {
-        private readonly IQueryPartAwareExpressionVisitor _visitor;
-
-        public ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor visitor)
-        {
-            _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
-        }
+        private readonly IQueryPartAwareExpressionVisitor _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
 
         public void Visit(SelectNode node)
         {

@@ -277,22 +277,15 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         }
     }
     
-    private class ParametersRowsSource : RowSourceBase<dynamic>
+    private class ParametersRowsSource(object[] values) : RowSourceBase<dynamic>
     {
-        private readonly object[] _values;
-
-        public ParametersRowsSource(object[] values)
-        {
-            _values = values;
-        }
-
         protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
         {
             var index = 0;
             var indexToNameMap = new Dictionary<int, string>();
             var accessMap = new Dictionary<string, object>();
             
-            foreach (var value in _values)
+            foreach (var value in values)
             {
                 indexToNameMap.Add(index, $"Parameter{index}");
                 accessMap.Add($"Parameter{index}", value);

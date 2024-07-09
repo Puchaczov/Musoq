@@ -677,7 +677,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void WhenOrderByWithInnerJoin_ShouldSucceed()
         {
-            var query = @"select City from #A.Entities() a inner join #A.Entities() b on a.City = b.City order by a.Money";
+            var query = @"select a.City from #A.Entities() a inner join #A.Entities() b on a.City = b.City order by a.Money";
             
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -706,7 +706,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void WhenOrderByDescendingWithInnerJoin_ShouldSucceed()
         {
-            var query = @"select City from #A.Entities() a inner join #A.Entities() b on a.City = b.City order by a.Money desc";
+            var query = @"select a.City from #A.Entities() a inner join #A.Entities() b on a.City = b.City order by a.Money desc";
             
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
