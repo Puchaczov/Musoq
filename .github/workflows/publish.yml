@@ -16,6 +16,8 @@ jobs:
     - uses: actions/checkout@v4
       with:
         dotnet-version: '8.0.x'
+    - name: Build
+      run: dotnet build --configuration Release
     - name: Publish
       run: |
         $scriptLocationDirectory=(Get-Location).ToString()
