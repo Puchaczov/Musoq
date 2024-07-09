@@ -1,7 +1,9 @@
-name: Publish
+name: CI
 
 on:
   push:
+    branches:
+      - '**'
     paths-ignore:
       - 'badges/**'
 
@@ -95,17 +97,3 @@ jobs:
         else
           echo "No changes to commit"
         fi
-    - name: Publish
-      if: github.ref == 'refs/heads/master'
-      run: |
-        $scriptLocationDirectory=(Get-Location).ToString()
-        $scriptLocationFilePath=[System.IO.Path]::Combine($scriptLocationDirectory, "Publish.Nuget.ps1")
-        $nugetExecutable=[System.IO.Path]::Combine($scriptLocationDirectory, "nuget", "nuget.exe")
-        $projects = @('Musoq.Converter', 'Musoq.Evaluator', 'Musoq.Parser', 'Musoq.Plugins', 'Musoq.Schema')
-        
-        foreach ($project in $projects) {
-          pushd
-          cd "./$project/bin/Release"
-          Invoke-Expression "$scriptLocationFilePath $nugetExecutable $project '${{ secrets.nuget_musoq_key }}'"
-          popd
-        }
