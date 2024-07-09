@@ -2,12 +2,29 @@
 {
     public class AccessPropertyToken : Token
     {
-        public AccessPropertyToken(string value, TextSpan span)
-            : base(value, TokenType.Property, span)
+        private readonly bool _hasColumnMarkers;
+
+        public AccessPropertyToken(string value, TextSpan span) 
+            : base(ReplaceLeadingAndTrailingColumnMarkers(value), TokenType.Property, span)
+        {    
+            if (value.StartsWith("[") && value.EndsWith("]"))
+                _hasColumnMarkers = true;
+        }
+        
+        public override string ToString()
         {
-            Name = value;
+            if (_hasColumnMarkers)
+                return $"[{Value}]";
+            
+            return Value;
         }
 
-        public string Name { get; }
+        private static string ReplaceLeadingAndTrailingColumnMarkers(string value)
+        {
+            if (value.StartsWith("[") && value.EndsWith("]"))
+                return value.Substring(1, value.Length - 2);
+
+            return value;
+        }
     }
 }

@@ -91,7 +91,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
         
         second.Period = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
+        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
         {
             first, second
         });

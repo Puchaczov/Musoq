@@ -17,7 +17,7 @@ namespace Musoq.Parser
         private Token _replacedToken;
         private int _fromPosition;
 
-        private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precDict =
+        private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precedenceDictionary =
             new()
             {
                 {TokenType.Plus, (1, Associativity.Left)},
@@ -520,10 +520,10 @@ namespace Musoq.Parser
                 left = new AddNode(left, ComposeBaseTypes(minPrecedence));
             }
 
-            while (IsArithmeticBinaryOperator(Current) && _precDict[Current.TokenType].Precendence >= minPrecedence)
+            while (IsArithmeticBinaryOperator(Current) && _precedenceDictionary[Current.TokenType].Precendence >= minPrecedence)
             {
                 var curr = Current;
-                var op = _precDict[Current.TokenType];
+                var op = _precedenceDictionary[Current.TokenType];
                 var nextMinPrecedence = op.Associativity == Associativity.Left ? op.Precendence + 1 : op.Precendence;
                 Consume(Current.TokenType);
                 var right = ComposeArithmeticExpression(nextMinPrecedence);

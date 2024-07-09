@@ -5,15 +5,8 @@ using Musoq.Evaluator.Tables;
 namespace Musoq.Evaluator
 {
     [DebuggerStepThrough]
-    public class CompiledQuery
+    public class CompiledQuery(IRunnable runnable)
     {
-        private readonly IRunnable _runnable;
-
-        public CompiledQuery(IRunnable runnable)
-        {
-            _runnable = runnable;
-        }
-
         public Table Run()
         {
             using var exitSourcesLoaderTokenSource = new CancellationTokenSource();
@@ -26,7 +19,7 @@ namespace Musoq.Evaluator
 
         public Table Run(CancellationToken token)
         {
-            return _runnable.Run(token);
+            return runnable.Run(token);
         }
     }
 }

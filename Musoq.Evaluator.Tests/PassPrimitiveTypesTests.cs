@@ -55,48 +55,33 @@ namespace Musoq.Evaluator.Tests
             OnMethodCall
         }
 
-        private class TestSchemaProvider : ISchemaProvider
+        private class TestSchemaProvider(
+            IEnumerable<TestEntity> entities,
+            Action<object[]> onGetTableOrRowSource,
+            WhenCheckedParameters whenChecked)
+            : ISchemaProvider
         {
-            private readonly IEnumerable<TestEntity> _entities;
-            private readonly Action<object[]> _onGetTableOrRowSource;
-            private readonly WhenCheckedParameters _whenChecked;
-
-            public TestSchemaProvider(IEnumerable<TestEntity> entities, Action<object[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
-            {
-                _entities = entities;
-                _onGetTableOrRowSource = onGetTableOrRowSource;
-                _whenChecked = whenChecked;
-            }
             public ISchema GetSchema(string schema)
             {
-                return new TestSchema(_entities, _onGetTableOrRowSource, _whenChecked);
+                return new TestSchema(entities, onGetTableOrRowSource, whenChecked);
             }
         }
 
-        private class TestSchema : SchemaBase
+        private class TestSchema(
+            IEnumerable<TestEntity> entities,
+            Action<object[]> onGetTableOrRowSource,
+            WhenCheckedParameters whenChecked)
+            : SchemaBase("test", CreateLibrary())
         {
-            private readonly IEnumerable<TestEntity> _entities;
-            private readonly Action<object[]> _onGetTableOrRowSource;
-            private readonly WhenCheckedParameters _whenChecked;
-
-            public TestSchema(IEnumerable<TestEntity> entities, Action<object[]> onGetTableOrRowSource,
-                WhenCheckedParameters whenChecked)
-                : base("test", CreateLibrary())
-            {
-                _entities = entities;
-                _onGetTableOrRowSource = onGetTableOrRowSource;
-                _whenChecked = whenChecked;
-            }
-
             public override RowSource GetRowSource(string name, RuntimeContext communicator, params object[] parameters)
             {
-                if(_whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) _onGetTableOrRowSource(parameters);
-                return new EntitySource<TestEntity>(_entities, new Dictionary<string, int>(), new Dictionary<int, Func<TestEntity, object>>());
+                if(whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
+                return new EntitySource<TestEntity>(entities, new Dictionary<string, int>(), new Dictionary<int, Func<TestEntity, object>>());
             }
 
             public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
             {
-                if (_whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) _onGetTableOrRowSource(parameters);
+                if (whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
                 return new TestTable();
             }
 
@@ -122,7 +107,7 @@ namespace Musoq.Evaluator.Tests
 
         private class TestTable : ISchemaTable
         {
-            public ISchemaColumn[] Columns => Array.Empty<ISchemaColumn>();
+            public ISchemaColumn[] Columns => [];
 
             public ISchemaColumn GetColumnByName(string name)
             {

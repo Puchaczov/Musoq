@@ -2,32 +2,22 @@
 
 namespace Musoq.Parser.Nodes
 {
-    public class AccessColumnNode : IdentifierNode
+    public class AccessColumnNode(string column, string alias, Type type, TextSpan span)
+        : IdentifierNode(column)
     {
-        private Type _returnType;
-
         public AccessColumnNode(string column, string alias, TextSpan span)
             : this(column, alias, typeof(void), span)
         {
             Id = $"{nameof(AccessColumnNode)}{column}";
         }
 
-        public AccessColumnNode(string column, string alias, Type returnType, TextSpan span)
-            : base(column)
-        {
-            Alias = alias;
-            Span = span;
-            _returnType = returnType;
-            Id = $"{nameof(AccessColumnNode)}{column}{returnType.Name}";
-        }
+        public string Alias { get; } = alias;
 
-        public string Alias { get; }
+        public TextSpan Span { get; } = span;
 
-        public TextSpan Span { get; }
+        public override Type ReturnType => type;
 
-        public override Type ReturnType => _returnType;
-
-        public override string Id { get; }
+        public override string Id { get; } = $"{nameof(AccessColumnNode)}{column}{type.Name}";
 
         public override void Accept(IExpressionVisitor visitor)
         {
@@ -43,7 +33,7 @@ namespace Musoq.Parser.Nodes
 
         public void ChangeReturnType(Type returnType)
         {
-            _returnType = returnType;
+            type = returnType;
         }
     }
 }
