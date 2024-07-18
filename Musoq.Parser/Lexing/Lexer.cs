@@ -38,13 +38,8 @@ namespace Musoq.Parser.Lexing
         {
             var regex = matchedDefinition.Regex.ToString();
             var loweredToken = tokenText.ToLowerInvariant();
-            if (regex == TokenRegexDefinition.Function && loweredToken == AndToken.TokenText)
-                return TokenType.Function;
             
-            if (regex == TokenRegexDefinition.Function && loweredToken == OrToken.TokenText)
-                return TokenType.Function;
-            
-            if (regex == TokenRegexDefinition.Function && loweredToken == NotToken.TokenText)
+            if (regex == TokenRegexDefinition.Function)
                 return TokenType.Function;
             
             switch (loweredToken)
@@ -220,7 +215,7 @@ namespace Musoq.Parser.Lexing
         private static class TokenRegexDefinition
         {
             private const string Keyword = @"(?<=[\s]{1,}|^){keyword}(?=[\s]{1,}|$)";
-            public const string Function = @"[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{0,}[\d]*(?=[\(])";
+            public const string Function = @"[a-zA-Z_]{1,}[a-zA-Z1-9_-]{0,}[\d]*(?=[\(])";
 
             public static readonly string KAnd = Format(Keyword, AndToken.TokenText);
             public static readonly string KComma = CommaToken.TokenText;
@@ -275,7 +270,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KDecimalOrInteger = $"({KDecimalWithDotAndSuffix}|{KDecimalWithDot}|{KDecimalWithSuffix}|{KUnsignedInteger}|{KSignedInteger})";
 
             public static readonly string KMethodAccess =
-                "([a-zA-Z1-9_-]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
+                "([a-zA-Z1-9_]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
 
             public static readonly string KSkip = Format(Keyword, SkipToken.TokenText);
             public static readonly string KTake = Format(Keyword, TakeToken.TokenText);
@@ -319,8 +314,8 @@ namespace Musoq.Parser.Lexing
             /// <summary>
             ///     All supported by language keyword.
             /// </summary>
-            public static TokenDefinition[] General => new[]
-            {
+            public static TokenDefinition[] General =>
+            [
                 new TokenDefinition(TokenRegexDefinition.KDecimalOrInteger),
                 new TokenDefinition(TokenRegexDefinition.KDesc),
                 new TokenDefinition(TokenRegexDefinition.KAsc),
@@ -391,7 +386,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KElse),
                 new TokenDefinition(TokenRegexDefinition.KEnd),
                 new TokenDefinition(TokenRegexDefinition.KFieldLink)
-            };
+            ];
         }
 
         #region Overrides of LexerBase<Token>

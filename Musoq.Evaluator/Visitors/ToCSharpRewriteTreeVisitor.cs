@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -442,14 +443,22 @@ namespace Musoq.Evaluator.Visitors
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.LogicalAndExpression(a, b));
+
+            var rawSyntax = Generator.LogicalAndExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+            
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(OrNode node)
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.LogicalOrExpression(a, b));
+
+            var rawSyntax = Generator.LogicalOrExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+            
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(ShortCircuitingNodeLeft node)
@@ -568,7 +577,7 @@ namespace Musoq.Evaluator.Visitors
 
             Visit(new AccessMethodNode(
                 new FunctionToken(nameof(Operators.RLike), TextSpan.Empty),
-                new ArgsListNode(new[] {node.Left, node.Right}), null, false,
+                new ArgsListNode([node.Left, node.Right]), null, false,
                 typeof(Operators).GetMethod(nameof(Operators.RLike))));
         }
 
@@ -824,7 +833,7 @@ namespace Musoq.Evaluator.Visitors
 
             Visit(new AccessMethodNode(
                 new FunctionToken(nameof(Operators.Contains), TextSpan.Empty),
-                new ArgsListNode(new[] {node.Left, node.Right}), null, false,
+                new ArgsListNode([node.Left, node.Right]), null, false,
                 typeof(Operators).GetMethod(nameof(Operators.Contains))));
         }
 
@@ -1015,7 +1024,9 @@ namespace Musoq.Evaluator.Visitors
             }
 
             if (!node.ReturnType.IsTrueValueType() && NullSuspiciousNodes.Count > 0)
+            {
                 NullSuspiciousNodes[^1].Push(accessMethodExpr);
+            }
 
             Nodes.Push(accessMethodExpr);
         }
@@ -1262,9 +1273,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WhereNode node)
         {
+            var expression = node.ReturnType.IsTrueValueType() ? Nodes.Pop() : GenerateNullGuards(Nodes.Pop());
             var ifStatement =
                 Generator.IfStatement(
-                        Generator.LogicalNotExpression(Nodes.Pop()),
+                        Generator.LogicalNotExpression(expression),
                         new SyntaxNode[]
                         {
                             SyntaxFactory.ContinueStatement()
@@ -3349,7 +3361,7 @@ namespace Musoq.Evaluator.Visitors
         {
             if (NullSuspiciousNodes[^1].Count > 1)
             {
-                rawNode = SyntaxFactory.ParenthesizedExpression(
+                return SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.BinaryExpression(
                         SyntaxKind.LogicalAndExpression,
                         SyntaxFactory.BinaryExpression(
@@ -3365,9 +3377,10 @@ namespace Musoq.Evaluator.Visitors
                                     SyntaxKind.NullLiteralExpression))),
                         (BinaryExpressionSyntax) rawNode));
             }
-            else if (NullSuspiciousNodes[^1].Count == 1)
+
+            if (NullSuspiciousNodes[^1].Count == 1)
             {
-                rawNode = SyntaxFactory.ParenthesizedExpression(
+                return SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.BinaryExpression(
                         SyntaxKind.LogicalAndExpression,
                         SyntaxFactory.BinaryExpression(
@@ -3376,7 +3389,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
                         (BinaryExpressionSyntax) rawNode));
             }
-
+            
             return rawNode;
         }
 

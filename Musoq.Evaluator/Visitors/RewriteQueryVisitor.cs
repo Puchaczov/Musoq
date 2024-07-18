@@ -79,16 +79,32 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AndNode node)
         {
-            var right = Nodes.Pop();
-            var left = Nodes.Pop();
+            var right = RewriteNullableBoolExpressions(Nodes.Pop());
+            var left = RewriteNullableBoolExpressions(Nodes.Pop());
             Nodes.Push(new AndNode(left, right));
         }
 
         public void Visit(OrNode node)
         {
+            var right = RewriteNullableBoolExpressions(Nodes.Pop());
+            var left = RewriteNullableBoolExpressions(Nodes.Pop());
+            Nodes.Push(new OrNode(left, right));
+        }
+
+        private Node RewriteNullableBoolExpressions(Node node)
+        {
+            var nullableBoolType = typeof(bool?);
+            if (node.ReturnType != nullableBoolType && node is not BinaryNode)
+                return node;
+            
+            return new AndNode(new IsNullNode(node, true), new EqualityNode(node, new BooleanNode(true)));
+        }
+
+        public void Visit(EqualityNode node)
+        {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
-            Nodes.Push(new OrNode(left, right));
+            Nodes.Push(new EqualityNode(left, right));
         }
 
         public void Visit(ShortCircuitingNodeLeft node)
@@ -99,13 +115,6 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(ShortCircuitingNodeRight node)
         {
             Nodes.Push(new ShortCircuitingNodeRight(Nodes.Pop(), node.UsedFor));
-        }
-
-        public void Visit(EqualityNode node)
-        {
-            var right = Nodes.Pop();
-            var left = Nodes.Pop();
-            Nodes.Push(new EqualityNode(left, right));
         }
 
         public void Visit(GreaterOrEqualNode node)
@@ -309,7 +318,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WhereNode node)
         {
-            Nodes.Push(new WhereNode(Nodes.Pop()));
+            var rewrittenNode = RewriteNullableBoolExpressions(Nodes.Pop());
+            
+            Nodes.Push(new WhereNode(rewrittenNode));
         }
 
         public void Visit(GroupByNode node)

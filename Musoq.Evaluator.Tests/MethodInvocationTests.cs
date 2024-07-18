@@ -35,4 +35,178 @@ public class MethodInvocationTests : BasicEntityTestBase
         Assert.AreEqual(250m, table[3].Values[0]);
         Assert.AreEqual(350m, table[4].Values[0]);
     }
+    
+    [TestMethod]
+    public void WhenNullableBooleanFieldWithFullSyntaxApplied_ShouldPass()
+    {
+        var query = "select City from #A.entities() population2 where Contains(City, 'W') = true";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", new[]
+                {
+                    new BasicEntity("WARSAW", "POLAND", 500),
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                    new BasicEntity("KATOWICE", "POLAND", 250),
+                    new BasicEntity("BERLIN", "GERMANY", 250),
+                    new BasicEntity("MUNICH", "GERMANY", 350)
+                }
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(3, table.Count);
+        
+        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
+        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenNullableBooleanFieldWithShortenedSyntaxApplied_ShouldPass()
+    {
+        var query = "select City from #A.entities() population2 where Contains(City, 'W')";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", new[]
+                {
+                    new BasicEntity("WARSAW", "POLAND", 500),
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                    new BasicEntity("KATOWICE", "POLAND", 250),
+                    new BasicEntity("BERLIN", "GERMANY", 250),
+                    new BasicEntity("MUNICH", "GERMANY", 350)
+                }
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(3, table.Count);
+        
+        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
+        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenNullableBooleanFields_ForBinaryOperator_WithFullSyntaxApplied_ShouldPass()
+    {
+        var query = "select City from #A.entities() population2 where Contains(City, 'W') = true and Contains(City, 'A') = true";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", new[]
+                {
+                    new BasicEntity("WARSAW", "POLAND", 500),
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                    new BasicEntity("KATOWICE", "POLAND", 250),
+                    new BasicEntity("BERLIN", "GERMANY", 250),
+                    new BasicEntity("MUNICH", "GERMANY", 350)
+                }
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(3, table.Count);
+        
+        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
+        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenNullableBooleanFields_ForBinaryOperator_WithShortenedSyntaxApplied_ShouldPass()
+    {
+        var query = "select City from #A.entities() population2 where Contains(City, 'W') and Contains(City, 'A')";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", new[]
+                {
+                    new BasicEntity("WARSAW", "POLAND", 500),
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                    new BasicEntity("KATOWICE", "POLAND", 250),
+                    new BasicEntity("BERLIN", "GERMANY", 250),
+                    new BasicEntity("MUNICH", "GERMANY", 350)
+                }
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(3, table.Count);
+        
+        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
+        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenNullableBooleanFields_ForBinaryOperator_WithMixedSyntaxApplied_FirstExpression_ShouldPass()
+    {
+        var query = "select City from #A.entities() population2 where Contains(City, 'W') = true and Contains(City, 'A')";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", new[]
+                {
+                    new BasicEntity("WARSAW", "POLAND", 500),
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                    new BasicEntity("KATOWICE", "POLAND", 250),
+                    new BasicEntity("BERLIN", "GERMANY", 250),
+                    new BasicEntity("MUNICH", "GERMANY", 350)
+                }
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(3, table.Count);
+        
+        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
+        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenNullableBooleanFields_ForBinaryOperator_WithMixedSyntaxApplied_SecondExpression_ShouldPass()
+    {
+        var query = "select City from #A.entities() population2 where Contains(City, 'W') and Contains(City, 'A') = true";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", new[]
+                {
+                    new BasicEntity("WARSAW", "POLAND", 500),
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
+                    new BasicEntity("KATOWICE", "POLAND", 250),
+                    new BasicEntity("BERLIN", "GERMANY", 250),
+                    new BasicEntity("MUNICH", "GERMANY", 350)
+                }
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(3, table.Count);
+        
+        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
+        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+    }
 }

@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Web;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins
@@ -760,6 +761,46 @@ namespace Musoq.Plugins
         public bool IsNullOrWhiteSpace(string? value)
         {
             return string.IsNullOrWhiteSpace(value);
+        }
+        
+        /// <summary>
+        /// Encodes the value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Url encoded value</returns>
+        public string UrlEncode(string value)
+        {
+            return HttpUtility.UrlEncode(value);
+        }
+        
+        /// <summary>
+        /// Decodes the value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Url decoded value</returns>
+        public string UrlDecode(string value)
+        {
+            return HttpUtility.UrlDecode(value);
+        }
+        
+        /// <summary>
+        /// Encodes the value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Uri encoded value</returns>
+        public string UriEncode(string value)
+        {
+            return Uri.EscapeDataString(value);
+        }
+        
+        /// <summary>
+        /// Decodes the value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Uri decoded value</returns>
+        public string UriDecode(string value)
+        {
+            return Uri.UnescapeDataString(value);
         }
     }
 }
