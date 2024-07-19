@@ -251,7 +251,7 @@ inner join #C.entities() population on cities.City = population.City";
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
             Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-            Assert.AreEqual("case when population.Population >= 500 then 'big' else 'low' end", table.Columns.ElementAt(1).ColumnName);
+            Assert.AreEqual("case when population.Population >= 500 then big else low end", table.Columns.ElementAt(1).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
             Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 

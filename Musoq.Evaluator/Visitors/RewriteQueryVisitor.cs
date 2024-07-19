@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.Resources;
@@ -79,16 +80,23 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AndNode node)
         {
-            var right = Nodes.Pop();
-            var left = Nodes.Pop();
+            var right = RewriteNullableBoolExpressions(Nodes.Pop());
+            var left = RewriteNullableBoolExpressions(Nodes.Pop());
             Nodes.Push(new AndNode(left, right));
         }
 
         public void Visit(OrNode node)
         {
+            var right = RewriteNullableBoolExpressions(Nodes.Pop());
+            var left = RewriteNullableBoolExpressions(Nodes.Pop());
+            Nodes.Push(new OrNode(left, right));
+        }
+
+        public void Visit(EqualityNode node)
+        {
             var right = Nodes.Pop();
             var left = Nodes.Pop();
-            Nodes.Push(new OrNode(left, right));
+            Nodes.Push(new EqualityNode(left, right));
         }
 
         public void Visit(ShortCircuitingNodeLeft node)
@@ -99,13 +107,6 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(ShortCircuitingNodeRight node)
         {
             Nodes.Push(new ShortCircuitingNodeRight(Nodes.Pop(), node.UsedFor));
-        }
-
-        public void Visit(EqualityNode node)
-        {
-            var right = Nodes.Pop();
-            var left = Nodes.Pop();
-            Nodes.Push(new EqualityNode(left, right));
         }
 
         public void Visit(GreaterOrEqualNode node)
@@ -179,12 +180,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(FieldNode node)
         {
-            Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));
+            Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName)));
         }
 
         public void Visit(FieldOrderedNode node)
         {
-            Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.Order));
+            Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName), node.Order));
         }
 
         public void Visit(SelectNode node)
@@ -309,7 +310,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WhereNode node)
         {
-            Nodes.Push(new WhereNode(Nodes.Pop()));
+            var rewrittenNode = RewriteNullableBoolExpressions(Nodes.Pop());
+            
+            Nodes.Push(new WhereNode(rewrittenNode));
         }
 
         public void Visit(GroupByNode node)
@@ -1186,7 +1189,6 @@ namespace Musoq.Evaluator.Visitors
             int startAt = 0)
         {
             var fields = new List<FieldNode>();
-            var usedColumns = new List<AccessColumnNode>();
 
             var i = startAt;
 
@@ -1244,9 +1246,27 @@ namespace Musoq.Evaluator.Visitors
             return new RefreshNode(methods.ToArray());
         }
 
+        private Node RewriteNullableBoolExpressions(Node node)
+        {
+            var nullableBoolType = typeof(bool?);
+            if (node.ReturnType != nullableBoolType && node is not BinaryNode)
+                return node;
+            
+            return new AndNode(new IsNullNode(node, true), new EqualityNode(node, new BooleanNode(true)));
+        }
+
         private bool HasMethod(IEnumerable<AccessMethodNode> methods, AccessMethodNode node)
         {
             return methods.Any(f => f.ToString() == node.ToString());
+        }
+
+        private string RewriteFieldNameWithoutStringPrefixAndSuffix(string fieldName)
+        {
+            var pattern = @"(?<!\\)'";
+            var result = Regex.Replace(fieldName, pattern, string.Empty);
+            result = result.Replace("\\'", "'");
+
+            return result;
         }
 
         private static Func<AccessColumnNode, bool> IncludeKnownColumnsForWithOnly(AccessColumnNode[] accessColumnNodes, JoinFromNode joinFromNode)

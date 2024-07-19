@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Web;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins
@@ -442,7 +443,7 @@ namespace Musoq.Plugins
         /// <param name="totalWidth">The total width</param>
         /// <returns>Left aligned value</returns>
         [BindableMethod]
-        public string PadLeft(string? value, string? character, int? totalWidth)
+        public string? PadLeft(string? value, string? character, int? totalWidth)
         {
             if (value == null || character == null)
                 return null;
@@ -461,7 +462,7 @@ namespace Musoq.Plugins
         /// <param name="totalWidth">The total width</param>
         /// <returns>Right aligned value</returns>
         [BindableMethod]
-        public string PadRight(string? value, string? character, int? totalWidth)
+        public string? PadRight(string? value, string? character, int? totalWidth)
         {
             if (value == null || character == null)
                 return null;
@@ -479,7 +480,7 @@ namespace Musoq.Plugins
         /// <param name="length">The length</param>
         /// <returns>First characters of string</returns>
         [BindableMethod]
-        public string Head(string? value, int? length = 10)
+        public string? Head(string? value, int? length = 10)
         {
             if (value == null)
                 return null;
@@ -497,7 +498,7 @@ namespace Musoq.Plugins
         /// <param name="length">The length</param>
         /// <returns>Last characters of string</returns>
         [BindableMethod]
-        public string Tail(string? value, int? length = 10)
+        public string? Tail(string? value, int? length = 10)
         {
             if (value == null)
                 return null;
@@ -660,7 +661,7 @@ namespace Musoq.Plugins
         /// <param name="value">The value</param>
         /// <returns>Capitalized text</returns>
         [BindableMethod]
-        public string? CapitalizeFirstLetterOfWords(string? value)
+        public string? ToTitleCase(string? value)
         {
             if (value == null)
                 return null;
@@ -747,6 +748,7 @@ namespace Musoq.Plugins
         /// </summary>
         /// <param name="value">The value</param>
         /// <returns>True if null or empty; otherwise false</returns>
+        [BindableMethod]
         public bool IsNullOrEmpty(string? value)
         {
             return string.IsNullOrEmpty(value);
@@ -757,9 +759,144 @@ namespace Musoq.Plugins
         /// </summary>
         /// <param name="value">The value</param>
         /// <returns>True if null or whitespace; otherwise false</returns>
+        [BindableMethod]
         public bool IsNullOrWhiteSpace(string? value)
         {
             return string.IsNullOrWhiteSpace(value);
+        }
+        
+        /// <summary>
+        /// Encodes the value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Url encoded value</returns>
+        [BindableMethod]
+        public string? UrlEncode(string? value)
+        {
+            if (value == null)
+                return null;
+            
+            return HttpUtility.UrlEncode(value);
+        }
+        
+        /// <summary>
+        /// Decodes the value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Url decoded value</returns>
+        [BindableMethod]
+        public string? UrlDecode(string? value)
+        {
+            if (value == null)
+                return null;
+
+            return HttpUtility.UrlDecode(value);
+        }
+        
+        /// <summary>
+        /// Encodes the value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Uri encoded value</returns>
+        [BindableMethod]
+        public string? UriEncode(string? value)
+        {
+            if (value == null)
+                return null;
+
+            return Uri.EscapeDataString(value);
+        }
+        
+        /// <summary>
+        /// Decodes the value
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Uri decoded value</returns>
+        [BindableMethod]
+        public string? UriDecode(string? value)
+        {
+            if (value == null)
+                return null;
+
+            return Uri.UnescapeDataString(value);
+        }
+        
+        /// <summary>
+        /// Determines whether the string starts with the specified prefix
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="prefix">The prefix</param>
+        /// <returns>True if starts with; otherwise false</returns>
+        [BindableMethod]
+        public bool? StartsWith(string? value, string? prefix)
+        {
+            if (value == null || prefix == null)
+                return null;
+
+            return value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Determines whether the string starts with the specified prefix
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="prefix">The prefix</param>
+        /// <param name="comparison">The comparison</param>
+        /// <returns>True if starts with; otherwise false</returns>
+        [BindableMethod]
+        public bool? StartsWith(string? value, string? prefix, string comparison)
+        {
+            if (value == null || prefix == null)
+                return null;
+
+            return value.StartsWith(prefix, Enum.Parse<StringComparison>(comparison));
+        }
+        
+        /// <summary>
+        /// Determines whether the string ends with the specified suffix
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="suffix">The suffix</param>
+        /// <returns>True if ends with; otherwise false</returns>
+        [BindableMethod]
+        public bool? EndsWith(string? value, string? suffix)
+        {
+            if (value == null || suffix == null)
+                return null;
+
+            return value.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
+        }
+        
+        /// <summary>
+        /// Determines whether the string ends with the specified suffix
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="suffix">The suffix</param>
+        /// <param name="comparison">The comparison</param>
+        /// <returns>True if ends with; otherwise false</returns>
+        [BindableMethod]
+        public bool? EndsWith(string? value, string? suffix, string comparison)
+        {
+            if (value == null || suffix == null)
+                return null;
+
+            return value.EndsWith(suffix, Enum.Parse<StringComparison>(comparison));
+        }
+        
+        /// <summary>
+        /// Replace the specified value part that matches the pattern with the replacement
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <param name="pattern">The pattern</param>
+        /// <param name="replacement">The replacement</param>
+        /// <returns>Replaced value</returns>
+        [BindableMethod]
+        public string? RegexReplace(string? value, string? pattern, string? replacement)
+        {
+            if (value == null || pattern == null || replacement == null)
+                return null;
+            
+            return System.Text.RegularExpressions.Regex.Replace(value, pattern, replacement);
         }
     }
 }

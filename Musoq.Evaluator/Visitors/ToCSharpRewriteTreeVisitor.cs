@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -26,6 +27,7 @@ using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
 using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
+using Group = Musoq.Plugins.Group;
 using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
 using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
 using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
@@ -39,6 +41,9 @@ namespace Musoq.Evaluator.Visitors
 {
     public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     {
+        private const char EscapeQuoteStringCharacter = '"';
+        private const char EscapeQuoteStringCharacterReplacement = '\'';
+        
         private readonly Dictionary<string, int> _inMemoryTableIndexes = new();
         private readonly List<string> _loadedAssemblies = new();
 
@@ -143,7 +148,9 @@ namespace Musoq.Evaluator.Visitors
         private Stack<SyntaxNode> Nodes { get; }
 
         private List<StatementSyntax> Statements { get; } = new();
+        
         private List<Stack<SyntaxNode>> NullSuspiciousNodes { get; } = new();
+        
         private IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
         public void Visit(Node node)
@@ -172,235 +179,6 @@ namespace Musoq.Evaluator.Visitors
             }
 
             Statements.Clear();
-        }
-
-        private void CreateDescForSpecificConstructor(DescNode node)
-        {
-            CreateDescMethod(node,
-                SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificTableDescription))))
-                    .WithArgumentList(
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable"))))), true);
-        }
-
-        private void CreateDescForSchema(DescNode node)
-        {
-            CreateDescMethod(node,
-                SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificSchemaDescriptions))))
-                    .WithArgumentList(
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc"))))), false);
-        }
-
-        private void CreateDescForConstructors(DescNode node)
-        {
-            CreateDescMethod(node,
-                SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetConstructorsForSpecificMethod))))
-                    .WithArgumentList(
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList(
-                                new[]
-                                {
-                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
-                                    SyntaxHelper.StringLiteralArgument(((SchemaFromNode) node.From).Method)
-                                }))), false);
-        }
-
-        private void CreateDescMethod(DescNode node, InvocationExpressionSyntax invocationExpression,
-            bool useProvidedTable)
-        {
-            var schemaNode = (SchemaFromNode) node.From;
-            var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
-                "desc",
-                "provider",
-                nameof(ISchemaProvider.GetSchema),
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                    SyntaxFactory.SeparatedList(new[]
-                    {
-                        SyntaxHelper.StringLiteralArgument(schemaNode.Schema)
-                    }),
-                    SyntaxFactory.Token(SyntaxKind.CloseParenToken)
-                )
-            );
-
-            if (useProvidedTable)
-            {
-                var args = schemaNode.Parameters.Args.Select(arg =>
-                    (ExpressionSyntax) Generator.LiteralExpression(((ConstantValueNode) arg).ObjValue)).ToArray();
-                
-                var originallyInferredColumns = SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName("Array"),
-                            SyntaxFactory.GenericName(
-                                    SyntaxFactory.Identifier("Empty"))
-                                .WithTypeArgumentList(
-                                    SyntaxFactory.TypeArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                            SyntaxFactory.IdentifierName("ISchemaColumn"))))))
-                    .NormalizeWhitespace();
-
-                var getTable = SyntaxHelper.CreateAssignmentByMethodCall(
-                    "schemaTable",
-                    "desc",
-                    nameof(ISchema.GetTableByName),
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                        SyntaxFactory.SeparatedList(new[]
-                        {
-                            SyntaxHelper.StringLiteralArgument(schemaNode.Method),
-                            SyntaxFactory.Argument(CreateRuntimeContext(schemaNode, originallyInferredColumns)),
-                            SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args))
-                        }),
-                        SyntaxFactory.Token(SyntaxKind.CloseParenToken)
-                    )
-                );
-
-                var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
-
-                Statements.AddRange(new StatementSyntax[]
-                {
-                    SyntaxFactory.LocalDeclarationStatement(createdSchema),
-                    SyntaxFactory.LocalDeclarationStatement(getTable),
-                    returnStatement
-                });
-            }
-            else
-            {
-                var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
-
-                Statements.AddRange(new StatementSyntax[]
-                {
-                    SyntaxFactory.LocalDeclarationStatement(createdSchema),
-                    returnStatement
-                });
-            }
-
-            var methodName = "GetTableDesc";
-
-            var method = SyntaxFactory.MethodDeclaration(
-                new SyntaxList<AttributeListSyntax>(),
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-                SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                null,
-                SyntaxFactory.Identifier(methodName),
-                null,
-                SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(new[]
-                    {
-                        SyntaxFactory.Parameter(
-                            new SyntaxList<AttributeListSyntax>(),
-                            SyntaxTokenList.Create(
-                                new SyntaxToken()),
-                            SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
-                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                            SyntaxFactory.Identifier("provider"), null),
-
-                        SyntaxFactory.Parameter(
-                            new SyntaxList<AttributeListSyntax>(),
-                            SyntaxTokenList.Create(
-                                new SyntaxToken()),
-                            SyntaxFactory.GenericName(
-                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                .WithTypeArgumentList(
-                                    SyntaxFactory.TypeArgumentList(
-                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]
-                                            {
-                                                SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.GenericName(
-                                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                                    .WithTypeArgumentList(
-                                                        SyntaxFactory.TypeArgumentList(
-                                                            SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                                new SyntaxNodeOrToken[]
-                                                                {
-                                                                    SyntaxFactory.PredefinedType(
-                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                    SyntaxFactory.PredefinedType(
-                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                                                                })))
-                                            })))
-                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                            SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
-
-                        SyntaxFactory.Parameter(
-                                SyntaxFactory.Identifier("queriesInformation"))
-                            .WithType(
-                                SyntaxFactory.GenericName(
-                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                    .WithTypeArgumentList(
-                                        SyntaxFactory.TypeArgumentList(
-                                            SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                new SyntaxNodeOrToken[]
-                                                {
-                                                    SyntaxFactory.PredefinedType(
-                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                    SyntaxFactory.TupleType(
-                                                        SyntaxFactory.SeparatedList<TupleElementSyntax>(
-                                                            new SyntaxNodeOrToken[]
-                                                            {
-                                                                SyntaxFactory.TupleElement(
-                                                                        SyntaxFactory.IdentifierName("SchemaFromNode"))
-                                                                    .WithIdentifier(
-                                                                        SyntaxFactory.Identifier("FromNode")),
-                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                SyntaxFactory.TupleElement(
-                                                                        SyntaxFactory.GenericName(
-                                                                                SyntaxFactory.Identifier(
-                                                                                    "IReadOnlyCollection"))
-                                                                            .WithTypeArgumentList(
-                                                                                SyntaxFactory.TypeArgumentList(
-                                                                                    SyntaxFactory
-                                                                                        .SingletonSeparatedList<
-                                                                                            TypeSyntax>(
-                                                                                            SyntaxFactory
-                                                                                                .IdentifierName(
-                                                                                                    "ISchemaColumn")))))
-                                                                    .WithIdentifier(
-                                                                        SyntaxFactory.Identifier("UsedColumns")),
-                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                SyntaxFactory.TupleElement(
-                                                                        SyntaxFactory.IdentifierName("WhereNode"))
-                                                                    .WithIdentifier(
-                                                                        SyntaxFactory.Identifier("WhereNode"))
-                                                            }))
-                                                })))),
-
-                        SyntaxFactory.Parameter(
-                            new SyntaxList<AttributeListSyntax>(),
-                            SyntaxTokenList.Create(
-                                new SyntaxToken()),
-                            SyntaxFactory.IdentifierName(nameof(CancellationToken))
-                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                            SyntaxFactory.Identifier("token"), null)
-                    })),
-                new SyntaxList<TypeParameterConstraintClauseSyntax>(),
-                SyntaxFactory.Block(Statements),
-                null);
-
-            _members.Add(method);
-            _methodNames.Push(methodName);
         }
 
         public void Visit(StarNode node)
@@ -442,14 +220,22 @@ namespace Musoq.Evaluator.Visitors
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.LogicalAndExpression(a, b));
+
+            var rawSyntax = Generator.LogicalAndExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+            
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(OrNode node)
         {
             var b = Nodes.Pop();
             var a = Nodes.Pop();
-            Nodes.Push(Generator.LogicalOrExpression(a, b));
+
+            var rawSyntax = Generator.LogicalOrExpression(a, b);
+            var guardedSyntax = GenerateNullGuards(rawSyntax);
+            
+            Nodes.Push(guardedSyntax);
         }
 
         public void Visit(ShortCircuitingNodeLeft node)
@@ -568,7 +354,7 @@ namespace Musoq.Evaluator.Visitors
 
             Visit(new AccessMethodNode(
                 new FunctionToken(nameof(Operators.RLike), TextSpan.Empty),
-                new ArgsListNode(new[] {node.Left, node.Right}), null, false,
+                new ArgsListNode([node.Left, node.Right]), null, false,
                 typeof(Operators).GetMethod(nameof(Operators.RLike))));
         }
 
@@ -634,7 +420,9 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.StringLiteralExpression,
-                    SyntaxFactory.Literal($"@\"{node.Value}\"", node.Value)));
+                    SyntaxFactory.Literal(
+                        $"@\"{EscapeQuoteString(node.Value, EscapeQuoteStringCharacterReplacement)}\"", 
+                        UnescapeLanguageSpecificString(node.Value))));
         }
 
         public void Visit(DecimalNode node)
@@ -791,7 +579,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WordNode node)
         {
-            Nodes.Push(Generator.LiteralExpression(node.Value));
+            Nodes.Push(Generator.LiteralExpression(
+                UnescapeLanguageSpecificString(
+                    EscapeQuoteString(node.Value, EscapeQuoteStringCharacterReplacement))));
         }
 
         public void Visit(NullNode node)
@@ -824,7 +614,7 @@ namespace Musoq.Evaluator.Visitors
 
             Visit(new AccessMethodNode(
                 new FunctionToken(nameof(Operators.Contains), TextSpan.Empty),
-                new ArgsListNode(new[] {node.Left, node.Right}), null, false,
+                new ArgsListNode([node.Left, node.Right]), null, false,
                 typeof(Operators).GetMethod(nameof(Operators.Contains))));
         }
 
@@ -1015,7 +805,9 @@ namespace Musoq.Evaluator.Visitors
             }
 
             if (!node.ReturnType.IsTrueValueType() && NullSuspiciousNodes.Count > 0)
+            {
                 NullSuspiciousNodes[^1].Push(accessMethodExpr);
+            }
 
             Nodes.Push(accessMethodExpr);
         }
@@ -1262,9 +1054,10 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WhereNode node)
         {
+            var expression = node.ReturnType.IsTrueValueType() ? Nodes.Pop() : GenerateNullGuards(Nodes.Pop());
             var ifStatement =
                 Generator.IfStatement(
-                        Generator.LogicalNotExpression(Nodes.Pop()),
+                        Generator.LogicalNotExpression(expression),
                         new SyntaxNode[]
                         {
                             SyntaxFactory.ContinueStatement()
@@ -2053,7 +1846,7 @@ namespace Musoq.Evaluator.Visitors
                                     SyntaxFactory.Argument(
                                         SyntaxFactory.LiteralExpression(
                                             SyntaxKind.StringLiteralExpression,
-                                            SyntaxFactory.Literal($"@\"{field.FieldName}\"", field.FieldName))),
+                                            SyntaxFactory.Literal($"@\"{EscapeQuoteString(field.FieldName, EscapeQuoteStringCharacter)}\"", field.FieldName))),
                                     SyntaxHelper.TypeLiteralArgument(
                                         EvaluationHelper.GetCastableType(type)),
                                     SyntaxHelper.IntLiteralArgument(field.FieldOrder)
@@ -2206,10 +1999,9 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxKind.ComplexElementInitializerExpression,
                             SyntaxFactory.SeparatedList<ExpressionSyntax>()
                                 .Add((LiteralExpressionSyntax) Generator.LiteralExpression(j))
-                                .Add((LiteralExpressionSyntax) Generator.LiteralExpression(node.Select.Fields[i]
-                                    .FieldName)));
+                                .Add((LiteralExpressionSyntax) Generator.LiteralExpression(EscapeQuoteString(node.Select.Fields[i].FieldName, EscapeQuoteStringCharacter))));
 
-                var indexToValueDictVariableName = "indexToValueDict";
+                const string indexToValueDictVariableName = "indexToValueDict";
 
                 var columnToValueDict = SyntaxHelper.CreateAssignment(
                     indexToValueDictVariableName, SyntaxHelper.CreateObjectOf(
@@ -3349,7 +3141,7 @@ namespace Musoq.Evaluator.Visitors
         {
             if (NullSuspiciousNodes[^1].Count > 1)
             {
-                rawNode = SyntaxFactory.ParenthesizedExpression(
+                return SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.BinaryExpression(
                         SyntaxKind.LogicalAndExpression,
                         SyntaxFactory.BinaryExpression(
@@ -3365,9 +3157,10 @@ namespace Musoq.Evaluator.Visitors
                                     SyntaxKind.NullLiteralExpression))),
                         (BinaryExpressionSyntax) rawNode));
             }
-            else if (NullSuspiciousNodes[^1].Count == 1)
+
+            if (NullSuspiciousNodes[^1].Count == 1)
             {
-                rawNode = SyntaxFactory.ParenthesizedExpression(
+                return SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.BinaryExpression(
                         SyntaxKind.LogicalAndExpression,
                         SyntaxFactory.BinaryExpression(
@@ -3376,7 +3169,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
                         (BinaryExpressionSyntax) rawNode));
             }
-
+            
             return rawNode;
         }
 
@@ -3607,6 +3400,235 @@ namespace Musoq.Evaluator.Visitors
                             })));
         }
 
+        private void CreateDescForSpecificConstructor(DescNode node)
+        {
+            CreateDescMethod(node,
+                SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificTableDescription))))
+                    .WithArgumentList(
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable"))))), true);
+        }
+
+        private void CreateDescForSchema(DescNode node)
+        {
+            CreateDescMethod(node,
+                SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificSchemaDescriptions))))
+                    .WithArgumentList(
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc"))))), false);
+        }
+
+        private void CreateDescForConstructors(DescNode node)
+        {
+            CreateDescMethod(node,
+                SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                            SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetConstructorsForSpecificMethod))))
+                    .WithArgumentList(
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SeparatedList(
+                                new[]
+                                {
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
+                                    SyntaxHelper.StringLiteralArgument(((SchemaFromNode) node.From).Method)
+                                }))), false);
+        }
+
+        private void CreateDescMethod(DescNode node, InvocationExpressionSyntax invocationExpression,
+            bool useProvidedTable)
+        {
+            var schemaNode = (SchemaFromNode) node.From;
+            var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
+                "desc",
+                "provider",
+                nameof(ISchemaProvider.GetSchema),
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxHelper.StringLiteralArgument(schemaNode.Schema)
+                    }),
+                    SyntaxFactory.Token(SyntaxKind.CloseParenToken)
+                )
+            );
+
+            if (useProvidedTable)
+            {
+                var args = schemaNode.Parameters.Args.Select(arg =>
+                    (ExpressionSyntax) Generator.LiteralExpression(((ConstantValueNode) arg).ObjValue)).ToArray();
+                
+                var originallyInferredColumns = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("Array"),
+                            SyntaxFactory.GenericName(
+                                    SyntaxFactory.Identifier("Empty"))
+                                .WithTypeArgumentList(
+                                    SyntaxFactory.TypeArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                            SyntaxFactory.IdentifierName("ISchemaColumn"))))))
+                    .NormalizeWhitespace();
+
+                var getTable = SyntaxHelper.CreateAssignmentByMethodCall(
+                    "schemaTable",
+                    "desc",
+                    nameof(ISchema.GetTableByName),
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                        SyntaxFactory.SeparatedList(new[]
+                        {
+                            SyntaxHelper.StringLiteralArgument(schemaNode.Method),
+                            SyntaxFactory.Argument(CreateRuntimeContext(schemaNode, originallyInferredColumns)),
+                            SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args))
+                        }),
+                        SyntaxFactory.Token(SyntaxKind.CloseParenToken)
+                    )
+                );
+
+                var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
+
+                Statements.AddRange(new StatementSyntax[]
+                {
+                    SyntaxFactory.LocalDeclarationStatement(createdSchema),
+                    SyntaxFactory.LocalDeclarationStatement(getTable),
+                    returnStatement
+                });
+            }
+            else
+            {
+                var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
+
+                Statements.AddRange(new StatementSyntax[]
+                {
+                    SyntaxFactory.LocalDeclarationStatement(createdSchema),
+                    returnStatement
+                });
+            }
+
+            var methodName = "GetTableDesc";
+
+            var method = SyntaxFactory.MethodDeclaration(
+                new SyntaxList<AttributeListSyntax>(),
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                null,
+                SyntaxFactory.Identifier(methodName),
+                null,
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("provider"), null),
+
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.GenericName(
+                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                .WithTypeArgumentList(
+                                    SyntaxFactory.TypeArgumentList(
+                                        SyntaxFactory.SeparatedList<TypeSyntax>(
+                                            new SyntaxNodeOrToken[]
+                                            {
+                                                SyntaxFactory.PredefinedType(
+                                                    SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
+                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                SyntaxFactory.GenericName(
+                                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                                    .WithTypeArgumentList(
+                                                        SyntaxFactory.TypeArgumentList(
+                                                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                                new SyntaxNodeOrToken[]
+                                                                {
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.PredefinedType(
+                                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))
+                                                                })))
+                                            })))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
+
+                        SyntaxFactory.Parameter(
+                                SyntaxFactory.Identifier("queriesInformation"))
+                            .WithType(
+                                SyntaxFactory.GenericName(
+                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                    .WithTypeArgumentList(
+                                        SyntaxFactory.TypeArgumentList(
+                                            SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                new SyntaxNodeOrToken[]
+                                                {
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                    SyntaxFactory.TupleType(
+                                                        SyntaxFactory.SeparatedList<TupleElementSyntax>(
+                                                            new SyntaxNodeOrToken[]
+                                                            {
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.IdentifierName("SchemaFromNode"))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("FromNode")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.GenericName(
+                                                                                SyntaxFactory.Identifier(
+                                                                                    "IReadOnlyCollection"))
+                                                                            .WithTypeArgumentList(
+                                                                                SyntaxFactory.TypeArgumentList(
+                                                                                    SyntaxFactory
+                                                                                        .SingletonSeparatedList<
+                                                                                            TypeSyntax>(
+                                                                                            SyntaxFactory
+                                                                                                .IdentifierName(
+                                                                                                    "ISchemaColumn")))))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("UsedColumns")),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.TupleElement(
+                                                                        SyntaxFactory.IdentifierName("WhereNode"))
+                                                                    .WithIdentifier(
+                                                                        SyntaxFactory.Identifier("WhereNode"))
+                                                            }))
+                                                })))),
+
+                        SyntaxFactory.Parameter(
+                            new SyntaxList<AttributeListSyntax>(),
+                            SyntaxTokenList.Create(
+                                new SyntaxToken()),
+                            SyntaxFactory.IdentifierName(nameof(CancellationToken))
+                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.Identifier("token"), null)
+                    })),
+                new SyntaxList<TypeParameterConstraintClauseSyntax>(),
+                SyntaxFactory.Block(Statements),
+                null);
+
+            _members.Add(method);
+            _methodNames.Push(methodName);
+        }
+
         private SyntaxNode GenerateNullableNull(Type nodeReturnType)
         {
             if (CheckIfNullable(nodeReturnType))
@@ -3618,6 +3640,30 @@ namespace Musoq.Evaluator.Visitors
                 EvaluationHelper.GetCastableType(nodeReturnType));
             
             return Generator.CastExpression(Generator.NullableTypeExpression(typeIdentifier), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+        }
+
+        private string EscapeQuoteString(string text, char escapingCharacter)
+        {
+            var builder = new StringBuilder(text.Length);
+
+            foreach (var c in text)
+            {
+                if (c == '"')
+                    builder.Append(escapingCharacter);
+                
+                builder.Append(c);
+            }
+
+            return builder.ToString();
+        }
+
+        private string UnescapeLanguageSpecificString(string value)
+        {
+            var pattern = @"(?<!\\)'";
+            var result = Regex.Replace(value, pattern, string.Empty);
+            result = result.Replace("\\'", "'");
+
+            return result;
         }
         
         private static bool CheckIfNullable(Type type)
