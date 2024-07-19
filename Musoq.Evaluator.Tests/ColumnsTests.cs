@@ -224,7 +224,7 @@ public class ColumnsTests : BasicEntityTestBase
         var table = vm.Run();
         
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("Self.Dictionary['AA']", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Self.Dictionary[AA]", table.Columns.ElementAt(0).ColumnName);
         
         Assert.AreEqual(1, table.Count);
         

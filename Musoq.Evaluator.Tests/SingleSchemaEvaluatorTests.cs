@@ -299,7 +299,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("case when 1 = 2 then 'test' else '' end", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("case when 1 = 2 then test else  end", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(string.Empty, table[0][0]);
@@ -325,7 +325,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("case when 1 = 2 then 'test' else null end", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("case when 1 = 2 then test else null end", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(null, table[0][0]);
@@ -425,7 +425,7 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(1, table.Columns.Count());
-            Assert.AreEqual("'abc' + 'cda'", table.Columns.ElementAt(0).ColumnName);
+            Assert.AreEqual("abc + cda", table.Columns.ElementAt(0).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
             Assert.AreEqual(1, table.Count);
@@ -915,7 +915,7 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual("TestColumn", table.Columns.ElementAt(2).ColumnName);
             Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
 
-            Assert.AreEqual("GetTwo(4, 'test')", table.Columns.ElementAt(3).ColumnName);
+            Assert.AreEqual("GetTwo(4, test)", table.Columns.ElementAt(3).ColumnName);
             Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
         }
 

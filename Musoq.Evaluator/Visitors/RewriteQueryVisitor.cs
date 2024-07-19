@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.Resources;
@@ -89,15 +90,6 @@ namespace Musoq.Evaluator.Visitors
             var right = RewriteNullableBoolExpressions(Nodes.Pop());
             var left = RewriteNullableBoolExpressions(Nodes.Pop());
             Nodes.Push(new OrNode(left, right));
-        }
-
-        private Node RewriteNullableBoolExpressions(Node node)
-        {
-            var nullableBoolType = typeof(bool?);
-            if (node.ReturnType != nullableBoolType && node is not BinaryNode)
-                return node;
-            
-            return new AndNode(new IsNullNode(node, true), new EqualityNode(node, new BooleanNode(true)));
         }
 
         public void Visit(EqualityNode node)
@@ -188,12 +180,12 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(FieldNode node)
         {
-            Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));
+            Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName)));
         }
 
         public void Visit(FieldOrderedNode node)
         {
-            Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.Order));
+            Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName), node.Order));
         }
 
         public void Visit(SelectNode node)
@@ -1197,7 +1189,6 @@ namespace Musoq.Evaluator.Visitors
             int startAt = 0)
         {
             var fields = new List<FieldNode>();
-            var usedColumns = new List<AccessColumnNode>();
 
             var i = startAt;
 
@@ -1255,9 +1246,27 @@ namespace Musoq.Evaluator.Visitors
             return new RefreshNode(methods.ToArray());
         }
 
+        private Node RewriteNullableBoolExpressions(Node node)
+        {
+            var nullableBoolType = typeof(bool?);
+            if (node.ReturnType != nullableBoolType && node is not BinaryNode)
+                return node;
+            
+            return new AndNode(new IsNullNode(node, true), new EqualityNode(node, new BooleanNode(true)));
+        }
+
         private bool HasMethod(IEnumerable<AccessMethodNode> methods, AccessMethodNode node)
         {
             return methods.Any(f => f.ToString() == node.ToString());
+        }
+
+        private string RewriteFieldNameWithoutStringPrefixAndSuffix(string fieldName)
+        {
+            var pattern = @"(?<!\\)'";
+            var result = Regex.Replace(fieldName, pattern, string.Empty);
+            result = result.Replace("\\'", "'");
+
+            return result;
         }
 
         private static Func<AccessColumnNode, bool> IncludeKnownColumnsForWithOnly(AccessColumnNode[] accessColumnNodes, JoinFromNode joinFromNode)
