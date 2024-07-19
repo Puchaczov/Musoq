@@ -1,288 +1,176 @@
+# Musoq
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Puchaczov/Musoq/graphs/code-frequency)
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 ![Tests](https://raw.githubusercontent.com/puchaczov/musoq/master/badges/tests-badge.svg)
 
-# What is Musoq
-Musoq is a powerful engine designed to apply SQL syntax across a variety of data sources, making data querying more intuitive and accessible. Whether it's files, directories, comma separated values, or even complex data structures, Musoq simplifies data access.
+Musoq brings SQL power to your data, wherever it lives. Query files, directories, CSVs, and more with familiar SQL syntax – no database required.
 
-![Anim](https://github.com/Puchaczov/Musoq/blob/59603028e8fbe90ce8444077cf3561ff8e698afd/musoq.gif)
+## 🌟 Key Features
 
-## Features
-
-- **Versatility:** Data sources comes as plugins, you can visit the **[repository](https://github.com/Puchaczov/Musoq.DataSources)** where all are stored.
+- **Versatility:** Data sources come as plugins. Visit the [Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSources) repository where they are all stored..
 - **SQL Syntax Variant:** The engine uses SQL syntax variant with support for complex queries.
 - **Cross-Platform:** Runs on Linux, Windows, and Docker. MacOS compatibility is anticipated.
-- **In-place querying without data movement**: Musoq allows users to query data where it resides, without the need to move or load it into a central data store. This eliminates the cost, complexity, and latency of data movement
-- **Extensible architecture for custom data sources**: Musoq provides an extensible plugin architecture that allows users to add support for custom data sources
+- **In-place querying without data movement:** Query data where it resides, without the need to move or load it into a central data store.
+- **Extensible architecture for custom data sources:** Add support for custom data sources through a plugin architecture.
 
-## Example Data Sources
+## 🚀 Quick Start
 
-- SeparatedValues (allows to treat separated values files as tables)
-- CANBus (allows to treat CAN .dbc files and corresponding .csv files that contains records of a CAN bus as tables)
-- Archives (allows to treat archives as tables)
-- OS (allows to treat your hard disk as a data source)
+To try out Musoq, follow the instructions in our [CLI repository](https://github.com/Puchaczov/Musoq.CLI).
 
-...and many more
+## 💡 Example Queries
 
-## How to try it out
-
-You can run it from your CLI. Just follow the instructions from **[CLI repository](https://github.com/Puchaczov/Musoq.CLI)**
-
-## Syntax features
-
-- Optional query reordering (from ... where ... group by ... having ... select ... skip N take N2)
-- Use of `*` to select all columns.
-- Group by operator.
-- Having operator.
-- Skip & Take operators.
-- Complex object accessing ability `column.Name`.
-- User defined functions and aggregation functions.
-- Plugin API (to create your own custom data source).
-- Set operators (non sql-like usage) (union, union all, except, intersect).
-- Parametrizable sources.
-- Like / not Like operator.
-- RLike / not RLike operator (regex like operator).
-- Contains operator (Doesn't support nested queries yet).
-- CTE expressions.
-- Desc for schema, schema table constructors and tables.
-- In syntax.
-- Inner, Left outer, Right outer join syntax.
-- Order by clause.
-
-## Query examples
-
-API of the engine were improved so it is possible now to integrate seamlessly with LLMs. For example, I made a custom plugin that uses enhanced syntax and query the invoice file based on pdf.co and GPT 4. This is the query I have constructed:
+Musoq can handle a wide variety of data sources. Here are some examples:
 
 ```sql
-table PdfInvoice {
-    ItemPosition 'int',
-    ItemName 'string',
-    ItemPrice 'decimal'
-};
-couple #custom.invoices with table PdfInvoice as SourceOfInvoiceValues;
-select 
-    ItemPosition,
-    ItemName,
-    ItemPrice
-from SourceOfInvoiceValues('./Invoice.pdf') where ItemPrice > 0
-```
-Query above will effectivelly extract table from invoice with the column you asking for based on LLM inference on requested columns and their data types.
+-- Look for files greater than 1 gig
+SELECT 
+	FullName 
+FROM #os.files('', true) 
+WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
 
+-- Look for how many space does the extensions occupies within some directory
+SELECT
+    Extension,
+    Round(Sum(Length) / 1024 / 1024 / 1024, 1) as SpaceOccupiedInGB,
+    Count(Extension) as HowManyFiles
+FROM #os.files('/some/directory', true)
+GROUP BY Extension
+HAVING Round(Sum(Length) / 1024 / 1024 / 1024, 1) > 0
 
-#### Describes images from a specified directory using the Ollama and llava:13b model
+-- Get first, last 5 bits from files and consecutive 10 bytes of file with offset of 5 from tail
+SELECT
+	ToHex(Head(5), '|'),
+	ToHex(Tail(5), '|'),
+	ToHex(GetFileBytes(10, 5), '|')
+FROM #os.files('/some/directory', false)
 
-```sql
-select
+-- Describe images using AI
+SELECT
     llava.DescribeImage(photo.Base64File()),
     photo.FullName
-from #os.files('/path/to/directory', false) photo 
-inner join #ollama.models('llava:13b', 0.0) llava on 1 = 1
-```
+FROM #os.files('/path/to/directory', false) photo 
+INNER JOIN #ollama.models('llava:13b', 0.0) llava ON 1 = 1
 
-#### Counts the total number of tokens in Markdown and C files within a specified directory (tiktoken library involved)
+-- Count tokens in Markdown and C files
+SELECT 
+   SUM(gpt.CountTokens(f.GetFileContent())) AS TokensCount 
+FROM #os.files('/path/to/directory', true) f 
+INNER JOIN #openai.gpt('gpt-4') gpt ON 1 = 1 
+WHERE f.Extension IN ('.md', '.c')
 
-```sql
-select 
-   Sum(gpt.CountTokens(f.GetFileContent())) as TokensCount 
-from #os.files('/path/to/directory', true) f 
-inner join #openai.gpt('gpt-4') gpt on 1 = 1 
-where f.Extension = '.md' or f.Extension = '.c'
-```
+-- Query CAN DBC files
+SELECT  
+    ID,
+    Name,
+    DLC,
+    CycleTime
+FROM #can.messages('./file.dbc')
 
-#### Use GPT to compute sentiment on a comment
+-- Compare two directories
+SELECT 
+    (CASE WHEN SourceFile IS NOT NULL 
+     THEN SourceFileRelative 
+     ELSE DestinationFileRelative 
+     END) AS FullName, 
+    (CASE WHEN State = 'TheSame' 
+     THEN 'The Same' 
+     ELSE State 
+     END) AS Status 
+FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
 
-```sql
-select 
+-- Find large files
+SELECT 
+    FullName 
+FROM #os.files('', true) 
+WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
+
+-- Compute sentiment on a comments
+SELECT 
     csv.PostId,
     csv.Comment,
     gpt.Sentiment(csv.Comment) as Sentiment,
     csv.Date
-from #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
-inner join #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
-```
+FROM #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
+INNER JOIN #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
 
-#### Get only files that extension is `.png` or `.jpg`
-```sql
+-- Query CAN DBC file (messages)
+SELECT  
+    ID,
+    Name,
+    DLC,
+    CycleTime
+FROM #can.messages('./file.dbc')
+
+-- Get only files that extension is .png or .jpg
 SELECT 
-	FullName 
+    FullName 
 FROM #os.files('C:/Some/Path/To/Dir', true) 
 WHERE Extension = '.png' OR Extension = '.jpg'
-```
-#### equivalent with `in` operator: 
-```sql
-SELECT 
-	FullName 
-FROM #os.files('C:/Some/Path/To/Dir', true)
-WHERE Extension IN ('.png', '.jpg')
-```
 
-#### query CAN DBC files:
-
-```sql
-SELECT  
-	ID,
-	Name,
-	DLC,
-	CycleTime
-from #can.messages('./file.dbc')
-```
-
-or signals:
-
-```sql
-SELECT
-	Name,
-	ByteOrder,
-	Length,
-	StartBit,
-	Factor,
-	...
-from #can.signals('./file.dbc')
-```
-
-#### concat two columns in csv file:
-
-```sql
-SELECT Concat(Column1, Column2) as ConcatenatedColumn from #separatedvalues.csv('./file.csv', true, 0)
-```
-
-#### group by directory and show size of each directories
-```sql
+-- Group by directory and show size of each
 SELECT
 	DirectoryName,
 	Sum(Length) / 1024 / 1024 as 'MB',
 	Min(Length) as 'Min',
 	Max(Length) as 'Max',
 	Count(FullName) as 'CountOfFiles',
-FROM #os.files('', true)
+FROM #os.files('/some/path', true)
 GROUP BY DirectoryName
-```
-#### try to find a file that has part `report` in his name:
-```sql
-SELECT
-	*
-FROM #os.files('', true)
-WHERE Name like '%report%'
-```
-#### try to find a file that has in it's title word that sounds like:
-```sql
-SELECT 
-	FullName
-FROM #os.files('E:/', true) 
-WHERE 
-	IsAudio() AND 
-	HasWordThatSoundLike(Name, 'material')
-```
-#### get first, last 5 bits from files and consecutive 10 bytes of file with offset of 5 from tail
-```sql
-SELECT
-	ToHex(Head(5), '|'),
-	ToHex(Tail(5), '|'),
-	ToHex(GetFileBytes(10, 5), '|')
-FROM #os.files('', false)
-```
-#### compare two directories
-```sql
-WITH filesOfA AS (
-	SELECT 
-		GetRelativeName('E:\DiffDirsTests\A') AS FullName, 
-		Sha256File() AS ShaedFile 
-	FROM #os.files('E:\DiffDirsTests\A', true)
-), filesOfB AS (
-	SELECT 
-		GetRelativeName('E:\DiffDirsTests\B') AS FullName, 
-		Sha256File() AS ShaedFile 
-	FROM #os.files('E:\DiffDirsTests\B', true)
-), inBothDirs AS (
-	SELECT 
-		a.FullName AS FullName, 
-		(
-			CASE WHEN a.ShaedFile = b.ShaedFile 
-			THEN 'The Same' 
-			ELSE 'Modified' 
-			END
-		) AS Status 
-	FROM filesOfA a INNER JOIN filesOfB b ON a.FullName = b.FullName
-), inSourceDir AS (
-	SELECT 
-		a.FullName AS FullName,
-		'Removed' AS Status
-	FROM filesOfA a LEFT OUTER JOIN filesOfB b ON a.FullName = b.FullName
-), inDestinationDir AS (
-	SELECT 
-		b.FullName AS FullName,
-		'Added' AS Status
-	FROM filesOfA a RIGHT OUTER JOIN filesOfB b ON a.FullName = b.FullName
-)
-SELECT 
-	inBoth.FullName AS FullName, 
-	inBoth.Status AS Status 
-FROM inBothDirs inBoth
-UNION (FullName)
-SELECT 
-	inSource.FullName AS FullName, 
-	inSource.Status AS Status 
-FROM inSourceDir inSource
-UNION (FullName)
-SELECT 
-	inDest.FullName AS FullName, 
-	inDest.Status AS Status 
-FROM inDestinationDir inDest
-```
-#### which basically equivalent with build-in plugin is:
-```sql
-SELECT 
-	(
-		CASE WHEN SourceFile IS NOT NULL 
-		THEN SourceFileRelative 
-		ELSE DestinationFileRelative 
-		END
-	) AS FullName, 
-	(
-		CASE WHEN State = 'TheSame' 
-		THEN 'The Same' 
-		ELSE State 
-		END
-	) AS Status 
-FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
-```
-#### Look for directories contains zip files
-```sql
-SELECT
-	DirectoryName, 
-	AggregateValues(Name) 
-FROM #os.files('E:/', true) 
-WHERE IsZipArchive() 
-GROUP BY DirectoryName
-```
-#### Look for files greater than 1 gig
-```sql
-SELECT 
-	FullName 
-FROM #os.files('', true) 
-WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
-```
-#### Prints the values from 1 to 9
-```sql
+
+-- Prints the values from 1 to 9
 SELECT Value FROM #system.range(1, 10)
 ```
 
-## Architecture - high level overview
+## 🎬 Watch It Live
 
-![Png](https://github.com/Puchaczov/Musoq/blob/master/Musoq-Architecture-Engine.png)
+![Musoq Demo](https://github.com/Puchaczov/Musoq/blob/59603028e8fbe90ce8444077cf3561ff8e698afd/musoq.gif)
 
-## Architecture for plugins
+## 🛠 Supported Data Sources
 
-You can easily plug-in your own data source. There is fairly simple plugin api that all sources use. To read in details how to do it, jump into wiki section of this repo [click](https://github.com/Puchaczov/Musoq/wiki/Plugins).
+- SeparatedValues (CSV, TSV, etc.)
+- Archives
+- OS (File System - files and directories)
+- ...many more, Look at the [Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSources) repository
 
-## Motivation
+## 🔧 Syntax Features
+
+Musoq supports a rich set of SQL-like features:
+
+- Optional query reordering (FROM ... WHERE ... GROUP BY ... HAVING ... SELECT ... SKIP N TAKE N2)
+- Use of `*` to select all columns
+- GROUP BY and HAVING operators
+- SKIP & TAKE operators
+- Complex object accessing (`column.Name`)
+- User-defined functions and aggregation functions
+- Set operators (UNION, UNION ALL, EXCEPT, INTERSECT)
+- Parameterizable sources
+- LIKE / NOT LIKE operator
+- RLIKE / NOT RLIKE operator (regex)
+- CONTAINS operator
+- CTE expressions
+- DESC for schema, schema table constructors and tables
+- IN syntax
+- INNER, LEFT OUTER, RIGHT OUTER join syntax
+- ORDER BY clause
+
+## 🏗 Architecture
+
+### High-level Overview
+![Architecture Overview](https://github.com/Puchaczov/Musoq/blob/master/Musoq-Architecture-Engine.png)
+
+### Plugins
+Musoq offers a plugin API that all sources use. To learn how to implement your own plugin, you should examine how existing plugins are created.
+
+## 💡 Motivation
 
 Developed out of a need for a versatile tool that could query various data sources with SQL syntax, Musoq aims to minimize the effort and time required for data querying and analysis.
 
-## Please, be aware of
+## 📄 License
 
-As the language looks like sql, it doesn't mean it is fully SQL compliant. It uses SQL syntax and repeats some of it's behaviour however, some differences may appear. It will also implement some experimental syntax and behaviours that are not used by database engines.
+Musoq is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## License
+---
 
-Musoq is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+**Note:** While Musoq uses SQL-like syntax, it may not be fully SQL compliant. Some differences may appear, and Musoq implements some experimental syntax and behaviors that are not used by traditional database engines and this is intended!
