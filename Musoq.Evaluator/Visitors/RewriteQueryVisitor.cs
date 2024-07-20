@@ -327,7 +327,6 @@ namespace Musoq.Evaluator.Visitors
             for (var i = node.Fields.Length - 1; i >= 0; --i)
                 fields[i] = Nodes.Pop() as FieldNode;
 
-
             Nodes.Push(new GroupByNode(fields, having));
         }
 
@@ -1249,7 +1248,7 @@ namespace Musoq.Evaluator.Visitors
         private Node RewriteNullableBoolExpressions(Node node)
         {
             var nullableBoolType = typeof(bool?);
-            if (node.ReturnType != nullableBoolType && node is not BinaryNode)
+            if (node.ReturnType != nullableBoolType || node is BinaryNode)
                 return node;
             
             return new AndNode(new IsNullNode(node, true), new EqualityNode(node, new BooleanNode(true)));

@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void QueryWithWhereWithNullableValueResultTest()
         {
-            var query = "select NullableValue from #A.Entities() where NullableValue <> 5";
+            var query = "select NullableValue from #A.Entities() where NullableValue is not null and NullableValue <> 5";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -62,7 +62,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void QueryWithWhereWithNullableMethodResultTest()
         {
-            var query = "select NullableValue from #A.Entities() where NullableMethod(NullableValue) <> 5";
+            var query = "select NullableValue from #A.Entities() where NullableMethod(NullableValue) is not null and NullableMethod(NullableValue) <> 5";
 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
@@ -259,7 +259,9 @@ namespace Musoq.Evaluator.Tests
                     "#A",
                     new[]
                     {
-                        new BasicEntity("ABC", 100), new BasicEntity("CBA", 200), new BasicEntity("aaa")
+                        new BasicEntity("ABC", 100), 
+                        new BasicEntity("CBA", 200), 
+                        new BasicEntity("aaa")
                     }
                 }
             };
@@ -268,6 +270,198 @@ namespace Musoq.Evaluator.Tests
             var table = vm.Run();
 
             Assert.AreEqual(0, table.Count);
+        }
+
+        [TestMethod]
+        public void OrOperator_WhenLeftFieldIsNull_ShouldShowLeftNull()
+        {
+            var query = @"select Country, City from #A.Entities() where City is null or Country = 'England'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("Poland", "Warsaw"), 
+                        new BasicEntity("England", "London"), 
+                        new BasicEntity("Brazil", null),
+                        new BasicEntity(null, "Bratislava"),
+                        new BasicEntity(null, null)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(3, table.Count);
+            
+            Assert.AreEqual("England", table[0].Values[0]);
+            Assert.AreEqual("London", table[0].Values[1]);
+            
+            Assert.AreEqual("Brazil", table[1].Values[0]);
+            Assert.AreEqual(null, table[1].Values[1]);
+            
+            Assert.AreEqual(null, table[2].Values[0]);
+            Assert.AreEqual(null, table[2].Values[1]);
+        }
+
+        [TestMethod]
+        public void OrOperator_WhenRightFieldIsNull_ShouldShowLeftNull()
+        {
+            var query = @"select Country, City from #A.Entities() where Country = 'Poland' or Country is null";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("Poland", "Warsaw"), 
+                        new BasicEntity("England", "London"), 
+                        new BasicEntity("Brazil", null),
+                        new BasicEntity(null, "Bratislava"),
+                        new BasicEntity(null, null)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(3, table.Count);
+            
+            Assert.AreEqual("Poland", table[0].Values[0]);
+            Assert.AreEqual("Warsaw", table[0].Values[1]);
+            
+            Assert.AreEqual(null, table[1].Values[0]);
+            Assert.AreEqual("Bratislava", table[1].Values[1]);
+            
+            Assert.AreEqual(null, table[2].Values[0]);
+            Assert.AreEqual(null, table[2].Values[1]);
+        }
+
+        [TestMethod]
+        public void OrOperator_WhenBothFieldsAreNull_ShouldShowThreeRows()
+        {
+            var query = @"select Country, City from #A.Entities() where City is null or Country is null";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("Poland", "Warsaw"), 
+                        new BasicEntity("England", "London"), 
+                        new BasicEntity("Brazil", null),
+                        new BasicEntity(null, "Bratislava"),
+                        new BasicEntity(null, null)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(3, table.Count);
+            
+            Assert.AreEqual("Brazil", table[0].Values[0]);
+            Assert.AreEqual(null, table[0].Values[1]);
+            
+            Assert.AreEqual(null, table[1].Values[0]);
+            Assert.AreEqual("Bratislava", table[1].Values[1]);
+            
+            Assert.AreEqual(null, table[2].Values[0]);
+            Assert.AreEqual(null, table[2].Values[1]);
+        }
+        
+        [TestMethod]
+        public void AndOperator_WhenLeftFieldIsNull_ShouldShowLeftNull()
+        {
+            var query = @"select Country, City from #A.Entities() where City is null and Country = 'Brazil'";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("Poland", "Warsaw"), 
+                        new BasicEntity("England", "London"), 
+                        new BasicEntity("Brazil", null),
+                        new BasicEntity(null, "Bratislava"),
+                        new BasicEntity(null, null)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            
+            Assert.AreEqual("Brazil", table[0].Values[0]);
+            Assert.AreEqual(null, table[0].Values[1]);
+        }
+
+        [TestMethod]
+        public void AndOperator_WhenRightFieldIsNull_ShouldShowLeftNull()
+        {
+            var query = @"select Country, City from #A.Entities() where City = 'Bratislava' and Country is null";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("Poland", "Warsaw"), 
+                        new BasicEntity("England", "London"), 
+                        new BasicEntity("Brazil", null),
+                        new BasicEntity(null, "Bratislava"),
+                        new BasicEntity(null, null)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+            
+            Assert.AreEqual(1, table.Count);
+            
+            Assert.AreEqual(null, table[0].Values[0]);
+            Assert.AreEqual("Bratislava", table[0].Values[1]);
+        }
+
+        [TestMethod]
+        public void AndOperator_WhenBothFieldsAreNull_ShouldShowThreeRows()
+        {
+            var query = @"select Country, City from #A.Entities() where City is null and Country is null";
+
+            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                {
+                    "#A",
+                    new[]
+                    {
+                        new BasicEntity("Poland", "Warsaw"), 
+                        new BasicEntity("England", "London"), 
+                        new BasicEntity("Brazil", null),
+                        new BasicEntity(null, "Bratislava"),
+                        new BasicEntity(null, null)
+                    }
+                }
+            };
+
+            var vm = CreateAndRunVirtualMachine(query, sources);
+            var table = vm.Run();
+
+            Assert.AreEqual(1, table.Count);
+            
+            Assert.AreEqual(null, table[0].Values[0]);
+            Assert.AreEqual(null, table[0].Values[1]);
         }
         
         [TestMethod]

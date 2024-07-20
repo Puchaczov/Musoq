@@ -222,9 +222,8 @@ namespace Musoq.Evaluator.Visitors
             var a = Nodes.Pop();
 
             var rawSyntax = Generator.LogicalAndExpression(a, b);
-            var guardedSyntax = GenerateNullGuards(rawSyntax);
             
-            Nodes.Push(guardedSyntax);
+            Nodes.Push(rawSyntax);
         }
 
         public void Visit(OrNode node)
@@ -233,9 +232,8 @@ namespace Musoq.Evaluator.Visitors
             var a = Nodes.Pop();
 
             var rawSyntax = Generator.LogicalOrExpression(a, b);
-            var guardedSyntax = GenerateNullGuards(rawSyntax);
             
-            Nodes.Push(guardedSyntax);
+            Nodes.Push(rawSyntax);
         }
 
         public void Visit(ShortCircuitingNodeLeft node)
@@ -252,9 +250,8 @@ namespace Musoq.Evaluator.Visitors
             var a = Nodes.Pop();
 
             var rawSyntax = Generator.ValueEqualsExpression(a, b);
-            var guardedSyntax = GenerateNullGuards(rawSyntax);
 
-            Nodes.Push(guardedSyntax);
+            Nodes.Push(rawSyntax);
         }
 
         public void Visit(GreaterOrEqualNode node)
@@ -263,9 +260,8 @@ namespace Musoq.Evaluator.Visitors
             var a = Nodes.Pop();
 
             var rawSyntax = Generator.GreaterThanOrEqualExpression(a, b);
-            var guardedSyntax = GenerateNullGuards(rawSyntax);
 
-            Nodes.Push(guardedSyntax);
+            Nodes.Push(rawSyntax);
         }
 
         public void Visit(LessOrEqualNode node)
@@ -274,9 +270,8 @@ namespace Musoq.Evaluator.Visitors
             var a = Nodes.Pop();
 
             var rawSyntax = Generator.LessThanOrEqualExpression(a, b);
-            var guardedSyntax = GenerateNullGuards(rawSyntax);
 
-            Nodes.Push(guardedSyntax);
+            Nodes.Push(rawSyntax);
         }
 
         public void Visit(GreaterNode node)
@@ -285,9 +280,8 @@ namespace Musoq.Evaluator.Visitors
             var a = Nodes.Pop();
 
             var rawSyntax = Generator.GreaterThanExpression(a, b);
-            var guardedSyntax = GenerateNullGuards(rawSyntax);
 
-            Nodes.Push(guardedSyntax);
+            Nodes.Push(rawSyntax);
         }
 
         public void Visit(LessNode node)
@@ -296,9 +290,8 @@ namespace Musoq.Evaluator.Visitors
             var a = Nodes.Pop();
 
             var rawSyntax = Generator.LessThanExpression(a, b);
-            var guardedSyntax = GenerateNullGuards(rawSyntax);
 
-            Nodes.Push(guardedSyntax);
+            Nodes.Push(rawSyntax);
         }
 
         public void Visit(DiffNode node)
@@ -307,9 +300,8 @@ namespace Musoq.Evaluator.Visitors
             var a = Nodes.Pop();
 
             var rawSyntax = Generator.ValueNotEqualsExpression(a, b);
-            var guardedSyntax = GenerateNullGuards(rawSyntax);
 
-            Nodes.Push(guardedSyntax);
+            Nodes.Push(rawSyntax);
         }
 
         public void Visit(NotNode node)
@@ -334,7 +326,7 @@ namespace Musoq.Evaluator.Visitors
 
             Visit(new AccessMethodNode(
                 new FunctionToken(nameof(Operators.Like), TextSpan.Empty),
-                new ArgsListNode(new[] {node.Left, node.Right}), null, false,
+                new ArgsListNode([node.Left, node.Right]), null, false,
                 typeof(Operators).GetMethod(nameof(Operators.Like))));
         }
 
@@ -1054,10 +1046,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(WhereNode node)
         {
-            var expression = node.ReturnType.IsTrueValueType() ? Nodes.Pop() : GenerateNullGuards(Nodes.Pop());
             var ifStatement =
                 Generator.IfStatement(
-                        Generator.LogicalNotExpression(expression),
+                        Generator.LogicalNotExpression(Nodes.Pop()),
                         new SyntaxNode[]
                         {
                             SyntaxFactory.ContinueStatement()
@@ -3135,42 +3126,6 @@ namespace Musoq.Evaluator.Visitors
             }
 
             return subExpressions.Pop();
-        }
-
-        private SyntaxNode GenerateNullGuards(SyntaxNode rawNode)
-        {
-            if (NullSuspiciousNodes[^1].Count > 1)
-            {
-                return SyntaxFactory.ParenthesizedExpression(
-                    SyntaxFactory.BinaryExpression(
-                        SyntaxKind.LogicalAndExpression,
-                        SyntaxFactory.BinaryExpression(
-                            SyntaxKind.LogicalAndExpression,
-                            SyntaxFactory.BinaryExpression(
-                                SyntaxKind.NotEqualsExpression,
-                                (ExpressionSyntax) NullSuspiciousNodes[^1].Pop(),
-                                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                            SyntaxFactory.BinaryExpression(
-                                SyntaxKind.NotEqualsExpression,
-                                (ExpressionSyntax) NullSuspiciousNodes[^1].Pop(),
-                                SyntaxFactory.LiteralExpression(
-                                    SyntaxKind.NullLiteralExpression))),
-                        (BinaryExpressionSyntax) rawNode));
-            }
-
-            if (NullSuspiciousNodes[^1].Count == 1)
-            {
-                return SyntaxFactory.ParenthesizedExpression(
-                    SyntaxFactory.BinaryExpression(
-                        SyntaxKind.LogicalAndExpression,
-                        SyntaxFactory.BinaryExpression(
-                            SyntaxKind.NotEqualsExpression,
-                            (ExpressionSyntax) NullSuspiciousNodes[^1].Pop(),
-                            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                        (BinaryExpressionSyntax) rawNode));
-            }
-            
-            return rawNode;
         }
 
         public void Visit(OrderByNode node)
