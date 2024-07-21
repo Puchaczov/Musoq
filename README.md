@@ -27,7 +27,7 @@ Musoq can handle a wide variety of data sources. Here are some examples:
 -- Look for files greater than 1 gig
 SELECT 
 	FullName 
-FROM #os.files('', true) 
+FROM #os.files('/some/path', true) 
 WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
 
 -- Look for how many space does the extensions occupies within some directory
@@ -95,13 +95,11 @@ SELECT
 FROM #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
 INNER JOIN #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
 
--- Query CAN DBC file (messages)
-SELECT  
-    ID,
-    Name,
-    DLC,
-    CycleTime
-FROM #can.messages('./file.dbc')
+-- Compute Sha on files
+SELECT
+   FullName,
+   f.Sha256File()
+FROM #os.files('@qfs/', false) f
 
 -- Get only files that extension is .png or .jpg
 SELECT 
