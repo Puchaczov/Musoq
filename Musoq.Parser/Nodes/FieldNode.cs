@@ -31,9 +31,14 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return string.IsNullOrEmpty(_fieldName)
-                ? $"{Expression.ToString()}"
-                : $"{Expression.ToString()} as {_fieldName}";
+            var expression = Expression.ToString();
+            if (_fieldName == expression)
+                return Expression.ToString();
+            
+            if (string.IsNullOrEmpty(_fieldName))
+                return Expression.ToString();
+        
+            return $"{Expression.ToString()} as {_fieldName}";
         }
     }
 }

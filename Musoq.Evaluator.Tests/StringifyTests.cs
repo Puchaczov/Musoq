@@ -26,4 +26,23 @@ public class StringifyTests : BasicEntityTestBase
         
         Assert.AreEqual(query, stringifiedQuery);
     }
+    
+    [TestMethod]
+    public void WhenAliasNotUsed_ShouldNotReturnWithAlias()
+    {
+        const string query = "select some.Thing from #A.entities()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Musoq.Parser.Parser(lexer);
+        var root = parser.ComposeAll();
+        
+        var cloneQueryVisitor = new CloneQueryVisitor();
+        var cloneQueryTraverseVisitor = new CloneTraverseVisitor(cloneQueryVisitor);
+        
+        root.Accept(cloneQueryTraverseVisitor);
+
+        var stringifiedQuery = cloneQueryVisitor.Root.ToString();
+        
+        Assert.AreEqual(query, stringifiedQuery);
+    }
 }
