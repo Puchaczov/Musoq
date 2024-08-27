@@ -8,15 +8,17 @@ namespace Musoq.Parser.Nodes
         public PropertyValueNode(string name)
             : base(name)
         {
+            Id = $"{nameof(PropertyValueNode)}{name}";
         }
 
         public PropertyValueNode(string name, PropertyInfo propertyInfo)
             : base(name)
         {
+            Id = $"{nameof(PropertyValueNode)}{name}";
             PropertyInfo = propertyInfo;
         }
 
-        public override Type ReturnType => PropertyInfo.PropertyType;
+        public override Type ReturnType => PropertyInfo?.PropertyType;
 
         public override string Id { get; }
         

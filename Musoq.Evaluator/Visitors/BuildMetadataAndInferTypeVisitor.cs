@@ -65,7 +65,7 @@ namespace Musoq.Evaluator.Visitors
         private int _schemaFromKey;
         private uint _positionalEnvironmentVariablesKey;
         private Scope _currentScope;
-        private FieldNode[] _generatedColumns = Array.Empty<FieldNode>();
+        private FieldNode[] _generatedColumns = [];
         private string _identifier;
         private string _queryAlias;
         private IdentifierNode _theMostInnerIdentifier;
@@ -81,8 +81,7 @@ namespace Musoq.Evaluator.Visitors
             _positionalEnvironmentVariables = positionalEnvironmentVariables;
             _columns = columns;
             _positionalEnvironmentVariablesKey = 0;
-            _nullSuspiciousTypes = new List<Type>();
-            
+            _nullSuspiciousTypes = [];
         }
 
         protected Stack<Node> Nodes { get; } = new();
@@ -759,13 +758,13 @@ namespace Musoq.Evaluator.Visitors
                     new RuntimeContext(
                         CancellationToken.None,
                         _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
-                        _positionalEnvironmentVariables.ContainsKey(_positionalEnvironmentVariablesKey)
-                            ? _positionalEnvironmentVariables[_positionalEnvironmentVariablesKey]
+                        _positionalEnvironmentVariables.TryGetValue(_positionalEnvironmentVariablesKey, out var variable)
+                            ? variable
                             : new Dictionary<string, string>(),
                         (node, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)
                     ), 
                     _schemaFromArgs.ToArray())
-                : new DynamicTable(Array.Empty<ISchemaColumn>());
+                : new DynamicTable([]);
 
             _positionalEnvironmentVariablesKey += 1;
             _schemaFromArgs.Clear();
@@ -783,7 +782,7 @@ namespace Musoq.Evaluator.Visitors
                 _inferredColumns.Add(aliasedSchemaFromNode, table.Columns);
 
             if (!_usedColumns.ContainsKey(aliasedSchemaFromNode))
-                _usedColumns.Add(aliasedSchemaFromNode, new List<ISchemaColumn>());
+                _usedColumns.Add(aliasedSchemaFromNode, []);
 
             _usedWhereNodes.TryAdd(aliasedSchemaFromNode, AllTrueWhereNode);
 
@@ -838,7 +837,7 @@ namespace Musoq.Evaluator.Visitors
                 _inferredColumns.Add(aliasedSchemaFromNode, table.Columns);
 
             if (!_usedColumns.ContainsKey(aliasedSchemaFromNode))
-                _usedColumns.Add(aliasedSchemaFromNode, new List<ISchemaColumn>());
+                _usedColumns.Add(aliasedSchemaFromNode, []);
 
             _usedWhereNodes.TryAdd(aliasedSchemaFromNode, AllTrueWhereNode);
 

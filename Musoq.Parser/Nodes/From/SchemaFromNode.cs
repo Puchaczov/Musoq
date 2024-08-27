@@ -43,7 +43,10 @@ namespace Musoq.Parser.Nodes.From
 
         public override string ToString()
         {
-            return $"from {Schema}.{Method}({Parameters.Id}) {Alias}";
+            if (string.IsNullOrWhiteSpace(Alias))
+                return $"from {Schema}.{Method}({Parameters.ToString()})";
+            
+            return $"from {Schema}.{Method}({Parameters.ToString()}) {Alias}";
         }
 
         public override int GetHashCode()
