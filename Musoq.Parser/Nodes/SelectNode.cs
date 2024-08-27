@@ -28,12 +28,12 @@ namespace Musoq.Parser.Nodes
             var fieldsTxt = Fields.Length == 0
                 ? string.Empty
                 : Fields.Select(FieldToString).Aggregate((a, b) => $"{a}, {b}");
-            return $"select {fieldsTxt}";
+            return $"select {fieldsTxt} ";
         }
 
-        private string FieldToString(FieldNode node)
+        private static string FieldToString(FieldNode node)
         {
-            return string.IsNullOrEmpty(node.FieldName) ? node.Expression.ToString() : node.FieldName;
+            return node.ToString();
         }
     }
 }

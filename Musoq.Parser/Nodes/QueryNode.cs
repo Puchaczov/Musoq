@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Musoq.Parser.Nodes
 {
@@ -42,8 +43,30 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return
-                $"{Select?.ToString()} {From?.ToString()} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
+            var builder = new StringBuilder();
+            
+            if (Select != null)
+                builder.Append(Select.ToString());
+            
+            if (From != null)
+                builder.Append(From.ToString());
+            
+            if (Where != null)
+                builder.Append(Where.ToString());
+            
+            if (GroupBy != null)
+                builder.Append(GroupBy.ToString());
+            
+            if (OrderBy != null)
+                builder.Append(OrderBy.ToString());
+            
+            if (Skip != null)
+                builder.Append(Skip.ToString());
+            
+            if (Take != null)
+                builder.Append(Take.ToString());
+            
+            return builder.ToString();
         }
     }
 }

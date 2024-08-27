@@ -43,6 +43,9 @@ namespace Musoq.Parser.Nodes.From
 
         public override string ToString()
         {
+            if (string.IsNullOrWhiteSpace(Alias))
+                return $"from {Schema}.{Method}({Parameters.ToString()})";
+            
             return $"from {Schema}.{Method}({Parameters.ToString()}) {Alias}";
         }
 

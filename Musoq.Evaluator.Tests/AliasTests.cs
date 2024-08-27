@@ -112,7 +112,6 @@ with p as (
     select 
         first.FirstItem, 
         second.FirstItem
-    }
     from #schema.first() first
     inner join #schema.second() second on 1 = 1
 ), q as (
