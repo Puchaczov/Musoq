@@ -14,7 +14,7 @@ namespace Musoq.Parser.Tests
             var lexer = new Lexer(query, true);
             var parser = new Parser(lexer);
 
-            var root = parser.ComposeAll();
+            parser.ComposeAll();
         }
     }
 }

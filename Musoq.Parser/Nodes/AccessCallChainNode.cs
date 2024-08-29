@@ -72,7 +72,7 @@ namespace Musoq.Parser.Nodes
             if (Props.Length == 0)
                 return callChain.ToString();
 
-            prop = Props[Props.Length - 1];
+            prop = Props[^1];
             if (prop.Arg == null)
                 callChain.Append($"{prop.Property.Name}");
             else

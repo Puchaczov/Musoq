@@ -41,7 +41,9 @@ namespace Musoq.Parser.Nodes.From
 
         public override string ToString()
         {
-            return $"from ({First.ToString()}, {Second.ToString()}, {Expression.ToString()})";
+            var joinType = JoinType == JoinType.Inner ? "inner join" : JoinType == JoinType.OuterLeft ? "left outer join" : "right outer join";
+            
+            return $"{First.ToString()} {joinType} {Second.ToString()} on {Expression.ToString()}";
         }
     }
 }
