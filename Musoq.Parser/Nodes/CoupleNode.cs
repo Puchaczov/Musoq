@@ -29,7 +29,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"couple {SchemaMethodNode.ToString()} with table {TableName} as {MappedSchemaName}";
+            return $"couple {SchemaMethodNode.ToString()} with table {TableName} as {MappedSchemaName};";
         }
     }
 }

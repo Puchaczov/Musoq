@@ -23,6 +23,7 @@ public class StringifyTests : BasicEntityTestBase
     [DataRow("table Example {};")]
     [DataRow("table Example { Id 'System.Int32' };")]
     [DataRow("table Example { Id 'System.Int32', Name 'System.String' };")]
+    [DataRow("table Example { Id 'System.Int32', Name 'System.String' };\r\ncouple #a.b with table Example as SourceOfExamples;\r\nselect 1 from SourceOfExamples('a', 'b')")]
     
     public void WhenToStringCalled_ShouldReturnSameQuery(string query)
     {
