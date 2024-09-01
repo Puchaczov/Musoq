@@ -25,7 +25,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"RENAME {TableSourceName} AS {TableDestinationName}";
+            return $"rename {TableSourceName} as {TableDestinationName}";
         }
     }
 }

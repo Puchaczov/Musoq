@@ -32,7 +32,7 @@ namespace Musoq.Parser.Nodes
                 ? string.Empty
                 : Fields.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
             return
-                $"GROUP BY {fields}{Having?.ToString()}";
+                $"group by {fields}{Having?.ToString()}";
         }
     }
 }

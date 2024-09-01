@@ -36,13 +36,11 @@ namespace Musoq.Parser.Nodes
                 query.Append("(");
                 query.Append(InnerExpression[i].ToString());
                 query.Append("), ");
-                query.Append(Environment.NewLine);
             }
 
             query.Append("(");
             query.Append(InnerExpression[^1].ToString());
             query.Append(") ");
-            query.Append(Environment.NewLine);
             query.Append(OuterExpression.ToString());
 
             return query.ToString();

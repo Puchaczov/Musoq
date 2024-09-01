@@ -19,6 +19,10 @@ public class StringifyTests : BasicEntityTestBase
     [DataRow("select 1 from #A.entities() a inner join #B.entities() b on a.Id = b.Id inner join #C.entities() c on a.Id = c.Id")]
     [DataRow("select 1 from #A.entities() a inner join #B.entities() b on a.Id = b.Id left outer join #C.entities() c on a.Id = c.Id")]
     [DataRow("select 1 from #A.entities() a inner join #B.entities() b on a.Id = b.Id right outer join #C.entities() c on a.Id = c.Id")]
+    [DataRow("select c.ContainerName, c2.ImageName, c.ContainerId from #stdin.text('Ollama', 'llama3.1') c inner join #stdin.text('Ollama', 'llama3.1') c2 on c.ContainerId = c2.ContainerId")]
+    [DataRow("table Example {};")]
+    [DataRow("table Example { Id 'System.Int32' };")]
+    [DataRow("table Example { Id 'System.Int32', Name 'System.String' };")]
     
     public void WhenToStringCalled_ShouldReturnSameQuery(string query)
     {

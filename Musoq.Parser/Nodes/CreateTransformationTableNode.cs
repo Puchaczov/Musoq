@@ -34,7 +34,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"CREATE TRANSFORM TABLE {Name}";
+            return $"create transform table {Name}";
         }
     }
 }
