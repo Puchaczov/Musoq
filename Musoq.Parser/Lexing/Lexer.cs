@@ -212,7 +212,7 @@ namespace Musoq.Parser.Lexing
         /// <summary>
         ///     The token regexes set.
         /// </summary>
-        private static class TokenRegexDefinition
+        public static class TokenRegexDefinition
         {
             private const string Keyword = @"(?<=[\s]{1,}|^){keyword}(?=[\s]{1,}|$)";
             public const string Function = @"[a-zA-Z_]{1,}[a-zA-Z1-9_-]{0,}[\d]*(?=[\(])";
@@ -220,7 +220,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KAnd = Format(Keyword, AndToken.TokenText);
             public static readonly string KComma = CommaToken.TokenText;
             public static readonly string KDiff = DiffToken.TokenText;
-            public static readonly string KfSlashToken = Format(Keyword, FSlashToken.TokenText);
+            public static readonly string KFSlashToken = Format(Keyword, FSlashToken.TokenText);
             public static readonly string KGreater = Format(Keyword, GreaterToken.TokenText);
             public static readonly string KGreaterEqual = Format(Keyword, GreaterEqualToken.TokenText);
             public static readonly string KHyphen = $@"\{HyphenToken.TokenText}";
@@ -253,7 +253,6 @@ namespace Musoq.Parser.Lexing
             public static readonly string KDot = "\\.";
             public static readonly string KIntersect = Format(Keyword, SetOperatorToken.IntersectOperatorText);
             public static readonly string KExcept = Format(Keyword, SetOperatorToken.ExceptOperatorText);
-            public static readonly string KCompareWith = @"(?<=[\s]{1,}|^)compare[\s]{1,}with(?=[\s]{1,}|$)";
             public static readonly string KUnionAll = @"(?<=[\s]{1,}|^)union[\s]{1,}all(?=[\s]{1,}|$)";
             public static readonly string KGroupBy = @"(?<=[\s]{1,}|^)group[\s]{1,}by(?=[\s]{1,}|$)";
             public static readonly string KHaving = Format(Keyword, HavingToken.TokenText);
@@ -329,7 +328,7 @@ namespace Musoq.Parser.Lexing
                 new TokenDefinition(TokenRegexDefinition.KAnd, RegexOptions.IgnoreCase),
                 new TokenDefinition(TokenRegexDefinition.KComma),
                 new TokenDefinition(TokenRegexDefinition.KDiff),
-                new TokenDefinition(TokenRegexDefinition.KfSlashToken),
+                new TokenDefinition(TokenRegexDefinition.KFSlashToken),
                 new TokenDefinition(TokenRegexDefinition.KGreater),
                 new TokenDefinition(TokenRegexDefinition.KGreaterEqual),
                 new TokenDefinition(TokenRegexDefinition.KHyphen),
@@ -400,6 +399,20 @@ namespace Musoq.Parser.Lexing
             var token = base.Next();
             while (_skipWhiteSpaces && token.TokenType == TokenType.WhiteSpace)
                 token = base.Next();
+            return token;
+        }
+
+        /// <summary>
+        ///     Gets the next token from tokens stream that matches the regex.
+        /// </summary>
+        /// <param name="regex">The regex.</param>
+        /// <param name="getToken">Gets the arbitrary token.</param>
+        /// <returns>The token.</returns>
+        public override Token NextOf(Regex regex, Func<string, Token> getToken)
+        {
+            var token = base.NextOf(regex, getToken);
+            while (_skipWhiteSpaces && token.TokenType == TokenType.WhiteSpace)
+                token = base.NextOf(regex, getToken);
             return token;
         }
 

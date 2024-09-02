@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -28,16 +29,7 @@ namespace Musoq.Parser
                 {TokenType.Dot, (3, Associativity.Left)}
             };
 
-        private Token Current
-        {
-            get
-            {
-                if (_hasReplacedToken)
-                    return _replacedToken;
-
-                return lexer.Current();
-            }
-        }
+        private Token Current => _hasReplacedToken ? _replacedToken : lexer.Current();
 
         private void ReplaceCurrentToken(Token newToken)
         {
@@ -162,9 +154,12 @@ namespace Musoq.Parser
 
             var expressions = new List<CteInnerExpressionNode>();
 
-            var col = ComposeBaseTypes() as IdentifierNode;
+            if (ComposeBaseTypes() is not IdentifierNode col)
+            {
+                throw new ArgumentNullException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}");
+            }
+            
             Consume(TokenType.As);
-
             Consume(TokenType.LeftParenthesis);
             var innerSets = ComposeSetOps(0);
             expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
@@ -622,10 +617,10 @@ namespace Musoq.Parser
         private SchemaMethodFromNode ComposeSchemaMethod()
         {
             var schemaNode = ComposeWord();
-            Consume(TokenType.Dot);
-            var identifierNode = (IdentifierNode)ComposeBaseTypes();
+            ConsumeAsColumn(TokenType.Dot);
+            var identifier = (IdentifierNode)ComposeBaseTypes();
 
-            return new SchemaMethodFromNode(schemaNode.Value, identifierNode.Name);
+            return new SchemaMethodFromNode(schemaNode.Value, identifier.Name);
         }
 
         private FromNode ComposeFrom(bool fromBefore = true)
@@ -657,7 +652,7 @@ namespace Musoq.Parser
                 return fromNode;
             }
 
-            if(Current.TokenType == TokenType.Function)
+            if (Current.TokenType == TokenType.Function)
             {
                 var method = ComposeAccessMethod(string.Empty);
                 alias = ComposeAlias();
@@ -692,14 +687,20 @@ namespace Musoq.Parser
 
         private void Consume(TokenType tokenType)
         {
-            if (Current.TokenType.Equals(tokenType))
-            {
-                _hasReplacedToken = false;
-                lexer.Next();
-                return;
-            }
-
-            throw new UnexpectedTokenException<TokenType>(lexer.Position, Current);
+            if (!Current.TokenType.Equals(tokenType))
+                throw new UnexpectedTokenException<TokenType>(lexer.Position, Current);
+            
+            _hasReplacedToken = false;
+            lexer.Next();
+        }
+        
+        private void ConsumeAsColumn(TokenType tokenType)
+        {
+            if (!Current.TokenType.Equals(tokenType))
+                throw new UnexpectedTokenException<TokenType>(lexer.Position, Current);
+            
+            _hasReplacedToken = false;
+            lexer.NextOf(new Regex(Lexer.TokenRegexDefinition.KColumn), value => new ColumnToken(value, new TextSpan(lexer.Position, lexer.Position + value.Length)));
         }
 
         private ArgsListNode ComposeArgs()
