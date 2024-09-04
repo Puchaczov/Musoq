@@ -21,7 +21,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"{Left.ToString()} in {Right.ToString()}";
+            return $"{Left.ToString()} in ({Right.ToString()})";
         }
     }
 }

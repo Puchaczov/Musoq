@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 
 namespace Musoq.Parser.Nodes
@@ -45,27 +46,41 @@ namespace Musoq.Parser.Nodes
         {
             var builder = new StringBuilder();
             
-            if (Select != null)
-                builder.Append(Select.ToString());
+            var otherClauses = new Node[]
+            {
+                From,
+                Where,
+                GroupBy,
+                OrderBy,
+                Skip
+            };
             
-            if (From != null)
-                builder.Append(From.ToString());
+            builder.Append(Select.ToString());
             
-            if (Where != null)
-                builder.Append(Where.ToString());
+            const char separator = ' ';
             
-            if (GroupBy != null)
-                builder.Append(GroupBy.ToString());
+            foreach (var clause in otherClauses)
+            {
+                if (clause == null)
+                    continue;
+                
+                var clauseString = clause.ToString();
+                
+                if (clauseString is {Length: > 0} && builder[^1] != separator && clauseString[0] != separator)
+                    builder.Append(separator);
+                
+                builder.Append(clauseString);
+            }
+
+            if (Take == null) return builder.ToString();
             
-            if (OrderBy != null)
-                builder.Append(OrderBy.ToString());
+            var takeString = Take.ToString();
             
-            if (Skip != null)
-                builder.Append(Skip.ToString());
+            if (takeString is {Length: > 0} && builder[^1] != separator && takeString[0] != separator)
+                builder.Append(separator);
             
-            if (Take != null)
-                builder.Append(Take.ToString());
-            
+            builder.Append(takeString);
+
             return builder.ToString();
         }
     }
