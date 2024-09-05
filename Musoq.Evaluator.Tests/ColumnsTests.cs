@@ -11,6 +11,62 @@ namespace Musoq.Evaluator.Tests;
 public class ColumnsTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void WhenStarUnfoldToMultipleColumns_AndExplicitColumnIsUsedWithinWhere_ShouldPass()
+    {
+        const string query = @"select * from #A.entities() a where a.Month = 'january'";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", new[]
+                {
+                    new BasicEntity("january", 50m),
+                    new BasicEntity("february", 100m),
+                    new BasicEntity("march", 150m)
+                }
+            }
+        };
+        
+        var vm = CreateAndRunVirtualMachine(query, sources);
+
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(13, table.Columns.Count());
+        
+        Assert.AreEqual("a.Month", table.Columns.ElementAt(6).ColumnName);
+        Assert.AreEqual("january", table[0].Values[6]);
+    }
+    
+    [TestMethod]
+    public void WhenStarUnfoldToMultipleColumns_AndExplicitColumnIsUsedWithinSelect_ShouldPass()
+    {
+        const string query = @"with p as (select * from #A.entities() a where a.Month = 'january') select * from p";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", new[]
+                {
+                    new BasicEntity("january", 50m),
+                    new BasicEntity("february", 100m),
+                    new BasicEntity("march", 150m)
+                }
+            }
+        };
+        
+        var vm = CreateAndRunVirtualMachine(query, sources);
+
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(13, table.Columns.Count());
+        
+        Assert.AreEqual("a.Month", table.Columns.ElementAt(6).ColumnName);
+        Assert.AreEqual("january", table[0].Values[6]);
+    }
+    
+    [TestMethod]
     public void WhenComplexObjectAccessNonExistingProperty_ShouldFail()
     {
         const string query = @"select Self.NonExistingProperty from #A.entities()";

@@ -111,7 +111,7 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
 
         public int Id { get; set; }
 
-        public int[] Array => new[] {0, 1, 2};
+        public int[] Array => [0, 1, 2];
         
         public Dictionary<string, string> Dictionary => new()
         {

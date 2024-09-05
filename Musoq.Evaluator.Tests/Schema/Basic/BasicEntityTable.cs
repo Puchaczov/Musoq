@@ -6,11 +6,8 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
 {
     public class BasicEntityTable : ISchemaTable
     {
-        public BasicEntityTable()
-        {
-        }
-
-        public ISchemaColumn[] Columns { get; } = {
+        public ISchemaColumn[] Columns { get; } =
+        [
             new SchemaColumn(nameof(BasicEntity.Name), 10,
                 typeof(BasicEntity).GetProperty(nameof(BasicEntity.Name))!.PropertyType),
             new SchemaColumn(nameof(BasicEntity.City), 11,
@@ -30,8 +27,14 @@ namespace Musoq.Evaluator.Tests.Schema.Basic
             new SchemaColumn(nameof(BasicEntity.Id), 18,
                 typeof(BasicEntity).GetProperty(nameof(BasicEntity.Id))!.PropertyType),
             new SchemaColumn(nameof(BasicEntity.NullableValue), 19,
-                typeof(BasicEntity).GetProperty(nameof(BasicEntity.NullableValue))!.PropertyType)
-        };
+                typeof(BasicEntity).GetProperty(nameof(BasicEntity.NullableValue))!.PropertyType),
+            new SchemaColumn(nameof(BasicEntity.Array), 20,
+                typeof(BasicEntity).GetProperty(nameof(BasicEntity.Array))!.PropertyType),
+            new SchemaColumn(nameof(BasicEntity.Other), 21,
+                typeof(BasicEntity).GetProperty(nameof(BasicEntity.Other))!.PropertyType),
+            new SchemaColumn(nameof(BasicEntity.Dictionary), 22,
+                typeof(BasicEntity).GetProperty(nameof(BasicEntity.Dictionary))!.PropertyType),
+        ];
 
         public ISchemaColumn GetColumnByName(string name)
         {

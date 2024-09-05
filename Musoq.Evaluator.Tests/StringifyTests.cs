@@ -55,6 +55,7 @@ public class StringifyTests : BasicEntityTestBase
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column2 like 'A%' order by s.Column1 skip 4 take 8")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s group by s.Column1, s.Column2 order by s.Column1 skip 5 take 10")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column1 > 0 group by s.Column2 order by s.Column1 skip 2 take 5")]
+    [DataRow("select t.Name, Count(t.Name) from #some.thing(true) t group by t.Name having Count(t.Name) > 1")]
     
     public void WhenToStringCalled_ShouldReturnSameQuery(string query)
     {

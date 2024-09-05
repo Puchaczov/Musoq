@@ -369,7 +369,8 @@ namespace Musoq.Parser
                 Consume(TokenType.GroupBy);
 
                 var fields = ComposeFields();
-
+                
+                if (fields.Length == 0) throw new NotSupportedException("Group by clause does not have any fields.");
                 if (Current.TokenType != TokenType.Having) return new GroupByNode(fields, null);
 
                 Consume(TokenType.Having);

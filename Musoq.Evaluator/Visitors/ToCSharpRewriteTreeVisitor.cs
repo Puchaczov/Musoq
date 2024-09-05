@@ -45,12 +45,12 @@ namespace Musoq.Evaluator.Visitors
         private const char EscapeQuoteStringCharacterReplacement = '\'';
         
         private readonly Dictionary<string, int> _inMemoryTableIndexes = new();
-        private readonly List<string> _loadedAssemblies = new();
+        private readonly List<string> _loadedAssemblies = [];
 
-        private readonly List<SyntaxNode> _members = new();
+        private readonly List<SyntaxNode> _members = [];
         private readonly Stack<string> _methodNames = new();
 
-        private readonly List<string> _namespaces = new();
+        private readonly List<string> _namespaces = [];
         private readonly IDictionary<string, int[]> _setOperatorFieldIndexes;
 
         private readonly Dictionary<string, Type> _typesToInstantiate = new();
@@ -948,11 +948,11 @@ namespace Musoq.Evaluator.Visitors
             for (var i = 0; i < node.Args.Length; i++)
                 args = args.Add(SyntaxFactory.Argument((ExpressionSyntax) Nodes.Pop()));
 
-            var rargs = SyntaxFactory.SeparatedList<ArgumentSyntax>();
+            var rArgs = SyntaxFactory.SeparatedList<ArgumentSyntax>();
 
-            for (var i = args.Count - 1; i >= 0; i--) rargs = rargs.Add(args[i]);
+            for (var i = args.Count - 1; i >= 0; i--) rArgs = rArgs.Add(args[i]);
 
-            Nodes.Push(SyntaxFactory.ArgumentList(rargs));
+            Nodes.Push(SyntaxFactory.ArgumentList(rArgs));
         }
 
 
@@ -1350,7 +1350,7 @@ namespace Musoq.Evaluator.Visitors
                     }
 
                     foreach (var column in fullTransitionTable.GetColumns(
-                                 fullTransitionTable.CompoundTables[fullTransitionTable.CompoundTables.Length - 1]))
+                                 fullTransitionTable.CompoundTables[^1]))
                     {
                         expressions.Add(
                             SyntaxFactory.ElementAccessExpression(
