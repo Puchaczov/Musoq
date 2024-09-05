@@ -435,7 +435,7 @@ namespace Musoq.Evaluator.Visitors
                             TextSpan.Empty
                         ),
                         i,
-                        tableSymbol.HasAlias ? _identifier : column.ColumnName);
+                        tableSymbol.HasAlias ? $"{_identifier}.{column.ColumnName}" : column.ColumnName);
             }
 
             Nodes.Push(node);
@@ -752,8 +752,8 @@ namespace Musoq.Evaluator.Visitors
             _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
             _generatedAliases.Add(_queryAlias);
  
-            var table = _currentScope.Name != "Desc"
-                ? schema.GetTableByName(
+            var isDesc = _currentScope.Name == "Desc";
+            var table = !isDesc ? schema.GetTableByName(
                     node.Method, 
                     new RuntimeContext(
                         CancellationToken.None,
