@@ -105,6 +105,15 @@ namespace Musoq.Plugins
         [BindableMethod]
         public int? Milliseconds(DateTimeOffset? value)
             => value?.Millisecond;
+        
+        /// <summary>
+        /// Gets the day of week from DateTimeOffset
+        /// </summary>
+        /// <param name="value">The value</param>
+        /// <returns>Day of week from a given date</returns>
+        [BindableMethod]
+        public int? DayOfWeek(DateTimeOffset? value)
+            => (int?)value?.DayOfWeek;
 
         /// <summary>
         /// Extracts time from DateTimeOffset

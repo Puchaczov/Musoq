@@ -242,7 +242,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(AllColumnsNode node)
         {
-            Nodes.Push(new AllColumnsNode());
+            Nodes.Push(new AllColumnsNode(node.Alias));
         }
 
         public virtual void Visit(IdentifierNode node)

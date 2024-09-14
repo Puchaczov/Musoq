@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Visitors
 {
     public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
     {
-        private readonly List<ISchemaColumn> _collectedFieldNames = new();
+        private readonly List<ISchemaColumn> _collectedFieldNames = [];
         private QueryPart _queryPart;
 
         public ISchemaColumn[] CollectedFieldNames => _collectedFieldNames.ToArray();

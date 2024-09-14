@@ -342,5 +342,17 @@ namespace Musoq.Plugins
 
             return default;
         }
+
+        /// <summary>
+        /// Returns distinct elements from a collection.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the collection.</typeparam>
+        /// <param name="values">The collection to remove duplicate elements from.</param>
+        /// <returns>An IEnumerable&lt;T&gt; that contains distinct elements from the input sequence.</returns>
+        [BindableMethod]
+        public static IEnumerable<T>? Distinct<T>(IEnumerable<T>? values)
+        {
+            return values?.Distinct();
+        }
     }
 }

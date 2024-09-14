@@ -12,9 +12,9 @@ namespace Musoq.Parser.Lexing
 
         private readonly Regex[] _decimalCandidates =
         [
-            new Regex(TokenRegexDefinition.KDecimalWithDot),
-            new Regex(TokenRegexDefinition.KDecimalWithSuffix),
-            new Regex(TokenRegexDefinition.KDecimalWithDotAndSuffix)
+            new(TokenRegexDefinition.KDecimalWithDot),
+            new(TokenRegexDefinition.KDecimalWithSuffix),
+            new(TokenRegexDefinition.KDecimalWithDotAndSuffix)
         ];
 
         /// <summary>
@@ -41,6 +41,9 @@ namespace Musoq.Parser.Lexing
             
             if (regex == TokenRegexDefinition.Function)
                 return TokenType.Function;
+
+            if (regex == TokenRegexDefinition.KAliasedStar)
+                return TokenType.AliasedStar;
             
             switch (loweredToken)
             {
@@ -298,6 +301,7 @@ namespace Musoq.Parser.Lexing
             public static readonly string KThen = Format(Keyword, ThenToken.TokenText);
             public static readonly string KElse = Format(Keyword, ElseToken.TokenText);
             public static readonly string KEnd = Format(Keyword, EndToken.TokenText);
+            public static readonly string KAliasedStar = @"\b[a-zA-Z_]\w*\.\*";
 
             private static string Format(string keyword, string arg)
             {
@@ -315,76 +319,77 @@ namespace Musoq.Parser.Lexing
             /// </summary>
             public static TokenDefinition[] General =>
             [
-                new TokenDefinition(TokenRegexDefinition.KDecimalOrInteger),
-                new TokenDefinition(TokenRegexDefinition.KDesc),
-                new TokenDefinition(TokenRegexDefinition.KAsc),
-                new TokenDefinition(TokenRegexDefinition.KLike, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KNotLike, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KRLike, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KRNotLike, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KNotIn, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KAs, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.Function),
-                new TokenDefinition(TokenRegexDefinition.KAnd, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KComma),
-                new TokenDefinition(TokenRegexDefinition.KDiff),
-                new TokenDefinition(TokenRegexDefinition.KFSlashToken),
-                new TokenDefinition(TokenRegexDefinition.KGreater),
-                new TokenDefinition(TokenRegexDefinition.KGreaterEqual),
-                new TokenDefinition(TokenRegexDefinition.KHyphen),
-                new TokenDefinition(TokenRegexDefinition.KLeftParenthesis),
-                new TokenDefinition(TokenRegexDefinition.KRightParenthesis),
-                new TokenDefinition(TokenRegexDefinition.KLess),
-                new TokenDefinition(TokenRegexDefinition.KLessEqual),
-                new TokenDefinition(TokenRegexDefinition.KEqual),
-                new TokenDefinition(TokenRegexDefinition.KModulo),
-                new TokenDefinition(TokenRegexDefinition.KNot),
-                new TokenDefinition(TokenRegexDefinition.KOr),
-                new TokenDefinition(TokenRegexDefinition.KPlus),
-                new TokenDefinition(TokenRegexDefinition.KStar),
-                new TokenDefinition(TokenRegexDefinition.KIs),
-                new TokenDefinition(TokenRegexDefinition.KIn), 
-                new TokenDefinition(TokenRegexDefinition.KNull),
-                new TokenDefinition(TokenRegexDefinition.KWith, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KContains, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KWhiteSpace),
-                new TokenDefinition(TokenRegexDefinition.KUnionAll, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KEmptyString),
-                new TokenDefinition(TokenRegexDefinition.KWordSingleQuoted, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KSelect, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KFrom, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KUnion, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KExcept, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KIntersect, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KGroupBy, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KHaving, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KSkip, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KNumericArrayAccess),
-                new TokenDefinition(TokenRegexDefinition.KKeyObjectAccessConst),
-                new TokenDefinition(TokenRegexDefinition.KKeyObjectAccessVariable),
-                new TokenDefinition(TokenRegexDefinition.KMethodAccess),
-                new TokenDefinition(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KOrderBy, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KTrue, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KFalse, RegexOptions.IgnoreCase),
-                new TokenDefinition(TokenRegexDefinition.KColumn),
-                new TokenDefinition(TokenRegexDefinition.KHFrom),
-                new TokenDefinition(TokenRegexDefinition.KDot),
-                new TokenDefinition(TokenRegexDefinition.KOn),
-                new TokenDefinition(TokenRegexDefinition.KTable),
-                new TokenDefinition(TokenRegexDefinition.KLeftBracket),
-                new TokenDefinition(TokenRegexDefinition.KRightBracket),
-                new TokenDefinition(TokenRegexDefinition.KSemicolon),
-                new TokenDefinition(TokenRegexDefinition.KCouple),
-                new TokenDefinition(TokenRegexDefinition.KCase),
-                new TokenDefinition(TokenRegexDefinition.KWhen),
-                new TokenDefinition(TokenRegexDefinition.KThen),
-                new TokenDefinition(TokenRegexDefinition.KElse),
-                new TokenDefinition(TokenRegexDefinition.KEnd),
-                new TokenDefinition(TokenRegexDefinition.KFieldLink)
+                new(TokenRegexDefinition.KDecimalOrInteger),
+                new(TokenRegexDefinition.KDesc),
+                new(TokenRegexDefinition.KAsc),
+                new(TokenRegexDefinition.KLike, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KNotLike, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KRLike, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KRNotLike, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KNotIn, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KAs, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.Function),
+                new(TokenRegexDefinition.KAnd, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KComma),
+                new(TokenRegexDefinition.KDiff),
+                new(TokenRegexDefinition.KFSlashToken),
+                new(TokenRegexDefinition.KGreater),
+                new(TokenRegexDefinition.KGreaterEqual),
+                new(TokenRegexDefinition.KHyphen),
+                new(TokenRegexDefinition.KLeftParenthesis),
+                new(TokenRegexDefinition.KRightParenthesis),
+                new(TokenRegexDefinition.KLess),
+                new(TokenRegexDefinition.KLessEqual),
+                new(TokenRegexDefinition.KEqual),
+                new(TokenRegexDefinition.KModulo),
+                new(TokenRegexDefinition.KNot),
+                new(TokenRegexDefinition.KOr),
+                new(TokenRegexDefinition.KPlus),
+                new(TokenRegexDefinition.KAliasedStar),
+                new(TokenRegexDefinition.KStar),
+                new(TokenRegexDefinition.KIs),
+                new(TokenRegexDefinition.KIn), 
+                new(TokenRegexDefinition.KNull),
+                new(TokenRegexDefinition.KWith, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KContains, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KWhiteSpace),
+                new(TokenRegexDefinition.KUnionAll, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KEmptyString),
+                new(TokenRegexDefinition.KWordSingleQuoted, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KSelect, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KFrom, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KUnion, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KExcept, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KIntersect, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KGroupBy, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KHaving, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KSkip, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KNumericArrayAccess),
+                new(TokenRegexDefinition.KKeyObjectAccessConst),
+                new(TokenRegexDefinition.KKeyObjectAccessVariable),
+                new(TokenRegexDefinition.KMethodAccess),
+                new(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KOrderBy, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KTrue, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KFalse, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KColumn),
+                new(TokenRegexDefinition.KHFrom),
+                new(TokenRegexDefinition.KDot),
+                new(TokenRegexDefinition.KOn),
+                new(TokenRegexDefinition.KTable),
+                new(TokenRegexDefinition.KLeftBracket),
+                new(TokenRegexDefinition.KRightBracket),
+                new(TokenRegexDefinition.KSemicolon),
+                new(TokenRegexDefinition.KCouple),
+                new(TokenRegexDefinition.KCase),
+                new(TokenRegexDefinition.KWhen),
+                new(TokenRegexDefinition.KThen),
+                new(TokenRegexDefinition.KElse),
+                new(TokenRegexDefinition.KEnd),
+                new(TokenRegexDefinition.KFieldLink)
             ];
         }
 
@@ -484,6 +489,8 @@ namespace Musoq.Parser.Lexing
                     return new RightParenthesisToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.Star:
                     return new StarToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.AliasedStar:
+                    return new AliasedStarToken(tokenText, new TextSpan(Position, tokenText.Length));
                 case TokenType.Where:
                     return new WhereToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.WhiteSpace:
@@ -588,7 +595,7 @@ namespace Musoq.Parser.Lexing
             }
 
             var regex = matchedDefinition.Regex.ToString();
-
+            
             if (regex == TokenRegexDefinition.KWordSingleQuoted)
                 return new WordToken(match.Groups[1].Value, new TextSpan(Position + 1, match.Groups[1].Value.Length));
             if (regex == TokenRegexDefinition.KEmptyString)

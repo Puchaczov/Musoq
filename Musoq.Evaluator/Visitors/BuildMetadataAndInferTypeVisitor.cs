@@ -56,8 +56,13 @@ namespace Musoq.Evaluator.Visitors
 
         private readonly IDictionary<SchemaFromNode, WhereNode> _usedWhereNodes =
             new Dictionary<SchemaFromNode, WhereNode>();
+        
+        private readonly Dictionary<string, List<FieldNode>> _generatedColumns = [];
+        
+        private readonly IDictionary<string, SchemaFromNode> _aliasToSchemaFromNodeMap =
+            new Dictionary<string, SchemaFromNode>();
 
-        private readonly List<FieldNode> _groupByFields = new();
+        private readonly List<FieldNode> _groupByFields = [];
         private readonly List<Type> _nullSuspiciousTypes;
         private readonly IReadOnlyDictionary<string, string[]> _columns;
 
@@ -65,7 +70,6 @@ namespace Musoq.Evaluator.Visitors
         private int _schemaFromKey;
         private uint _positionalEnvironmentVariablesKey;
         private Scope _currentScope;
-        private FieldNode[] _generatedColumns = [];
         private string _identifier;
         private string _queryAlias;
         private IdentifierNode _theMostInnerIdentifier;
@@ -86,7 +90,7 @@ namespace Musoq.Evaluator.Visitors
 
         protected Stack<Node> Nodes { get; } = new();
 
-        public List<Assembly> Assemblies { get; } = new();
+        public List<Assembly> Assemblies { get; } = [];
 
         public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
@@ -342,8 +346,8 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(AccessMethodNode node)
         {
             VisitAccessMethod(node,
-                (token, node1, exargs, arg3, alias, canSkipInjectSource) =>
-                    new AccessMethodNode(token, node1 as ArgsListNode, exargs, canSkipInjectSource, arg3, alias));
+                (token, node1, exArgs, arg3, alias, canSkipInjectSource) =>
+                    new AccessMethodNode(token, node1 as ArgsListNode, exArgs, canSkipInjectSource, arg3, alias));
         }
 
         public void Visit(AccessRawIdentifierNode node)
@@ -416,28 +420,18 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AllColumnsNode node)
         {
-            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-            var tuple = tableSymbol.GetTableByAlias(_identifier);
-            var table = tuple.Table;
-            _generatedColumns = new FieldNode[table.Columns.Length];
+            var identifier = _identifier;
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
-            for (var i = 0; i < table.Columns.Length; i++)
+            if (!string.IsNullOrWhiteSpace(node.Alias) /* r.* */ || (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) /* * from #abc.cda() */)
             {
-                var column = table.Columns[i];
-
-                AddAssembly(column.ColumnType.Assembly);
-                _generatedColumns[i] =
-                    new FieldNode(
-                        new AccessColumnNode(
-                            column.ColumnName,
-                            _identifier,
-                            column.ColumnType,
-                            TextSpan.Empty
-                        ),
-                        i,
-                        tableSymbol.HasAlias ? $"{_identifier}.{column.ColumnName}" : column.ColumnName);
+                ProcessSingleTable(node, tableSymbol, identifier);
             }
-
+            else if (tableSymbol.IsCompoundTable)
+            {
+                ProcessCompoundTable(tableSymbol);
+            }
+            
             Nodes.Push(node);
         }
 
@@ -777,6 +771,8 @@ namespace Musoq.Evaluator.Visitors
 
             var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
                 _queryAlias, node.QueryId);
+            
+            _aliasToSchemaFromNodeMap.Add(_queryAlias, aliasedSchemaFromNode);
 
             if (!_inferredColumns.ContainsKey(aliasedSchemaFromNode))
                 _inferredColumns.Add(aliasedSchemaFromNode, table.Columns);
@@ -818,8 +814,8 @@ namespace Musoq.Evaluator.Visitors
                     new RuntimeContext(
                         CancellationToken.None,
                         table.Columns,
-                        _positionalEnvironmentVariables.ContainsKey(_positionalEnvironmentVariablesKey)
-                            ? _positionalEnvironmentVariables[_positionalEnvironmentVariablesKey]
+                        _positionalEnvironmentVariables.TryGetValue(_positionalEnvironmentVariablesKey, out var variable)
+                            ? variable
                             : new Dictionary<string, string>(),
                         (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)
                     ),
@@ -958,8 +954,7 @@ namespace Musoq.Evaluator.Visitors
 
             if (groupBy == null && _refreshMethods.Count > 0)
             {
-                groupBy = new GroupByNode(
-                    new[] {new FieldNode(new IntegerNode("1", "s"), 0, string.Empty)}, null);
+                groupBy = new GroupByNode([new FieldNode(new IntegerNode("1", "s"), 0, string.Empty)], null);
             }
 
             _currentScope.ScopeSymbolTable.AddSymbol(from.Alias.ToRefreshMethodsSymbolName(),
@@ -973,6 +968,7 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
 
             _schemaFromArgs.Clear();
+            _aliasToSchemaFromNodeMap.Clear();
         }
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
@@ -1168,25 +1164,55 @@ namespace Musoq.Evaluator.Visitors
         private FieldNode[] CreateFields(FieldNode[] oldFields)
         {
             var reorderedList = new FieldNode[oldFields.Length];
-            var fields = new List<FieldNode>(reorderedList.Length);
-
-            for (var i = reorderedList.Length - 1; i >= 0; i--) reorderedList[i] = Nodes.Pop() as FieldNode;
-
-            for (int i = 0, j = reorderedList.Length, p = 0; i < j; ++i)
+            for (var i = reorderedList.Length - 1; i >= 0; i--)
             {
-                var field = reorderedList[i];
+                reorderedList[i] = Nodes.Pop() as FieldNode;
+            }
 
-                if (field.Expression is AllColumnsNode)
+            var fields = new List<FieldNode>(reorderedList.Length);
+            var positionCounter = 0;
+
+            foreach (var field in reorderedList)
+            {
+                if (field.Expression is AllColumnsNode allColumnsNode)
                 {
-                    fields.AddRange(_generatedColumns.Select(column =>
-                        new FieldNode(column.Expression, p++, column.FieldName)));
-                    continue;
+                    AddAllColumnsFields(fields, allColumnsNode, ref positionCounter);
                 }
-
-                fields.Add(new FieldNode(field.Expression, p++, field.FieldName));
+                else
+                {
+                    fields.Add(new FieldNode(field.Expression, positionCounter++, field.FieldName));
+                }
             }
 
             return fields.ToArray();
+        }
+
+        private void AddAllColumnsFields(List<FieldNode> fields, AllColumnsNode allColumnsNode, ref int positionCounter)
+        {
+            var identifier = !string.IsNullOrWhiteSpace(allColumnsNode.Alias) 
+                ? allColumnsNode.Alias 
+                : _identifier;
+
+            if (_generatedColumns.TryGetValue(identifier, out var generatedColumns))
+            {
+                foreach (var column in generatedColumns)
+                {
+                    fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName));
+                }
+            }
+            else if (string.IsNullOrWhiteSpace(allColumnsNode.Alias))
+            {
+                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                foreach (var compoundTableIdentifier in tableSymbol.CompoundTables)
+                {
+                    if (!_generatedColumns.TryGetValue(compoundTableIdentifier, out var compoundColumns)) continue;
+                    
+                    foreach (var column in compoundColumns)
+                    {
+                        fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName));
+                    }
+                }
+            }
         }
 
         private void VisitAccessMethod(
@@ -1509,6 +1535,79 @@ namespace Musoq.Evaluator.Visitors
         {
             var key = _setKey++;
             return key.ToString().ToSetOperatorKey(key.ToString());
+        }        
+        
+        private void ProcessSingleTable(AllColumnsNode node, TableSymbol tableSymbol, string identifier)
+        {
+            var generatedColumnIdentifier = node.Alias ?? identifier;
+            var tuple = tableSymbol.GetTableByAlias(generatedColumnIdentifier);
+            var table = tuple.Table;
+
+            var generatedColumns = GetOrCreateGeneratedColumns(generatedColumnIdentifier);
+
+            for (var i = 0; i < table.Columns.Length; i++)
+            {
+                AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], i, generatedColumnIdentifier, generatedColumns);
+            }
+
+            UpdateUsedColumns(generatedColumnIdentifier, table);
+        }
+
+        private void ProcessCompoundTable(TableSymbol tableSymbol)
+        {
+            foreach (var tableIdentifier in tableSymbol.CompoundTables)
+            {
+                var tuple = tableSymbol.GetTableByAlias(tableIdentifier);
+                var table = tuple.Table;
+
+                var generatedColumns = GetOrCreateGeneratedColumns(tableIdentifier);
+
+                for (var i = 0; i < table.Columns.Length; i++)
+                {
+                    AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], i, tableIdentifier, generatedColumns, isCompoundTable: true);
+                }
+
+                UpdateUsedColumns(tableIdentifier, table);
+            }
+        }
+
+        private List<FieldNode> GetOrCreateGeneratedColumns(string identifier)
+        {
+            if (!_generatedColumns.TryGetValue(identifier, out var generatedColumns))
+            {
+                generatedColumns = new List<FieldNode>();
+                _generatedColumns.Add(identifier, generatedColumns);
+            }
+            else
+            {
+                generatedColumns.Clear();
+            }
+            return generatedColumns;
+        }
+
+        private void AddColumnToGeneratedColumns(TableSymbol tableSymbol, ISchemaColumn column, int index, string identifier, List<FieldNode> generatedColumns, bool isCompoundTable = false)
+        {
+            AddAssembly(column.ColumnType.Assembly);
+
+            var accessColumn = new AccessColumnNode(column.ColumnName, identifier, column.ColumnType, TextSpan.Empty);
+            string fieldName;
+            if (isCompoundTable)
+            {
+                fieldName = $"{identifier}.{column.ColumnName}";
+            }
+            else
+            {
+                fieldName = tableSymbol.HasAlias ? $"{identifier}.{column.ColumnName}" : column.ColumnName;
+            }
+            generatedColumns.Add(new FieldNode(accessColumn, index, fieldName));
+        }
+
+        private void UpdateUsedColumns(string identifier, ISchemaTable table)
+        {
+            if (_aliasToSchemaFromNodeMap.TryGetValue(identifier, out var schemaFromNode))
+            {
+                _usedColumns[schemaFromNode] = table.Columns.ToList();
+            }
         }
 
         private static int[] CreateSetOperatorPositionIndexes(QueryNode node, string[] keys)
