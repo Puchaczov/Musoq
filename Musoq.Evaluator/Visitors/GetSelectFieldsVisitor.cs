@@ -114,9 +114,6 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(FieldNode node)
         {
-            if (node.Expression is AllColumnsNode)
-                return;
-            
             if (_queryPart == QueryPart.Select && _collectedFieldNames.All(field => field.ColumnName != node.FieldName))
                 _collectedFieldNames.Add(new SchemaColumn(node.FieldName, _collectedFieldNames.Count, node.ReturnType));
         }

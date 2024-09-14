@@ -36,6 +36,39 @@ public class StarTests : BasicEntityTestBase
     }
     
     [TestMethod]
+    public void WhenMultipleStarsUnfoldToMultipleColumns_ShouldPass()
+    {
+        const string query = @"select *, * from #A.entities() a where a.Month = 'january'";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("january", 50m),
+                    new BasicEntity("february", 100m),
+                    new BasicEntity("march", 150m)
+                ]
+            }
+        };
+        
+        var vm = CreateAndRunVirtualMachine(query, sources);
+
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(26, table.Columns.Count());
+        
+        Assert.AreEqual("a.Money", table.Columns.ElementAt(5).ColumnName);
+        Assert.AreEqual(50m, table[0].Values[5]);
+        
+        Assert.AreEqual("a.Month", table.Columns.ElementAt(6).ColumnName);
+        Assert.AreEqual("january", table[0].Values[6]);
+        
+        Assert.AreEqual("a.Money", table.Columns.ElementAt(18).ColumnName);
+        Assert.AreEqual(50m, table[0].Values[18]);
+    }
+    
+    [TestMethod]
     public void WhenStarUnfoldToMultipleColumns_AndExplicitColumnIsUsedAsAnotherColumn_ShouldPass()
     {
         const string query = @"select *, a.Month, Month from #A.entities() a where a.Month = 'january'";
@@ -86,6 +119,26 @@ public class StarTests : BasicEntityTestBase
         
         Assert.AreEqual(0, table.Count);
         Assert.AreEqual(13, table.Columns.Count());
+    }
+    
+    [TestMethod]
+    public void WhenAliasedStarsUnfoldToMultipleColumns_ShouldPass()
+    {
+        const string query = @"select a.*, a.* from #A.entities() a";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", []
+            }
+        };
+        
+        var vm = CreateAndRunVirtualMachine(query, sources);
+
+        var table = vm.Run();
+        
+        Assert.AreEqual(0, table.Count);
+        Assert.AreEqual(26, table.Columns.Count());
     }
     
     [TestMethod]
