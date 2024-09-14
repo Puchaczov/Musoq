@@ -11,7 +11,7 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
 {
     private int _schemaFromKey;
     private string _queryAlias;
-    private readonly List<string> _generatedAliases = new();
+    private readonly List<string> _generatedAliases = [];
     private readonly Dictionary<string, List<string>> _columns = new();
     
     public IReadOnlyDictionary<string, string[]> Columns => _columns.ToDictionary(f => f.Key, f => f.Value.Distinct().ToArray());

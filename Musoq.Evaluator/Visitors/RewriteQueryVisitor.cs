@@ -25,7 +25,7 @@ namespace Musoq.Evaluator.Visitors
 {
     public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
-        private readonly List<JoinFromNode> _joinedTables = new();
+        private readonly List<JoinFromNode> _joinedTables = [];
         private int _queryIndex = 0;
         private Scope _scope;
 
@@ -263,7 +263,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AllColumnsNode node)
         {
-            Nodes.Push(new AllColumnsNode());
+            Nodes.Push(new AllColumnsNode(node.Alias));
         }
 
         public void Visit(IdentifierNode node)
@@ -535,7 +535,7 @@ namespace Musoq.Evaluator.Visitors
                     null,
                     null,
                     null,
-                    new RefreshNode(Array.Empty<AccessMethodNode>()));
+                    new RefreshNode([]));
 
                 var targetTable = new CreateTransformationTableNode(targetTableName, Array.Empty<string>(), bothForCreateTable, false);
 
@@ -793,9 +793,9 @@ namespace Musoq.Evaluator.Visitors
                     take,
                     returnScore);
 
-                splitNodes.Add(new CreateTransformationTableNode(destination, Array.Empty<string>(), transformingQuery.Select.Fields, true));
+                splitNodes.Add(new CreateTransformationTableNode(destination, [], transformingQuery.Select.Fields, true));
                 splitNodes.Add(transformingQuery);
-                splitNodes.Add(new CreateTransformationTableNode(query.From.Alias, Array.Empty<string>(), query.Select.Fields, false));
+                splitNodes.Add(new CreateTransformationTableNode(query.From.Alias, [], query.Select.Fields, false));
                 splitNodes.Add(query);
 
                 Nodes.Push(
@@ -830,7 +830,7 @@ namespace Musoq.Evaluator.Visitors
 
                 aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex);
 
-                splitNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], Array.Empty<string>(), select.Fields, false));
+                splitNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], [], select.Fields, false));
                 splitNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, scoreOrderBy, skip, take,
                     scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
 
@@ -1150,7 +1150,6 @@ namespace Musoq.Evaluator.Visitors
 
                 if (field.Expression is AllColumnsNode)
                 {
-                    fields.AddRange(Array.Empty<FieldNode>());
                     continue;
                 }
 

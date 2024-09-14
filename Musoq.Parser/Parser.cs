@@ -767,6 +767,9 @@ namespace Musoq.Parser
                 case TokenType.Property:
                     token = ConsumeAndGetToken(TokenType.Property);
                     return new PropertyValueNode(token.Value);
+                case TokenType.AliasedStar:
+                    token = ConsumeAndGetToken(TokenType.AliasedStar);
+                    return new AllColumnsNode(token.Value.Replace(".*", string.Empty));
                 case TokenType.Star:
                     Consume(TokenType.Star);
                     return new AllColumnsNode();

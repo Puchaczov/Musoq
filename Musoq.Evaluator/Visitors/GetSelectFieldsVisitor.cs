@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Visitors
 {
     public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
     {
-        private readonly List<ISchemaColumn> _collectedFieldNames = new();
+        private readonly List<ISchemaColumn> _collectedFieldNames = [];
         private QueryPart _queryPart;
 
         public ISchemaColumn[] CollectedFieldNames => _collectedFieldNames.ToArray();
@@ -114,6 +114,9 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(FieldNode node)
         {
+            if (node.Expression is AllColumnsNode)
+                return;
+            
             if (_queryPart == QueryPart.Select && _collectedFieldNames.All(field => field.ColumnName != node.FieldName))
                 _collectedFieldNames.Add(new SchemaColumn(node.FieldName, _collectedFieldNames.Count, node.ReturnType));
         }

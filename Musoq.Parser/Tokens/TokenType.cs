@@ -14,6 +14,7 @@
         Not,
         Where,
         Plus,
+        AliasedStar,
         Star,
         FSlash,
         Hyphen,

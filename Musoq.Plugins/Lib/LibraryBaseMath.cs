@@ -264,5 +264,97 @@ namespace Musoq.Plugins
 
             return (index - 1) / (orderedWindow.Length - 1);
         }
+
+        /// <summary>
+        /// Calculates the logarithm of a value with a specified base.
+        /// </summary>
+        /// <param name="base">The base of the logarithm.</param>
+        /// <param name="value">The value to calculate the logarithm for.</param>
+        /// <returns>The logarithm of the value.</returns>
+        [BindableMethod]
+        public static double? Log(decimal? @base, decimal? value)
+        {
+            if (!@base.HasValue || !value.HasValue || @base <= 0 || @base == 1 || value <= 0)
+                return null;
+            
+            return Math.Log((double)value.Value, (double)@base.Value);
+        }
+
+        /// <summary>
+        /// Calculates sine of a value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>Sine of a value.</returns>
+        public static decimal? Sin(decimal? value)
+        {
+            if (!value.HasValue)
+                return null;
+            
+            return (decimal)Math.Sin((double)value);
+        }
+
+        /// <summary>
+        /// Calculates sine of a value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>Sine of a value.</returns>
+        public static double? Sin(double? value)
+        {
+            if (!value.HasValue)
+                return null;
+
+            return Math.Sin(value.Value);
+        }
+
+        /// <summary>
+        /// Calculates sine of a value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>Sine of a value.</returns>
+        public static float? Sin(float? value)
+        {
+            if (!value.HasValue)
+                return null;
+
+            return (float)Math.Sin(value.Value);
+        }
+        /// <summary>
+        /// Calculates cosine of a value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>Cosine of a value.</returns>
+        public static decimal? Cos(decimal? value)
+        {
+            if (!value.HasValue)
+                return null;
+    
+            return (decimal)Math.Cos((double)value);
+        }
+
+        /// <summary>
+        /// Calculates cosine of a value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>Cosine of a value.</returns>
+        public static double? Cos(double? value)
+        {
+            if (!value.HasValue)
+                return null;
+
+            return Math.Cos(value.Value);
+        }
+
+        /// <summary>
+        /// Calculates cosine of a value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>Cosine of a value.</returns>
+        public static float? Cos(float? value)
+        {
+            if (!value.HasValue)
+                return null;
+
+            return (float)Math.Cos(value.Value);
+        }
     }
 }
