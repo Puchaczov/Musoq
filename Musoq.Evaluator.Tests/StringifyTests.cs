@@ -59,6 +59,10 @@ public class StringifyTests : BasicEntityTestBase
     [DataRow("select t.* from #some.thing(true) t")]
     [DataRow("select somethingVeryLong.* from #some.thing(true) somethingVeryLong")]
     [DataRow("select somethingVeryLong2.* from #some.thing(true) somethingVeryLong2")]
+    [DataRow("select b.* from #some.thing() a cross apply #some.thing(a.SomeProperty) b")]
+    [DataRow("select b.* from #some.thing() a cross apply a.Property b")]
+    [DataRow("select b.* from #some.thing() a outer apply #some.thing(a.SomeProperty) b")]
+    [DataRow("select b.* from #some.thing() a outer apply a.TestMethod(b.Something) b")]
     
     public void WhenToStringCalled_ShouldReturnSameQuery(string query)
     {

@@ -272,7 +272,7 @@ namespace Musoq.Parser
             var selectNode = ComposeSelectNode();
             var fromNode = ComposeFrom();
 
-            fromNode = ComposeJoin(fromNode);
+            fromNode = ComposeJoinOrApply(fromNode);
 
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGroupByNode();
@@ -286,7 +286,7 @@ namespace Musoq.Parser
         {
             _fromPosition += 1;
             var fromNode = ComposeFrom();
-            fromNode = ComposeJoin(fromNode);
+            fromNode = ComposeJoinOrApply(fromNode);
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGroupByNode();
             var selectNode = ComposeSelectNode();
@@ -296,40 +296,58 @@ namespace Musoq.Parser
             return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
         }
 
-        private FromNode ComposeJoin(FromNode from)
+        private FromNode ComposeJoinOrApply(FromNode from)
         {
-            if (!IsJoinToken(Current.TokenType)) return new ExpressionFromNode(from);
+            if (!IsJoinOrApplyToken(Current.TokenType)) return new ExpressionFromNode(from);
 
-            while (IsJoinToken(Current.TokenType))
+            while (IsJoinOrApplyToken(Current.TokenType))
             {
                 switch (Current.TokenType)
                 {
                     case TokenType.InnerJoin:
                         Consume(TokenType.InnerJoin);
                         from = new JoinFromNode(from,
-                            ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(),
+                            ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), 
+                            ComposeOperations(),
                             JoinType.Inner);
                         break;
                     case TokenType.OuterJoin:
                         var outerToken = (OuterJoinToken) Current;
                         Consume(TokenType.OuterJoin);
                         from = new JoinFromNode(from,
-                            ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(),
+                            ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), 
+                            ComposeOperations(),
                             outerToken.Type == OuterJoinNode.OuterJoinType.Left
                                 ? JoinType.OuterLeft
                                 : JoinType.OuterRight);
                         break;
+                    case TokenType.CrossApply:
+                        Consume(TokenType.CrossApply);
+                        from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Cross);
+                        break;
+                    case TokenType.OuterApply:
+                        Consume(TokenType.OuterApply);
+                        from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Outer);
+                        break;
+                }
+
+                if (Current.TokenType is TokenType.InnerJoin or TokenType.OuterJoin)
+                {
+                    from = new JoinsNode((JoinFromNode) from);
+                }
+
+                if (Current.TokenType is TokenType.CrossApply or TokenType.OuterApply)
+                {
+                    from = new ApplyNode((ApplyFromNode) from);
                 }
             }
-
-            from = new JoinsNode((JoinFromNode) from);
-
+            
             return new ExpressionFromNode(from);
         }
 
-        private static bool IsJoinToken(TokenType currentTokenType)
+        private static bool IsJoinOrApplyToken(TokenType currentTokenType)
         {
-            return currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin;
+            return currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply;
         }
 
         private OrderByNode ComposeOrderBy()
@@ -624,9 +642,9 @@ namespace Musoq.Parser
             return new SchemaMethodFromNode(schemaNode.Value, identifier.Name);
         }
 
-        private FromNode ComposeFrom(bool fromBefore = true)
+        private FromNode ComposeFrom(bool fromKeywordBefore = true)
         {
-            if (fromBefore)
+            if (fromKeywordBefore)
                 Consume(TokenType.From);
 
             string alias;

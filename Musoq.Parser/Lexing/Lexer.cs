@@ -187,6 +187,10 @@ namespace Musoq.Parser.Lexing
                 return TokenType.InnerJoin;
             if (regex == TokenRegexDefinition.KOuterJoin)
                 return TokenType.OuterJoin;
+            if (regex == TokenRegexDefinition.KCrossApply)
+                return TokenType.CrossApply;
+            if (regex == TokenRegexDefinition.KOuterApply)
+                return TokenType.OuterApply;
             if (regex == TokenRegexDefinition.KHFrom)
                 return TokenType.Word;
             if (regex == TokenRegexDefinition.KFieldLink)
@@ -282,6 +286,12 @@ namespace Musoq.Parser.Lexing
             public static readonly string KOuterJoin =
                 @"(?<=[\s]{1,}|^)(left|right)[\s]{1,}(outer[\s]{1,}join)(?=[\s]{1,}|$)";
 
+            public static readonly string KCrossApply =
+                @"(?<=[\s]{1,}|^)cross[\s]{1,}apply(?=[\s]{1,}|$)";
+
+            public static readonly string KOuterApply =
+                @"(?<=[\s]{1,}|^)outer[\s]{1,}apply(?=[\s]{1,}|$)";
+
             public static readonly string KOn = Format(Keyword, OnToken.TokenText);
             public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
             public static readonly string KAsc = Format(Keyword, AscToken.TokenText);
@@ -372,6 +382,8 @@ namespace Musoq.Parser.Lexing
                 new(TokenRegexDefinition.KMethodAccess),
                 new(TokenRegexDefinition.KInnerJoin, RegexOptions.IgnoreCase),
                 new(TokenRegexDefinition.KOuterJoin, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KCrossApply, RegexOptions.IgnoreCase),
+                new(TokenRegexDefinition.KOuterApply, RegexOptions.IgnoreCase),
                 new(TokenRegexDefinition.KOrderBy, RegexOptions.IgnoreCase),
                 new(TokenRegexDefinition.KTrue, RegexOptions.IgnoreCase),
                 new(TokenRegexDefinition.KFalse, RegexOptions.IgnoreCase),
@@ -553,6 +565,10 @@ namespace Musoq.Parser.Lexing
                         : OuterJoinNode.OuterJoinType.Right;
 
                     return new OuterJoinToken(type, new TextSpan(Position, tokenText.Length));
+                case TokenType.CrossApply:
+                    return new CrossApplyToken(new TextSpan(Position, tokenText.Length));
+                case TokenType.OuterApply:
+                    return new OuterApplyToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.MethodAccess:
                     return new MethodAccessToken(match.Groups[1].Value,
                         new TextSpan(Position, match.Groups[1].Value.Length));
@@ -591,7 +607,7 @@ namespace Musoq.Parser.Lexing
                 case TokenType.End:
                     return new EndToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.FieldLink:
-                    return new KFieldLinkToken(tokenText, new TextSpan(Position, tokenText.Length));
+                    return new FieldLinkToken(tokenText, new TextSpan(Position, tokenText.Length));
             }
 
             var regex = matchedDefinition.Regex.ToString();

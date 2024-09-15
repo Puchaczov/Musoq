@@ -4,20 +4,20 @@ namespace Musoq.Parser.Nodes.From
 {
     public class JoinFromNode : FromNode
     {
-        internal JoinFromNode(FromNode joinFrom, FromNode from, Node expression, JoinType joinType)
-            : base($"{joinFrom.Alias}{from.Alias}")
+        internal JoinFromNode(FromNode source, FromNode with, Node expression, JoinType joinType)
+            : base($"{source.Alias}{with.Alias}")
         {
-            Source = joinFrom;
-            With = from;
+            Source = source;
+            With = with;
             Expression = expression;
             JoinType = joinType;
         }
         
-        public JoinFromNode(FromNode joinFrom, FromNode from, Node expression, JoinType joinType, Type returnType)
-            : base($"{joinFrom.Alias}{from.Alias}", returnType)
+        public JoinFromNode(FromNode source, FromNode with, Node expression, JoinType joinType, Type returnType)
+            : base($"{source.Alias}{with.Alias}", returnType)
         {
-            Source = joinFrom;
-            With = from;
+            Source = source;
+            With = with;
             Expression = expression;
             JoinType = joinType;
         }
