@@ -166,14 +166,14 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
         {
-            _visitor.SetInsideJoin(true);
+            _visitor.SetInsideJoinOrApply(true);
             _visitor.AddNullSuspiciousSection();
             
             node.SourceTable.Accept(this);
             node.Expression.Accept(this);
             node.Accept(_visitor);
             
-            _visitor.SetInsideJoin(false);
+            _visitor.SetInsideJoinOrApply(false);
             _visitor.RemoveNullSuspiciousSection();
         }
 
@@ -185,7 +185,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(JoinSourcesTableFromNode node)
         {
-            _visitor.SetInsideJoin(true);
+            _visitor.SetInsideJoinOrApply(true);
             _visitor.AddNullSuspiciousSection();
             
             node.Expression.Accept(this);
@@ -194,7 +194,21 @@ namespace Musoq.Evaluator.Visitors
 
             node.Accept(_visitor);
             
-            _visitor.SetInsideJoin(false);
+            _visitor.SetInsideJoinOrApply(false);
+            _visitor.RemoveNullSuspiciousSection();
+        }
+
+        public void Visit(ApplySourcesTableFromNode node)
+        {
+            _visitor.SetInsideJoinOrApply(true);
+            _visitor.AddNullSuspiciousSection();
+            
+            node.First.Accept(this);
+            node.Second.Accept(this);
+
+            node.Accept(_visitor);
+            
+            _visitor.SetInsideJoinOrApply(false);
             _visitor.RemoveNullSuspiciousSection();
         }
 
@@ -237,10 +251,61 @@ namespace Musoq.Evaluator.Visitors
             join.Accept(_visitor);
         }
 
+        public void Visit(ApplyFromNode node)
+        {
+            var applies = new Stack<ApplyFromNode>();
+
+            var apply = node;
+            while (apply != null)
+            {
+                applies.Push(apply);
+                apply = apply.Source as ApplyFromNode;
+            }
+
+            apply = applies.Pop();
+
+            apply.Source.Accept(this);
+            apply.With.Accept(this);
+
+            while (applies.Count > 1)
+            {
+                apply = applies.Pop();
+                apply.With.Accept(this);
+            }
+
+            if (applies.Count > 0)
+            {
+                apply = applies.Pop();
+                apply.With.Accept(this);
+            }
+
+            apply.Accept(_visitor);
+        }
+
         public void Visit(ExpressionFromNode node)
         {
             _visitor.SetQueryIdentifier(node.Alias);
             node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(AccessMethodFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(PropertyFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
             node.Accept(_visitor);
         }
 
@@ -585,16 +650,15 @@ namespace Musoq.Evaluator.Visitors
             _visitor.SetScope(_walker.Scope);
         }
 
-        public void Visit(JoinsNode node)
+        public void Visit(JoinNode node)
         {
-            node.Joins.Accept(this);
+            node.Join.Accept(this);
             node.Accept(_visitor);
         }
 
-        public void Visit(JoinNode node)
+        public void Visit(ApplyNode node)
         {
-            node.From.Accept(this);
-            node.Expression.Accept(this);
+            node.Apply.Accept(this);
             node.Accept(_visitor);
         }
 
@@ -617,16 +681,6 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CoupleNode node)
-        {
-            node.Accept(_visitor);
-        }
-
-        public void Visit(SchemaMethodFromNode node)
-        {
-            node.Accept(_visitor);
-        }
-
-        public void Visit(AliasedFromNode node)
         {
             node.Accept(_visitor);
         }

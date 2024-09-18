@@ -182,6 +182,14 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(ApplySourcesTableFromNode node)
+        {
+            node.First.Accept(this);
+            node.Second.Accept(this);
+            
+            node.Accept(_visitor);
+        }
+
         public void Visit(InMemoryTableFromNode node)
         {
             node.Accept(_visitor);
@@ -221,9 +229,60 @@ namespace Musoq.Evaluator.Visitors
             join.Accept(_visitor);
         }
 
+        public void Visit(ApplyFromNode node)
+        {
+            var applies = new Stack<ApplyFromNode>();
+
+            var apply = node;
+            while (apply != null)
+            {
+                applies.Push(apply);
+                apply = apply.Source as ApplyFromNode;
+            }
+
+            apply = applies.Pop();
+
+            apply.Source.Accept(this);
+            apply.With.Accept(this);
+            apply.Accept(_visitor);
+
+            while (applies.Count > 1)
+            {
+                apply = applies.Pop();
+                apply.With.Accept(this);
+                apply.Accept(_visitor);
+            }
+
+            if (applies.Count <= 0) return;
+
+            apply = applies.Pop();
+            apply.With.Accept(this);
+            apply.Accept(_visitor);
+        }
+
         public void Visit(ExpressionFromNode node)
         {
             node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(AccessMethodFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(PropertyFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
             node.Accept(_visitor);
         }
 
@@ -556,16 +615,15 @@ namespace Musoq.Evaluator.Visitors
             _visitor.SetScope(_walker.Scope);
         }
 
-        public void Visit(JoinsNode node)
+        public void Visit(JoinNode node)
         {
-            node.Joins.Accept(this);
+            node.Join.Accept(this);
             node.Accept(_visitor);
         }
 
-        public void Visit(JoinNode node)
+        public void Visit(ApplyNode node)
         {
-            node.From.Accept(this);
-            node.Expression.Accept(this);
+            node.Apply.Accept(this);
             node.Accept(_visitor);
         }
 
@@ -588,16 +646,6 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CoupleNode node)
-        {
-            node.Accept(_visitor);
-        }
-
-        public void Visit(SchemaMethodFromNode node)
-        {
-            node.Accept(_visitor);
-        }
-
-        public void Visit(AliasedFromNode node)
         {
             node.Accept(_visitor);
         }

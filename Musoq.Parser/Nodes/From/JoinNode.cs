@@ -2,23 +2,23 @@
 
 namespace Musoq.Parser.Nodes.From
 {
-    public class JoinsNode : FromNode
+    public class JoinNode : FromNode
     {
-        internal JoinsNode(JoinFromNode joins)
+        internal JoinNode(JoinFromNode joins)
             : base(joins.Alias)
         {
-            Id = $"{nameof(JoinsNode)}{joins.Id}";
-            Joins = joins;
+            Id = $"{nameof(JoinNode)}{joins.Id}";
+            Join = joins;
         }
         
-        public JoinsNode(JoinFromNode joins, Type returnType)
+        public JoinNode(JoinFromNode joins, Type returnType)
             : base(joins.Alias, returnType)
         {
-            Id = $"{nameof(JoinsNode)}{joins.Id}";
-            Joins = joins;
+            Id = $"{nameof(JoinNode)}{joins.Id}";
+            Join = joins;
         }
 
-        public JoinFromNode Joins { get; }
+        public JoinFromNode Join { get; }
 
         public override Type ReturnType => typeof(void);
 
@@ -31,7 +31,7 @@ namespace Musoq.Parser.Nodes.From
 
         public override string ToString()
         {
-            return Joins.ToString();
+            return Join.ToString();
         }
     }
 }

@@ -561,8 +561,8 @@ namespace Musoq.Parser.Lexing
                     return new InnerJoinToken(new TextSpan(Position, tokenText.Length));
                 case TokenType.OuterJoin:
                     var type = match.Groups[1].Value.ToLowerInvariant() == "left"
-                        ? OuterJoinNode.OuterJoinType.Left
-                        : OuterJoinNode.OuterJoinType.Right;
+                        ? OuterJoinType.Left
+                        : OuterJoinType.Right;
 
                     return new OuterJoinToken(type, new TextSpan(Position, tokenText.Length));
                 case TokenType.CrossApply:

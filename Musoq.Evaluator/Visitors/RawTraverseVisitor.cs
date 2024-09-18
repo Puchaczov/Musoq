@@ -177,6 +177,14 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
+        public void Visit(ApplySourcesTableFromNode node)
+        {
+            node.First.Accept(this);
+            node.Second.Accept(this);
+            
+            node.Accept(Visitor);
+        }
+
         public virtual void Visit(InMemoryTableFromNode node)
         {
             node.Accept(Visitor);
@@ -190,9 +198,37 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
+        public void Visit(ApplyFromNode node)
+        {
+            node.Source.Accept(this);
+            node.With.Accept(this);
+            node.Accept(Visitor);
+        }
+
         public virtual void Visit(ExpressionFromNode node)
         {
             node.Expression.Accept(this);
+            node.Accept(Visitor);
+        }
+
+        public void Visit(AccessMethodFromNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public virtual void Visit(SchemaMethodFromNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public void Visit(PropertyFromNode node)
+        {
+            node.Accept(Visitor);
+        }
+
+        public virtual void Visit(AliasedFromNode node)
+        {
+            node.Args.Accept(this);
             node.Accept(Visitor);
         }
 
@@ -487,16 +523,15 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public virtual void Visit(JoinsNode node)
+        public virtual void Visit(JoinNode node)
         {
-            node.Joins.Accept(this);
+            node.Join.Accept(this);
             node.Accept(Visitor);
         }
 
-        public virtual void Visit(JoinNode node)
+        public void Visit(ApplyNode node)
         {
-            node.From.Accept(this);
-            node.Expression.Accept(this);
+            node.Apply.Accept(this);
             node.Accept(Visitor);
         }
 
@@ -520,17 +555,6 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(CoupleNode node)
         {
-            node.Accept(Visitor);
-        }
-
-        public virtual void Visit(SchemaMethodFromNode node)
-        {
-            node.Accept(Visitor);
-        }
-
-        public virtual void Visit(AliasedFromNode node)
-        {
-            node.Args.Accept(this);
             node.Accept(Visitor);
         }
 

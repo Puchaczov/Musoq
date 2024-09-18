@@ -2,9 +2,9 @@
 
 namespace Musoq.Evaluator.Parser;
 
-public class JoinsNode : Musoq.Parser.Nodes.From.JoinsNode
+public class JoinNode : Musoq.Parser.Nodes.From.JoinNode
 {
-    public JoinsNode(JoinFromNode joins) 
+    public JoinNode(JoinFromNode joins) 
         : base(joins, typeof(RowSource))
     {
     }

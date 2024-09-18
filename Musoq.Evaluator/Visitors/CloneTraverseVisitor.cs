@@ -2,11 +2,5 @@
 
 namespace Musoq.Evaluator.Visitors
 {
-    public class CloneTraverseVisitor : RawTraverseVisitor<IExpressionVisitor>
-    {
-        public CloneTraverseVisitor(IExpressionVisitor visitor) 
-            : base(visitor)
-        {
-        }
-    }
+    public class CloneTraverseVisitor(IExpressionVisitor visitor) : RawTraverseVisitor<IExpressionVisitor>(visitor);
 }

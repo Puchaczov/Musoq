@@ -226,17 +226,21 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) + _schemaFromKey;
         _generatedAliases.Add(_queryAlias);
-        _columns.Add(_queryAlias, new List<string>());
+        _columns.Add(_queryAlias, []);
     }
 
     public void Visit(AliasedFromNode node)
     {
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) + _schemaFromKey;
         _generatedAliases.Add(_queryAlias);
-        _columns.Add(_queryAlias, new List<string>());
+        _columns.Add(_queryAlias, []);
     }
 
     public void Visit(JoinSourcesTableFromNode node)
+    {
+    }
+
+    public void Visit(ApplySourcesTableFromNode node)
     {
     }
 
@@ -248,11 +252,23 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(ApplyFromNode node)
+    {
+    }
+
     public void Visit(ExpressionFromNode node)
     {
     }
 
     public void Visit(SchemaMethodFromNode node)
+    {
+    }
+
+    public void Visit(PropertyFromNode node)
+    {
+    }
+
+    public void Visit(AccessMethodFromNode node)
     {
     }
 
@@ -344,11 +360,11 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
-    public void Visit(JoinsNode node)
+    public void Visit(JoinNode node)
     {
     }
 
-    public void Visit(JoinNode node)
+    public void Visit(ApplyNode node)
     {
     }
 

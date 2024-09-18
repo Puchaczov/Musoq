@@ -2,26 +2,20 @@
 
 namespace Musoq.Parser.Nodes.From;
 
-public class ApplyFromNode : FromNode
+public class ApplyFromNode : BinaryFromNode
 {
     internal ApplyFromNode(FromNode source, FromNode with, ApplyType applyType)
-        : base($"{source.Alias}{with.Alias}")
+        : base(source, with, $"{source.Alias}{with.Alias}")
     {
-        Source = source;
-        With = with;
         ApplyType = applyType;
     }
         
     public ApplyFromNode(FromNode source, FromNode with, ApplyType applyType, Type returnType)
-        : base($"{source.Alias}{with.Alias}", returnType)
+        : base(source, with, $"{source.Alias}{with.Alias}", returnType)
     {
-        Source = source;
-        With = with;
         ApplyType = applyType;
     }
-
-    public FromNode Source { get; }
-    public FromNode With { get; }
+    
     public ApplyType ApplyType { get; }
     public override string Id => $"{typeof(JoinFromNode)}{Source.Id}{With.Id}";
 

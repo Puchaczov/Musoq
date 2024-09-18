@@ -4,16 +4,16 @@ namespace Musoq.Parser.Nodes.From
 {
     public class SchemaMethodFromNode : FromNode
     {
-        internal SchemaMethodFromNode(string schema, string method)
-            : base(string.Empty)
+        internal SchemaMethodFromNode(string alias, string schema, string method)
+            : base(alias)
         {
             Schema = schema;
             Method = method;
             Id = $"{nameof(SchemaMethodFromNode)}{schema}{method}";
         }
         
-        public SchemaMethodFromNode(string schema, string method, Type returnType)
-            : base(string.Empty, returnType)
+        public SchemaMethodFromNode(string alias, string schema, string method, Type returnType)
+            : base(alias, returnType)
         {
             Schema = schema;
             Method = method;
@@ -33,7 +33,10 @@ namespace Musoq.Parser.Nodes.From
 
         public override string ToString()
         {
-            return $"{Schema}.{Method}";
+            if (string.IsNullOrWhiteSpace(Alias))
+                return $"{Schema}.{Method}";
+            
+            return $"{Schema}.{Method} {Alias}";
         }
     }
 }

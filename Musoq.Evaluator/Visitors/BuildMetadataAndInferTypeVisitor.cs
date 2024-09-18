@@ -14,6 +14,7 @@ using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
@@ -24,7 +25,6 @@ using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
 using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
 using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
 using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
-using JoinsNode = Musoq.Parser.Nodes.From.JoinsNode;
 using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
@@ -363,7 +363,7 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(AccessRefreshAggreationScoreNode node)
         {
             VisitAccessMethod(node,
-                (token, node1, exargs, arg3, alias, canSkipInjectSource) =>
+                (token, node1, exargs, arg3, alias, _) =>
                     new AccessRefreshAggreationScoreNode(token, node1 as ArgsListNode, exargs, node.CanSkipInjectSource,
                         arg3, alias));
         }
@@ -371,9 +371,9 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(AccessColumnNode node)
         {
             var hasProcessedQueryId = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
-            var identifier = hasProcessedQueryId
+            var identifier = (hasProcessedQueryId
                 ? _currentScope[MetaAttributes.ProcessedQueryId]
-                : _identifier;
+                : _identifier) ?? node.Alias;
 
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
@@ -787,7 +787,17 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(SchemaMethodFromNode node)
         {
-            Nodes.Push(new Parser.SchemaMethodFromNode(node.Schema, node.Method));
+            Nodes.Push(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
+        }
+
+        public void Visit(PropertyFromNode node)
+        {
+            Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName));
+        }
+
+        public void Visit(AccessMethodFromNode node)
+        {
+            Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, node.AccessMethod));
         }
 
         public void Visit(AliasedFromNode node)
@@ -849,6 +859,14 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new Parser.JoinSourcesTableFromNode(a, b, exp, node.JoinType));
         }
 
+        public void Visit(ApplySourcesTableFromNode node)
+        {
+            var b = (FromNode) Nodes.Pop();
+            var a = (FromNode) Nodes.Pop();
+
+            Nodes.Push(new Parser.ApplySourcesTableFromNode(a, b, node.ApplyType));
+        }
+
         public void Visit(InMemoryTableFromNode node)
         {
             _queryAlias = string.IsNullOrEmpty(node.Alias) ? node.VariableName : node.Alias;
@@ -886,6 +904,16 @@ namespace Musoq.Evaluator.Visitors
             var joinedTable = (FromNode) Nodes.Pop();
             var source = (FromNode) Nodes.Pop();
             var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType);
+            _identifier = joinedFrom.Alias;
+            _schemaFromArgs.Clear();
+            Nodes.Push(joinedFrom);
+        }
+
+        public void Visit(ApplyFromNode node)
+        {
+            var appliedTable = (FromNode) Nodes.Pop();
+            var source = (FromNode) Nodes.Pop();
+            var joinedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType);
             _identifier = joinedFrom.Alias;
             _schemaFromArgs.Clear();
             Nodes.Push(joinedFrom);
@@ -1122,21 +1150,16 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new CteInnerExpressionNode(set, node.Name));
         }
 
-        public void Visit(JoinsNode node)
-        {
-            _identifier = node.Alias;
-            Nodes.Push(new Parser.JoinsNode((Parser.JoinFromNode) Nodes.Pop()));
-        }
-
         public void Visit(JoinNode node)
         {
-            var expression = Nodes.Pop();
-            var fromNode = (FromNode) Nodes.Pop();
+            _identifier = node.Alias;
+            Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode) Nodes.Pop()));
+        }
 
-            if (node is OuterJoinNode outerJoin)
-                Nodes.Push(new OuterJoinNode(outerJoin.Type, fromNode, expression));
-            else
-                Nodes.Push(new InnerJoinNode(fromNode, expression));
+        public void Visit(ApplyNode node)
+        {
+            _identifier = node.Alias;
+            Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode) Nodes.Pop()));
         }
 
         public void SetScope(Scope scope)

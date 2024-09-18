@@ -242,6 +242,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(ApplySourcesTableFromNode node)
+        {
+        }
+
         public void Visit(InMemoryTableFromNode node)
         {
         }
@@ -250,7 +254,27 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(ApplyFromNode node)
+        {
+        }
+
         public void Visit(ExpressionFromNode node)
+        {
+        }
+
+        public void Visit(AccessMethodFromNode node)
+        {
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+        }
+
+        public void Visit(PropertyFromNode node)
+        {
+        }
+
+        public void Visit(AliasedFromNode node)
         {
         }
 
@@ -334,11 +358,11 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
-        public void Visit(JoinsNode node)
+        public void Visit(JoinNode node)
         {
         }
 
-        public void Visit(JoinNode node)
+        public void Visit(ApplyNode node)
         {
         }
 
@@ -351,14 +375,6 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CoupleNode node)
-        {
-        }
-
-        public void Visit(SchemaMethodFromNode node)
-        {
-        }
-
-        public void Visit(AliasedFromNode node)
         {
         }
 

@@ -336,6 +336,14 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new Parser.JoinSourcesTableFromNode(a, b, exp, node.JoinType));
         }
 
+        public void Visit(ApplySourcesTableFromNode node)
+        {
+            var b = (FromNode) Nodes.Pop();
+            var a = (FromNode) Nodes.Pop();
+
+            Nodes.Push(new Parser.ApplySourcesTableFromNode(a, b, node.ApplyType));
+        }
+
         public virtual void Visit(InMemoryTableFromNode node)
         {
             Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, node.Alias));
@@ -350,10 +358,38 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(joinedFrom);
         }
 
+        public void Visit(ApplyFromNode node)
+        {
+            var appliedTable = (FromNode) Nodes.Pop();
+            var source = (FromNode) Nodes.Pop();
+            var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType);
+            Nodes.Push(appliedFrom);
+        }
+
         public virtual void Visit(ExpressionFromNode node)
         {
             var from = (FromNode) Nodes.Pop();
             Nodes.Push(new Parser.ExpressionFromNode(from));
+        }
+
+        public virtual void Visit(AccessMethodFromNode node)
+        {
+            Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, node.AccessMethod));
+        }
+
+        public virtual void Visit(PropertyFromNode node)
+        {
+            Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName));
+        }
+
+        public virtual void Visit(AliasedFromNode node)
+        {
+            Nodes.Push(new Parser.AliasedFromNode(node.Identifier, (ArgsListNode)Nodes.Pop(), node.Alias, node.InSourcePosition));
+        }
+
+        public virtual void Visit(SchemaMethodFromNode node)
+        {
+            Nodes.Push(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
         }
 
         public virtual void Visit(CreateTransformationTableNode node)
@@ -496,20 +532,14 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name));
         }
 
-        public virtual void Visit(JoinsNode node)
-        {
-            Nodes.Push(new Parser.JoinsNode((Parser.JoinFromNode) Nodes.Pop()));
-        }
-
         public virtual void Visit(JoinNode node)
         {
-            var expression = Nodes.Pop();
-            var fromNode = (FromNode) Nodes.Pop();
+            Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode) Nodes.Pop()));
+        }
 
-            if (node is OuterJoinNode outerJoin)
-                Nodes.Push(new OuterJoinNode(outerJoin.Type, fromNode, expression));
-            else
-                Nodes.Push(new InnerJoinNode(fromNode, expression));
+        public void Visit(ApplyNode node)
+        {
+            Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode) Nodes.Pop()));
         }
 
         public virtual void Visit(OrderByNode node)
@@ -530,16 +560,6 @@ namespace Musoq.Evaluator.Visitors
         public virtual void Visit(CoupleNode node)
         {
             Nodes.Push(new CoupleNode(node.SchemaMethodNode, node.TableName, node.MappedSchemaName));
-        }
-
-        public virtual void Visit(AliasedFromNode node)
-        {
-            Nodes.Push(new Parser.AliasedFromNode(node.Identifier, (ArgsListNode)Nodes.Pop(), node.Alias, node.InSourcePosition));
-        }
-
-        public virtual void Visit(SchemaMethodFromNode node)
-        {
-            Nodes.Push(new Parser.SchemaMethodFromNode(node.Schema, node.Method));
         }
 
         public virtual void Visit(StatementsArrayNode node)

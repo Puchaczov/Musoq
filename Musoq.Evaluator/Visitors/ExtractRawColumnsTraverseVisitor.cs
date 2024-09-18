@@ -212,6 +212,15 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(ApplySourcesTableFromNode node)
+        {
+            SetQueryPart(QueryPart.From);
+            node.First.Accept(this);
+            node.Second.Accept(this);
+
+            node.Accept(_visitor);
+        }
+
         public void Visit(InMemoryTableFromNode node)
         {
             SetQueryPart(QueryPart.From);
@@ -246,10 +255,57 @@ namespace Musoq.Evaluator.Visitors
             }
         }
 
+        public void Visit(ApplyFromNode node)
+        {
+            SetQueryPart(QueryPart.From);
+            var joins = new Stack<ApplyFromNode>();
+
+            var apply = node;
+            while (apply != null)
+            {
+                joins.Push(apply);
+                apply = apply.Source as ApplyFromNode;
+            }
+
+            apply = joins.Pop();
+            apply.Source.Accept(this);
+            apply.With.Accept(this);
+
+            apply.Accept(_visitor);
+
+            while (joins.Count > 0)
+            {
+                apply = joins.Pop();
+                apply.With.Accept(this);
+                apply.Accept(_visitor);
+            }
+        }
+
         public void Visit(ExpressionFromNode node)
         {
             SetQueryPart(QueryPart.From);
             node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(AccessMethodFromNode node)
+        {
+            node.AccessMethod.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(PropertyFromNode node)
+        {
+            node.Accept(_visitor);
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
             node.Accept(_visitor);
         }
 
@@ -548,16 +604,15 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
-        public void Visit(JoinsNode node)
+        public void Visit(JoinNode node)
         {
-            node.Joins.Accept(this);
+            node.Join.Accept(this);
             node.Accept(_visitor);
         }
 
-        public void Visit(JoinNode node)
+        public void Visit(ApplyNode node)
         {
-            node.From.Accept(this);
-            node.Expression.Accept(this);
+            node.Apply.Accept(this);
             node.Accept(_visitor);
         }
 
@@ -592,16 +647,6 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CoupleNode node)
-        {
-            node.Accept(_visitor);
-        }
-
-        public void Visit(SchemaMethodFromNode node)
-        {
-            node.Accept(_visitor);
-        }
-
-        public void Visit(AliasedFromNode node)
         {
             node.Accept(_visitor);
         }
@@ -654,16 +699,6 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(FieldLinkNode node)
         {
             node.Accept(_visitor);
-        }
-
-        public void QueryBegins()
-        {
-            _visitor.QueryBegins();
-        }
-
-        public void QueryEnds()
-        {
-            _visitor.QueryEnds();
         }
     }
 }

@@ -9,8 +9,8 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable
 {
     public class EnvironmentVariablesSchema : SchemaBase
     {
-        private static readonly IDictionary<string, int> EnvironmentVariableNameToIndexMap;
-        private static readonly IDictionary<int, Func<EnvironmentVariableEntity, object>> EnvironmentVariableIndexToObjectAccessMap;
+        private static readonly IReadOnlyDictionary<string, int> EnvironmentVariableNameToIndexMap;
+        private static readonly IReadOnlyDictionary<int, Func<EnvironmentVariableEntity, object>> EnvironmentVariableIndexToObjectAccessMap;
         private readonly IEnumerable<EnvironmentVariableEntity> _sources;
 
         static EnvironmentVariablesSchema()
@@ -35,11 +35,6 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable
             
             AddSource<EntitySource<EnvironmentVariableEntity>>("all", sources, EnvironmentVariableNameToIndexMap, EnvironmentVariableIndexToObjectAccessMap);
             AddTable<EnvironmentVariableEntityTable>("all");
-        }
-
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
-        {
-            return base.GetTableByName(name, runtimeContext, parameters);
         }
 
         public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)

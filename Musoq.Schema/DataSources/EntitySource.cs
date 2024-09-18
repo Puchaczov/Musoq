@@ -7,11 +7,10 @@ namespace Musoq.Schema.DataSources
     public class EntitySource<T> : RowSource
     {
         private readonly IEnumerable<T> _entities;
-        private readonly IDictionary<int, Func<T, object>> _indexToObjectAccessMap;
-        private readonly IDictionary<string, int> _nameToIndexMap;
+        private readonly IReadOnlyDictionary<int, Func<T, object>> _indexToObjectAccessMap;
+        private readonly IReadOnlyDictionary<string, int> _nameToIndexMap;
 
-        public EntitySource(IEnumerable<T> entities, IDictionary<string, int> nameToIndexMap,
-            IDictionary<int, Func<T, object>> indexToObjectAccessMap)
+        public EntitySource(IEnumerable<T> entities, IReadOnlyDictionary<string, int> nameToIndexMap, IReadOnlyDictionary<int, Func<T, object>> indexToObjectAccessMap)
         {
             _entities = entities;
             _nameToIndexMap = nameToIndexMap;

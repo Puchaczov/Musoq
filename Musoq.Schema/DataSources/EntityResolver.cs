@@ -10,18 +10,17 @@ namespace Musoq.Schema.DataSources
     public class EntityResolver<T> : IObjectResolver
     {
         private readonly T _entity;
-        private readonly IDictionary<int, Func<T, object>> _indexToObjectAccessMap;
-        private readonly IDictionary<string, int> _nameToIndexMap;
+        private readonly IReadOnlyDictionary<int, Func<T, object>> _indexToObjectAccessMap;
+        private readonly IReadOnlyDictionary<string, int> _nameToIndexMap;
 
-        public EntityResolver(T entity, IDictionary<string, int> nameToIndexMap,
-            IDictionary<int, Func<T, object>> indexToObjectAccessMap)
+        public EntityResolver(T entity, IReadOnlyDictionary<string, int> nameToIndexMap, IReadOnlyDictionary<int, Func<T, object>> indexToObjectAccessMap)
         {
             _entity = entity;
             _nameToIndexMap = nameToIndexMap;
             _indexToObjectAccessMap = indexToObjectAccessMap;
         }
 
-        public object[] Contexts => new object[] { _entity };
+        public object[] Contexts => [_entity];
 
         object IObjectResolver.this[string name]
             => _indexToObjectAccessMap[_nameToIndexMap[name]](_entity);
