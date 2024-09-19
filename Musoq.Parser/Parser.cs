@@ -330,16 +330,16 @@ namespace Musoq.Parser
                         from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Outer);
                         break;
                 }
+            }
 
-                if (from is JoinFromNode joinFrom)
-                {
-                    from = new JoinNode(joinFrom);
-                }
+            if (from is JoinFromNode joinFrom)
+            {
+                from = new JoinNode(joinFrom);
+            }
 
-                if (from is ApplyFromNode applyFrom)
-                {
-                    from = new ApplyNode(applyFrom);
-                }
+            if (from is ApplyFromNode applyFrom)
+            {
+                from = new ApplyNode(applyFrom);
             }
             
             return new ExpressionFromNode(from);

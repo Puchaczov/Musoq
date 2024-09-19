@@ -691,36 +691,51 @@ namespace Musoq.Evaluator.Visitors
                         MetaAttributes.OuterJoinSelect,
                         new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray()));
 
-                    var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
-
                     foreach (var key in usedTables.Keys.ToArray())
                         usedTables[key] = targetTableName;
 
                     usedTables[current.Source.Alias] = targetTableName;
                     usedTables.Add(current.With.Alias, targetTableName);
 
-                    joinedQuery = new InternalQueryNode(
-                        new SelectNode(bothForSelect),
-                        new Parser.ExpressionFromNode(
-                            current switch
-                            {
-                                JoinFromNode fromNode => new Parser.JoinInMemoryWithSourceTableFromNode(
-                                    fromNode.Source.Alias,
-                                    fromNode.With,
+                    if (current is JoinFromNode joinFromNode)
+                    {
+                        var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
+                        var expressionUpdaterTraverser = new RewriteWhereConditionWithUpdatedColumnAccessTraverser(expressionUpdater);
+                        var whereNode = new WhereNode(joinFromNode.Expression);
+
+                        whereNode.Accept(expressionUpdaterTraverser);
+                        
+                        joinedQuery = new InternalQueryNode(
+                            new SelectNode(bothForSelect),
+                            new Parser.ExpressionFromNode(
+                                new Parser.JoinInMemoryWithSourceTableFromNode(
+                                    joinFromNode.Source.Alias,
+                                    joinFromNode.With,
                                     expressionUpdater.Where.Expression,
-                                    fromNode.JoinType),
-                                ApplyFromNode applyNode => new Parser.ApplySourcesTableFromNode(
-                                    applyNode.Source,
-                                    applyNode.With,
-                                    applyNode.ApplyType),
-                                _ => throw new ArgumentOutOfRangeException(nameof(current))
-                            }),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        new RefreshNode([]));
+                                    joinFromNode.JoinType)),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            new RefreshNode([]));
+                    }
+                    else
+                    {
+                        joinedQuery = new InternalQueryNode(
+                            new SelectNode(bothForSelect),
+                            new Parser.ExpressionFromNode(
+                                new Parser.ApplySourcesTableFromNode(
+                                    current.Source,
+                                    current.With,
+                                    ((ApplyFromNode)current).ApplyType)),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            new RefreshNode([]));
+                    }
 
                     targetTable = new CreateTransformationTableNode(targetTableName, [], bothForCreateTable, false);
 

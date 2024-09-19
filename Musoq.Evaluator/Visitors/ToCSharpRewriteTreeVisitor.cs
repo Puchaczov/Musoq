@@ -1199,15 +1199,15 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName(
                                 $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
                             SyntaxFactory.Block(
-                                SyntaxFactory.SingletonList<StatementSyntax>(
-                                    SyntaxFactory.ForEachStatement(
-                                        SyntaxFactory.IdentifierName("var"),
-                                        SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
-                                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
-                                        SyntaxFactory.Block(
-                                            GenerateCancellationExpression(),
-                                            (StatementSyntax) ifStatement,
-                                            _emptyBlock))))));
+                                _getRowsSourceStatement[node.SourceTable.Alias],
+                                SyntaxFactory.ForEachStatement(
+                                    SyntaxFactory.IdentifierName("var"),
+                                    SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
+                                    SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
+                                    SyntaxFactory.Block(
+                                        GenerateCancellationExpression(),
+                                        (StatementSyntax) ifStatement,
+                                        _emptyBlock)))));
                     break;
                 case JoinType.OuterLeft:
 
@@ -1303,6 +1303,7 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.LocalDeclarationStatement(
                                     SyntaxHelper.CreateAssignment("hasAnyRowMatched",
                                         SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
+                                _getRowsSourceStatement[node.SourceTable.Alias],
                                 SyntaxFactory.ForEachStatement(
                                     SyntaxFactory.IdentifierName("var"),
                                     SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
@@ -1412,6 +1413,7 @@ namespace Musoq.Evaluator.Visitors
                         ]);
 
                     computingBlock = computingBlock.AddStatements(
+                        _getRowsSourceStatement[node.SourceTable.Alias],
                         SyntaxFactory.ForEachStatement(
                             SyntaxFactory.IdentifierName("var"),
                             SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
@@ -1420,6 +1422,7 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.LocalDeclarationStatement(
                                     SyntaxHelper.CreateAssignment("hasAnyRowMatched",
                                         SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
+                                _getRowsSourceStatement[node.InMemoryTableAlias],
                                 SyntaxFactory.ForEachStatement(
                                     SyntaxFactory.IdentifierName("var"),
                                     SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
@@ -1588,8 +1591,7 @@ namespace Musoq.Evaluator.Visitors
                     var invocation = SyntaxHelper.CreateMethodInvocation(
                         _scope[MetaAttributes.SelectIntoVariableName],
                         nameof(Table.Add),
-                        new[]
-                        {
+                        [
                             SyntaxFactory.Argument(
                                 SyntaxFactory.ObjectCreationExpression(
                                     SyntaxFactory.Token(SyntaxKind.NewKeyword)
@@ -1597,9 +1599,8 @@ namespace Musoq.Evaluator.Visitors
                                     SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
                                     SyntaxFactory.ArgumentList(
                                         SyntaxFactory.SeparatedList(
-                                            new[]
-                                            {
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
+                                        [
+                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
                                                 SyntaxFactory.Argument(
                                                     SyntaxFactory.MemberAccessExpression(
                                                         SyntaxKind.SimpleMemberAccessExpression,
@@ -1608,11 +1609,11 @@ namespace Musoq.Evaluator.Visitors
                                                             $"{nameof(IObjectResolver.Contexts)}"))),
                                                 SyntaxFactory.Argument(
                                                     SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
-                                            })
+                                        ])
                                     ),
                                     SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
                             )
-                        });
+                        ]);
 
                     computingBlock =
                         computingBlock.AddStatements(
@@ -2574,7 +2575,7 @@ namespace Musoq.Evaluator.Visitors
                 return;
 
             var block = SyntaxFactory.Block();
-            for (int i = 0, k = node.Nodes.Length - 1; i < node.Nodes.Length; i++, k--)
+            for (var i = 0; i < node.Nodes.Length; i++)
                 block = block.AddStatements(
                     SyntaxFactory.ExpressionStatement((ExpressionSyntax) Nodes.Pop()));
 
@@ -2703,7 +2704,7 @@ namespace Musoq.Evaluator.Visitors
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("token"), null)
                     })),
-                new SyntaxList<TypeParameterConstraintClauseSyntax>(),
+                [],
                 SyntaxFactory.Block(Statements),
                 null);
 
@@ -2749,8 +2750,7 @@ namespace Musoq.Evaluator.Visitors
                 SyntaxFactory.Identifier(methodName),
                 null,
                 SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(new[]
-                    {
+                    SyntaxFactory.SeparatedList([
                         SyntaxFactory.Parameter(
                             new SyntaxList<AttributeListSyntax>(),
                             SyntaxTokenList.Create(
@@ -2841,8 +2841,8 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName(nameof(CancellationToken))
                                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                             SyntaxFactory.Identifier("token"), null)
-                    })),
-                new SyntaxList<TypeParameterConstraintClauseSyntax>(),
+                    ])),
+                [],
                 SyntaxFactory.Block(statements),
                 null);
 
@@ -3596,28 +3596,26 @@ namespace Musoq.Evaluator.Visitors
 
                 var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
 
-                Statements.AddRange(new StatementSyntax[]
-                {
+                Statements.AddRange([
                     SyntaxFactory.LocalDeclarationStatement(createdSchema),
                     SyntaxFactory.LocalDeclarationStatement(getTable),
                     returnStatement
-                });
+                ]);
             }
             else
             {
                 var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
 
-                Statements.AddRange(new StatementSyntax[]
-                {
+                Statements.AddRange([
                     SyntaxFactory.LocalDeclarationStatement(createdSchema),
                     returnStatement
-                });
+                ]);
             }
 
             var methodName = "GetTableDesc";
 
             var method = SyntaxFactory.MethodDeclaration(
-                new SyntaxList<AttributeListSyntax>(),
+                [],
                 SyntaxFactory.TokenList(
                     SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
                 SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
@@ -3628,7 +3626,7 @@ namespace Musoq.Evaluator.Visitors
                     SyntaxFactory.SeparatedList(new[]
                     {
                         SyntaxFactory.Parameter(
-                            new SyntaxList<AttributeListSyntax>(),
+                            [],
                             SyntaxTokenList.Create(
                                 new SyntaxToken()),
                             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
@@ -3754,9 +3752,9 @@ namespace Musoq.Evaluator.Visitors
             return builder.ToString();
         }
 
-        private string UnescapeLanguageSpecificString(string value)
+        private static string UnescapeLanguageSpecificString(string value)
         {
-            var pattern = @"(?<!\\)'";
+            const string pattern = @"(?<!\\)'";
             var result = Regex.Replace(value, pattern, string.Empty);
             result = result.Replace("\\'", "'");
 
