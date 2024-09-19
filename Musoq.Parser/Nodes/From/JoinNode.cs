@@ -4,18 +4,18 @@ namespace Musoq.Parser.Nodes.From
 {
     public class JoinNode : FromNode
     {
-        internal JoinNode(JoinFromNode joins)
-            : base(joins.Alias)
+        internal JoinNode(JoinFromNode join)
+            : base(join.Alias)
         {
-            Id = $"{nameof(JoinNode)}{joins.Id}";
-            Join = joins;
+            Id = $"{nameof(JoinNode)}{join.Id}";
+            Join = join;
         }
         
-        public JoinNode(JoinFromNode joins, Type returnType)
-            : base(joins.Alias, returnType)
+        public JoinNode(JoinFromNode join, Type returnType)
+            : base(join.Alias, returnType)
         {
-            Id = $"{nameof(JoinNode)}{joins.Id}";
-            Join = joins;
+            Id = $"{nameof(JoinNode)}{join.Id}";
+            Join = join;
         }
 
         public JoinFromNode Join { get; }

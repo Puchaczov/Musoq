@@ -17,7 +17,7 @@ public class ApplyFromNode : BinaryFromNode
     }
     
     public ApplyType ApplyType { get; }
-    public override string Id => $"{typeof(JoinFromNode)}{Source.Id}{With.Id}";
+    public override string Id => $"{nameof(ApplyFromNode)}{Source.Id}{With.Id}";
 
     public override void Accept(IExpressionVisitor visitor)
     {

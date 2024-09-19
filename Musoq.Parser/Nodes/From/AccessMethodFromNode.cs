@@ -22,7 +22,7 @@ public class AccessMethodFromNode : FromNode
 
     public AccessMethodNode AccessMethod { get; }
     
-    public override string Id => $"{typeof(AccessMethodFromNode)}{Alias}{AccessMethod.Id}";
+    public override string Id => $"{nameof(AccessMethodFromNode)}{Alias}{AccessMethod.Id}";
     
     public override void Accept(IExpressionVisitor visitor)
     {

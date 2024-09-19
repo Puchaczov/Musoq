@@ -20,7 +20,7 @@ namespace Musoq.Parser.Nodes.From
         
         public Node Expression { get; }
         public JoinType JoinType { get; }
-        public override string Id => $"{typeof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}";
+        public override string Id => $"{nameof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}";
 
         public override void Accept(IExpressionVisitor visitor)
         {

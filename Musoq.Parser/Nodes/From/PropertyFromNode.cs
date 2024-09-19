@@ -22,7 +22,7 @@ public class PropertyFromNode : FromNode
     
     public string PropertyName { get; }
     
-    public override string Id => $"{typeof(PropertyFromNode)}{Alias}{SourceAlias}{PropertyName}";
+    public override string Id => $"{nameof(PropertyFromNode)}{Alias}{SourceAlias}{PropertyName}";
     
     public override void Accept(IExpressionVisitor visitor)
     {

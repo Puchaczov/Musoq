@@ -14,7 +14,7 @@ public class ApplyNode : FromNode
     public ApplyNode(ApplyFromNode apply, Type returnType)
         : base(apply.Alias, returnType)
     {
-        Id = $"{nameof(JoinNode)}{apply.Id}";
+        Id = $"{nameof(ApplyNode)}{apply.Id}";
         Apply = apply;
     }
 
