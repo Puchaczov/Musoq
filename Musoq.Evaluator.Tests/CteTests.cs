@@ -659,17 +659,15 @@ select c.GetBytes(c.Name) from first a
             {
                 {
                     "#A",
-                    new[]
-                    {
-                        new BasicEntity("First"),
-                    }
+                    [
+                        new BasicEntity("First")
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
-                        new BasicEntity("Second"),
-                    }
+                    [
+                        new BasicEntity("Second")
+                    ]
                 }
             };
             

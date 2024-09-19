@@ -1199,7 +1199,7 @@ namespace Musoq.Evaluator.Visitors
                             SyntaxFactory.IdentifierName(
                                 $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
                             SyntaxFactory.Block(
-                                _getRowsSourceStatement[node.SourceTable.Alias],
+                                GetRowsSourceOrEmpty(node.SourceTable.Alias),
                                 SyntaxFactory.ForEachStatement(
                                     SyntaxFactory.IdentifierName("var"),
                                     SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
@@ -1303,7 +1303,7 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.LocalDeclarationStatement(
                                     SyntaxHelper.CreateAssignment("hasAnyRowMatched",
                                         SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
-                                _getRowsSourceStatement[node.SourceTable.Alias],
+                                GetRowsSourceOrEmpty(node.SourceTable.Alias),
                                 SyntaxFactory.ForEachStatement(
                                     SyntaxFactory.IdentifierName("var"),
                                     SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
@@ -1422,7 +1422,7 @@ namespace Musoq.Evaluator.Visitors
                                 SyntaxFactory.LocalDeclarationStatement(
                                     SyntaxHelper.CreateAssignment("hasAnyRowMatched",
                                         SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
-                                _getRowsSourceStatement[node.InMemoryTableAlias],
+                                GetRowsSourceOrEmpty(node.InMemoryTableAlias),
                                 SyntaxFactory.ForEachStatement(
                                     SyntaxFactory.IdentifierName("var"),
                                     SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
@@ -1510,6 +1510,11 @@ namespace Musoq.Evaluator.Visitors
                 Statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
             }
         }
+        
+        private StatementSyntax GetRowsSourceOrEmpty(string alias)
+        {
+            return _getRowsSourceStatement.TryGetValue(alias, out var value) ? value : SyntaxFactory.EmptyStatement();
+        }
 
         public void Visit(JoinSourcesTableFromNode node)
         {
@@ -1525,12 +1530,12 @@ namespace Musoq.Evaluator.Visitors
                 case JoinType.Inner:
                     computingBlock =
                         computingBlock.AddStatements(
-                            _getRowsSourceStatement[node.First.Alias],
+                            GetRowsSourceOrEmpty(node.First.Alias),
                             SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
                                 SyntaxFactory.Identifier($"{node.First.Alias}Row"),
                                 SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
                                 SyntaxFactory.Block(
-                                    _getRowsSourceStatement[node.Second.Alias],
+                                    GetRowsSourceOrEmpty(node.Second.Alias),
                                     SyntaxFactory.ForEachStatement(
                                         SyntaxFactory.IdentifierName("var"),
                                         SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
@@ -1729,7 +1734,7 @@ namespace Musoq.Evaluator.Visitors
 
                     computingBlock =
                         computingBlock.AddStatements(
-                            _getRowsSourceStatement[node.Second.Alias],
+                            GetRowsSourceOrEmpty(node.Second.Alias),
                             SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
                                 SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
                                 SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
@@ -1737,7 +1742,7 @@ namespace Musoq.Evaluator.Visitors
                                     SyntaxFactory.LocalDeclarationStatement(
                                         SyntaxHelper.CreateAssignment("hasAnyRowMatched",
                                             (LiteralExpressionSyntax) Generator.FalseLiteralExpression())),
-                                    _getRowsSourceStatement[node.First.Alias],
+                                    GetRowsSourceOrEmpty(node.First.Alias),
                                     SyntaxFactory.ForEachStatement(
                                         SyntaxFactory.IdentifierName("var"),
                                         SyntaxFactory.Identifier($"{node.First.Alias}Row"),
@@ -1778,12 +1783,12 @@ namespace Musoq.Evaluator.Visitors
                 case ApplyType.Cross:
                     computingBlock =
                         computingBlock.AddStatements(
-                            _getRowsSourceStatement[node.First.Alias],
+                            GetRowsSourceOrEmpty(node.First.Alias),
                             SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
                                 SyntaxFactory.Identifier($"{node.First.Alias}Row"),
                                 SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
                                 SyntaxFactory.Block(
-                                    _getRowsSourceStatement[node.Second.Alias],
+                                    GetRowsSourceOrEmpty(node.Second.Alias),
                                     SyntaxFactory.ForEachStatement(
                                         SyntaxFactory.IdentifierName("var"),
                                         SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
@@ -1869,7 +1874,7 @@ namespace Musoq.Evaluator.Visitors
 
                     computingBlock =
                         computingBlock.AddStatements(
-                            _getRowsSourceStatement[node.First.Alias],
+                            GetRowsSourceOrEmpty(node.First.Alias),
                             SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
                                 SyntaxFactory.Identifier($"{node.First.Alias}Row"),
                                 SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
@@ -1877,7 +1882,7 @@ namespace Musoq.Evaluator.Visitors
                                     SyntaxFactory.LocalDeclarationStatement(
                                         SyntaxHelper.CreateAssignment("hasAnyRowMatched",
                                             (LiteralExpressionSyntax) Generator.FalseLiteralExpression())),
-                                    _getRowsSourceStatement[node.Second.Alias],
+                                    GetRowsSourceOrEmpty(node.Second.Alias),
                                     SyntaxFactory.ForEachStatement(
                                         SyntaxFactory.IdentifierName("var"),
                                         SyntaxFactory.Identifier($"{node.Second.Alias}Row"),

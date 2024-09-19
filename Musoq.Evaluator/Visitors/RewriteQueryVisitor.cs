@@ -691,12 +691,6 @@ namespace Musoq.Evaluator.Visitors
                         MetaAttributes.OuterJoinSelect,
                         new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray()));
 
-                    foreach (var key in usedTables.Keys.ToArray())
-                        usedTables[key] = targetTableName;
-
-                    usedTables[current.Source.Alias] = targetTableName;
-                    usedTables.Add(current.With.Alias, targetTableName);
-
                     if (current is JoinFromNode joinFromNode)
                     {
                         var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
@@ -736,6 +730,12 @@ namespace Musoq.Evaluator.Visitors
                             null,
                             new RefreshNode([]));
                     }
+
+                    foreach (var key in usedTables.Keys.ToArray())
+                        usedTables[key] = targetTableName;
+
+                    usedTables[current.Source.Alias] = targetTableName;
+                    usedTables.Add(current.With.Alias, targetTableName);
 
                     targetTable = new CreateTransformationTableNode(targetTableName, [], bothForCreateTable, false);
 
