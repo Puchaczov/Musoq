@@ -221,6 +221,12 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+        {
+            node.SourceTable.Accept(this);
+            node.Accept(_visitor);
+        }
+
         public void Visit(SchemaFromNode node)
         {
             node.Parameters.Accept(this);

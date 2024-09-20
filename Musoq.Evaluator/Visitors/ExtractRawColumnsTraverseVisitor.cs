@@ -195,6 +195,13 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+        {
+            SetQueryPart(QueryPart.From);
+            node.SourceTable.Accept(this);
+            node.Accept(_visitor);
+        }
+
         public void Visit(SchemaFromNode node)
         {
             SetQueryPart(QueryPart.From);

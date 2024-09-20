@@ -234,6 +234,10 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+        {
+        }
+
         public void Visit(SchemaFromNode node)
         {
         }

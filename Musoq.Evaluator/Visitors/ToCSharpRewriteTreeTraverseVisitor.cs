@@ -177,6 +177,18 @@ namespace Musoq.Evaluator.Visitors
             _visitor.RemoveNullSuspiciousSection();
         }
 
+        public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+        {
+            _visitor.SetInsideJoinOrApply(true);
+            _visitor.AddNullSuspiciousSection();
+            
+            node.SourceTable.Accept(this);
+            node.Accept(_visitor);
+            
+            _visitor.SetInsideJoinOrApply(false);
+            _visitor.RemoveNullSuspiciousSection();
+        }
+
         public void Visit(SchemaFromNode node)
         {
             node.Parameters.Accept(this);

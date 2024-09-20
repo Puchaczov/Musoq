@@ -222,6 +222,10 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+    {
+    }
+
     public void Visit(SchemaFromNode node)
     {
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) + _schemaFromKey;

@@ -65,7 +65,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(AccessRawIdentifierNode node)
+        public virtual void Visit(AccessRawIdentifierNode node)
         {
             node.Accept(Visitor);
         }
@@ -162,6 +162,12 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
+        public virtual void Visit(ApplyInMemoryWithSourceTableFromNode node)
+        {
+            node.SourceTable.Accept(this);
+            node.Accept(Visitor);
+        }
+
         public virtual void Visit(SchemaFromNode node)
         {
             node.Parameters.Accept(this);
@@ -177,7 +183,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(ApplySourcesTableFromNode node)
+        public virtual void Visit(ApplySourcesTableFromNode node)
         {
             node.First.Accept(this);
             node.Second.Accept(this);
@@ -198,7 +204,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(ApplyFromNode node)
+        public virtual void Visit(ApplyFromNode node)
         {
             node.Source.Accept(this);
             node.With.Accept(this);
@@ -211,7 +217,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(AccessMethodFromNode node)
+        public virtual void Visit(AccessMethodFromNode node)
         {
             node.Accept(Visitor);
         }
@@ -221,7 +227,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(PropertyFromNode node)
+        public virtual void Visit(PropertyFromNode node)
         {
             node.Accept(Visitor);
         }
@@ -262,7 +268,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(ShouldBePresentInTheTable node)
+        public virtual void Visit(ShouldBePresentInTheTable node)
         {
             node.Accept(Visitor);
         }
@@ -529,7 +535,7 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public void Visit(ApplyNode node)
+        public virtual void Visit(ApplyNode node)
         {
             node.Apply.Accept(this);
             node.Accept(Visitor);

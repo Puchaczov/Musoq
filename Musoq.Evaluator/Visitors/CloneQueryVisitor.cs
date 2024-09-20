@@ -451,6 +451,12 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
         }
 
+        public virtual void Visit(ApplyInMemoryWithSourceTableFromNode node)
+        {
+            var from = (FromNode) Nodes.Pop();
+            Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType));
+        }
+
         public virtual void Visit(InternalQueryNode node)
         {
             throw new NotSupportedException();

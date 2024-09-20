@@ -674,7 +674,13 @@ namespace Musoq.Evaluator.Visitors
                     }
 
                     pairs = pairs
-                        .Concat(trimmedRight.CompoundTables.Select(compoundTable => new KeyValuePair<string, string[]>(compoundTable, trimmedRight.GetColumns(compoundTable).Select(f => f.ColumnName).ToArray())));
+                        .Concat(trimmedRight.CompoundTables.Select(
+                            compoundTable => new KeyValuePair<string, string[]>(
+                                compoundTable, 
+                                trimmedRight.GetColumns(compoundTable).Select(f => f.ColumnName).ToArray()
+                            )
+                        )
+                    );
                     
                     limitedTargetSymbolTable = targetSymbolTable.LimitColumnsTo(new Dictionary<string, string[]>(pairs));
 
@@ -693,8 +699,8 @@ namespace Musoq.Evaluator.Visitors
 
                     if (current is JoinFromNode joinFromNode)
                     {
-                        var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
-                        var expressionUpdaterTraverser = new RewriteWhereConditionWithUpdatedColumnAccessTraverser(expressionUpdater);
+                        var expressionUpdater = new RewriteToUpdatedColumnAccess(usedTables);
+                        var expressionUpdaterTraverser = new RewriteToUpdatedColumnAccessTraverser(expressionUpdater);
                         var whereNode = new WhereNode(joinFromNode.Expression);
 
                         whereNode.Accept(expressionUpdaterTraverser);
@@ -716,13 +722,19 @@ namespace Musoq.Evaluator.Visitors
                     }
                     else
                     {
+                        var expressionUpdater = new RewriteToUpdatedColumnAccess(usedTables);
+                        var expressionUpdaterTraverser = new RewriteToUpdatedColumnAccessTraverser(expressionUpdater);
+                        var applyFromNode = (ApplyFromNode) current;
+                        
+                        applyFromNode.With.Accept(expressionUpdaterTraverser);
+                        
                         joinedQuery = new InternalQueryNode(
                             new SelectNode(bothForSelect),
                             new Parser.ExpressionFromNode(
-                                new Parser.ApplySourcesTableFromNode(
-                                    current.Source,
-                                    current.With,
-                                    ((ApplyFromNode)current).ApplyType)),
+                                new Parser.ApplyInMemoryWithSourceTableFromNode(
+                                    current.Source.Alias,
+                                    expressionUpdater.From,
+                                    applyFromNode.ApplyType)),
                             null,
                             null,
                             null,
@@ -915,6 +927,12 @@ namespace Musoq.Evaluator.Visitors
             var exp = Nodes.Pop();
             var from = (FromNode) Nodes.Pop();
             Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
+        }
+
+        public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+        {
+            var from = (FromNode) Nodes.Pop();
+            Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType));
         }
 
         public void Visit(InternalQueryNode node)
