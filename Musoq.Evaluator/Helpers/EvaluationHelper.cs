@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Musoq.Evaluator.Tables;
@@ -14,6 +14,16 @@ namespace Musoq.Evaluator.Helpers
 {
     public static class EvaluationHelper
     {
+        public static RowSource ConvertEnumerableToSource<T>(IEnumerable<T> enumerable)
+        {
+            if (typeof(T).IsPrimitive)
+            {
+                return new GenericRowsSource<PrimitiveTypeEntity<T>>(enumerable.Select(f => new PrimitiveTypeEntity<T>(f)));
+            }
+            
+            return new GenericRowsSource<T>(enumerable);
+        }
+        
         public static RowSource ConvertTableToSource(Table table)
         {
             return new TableRowSource(table);
@@ -26,18 +36,17 @@ namespace Musoq.Evaluator.Helpers
 
         public static Table GetSpecificTableDescription(ISchemaTable table)
         {
-            var newTable = new Table("desc", new[]
-            {
+            var newTable = new Table("desc", [
                 new Column("Name", typeof(string), 0),
                 new Column("Index", typeof(int), 1),
                 new Column("Type", typeof(string), 2)
-            });
+            ]);
 
             foreach (var column in table.Columns)
             {
                 foreach (var complexField in CreateTypeComplexDescription(column.ColumnName, column.ColumnType))
                 {
-                    newTable.Add(new ObjectsRow(new object[]{ complexField.FieldName, column.ColumnIndex, complexField.Type.FullName }));
+                    newTable.Add(new ObjectsRow([complexField.FieldName, column.ColumnIndex, complexField.Type.FullName]));
                 }
                 
             }
@@ -47,7 +56,7 @@ namespace Musoq.Evaluator.Helpers
 
         public static Table GetSpecificSchemaDescriptions(ISchema schema)
         {
-            return CreateTableFromConstructors(() => schema.GetRawConstructors());
+            return CreateTableFromConstructors(schema.GetRawConstructors);
         }
 
         public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName)
@@ -141,19 +150,19 @@ namespace Musoq.Evaluator.Helpers
             return output;
         }
 
-        public static string GetCastableType(Type type)
+        public static string GetCasteableType(Type type)
         {
             if (type is NullNode.NullType) return "System.Object";
             if (type.IsGenericType) return GetFriendlyTypeName(type);
-            if (type.IsNested) return $"{GetCastableType(type.DeclaringType)}.{type.Name}";
+            if (type.IsNested) return $"{GetCasteableType(type.DeclaringType)}.{type.Name}";
 
-            return $"{type.Namespace}.{type.Name}";
+            return ReplacePlusWithDotForNestedClasses(type.FullName);
         }
 
         public static Type[] GetNestedTypes(Type type)
         {
             if (!type.IsGenericType)
-                return new[] {type};
+                return [type];
 
             var types = new Stack<Type>();
 
@@ -177,7 +186,7 @@ namespace Musoq.Evaluator.Helpers
         {
             if (type.IsGenericParameter) return type.Name;
 
-            if (!type.IsGenericType) return type.FullName;
+            if (!type.IsGenericType) return ReplacePlusWithDotForNestedClasses(type.FullName);
 
             var builder = new StringBuilder();
             var name = type.Name;
@@ -194,6 +203,11 @@ namespace Musoq.Evaluator.Helpers
 
             builder.Append('>');
             return builder.ToString();
+        }
+
+        private static string ReplacePlusWithDotForNestedClasses(string fullName)
+        {
+            return fullName.Replace("+", ".");
         }
 
         public static string RemapPrimitiveTypes(string typeName)
@@ -298,7 +312,7 @@ namespace Musoq.Evaluator.Helpers
             _item = item;
         }
 
-        public object[] Contexts => Array.Empty<object>();
+        public object[] Contexts => [];
 
         public object this[string name]
         {
@@ -316,6 +330,43 @@ namespace Musoq.Evaluator.Helpers
         public bool HasColumn(string name)
         {
             return false;
+        }
+    }
+    
+    public class GenericRowsSource<T> : RowSource
+    {
+        private readonly IEnumerable<T> _entities;
+
+        public GenericRowsSource(IEnumerable<T> entities)
+        {
+            _entities = entities;
+        }
+
+        // ReSharper disable once StaticMemberInGenericType
+        public static IReadOnlyDictionary<string, int> NameToIndexMap { get; }
+        
+        public static IReadOnlyDictionary<int, Func<T, object>> IndexToObjectAccessMap { get; }
+
+        public override IEnumerable<IObjectResolver> Rows => _entities.Select(entity => new EntityResolver<T>(entity, NameToIndexMap, IndexToObjectAccessMap));
+
+        static GenericRowsSource()
+        {
+            var type = typeof(T);
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        
+            var nameToIndexMap = new Dictionary<string, int>();
+            var indexToObjectAccessMap = new Dictionary<int, Func<T, object>>();
+        
+            for (var i = 0; i < properties.Length; i++)
+            {
+                var property = properties[i];
+            
+                nameToIndexMap.Add(property.Name, i);
+                indexToObjectAccessMap.Add(i, entity => property.GetValue(entity));
+            }
+        
+            NameToIndexMap = nameToIndexMap;
+            IndexToObjectAccessMap = indexToObjectAccessMap;
         }
     }
 }

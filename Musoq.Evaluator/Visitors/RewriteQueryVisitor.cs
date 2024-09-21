@@ -403,7 +403,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(PropertyFromNode node)
         {
-            Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName));
+            Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, node.ReturnType));
         }
 
         public void Visit(AliasedFromNode node)

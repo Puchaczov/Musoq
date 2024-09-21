@@ -64,6 +64,7 @@ public class StringifyTests : BasicEntityTestBase
     [DataRow("select b.* from #some.thing() a cross apply #some.thing(a.Column, true) b")]
     [DataRow("select b.* from #some.thing() a cross apply #some.thing(a.Column, true, 10) b")]
     [DataRow("select b.* from #some.thing() a cross apply a.Column b")]
+    [DataRow("select b.* from #some.thing() a outer apply a.Column b")]
     [DataRow("select b.* from #some.thing() a outer apply #some.thing() b")]
     [DataRow("select b.* from #some.thing() a outer apply #some.thing(a.Column) b")]
     [DataRow("select b.* from #some.thing() a outer apply a.TestMethod(b.Column) b")]

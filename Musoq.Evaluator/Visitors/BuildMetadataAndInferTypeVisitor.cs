@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -16,6 +17,7 @@ using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
+using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -26,6 +28,7 @@ using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
 using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
 using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
 using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
+using NotSupportedException = System.NotSupportedException;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 
@@ -65,6 +68,9 @@ namespace Musoq.Evaluator.Visitors
         private readonly List<FieldNode> _groupByFields = [];
         private readonly List<Type> _nullSuspiciousTypes;
         private readonly IReadOnlyDictionary<string, string[]> _columns;
+        
+        private  readonly IDictionary<string,  (int SchemaFromKey, uint PositionalEnvironmentVariableKey)> _schemaFromInfo = 
+            new Dictionary<string, (int, uint)>();
 
         private int _setKey;
         private int _schemaFromKey;
@@ -745,6 +751,9 @@ namespace Musoq.Evaluator.Visitors
 
             _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
             _generatedAliases.Add(_queryAlias);
+
+            var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
+                _queryAlias, node.QueryId);
  
             var isDesc = _currentScope.Name == "Desc";
             var table = !isDesc ? schema.GetTableByName(
@@ -755,11 +764,12 @@ namespace Musoq.Evaluator.Visitors
                         _positionalEnvironmentVariables.TryGetValue(_positionalEnvironmentVariablesKey, out var variable)
                             ? variable
                             : new Dictionary<string, string>(),
-                        (node, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)
+                        (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)
                     ), 
                     _schemaFromArgs.ToArray())
                 : new DynamicTable([]);
 
+            _schemaFromInfo.Add(_queryAlias, (_schemaFromKey, _positionalEnvironmentVariablesKey));
             _positionalEnvironmentVariablesKey += 1;
             _schemaFromArgs.Clear();
 
@@ -768,9 +778,6 @@ namespace Musoq.Evaluator.Visitors
             var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
-
-            var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
-                _queryAlias, node.QueryId);
             
             _aliasToSchemaFromNodeMap.Add(_queryAlias, aliasedSchemaFromNode);
 
@@ -792,7 +799,47 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(PropertyFromNode node)
         {
-            Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName));
+            var schemaFrom = _aliasToSchemaFromNodeMap[node.SourceAlias];
+            var schema = _provider.GetSchema(schemaFrom.Schema);
+
+            _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+            _generatedAliases.Add(_queryAlias);
+            
+            var referencedTable = schema.GetTableByName(
+                schemaFrom.Method, 
+                new RuntimeContext(
+                    CancellationToken.None,
+                    _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
+                    _positionalEnvironmentVariables.TryGetValue(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, out var variable)
+                        ? variable
+                        : new Dictionary<string, string>(),
+                    (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)
+                ), 
+                schemaFrom.Parameters);
+            
+            _schemaFromArgs.Clear();
+
+            var targetColumn = referencedTable.GetColumnByName(node.PropertyName);
+
+            if (targetColumn == null)
+            {
+                PrepareAndThrowUnknownColumnExceptionMessage(node.PropertyName, referencedTable.Columns);
+                return;
+            }
+
+            var propertyInfo = referencedTable.Metadata.TableEntityType.GetProperty(targetColumn.ColumnName);
+            if (propertyInfo?.GetCustomAttribute<BindablePropertyAsTableAttribute>() == null && IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType) && !elementType.IsPrimitive)
+            {
+                throw new NotSupportedException("Column must be marked as BindablePropertyAsTable.");
+            }
+            
+            AddAssembly(targetColumn.ColumnType.Assembly);
+            
+            var tableSymbol = new TableSymbol(_queryAlias, schema, TurnColumnIntoTable(targetColumn), !string.IsNullOrEmpty(node.Alias));
+            _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
+            _currentScope[node.Id] = _queryAlias;
+            
+            Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, targetColumn.ColumnType));
         }
 
         public void Visit(AccessMethodFromNode node)
@@ -997,6 +1044,7 @@ namespace Musoq.Evaluator.Visitors
 
             _schemaFromArgs.Clear();
             _aliasToSchemaFromNodeMap.Clear();
+            _schemaFromInfo.Clear();
         }
 
         public void Visit(JoinInMemoryWithSourceTableFromNode node)
@@ -1872,6 +1920,64 @@ namespace Musoq.Evaluator.Visitors
             
             constructedMethod = methodInfo.MakeGenericMethod(genericArgumentsConcreteTypes);
             return true;
+        }
+
+        private static ISchemaTable TurnColumnIntoTable(ISchemaColumn targetColumn)
+        {   
+            var columns = new List<ISchemaColumn>();
+
+            Type nestedType;
+            if (targetColumn.ColumnType.IsArray)
+            {
+                nestedType = targetColumn.ColumnType.GetElementType();
+            }
+            else if (IsGenericEnumerable(targetColumn.ColumnType, out nestedType))
+            {
+                // nestedType is already set by the IsGenericEnumerable method
+            }
+            else
+            {
+                throw new NotSupportedException("Column must be an array or implement IEnumerable<T>.");
+            }
+
+            if (nestedType == null)
+            {
+                throw new InvalidOperationException("Element type is null.");
+            }
+
+            if (nestedType.IsPrimitive || nestedType == typeof(string))
+            {
+                return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<int>.Value), 0, nestedType)]);
+            }
+    
+            foreach (var property in nestedType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            {
+                columns.Add(new SchemaColumn(property.Name, columns.Count, property.PropertyType));
+            }
+    
+            return new DynamicTable(columns.ToArray());
+        }
+
+        private static bool IsGenericEnumerable(Type type, out Type elementType)
+        {
+            elementType = null;
+    
+            // Check if the type is a generic type
+            if (!type.IsGenericType) return false;
+            
+            // Get all interfaces implemented by the type
+            var interfaces = type.GetInterfaces().Concat([type]);
+        
+            foreach (var interfaceType in interfaces)
+            {
+                if (!interfaceType.IsGenericType ||
+                    interfaceType.GetGenericTypeDefinition() != typeof(IEnumerable<>)) continue;
+                    
+                elementType = interfaceType.GetGenericArguments()[0];
+                return true;
+            }
+
+            return false;
         }
     }
 }

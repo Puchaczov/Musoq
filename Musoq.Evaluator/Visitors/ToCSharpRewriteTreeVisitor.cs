@@ -365,7 +365,7 @@ namespace Musoq.Evaluator.Visitors
 
             var typeIdentifier =
                 SyntaxFactory.IdentifierName(
-                    EvaluationHelper.GetCastableType(node.ReturnType));
+                    EvaluationHelper.GetCasteableType(node.ReturnType));
 
             if (node.ReturnType is NullNode.NullType)
             {
@@ -391,7 +391,7 @@ namespace Musoq.Evaluator.Visitors
             AddNamespace(types);
 
             var typeIdentifier = SyntaxFactory.IdentifierName(
-                EvaluationHelper.GetCastableType(node.ReturnType));
+                EvaluationHelper.GetCasteableType(node.ReturnType));
             
             if (node.ReturnType is NullNode.NullType)
             {
@@ -669,7 +669,7 @@ namespace Musoq.Evaluator.Visitors
                         }
 
                         var typeIdentifier = SyntaxFactory.IdentifierName(
-                            EvaluationHelper.GetCastableType(parameterInfo.ParameterType));
+                            EvaluationHelper.GetCasteableType(parameterInfo.ParameterType));
 
                         if (parameterInfo.ParameterType == typeof(ExpandoObject))
                         {
@@ -864,7 +864,7 @@ namespace Musoq.Evaluator.Visitors
 
             var typeIdentifier =
                 SyntaxFactory.IdentifierName(
-                    EvaluationHelper.GetCastableType(node.ReturnType));
+                    EvaluationHelper.GetCasteableType(node.ReturnType));
             
             if (node.ReturnType is NullNode.NullType)
             {
@@ -1238,7 +1238,7 @@ namespace Musoq.Evaluator.Visitors
                         expressions.Add(
                             SyntaxFactory.CastExpression(
                                 SyntaxFactory.IdentifierName(
-                                    EvaluationHelper.GetCastableType(column.ColumnType)),
+                                    EvaluationHelper.GetCasteableType(column.ColumnType)),
                                 (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
                     }
 
@@ -1341,7 +1341,7 @@ namespace Musoq.Evaluator.Visitors
                             expressions.Add(
                                 SyntaxFactory.CastExpression(
                                     SyntaxFactory.IdentifierName(
-                                        EvaluationHelper.GetCastableType(column.ColumnType)),
+                                        EvaluationHelper.GetCasteableType(column.ColumnType)),
                                     (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
 
                             j += 1;
@@ -1507,7 +1507,7 @@ namespace Musoq.Evaluator.Visitors
                         expressions.Add(
                             SyntaxFactory.CastExpression(
                                 SyntaxFactory.IdentifierName(
-                                    EvaluationHelper.GetCastableType(column.ColumnType)),
+                                    EvaluationHelper.GetCasteableType(column.ColumnType)),
                                 (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
                     }
 
@@ -1609,7 +1609,7 @@ namespace Musoq.Evaluator.Visitors
                 tableInfoVariableName,
                 SyntaxHelper.CreateArrayOf(
                     nameof(ISchemaColumn),
-                    originColumns.Select(column => SyntaxHelper.CreateObjectOf(nameof(Column), SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(column.ColumnName))), SyntaxHelper.TypeLiteralArgument(EvaluationHelper.GetCastableType(column.ColumnType)), SyntaxHelper.IntLiteralArgument(column.ColumnIndex)])))).Cast<ExpressionSyntax>().ToArray()));
+                    originColumns.Select(column => SyntaxHelper.CreateObjectOf(nameof(Column), SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(column.ColumnName))), SyntaxHelper.TypeLiteralArgument(EvaluationHelper.GetCasteableType(column.ColumnType)), SyntaxHelper.IntLiteralArgument(column.ColumnIndex)])))).Cast<ExpressionSyntax>().ToArray()));
 
             var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
                 node.Alias,
@@ -1713,7 +1713,7 @@ namespace Musoq.Evaluator.Visitors
                         expressions.Add(
                             SyntaxFactory.CastExpression(
                                 SyntaxFactory.IdentifierName(
-                                    EvaluationHelper.GetCastableType(column.ColumnType)),
+                                    EvaluationHelper.GetCasteableType(column.ColumnType)),
                                 (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
                     }
 
@@ -1812,7 +1812,7 @@ namespace Musoq.Evaluator.Visitors
                         expressions.Add(
                             SyntaxFactory.CastExpression(
                                 SyntaxFactory.IdentifierName(
-                                    EvaluationHelper.GetCastableType(column.ColumnType)),
+                                    EvaluationHelper.GetCasteableType(column.ColumnType)),
                                 (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
                     }
 
@@ -1964,8 +1964,7 @@ namespace Musoq.Evaluator.Visitors
                     {
                         expressions.Add(
                             SyntaxFactory.CastExpression(
-                                SyntaxFactory.IdentifierName(
-                                    EvaluationHelper.GetCastableType(column.ColumnType)),
+                                SyntaxFactory.IdentifierName(EvaluationHelper.GetCasteableType(column.ColumnType)),
                                 (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
                     }
 
@@ -2107,6 +2106,32 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(PropertyFromNode node)
         {
+            AddNamespace(node.ReturnType);
+            
+            _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
+                .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory
+                        .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
+                            SyntaxFactory.EqualsValueClause(SyntaxFactory
+                                .InvocationExpression(SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertEnumerableToSource))))
+                                .WithArgumentList(
+                                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Argument(
+                                            SyntaxFactory.CastExpression(
+                                                SyntaxFactory.ParseTypeName(EvaluationHelper.GetCasteableType(node.ReturnType)),
+                                                SyntaxFactory.ElementAccessExpression(
+                                                        SyntaxFactory.IdentifierName($"{node.SourceAlias}Row"))
+                                                    .WithArgumentList(
+                                                        SyntaxFactory.BracketedArgumentList(
+                                                            SyntaxFactory.SingletonSeparatedList(
+                                                                SyntaxFactory.Argument(
+                                                                    SyntaxFactory.LiteralExpression(
+                                                                        SyntaxKind.StringLiteralExpression,
+                                                                        SyntaxFactory.Literal(
+                                                                            node.PropertyName)))))))))))))))));
         }
 
         public void Visit(AliasedFromNode node)
@@ -2139,7 +2164,7 @@ namespace Musoq.Evaluator.Visitors
                                             SyntaxKind.StringLiteralExpression,
                                             SyntaxFactory.Literal($"@\"{EscapeQuoteString(field.FieldName, EscapeQuoteStringCharacter)}\"", field.FieldName))),
                                     SyntaxHelper.TypeLiteralArgument(
-                                        EvaluationHelper.GetCastableType(type)),
+                                        EvaluationHelper.GetCasteableType(type)),
                                     SyntaxHelper.IntLiteralArgument(field.FieldOrder)
                                 }))));
                 }
@@ -3076,7 +3101,7 @@ namespace Musoq.Evaluator.Visitors
                 _namespaces.Add(columnTypeNamespace);
         }
 
-        private void AddNamespace(Type[] types)
+        private void AddNamespace(params Type[] types)
         {
             foreach (var type in types)
                 AddNamespace(type.Namespace);
@@ -3575,7 +3600,7 @@ namespace Musoq.Evaluator.Visitors
 
             var method = SyntaxFactory
                 .MethodDeclaration(
-                    SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(node.ReturnType)),
+                    SyntaxFactory.IdentifierName(EvaluationHelper.GetCasteableType(node.ReturnType)),
                     SyntaxFactory.Identifier(methodName))
                 .WithModifiers(
                     SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
@@ -3883,7 +3908,7 @@ namespace Musoq.Evaluator.Visitors
             }
             
             var typeIdentifier = SyntaxFactory.IdentifierName(
-                EvaluationHelper.GetCastableType(nodeReturnType));
+                EvaluationHelper.GetCasteableType(nodeReturnType));
             
             return Generator.CastExpression(Generator.NullableTypeExpression(typeIdentifier), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
         }

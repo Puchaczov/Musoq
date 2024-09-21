@@ -379,7 +379,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(PropertyFromNode node)
         {
-            Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName));
+            Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, node.ReturnType));
         }
 
         public virtual void Visit(AliasedFromNode node)

@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
-using Musoq.Evaluator.Tests.Schema.Multi.First;
-using Musoq.Evaluator.Tests.Schema.Multi.Second;
 
 namespace Musoq.Evaluator.Tests
 {
@@ -58,31 +54,28 @@ inner join #C.entities() population on cities.City = population.City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#B", new[]
-                    {
+                    "#B", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Poland", "Wroclaw"),
                         new BasicEntity("Poland", "Warszawa"),
                         new BasicEntity("Poland", "Gdansk"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#C", new[]
-                    {
+                    "#C", [
                         new BasicEntity {City = "Krakow", Population = 400},
                         new BasicEntity {City = "Wroclaw", Population = 500},
                         new BasicEntity {City = "Warszawa", Population = 1000},
                         new BasicEntity {City = "Gdansk", Population = 200},
                         new BasicEntity {City = "Berlin", Population = 400}
-                    }
+                    ]
                 }
             };
 
@@ -139,31 +132,28 @@ inner join #C.entities() population on cities.City = population.City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#B", new[]
-                    {
+                    "#B", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Poland", "Wroclaw"),
                         new BasicEntity("Poland", "Warszawa"),
                         new BasicEntity("Poland", "Gdansk"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#C", new[]
-                    {
+                    "#C", [
                         new BasicEntity {City = "Krakow", Population = 400},
                         new BasicEntity {City = "Wroclaw", Population = 500},
                         new BasicEntity {City = "Warszawa", Population = 1000},
                         new BasicEntity {City = "Gdansk", Population = 200},
                         new BasicEntity {City = "Berlin", Population = 400}
-                    }
+                    ]
                 }
             };
 
@@ -214,31 +204,28 @@ inner join #C.entities() population on cities.City = population.City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#B", new[]
-                    {
+                    "#B", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Poland", "Wroclaw"),
                         new BasicEntity("Poland", "Warszawa"),
                         new BasicEntity("Poland", "Gdansk"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#C", new[]
-                    {
+                    "#C", [
                         new BasicEntity {City = "Krakow", Population = 400},
                         new BasicEntity {City = "Wroclaw", Population = 500},
                         new BasicEntity {City = "Warszawa", Population = 1000},
                         new BasicEntity {City = "Gdansk", Population = 200},
                         new BasicEntity {City = "Berlin", Population = 400}
-                    }
+                    ]
                 }
             };
 
@@ -295,31 +282,28 @@ group by cities.Country";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#B", new[]
-                    {
+                    "#B", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Poland", "Wroclaw"),
                         new BasicEntity("Poland", "Warszawa"),
                         new BasicEntity("Poland", "Gdansk"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#C", new[]
-                    {
+                    "#C", [
                         new BasicEntity {City = "Krakow", Population = 400},
                         new BasicEntity {City = "Wroclaw", Population = 500},
                         new BasicEntity {City = "Warszawa", Population = 1000},
                         new BasicEntity {City = "Gdansk", Population = 200},
                         new BasicEntity {City = "Berlin", Population = 400}
-                    }
+                    ]
                 }
             };
 
@@ -346,8 +330,7 @@ group by cities.Country";
         [TestMethod]
         public void JoinWithExceptTest()
         {
-            var query =
-       @"
+            const string query = @"
 select 
     countries.Country, cities.City, population.Population 
 from #A.entities() countries 
@@ -363,31 +346,28 @@ inner join #C.entities() population on cities.City = population.City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#B", new[]
-                    {
+                    "#B", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Poland", "Wroclaw"),
                         new BasicEntity("Poland", "Warszawa"),
                         new BasicEntity("Poland", "Gdansk"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#C", new[]
-                    {
+                    "#C", [
                         new BasicEntity {City = "Krakow", Population = 400},
                         new BasicEntity {City = "Wroclaw", Population = 500},
                         new BasicEntity {City = "Warszawa", Population = 1000},
                         new BasicEntity {City = "Gdansk", Population = 200},
                         new BasicEntity {City = "Berlin", Population = 400}
-                    }
+                    ]
                 }
             };
 
@@ -431,31 +411,28 @@ inner join #C.entities() population on cities.City = population.City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#B", new[]
-                    {
+                    "#B", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Poland", "Wroclaw"),
                         new BasicEntity("Poland", "Warszawa"),
                         new BasicEntity("Poland", "Gdansk"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#C", new[]
-                    {
+                    "#C", [
                         new BasicEntity {City = "Krakow", Population = 400},
                         new BasicEntity {City = "Wroclaw", Population = 500},
                         new BasicEntity {City = "Warszawa", Population = 1000},
                         new BasicEntity {City = "Gdansk", Population = 200},
                         new BasicEntity {City = "Berlin", Population = 400}
-                    }
+                    ]
                 }
             };
 
@@ -519,31 +496,28 @@ inner join #C.entities() population on cities.City = population.City";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#B", new[]
-                    {
+                    "#B", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Poland", "Wroclaw"),
                         new BasicEntity("Poland", "Warszawa"),
                         new BasicEntity("Poland", "Gdansk"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#C", new[]
-                    {
+                    "#C", [
                         new BasicEntity {City = "Krakow", Population = 400},
                         new BasicEntity {City = "Wroclaw", Population = 500},
                         new BasicEntity {City = "Warszawa", Population = 1000},
                         new BasicEntity {City = "Gdansk", Population = 200},
                         new BasicEntity {City = "Berlin", Population = 400}
-                    }
+                    ]
                 }
             };
 
@@ -621,22 +595,20 @@ select p.Id, x.Id from p inner join x on p.Country = x.Country";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow") {Id = 0},
                         new BasicEntity("Germany", "Berlin") {Id = 1},
                         new BasicEntity("Russia", "Moscow") {Id = 2}
-                    }
+                    ]
                 },
                 {
-                    "#B", new[]
-                    {
+                    "#B", [
                         new BasicEntity("Poland", "Krakow") {Id = 0},
                         new BasicEntity("Poland", "Wroclaw") {Id = 1},
                         new BasicEntity("Poland", "Warszawa") {Id = 2},
                         new BasicEntity("Poland", "Gdansk") {Id = 3},
                         new BasicEntity("Germany", "Berlin") {Id = 4}
-                    }
+                    ]
                 }
             };
 
@@ -676,12 +648,11 @@ select p.Id, x.Id from p inner join x on p.Country = x.Country";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow") {Id = 0},
                         new BasicEntity("Germany", "Berlin") {Id = 1},
                         new BasicEntity("Russia", "Moscow") {Id = 2}
-                    }
+                    ]
                 }
             };
 
@@ -720,12 +691,11 @@ select p.Country, x.Country from p inner join x on p.Country = x.Country where p
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow") {Id = 0},
                         new BasicEntity("Germany", "Berlin") {Id = 1},
                         new BasicEntity("Russia", "Moscow") {Id = 2}
-                    }
+                    ]
                 }
             };
 
@@ -758,13 +728,12 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow") {Id = 0},
                         new BasicEntity("Poland", "Krakow") {Id = 0},
                         new BasicEntity("Germany", "Berlin") {Id = 1},
                         new BasicEntity("Russia", "Moscow") {Id = 2}
-                    }
+                    ]
                 }
             };
 
@@ -786,17 +755,15 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
 
-                    }
+                    ]
                 }
             };
 
@@ -828,17 +795,15 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
 
-                    }
+                    ]
                 }
             };
 
@@ -876,24 +841,21 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
 
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 1 }
-                    }
+                    ]
                 }
             };
 
@@ -931,25 +893,22 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 },
                         new BasicEntity("xX") { Id = 2 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 1 }
-                    }
+                    ]
                 }
             };
 
@@ -991,15 +950,14 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new BasicEntity[]
-                    {
-                    }
+                    "#A", [
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[] {
+                    [
                         new("xX") { Id = 1 }
-                    }
+                    ]
                 }
             };
 
@@ -1031,25 +989,22 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 1 },
                         new("xX") { Id = 2 }
-                    }
+                    ]
                 }
             };
 
@@ -1092,24 +1047,21 @@ select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country 
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 2 }
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 3 }
-                    }
+                    ]
                 }
             };
 
@@ -1135,24 +1087,21 @@ left outer join #C.entities() c on 1 = 1";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 2 }
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 3 }
-                    }
+                    ]
                 }
             };
 
@@ -1179,31 +1128,27 @@ left outer join #D.entities() d on 1 = 1";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 2 }
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 3 }
-                    }
+                    ]
                 },
                 {
                     "#D",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 4 }
-                    }
+                    ]
                 }
             };
 
@@ -1226,24 +1171,21 @@ left outer join #D.entities() d on 1 = 1";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 2 }
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 3 }
-                    }
+                    ]
                 }
             };
 
@@ -1265,24 +1207,21 @@ left outer join #D.entities() d on 1 = 1";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 2 }
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 3 }
-                    }
+                    ]
                 }
             };
 
@@ -1309,24 +1248,21 @@ from #A.entities() a inner join #B.entities() b on 1 = 1 inner join #C.entities(
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("xX") { Id = 1 }
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 2 }
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new BasicEntity[]
-                    {
+                    [
                         new("xX") { Id = 3 }
-                    }
+                    ]
                 }
             };
 
@@ -1355,31 +1291,28 @@ inner join #C.entities() population on cities.GetCity() = population.GetCity()";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#B", new[]
-                    {
+                    "#B", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Poland", "Wroclaw"),
                         new BasicEntity("Poland", "Warszawa"),
                         new BasicEntity("Poland", "Gdansk"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 },
                 {
-                    "#C", new[]
-                    {
+                    "#C", [
                         new BasicEntity {City = "Krakow", Population = 400},
                         new BasicEntity {City = "Wroclaw", Population = 500},
                         new BasicEntity {City = "Warszawa", Population = 1000},
                         new BasicEntity {City = "Gdansk", Population = 200},
                         new BasicEntity {City = "Berlin", Population = 400}
-                    }
+                    ]
                 }
             };
 
@@ -1425,11 +1358,10 @@ inner join #A.entities() cities on countries.Country = cities.Country
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("Poland", "Krakow"),
                         new BasicEntity("Germany", "Berlin")
-                    }
+                    ]
                 }
             };
 
