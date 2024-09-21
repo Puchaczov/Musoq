@@ -752,20 +752,21 @@ namespace Musoq.Evaluator.Visitors
                 
                 var syntaxArgs = new List<SyntaxNodeOrToken>();
 
-                for (int i = 0; i < genericArgs.Length - 1; ++i)
+                for (var i = 0; i < genericArgs.Length - 1; ++i)
                 {
-                    syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[i].FullName));
+                    syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[i].FullName!));
                     syntaxArgs.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
                 }
 
-                syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[genericArgs.Length - 1].FullName));
+                syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[^1].FullName!));
 
                 TypeArgumentListSyntax typeArgs;
                 if (syntaxArgs.Count < 2)
                 {
+                    var syntaxArg = (IdentifierNameSyntax) syntaxArgs[0];
                     typeArgs = SyntaxFactory.TypeArgumentList(
-                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            (IdentifierNameSyntax) syntaxArgs[0]));
+                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(syntaxArg!)
+                    );
                 }
                 else
                 {
@@ -2098,6 +2099,23 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessMethodFromNode node)
         {
+            AddNamespace(node.ReturnType);
+            
+            _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
+                .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory
+                        .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
+                            SyntaxFactory.EqualsValueClause(SyntaxFactory
+                                .InvocationExpression(SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertEnumerableToSource))))
+                                .WithArgumentList(
+                                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Argument(
+                                            SyntaxFactory.CastExpression(
+                                                SyntaxFactory.ParseTypeName(EvaluationHelper.GetCasteableType(node.ReturnType)),
+                                                (ExpressionSyntax)Nodes.Pop())))))))))));
         }
 
         public void Visit(SchemaMethodFromNode node)

@@ -392,6 +392,10 @@ namespace Musoq.Evaluator.Visitors
             {
                 column = tuple.Table.GetColumnByName(node.Name);
             }
+            catch (KeyNotFoundException)
+            {
+                column = null;
+            }
             catch (InvalidOperationException)
             {
                 column = null;
@@ -835,7 +839,7 @@ namespace Musoq.Evaluator.Visitors
             
             AddAssembly(targetColumn.ColumnType.Assembly);
             
-            var tableSymbol = new TableSymbol(_queryAlias, schema, TurnColumnIntoTable(targetColumn), !string.IsNullOrEmpty(node.Alias));
+            var tableSymbol = new TableSymbol(_queryAlias, schema, TurnTypeIntoTable(targetColumn.ColumnType), !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
             
@@ -844,7 +848,18 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessMethodFromNode node)
         {
-            Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, node.AccessMethod));
+            var schemaFrom = _aliasToSchemaFromNodeMap[node.SourceAlias];
+            var schema = _provider.GetSchema(schemaFrom.Schema);
+
+            _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+            _generatedAliases.Add(_queryAlias);
+            
+            var accessMethodNode = (AccessMethodNode) Nodes.Pop();
+            var tableSymbol = new TableSymbol(_queryAlias, schema, TurnTypeIntoTable(accessMethodNode.ReturnType), !string.IsNullOrEmpty(node.Alias));
+            _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
+            _currentScope[node.Id] = _queryAlias;
+            
+            Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethodNode, accessMethodNode.ReturnType));
         }
 
         public void Visit(AliasedFromNode node)
@@ -1922,16 +1937,16 @@ namespace Musoq.Evaluator.Visitors
             return true;
         }
 
-        private static ISchemaTable TurnColumnIntoTable(ISchemaColumn targetColumn)
+        private static ISchemaTable TurnTypeIntoTable(Type type)
         {   
             var columns = new List<ISchemaColumn>();
 
             Type nestedType;
-            if (targetColumn.ColumnType.IsArray)
+            if (type.IsArray)
             {
-                nestedType = targetColumn.ColumnType.GetElementType();
+                nestedType = type.GetElementType();
             }
-            else if (IsGenericEnumerable(targetColumn.ColumnType, out nestedType))
+            else if (IsGenericEnumerable(type, out nestedType))
             {
                 // nestedType is already set by the IsGenericEnumerable method
             }

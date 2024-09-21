@@ -119,7 +119,7 @@ namespace Musoq.Plugins
             var array = new int[sourceCount, patternCount];
             var maxSubStringSequence = 0;
 
-            var subSequence = (IEnumerable<T>?)null;
+            IEnumerable<T>? subSequence = null;
 
             for (int i = 0; i < sourceCount; ++i)
             {

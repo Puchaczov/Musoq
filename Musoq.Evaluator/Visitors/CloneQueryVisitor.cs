@@ -374,7 +374,7 @@ namespace Musoq.Evaluator.Visitors
 
         public virtual void Visit(AccessMethodFromNode node)
         {
-            Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, node.AccessMethod));
+            Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, (AccessMethodNode)Nodes.Pop(), node.ReturnType));
         }
 
         public virtual void Visit(PropertyFromNode node)

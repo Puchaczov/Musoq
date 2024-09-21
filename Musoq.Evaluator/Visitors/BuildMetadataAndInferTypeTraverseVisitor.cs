@@ -405,6 +405,7 @@ namespace Musoq.Evaluator.Visitors
 
         public void Visit(AccessMethodFromNode node)
         {
+            node.AccessMethod.Accept(this);
             node.Accept(_visitor);
         }
 

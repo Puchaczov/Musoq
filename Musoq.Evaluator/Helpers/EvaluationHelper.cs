@@ -16,7 +16,7 @@ namespace Musoq.Evaluator.Helpers
     {
         public static RowSource ConvertEnumerableToSource<T>(IEnumerable<T> enumerable)
         {
-            if (typeof(T).IsPrimitive)
+            if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
             {
                 return new GenericRowsSource<PrimitiveTypeEntity<T>>(enumerable.Select(f => new PrimitiveTypeEntity<T>(f)));
             }
@@ -333,21 +333,14 @@ namespace Musoq.Evaluator.Helpers
         }
     }
     
-    public class GenericRowsSource<T> : RowSource
+    public class GenericRowsSource<T>(IEnumerable<T> entities) : RowSource
     {
-        private readonly IEnumerable<T> _entities;
-
-        public GenericRowsSource(IEnumerable<T> entities)
-        {
-            _entities = entities;
-        }
-
         // ReSharper disable once StaticMemberInGenericType
         public static IReadOnlyDictionary<string, int> NameToIndexMap { get; }
         
         public static IReadOnlyDictionary<int, Func<T, object>> IndexToObjectAccessMap { get; }
 
-        public override IEnumerable<IObjectResolver> Rows => _entities.Select(entity => new EntityResolver<T>(entity, NameToIndexMap, IndexToObjectAccessMap));
+        public override IEnumerable<IObjectResolver> Rows => entities.Select(entity => new EntityResolver<T>(entity, NameToIndexMap, IndexToObjectAccessMap));
 
         static GenericRowsSource()
         {

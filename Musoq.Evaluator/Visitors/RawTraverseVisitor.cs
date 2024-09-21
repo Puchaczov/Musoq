@@ -217,13 +217,14 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(Visitor);
         }
 
-        public virtual void Visit(AccessMethodFromNode node)
+        public virtual void Visit(SchemaMethodFromNode node)
         {
             node.Accept(Visitor);
         }
 
-        public virtual void Visit(SchemaMethodFromNode node)
+        public virtual void Visit(AccessMethodFromNode node)
         {
+            node.AccessMethod.Accept(this);
             node.Accept(Visitor);
         }
 

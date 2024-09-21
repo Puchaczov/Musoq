@@ -599,7 +599,7 @@ namespace Musoq.Plugins
         /// <param name="separators">The separators</param>
         /// <returns></returns>
         [BindableMethod]
-        public string[] Split(string value, params string[] separators) => value.Split(separators, StringSplitOptions.None);
+        public string[] Split(string value, params string[] separators) => value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
         /// <summary>
         /// Computes the longest common subsequence between two source and pattern
