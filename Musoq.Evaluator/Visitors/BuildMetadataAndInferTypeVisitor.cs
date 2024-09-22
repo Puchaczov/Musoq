@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -838,8 +837,9 @@ namespace Musoq.Evaluator.Visitors
             }
             
             AddAssembly(targetColumn.ColumnType.Assembly);
-            
-            var tableSymbol = new TableSymbol(_queryAlias, schema, TurnTypeIntoTable(targetColumn.ColumnType), !string.IsNullOrEmpty(node.Alias));
+
+            var table = TurnTypeIntoTable(targetColumn.ColumnType);
+            var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
             
@@ -855,7 +855,8 @@ namespace Musoq.Evaluator.Visitors
             _generatedAliases.Add(_queryAlias);
             
             var accessMethodNode = (AccessMethodNode) Nodes.Pop();
-            var tableSymbol = new TableSymbol(_queryAlias, schema, TurnTypeIntoTable(accessMethodNode.ReturnType), !string.IsNullOrEmpty(node.Alias));
+            var table = TurnTypeIntoTable(accessMethodNode.ReturnType);
+            var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
             _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
             _currentScope[node.Id] = _queryAlias;
             
@@ -1041,6 +1042,11 @@ namespace Musoq.Evaluator.Visitors
             var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
             var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
             var from = Nodes.Pop() as FromNode;
+
+            if (from is null)
+            {
+                throw new NotSupportedException("From node is null.");
+            }
 
             if (groupBy == null && _refreshMethods.Count > 0)
             {

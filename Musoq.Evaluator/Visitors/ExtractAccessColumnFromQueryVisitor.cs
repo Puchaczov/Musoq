@@ -66,4 +66,11 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
         
         base.Visit(node);
     }
+    
+    public override void Visit(AccessMethodFromNode node)
+    {
+        _accessColumns.TryAdd(node.Alias, []);
+        
+        base.Visit(node);
+    }
 }
