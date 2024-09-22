@@ -48,6 +48,15 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         public List<ComplexType1> Values { get; set; } 
     }
     
+    private class OuterApplyClass5
+    {
+        public string City { get; set; }
+        
+        public double[] Values1 { get; set; }
+        
+        public double[] Values2 { get; set; }
+    }
+    
     [TestMethod]
     public void OuterApplyProperty_NoMatch_ShouldPass()
     {
@@ -117,6 +126,84 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         
         Assert.AreEqual("City3", table[5].Values[0]);
         Assert.AreEqual(6d, table[5].Values[1]);
+    }
+    
+    [TestMethod]
+    public void OuterApplyProperty_WithWhere_ShouldPass()
+    {
+        const string query = "select a.City, b.Value from #schema.first() a outer apply a.Values as b where b.Value >= 2";
+        
+        var firstSource = new List<OuterApplyClass1>
+        {
+            new() {City = "City1", Values = [1]},
+            new() {City = "City2", Values = [2, 3]},
+            new() {City = "City3", Values = [4, 5, 6]}
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        
+        Assert.AreEqual(5, table.Count);
+        
+        Assert.AreEqual("City2", table[0].Values[0]);
+        Assert.AreEqual(2d, table[0].Values[1]);
+        
+        Assert.AreEqual("City2", table[1].Values[0]);
+        Assert.AreEqual(3d, table[1].Values[1]);
+        
+        Assert.AreEqual("City3", table[2].Values[0]);
+        Assert.AreEqual(4d, table[2].Values[1]);
+        
+        Assert.AreEqual("City3", table[3].Values[0]);
+        Assert.AreEqual(5d, table[3].Values[1]);
+        
+        Assert.AreEqual("City3", table[4].Values[0]);
+        Assert.AreEqual(6d, table[4].Values[1]);
+    }
+    
+    [TestMethod]
+    public void OuterApplyProperty_WithGroupBy_ShouldPass()
+    {
+        const string query = "select a.City, a.Sum(b.Value) from #schema.first() a outer apply a.Values as b group by a.City";
+        
+        var firstSource = new List<OuterApplyClass1>
+        {
+            new() {City = "City1", Values = [1]},
+            new() {City = "City2", Values = [2, 3]},
+            new() {City = "City3", Values = [4, 5, 6]}
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("Sum(b.Value)", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(3, table.Count);
+        
+        Assert.AreEqual("City1", table[0].Values[0]);
+        Assert.AreEqual(1m, table[0].Values[1]);
+        
+        Assert.AreEqual("City2", table[1].Values[0]);
+        Assert.AreEqual(5m, table[1].Values[1]);
+        
+        Assert.AreEqual("City3", table[2].Values[0]);
+        Assert.AreEqual(15m, table[2].Values[1]);
     }
     
     [TestMethod]
@@ -269,5 +356,81 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("City3", table[5].Values[0]);
         Assert.AreEqual("Value6", table[5].Values[1]);
         Assert.AreEqual(6, table[5].Values[2]);
+    }
+    
+    [TestMethod]
+    public void OuterApplyProperty_MultiplePrimitiveArrays_ShouldPass()
+    {
+        const string query = "select b.Value, c.Value from #schema.first() a outer apply a.Values1 as b outer apply a.Values2 as c";
+        
+        var firstSource = new List<OuterApplyClass5>
+        {
+            new() {City = "City1", Values1 = [1], Values2=[1.1]},
+            new() {City = "City2", Values1 = [2, 3], Values2 = [2.1, 2.2, 3.3]},
+            new() {City = "City3", Values1 = [4, 5, 6], Values2 = [4.1, 5.1, 6.1]}
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(double?), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(double?), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(16, table.Count);
+        
+        Assert.AreEqual(1d, table[0].Values[0]);
+        Assert.AreEqual(1.1d, table[0].Values[1]);
+        
+        Assert.AreEqual(2d, table[1].Values[0]);
+        Assert.AreEqual(2.1d, table[1].Values[1]);
+        
+        Assert.AreEqual(2d, table[2].Values[0]);
+        Assert.AreEqual(2.2d, table[2].Values[1]);
+        
+        Assert.AreEqual(2d, table[3].Values[0]);
+        Assert.AreEqual(3.3d, table[3].Values[1]);
+        
+        Assert.AreEqual(3d, table[4].Values[0]);
+        Assert.AreEqual(2.1d, table[4].Values[1]);
+        
+        Assert.AreEqual(3d, table[5].Values[0]);
+        Assert.AreEqual(2.2d, table[5].Values[1]);
+        
+        Assert.AreEqual(3d, table[6].Values[0]);
+        Assert.AreEqual(3.3d, table[6].Values[1]);
+        
+        Assert.AreEqual(4d, table[7].Values[0]);
+        Assert.AreEqual(4.1d, table[7].Values[1]);
+        
+        Assert.AreEqual(4d, table[8].Values[0]);
+        Assert.AreEqual(5.1d, table[8].Values[1]);
+        
+        Assert.AreEqual(4d, table[9].Values[0]);
+        Assert.AreEqual(6.1d, table[9].Values[1]);
+        
+        Assert.AreEqual(5d, table[10].Values[0]);
+        Assert.AreEqual(4.1d, table[10].Values[1]);
+            
+        Assert.AreEqual(5d, table[11].Values[0]);
+        Assert.AreEqual(5.1d, table[11].Values[1]);
+        
+        Assert.AreEqual(5d, table[12].Values[0]);
+        Assert.AreEqual(6.1d, table[12].Values[1]);
+        
+        Assert.AreEqual(6d, table[13].Values[0]);
+        Assert.AreEqual(4.1d, table[13].Values[1]);
+        
+        Assert.AreEqual(6d, table[14].Values[0]);
+        Assert.AreEqual(5.1d, table[14].Values[1]);
+        
+        Assert.AreEqual(6d, table[15].Values[0]);
+        Assert.AreEqual(6.1d, table[15].Values[1]);
     }
 }

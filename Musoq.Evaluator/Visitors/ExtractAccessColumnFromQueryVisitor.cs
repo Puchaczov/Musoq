@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 
@@ -53,6 +54,15 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
     public override void Visit(InMemoryTableFromNode node)
     {
         _accessColumns.TryAdd(node.Alias, []);
+        
+        base.Visit(node);
+    }
+
+    public override void Visit(PropertyFromNode node)
+    {
+        _accessColumns.TryAdd(node.SourceAlias, []);
+     
+        _accessColumns[node.SourceAlias].Add(new AccessColumnNode(node.PropertyName, node.SourceAlias, node.ReturnType, TextSpan.Empty));
         
         base.Visit(node);
     }

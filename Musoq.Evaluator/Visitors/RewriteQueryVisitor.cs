@@ -483,7 +483,7 @@ namespace Musoq.Evaluator.Visitors
                 var indexBasedContextsPositionsSymbol = new IndexBasedContextsPositionsSymbol();
                 var orderNumber = 0;
                 var extractAccessedColumnsVisitor = new ExtractAccessColumnFromQueryVisitor();
-                var extractAccessedColumnsTraverseVisitor = new CloneTraverseVisitor(extractAccessedColumnsVisitor);
+                var extractAccessedColumnsTraverseVisitor = new ExtractAccessColumnFromQueryTraverseVisitor(extractAccessedColumnsVisitor);
                 
                 node.Accept(extractAccessedColumnsTraverseVisitor);
 
@@ -696,11 +696,12 @@ namespace Musoq.Evaluator.Visitors
                     scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
                         MetaAttributes.OuterJoinSelect,
                         new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray()));
+                    
+                    var expressionUpdater = new RewriteToUpdatedColumnAccess(usedTables);
+                    var expressionUpdaterTraverser = new RewriteToUpdatedColumnAccessTraverser(expressionUpdater);
 
                     if (current is JoinFromNode joinFromNode)
                     {
-                        var expressionUpdater = new RewriteToUpdatedColumnAccess(usedTables);
-                        var expressionUpdaterTraverser = new RewriteToUpdatedColumnAccessTraverser(expressionUpdater);
                         var whereNode = new WhereNode(joinFromNode.Expression);
 
                         whereNode.Accept(expressionUpdaterTraverser);
@@ -722,8 +723,6 @@ namespace Musoq.Evaluator.Visitors
                     }
                     else
                     {
-                        var expressionUpdater = new RewriteToUpdatedColumnAccess(usedTables);
-                        var expressionUpdaterTraverser = new RewriteToUpdatedColumnAccessTraverser(expressionUpdater);
                         var applyFromNode = (ApplyFromNode) current;
                         
                         applyFromNode.With.Accept(expressionUpdaterTraverser);

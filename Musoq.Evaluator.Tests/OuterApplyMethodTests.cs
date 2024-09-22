@@ -143,4 +143,107 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("consectetur", table[4][0]);
         Assert.AreEqual("adipiscing", table[5][0]);
     }
+    
+    [TestMethod]
+    public void OuterApplyProperty_WhereCondition_ShouldPass()
+    {
+        const string query = "select b.Value from #schema.first() a outer apply a.Split(a.Text, ' ') as b where b.Value.Length > 5";
+        
+        var firstSource = new List<OuterApplyClass2>
+        {
+            new() {Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."},
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        
+        Assert.AreEqual(2, table.Count);
+        
+        Assert.AreEqual("consectetur", table[0][0]);
+        Assert.AreEqual("adipiscing", table[1][0]);
+    }
+    
+    [TestMethod]
+    public void OuterApplyProperty_GroupBy_ShouldPass()
+    {
+        const string query = "select Length(b.Value), Count(Length(b.Value)) from #schema.first() a outer apply a.Split(a.Text, ' ') as b group by Length(b.Value)";
+        
+        var firstSource = new List<OuterApplyClass2>
+        {
+            new() {Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."},
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual("Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("Count(Length(b.Value))", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(4, table.Count);
+        
+        Assert.AreEqual(5, table[0][0]);
+        Assert.AreEqual(5, table[0][1]);
+        
+        Assert.AreEqual(3, table[1][0]);
+        Assert.AreEqual(1, table[1][1]);
+        
+        Assert.AreEqual(11, table[2][0]);
+        Assert.AreEqual(1, table[2][1]);
+        
+        Assert.AreEqual(10, table[3][0]);
+        Assert.AreEqual(1, table[3][1]);
+    }
+    
+    [TestMethod]
+    public void OuterApplyProperty_MultipleSplitWords_ShouldPass()
+    {
+        const string query = "select b.Value, c.Value from #schema.first() a outer apply a.Split(a.Text, ' ') as b outer apply a.Split(a.Text, ' ') as c";
+        
+        string[] words = ["Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."];
+        
+        var firstSource = new List<OuterApplyClass2>
+        {
+            new() {Text = string.Join(" ", words)},
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(64, table.Count);
+    
+        for (var i = 0; i < words.Length; i++)
+        {
+            for (var j = 0; j < words.Length; j++)
+            {
+                var index = i * words.Length + j;
+                Assert.AreEqual(words[i], table[index][0], $"Mismatch at index {index}, column 0");
+                Assert.AreEqual(words[j], table[index][1], $"Mismatch at index {index}, column 1");
+            }
+        }
+    }
 }
