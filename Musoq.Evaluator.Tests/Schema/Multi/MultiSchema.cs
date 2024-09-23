@@ -6,22 +6,15 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Schema.Multi;
 
-public class MultiSchema : SchemaBase
+public class MultiSchema(IReadOnlyDictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)> tables)
+    : SchemaBase("test", CreateLibrary())
 {
-    private readonly IReadOnlyDictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)> _tables;
-    
-    public MultiSchema(IReadOnlyDictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)> tables) 
-        : base("test", CreateLibrary())
-    {
-        _tables = tables;
-    }
-
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
         return name switch
         {
-            "first" => _tables[name].SchemaTable,
-            "second" => _tables[name].SchemaTable,
+            "first" => tables[name].SchemaTable,
+            "second" => tables[name].SchemaTable,
             _ => throw new NotSupportedException($"Table {name} is not supported.")
         };
     }
@@ -30,8 +23,8 @@ public class MultiSchema : SchemaBase
     {
         return name switch
         {
-            "first" => _tables[name].RowSource,
-            "second" => _tables[name].RowSource,
+            "first" => tables[name].RowSource,
+            "second" => tables[name].RowSource,
             _ => throw new NotSupportedException($"Table {name} is not supported.")
         };
     }

@@ -221,6 +221,12 @@ namespace Musoq.Evaluator.Visitors
             node.Accept(_visitor);
         }
 
+        public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+        {
+            node.SourceTable.Accept(this);
+            node.Accept(_visitor);
+        }
+
         public void Visit(SchemaFromNode node)
         {
             node.Parameters.Accept(this);
@@ -230,6 +236,14 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(JoinSourcesTableFromNode node)
         {
             node.Expression.Accept(this);
+            node.First.Accept(this);
+            node.Second.Accept(this);
+
+            node.Accept(_visitor);
+        }
+
+        public void Visit(ApplySourcesTableFromNode node)
+        {
             node.First.Accept(this);
             node.Second.Accept(this);
 
@@ -304,7 +318,7 @@ namespace Musoq.Evaluator.Visitors
                         Scope.ScopeSymbolTable.UpdateSymbol(id, previousTableSymbol);
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException(nameof(node));
                 }
 
                 id = $"{id}{Scope[join.With.Id]}";
@@ -317,9 +331,87 @@ namespace Musoq.Evaluator.Visitors
             }
         }
 
+        public void Visit(ApplyFromNode node)
+        {
+            var applies = new Stack<ApplyFromNode>();
+
+            var apply = node;
+            while (apply != null)
+            {
+                applies.Push(apply);
+                apply = apply.Source as ApplyFromNode;
+            }
+
+            apply = applies.Pop();
+            apply.Source.Accept(this);
+            apply.With.Accept(this);
+
+            var sourceId = apply.Source is JoinFromNode ? MetaAttributes.ProcessedQueryId : apply.Source.Id;
+            var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[sourceId]);
+            var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[apply.With.Id]);
+
+            switch (apply.ApplyType)
+            {
+                case ApplyType.Cross:
+                    break;
+                case ApplyType.Outer:
+                    secondTableSymbol = secondTableSymbol.MakeNullableIfPossible();
+                    Scope.ScopeSymbolTable.UpdateSymbol(Scope[apply.With.Id], secondTableSymbol);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            var id = $"{Scope[sourceId]}{Scope[apply.With.Id]}";
+
+            Scope.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
+            Scope[MetaAttributes.ProcessedQueryId] = id;
+
+            apply.Accept(_visitor);
+
+            while (applies.Count > 0)
+            {
+                apply = applies.Pop();
+                apply.With.Accept(this);
+
+                var currentTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[apply.With.Id]);
+                var previousTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(id);
+
+                switch (apply.ApplyType)
+                {
+                    case ApplyType.Cross:
+                        break;
+                    case ApplyType.Outer:
+                        currentTableSymbol = currentTableSymbol.MakeNullableIfPossible();
+                        Scope.ScopeSymbolTable.UpdateSymbol(Scope[apply.With.Id], currentTableSymbol);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(node));
+                }
+
+                id = $"{id}{Scope[apply.With.Id]}";
+
+                Scope.ScopeSymbolTable.AddSymbol(id, previousTableSymbol.MergeSymbols(currentTableSymbol));
+                Scope[MetaAttributes.ProcessedQueryId] = id;
+
+                apply.Accept(_visitor);
+            }
+        }
+
         public void Visit(ExpressionFromNode node)
         {
             node.Expression.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(AccessMethodFromNode node)
+        {
+            node.AccessMethod.Accept(this);
+            node.Accept(_visitor);
+        }
+
+        public void Visit(PropertyFromNode node)
+        {
             node.Accept(_visitor);
         }
 
@@ -637,16 +729,15 @@ namespace Musoq.Evaluator.Visitors
             RestoreScope();
         }
 
-        public void Visit(JoinsNode node)
+        public void Visit(JoinNode node)
         {
-            node.Joins.Accept(this);
+            node.Join.Accept(this);
             node.Accept(_visitor);
         }
 
-        public void Visit(JoinNode node)
+        public void Visit(ApplyNode node)
         {
-            node.From.Accept(this);
-            node.Expression.Accept(this);
+            node.Apply.Accept(this);
             node.Accept(_visitor);
         }
 
@@ -674,11 +765,6 @@ namespace Musoq.Evaluator.Visitors
         {
             Scope = _scopes.Pop();
             _visitor.SetScope(Scope);
-        }
-
-        public void Visit(FromNode node)
-        {
-            node.Accept(_visitor);
         }
 
         public void Visit(OrderByNode node)

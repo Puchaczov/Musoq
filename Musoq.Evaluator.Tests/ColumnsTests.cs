@@ -59,10 +59,9 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new BasicEntity[]
-                {
+                "#A", [
                     new("Karol")
-                }
+                ]
             }
         };
         

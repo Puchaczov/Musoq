@@ -9,10 +9,10 @@ namespace Musoq.Evaluator.Tests.Schema.Multi;
 public class MultiRowSource<T> : RowSourceBase<T>
 {
     private readonly T[] _entities;
-    private readonly IDictionary<string, int> _entityNameToIndexMap;
-    private readonly IDictionary<int, Func<T, object>> _entityIndexToObjectAccessMap;
+    private readonly IReadOnlyDictionary<string, int> _entityNameToIndexMap;
+    private readonly IReadOnlyDictionary<int, Func<T, object>> _entityIndexToObjectAccessMap;
 
-    public MultiRowSource(T[] entities, IDictionary<string, int> entityNameToIndexMap, IDictionary<int, Func<T, object>> entityIndexToObjectAccessMap)
+    public MultiRowSource(T[] entities, IReadOnlyDictionary<string, int> entityNameToIndexMap, IReadOnlyDictionary<int, Func<T, object>> entityIndexToObjectAccessMap)
     {
         _entities = entities;
         _entityNameToIndexMap = entityNameToIndexMap;

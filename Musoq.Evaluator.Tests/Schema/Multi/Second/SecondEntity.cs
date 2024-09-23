@@ -5,8 +5,8 @@ namespace Musoq.Evaluator.Tests.Schema.Multi.Second;
 
 public class SecondEntity : ICommonInterface
 {
-    public static readonly IDictionary<string, int> TestNameToIndexMap;
-    public static readonly IDictionary<int, Func<SecondEntity, object>> TestIndexToObjectAccessMap;
+    public static readonly IReadOnlyDictionary<string, int> TestNameToIndexMap;
+    public static readonly IReadOnlyDictionary<int, Func<SecondEntity, object>> TestIndexToObjectAccessMap;
     
     public string ZeroItem { get; set; }
     

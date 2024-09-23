@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Musoq.Evaluator.Tests.Schema.Multi.Second;
 
 namespace Musoq.Evaluator.Tests.Schema.Multi.First;
 
 public class FirstEntity : ICommonInterface
 {
-    public static readonly IDictionary<string, int> TestNameToIndexMap;
-    public static readonly IDictionary<int, Func<FirstEntity, object>> TestIndexToObjectAccessMap;
+    public static readonly IReadOnlyDictionary<string, int> TestNameToIndexMap;
+    public static readonly IReadOnlyDictionary<int, Func<FirstEntity, object>> TestIndexToObjectAccessMap;
     
     public string FirstItem { get; set; }
     

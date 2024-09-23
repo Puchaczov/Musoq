@@ -3,14 +3,9 @@ using System.Linq;
 
 namespace Musoq.Evaluator.Tables
 {
-    internal class VariableTable : ISchemaTable
+    internal class VariableTable(ISchemaColumn[] columns) : ISchemaTable
     {
-        public VariableTable(ISchemaColumn[] columns)
-        {
-            Columns = columns;
-        }
-
-        public ISchemaColumn[] Columns { get; }
+        public ISchemaColumn[] Columns { get; } = columns;
 
         public ISchemaColumn GetColumnByName(string name)
         {

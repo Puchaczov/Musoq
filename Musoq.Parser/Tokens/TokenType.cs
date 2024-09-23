@@ -58,6 +58,8 @@
         With,
         InnerJoin,
         OuterJoin,
+        CrossApply,
+        OuterApply,
         On,
         OrderBy,
         Asc,

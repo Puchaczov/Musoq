@@ -8,7 +8,7 @@
 
         void IncrementMethodIdentifier();
         
-        void SetInsideJoin(bool value);
+        void SetInsideJoinOrApply(bool value);
 
         void AddNullSuspiciousSection();
         

@@ -15,6 +15,6 @@ namespace Musoq.Plugins.Attributes
         /// <summary>
         ///     Gets the type have to be injected when dynamic invocation performed.
         /// </summary>
-        public abstract Type InjectType { get; }
+        public abstract Type? InjectType { get; }
     }
 }

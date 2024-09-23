@@ -161,13 +161,13 @@ public class MethodsMetadata
     /// <returns>True if some method fits, else false.</returns>
     private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index)
     {
-        if (!_methods.ContainsKey(name))
+        if (!_methods.TryGetValue(name, out var method))
         {
             index = -1;
             return false;
         }
 
-        var methods = _methods[name].OrderByDescending(MeasureHowCloseTheMethodIsAgainstTheArguments).ToList();
+        var methods = method.OrderByDescending(MeasureHowCloseTheMethodIsAgainstTheArguments).ToList();
 
         for (int i = 0, j = methods.Count; i < j; ++i)
         {

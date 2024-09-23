@@ -4,20 +4,27 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Parser;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 using Musoq.Plugins.Attributes;
+using AccessMethodFromNode = Musoq.Parser.Nodes.From.AccessMethodFromNode;
 using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
+using ApplyFromNode = Musoq.Parser.Nodes.From.ApplyFromNode;
+using ApplyNode = Musoq.Parser.Nodes.From.ApplyNode;
+using ApplySourcesTableFromNode = Musoq.Parser.Nodes.From.ApplySourcesTableFromNode;
+using ArgumentOutOfRangeException = System.ArgumentOutOfRangeException;
 using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
+using InMemoryGroupedFromNode = Musoq.Evaluator.Parser.InMemoryGroupedFromNode;
 using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
 using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
 using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
-using JoinsNode = Musoq.Parser.Nodes.From.JoinsNode;
+using JoinNode = Musoq.Parser.Nodes.From.JoinNode;
 using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
+using PropertyFromNode = Musoq.Parser.Nodes.From.PropertyFromNode;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 
@@ -25,7 +32,7 @@ namespace Musoq.Evaluator.Visitors
 {
     public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
-        private readonly List<JoinFromNode> _joinedTables = [];
+        private readonly List<BinaryFromNode> _joinedTables = [];
         private int _queryIndex = 0;
         private Scope _scope;
 
@@ -354,12 +361,24 @@ namespace Musoq.Evaluator.Visitors
         {
         }
 
+        public void Visit(ApplySourcesTableFromNode node)
+        {
+        }
+
         public void Visit(JoinFromNode node)
         {
             var exp = Nodes.Pop();
             var right = (FromNode) Nodes.Pop();
             var left = (FromNode) Nodes.Pop();
             Nodes.Push(new Parser.JoinFromNode(left, right, exp, node.JoinType));
+            _joinedTables.Add(node);
+        }
+
+        public void Visit(ApplyFromNode node)
+        {
+            var right = (FromNode) Nodes.Pop();
+            var left = (FromNode) Nodes.Pop();
+            Nodes.Push(new Parser.ApplyFromNode(left, right, node.ApplyType));
             _joinedTables.Add(node);
         }
 
@@ -371,6 +390,24 @@ namespace Musoq.Evaluator.Visitors
         public void Visit(InMemoryTableFromNode node)
         {
             Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, node.Alias));
+        }
+
+        public void Visit(AccessMethodFromNode node)
+        {
+            Nodes.Push(new AccessMethodFromNode(node.Alias, node.SourceAlias, node.AccessMethod, node.ReturnType));
+        }
+
+        public void Visit(SchemaMethodFromNode node)
+        {
+        }
+
+        public void Visit(PropertyFromNode node)
+        {
+            Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, node.ReturnType));
+        }
+
+        public void Visit(AliasedFromNode node)
+        {
         }
 
         public void Visit(CreateTransformationTableNode node)
@@ -441,12 +478,12 @@ namespace Musoq.Evaluator.Visitors
             var aliasIndex = 0;
             var aliasesPositionsSymbol = new AliasesPositionsSymbol();
 
-            if (from.Expression is JoinsNode)
+            if (from.Expression is JoinNode or ApplyNode)
             {
                 var indexBasedContextsPositionsSymbol = new IndexBasedContextsPositionsSymbol();
                 var orderNumber = 0;
                 var extractAccessedColumnsVisitor = new ExtractAccessColumnFromQueryVisitor();
-                var extractAccessedColumnsTraverseVisitor = new CloneTraverseVisitor(extractAccessedColumnsVisitor);
+                var extractAccessedColumnsTraverseVisitor = new ExtractAccessColumnFromQueryTraverseVisitor(extractAccessedColumnsVisitor);
                 
                 node.Accept(extractAccessedColumnsTraverseVisitor);
 
@@ -525,11 +562,19 @@ namespace Musoq.Evaluator.Visitors
                 var joinedQuery = new InternalQueryNode(
                     new SelectNode(bothForSelect),
                     new Parser.ExpressionFromNode(
-                        new Parser.JoinSourcesTableFromNode(
-                            current.Source, 
-                            current.With,
-                            current.Expression, 
-                            current.JoinType)),
+                        current switch
+                        {
+                            JoinFromNode currentJoin => new Parser.JoinSourcesTableFromNode(
+                                currentJoin.Source, 
+                                currentJoin.With,
+                                currentJoin.Expression, 
+                                currentJoin.JoinType),
+                            ApplyFromNode currentApply => new Parser.ApplySourcesTableFromNode(
+                                currentApply.Source,
+                                currentApply.With,
+                                currentApply.ApplyType),
+                            _ => throw new ArgumentOutOfRangeException(nameof(current))
+                        }),
                     null,
                     null,
                     null,
@@ -537,7 +582,7 @@ namespace Musoq.Evaluator.Visitors
                     null,
                     new RefreshNode([]));
 
-                var targetTable = new CreateTransformationTableNode(targetTableName, Array.Empty<string>(), bothForCreateTable, false);
+                var targetTable = new CreateTransformationTableNode(targetTableName, [], bothForCreateTable, false);
 
                 splitNodes.Add(targetTable);
                 splitNodes.Add(joinedQuery);
@@ -623,14 +668,19 @@ namespace Musoq.Evaluator.Visitors
                     {
                         var compoundTable = targetSymbolTable.CompoundTables[index];
                         var columns = trimmedLeft.GetColumns(compoundTable);
-                        pairs = pairs.Concat(new KeyValuePair<string, string[]>[]
-                        {
+                        pairs = pairs.Concat([
                             new(compoundTable, columns.Select(f => f.ColumnName).ToArray())
-                        });
+                        ]);
                     }
 
                     pairs = pairs
-                        .Concat(trimmedRight.CompoundTables.Select(compoundTable => new KeyValuePair<string, string[]>(compoundTable, trimmedRight.GetColumns(compoundTable).Select(f => f.ColumnName).ToArray())));
+                        .Concat(trimmedRight.CompoundTables.Select(
+                            compoundTable => new KeyValuePair<string, string[]>(
+                                compoundTable, 
+                                trimmedRight.GetColumns(compoundTable).Select(f => f.ColumnName).ToArray()
+                            )
+                        )
+                    );
                     
                     limitedTargetSymbolTable = targetSymbolTable.LimitColumnsTo(new Dictionary<string, string[]>(pairs));
 
@@ -646,11 +696,51 @@ namespace Musoq.Evaluator.Visitors
                     scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
                         MetaAttributes.OuterJoinSelect,
                         new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray()));
+                    
+                    var expressionUpdater = new RewriteToUpdatedColumnAccess(usedTables);
+                    var expressionUpdaterTraverser = new RewriteToUpdatedColumnAccessTraverser(expressionUpdater);
 
-                    var expressionUpdater = new RewriteWhereConditionWithUpdatedColumnAccess(usedTables);
-                    var traverser = new CloneTraverseVisitor(expressionUpdater);
+                    if (current is JoinFromNode joinFromNode)
+                    {
+                        var whereNode = new WhereNode(joinFromNode.Expression);
 
-                    new WhereNode(current.Expression).Accept(traverser);
+                        whereNode.Accept(expressionUpdaterTraverser);
+                        
+                        joinedQuery = new InternalQueryNode(
+                            new SelectNode(bothForSelect),
+                            new Parser.ExpressionFromNode(
+                                new Parser.JoinInMemoryWithSourceTableFromNode(
+                                    joinFromNode.Source.Alias,
+                                    joinFromNode.With,
+                                    expressionUpdater.Where.Expression,
+                                    joinFromNode.JoinType)),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            new RefreshNode([]));
+                    }
+                    else
+                    {
+                        var applyFromNode = (ApplyFromNode) current;
+                        
+                        applyFromNode.With.Accept(expressionUpdaterTraverser);
+                        
+                        joinedQuery = new InternalQueryNode(
+                            new SelectNode(bothForSelect),
+                            new Parser.ExpressionFromNode(
+                                new Parser.ApplyInMemoryWithSourceTableFromNode(
+                                    current.Source.Alias,
+                                    expressionUpdater.From,
+                                    applyFromNode.ApplyType)),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            new RefreshNode([]));
+                    }
 
                     foreach (var key in usedTables.Keys.ToArray())
                         usedTables[key] = targetTableName;
@@ -658,22 +748,7 @@ namespace Musoq.Evaluator.Visitors
                     usedTables[current.Source.Alias] = targetTableName;
                     usedTables.Add(current.With.Alias, targetTableName);
 
-                    joinedQuery = new InternalQueryNode(
-                        new SelectNode(bothForSelect),
-                        new Parser.ExpressionFromNode(
-                            new Parser.JoinInMemoryWithSourceTableFromNode(
-                                current.Source.Alias,
-                                current.With, 
-                                expressionUpdater.Where.Expression,
-                                current.JoinType)),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        new RefreshNode(Array.Empty<AccessMethodNode>()));
-
-                    targetTable = new CreateTransformationTableNode(targetTableName, Array.Empty<string>(), bothForCreateTable, false);
+                    targetTable = new CreateTransformationTableNode(targetTableName, [], bothForCreateTable, false);
 
                     splitNodes.Add(targetTable);
                     splitNodes.Add(joinedQuery);
@@ -805,7 +880,7 @@ namespace Musoq.Evaluator.Visitors
             }
             else
             {
-                var split = SplitBetweenAggregateAndNonAggregate(select.Fields, Array.Empty<FieldNode>(), true);
+                var split = SplitBetweenAggregateAndNonAggregate(select.Fields, [], true);
                 
                 if (IsQueryWithMixedAggregateAndNonAggregateMethods(split))
                 {
@@ -825,7 +900,8 @@ namespace Musoq.Evaluator.Visitors
 
                 var newFrom = lastJoinQuery != null
                     ? new Parser.ExpressionFromNode(
-                        new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
+                        new InMemoryGroupedFromNode(lastJoinQuery.From.Alias)
+                    )
                     : from;
 
                 aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex);
@@ -850,6 +926,12 @@ namespace Musoq.Evaluator.Visitors
             var exp = Nodes.Pop();
             var from = (FromNode) Nodes.Pop();
             Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
+        }
+
+        public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+        {
+            var from = (FromNode) Nodes.Pop();
+            Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType));
         }
 
         public void Visit(InternalQueryNode node)
@@ -937,13 +1019,14 @@ namespace Musoq.Evaluator.Visitors
             Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name));
         }
 
-        public void Visit(JoinsNode node)
-        {
-            Nodes.Push(new Parser.JoinsNode((Parser.JoinFromNode) Nodes.Pop()));
-        }
-
         public void Visit(JoinNode node)
         {
+            Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode) Nodes.Pop()));
+        }
+
+        public void Visit(ApplyNode node)
+        {
+            Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode) Nodes.Pop()));
         }
 
         public void Visit(OrderByNode node)
@@ -966,14 +1049,6 @@ namespace Musoq.Evaluator.Visitors
         }
 
         public void Visit(CoupleNode node)
-        {
-        }
-
-        public void Visit(SchemaMethodFromNode node)
-        {
-        }
-
-        public void Visit(AliasedFromNode node)
         {
         }
 
@@ -1267,26 +1342,26 @@ namespace Musoq.Evaluator.Visitors
             return result;
         }
 
-        private static Func<AccessColumnNode, bool> IncludeKnownColumnsForWithOnly(AccessColumnNode[] accessColumnNodes, JoinFromNode joinFromNode)
+        private static Func<AccessColumnNode, bool> IncludeKnownColumnsForWithOnly(AccessColumnNode[] accessColumnNodes, BinaryFromNode binaryFromNode)
         {
             return accessColumnNode =>
             {
-                if (accessColumnNode.Alias == joinFromNode.Source.Alias)
+                if (accessColumnNode.Alias == binaryFromNode.Source.Alias)
                 {
                     return true;
                 }
 
-                if (accessColumnNode.Alias == joinFromNode.With.Alias)
+                if (accessColumnNode.Alias == binaryFromNode.With.Alias)
                 {
                     return accessColumnNodes.Any(f =>
-                        f.Name == accessColumnNode.Name && f.Alias == joinFromNode.With.Alias);
+                        f.Name == accessColumnNode.Name && f.Alias == binaryFromNode.With.Alias);
                 }
 
                 return false;
             };
         }
 
-        private static Func<AccessColumnNode, bool> IncludeKnownColumns(AccessColumnNode[] accessColumnNodes, JoinFromNode joinFromNode)
+        private static Func<AccessColumnNode, bool> IncludeKnownColumns(AccessColumnNode[] accessColumnNodes, BinaryFromNode joinFromNode)
         {
             return accessColumnNode =>
             {

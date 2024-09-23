@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Plugins.Attributes
 {
-    public class AggregationSetMethodAttribute : AggregationMethodAttribute
+    public sealed class AggregationSetMethodAttribute : AggregationMethodAttribute
     {
     }
 }

@@ -272,7 +272,7 @@ namespace Musoq.Parser
             var selectNode = ComposeSelectNode();
             var fromNode = ComposeFrom();
 
-            fromNode = ComposeJoin(fromNode);
+            fromNode = ComposeJoinOrApply(fromNode);
 
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGroupByNode();
@@ -286,7 +286,7 @@ namespace Musoq.Parser
         {
             _fromPosition += 1;
             var fromNode = ComposeFrom();
-            fromNode = ComposeJoin(fromNode);
+            fromNode = ComposeJoinOrApply(fromNode);
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGroupByNode();
             var selectNode = ComposeSelectNode();
@@ -296,40 +296,58 @@ namespace Musoq.Parser
             return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
         }
 
-        private FromNode ComposeJoin(FromNode from)
+        private FromNode ComposeJoinOrApply(FromNode from)
         {
-            if (!IsJoinToken(Current.TokenType)) return new ExpressionFromNode(from);
+            if (!IsJoinOrApplyToken(Current.TokenType)) return new ExpressionFromNode(from);
 
-            while (IsJoinToken(Current.TokenType))
+            while (IsJoinOrApplyToken(Current.TokenType))
             {
                 switch (Current.TokenType)
                 {
                     case TokenType.InnerJoin:
                         Consume(TokenType.InnerJoin);
                         from = new JoinFromNode(from,
-                            ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(),
+                            ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), 
+                            ComposeOperations(),
                             JoinType.Inner);
                         break;
                     case TokenType.OuterJoin:
                         var outerToken = (OuterJoinToken) Current;
                         Consume(TokenType.OuterJoin);
                         from = new JoinFromNode(from,
-                            ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), ComposeOperations(),
-                            outerToken.Type == OuterJoinNode.OuterJoinType.Left
+                            ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), 
+                            ComposeOperations(),
+                            outerToken.Type == OuterJoinType.Left
                                 ? JoinType.OuterLeft
                                 : JoinType.OuterRight);
+                        break;
+                    case TokenType.CrossApply:
+                        Consume(TokenType.CrossApply);
+                        from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Cross);
+                        break;
+                    case TokenType.OuterApply:
+                        Consume(TokenType.OuterApply);
+                        from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Outer);
                         break;
                 }
             }
 
-            from = new JoinsNode((JoinFromNode) from);
+            if (from is JoinFromNode joinFrom)
+            {
+                from = new JoinNode(joinFrom);
+            }
 
+            if (from is ApplyFromNode applyFrom)
+            {
+                from = new ApplyNode(applyFrom);
+            }
+            
             return new ExpressionFromNode(from);
         }
 
-        private static bool IsJoinToken(TokenType currentTokenType)
+        private static bool IsJoinOrApplyToken(TokenType currentTokenType)
         {
-            return currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin;
+            return currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply;
         }
 
         private OrderByNode ComposeOrderBy()
@@ -620,13 +638,14 @@ namespace Musoq.Parser
             var schemaNode = ComposeWord();
             ConsumeAsColumn(TokenType.Dot);
             var identifier = (IdentifierNode)ComposeBaseTypes();
+            var alias = ComposeAlias();
 
-            return new SchemaMethodFromNode(schemaNode.Value, identifier.Name);
+            return new SchemaMethodFromNode(alias, schemaNode.Value, identifier.Name);
         }
 
-        private FromNode ComposeFrom(bool fromBefore = true)
+        private FromNode ComposeFrom(bool fromKeywordBefore = true)
         {
-            if (fromBefore)
+            if (fromKeywordBefore)
                 Consume(TokenType.From);
 
             string alias;
@@ -661,7 +680,45 @@ namespace Musoq.Parser
                 return new AliasedFromNode(method.Name, method.Arguments, alias, _fromPosition);
             }
 
+            if (Current.TokenType == TokenType.MethodAccess)
+            {
+                var sourceAlias = Current.Value;
+                var accessMethod = ComposeAccessMethod(sourceAlias);
+                alias = ComposeAlias();
+                    
+                if (string.IsNullOrWhiteSpace(alias))
+                    throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
+                    
+                var fromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
+
+                return fromNode;
+            }
+            
             var column = (IdentifierNode) ComposeBaseTypes();
+
+            if (Current.TokenType == TokenType.Dot)
+            {
+                Consume(Current.TokenType);
+
+                if (Current.TokenType == TokenType.Property)
+                {
+                    var propertyName = Current.Value;
+                    
+                    Consume(TokenType.Property);
+                    
+                    alias = ComposeAlias();
+                    
+                    if (string.IsNullOrWhiteSpace(alias))
+                        throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
+                    
+                    var fromNode = new PropertyFromNode(alias, column.Name, propertyName);
+
+                    return fromNode;
+                }
+                
+                throw new NotSupportedException($"Unrecognized token {Current.TokenType} when parsing From clause.");
+            }
+            
             alias = ComposeAlias();
             return new InMemoryTableFromNode(column.Name, alias);
         }
@@ -836,14 +893,26 @@ namespace Musoq.Parser
 
         private AccessMethodNode ComposeAccessMethod(string alias)
         {
-            if (!(Current is FunctionToken func))
-                throw new ArgumentNullException($"Expected token is {TokenType.Function} but {Current.TokenType} received");
+            ArgsListNode args;
+            if (Current is FunctionToken func)
+            {
+                Consume(TokenType.Function);
+                args = ComposeArgs();
+                return new AccessMethodNode(func, args, null, false, null, alias);
+            }
+            
+            if (Current is MethodAccessToken)
+            {
+                Consume(TokenType.MethodAccess);
+                Consume(TokenType.Dot);
+                var token = (FunctionToken)ConsumeAndGetToken(TokenType.Function);
+                args = ComposeArgs();
 
-            Consume(TokenType.Function);
-
-            var args = ComposeArgs();
-
-            return new AccessMethodNode(func, args, null, false, null, alias);
+                return new AccessMethodNode(token, args, null, false,
+                    null, alias);
+            }
+            
+            throw new NotSupportedException($"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
         }
 
         private Token ConsumeAndGetToken(TokenType expected)
