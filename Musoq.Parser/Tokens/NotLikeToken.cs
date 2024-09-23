@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class NotLikeToken : Token
-    {
-        public const string TokenText = "not like";
+﻿namespace Musoq.Parser.Tokens;
 
-        public NotLikeToken(TextSpan span)
-            : base(TokenText, TokenType.NotLike, span)
-        {
-        }
+public class NotLikeToken : Token
+{
+    public const string TokenText = "not like";
+
+    public NotLikeToken(TextSpan span)
+        : base(TokenText, TokenType.NotLike, span)
+    {
     }
 }

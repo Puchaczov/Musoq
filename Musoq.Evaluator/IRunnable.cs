@@ -5,16 +5,15 @@ using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 
-namespace Musoq.Evaluator
-{
-    public interface IRunnable
-    {
-        ISchemaProvider Provider { get; set; }
-        
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables { get; set; }
-        
-        IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode)> QueriesInformation { get; set; }
+namespace Musoq.Evaluator;
 
-        Table Run(CancellationToken token);
-    }
+public interface IRunnable
+{
+    ISchemaProvider Provider { get; set; }
+        
+    IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables { get; set; }
+        
+    IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode)> QueriesInformation { get; set; }
+
+    Table Run(CancellationToken token);
 }

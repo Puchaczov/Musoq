@@ -2,15 +2,15 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace Musoq.Schema.DataSources
+namespace Musoq.Schema.DataSources;
+
+public class SingleRowSource : RowSourceBase<string>
 {
-    public class SingleRowSource : RowSourceBase<string>
+    protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
     {
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
+        var list = new List<EntityResolver<string>>
         {
-            var list = new List<EntityResolver<string>>
-            {
-                new(
+            new(
                 string.Empty,
                 new Dictionary<string, int>()
                 {
@@ -20,8 +20,7 @@ namespace Musoq.Schema.DataSources
                 {
                     {0, (str) => str}
                 })
-            };
-            chunkedSource.Add(list);
-        }
+        };
+        chunkedSource.Add(list);
     }
 }

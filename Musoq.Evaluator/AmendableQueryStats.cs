@@ -1,13 +1,12 @@
 ﻿using Musoq.Plugins;
 
-namespace Musoq.Evaluator
+namespace Musoq.Evaluator;
+
+public class AmendableQueryStats : QueryStats
 {
-    public class AmendableQueryStats : QueryStats
+    public new int RowNumber
     {
-        public new int RowNumber
-        {
-            get => base.RowNumber;
-            set => base.RowNumber = value;
-        }
+        get => base.RowNumber;
+        set => base.RowNumber = value;
     }
 }

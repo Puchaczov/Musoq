@@ -1,12 +1,11 @@
-namespace Musoq.Parser.Tokens
-{
-    public class FSlashToken : Token
-    {
-        public const string TokenText = "/";
+namespace Musoq.Parser.Tokens;
 
-        public FSlashToken(TextSpan span)
-            : base(TokenText, TokenType.FSlash, span)
-        {
-        }
+public class FSlashToken : Token
+{
+    public const string TokenText = "/";
+
+    public FSlashToken(TextSpan span)
+        : base(TokenText, TokenType.FSlash, span)
+    {
     }
 }

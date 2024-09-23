@@ -1,18 +1,17 @@
-﻿namespace Musoq.Parser.Nodes
+﻿namespace Musoq.Parser.Nodes;
+
+public abstract class UnaryNode : Node
 {
-    public abstract class UnaryNode : Node
+    protected UnaryNode(Node expression)
     {
-        protected UnaryNode(Node expression)
-        {
-            Expression = expression;
-        }
+        Expression = expression;
+    }
 
-        public Node Expression { get; }
+    public Node Expression { get; }
 
-        protected static string CalculateId<T>(T node)
-            where T : UnaryNode
-        {
-            return $"{typeof(T).Name}{node.Expression.Id}{node.ReturnType.Name}";
-        }
+    protected static string CalculateId<T>(T node)
+        where T : UnaryNode
+    {
+        return $"{typeof(T).Name}{node.Expression.Id}{node.ReturnType.Name}";
     }
 }

@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class WhiteSpaceToken : Token
-    {
-        public const string TokenText = " ";
+﻿namespace Musoq.Parser.Tokens;
 
-        public WhiteSpaceToken(TextSpan span)
-            : base(TokenText, TokenType.WhiteSpace, span)
-        {
-        }
+public class WhiteSpaceToken : Token
+{
+    public const string TokenText = " ";
+
+    public WhiteSpaceToken(TextSpan span)
+        : base(TokenText, TokenType.WhiteSpace, span)
+    {
     }
 }

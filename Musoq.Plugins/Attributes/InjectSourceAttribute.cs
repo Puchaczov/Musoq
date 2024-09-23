@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Musoq.Plugins.Attributes
+namespace Musoq.Plugins.Attributes;
+
+internal sealed class InjectSourceAttribute : InjectTypeAttribute
 {
-    internal sealed class InjectSourceAttribute : InjectTypeAttribute
-    {
-        public override Type? InjectType => null;
-    }
+    public override Type? InjectType => null;
 }

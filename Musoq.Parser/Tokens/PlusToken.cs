@@ -1,12 +1,11 @@
-namespace Musoq.Parser.Tokens
-{
-    public class PlusToken : Token
-    {
-        public const string TokenText = "+";
+namespace Musoq.Parser.Tokens;
 
-        public PlusToken(TextSpan span)
-            : base(TokenText, TokenType.Plus, span)
-        {
-        }
+public class PlusToken : Token
+{
+    public const string TokenText = "+";
+
+    public PlusToken(TextSpan span)
+        : base(TokenText, TokenType.Plus, span)
+    {
     }
 }

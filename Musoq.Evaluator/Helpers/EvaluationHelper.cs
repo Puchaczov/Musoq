@@ -10,335 +10,285 @@ using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Reflection;
 
-namespace Musoq.Evaluator.Helpers
+namespace Musoq.Evaluator.Helpers;
+
+public static class EvaluationHelper
 {
-    public static class EvaluationHelper
+    public static RowSource ConvertEnumerableToSource<T>(IEnumerable<T> enumerable)
     {
-        public static RowSource ConvertEnumerableToSource<T>(IEnumerable<T> enumerable)
+        if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
         {
-            if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
-            {
-                return new GenericRowsSource<PrimitiveTypeEntity<T>>(enumerable.Select(f => new PrimitiveTypeEntity<T>(f)));
-            }
+            return new GenericRowsSource<PrimitiveTypeEntity<T>>(enumerable.Select(f => new PrimitiveTypeEntity<T>(f)));
+        }
             
-            return new GenericRowsSource<T>(enumerable);
-        }
+        return new GenericRowsSource<T>(enumerable);
+    }
         
-        public static RowSource ConvertTableToSource(Table table)
-        {
-            return new TableRowSource(table);
-        }
+    public static RowSource ConvertTableToSource(Table table)
+    {
+        return new TableRowSource(table);
+    }
 
-        public static RowSource ConvertTableToSource(List<Group> list)
-        {
-            return new ListRowSource(list);
-        }
+    public static RowSource ConvertTableToSource(List<Group> list)
+    {
+        return new ListRowSource(list);
+    }
 
-        public static Table GetSpecificTableDescription(ISchemaTable table)
-        {
-            var newTable = new Table("desc", [
-                new Column("Name", typeof(string), 0),
-                new Column("Index", typeof(int), 1),
-                new Column("Type", typeof(string), 2)
-            ]);
+    public static Table GetSpecificTableDescription(ISchemaTable table)
+    {
+        var newTable = new Table("desc", [
+            new Column("Name", typeof(string), 0),
+            new Column("Index", typeof(int), 1),
+            new Column("Type", typeof(string), 2)
+        ]);
 
-            foreach (var column in table.Columns)
+        foreach (var column in table.Columns)
+        {
+            foreach (var complexField in CreateTypeComplexDescription(column.ColumnName, column.ColumnType))
             {
-                foreach (var complexField in CreateTypeComplexDescription(column.ColumnName, column.ColumnType))
-                {
-                    newTable.Add(new ObjectsRow([complexField.FieldName, column.ColumnIndex, complexField.Type.FullName]));
-                }
+                newTable.Add(new ObjectsRow([complexField.FieldName, column.ColumnIndex, complexField.Type.FullName]));
+            }
                 
-            }
-
-            return newTable;
         }
 
-        public static Table GetSpecificSchemaDescriptions(ISchema schema)
+        return newTable;
+    }
+
+    public static Table GetSpecificSchemaDescriptions(ISchema schema)
+    {
+        return CreateTableFromConstructors(schema.GetRawConstructors);
+    }
+
+    public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName)
+    {
+        return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName));
+    }
+
+    private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
+    {
+        var maxColumns = 0;
+        var values = new List<List<string>>();
+
+        foreach (var constructor in getConstructors())
         {
-            return CreateTableFromConstructors(schema.GetRawConstructors);
+            var row = new List<string>();
+            values.Add(row);
+
+            row.Add(constructor.MethodName);
+
+            if (constructor.ConstructorInfo.Arguments.Length > maxColumns)
+                maxColumns = constructor.ConstructorInfo.Arguments.Length;
+
+            foreach (var param in constructor.ConstructorInfo.Arguments)
+            {
+                row.Add($"{param.Name}: {param.Type.FullName}");
+            }
         }
 
-        public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName)
+        maxColumns += 1;
+
+        foreach (var row in values)
         {
-            return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName));
+            if (maxColumns > row.Count)
+            {
+                row.AddRange(new string[maxColumns - row.Count]);
+            }
         }
 
-        private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
+        var columns = new Column[maxColumns];
+        columns[0] = new Column("Name", typeof(string), 0);
+
+        for (int i = 1; i < columns.Length; i++)
         {
-            var maxColumns = 0;
-            var values = new List<List<string>>();
-
-            foreach (var constructor in getConstructors())
-            {
-                var row = new List<string>();
-                values.Add(row);
-
-                row.Add(constructor.MethodName);
-
-                if (constructor.ConstructorInfo.Arguments.Length > maxColumns)
-                    maxColumns = constructor.ConstructorInfo.Arguments.Length;
-
-                foreach (var param in constructor.ConstructorInfo.Arguments)
-                {
-                    row.Add($"{param.Name}: {param.Type.FullName}");
-                }
-            }
-
-            maxColumns += 1;
-
-            foreach (var row in values)
-            {
-                if (maxColumns > row.Count)
-                {
-                    row.AddRange(new string[maxColumns - row.Count]);
-                }
-            }
-
-            var columns = new Column[maxColumns];
-            columns[0] = new Column("Name", typeof(string), 0);
-
-            for (int i = 1; i < columns.Length; i++)
-            {
-                columns[i] = new Column($"Param {i - 1}", typeof(string), i);
-            }
-
-            var descTable = new Table("desc", columns);
-
-            foreach (var row in values)
-            {
-                descTable.Add(new ObjectsRow(row.ToArray()));
-            }
-
-            return descTable;
+            columns[i] = new Column($"Param {i - 1}", typeof(string), i);
         }
 
-        public static IEnumerable<(string FieldName, Type Type)> CreateTypeComplexDescription(
-            string initialFieldName, Type type)
+        var descTable = new Table("desc", columns);
+
+        foreach (var row in values)
         {
-            var output = new List<(string FieldName, Type Type)>();
-            var fields = new Queue<(string FieldName, Type Type, int Level)>();
+            descTable.Add(new ObjectsRow(row.ToArray()));
+        }
 
-            fields.Enqueue((initialFieldName, type, 0));
-            output.Add((initialFieldName, type));
+        return descTable;
+    }
 
-            while (fields.Count > 0)
+    public static IEnumerable<(string FieldName, Type Type)> CreateTypeComplexDescription(
+        string initialFieldName, Type type)
+    {
+        var output = new List<(string FieldName, Type Type)>();
+        var fields = new Queue<(string FieldName, Type Type, int Level)>();
+
+        fields.Enqueue((initialFieldName, type, 0));
+        output.Add((initialFieldName, type));
+
+        while (fields.Count > 0)
+        {
+            var current = fields.Dequeue();
+
+            if(current.Level > 3)
+                continue;
+
+            foreach (var prop in current.Type.GetProperties())
             {
-                var current = fields.Dequeue();
-
-                if(current.Level > 3)
+                if (prop.MemberType != MemberTypes.Property)
                     continue;
 
-                foreach (var prop in current.Type.GetProperties())
+                var complexName = $"{current.FieldName}.{prop.Name}";
+                output.Add((complexName, prop.PropertyType));
+
+                if(prop.PropertyType == current.Type)
+                    continue;
+
+                if (!(prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object)))
                 {
-                    if (prop.MemberType != MemberTypes.Property)
-                        continue;
-
-                    var complexName = $"{current.FieldName}.{prop.Name}";
-                    output.Add((complexName, prop.PropertyType));
-
-                    if(prop.PropertyType == current.Type)
-                        continue;
-
-                    if (!(prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object)))
-                    {
-                        fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
-                    }
+                    fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
                 }
             }
-
-            return output;
         }
 
-        public static string GetCasteableType(Type type)
-        {
-            if (type is NullNode.NullType) return "System.Object";
-            if (type.IsGenericType) return GetFriendlyTypeName(type);
-            if (type.IsNested) return $"{GetCasteableType(type.DeclaringType)}.{type.Name}";
-
-            return ReplacePlusWithDotForNestedClasses(type.FullName);
-        }
-
-        public static Type[] GetNestedTypes(Type type)
-        {
-            if (!type.IsGenericType)
-                return [type];
-
-            var types = new Stack<Type>();
-
-            types.Push(type);
-            var finalTypes = new List<Type>();
-
-            while (types.Count > 0)
-            {
-                var cType = types.Pop();
-                finalTypes.Add(cType);
-
-                if (cType.IsGenericType)
-                    foreach (var argType in cType.GetGenericArguments())
-                        types.Push(argType);
-            }
-
-            return finalTypes.ToArray();
-        }
-
-        private static string GetFriendlyTypeName(Type type)
-        {
-            if (type.IsGenericParameter) return type.Name;
-
-            if (!type.IsGenericType) return ReplacePlusWithDotForNestedClasses(type.FullName);
-
-            var builder = new StringBuilder();
-            var name = type.Name;
-            var index = name.IndexOf("`", StringComparison.Ordinal);
-            builder.AppendFormat("{0}.{1}", type.Namespace, name[..index]);
-            builder.Append('<');
-            var first = true;
-            foreach (var arg in type.GetGenericArguments())
-            {
-                if (!first) builder.Append(',');
-                builder.Append(GetFriendlyTypeName(arg));
-                first = false;
-            }
-
-            builder.Append('>');
-            return builder.ToString();
-        }
-
-        private static string ReplacePlusWithDotForNestedClasses(string fullName)
-        {
-            return fullName.Replace("+", ".");
-        }
-
-        public static string RemapPrimitiveTypes(string typeName)
-        {
-            switch (typeName.ToLowerInvariant())
-            {
-                case "short":
-                    return "System.Int16";
-                case "int":
-                    return "System.Int32";
-                case "long":
-                    return "System.Int64";
-                case "ushort":
-                    return "System.UInt16";
-                case "uint":
-                    return "System.UInt32";
-                case "ulong":
-                    return "System.UInt64";
-                case "string":
-                    return "System.String";
-                case "char":
-                    return "System.Char";
-                case "boolean":
-                case "bool":
-                case "bit":
-                    return "System.Boolean";
-                case "float":
-                    return "System.Single";
-                case "double":
-                    return "System.Double";
-                case "decimal":
-                case "money":
-                    return "System.Decimal";
-                case "guid":
-                    return "System.Guid";
-            }
-
-            return typeName;
-        }
-
-        public static Type RemapPrimitiveTypeAsNullable(string typeName)
-        {
-            switch (typeName)
-            {
-                case "System.Int16":
-                    return typeof(short?);
-                case "System.Int32":
-                    return typeof(int?);
-                case "System.Int64":
-                    return typeof(long?);
-                case "System.UInt16":
-                    return typeof(ushort?);
-                case "System.UInt32":
-                    return typeof(uint?);
-                case "System.UInt64":
-                    return typeof(ulong?);
-                case "System.String":
-                    return typeof(string);
-                case "System.Char":
-                    return typeof(char?);
-                case "System.Boolean":
-                    return typeof(bool?);
-                case "System.Single":
-                    return typeof(float?);
-                case "System.Double":
-                    return typeof(double?);
-                case "System.Decimal":
-                    return typeof(decimal?);
-                case "System.Guid":
-                    return typeof(Guid?);
-            }
-
-            return Type.GetType(typeName);
-        }
+        return output;
     }
 
-    public class ListRowSource : RowSource
+    public static string GetCasteableType(Type type)
     {
-        private readonly List<Group> _list;
+        if (type is NullNode.NullType) return "System.Object";
+        if (type.IsGenericType) return GetFriendlyTypeName(type);
+        if (type.IsNested) return $"{GetCasteableType(type.DeclaringType)}.{type.Name}";
 
-        public ListRowSource(List<Group> list)
-        {
-            _list = list;
-        }
-
-        public override IEnumerable<IObjectResolver> Rows
-        {
-            get
-            {
-                foreach (var item in _list)
-                    yield return new GroupResolver(item);
-            }
-        }
+        return ReplacePlusWithDotForNestedClasses(type.FullName);
     }
 
-    public class GroupResolver : IObjectResolver
+    public static Type[] GetNestedTypes(Type type)
     {
-        private readonly Group _item;
+        if (!type.IsGenericType)
+            return [type];
 
-        public GroupResolver(Group item)
+        var types = new Stack<Type>();
+
+        types.Push(type);
+        var finalTypes = new List<Type>();
+
+        while (types.Count > 0)
         {
-            _item = item;
+            var cType = types.Pop();
+            finalTypes.Add(cType);
+
+            if (cType.IsGenericType)
+                foreach (var argType in cType.GetGenericArguments())
+                    types.Push(argType);
         }
 
-        public object[] Contexts => [];
-
-        public object this[string name]
-        {
-            get
-            {
-                if (name == "none")
-                    return _item;
-
-                return _item.GetValue<object>(name);
-            }
-        }
-
-        public object this[int index] => null;
-
-        public bool HasColumn(string name)
-        {
-            return false;
-        }
+        return finalTypes.ToArray();
     }
-    
-    public class GenericRowsSource<T>(IEnumerable<T> entities) : RowSource
+
+    private static string GetFriendlyTypeName(Type type)
+    {
+        if (type.IsGenericParameter) return type.Name;
+
+        if (!type.IsGenericType) return ReplacePlusWithDotForNestedClasses(type.FullName);
+
+        var builder = new StringBuilder();
+        var name = type.Name;
+        var index = name.IndexOf('`');
+        builder.Append($"{type.Namespace}.{name[..index]}");
+        builder.Append('<');
+        var first = true;
+        foreach (var arg in type.GetGenericArguments())
+        {
+            if (!first) builder.Append(',');
+            builder.Append(GetFriendlyTypeName(arg));
+            first = false;
+        }
+
+        builder.Append('>');
+        return builder.ToString();
+    }
+
+    private static string ReplacePlusWithDotForNestedClasses(string fullName)
+    {
+        return fullName.Replace("+", ".");
+    }
+
+    public static string RemapPrimitiveTypes(string typeName)
+    {
+        switch (typeName.ToLowerInvariant())
+        {
+            case "short":
+                return "System.Int16";
+            case "int":
+                return "System.Int32";
+            case "long":
+                return "System.Int64";
+            case "ushort":
+                return "System.UInt16";
+            case "uint":
+                return "System.UInt32";
+            case "ulong":
+                return "System.UInt64";
+            case "string":
+                return "System.String";
+            case "char":
+                return "System.Char";
+            case "boolean":
+            case "bool":
+            case "bit":
+                return "System.Boolean";
+            case "float":
+                return "System.Single";
+            case "double":
+                return "System.Double";
+            case "decimal":
+            case "money":
+                return "System.Decimal";
+            case "guid":
+                return "System.Guid";
+        }
+
+        return typeName;
+    }
+
+    public static Type RemapPrimitiveTypeAsNullable(string typeName)
+    {
+        switch (typeName)
+        {
+            case "System.Int16":
+                return typeof(short?);
+            case "System.Int32":
+                return typeof(int?);
+            case "System.Int64":
+                return typeof(long?);
+            case "System.UInt16":
+                return typeof(ushort?);
+            case "System.UInt32":
+                return typeof(uint?);
+            case "System.UInt64":
+                return typeof(ulong?);
+            case "System.String":
+                return typeof(string);
+            case "System.Char":
+                return typeof(char?);
+            case "System.Boolean":
+                return typeof(bool?);
+            case "System.Single":
+                return typeof(float?);
+            case "System.Double":
+                return typeof(double?);
+            case "System.Decimal":
+                return typeof(decimal?);
+            case "System.Guid":
+                return typeof(Guid?);
+        }
+
+        return Type.GetType(typeName);
+    }
+        
+    private class GenericRowsSource<T>(IEnumerable<T> entities) : RowSource
     {
         // ReSharper disable once StaticMemberInGenericType
-        public static IReadOnlyDictionary<string, int> NameToIndexMap { get; }
-        
-        public static IReadOnlyDictionary<int, Func<T, object>> IndexToObjectAccessMap { get; }
+        private static IReadOnlyDictionary<string, int> NameToIndexMap { get; }
+
+        private static IReadOnlyDictionary<int, Func<T, object>> IndexToObjectAccessMap { get; }
 
         public override IEnumerable<IObjectResolver> Rows => entities.Select(entity => new EntityResolver<T>(entity, NameToIndexMap, IndexToObjectAccessMap));
 
@@ -360,6 +310,25 @@ namespace Musoq.Evaluator.Helpers
         
             NameToIndexMap = nameToIndexMap;
             IndexToObjectAccessMap = indexToObjectAccessMap;
+        }
+    }
+
+    private class ListRowSource(List<Group> list) : RowSource
+    {
+        public override IEnumerable<IObjectResolver> Rows => list.Select(item => new GroupResolver(item));
+    }
+
+    private class GroupResolver(Group item) : IObjectResolver
+    {
+        public object[] Contexts => [];
+
+        public object this[string name] => name == "none" ? item : item.GetValue<object>(name);
+
+        public object this[int index] => null;
+
+        public bool HasColumn(string name)
+        {
+            return false;
         }
     }
 }

@@ -1,17 +1,16 @@
-﻿namespace Musoq.Evaluator.Visitors
+﻿namespace Musoq.Evaluator.Visitors;
+
+public interface IToCSharpTranslationExpressionVisitor : IScopeAwareExpressionVisitor
 {
-    public interface IToCSharpTranslationExpressionVisitor : IScopeAwareExpressionVisitor
-    {
-        void SetQueryIdentifier(string identifier);
+    void SetQueryIdentifier(string identifier);
 
-        MethodAccessType SetMethodAccessType(MethodAccessType type);
+    MethodAccessType SetMethodAccessType(MethodAccessType type);
 
-        void IncrementMethodIdentifier();
+    void IncrementMethodIdentifier();
         
-        void SetInsideJoinOrApply(bool value);
+    void SetInsideJoinOrApply(bool value);
 
-        void AddNullSuspiciousSection();
+    void AddNullSuspiciousSection();
         
-        void RemoveNullSuspiciousSection();
-    }
+    void RemoveNullSuspiciousSection();
 }

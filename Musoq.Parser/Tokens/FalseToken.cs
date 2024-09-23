@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class FalseToken : Token
-    {
-        public const string TokenText = "false";
+﻿namespace Musoq.Parser.Tokens;
 
-        public FalseToken(TextSpan span)
-            : base(TokenText, TokenType.False, span)
-        {
-        }
+public class FalseToken : Token
+{
+    public const string TokenText = "false";
+
+    public FalseToken(TextSpan span)
+        : base(TokenText, TokenType.False, span)
+    {
     }
 }

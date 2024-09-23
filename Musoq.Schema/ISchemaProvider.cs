@@ -1,7 +1,6 @@
-﻿namespace Musoq.Schema
+﻿namespace Musoq.Schema;
+
+public interface ISchemaProvider
 {
-    public interface ISchemaProvider
-    {
-        ISchema GetSchema(string schema);
-    }
+    ISchema GetSchema(string schema);
 }

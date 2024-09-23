@@ -6,49 +6,48 @@ using Musoq.Evaluator;
 using Musoq.Plugins;
 using Musoq.Tests.Common;
 
-namespace Musoq.Converter.Tests
+namespace Musoq.Converter.Tests;
+
+[TestClass]
+public class BuildTests
 {
-    [TestClass]
-    public class BuildTests
+    [TestMethod]
+    public void CompileForStoreTest()
     {
-        [TestMethod]
-        public void CompileForStoreTest()
-        {
-            var query = "select 1 from #system.dual()";
+        var query = "select 1 from #system.dual()";
 
-            var (dllFile, pdbFile) = CreateForStore(query);
+        var (dllFile, pdbFile) = CreateForStore(query);
 
-            Assert.IsNotNull(dllFile);
-            Assert.IsNotNull(pdbFile);
+        Assert.IsNotNull(dllFile);
+        Assert.IsNotNull(pdbFile);
 
-            Assert.AreNotEqual(0, dllFile.Length);
-            Assert.AreNotEqual(0, pdbFile.Length);
-        }
+        Assert.AreNotEqual(0, dllFile.Length);
+        Assert.AreNotEqual(0, pdbFile.Length);
+    }
 
-        [TestMethod]
-        public async Task CompileForStoreAsyncTest()
-        {
-            var query = "select 1 from #system.dual()";
+    [TestMethod]
+    public async Task CompileForStoreAsyncTest()
+    {
+        var query = "select 1 from #system.dual()";
 
-            var arrays = await InstanceCreator.CompileForStoreAsync(query, Guid.NewGuid().ToString(), new SystemSchemaProvider());
+        var arrays = await InstanceCreator.CompileForStoreAsync(query, Guid.NewGuid().ToString(), new SystemSchemaProvider());
 
-            Assert.IsNotNull(arrays.DllFile);
-            Assert.IsNotNull(arrays.PdbFile);
+        Assert.IsNotNull(arrays.DllFile);
+        Assert.IsNotNull(arrays.PdbFile);
 
-            Assert.AreNotEqual(0, arrays.DllFile.Length);
-            Assert.AreNotEqual(0, arrays.PdbFile.Length);
-        }
+        Assert.AreNotEqual(0, arrays.DllFile.Length);
+        Assert.AreNotEqual(0, arrays.PdbFile.Length);
+    }
 
-        private (byte[] DllFile, byte[] PdbFile) CreateForStore(string script)
-        {
-            return InstanceCreator.CompileForStore(script, Guid.NewGuid().ToString(), new SystemSchemaProvider());
-        }
+    private (byte[] DllFile, byte[] PdbFile) CreateForStore(string script)
+    {
+        return InstanceCreator.CompileForStore(script, Guid.NewGuid().ToString(), new SystemSchemaProvider());
+    }
 
-        static BuildTests()
-        {
-            new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+    static BuildTests()
+    {
+        new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
 
-            Culture.ApplyWithDefaultCulture();
-        }
+        Culture.ApplyWithDefaultCulture();
     }
 }

@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Musoq.Plugins.Attributes
+namespace Musoq.Plugins.Attributes;
+
+public sealed class InjectGroupAttribute : InjectTypeAttribute
 {
-    public sealed class InjectGroupAttribute : InjectTypeAttribute
-    {
-        public override Type InjectType => typeof(Group);
-    }
+    public override Type InjectType => typeof(Group);
 }

@@ -1,11 +1,10 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class ContainsToken : Token
-    {
-        public const string TokenText = "contains";
+﻿namespace Musoq.Parser.Tokens;
 
-        public ContainsToken(TextSpan span) : base(TokenText, TokenType.Contains, span)
-        {
-        }
+public class ContainsToken : Token
+{
+    public const string TokenText = "contains";
+
+    public ContainsToken(TextSpan span) : base(TokenText, TokenType.Contains, span)
+    {
     }
 }

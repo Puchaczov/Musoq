@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace Musoq.Schema.Exceptions
+namespace Musoq.Schema.Exceptions;
+
+public class SourceNotFoundException : Exception
 {
-    public class SourceNotFoundException : Exception
+    public SourceNotFoundException(string table)
+        : base(table)
     {
-        public SourceNotFoundException(string table)
-            : base(table)
-        {
-        }
     }
 }

@@ -1,31 +1,30 @@
-﻿namespace Musoq.Evaluator.Utils
+﻿namespace Musoq.Evaluator.Utils;
+
+public class ScopeWalker
 {
-    public class ScopeWalker
+    private readonly ScopeWalker _parent;
+    private int _childIndex;
+
+    public ScopeWalker(Scope scope)
     {
-        private readonly ScopeWalker _parent;
-        private int _childIndex;
+        Scope = scope;
+    }
 
-        public ScopeWalker(Scope scope)
-        {
-            Scope = scope;
-        }
+    private ScopeWalker(Scope scope, ScopeWalker parent)
+        : this(scope)
+    {
+        _parent = parent;
+    }
 
-        private ScopeWalker(Scope scope, ScopeWalker parent)
-            : this(scope)
-        {
-            _parent = parent;
-        }
+    public Scope Scope { get; }
 
-        public Scope Scope { get; }
+    public ScopeWalker NextChild()
+    {
+        return new ScopeWalker(Scope.Child[_childIndex++], this);
+    }
 
-        public ScopeWalker NextChild()
-        {
-            return new ScopeWalker(Scope.Child[_childIndex++], this);
-        }
-
-        public ScopeWalker Parent()
-        {
-            return _parent;
-        }
+    public ScopeWalker Parent()
+    {
+        return _parent;
     }
 }

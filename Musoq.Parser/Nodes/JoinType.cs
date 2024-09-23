@@ -1,9 +1,8 @@
-﻿namespace Musoq.Parser.Nodes
+﻿namespace Musoq.Parser.Nodes;
+
+public enum JoinType
 {
-    public enum JoinType
-    {
-        Inner,
-        OuterLeft,
-        OuterRight
-    }
+    Inner,
+    OuterLeft,
+    OuterRight
 }

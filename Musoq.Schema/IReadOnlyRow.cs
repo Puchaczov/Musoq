@@ -1,7 +1,6 @@
-﻿namespace Musoq.Schema
+﻿namespace Musoq.Schema;
+
+public interface IReadOnlyRow
 {
-    public interface IReadOnlyRow
-    {
-        object this[int columnNumber] { get; }
-    }
+    object this[int columnNumber] { get; }
 }

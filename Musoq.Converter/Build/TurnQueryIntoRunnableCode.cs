@@ -3,45 +3,44 @@ using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Musoq.Converter.Exceptions;
 
-namespace Musoq.Converter.Build
+namespace Musoq.Converter.Build;
+
+public class TurnQueryIntoRunnableCode(BuildChain successor) : BuildChain(successor)
 {
-    public class TurnQueryIntoRunnableCode(BuildChain successor) : BuildChain(successor)
+    public override void Build(BuildItems items)
     {
-        public override void Build(BuildItems items)
+        using (var dllStream = new MemoryStream())
         {
-            using (var dllStream = new MemoryStream())
+            using (var pdbStream = new MemoryStream())
             {
-                using (var pdbStream = new MemoryStream())
-                {
 #if DEBUG
-                    var result = items.Compilation.Emit(
-                        dllStream, 
-                        pdbStream, 
-                        options: new EmitOptions(false, DebugInformationFormat.PortablePdb));
+                var result = items.Compilation.Emit(
+                    dllStream, 
+                    pdbStream, 
+                    options: new EmitOptions(false, DebugInformationFormat.PortablePdb));
 #else
                     var result = items.Compilation.Emit(dllStream, pdbStream);
 #endif
 
-                    items.EmitResult = result;
-                    if (!result.Success)
-                    {
-                        var all = new StringBuilder();
+                items.EmitResult = result;
+                if (!result.Success)
+                {
+                    var all = new StringBuilder();
 
-                        foreach (var diagnostic in result.Diagnostics)
-                            all.Append(diagnostic);
+                    foreach (var diagnostic in result.Diagnostics)
+                        all.Append(diagnostic);
 
-                        items.DllFile = null;
-                        items.PdbFile = null;
+                    items.DllFile = null;
+                    items.PdbFile = null;
 
-                        throw new CompilationException(all.ToString());
-                    }
-
-                    items.DllFile = dllStream.ToArray();
-                    items.PdbFile = pdbStream.ToArray();
+                    throw new CompilationException(all.ToString());
                 }
-            }
 
-            Successor?.Build(items);
+                items.DllFile = dllStream.ToArray();
+                items.PdbFile = pdbStream.ToArray();
+            }
         }
+
+        Successor?.Build(items);
     }
 }

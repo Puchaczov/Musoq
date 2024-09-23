@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser
+﻿namespace Musoq.Parser;
+
+public enum QueryPart
 {
-    public enum QueryPart
-    {
-        None,
-        Select,
-        From,
-        Where,
-        GroupBy,
-        Having
-    }
+    None,
+    Select,
+    From,
+    Where,
+    GroupBy,
+    Having
 }

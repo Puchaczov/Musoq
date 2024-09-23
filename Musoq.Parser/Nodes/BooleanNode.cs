@@ -1,31 +1,30 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class BooleanNode : ConstantValueNode
 {
-    public class BooleanNode : ConstantValueNode
+    public BooleanNode(bool value)
     {
-        public BooleanNode(bool value)
-        {
-            Value = value;
-            Id = $"{nameof(BooleanNode)}{value}{ReturnType.Name}";
-        }
+        Value = value;
+        Id = $"{nameof(BooleanNode)}{value}{ReturnType.Name}";
+    }
 
-        public bool Value { get; }
+    public bool Value { get; }
 
-        public override object ObjValue => Value;
+    public override object ObjValue => Value;
 
-        public override Type ReturnType => typeof(bool);
+    public override Type ReturnType => typeof(bool);
 
-        public override string Id { get; }
+    public override string Id { get; }
 
-        public override string ToString()
-        {
-            return Value ? "true" : "false";
-        }
+    public override string ToString()
+    {
+        return Value ? "true" : "false";
+    }
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public override void Accept(IExpressionVisitor visitor)
+    {
+        visitor.Visit(this);
     }
 }

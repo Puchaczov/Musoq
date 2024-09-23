@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class ThenToken : Token
-    {
-        public const string TokenText = "then";
+﻿namespace Musoq.Parser.Tokens;
 
-        public ThenToken(TextSpan span)
-            : base(TokenText, TokenType.Then, span)
-        {
-        }
+public class ThenToken : Token
+{
+    public const string TokenText = "then";
+
+    public ThenToken(TextSpan span)
+        : base(TokenText, TokenType.Then, span)
+    {
     }
 }

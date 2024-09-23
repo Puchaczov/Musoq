@@ -1,11 +1,10 @@
-﻿namespace Musoq.Parser
+﻿namespace Musoq.Parser;
+
+public interface IQueryPartAwareExpressionVisitor : IExpressionVisitor
 {
-    public interface IQueryPartAwareExpressionVisitor : IExpressionVisitor
-    {
-        void SetQueryPart(QueryPart part);
+    void SetQueryPart(QueryPart part);
         
-        void QueryBegins();
+    void QueryBegins();
         
-        void QueryEnds();
-    }
+    void QueryEnds();
 }

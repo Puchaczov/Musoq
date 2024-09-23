@@ -1,8 +1,7 @@
 ﻿using Musoq.Plugins;
 
-namespace Musoq.Evaluator.Tables
+namespace Musoq.Evaluator.Tables;
+
+public class TransitionLibrary : LibraryBase
 {
-    public class TransitionLibrary : LibraryBase
-    {
-    }
 }

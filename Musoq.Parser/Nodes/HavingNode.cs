@@ -1,29 +1,28 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class HavingNode : Node
 {
-    public class HavingNode : Node
+    public HavingNode(Node expression)
     {
-        public HavingNode(Node expression)
-        {
-            Expression = expression;
-            Id = $"{nameof(HavingNode)}{expression.Id}";
-        }
+        Expression = expression;
+        Id = $"{nameof(HavingNode)}{expression.Id}";
+    }
 
-        public Node Expression { get; }
+    public Node Expression { get; }
 
-        public override Type ReturnType { get; }
+    public override Type ReturnType { get; }
 
-        public override string Id { get; }
+    public override string Id { get; }
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public override void Accept(IExpressionVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
 
-        public override string ToString()
-        {
-            return $"having {Expression.ToString()}";
-        }
+    public override string ToString()
+    {
+        return $"having {Expression.ToString()}";
     }
 }

@@ -1,6 +1,5 @@
-﻿namespace Musoq.Plugins.Attributes
+﻿namespace Musoq.Plugins.Attributes;
+
+public class AggregationMethodAttribute : BindableMethodAttribute
 {
-    public class AggregationMethodAttribute : BindableMethodAttribute
-    {
-    }
 }

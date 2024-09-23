@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class LeftParenthesisToken : Token
-    {
-        public const string TokenText = "(";
+﻿namespace Musoq.Parser.Tokens;
 
-        public LeftParenthesisToken(TextSpan textSpan)
-            : base(TokenText, TokenType.LeftParenthesis, textSpan)
-        {
-        }
+public class LeftParenthesisToken : Token
+{
+    public const string TokenText = "(";
+
+    public LeftParenthesisToken(TextSpan textSpan)
+        : base(TokenText, TokenType.LeftParenthesis, textSpan)
+    {
     }
 }
