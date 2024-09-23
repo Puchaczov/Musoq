@@ -11,7 +11,7 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
 {
     private int _schemaFromKey;
     private string _queryAlias;
-    private readonly List<string> _generatedAliases = new();
+    private readonly List<string> _generatedAliases = [];
     private readonly Dictionary<string, List<string>> _columns = new();
     
     public IReadOnlyDictionary<string, string[]> Columns => _columns.ToDictionary(f => f.Key, f => f.Value.Distinct().ToArray());
@@ -222,21 +222,29 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+    {
+    }
+
     public void Visit(SchemaFromNode node)
     {
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) + _schemaFromKey;
         _generatedAliases.Add(_queryAlias);
-        _columns.Add(_queryAlias, new List<string>());
+        _columns.Add(_queryAlias, []);
     }
 
     public void Visit(AliasedFromNode node)
     {
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) + _schemaFromKey;
         _generatedAliases.Add(_queryAlias);
-        _columns.Add(_queryAlias, new List<string>());
+        _columns.Add(_queryAlias, []);
     }
 
     public void Visit(JoinSourcesTableFromNode node)
+    {
+    }
+
+    public void Visit(ApplySourcesTableFromNode node)
     {
     }
 
@@ -248,11 +256,23 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(ApplyFromNode node)
+    {
+    }
+
     public void Visit(ExpressionFromNode node)
     {
     }
 
     public void Visit(SchemaMethodFromNode node)
+    {
+    }
+
+    public void Visit(PropertyFromNode node)
+    {
+    }
+
+    public void Visit(AccessMethodFromNode node)
     {
     }
 
@@ -344,11 +364,11 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
-    public void Visit(JoinsNode node)
+    public void Visit(JoinNode node)
     {
     }
 
-    public void Visit(JoinNode node)
+    public void Visit(ApplyNode node)
     {
     }
 

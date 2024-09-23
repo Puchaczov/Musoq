@@ -1,4 +1,3 @@
-using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 

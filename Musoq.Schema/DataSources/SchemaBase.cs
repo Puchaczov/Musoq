@@ -101,9 +101,9 @@ namespace Musoq.Schema.DataSources
 
         public bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
         {
-            var founded = _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
+            var found = _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
 
-            if (founded)
+            if (found)
                 return methodInfo.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
             return false;

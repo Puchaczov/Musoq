@@ -2,31 +2,25 @@
 
 namespace Musoq.Parser.Nodes.From
 {
-    public class JoinFromNode : FromNode
+    public class JoinFromNode : BinaryFromNode
     {
-        internal JoinFromNode(FromNode joinFrom, FromNode from, Node expression, JoinType joinType)
-            : base($"{joinFrom.Alias}{from.Alias}")
+        internal JoinFromNode(FromNode source, FromNode with, Node expression, JoinType joinType)
+            : base(source, with, $"{source.Alias}{with.Alias}")
         {
-            Source = joinFrom;
-            With = from;
             Expression = expression;
             JoinType = joinType;
         }
         
-        public JoinFromNode(FromNode joinFrom, FromNode from, Node expression, JoinType joinType, Type returnType)
-            : base($"{joinFrom.Alias}{from.Alias}", returnType)
+        public JoinFromNode(FromNode source, FromNode with, Node expression, JoinType joinType, Type returnType)
+            : base(source, with, $"{source.Alias}{with.Alias}", returnType)
         {
-            Source = joinFrom;
-            With = from;
             Expression = expression;
             JoinType = joinType;
         }
-
-        public FromNode Source { get; }
-        public FromNode With { get; }
+        
         public Node Expression { get; }
         public JoinType JoinType { get; }
-        public override string Id => $"{typeof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}";
+        public override string Id => $"{nameof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}";
 
         public override void Accept(IExpressionVisitor visitor)
         {
@@ -35,7 +29,14 @@ namespace Musoq.Parser.Nodes.From
 
         public override string ToString()
         {
-            return $"({Source.ToString()}, {With.ToString()}, {Expression.ToString()})";
+            var joinType = JoinType switch
+            {
+                JoinType.Inner => "inner join",
+                JoinType.OuterLeft => "left outer join",
+                _ => "right outer join"
+            };
+            
+            return $"{Source.ToString()} {joinType} {With.ToString()} on {Expression.ToString()}";
         }
     }
 }

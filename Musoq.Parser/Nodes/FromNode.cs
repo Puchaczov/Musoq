@@ -21,6 +21,7 @@ namespace Musoq.Parser.Nodes
 
         public virtual string Alias { get; }
 
-        public override Type ReturnType => _returnType ?? throw new InvalidOperationException("Return type is not set.");
+        // ReSharper disable once ConvertToAutoProperty
+        public override Type? ReturnType => _returnType;
     }
 }

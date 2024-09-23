@@ -27,7 +27,7 @@ namespace Musoq.Parser.Nodes.From
 
         public override string ToString()
         {
-            return $"from {VariableName}";
+            return VariableName;
         }
     }
 }

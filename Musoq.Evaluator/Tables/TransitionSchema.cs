@@ -7,19 +7,12 @@ using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tables
 {
-    internal class TransitionSchema : SchemaBase
+    internal class TransitionSchema(string name, ISchemaTable table) 
+        : SchemaBase(name, CreateLibrary())
     {
-        private readonly ISchemaTable _table;
-
-        public TransitionSchema(string name, ISchemaTable table)
-            : base(name, CreateLibrary())
-        {
-            _table = table;
-        }
-
         public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
-            return _table;
+            return table;
         }
 
         public override RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)

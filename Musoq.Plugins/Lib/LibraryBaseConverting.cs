@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Globalization;
-using System.Security.Cryptography;
 using System.Text;
 using Musoq.Plugins.Attributes;
-using Musoq.Plugins.Helpers;
 
 namespace Musoq.Plugins
 {

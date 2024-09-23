@@ -2,7 +2,7 @@
 
 namespace Musoq.Plugins.Attributes
 {
-    public class InjectGroupAttribute : InjectTypeAttribute
+    public sealed class InjectGroupAttribute : InjectTypeAttribute
     {
         public override Type InjectType => typeof(Group);
     }

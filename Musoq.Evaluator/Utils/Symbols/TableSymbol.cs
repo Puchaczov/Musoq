@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Utils.Symbols
 {
     public class TableSymbol : Symbol
     {
-        private readonly List<string> _orders = new();
+        private readonly List<string> _orders = [];
 
         private readonly Dictionary<string, (ISchema Schema, ISchemaTable SchemaTable)> _tables = new();
 
@@ -39,6 +39,8 @@ namespace Musoq.Evaluator.Utils.Symbols
         public bool HasAlias { get; }
 
         public string[] CompoundTables => _orders.ToArray();
+        
+        public bool IsCompoundTable => _tables.Count > 1;
 
         public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByColumnName(string column)
         {

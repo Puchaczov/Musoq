@@ -119,12 +119,12 @@ namespace Musoq.Plugins
             var array = new int[sourceCount, patternCount];
             var maxSubStringSequence = 0;
 
-            var subSequence = (IEnumerable<T>?)null;
+            IEnumerable<T>? subSequence = null;
 
-            for (int i = 0; i < sourceCount; ++i)
+            for (var i = 0; i < sourceCount; ++i)
             {
                 var sourceElement = sourceArray.ElementAt(i);
-                for (int j = 0; j < patternCount; ++j)
+                for (var j = 0; j < patternCount; ++j)
                 {
                     var patternElement = patternArray.ElementAt(j);
 
@@ -132,11 +132,10 @@ namespace Musoq.Plugins
                     {
                         array[i, j] = i == 0 || j == 0 ? 1 : array[i - 1, j - 1] + 1;
 
-                        if (array[i, j] > maxSubStringSequence)
-                        {
-                            maxSubStringSequence = array[i, j];
-                            subSequence = sourceArray.Skip(i - maxSubStringSequence + 1).Take(maxSubStringSequence);
-                        }
+                        if (array[i, j] <= maxSubStringSequence) continue;
+                        
+                        maxSubStringSequence = array[i, j];
+                        subSequence = sourceArray.Skip(i - maxSubStringSequence + 1).Take(maxSubStringSequence);
                     }
                     else
                     {
@@ -145,10 +144,7 @@ namespace Musoq.Plugins
                 }
             }
 
-            if (subSequence == null)
-                return Array.Empty<T>();
-
-            return subSequence;
+            return subSequence ?? Array.Empty<T>();
         }
 
         /// <summary>
@@ -341,6 +337,18 @@ namespace Musoq.Plugins
             }
 
             return default;
+        }
+
+        /// <summary>
+        /// Returns distinct elements from a collection.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the collection.</typeparam>
+        /// <param name="values">The collection to remove duplicate elements from.</param>
+        /// <returns>An IEnumerable&lt;T&gt; that contains distinct elements from the input sequence.</returns>
+        [BindableMethod]
+        public IEnumerable<T>? Distinct<T>(IEnumerable<T>? values)
+        {
+            return values?.Distinct();
         }
     }
 }

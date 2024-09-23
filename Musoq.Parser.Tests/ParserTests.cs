@@ -14,7 +14,40 @@ namespace Musoq.Parser.Tests
             var lexer = new Lexer(query, true);
             var parser = new Parser(lexer);
 
-            var root = parser.ComposeAll();
+            parser.ComposeAll();
+        }
+        
+        [TestMethod]
+        public void CouplingSyntax_ComposeSchemaMethodWithKeywordAsMethod_ShouldParse()
+        {
+            var query = "couple #some.table with table Test as SourceOfTestValues;";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+        
+        [TestMethod]
+        public void CouplingSyntax_ComposeSchemaMethodWithWordAsMethod_ShouldParse()
+        {
+            var query = "couple #some.something with table Test as SourceOfTestValues;";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+        
+        [TestMethod]
+        public void CouplingSyntax_ComposeSchemaMethodWithWordFinishedWithNumberAsMethod_ShouldParse()
+        {
+            var query = "couple #some.something4 with table Test as SourceOfTestValues;";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
         }
     }
 }

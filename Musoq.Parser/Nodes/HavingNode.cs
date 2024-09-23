@@ -23,7 +23,7 @@ namespace Musoq.Parser.Nodes
 
         public override string ToString()
         {
-            return $"HAVING {Expression.ToString()}";
+            return $"having {Expression.ToString()}";
         }
     }
 }

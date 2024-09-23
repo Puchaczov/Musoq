@@ -35,6 +35,9 @@ namespace Musoq.Parser.Nodes.From
 
         public override string ToString()
         {
+            if (!string.IsNullOrWhiteSpace(Alias))
+                return $"{Identifier}({Args.ToString()}) as {Alias}";
+            
             return $"{Identifier}({Args.ToString()})";
         }
     }

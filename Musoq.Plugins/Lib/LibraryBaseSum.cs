@@ -203,6 +203,48 @@ namespace Musoq.Plugins
         /// <param name="number">Number that should be aggregated</param>
         /// <param name="parent">Which group should be used to store value</param>
         [AggregationSetMethod]
+        public void SetSum([InjectGroup] Group group, string name, float? number, int parent = 0)
+        {
+            var parentGroup = GetParentGroup(group, parent);
+            if (!number.HasValue)
+            {
+                parentGroup.GetOrCreateValue<float>(name);
+                return;
+            }
+
+            var value = parentGroup.GetOrCreateValue<float>(name);
+            parentGroup.SetValue(name, value + number);
+        }
+
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="number">Number that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
+        public void SetSum([InjectGroup] Group group, string name, double? number, int parent = 0)
+        {
+            var parentGroup = GetParentGroup(group, parent);
+            if (!number.HasValue)
+            {
+                parentGroup.GetOrCreateValue<decimal>(name);
+                return;
+            }
+
+            var value = parentGroup.GetOrCreateValue<decimal>(name);
+            parentGroup.SetValue(name, value + ToDecimal(number.Value));
+        }
+
+        /// <summary>
+        /// Sets the value of the group.
+        /// </summary>
+        /// <param name="group" injectedByRuntime="true">The group object</param>
+        /// <param name="name">Name of the group</param>
+        /// <param name="number">Number that should be aggregated</param>
+        /// <param name="parent">Which group should be used to store value</param>
+        [AggregationSetMethod]
         public void SetSum([InjectGroup] Group group, string name, decimal? number, int parent = 0)
         {
             var parentGroup = GetParentGroup(group, parent);

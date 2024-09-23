@@ -1,9 +1,6 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Multi;
-using Musoq.Evaluator.Tests.Schema.Multi.First;
-using Musoq.Evaluator.Tests.Schema.Multi.Second;
 
 namespace Musoq.Evaluator.Tests;
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -586,12 +587,21 @@ namespace Musoq.Evaluator.Tests
 
             Assert.AreEqual("NullableValue", table.Columns.ElementAt(10).ColumnName);
             Assert.AreEqual(typeof(int?), table.Columns.ElementAt(10).ColumnType);
+            
+            Assert.AreEqual("Array", table.Columns.ElementAt(11).ColumnName);
+            Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(11).ColumnType);
+            
+            Assert.AreEqual("Other", table.Columns.ElementAt(12).ColumnName);
+            Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(12).ColumnType);
+            
+            Assert.AreEqual("Dictionary", table.Columns.ElementAt(13).ColumnName);
+            Assert.AreEqual(typeof(Dictionary<string, string>), table.Columns.ElementAt(13).ColumnType);
 
-            Assert.AreEqual("Name2", table.Columns.ElementAt(11).ColumnName);
-            Assert.AreEqual(typeof(string), table.Columns.ElementAt(11).ColumnType);
+            Assert.AreEqual("Name2", table.Columns.ElementAt(14).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(14).ColumnType);
 
-            Assert.AreEqual("SelfString", table.Columns.ElementAt(12).ColumnName);
-            Assert.AreEqual(typeof(string), table.Columns.ElementAt(12).ColumnType);
+            Assert.AreEqual("SelfString", table.Columns.ElementAt(15).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(15).ColumnType);
 
             Assert.AreEqual(1, table.Count);
 
@@ -606,8 +616,11 @@ namespace Musoq.Evaluator.Tests
             Assert.AreEqual(DateTime.MaxValue, table[0].Values[8]);
             Assert.AreEqual(5, table[0].Values[9]);
             Assert.AreEqual(null, table[0].Values[10]);
-            Assert.AreEqual("ABBA", table[0].Values[11]);
-            Assert.AreEqual("TEST STRING", table[0].Values[12]);
+            Assert.IsNotNull(table[0].Values[11]);
+            Assert.AreEqual(entity, table[0].Values[12]);
+            Assert.IsNotNull(table[0].Values[13]);
+            Assert.AreEqual("ABBA", table[0].Values[14]);
+            Assert.AreEqual("TEST STRING", table[0].Values[15]);
         }
 
         [TestMethod]

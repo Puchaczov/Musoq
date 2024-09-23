@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Moq;
 using Musoq.Converter;
-using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Plugins;
 using Musoq.Tests.Common;
 

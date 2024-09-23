@@ -174,6 +174,23 @@ namespace Musoq.Parser.Lexing
 
             return AssignTokenOfType(GetEndOfFileToken);
         }
+        
+        public virtual TToken NextOf(Regex regex, Func<string, TToken> getToken)
+        {
+            if (IsOutOfRange)
+                return AssignTokenOfType(GetEndOfFileToken);
+            
+            var match = regex.Match(Input, Position);
+            
+            if (!match.Success || match.Index - Position != 0)
+                throw new UnknownTokenException(Position, Input[Position],
+                    $"Unrecognized token exception at {Position} for {Input[Position..]}");
+            
+            var token = getToken(match.Value);
+            Position += match.Length;
+            
+            return AssignTokenOfType(() => token);
+        }
 
         #endregion
     }

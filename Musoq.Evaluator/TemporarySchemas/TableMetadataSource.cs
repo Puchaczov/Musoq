@@ -7,8 +7,8 @@ namespace Musoq.Evaluator.TemporarySchemas
 {
     public class TableMetadataSource : RowSource
     {
-        private static readonly IDictionary<string, int> NameToIndexMap;
-        private static readonly IDictionary<int, Func<object[], object>> IndexToObjectAccessMap;
+        private static readonly IReadOnlyDictionary<string, int> NameToIndexMap;
+        private static readonly IReadOnlyDictionary<int, Func<object[], object>> IndexToObjectAccessMap;
         private readonly ISchemaColumn[] _columns;
 
         static TableMetadataSource()

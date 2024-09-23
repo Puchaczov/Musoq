@@ -9,16 +9,14 @@ namespace Musoq.Evaluator.Tables
     public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
     {
         private readonly Dictionary<int, Column> _columnsByIndex;
-        private readonly Dictionary<string, Column> _columnsByName;
-        private readonly Dictionary<int, TableIndex[]> _indexes;
+        private readonly Dictionary<string, List<Column>> _columnsByName;
 
         public Table(string name, Column[] columns)
         {
             Name = name;
 
-            _indexes = new Dictionary<int, TableIndex[]>();
             _columnsByIndex = new Dictionary<int, Column>();
-            _columnsByName = new Dictionary<string, Column>();
+            _columnsByName = new Dictionary<string, List<Column>>();
 
             AddColumns(columns);
         }
@@ -47,37 +45,25 @@ namespace Musoq.Evaluator.Tables
             foreach (var column in columns)
             {
                 _columnsByIndex.Add(column.ColumnIndex, column);
-                _columnsByName.Add(column.ColumnName, column);
+
+                if (_columnsByName.TryGetValue(column.ColumnName, out var value))
+                {
+                    var firstValue = value.First();
+
+                    if (firstValue.ColumnType != column.ColumnType)
+                        throw new NotSupportedException(
+                            $"({nameof(AddColumns)}) Mismatched types. {firstValue.ColumnType.Name} is not assignable from {column.ColumnType.Name}");
+                    
+                    value.Add(column);
+                    continue;
+                }
+                
+                _columnsByName.Add(column.ColumnName, [column]);
             }
-        }
-
-        public void AddIndex(params TableIndex[] indexes)
-        {
-            var hash = 0;
-            foreach (var item in indexes)
-                hash += item.GetHashCode();
-
-            _indexes.Add(hash, indexes);
-        }
-
-        public bool HasIndex(params TableIndex[] indexes)
-        {
-            var hash = 0;
-            foreach (var item in indexes)
-                hash += item.GetHashCode();
-
-            return _indexes.ContainsKey(hash);
-        }
-
-        public Column GetColumn(string name)
-        {
-            return _columnsByName[name];
         }
 
         public void Add(Row value)
         {
-            var newIndex = Rows.Count;
-
             if (value.Count != _columnsByIndex.Count)
                 throw new NotSupportedException(
                     $"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
@@ -95,27 +81,6 @@ namespace Musoq.Evaluator.Tables
             }
 
             Rows.Add(value);
-
-            foreach (var index in _indexes)
-            {
-                var array = index.Value.Select((f, i) => _columnsByName[f.ColumnName]);
-                var enumerable = array as Column[] ?? array.ToArray();
-                var indexes = enumerable.Select(f => f.ColumnIndex).ToArray();
-
-                var objects = new object[indexes.Length];
-
-                for (var i = 0; i < indexes.Length; i++) objects[i] = value[_columnsByIndex[indexes[i]].ColumnIndex];
-
-                var key = new Key(objects, indexes);
-
-                if (!HasMatchKey(key, value))
-                    continue;
-
-                if (!Indexes.ContainsKey(key))
-                    Indexes.Add(key, new List<int>());
-
-                Indexes[key].Add(newIndex);
-            }
         }
     }
 }

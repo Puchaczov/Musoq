@@ -5,7 +5,7 @@ namespace Musoq.Plugins.Attributes
     /// <summary>
     ///  Injects <see cref="Group" /> type into query.
     /// </summary>
-    public class InjectQueryStatsAttribute : InjectTypeAttribute
+    public sealed class InjectQueryStatsAttribute : InjectTypeAttribute
     {
         /// <summary>
         /// Injects <see cref="Group" /> type into query.

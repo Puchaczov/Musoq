@@ -56,13 +56,18 @@ namespace Musoq.Parser
         void Visit(SkipNode node);
         void Visit(TakeNode node);
         void Visit(JoinInMemoryWithSourceTableFromNode node);
+        void Visit(ApplyInMemoryWithSourceTableFromNode node);
         void Visit(SchemaFromNode node);
         void Visit(AliasedFromNode node);
         void Visit(JoinSourcesTableFromNode node);
+        void Visit(ApplySourcesTableFromNode node);
         void Visit(InMemoryTableFromNode node);
         void Visit(JoinFromNode node);
+        void Visit(ApplyFromNode node);
         void Visit(ExpressionFromNode node);
         void Visit(SchemaMethodFromNode node);
+        void Visit(PropertyFromNode node);
+        void Visit(AccessMethodFromNode node);
         void Visit(CreateTransformationTableNode node);
         void Visit(RenameTableNode node);
         void Visit(TranslatedSetTreeNode node);
@@ -85,8 +90,8 @@ namespace Musoq.Parser
         void Visit(StatementNode node);
         void Visit(CteExpressionNode node);
         void Visit(CteInnerExpressionNode node);
-        void Visit(JoinsNode node);
         void Visit(JoinNode node);
+        void Visit(ApplyNode node);
         void Visit(OrderByNode node);
         void Visit(CreateTableNode node);
         void Visit(CoupleNode node);

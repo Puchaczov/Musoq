@@ -18,7 +18,10 @@
 
         public override string ToString()
         {
-            return $"{Expression.ToString()} {Order.ToString().ToLowerInvariant()}";
+            if (Order == Order.Descending)
+                return $"{Expression.ToString()} desc";
+            
+            return Expression.ToString();
         }
     }
 }

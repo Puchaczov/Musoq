@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 
@@ -8,7 +9,7 @@ namespace Musoq.Evaluator.Visitors;
 public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
 {
     private readonly Dictionary<string, List<AccessColumnNode>> _accessColumns = new();
-    
+
     public AccessColumnNode[] GetForAliases(params string[] aliases)
     {
         return _accessColumns.Where(a => aliases.Contains(a.Key)).SelectMany(a => a.Value).ToArray();
@@ -39,20 +40,36 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
             return;
         }
         
-        _accessColumns.Add(node.Alias, new List<AccessColumnNode> {node});
+        _accessColumns.Add(node.Alias, [node]);
         base.Visit(node);
     }
 
     public override void Visit(SchemaFromNode node)
     {
-        _accessColumns.TryAdd(node.Alias, new List<AccessColumnNode>());
+        _accessColumns.TryAdd(node.Alias, []);
         
         base.Visit(node);
     }
     
     public override void Visit(InMemoryTableFromNode node)
     {
-        _accessColumns.TryAdd(node.Alias, new List<AccessColumnNode>());
+        _accessColumns.TryAdd(node.Alias, []);
+        
+        base.Visit(node);
+    }
+
+    public override void Visit(PropertyFromNode node)
+    {
+        _accessColumns.TryAdd(node.SourceAlias, []);
+     
+        _accessColumns[node.SourceAlias].Add(new AccessColumnNode(node.PropertyName, node.SourceAlias, node.ReturnType, TextSpan.Empty));
+        
+        base.Visit(node);
+    }
+    
+    public override void Visit(AccessMethodFromNode node)
+    {
+        _accessColumns.TryAdd(node.Alias, []);
         
         base.Visit(node);
     }

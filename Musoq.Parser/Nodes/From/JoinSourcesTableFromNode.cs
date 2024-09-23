@@ -7,7 +7,7 @@ namespace Musoq.Parser.Nodes.From
         internal JoinSourcesTableFromNode(FromNode first, FromNode second, Node expression, JoinType joinType)
             : base($"{first.Alias}{second.Alias}")
         {
-            Id = $"{nameof(JoinSourcesTableFromNode)}{Alias}{expression.ToString()}";
+            Id = $"{nameof(JoinSourcesTableFromNode)}{first.Alias}{second.Alias}{expression.ToString()}";
             First = first;
             Second = second;
             Expression = expression;
@@ -17,7 +17,7 @@ namespace Musoq.Parser.Nodes.From
         public JoinSourcesTableFromNode(FromNode first, FromNode second, Node expression, JoinType joinType, Type returnType)
             : base($"{first.Alias}{second.Alias}", returnType)
         {
-            Id = $"{nameof(JoinSourcesTableFromNode)}{Alias}{expression.ToString()}";
+            Id = $"{nameof(JoinSourcesTableFromNode)}{first.Alias}{second.Alias}{expression.ToString()}";
             First = first;
             Second = second;
             Expression = expression;
@@ -41,7 +41,9 @@ namespace Musoq.Parser.Nodes.From
 
         public override string ToString()
         {
-            return $"from ({First.ToString()}, {Second.ToString()}, {Expression.ToString()})";
+            var joinType = JoinType == JoinType.Inner ? "inner join" : JoinType == JoinType.OuterLeft ? "left outer join" : "right outer join";
+            
+            return $"{First.ToString()} {joinType} {Second.ToString()} on {Expression.ToString()}";
         }
     }
 }

@@ -20,6 +20,39 @@ namespace Musoq.Plugins
         {
             return Guid.NewGuid().ToString();
         }
+        
+        /// <summary>
+        /// Removes leading and trailing whitespace from a string.
+        /// </summary>
+        /// <param name="value">The string to trim.</param>
+        /// <returns>The trimmed string.</returns>
+        [BindableMethod]
+        public static string? Trim(string? value)
+        {
+            return value?.Trim();
+        }
+        
+        /// <summary>
+        /// Removes leading whitespace from a string.
+        /// </summary>
+        /// <param name="value">The string to trim.</param>
+        /// <returns>The trimmed string.</returns>
+        [BindableMethod]
+        public static string? TrimStart(string? value)
+        {
+            return value?.TrimStart();
+        }
+        
+        /// <summary>
+        /// Removes trailing whitespace from a string.
+        /// </summary>
+        /// <param name="value">The string to trim.</param>
+        /// <returns>The trimmed string.</returns>
+        [BindableMethod]
+        public static string? TrimEnd(string? value)
+        {
+            return value?.TrimEnd();
+        }
 
         /// <summary>
         /// Gets the substring from the string.
@@ -566,7 +599,7 @@ namespace Musoq.Plugins
         /// <param name="separators">The separators</param>
         /// <returns></returns>
         [BindableMethod]
-        public string[] Split(string value, params string[] separators) => value.Split(separators, StringSplitOptions.None);
+        public string[] Split(string value, params string[] separators) => value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
         /// <summary>
         /// Computes the longest common subsequence between two source and pattern

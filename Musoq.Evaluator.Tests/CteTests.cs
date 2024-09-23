@@ -17,14 +17,13 @@ namespace Musoq.Evaluator.Tests
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                         new BasicEntity("KATOWICE", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350)
-                    }
+                    ]
                 }
             };
 
@@ -61,14 +60,13 @@ namespace Musoq.Evaluator.Tests
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                         new BasicEntity("KATOWICE", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350)
-                    }
+                    ]
                 }
             };
 
@@ -106,14 +104,13 @@ namespace Musoq.Evaluator.Tests
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                         new BasicEntity("KATOWICE", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350)
-                    }
+                    ]
                 }
             };
 
@@ -143,14 +140,13 @@ namespace Musoq.Evaluator.Tests
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 {
-                    "#A", new[]
-                    {
+                    "#A", [
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                         new BasicEntity("KATOWICE", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350)
-                    }
+                    ]
                 }
             };
 
@@ -180,20 +176,18 @@ namespace Musoq.Evaluator.Tests
             {
                 {
                     "#A",
-                    new[]
-                    {
+                    [
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
+                    [
                         new BasicEntity("KATOWICE", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350)
-                    }
+                    ]
                 }
             };
 
@@ -232,20 +226,18 @@ namespace Musoq.Evaluator.Tests
             {
                 {
                     "#A",
-                    new[]
-                    {
+                    [
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
+                    [
                         new BasicEntity("KATOWICE", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350)
-                    }
+                    ]
                 }
             };
 
@@ -284,21 +276,19 @@ namespace Musoq.Evaluator.Tests
             {
                 {
                     "#A",
-                    new[]
-                    {
+                    [
                         new BasicEntity("HELSINKI", "FINLAND", 500),
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
+                    [
                         new BasicEntity("KATOWICE", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350)
-                    }
+                    ]
                 }
             };
 
@@ -325,22 +315,20 @@ namespace Musoq.Evaluator.Tests
             {
                 {
                     "#A",
-                    new[]
-                    {
+                    [
                         new BasicEntity("HELSINKI", "FINLAND", 500),
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
+                    [
                         new BasicEntity("WARSAW", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350),
                         new BasicEntity("HELSINKI", "FINLAND", 500)
-                    }
+                    ]
                 }
             };
 
@@ -374,22 +362,20 @@ select City, Country from p";
             {
                 {
                     "#A",
-                    new[]
-                    {
+                    [
                         new BasicEntity("HELSINKI", "FINLAND", 500),
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
+                    [
                         new BasicEntity("WARSAW", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350),
                         new BasicEntity("HELSINKI", "FINLAND", 500)
-                    }
+                    ]
                 }
             };
 
@@ -423,22 +409,20 @@ select City, Country from #B.entities()";
             {
                 {
                     "#A",
-                    new[]
-                    {
+                    [
                         new BasicEntity("HELSINKI", "FINLAND", 500),
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
+                    [
                         new BasicEntity("WARSAW", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350),
                         new BasicEntity("HELSINKI", "FINLAND", 500)
-                    }
+                    ]
                 }
             };
 
@@ -481,23 +465,21 @@ with p as (
             {
                 {
                     "#A",
-                    new[]
-                    {
+                    [
                         new BasicEntity("HELSINKI", "FINLAND", 500),
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
+                    [
                         new BasicEntity("WARSAW", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350),
                         new BasicEntity("TOKYO", "JAPAN", 500),
                         new BasicEntity("HELSINKI", "FINLAND", 500)
-                    }
+                    ]
                 }
             };
 
@@ -532,29 +514,26 @@ select City, Country from #C.Entities()";
             {
                 {
                     "#A",
-                    new[]
-                    {
+                    [
                         new BasicEntity("HELSINKI", "FINLAND", 500),
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
+                    [
                         new BasicEntity("WARSAW", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350),
                         new BasicEntity("HELSINKI", "FINLAND", 500)
-                    }
+                    ]
                 },
                 {
                     "#C",
-                    new[]
-                    {
+                    [
                         new BasicEntity("NEW YORK", "USA", 250)
-                    }
+                    ]
                 }
             };
 
@@ -599,22 +578,20 @@ select City, Country from f";
             {
                 {
                     "#A",
-                    new[]
-                    {
+                    [
                         new BasicEntity("HELSINKI", "FINLAND", 500),
                         new BasicEntity("WARSAW", "POLAND", 500),
                         new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                    }
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
+                    [
                         new BasicEntity("WARSAW", "POLAND", 250),
                         new BasicEntity("BERLIN", "GERMANY", 250),
                         new BasicEntity("MUNICH", "GERMANY", 350),
                         new BasicEntity("HELSINKI", "FINLAND", 500)
-                    }
+                    ]
                 }
             };
 
@@ -660,17 +637,15 @@ select c.GetBytes(c.Name) from first a
             {
                 {
                     "#A",
-                    new[]
-                    {
-                        new BasicEntity("First"),
-                    }
+                    [
+                        new BasicEntity("First")
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
-                        new BasicEntity("Second"),
-                    }
+                    [
+                        new BasicEntity("Second")
+                    ]
                 }
             };
             
@@ -700,17 +675,15 @@ from first a
             {
                 {
                     "#A",
-                    new[]
-                    {
-                        new BasicEntity("First"),
-                    }
+                    [
+                        new BasicEntity("First")
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
-                        new BasicEntity("Second"),
-                    }
+                    [
+                        new BasicEntity("Second")
+                    ]
                 }
             };
             
@@ -742,17 +715,15 @@ from first a
             {
                 {
                     "#A",
-                    new[]
-                    {
-                        new BasicEntity("First"),
-                    }
+                    [
+                        new BasicEntity("First")
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
-                        new BasicEntity("Second"),
-                    }
+                    [
+                        new BasicEntity("Second")
+                    ]
                 }
             };
             
@@ -790,24 +761,21 @@ from fourth c";
             {
                 {
                     "#A",
-                    new[]
-                    {
-                        new BasicEntity("First"),
-                    }
+                    [
+                        new BasicEntity("First")
+                    ]
                 },
                 {
                     "#B",
-                    new[]
-                    {
-                        new BasicEntity("Second"),
-                    }
+                    [
+                        new BasicEntity("Second")
+                    ]
                 },
                 {
                     "#C",
-                    new[]
-                    {
-                        new BasicEntity("Third"),
-                    }
+                    [
+                        new BasicEntity("Third")
+                    ]
                 }
             };
             
