@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace Musoq.Plugins.Attributes
+namespace Musoq.Plugins.Attributes;
+
+public class BindableMethodAttribute : Attribute
 {
-    public class BindableMethodAttribute : Attribute
-    {
-    }
 }

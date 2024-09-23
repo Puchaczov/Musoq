@@ -1,26 +1,25 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class AllColumnsNode(string alias = null) : Node
 {
-    public class AllColumnsNode(string alias = null) : Node
+    public string Alias { get; private set; } = alias;
+
+    public override Type ReturnType => typeof(object[]);
+
+    public override string Id => $"{nameof(AllColumnsNode)}*";
+
+    public override void Accept(IExpressionVisitor visitor)
     {
-        public string Alias { get; private set; } = alias;
+        visitor.Visit(this);
+    }
 
-        public override Type ReturnType => typeof(object[]);
-
-        public override string Id => $"{nameof(AllColumnsNode)}*";
-
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
-
-        public override string ToString()
-        {
-            if (!string.IsNullOrWhiteSpace(Alias))
-                return $"{Alias}.*";
+    public override string ToString()
+    {
+        if (!string.IsNullOrWhiteSpace(Alias))
+            return $"{Alias}.*";
             
-            return "*";
-        }
+        return "*";
     }
 }

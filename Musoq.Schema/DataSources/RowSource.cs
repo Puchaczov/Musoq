@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace Musoq.Schema.DataSources
+namespace Musoq.Schema.DataSources;
+
+public abstract class RowSource
 {
-    public abstract class RowSource
-    {
-        public abstract IEnumerable<IObjectResolver> Rows { get; }
-    }
+    public abstract IEnumerable<IObjectResolver> Rows { get; }
 }

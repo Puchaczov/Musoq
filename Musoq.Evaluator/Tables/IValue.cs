@@ -1,7 +1,6 @@
-﻿namespace Musoq.Evaluator.Tables
+﻿namespace Musoq.Evaluator.Tables;
+
+public interface IValue<in TKey>
 {
-    public interface IValue<in TKey>
-    {
-        bool FitsTheIndex(TKey key);
-    }
+    bool FitsTheIndex(TKey key);
 }

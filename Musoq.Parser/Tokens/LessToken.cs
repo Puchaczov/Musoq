@@ -1,12 +1,11 @@
-namespace Musoq.Parser.Tokens
-{
-    public class LessToken : Token
-    {
-        public const string TokenText = "<";
+namespace Musoq.Parser.Tokens;
 
-        public LessToken(TextSpan span)
-            : base(TokenText, TokenType.Less, span)
-        {
-        }
+public class LessToken : Token
+{
+    public const string TokenText = "<";
+
+    public LessToken(TextSpan span)
+        : base(TokenText, TokenType.Less, span)
+    {
     }
 }

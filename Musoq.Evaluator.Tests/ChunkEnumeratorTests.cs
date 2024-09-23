@@ -4,54 +4,53 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
 
-namespace Musoq.Evaluator.Tests
+namespace Musoq.Evaluator.Tests;
+
+[TestClass]
+public class ChunkEnumeratorTests
 {
-    [TestClass]
-    public class ChunkEnumeratorTests
+    [TestMethod]
+    public void EnumerateAllTest()
     {
-        [TestMethod]
-        public void EnumerateAllTest()
+        var tokenSource = new CancellationTokenSource();
+        var readedChunks = new BlockingCollection<IReadOnlyList<IObjectResolver>>
         {
-            var tokenSource = new CancellationTokenSource();
-            var readedChunks = new BlockingCollection<IReadOnlyList<IObjectResolver>>
+            new List<EntityResolver<string>>(),
+            new List<EntityResolver<string>>
             {
-                new List<EntityResolver<string>>(),
-                new List<EntityResolver<string>>
-                {
-                    new("a", null, null),
-                    new("ab", null, null),
-                    new("abc", null, null),
-                    new("abcd", null, null)
-                },
-                new List<EntityResolver<string>>(),
-                new List<EntityResolver<string>>
-                {
-                    new("x", null, null),
-                    new("xs", null, null)
-                },
-                new List<EntityResolver<string>>()
-            };
+                new("a", null, null),
+                new("ab", null, null),
+                new("abc", null, null),
+                new("abcd", null, null)
+            },
+            new List<EntityResolver<string>>(),
+            new List<EntityResolver<string>>
+            {
+                new("x", null, null),
+                new("xs", null, null)
+            },
+            new List<EntityResolver<string>>()
+        };
 
 
-            var enumerator =
-                new ChunkEnumerator<string>(readedChunks,
-                    tokenSource.Token);
+        var enumerator =
+            new ChunkEnumerator<string>(readedChunks,
+                tokenSource.Token);
 
-            tokenSource.Cancel();
+        tokenSource.Cancel();
 
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("a", enumerator.Current.Contexts[0]);
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("ab", enumerator.Current.Contexts[0]);
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("abc", enumerator.Current.Contexts[0]);
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("abcd", enumerator.Current.Contexts[0]);
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("x", enumerator.Current.Contexts[0]);
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual("xs", enumerator.Current.Contexts[0]);
-            Assert.IsFalse(enumerator.MoveNext());
-        }
+        Assert.IsTrue(enumerator.MoveNext());
+        Assert.AreEqual("a", enumerator.Current.Contexts[0]);
+        Assert.IsTrue(enumerator.MoveNext());
+        Assert.AreEqual("ab", enumerator.Current.Contexts[0]);
+        Assert.IsTrue(enumerator.MoveNext());
+        Assert.AreEqual("abc", enumerator.Current.Contexts[0]);
+        Assert.IsTrue(enumerator.MoveNext());
+        Assert.AreEqual("abcd", enumerator.Current.Contexts[0]);
+        Assert.IsTrue(enumerator.MoveNext());
+        Assert.AreEqual("x", enumerator.Current.Contexts[0]);
+        Assert.IsTrue(enumerator.MoveNext());
+        Assert.AreEqual("xs", enumerator.Current.Contexts[0]);
+        Assert.IsFalse(enumerator.MoveNext());
     }
 }

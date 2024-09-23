@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public abstract class Node
 {
-    public abstract class Node
-    {
-        public abstract Type ReturnType { get; }
+    public abstract Type ReturnType { get; }
 
-        public abstract string Id { get; }
+    public abstract string Id { get; }
 
-        [DebuggerStepThrough]
-        public abstract void Accept(IExpressionVisitor visitor);
+    [DebuggerStepThrough]
+    public abstract void Accept(IExpressionVisitor visitor);
 
-        public new abstract string ToString();
-    }
+    public new abstract string ToString();
 }

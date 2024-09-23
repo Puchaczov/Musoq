@@ -1,27 +1,26 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class NotNode : UnaryNode
 {
-    public class NotNode : UnaryNode
+    public NotNode(Node expression)
+        : base(expression)
     {
-        public NotNode(Node expression)
-            : base(expression)
-        {
-            Id = CalculateId(this);
-        }
+        Id = CalculateId(this);
+    }
 
-        public override Type ReturnType => Expression.ReturnType;
+    public override Type ReturnType => Expression.ReturnType;
 
-        public override string Id { get; }
+    public override string Id { get; }
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public override void Accept(IExpressionVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
 
-        public override string ToString()
-        {
-            return $"not ({Expression.ToString()})";
-        }
+    public override string ToString()
+    {
+        return $"not ({Expression.ToString()})";
     }
 }

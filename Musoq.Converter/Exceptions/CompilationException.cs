@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace Musoq.Converter.Exceptions
+namespace Musoq.Converter.Exceptions;
+
+public class CompilationException : Exception
 {
-    public class CompilationException : Exception
+    public CompilationException(string message)
+        : base(message)
     {
-        public CompilationException(string message)
-            : base(message)
-        {
-        }
     }
 }

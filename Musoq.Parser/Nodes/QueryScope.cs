@@ -1,28 +1,27 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class QueryScope : Node
 {
-    public class QueryScope : Node
+    public QueryScope(Node[] statements)
     {
-        public QueryScope(Node[] statements)
-        {
-            Statements = statements;
-        }
+        Statements = statements;
+    }
 
-        public Node[] Statements { get; }
+    public Node[] Statements { get; }
 
-        public override Type ReturnType { get; }
+    public override Type ReturnType { get; }
 
-        public override string Id { get; }
+    public override string Id { get; }
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public override void Accept(IExpressionVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
 
-        public override string ToString()
-        {
-            return null;
-        }
+    public override string ToString()
+    {
+        return null;
     }
 }

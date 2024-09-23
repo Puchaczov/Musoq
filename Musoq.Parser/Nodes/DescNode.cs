@@ -1,32 +1,31 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class DescNode : Node
 {
-    public class DescNode : Node
+    public DescNode(FromNode from, DescForType type)
     {
-        public DescNode(FromNode from, DescForType type)
-        {
-            From = from;
-            Id = $"{nameof(DescNode)}{from.Id}";
-            Type = type;
-        }
+        From = from;
+        Id = $"{nameof(DescNode)}{from.Id}";
+        Type = type;
+    }
 
-        public DescForType Type { get; set; }
+    public DescForType Type { get; set; }
 
-        public FromNode From { get; }
+    public FromNode From { get; }
 
-        public override Type ReturnType { get; }
+    public override Type ReturnType { get; }
 
-        public override string Id { get; }
+    public override string Id { get; }
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public override void Accept(IExpressionVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
 
-        public override string ToString()
-        {
-            return $"desc {From.ToString()}";
-        }
+    public override string ToString()
+    {
+        return $"desc {From.ToString()}";
     }
 }

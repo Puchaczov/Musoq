@@ -1,8 +1,7 @@
-﻿namespace Musoq.Parser.Nodes
+﻿namespace Musoq.Parser.Nodes;
+
+public enum Order
 {
-    public enum Order
-    {
-        Ascending,
-        Descending
-    }
+    Ascending,
+    Descending
 }

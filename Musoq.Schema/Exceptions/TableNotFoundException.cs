@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace Musoq.Schema.Exceptions
+namespace Musoq.Schema.Exceptions;
+
+public class TableNotFoundException : Exception
 {
-    public class TableNotFoundException : Exception
+    public TableNotFoundException(string table)
+        : base(table)
     {
-        public TableNotFoundException(string table)
-            : base(table)
-        {
-        }
     }
 }

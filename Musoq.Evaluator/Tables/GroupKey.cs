@@ -2,105 +2,104 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Musoq.Evaluator.Tables
+namespace Musoq.Evaluator.Tables;
+
+[DebuggerDisplay("{ToString()}")]
+public class GroupKey
 {
-    [DebuggerDisplay("{ToString()}")]
-    public class GroupKey
+    public readonly object[] Values;
+
+    public GroupKey(params object[] values)
     {
-        public readonly object[] Values;
+        Values = values;
+    }
 
-        public GroupKey(params object[] values)
+    public bool Equals(GroupKey other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        var equals = true;
+
+        for (var i = 0; i < Values.Length && equals; i++) equals &= Values[i].Equals(other.Values[i]);
+
+        return equals;
+    }
+
+    public override string ToString()
+    {
+        var key = new StringBuilder();
+
+        string value;
+        for (var i = 0; i < Values.Length - 1; i++)
         {
-            Values = values;
+            value = Values[i] == null ? "null" : Values[i].ToString();
+            key.Append($"{value},");
         }
 
-        public bool Equals(GroupKey other)
+        value = Values[Values.Length - 1] == null ? "null" : Values[Values.Length - 1].ToString();
+        key.Append(value);
+
+        return key.ToString();
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals(Values, ((GroupKey) obj).Values);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-
-            var equals = true;
-
-            for (var i = 0; i < Values.Length && equals; i++) equals &= Values[i].Equals(other.Values[i]);
-
-            return equals;
-        }
-
-        public override string ToString()
-        {
-            var key = new StringBuilder();
-
-            string value;
-            for (var i = 0; i < Values.Length - 1; i++)
+            var hash = 0;
+            for (var i = 0; i < Values.Length; ++i)
             {
-                value = Values[i] == null ? "null" : Values[i].ToString();
-                key.Append($"{value},");
-            }
+                var val = Values[i];
 
-            value = Values[Values.Length - 1] == null ? "null" : Values[Values.Length - 1].ToString();
-            key.Append(value);
-
-            return key.ToString();
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals(Values, ((GroupKey) obj).Values);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hash = 0;
-                for (var i = 0; i < Values.Length; ++i)
-                {
-                    var val = Values[i];
-
-                    if(val == null)
-                        continue;
-
-                    hash += val.GetHashCode();
-                }
-
-                return hash;
-            }
-        }
-
-        private static bool Equals<T>(IReadOnlyList<T> first, IReadOnlyList<T> second)
-        {
-            if (first.Count != second.Count)
-                return false;
-
-            var areEqual = true;
-
-            for (var i = 0; i < first.Count && areEqual; i++)
-            {
-                var f = first[i];
-                var s = second[i];
-
-                if (f == null && s == null)
+                if(val == null)
                     continue;
 
-                if (f != null && s == null)
-                {
-                    areEqual = false;
-                    continue;
-                }
-
-                if (f == null && s != null)
-                {
-                    areEqual = false;
-                    continue;
-                }
-
-                areEqual &= f.Equals(s);
+                hash += val.GetHashCode();
             }
 
-            return areEqual;
+            return hash;
         }
+    }
+
+    private static bool Equals<T>(IReadOnlyList<T> first, IReadOnlyList<T> second)
+    {
+        if (first.Count != second.Count)
+            return false;
+
+        var areEqual = true;
+
+        for (var i = 0; i < first.Count && areEqual; i++)
+        {
+            var f = first[i];
+            var s = second[i];
+
+            if (f == null && s == null)
+                continue;
+
+            if (f != null && s == null)
+            {
+                areEqual = false;
+                continue;
+            }
+
+            if (f == null && s != null)
+            {
+                areEqual = false;
+                continue;
+            }
+
+            areEqual &= f.Equals(s);
+        }
+
+        return areEqual;
     }
 }

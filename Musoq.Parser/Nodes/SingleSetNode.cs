@@ -1,28 +1,27 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class SingleSetNode : Node
 {
-    public class SingleSetNode : Node
+    public SingleSetNode(QueryNode query)
     {
-        public SingleSetNode(QueryNode query)
-        {
-            Query = query;
-        }
+        Query = query;
+    }
 
-        public QueryNode Query { get; }
+    public QueryNode Query { get; }
 
-        public override Type ReturnType => typeof(void);
+    public override Type ReturnType => typeof(void);
 
-        public override string Id => $"{nameof(SingleSetNode)}{Query.Id}";
+    public override string Id => $"{nameof(SingleSetNode)}{Query.Id}";
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public override void Accept(IExpressionVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
 
-        public override string ToString()
-        {
-            return Query.ToString();
-        }
+    public override string ToString()
+    {
+        return Query.ToString();
     }
 }

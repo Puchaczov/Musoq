@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace Musoq.Schema
+namespace Musoq.Schema;
+
+public interface ISchemaColumn
 {
-    public interface ISchemaColumn
-    {
-        string ColumnName { get; }
-        int ColumnIndex { get; }
-        Type ColumnType { get; }
-    }
+    string ColumnName { get; }
+    int ColumnIndex { get; }
+    Type ColumnType { get; }
 }

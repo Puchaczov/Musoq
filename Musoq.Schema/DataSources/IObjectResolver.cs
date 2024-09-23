@@ -1,13 +1,12 @@
-namespace Musoq.Schema.DataSources
+namespace Musoq.Schema.DataSources;
+
+public interface IObjectResolver
 {
-    public interface IObjectResolver
-    {
-        object[] Contexts { get; }
+    object[] Contexts { get; }
 
-        object this[string name] { get; }
+    object this[string name] { get; }
 
-        object this[int index] { get; }
+    object this[int index] { get; }
 
-        bool HasColumn(string name);
-    }
+    bool HasColumn(string name);
 }

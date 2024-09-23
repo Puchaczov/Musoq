@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class EndToken : Token
-    {
-        public const string TokenText = "end";
+﻿namespace Musoq.Parser.Tokens;
 
-        public EndToken(TextSpan span)
-            : base(TokenText, TokenType.End, span)
-        {
-        }
+public class EndToken : Token
+{
+    public const string TokenText = "end";
+
+    public EndToken(TextSpan span)
+        : base(TokenText, TokenType.End, span)
+    {
     }
 }

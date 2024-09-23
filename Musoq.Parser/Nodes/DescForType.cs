@@ -1,10 +1,9 @@
-﻿namespace Musoq.Parser.Nodes
+﻿namespace Musoq.Parser.Nodes;
+
+public enum DescForType
 {
-    public enum DescForType
-    {
-        None,
-        SpecificConstructor,
-        Constructors,
-        Schema
-    }
+    None,
+    SpecificConstructor,
+    Constructors,
+    Schema
 }

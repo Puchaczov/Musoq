@@ -1,10 +1,9 @@
-﻿namespace Musoq.Parser.Tokens
+﻿namespace Musoq.Parser.Tokens;
+
+public class ExceptToken : SetOperatorToken
 {
-    public class ExceptToken : SetOperatorToken
+    public ExceptToken(TextSpan span)
+        : base(ExceptOperatorText, TokenType.Except, span)
     {
-        public ExceptToken(TextSpan span)
-            : base(ExceptOperatorText, TokenType.Except, span)
-        {
-        }
     }
 }

@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace Musoq.Schema.Attributes
+namespace Musoq.Schema.Attributes;
+
+public class EntityPropertyAttribute : Attribute
 {
-    public class EntityPropertyAttribute : Attribute
-    {
-    }
 }

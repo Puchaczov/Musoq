@@ -1,31 +1,28 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class WhereNode : Node
 {
-    public class WhereNode : Node
+    public WhereNode(Node expression)
     {
-        public WhereNode(Node expression)
-        {
-            Expression = expression;
-            Id = $"{nameof(WhereNode)}{expression.Id}";
-        }
+        Expression = expression;
+        Id = $"{nameof(WhereNode)}{expression.Id}";
+    }
 
-        public Node Expression { get; }
+    public Node Expression { get; }
 
-        public override Type ReturnType => Expression.ReturnType;
+    public override Type ReturnType => Expression.ReturnType;
 
-        public override string Id { get; }
+    public override string Id { get; }
 
-        public static WhereNode Empty => new(new PutTrueNode());
+    public override void Accept(IExpressionVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
-
-        public override string ToString()
-        {
-            return $"where {Expression.ToString()}";
-        }
+    public override string ToString()
+    {
+        return $"where {Expression.ToString()}";
     }
 }

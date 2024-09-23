@@ -1,6 +1,5 @@
-﻿namespace Musoq.Evaluator.Utils.Symbols
+﻿namespace Musoq.Evaluator.Utils.Symbols;
+
+public abstract class Symbol
 {
-    public abstract class Symbol
-    {
-    }
 }

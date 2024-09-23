@@ -7,104 +7,107 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
-namespace Musoq.Evaluator.Runtime
+namespace Musoq.Evaluator.Runtime;
+
+public static class RuntimeLibraries
 {
-    public static class RuntimeLibraries
+    private static MetadataReference[] _references;
+    private static bool _hasLoadedReferences;
+    private static readonly object LockGuard = new();
+    private static Task _loadingTask;
+    private static bool _readInProgress;
+    private static readonly ManualResetEvent ManualResetEvent = new(false);
+
+    public static MetadataReference[] References
     {
-        private static MetadataReference[] _references;
-        private static bool _hasLoadedReferences;
-        private static readonly object LockGuard = new();
-        private static Task _loadingTask;
-        private static bool _readInProgress;
-        private static readonly ManualResetEvent ManualResetEvent = new(false);
-
-        public static MetadataReference[] References
-        {
-            get
-            {
-                if (_hasLoadedReferences)
-                    return _references;
-
-
-                CreateReferences();
-                ManualResetEvent.WaitOne();
-
-                return _references;
-            }
-        }
-
-        public static void CreateReferences()
+        get
         {
             if (_hasLoadedReferences)
+                return _references;
+
+
+            CreateReferences();
+            ManualResetEvent.WaitOne();
+
+            return _references;
+        }
+    }
+
+    public static void CreateReferences()
+    {
+        if (_hasLoadedReferences)
+            return;
+
+        if (_readInProgress)
+            return;
+
+        lock (LockGuard)
+        {
+            if(_readInProgress)
                 return;
 
-            if (_readInProgress)
-                return;
+            _readInProgress = true;
 
-            lock (LockGuard)
+            _loadingTask = Task.Factory.StartNew(() =>
             {
-                if(_readInProgress)
-                    return;
-
-                _readInProgress = true;
-
-                _loadingTask = Task.Factory.StartNew(() =>
+                try
                 {
-                    try
+                    var objLocation = typeof(object).GetTypeInfo().Assembly.Location;
+                    var path = new FileInfo(objLocation);
+                    var directory = path.Directory;
+
+                    if (directory is null)
                     {
-                        var objLocation = typeof(object).GetTypeInfo().Assembly.Location;
-                        var path = new FileInfo(objLocation);
-                        var directory = path.Directory;
+                        return;
+                    }
 
-                        var tasks = new List<Task<MetadataReference>>();
+                    var tasks = new List<Task<MetadataReference>>();
 
-                        var directories = directory.GetFiles("System*.dll").ToList();
+                    var directories = directory.GetFiles("System*.dll").ToList();
 
-                        var microsoftCSharpFileInfo = new FileInfo(Path.Combine(directory.FullName, "Microsoft.CSharp.dll"));
+                    var microsoftCSharpFileInfo = new FileInfo(Path.Combine(directory.FullName, "Microsoft.CSharp.dll"));
 
-                        if (microsoftCSharpFileInfo.Exists)
-                            directories.Add(microsoftCSharpFileInfo);
+                    if (microsoftCSharpFileInfo.Exists)
+                        directories.Add(microsoftCSharpFileInfo);
 
-                        foreach (var file in directories)
+                    foreach (var file in directories)
+                    {
+                        if (file.Name.Contains("native", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            if (file.Name.ToLowerInvariant().Contains("native"))
-                            {
-                                continue;
-                            }
-                            
-                            tasks.Add(Task.Factory.StartNew<MetadataReference>(() =>
-                            {
-                                try
-                                {
-                                    return MetadataReference.CreateFromFile(file.FullName);
-                                }
-                                catch (FileNotFoundException)
-                                {
-                                }
-                                catch (BadImageFormatException)
-                                {
-                                }
-                                catch (FileLoadException)
-                                {
-                                }
-
-                                return null;
-                            }));
+                            continue;
                         }
+                            
+                        tasks.Add(Task.Run<MetadataReference>(() =>
+                        {
+                            try
+                            {
+                                return MetadataReference.CreateFromFile(file.FullName);
+                            }
+                            catch (FileNotFoundException)
+                            {
+                            }
+                            catch (BadImageFormatException)
+                            {
+                            }
+                            catch (FileLoadException)
+                            {
+                            }
 
-                        Task.WaitAll(tasks.ToArray());
-
-                        _references = tasks.Where(task => task.Result != null).Select(task => task.Result).ToArray();
+                            return null;
+                        }));
                     }
-                    finally
-                    {
-                        _hasLoadedReferences = true;
 
-                        ManualResetEvent.Set();
-                    }
-                });
-            }
+                    Task.WaitAll(tasks.ToArray());
+
+                    _references = tasks.Where(task => task.Result != null).Select(task => task.Result).ToArray();
+                }
+                finally
+                {
+                    _hasLoadedReferences = true;
+
+                    ManualResetEvent.Set();
+                }
+            });
         }
     }
 }
-

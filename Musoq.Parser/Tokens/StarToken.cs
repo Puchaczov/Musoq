@@ -1,12 +1,11 @@
-namespace Musoq.Parser.Tokens
-{
-    public class StarToken : Token
-    {
-        public const string TokenText = "*";
+namespace Musoq.Parser.Tokens;
 
-        public StarToken(TextSpan span)
-            : base(TokenText, TokenType.Star, span)
-        {
-        }
+public class StarToken : Token
+{
+    public const string TokenText = "*";
+
+    public StarToken(TextSpan span)
+        : base(TokenText, TokenType.Star, span)
+    {
     }
 }

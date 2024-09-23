@@ -7,161 +7,160 @@ using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
 
-namespace Musoq.Schema.DataSources
+namespace Musoq.Schema.DataSources;
+
+public abstract class SchemaBase : ISchema
 {
-    public abstract class SchemaBase : ISchema
+    private const string SourcePart = "_source";
+    private const string TablePart = "_table";
+
+    private readonly MethodsAggregator _aggregator;
+
+    private IDictionary<string, Reflection.ConstructorInfo[]> Constructors { get; } = new Dictionary<string, Reflection.ConstructorInfo[]>();
+    private List<SchemaMethodInfo> ConstructorsMethods { get; } = new();
+    private IDictionary<string, object[]> AdditionalArguments { get; } = new Dictionary<string, object[]>();
+
+    protected SchemaBase(string name, MethodsAggregator methodsAggregator)
     {
-        private const string SourcePart = "_source";
-        private const string TablePart = "_table";
+        Name = name;
+        _aggregator = methodsAggregator;
 
-        private readonly MethodsAggregator _aggregator;
+        AddSource<SingleRowSource>("empty");
+        AddTable<SingleRowSchemaTable>("empty");
+    }
 
-        private IDictionary<string, Reflection.ConstructorInfo[]> Constructors { get; } = new Dictionary<string, Reflection.ConstructorInfo[]>();
-        private List<SchemaMethodInfo> ConstructorsMethods { get; } = new();
-        private IDictionary<string, object[]> AdditionalArguments { get; } = new Dictionary<string, object[]>();
+    public string Name { get; }
 
-        protected SchemaBase(string name, MethodsAggregator methodsAggregator)
-        {
-            Name = name;
-            _aggregator = methodsAggregator;
+    public void AddSource<TType>(string name, params object[] args)
+    {
+        var sourceName = $"{name.ToLowerInvariant()}{SourcePart}";
+        AddToConstructors<TType>(sourceName);
+        AdditionalArguments.Add(sourceName, args);
+    }
 
-            AddSource<SingleRowSource>("empty");
-            AddTable<SingleRowSchemaTable>("empty");
-        }
+    public void AddTable<TType>(string name)
+    {
+        AddToConstructors<TType>($"{name.ToLowerInvariant()}{TablePart}");
+    }
 
-        public string Name { get; }
+    public virtual ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    {
+        var tableName = $"{name.ToLowerInvariant()}{TablePart}";
 
-        public void AddSource<TType>(string name, params object[] args)
-        {
-            var sourceName = $"{name.ToLowerInvariant()}{SourcePart}";
-            AddToConstructors<TType>(sourceName);
-            AdditionalArguments.Add(sourceName, args);
-        }
+        var methods = GetConstructors(tableName).Select(c => c.ConstructorInfo).ToArray();
 
-        public void AddTable<TType>(string name)
-        {
-            AddToConstructors<TType>($"{name.ToLowerInvariant()}{TablePart}");
-        }
+        if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
+            throw new NotSupportedException($"Unrecognized method {name}.");
 
-        public virtual ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
-        {
-            var tableName = $"{name.ToLowerInvariant()}{TablePart}";
+        return (ISchemaTable)constructorInfo.OriginConstructor.Invoke(parameters);
+    }
 
-            var methods = GetConstructors(tableName).Select(c => c.ConstructorInfo).ToArray();
+    public virtual RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    {
+        var sourceName = $"{name.ToLowerInvariant()}{SourcePart}";
 
-            if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
-                throw new NotSupportedException($"Unrecognized method {name}.");
+        var methods = GetConstructors(sourceName).Select(c => c.ConstructorInfo).ToArray();
 
-            return (ISchemaTable)constructorInfo.OriginConstructor.Invoke(parameters);
-        }
+        if (AdditionalArguments.TryGetValue(sourceName, out var argument))
+            parameters = parameters.ExpandParameters(argument);
 
-        public virtual RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
-        {
-            var sourceName = $"{name.ToLowerInvariant()}{SourcePart}";
+        if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
+            throw new NotSupportedException($"Unrecognized method {name}.");
 
-            var methods = GetConstructors(sourceName).Select(c => c.ConstructorInfo).ToArray();
+        if (constructorInfo.SupportsInterCommunicator)
+            parameters = parameters.ExpandParameters(runtimeContext);
 
-            if (AdditionalArguments.TryGetValue(sourceName, out var argument))
-                parameters = parameters.ExpandParameters(argument);
+        return (RowSource)constructorInfo.OriginConstructor.Invoke(parameters);
+    }
 
-            if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
-                throw new NotSupportedException($"Unrecognized method {name}.");
+    public SchemaMethodInfo[] GetConstructors(string methodName)
+    {
+        return GetConstructors().Where(constr => constr.MethodName == methodName).ToArray();
+    }
 
-            if (constructorInfo.SupportsInterCommunicator)
-                parameters = parameters.ExpandParameters(runtimeContext);
+    public virtual SchemaMethodInfo[] GetConstructors()
+    {
+        return ConstructorsMethods.ToArray();
+    }
 
-            return (RowSource)constructorInfo.OriginConstructor.Invoke(parameters);
-        }
+    public SchemaMethodInfo[] GetRawConstructors()
+    {
+        return ConstructorsMethods
+            .Where(cm => cm.MethodName.Contains(TablePart))
+            .Select(cm => {
+                var index = cm.MethodName.IndexOf(TablePart, StringComparison.Ordinal);
+                var rawMethodName = cm.MethodName[..index];
+                return new SchemaMethodInfo(rawMethodName, cm.ConstructorInfo);
+            }).ToArray();
+    }
 
-        public SchemaMethodInfo[] GetConstructors(string methodName)
-        {
-            return GetConstructors().Where(constr => constr.MethodName == methodName).ToArray();
-        }
+    public SchemaMethodInfo[] GetRawConstructors(string methodName)
+    {
+        return GetRawConstructors().Where(constr => constr.MethodName == methodName).ToArray();
+    }
 
-        public virtual SchemaMethodInfo[] GetConstructors()
-        {
-            return ConstructorsMethods.ToArray();
-        }
+    public bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
+    {
+        var found = _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
 
-        public SchemaMethodInfo[] GetRawConstructors()
-        {
-            return ConstructorsMethods
-                .Where(cm => cm.MethodName.Contains(TablePart))
-                .Select(cm => {
-                    var index = cm.MethodName.IndexOf(TablePart, StringComparison.Ordinal);
-                    var rawMethodName = cm.MethodName[..index];
-                    return new SchemaMethodInfo(rawMethodName, cm.ConstructorInfo);
-                }).ToArray();
-        }
+        if (found)
+            return methodInfo.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
-        public SchemaMethodInfo[] GetRawConstructors(string methodName)
-        {
-            return GetRawConstructors().Where(constr => constr.MethodName == methodName).ToArray();
-        }
+        return false;
+    }
 
-        public bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
-        {
-            var found = _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
+    public bool TryResolveMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
+    {
+        return _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
+    }
 
-            if (found)
-                return methodInfo.GetCustomAttribute<AggregationMethodAttribute>() != null;
+    public bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo)
+    {
+        return _aggregator.TryResolveRawMethod(method, parameters, out methodInfo);
+    }
 
+    private bool ParamsMatchConstructor(Reflection.ConstructorInfo constructor, object[] parameters)
+    {
+        bool matchingResult = true;
+
+        if (parameters.Length != constructor.Arguments.Length)
             return false;
+
+        for (int i = 0; i < parameters.Length && matchingResult; ++i)
+        {
+            matchingResult &= 
+                constructor.Arguments[i].Type.IsInstanceOfType(parameters[i]);
         }
 
-        public bool TryResolveMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
+        return matchingResult;
+    }
+
+    private bool TryMatchConstructorWithParams(Reflection.ConstructorInfo[] constructors, object[] parameters, out Reflection.ConstructorInfo foundedConstructor)
+    {
+        foreach(var constructor in constructors)
         {
-            return _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
-        }
-
-        public bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo)
-        {
-            return _aggregator.TryResolveRawMethod(method, parameters, out methodInfo);
-        }
-
-        private bool ParamsMatchConstructor(Reflection.ConstructorInfo constructor, object[] parameters)
-        {
-            bool matchingResult = true;
-
-            if (parameters.Length != constructor.Arguments.Length)
-                return false;
-
-            for (int i = 0; i < parameters.Length && matchingResult; ++i)
+            if(ParamsMatchConstructor(constructor, parameters))
             {
-                matchingResult &= 
-                    constructor.Arguments[i].Type.IsInstanceOfType(parameters[i]);
+                foundedConstructor = constructor;
+                return true;
             }
-
-            return matchingResult;
         }
 
-        private bool TryMatchConstructorWithParams(Reflection.ConstructorInfo[] constructors, object[] parameters, out Reflection.ConstructorInfo foundedConstructor)
-        {
-            foreach(var constructor in constructors)
-            {
-                if(ParamsMatchConstructor(constructor, parameters))
-                {
-                    foundedConstructor = constructor;
-                    return true;
-                }
-            }
+        foundedConstructor = null;
+        return false;
+    }
 
-            foundedConstructor = null;
-            return false;
-        }
+    private void AddToConstructors<TType>(string name)
+    {
+        var schemaMethodInfos = TypeHelper
+            .GetSchemaMethodInfosForType<TType>(name);
 
-        private void AddToConstructors<TType>(string name)
-        {
-            var schemaMethodInfos = TypeHelper
-                .GetSchemaMethodInfosForType<TType>(name);
+        ConstructorsMethods.AddRange(schemaMethodInfos);
 
-            ConstructorsMethods.AddRange(schemaMethodInfos);
+        var schemaMethods = schemaMethodInfos
+            .Select(schemaMethod => schemaMethod.ConstructorInfo)
+            .ToArray();
 
-            var schemaMethods = schemaMethodInfos
-                .Select(schemaMethod => schemaMethod.ConstructorInfo)
-                .ToArray();
-
-            Constructors.Add(name, schemaMethods);
-        }
+        Constructors.Add(name, schemaMethods);
     }
 }

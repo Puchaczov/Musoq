@@ -1,25 +1,24 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class GreaterOrEqualNode : BinaryNode
 {
-    public class GreaterOrEqualNode : BinaryNode
+    public GreaterOrEqualNode(Node left, Node right) : base(left, right)
     {
-        public GreaterOrEqualNode(Node left, Node right) : base(left, right)
-        {
-            Id = CalculateId(this);
-        }
+        Id = CalculateId(this);
+    }
 
-        public override string Id { get; }
-        public override Type ReturnType => typeof(bool);
+    public override string Id { get; }
+    public override Type ReturnType => typeof(bool);
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public override void Accept(IExpressionVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
 
-        public override string ToString()
-        {
-            return $"{Left.ToString()} >= {Right.ToString()}";
-        }
+    public override string ToString()
+    {
+        return $"{Left.ToString()} >= {Right.ToString()}";
     }
 }

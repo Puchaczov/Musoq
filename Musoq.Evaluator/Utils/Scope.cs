@@ -1,59 +1,58 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Musoq.Evaluator.Utils
+namespace Musoq.Evaluator.Utils;
+
+[DebuggerDisplay("Name: '{Name}', ScopeId: {Id}")]
+public class Scope
 {
-    [DebuggerDisplay("Name: '{Name}', ScopeId: {Id}")]
-    public class Scope
+    private static int _scopeId;
+
+    private readonly Dictionary<string, string> _attributes = new();
+    private readonly List<Scope> _scopes = new();
+
+    public Scope(Scope parent, int selfIndex, string name = "")
     {
-        private static int _scopeId;
+        Parent = parent;
+        SelfIndex = selfIndex;
+        Id = _scopeId++;
+        Name = name;
+    }
 
-        private readonly Dictionary<string, string> _attributes = new();
-        private readonly List<Scope> _scopes = new();
+    public int Id { get; }
 
-        public Scope(Scope parent, int selfIndex, string name = "")
-        {
-            Parent = parent;
-            SelfIndex = selfIndex;
-            Id = _scopeId++;
-            Name = name;
-        }
+    public string Name { get; }
 
-        public int Id { get; }
+    public IReadOnlyList<Scope> Child => _scopes;
 
-        public string Name { get; }
+    public int SelfIndex { get; }
 
-        public IReadOnlyList<Scope> Child => _scopes;
+    public Scope Parent { get; private set; }
 
-        public int SelfIndex { get; }
+    public SymbolTable ScopeSymbolTable { get; } = new();
 
-        public Scope Parent { get; private set; }
+    public string this[string key]
+    {
+        get => _attributes.ContainsKey(key) ? _attributes[key] : Parent[key];
+        set => _attributes[key] = value;
+    }
 
-        public SymbolTable ScopeSymbolTable { get; } = new();
+    public Scope AddScope(string name = "")
+    {
+        var scope = new Scope(this, _scopes.Count, name);
+        _scopes.Add(scope);
+        return scope;
+    }
 
-        public string this[string key]
-        {
-            get => _attributes.ContainsKey(key) ? _attributes[key] : Parent[key];
-            set => _attributes[key] = value;
-        }
+    public bool ContainsAttribute(string attributeName)
+    {
+        return _attributes.ContainsKey(attributeName) || Parent != null && Parent.ContainsAttribute(attributeName);
+    }
 
-        public Scope AddScope(string name = "")
-        {
-            var scope = new Scope(this, _scopes.Count, name);
-            _scopes.Add(scope);
-            return scope;
-        }
-
-        public bool ContainsAttribute(string attributeName)
-        {
-            return _attributes.ContainsKey(attributeName) || Parent != null && Parent.ContainsAttribute(attributeName);
-        }
-
-        public bool IsInsideNamedScope(string name)
-        {
-            var scope = this;
-            while (scope != null && scope.Name != name) scope = scope.Parent;
-            return scope != null && scope.Name == name;
-        }
+    public bool IsInsideNamedScope(string name)
+    {
+        var scope = this;
+        while (scope != null && scope.Name != name) scope = scope.Parent;
+        return scope != null && scope.Name == name;
     }
 }

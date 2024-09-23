@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class EqualityToken : Token
-    {
-        public const string TokenText = "=";
+﻿namespace Musoq.Parser.Tokens;
 
-        public EqualityToken(TextSpan span)
-            : base(TokenText, TokenType.Equality, span)
-        {
-        }
+public class EqualityToken : Token
+{
+    public const string TokenText = "=";
+
+    public EqualityToken(TextSpan span)
+        : base(TokenText, TokenType.Equality, span)
+    {
     }
 }

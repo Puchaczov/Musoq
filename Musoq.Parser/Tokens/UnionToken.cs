@@ -1,10 +1,9 @@
-﻿namespace Musoq.Parser.Tokens
+﻿namespace Musoq.Parser.Tokens;
+
+public class UnionToken : SetOperatorToken
 {
-    public class UnionToken : SetOperatorToken
+    public UnionToken(TextSpan span)
+        : base(UnionOperatorText, TokenType.Union, span)
     {
-        public UnionToken(TextSpan span)
-            : base(UnionOperatorText, TokenType.Union, span)
-        {
-        }
     }
 }

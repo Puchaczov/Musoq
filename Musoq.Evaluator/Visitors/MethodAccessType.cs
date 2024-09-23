@@ -1,9 +1,8 @@
-﻿namespace Musoq.Evaluator.Visitors
+﻿namespace Musoq.Evaluator.Visitors;
+
+public enum MethodAccessType
 {
-    public enum MethodAccessType
-    {
-        ResultQuery,
-        TransformingQuery,
-        CaseWhen
-    }
+    ResultQuery,
+    TransformingQuery,
+    CaseWhen
 }

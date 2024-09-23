@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class WhenToken : Token
-    {
-        public const string TokenText = "when";
+﻿namespace Musoq.Parser.Tokens;
 
-        public WhenToken(TextSpan span)
-            : base(TokenText, TokenType.When, span)
-        {
-        }
+public class WhenToken : Token
+{
+    public const string TokenText = "when";
+
+    public WhenToken(TextSpan span)
+        : base(TokenText, TokenType.When, span)
+    {
     }
 }

@@ -1,29 +1,28 @@
 ﻿using System;
 
-namespace Musoq.Parser.Nodes
+namespace Musoq.Parser.Nodes;
+
+public class IdentifierNode : Node
 {
-    public class IdentifierNode : Node
+    public IdentifierNode(string name, Type returnType = null)
     {
-        public IdentifierNode(string name, Type returnType = null)
-        {
-            Name = name;
-            ReturnType = returnType;
-            Id = $"{nameof(IdentifierNode)}{Name}";
-        }
+        Name = name;
+        ReturnType = returnType;
+        Id = $"{nameof(IdentifierNode)}{Name}";
+    }
 
-        public string Name { get; }
-        public override Type ReturnType { get; }
+    public string Name { get; }
+    public override Type ReturnType { get; }
 
-        public override string Id { get; }
+    public override string Id { get; }
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    public override void Accept(IExpressionVisitor visitor)
+    {
+        visitor.Visit(this);
+    }
 
-        public override string ToString()
-        {
-            return Name;
-        }
+    public override string ToString()
+    {
+        return Name;
     }
 }

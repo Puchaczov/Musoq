@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace Musoq.Plugins.Attributes
+namespace Musoq.Plugins.Attributes;
+
+public sealed class BindableClassAttribute : Attribute
 {
-    public sealed class BindableClassAttribute : Attribute
-    {
-    }
 }

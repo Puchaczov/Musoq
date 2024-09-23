@@ -1,12 +1,11 @@
-﻿namespace Musoq.Parser.Tokens
-{
-    public class NotInToken : Token
-    {
-        public const string TokenText = "not in";
+﻿namespace Musoq.Parser.Tokens;
 
-        public NotInToken(TextSpan span) 
-            : base(TokenText, TokenType.NotIn, span)
-        {
-        }
+public class NotInToken : Token
+{
+    public const string TokenText = "not in";
+
+    public NotInToken(TextSpan span) 
+        : base(TokenText, TokenType.NotIn, span)
+    {
     }
 }
