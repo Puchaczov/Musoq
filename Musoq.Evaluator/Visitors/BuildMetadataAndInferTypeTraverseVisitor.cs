@@ -346,7 +346,8 @@ namespace Musoq.Evaluator.Visitors
             apply.Source.Accept(this);
             apply.With.Accept(this);
 
-            var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[apply.Source.Id]);
+            var sourceId = apply.Source is JoinFromNode ? MetaAttributes.ProcessedQueryId : apply.Source.Id;
+            var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[sourceId]);
             var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[apply.With.Id]);
 
             switch (apply.ApplyType)
@@ -361,7 +362,7 @@ namespace Musoq.Evaluator.Visitors
                     throw new ArgumentOutOfRangeException();
             }
 
-            var id = $"{Scope[apply.Source.Id]}{Scope[apply.With.Id]}";
+            var id = $"{Scope[sourceId]}{Scope[apply.With.Id]}";
 
             Scope.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
             Scope[MetaAttributes.ProcessedQueryId] = id;

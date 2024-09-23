@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Plugins.Attributes;

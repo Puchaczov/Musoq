@@ -33,7 +33,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void OuterApply_SchemaAndProperty_WithNestedProperty()
+    public void OuterApply_SchemaAndProperty_WithNestedProperty_ShouldPass()
     {
         const string query = @"
         select 
@@ -137,7 +137,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void OuterApply_SchemaAndMethod_WithComplexObjects()
+    public void OuterApply_SchemaAndMethod_WithComplexObjects_ShouldPass()
     {
         const string query = @"
         select 
@@ -262,7 +262,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void OuterApply_PropertyAndMethod_WithFiltering()
+    public void OuterApply_PropertyAndMethod_WithFiltering_ShouldPass()
     {
         const string query = @"
     select 
@@ -327,7 +327,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void OuterApply_PropertyAndMethod_GroupBy_WithFiltering()
+    public void OuterApply_PropertyAndMethod_GroupBy_WithFiltering_ShouldPass()
     {
         const string query = @"
     select 
@@ -382,5 +382,144 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         
         Assert.AreEqual("IT", table[0][0]);
         Assert.AreEqual(2, table[0][1]);
+    }
+
+    private class OuterApplyClass6
+    {
+        public string Name { get; set; }
+        
+        public string Surname { get; set; }
+        
+        public int Id { get; set; }
+    }
+    
+    private class OuterApplyClass7
+    {   
+        public int Id { get; set; }
+        
+        [BindablePropertyAsTable]
+        public string[] Skills { get; set; }
+    }
+    
+    [TestMethod]
+    public void OuterApply_InnerJoinAndUseProperty_ShouldPass()
+    {
+        const string query = @"
+    select 
+        a.Name,
+        a.Surname,
+        c.Value
+    from #schema.first() a
+    inner join #schema.second() b on a.Id = b.Id
+    outer apply b.Skills c";
+        
+        var firstSource = new OuterApplyClass6[]
+        {
+            new() {Name = "John", Surname = "Doe", Id = 1},
+            new() {Name = "Jane", Surname = "Smith", Id = 2},
+            new() {Name = "Alice", Surname = "Johnson", Id = 3}
+        };
+
+        var secondSource = new OuterApplyClass7[]
+        {
+            new() {Id = 1, Skills = ["C#", "JavaScript"]},
+            new() {Id = 2, Skills = ["Java"]},
+            new() {Id = 3, Skills = ["Communication", "Negotiation"]}
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
+
+        var table = vm.Run();
+        
+        Assert.AreEqual(3, table.Columns.Count());
+        Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("a.Surname", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
+        
+        Assert.AreEqual(5, table.Count);
+        
+        Assert.AreEqual("John", table[0][0]);
+        Assert.AreEqual("Doe", table[0][1]);
+        Assert.AreEqual("C#", table[0][2]);
+        
+        Assert.AreEqual("John", table[1][0]);
+        Assert.AreEqual("Doe", table[1][1]);
+        Assert.AreEqual("JavaScript", table[1][2]);
+        
+        Assert.AreEqual("Jane", table[2][0]);
+        Assert.AreEqual("Smith", table[2][1]);
+        Assert.AreEqual("Java", table[2][2]);
+            
+        Assert.AreEqual("Alice", table[3][0]);
+        Assert.AreEqual("Johnson", table[3][1]);
+        Assert.AreEqual("Communication", table[3][2]);
+        
+        Assert.AreEqual("Alice", table[4][0]);
+        Assert.AreEqual("Johnson", table[4][1]);
+        Assert.AreEqual("Negotiation", table[4][2]);
+    }
+    
+    [TestMethod]
+    public void OuterApply_LeftJoinAndUseProperty_ShouldPass()
+    {
+        const string query = @"
+    select 
+        a.Name,
+        a.Surname,
+        c.Value
+    from #schema.first() a
+    left outer join #schema.second() b on a.Id = b.Id
+    outer apply b.Skills c";
+        
+        var firstSource = new OuterApplyClass6[]
+        {
+            new() {Name = "John", Surname = "Doe", Id = 1},
+            new() {Name = "Jane", Surname = "Smith", Id = 2},
+            new() {Name = "Alice", Surname = "Johnson", Id = 3}
+        };
+
+        var secondSource = new OuterApplyClass7[]
+        {
+            new() {Id = 1, Skills = ["C#", "JavaScript"]},
+            new() {Id = 2, Skills = ["Java"]},
+            new() {Id = 3, Skills = ["Communication", "Negotiation"]}
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
+
+        var table = vm.Run();
+        
+        Assert.AreEqual(3, table.Columns.Count());
+        Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("a.Surname", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
+        
+        Assert.AreEqual(5, table.Count);
+        
+        Assert.AreEqual("John", table[0][0]);
+        Assert.AreEqual("Doe", table[0][1]);
+        Assert.AreEqual("C#", table[0][2]);
+        
+        Assert.AreEqual("John", table[1][0]);
+        Assert.AreEqual("Doe", table[1][1]);
+        Assert.AreEqual("JavaScript", table[1][2]);
+        
+        Assert.AreEqual("Jane", table[2][0]);
+        Assert.AreEqual("Smith", table[2][1]);
+        Assert.AreEqual("Java", table[2][2]);
+            
+        Assert.AreEqual("Alice", table[3][0]);
+        Assert.AreEqual("Johnson", table[3][1]);
+        Assert.AreEqual("Communication", table[3][2]);
+        
+        Assert.AreEqual("Alice", table[4][0]);
+        Assert.AreEqual("Johnson", table[4][1]);
+        Assert.AreEqual("Negotiation", table[4][2]);
     }
 }
