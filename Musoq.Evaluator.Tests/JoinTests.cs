@@ -643,7 +643,7 @@ with p as (
 ), x as (
     select Country, City, Id from p
 )
-select p.Id, x.Id from p inner join x on p.Country = x.Country";
+select p.Id, x.Id from p p inner join x on p.Country = x.Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1376,5 +1376,101 @@ inner join #A.entities() cities on countries.Country = cities.Country
             
         Assert.AreEqual("Germany", table[1][0]);
         Assert.AreEqual("Berlin", table[1][1]);
+    }
+        
+    [TestMethod]
+    public void WhenMultipleAliasesAroundCteQuery_LeftOuterJoin_ShouldRetrieveValues()
+    {
+        var query =
+            @"
+with first as (
+    select a.Country as Country from #A.entities() a
+), second as (
+    select a.Country as Country from #A.entities() a
+), third as (
+    select
+        a.Country, 
+        b.Country
+    from first a left outer join second b on a.Country = b.Country
+)
+select * from third
+";
+                
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("Poland", "Krakow"),
+                    new BasicEntity("Germany", "Berlin")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        
+        Assert.AreEqual("a.Country", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual("b.Country", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(2, table.Count);
+        
+        Assert.AreEqual("Poland", table[0][0]);
+        Assert.AreEqual("Poland", table[0][1]);
+        
+        Assert.AreEqual("Germany", table[1][0]);
+        Assert.AreEqual("Germany", table[1][1]);
+    }
+        
+    [TestMethod]
+    public void WhenMultipleAliasesAroundCteQuery_RightOuterJoin_ShouldRetrieveValues()
+    {
+        var query =
+            @"
+with first as (
+    select a.Country as Country from #A.entities() a
+), second as (
+    select a.Country as Country from #A.entities() a
+), third as (
+    select
+        a.Country, 
+        b.Country
+    from first a right outer join second b on a.Country = b.Country
+)
+select * from third
+";
+                
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("Poland", "Krakow"),
+                    new BasicEntity("Germany", "Berlin")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        
+        Assert.AreEqual("a.Country", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual("b.Country", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(2, table.Count);
+        
+        Assert.AreEqual("Poland", table[0][0]);
+        Assert.AreEqual("Poland", table[0][1]);
+        
+        Assert.AreEqual("Germany", table[1][0]);
+        Assert.AreEqual("Germany", table[1][1]);
     }
 }

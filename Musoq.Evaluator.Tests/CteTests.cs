@@ -135,7 +135,14 @@ public class CteTests : BasicEntityTestBase
     public void SimpleCteWithGrouping2Test()
     {
         var query =
-            "with p as (select Population, Country from #A.entities()) select Country, Sum(Population) from p group by Country";
+            @"
+with p as (
+    select 
+        Population, 
+        Country 
+    from #A.entities()
+) 
+select Country, Sum(Population) from p group by Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
