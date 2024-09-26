@@ -19,9 +19,11 @@ Musoq brings SQL power to your data, wherever it lives. Query files, directories
 
 To try out Musoq, follow the instructions in our [CLI repository](https://github.com/Puchaczov/Musoq.CLI).
 
-## 💡 Example Queries
+## 💡 Where To Use It
 
-Musoq can handle a wide variety of data sources. Here are some examples:
+Musoq works with many data sources, including:
+
+### 📂 File System Analysis
 
 ```sql
 -- Look for files greater than 1 gig
@@ -39,13 +41,55 @@ FROM #os.files('/some/directory', true)
 GROUP BY Extension
 HAVING Round(Sum(Length) / 1024 / 1024 / 1024, 1) > 0
 
+-- Query your images folder, filter to include only .jpg files and show it's EXIF metadata
+SELECT
+    f.Name,
+    m.DirectoryName,
+    m.TagName,
+    m.Description
+FROM #os.files('./Images', false) f CROSS APPLY #os.metadata(f.FullName) m
+WHERE f.Extension = '.jpg'
+
 -- Get first, last 5 bits from files and consecutive 10 bytes of file with offset of 5 from tail
 SELECT
 	ToHex(Head(5), '|'),
 	ToHex(Tail(5), '|'),
 	ToHex(GetFileBytes(10, 5), '|')
 FROM #os.files('/some/directory', false)
+```
 
+### 📦 Archive Exploration
+
+```sql
+-- Query .csv files from archive file
+table PeopleDetails {
+	Name 'System.String',
+	Surname 'System.String',
+	Age 'System.Int32'
+};
+couple #separatedvalues.comma with table PeopleDetails as SourceOfPeopleDetails;
+with Files as (
+	select 
+		a.Key as InZipPath
+	from #archives.file('./Files/Example2/archive.zip') a
+	where 
+		a.IsDirectory = false and
+		a.Contains(a.Key, '/') = false and 
+		a.Key like '%.csv'
+)
+select 
+	f.InZipPath, 
+	b.Name, 
+	b.Surname, 
+	b.Age 
+from #archives.file('./Files/Example2/archive.zip') a
+inner join Files f on f.InZipPath = a.Key
+cross apply SourceOfPeopleDetails(a.GetStreamContent(), true, 0) as b;
+```
+
+### 🖼️ Image Analysis with AI
+
+```sql
 -- Describe images using AI
 SELECT
     llava.DescribeImage(photo.Base64File()),
@@ -60,65 +104,90 @@ FROM #os.files('/path/to/directory', true) f
 INNER JOIN #openai.gpt('gpt-4') gpt ON 1 = 1 
 WHERE f.Extension IN ('.md', '.c')
 
--- Query CAN DBC files
-SELECT  
-    ID,
-    Name,
-    DLC,
-    CycleTime
-FROM #can.messages('./file.dbc')
+-- Extract data from recipe image
+select s.Shop, s.ProductName, s.Price from #stdin.image('OpenAi', 'gpt-4o') s
+```
 
--- Compare two directories
-SELECT 
-    (CASE WHEN SourceFile IS NOT NULL 
-     THEN SourceFileRelative 
-     ELSE DestinationFileRelative 
-     END) AS FullName, 
-    (CASE WHEN State = 'TheSame' 
-     THEN 'The Same' 
-     ELSE State 
-     END) AS Status 
-FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
+🔍 SQL-Powered Data Extraction
 
--- Find large files
-SELECT 
-    FullName 
-FROM #os.files('', true) 
-WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
+```sql
+-- Extract imports like this from proto file:
+-- import "some/some_message_1"
+-- ant turn it into:
+-- some/SomeMessage1
+with Events as (
+    select
+        Replace(
+            Replace(
+                Line,
+                'import "',
+                ''
+            ),
+            '.proto";',
+            ''
+        ) as Namespace
+    from #flat.file('/path/to/file.proto') f
+    where
+        Length(Line) > 6 and
+        Head(Line, 6) = 'import' and
+        IndexOf(Line, 'some') <> -1
+)
+select
+    Choose(
+        0,
+        Split(e.Namespace, '/')
+    ) +
+    '/' +
+    Replace(
+        ToTitleCase(
+            Choose(
+                1,
+                Split(e.Namespace, '/')
+            )
+        ),
+        '_',
+        ''
+    ) as Events
+from Events e
+```
 
--- Compute sentiment on a comments
-SELECT 
-    csv.PostId,
-    csv.Comment,
-    gpt.Sentiment(csv.Comment) as Sentiment,
-    csv.Date
-FROM #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
-INNER JOIN #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
+### 🤖 AI-Assisted Text Structuring
 
--- Compute Sha on files
-SELECT
-   FullName,
-   f.Sha256File()
-FROM #os.files('@qfs/', false) f
+```sql
+-- Extract structured data from unstructured text
+select s.Who, s.Age from #stdin.text('Ollama', 'llama3.1') s where ToInt32(s.Age) > 26 and ToInt32(s.Age) < 75
+```
 
--- Get only files that extension is .png or .jpg
-SELECT 
-    FullName 
-FROM #os.files('C:/Some/Path/To/Dir', true) 
-WHERE Extension = '.png' OR Extension = '.jpg'
+### 🔄 Universal Table Querying
 
--- Group by directory and show size of each
-SELECT
-	DirectoryName,
-	Sum(Length) / 1024 / 1024 as 'MB',
-	Min(Length) as 'Min',
-	Max(Length) as 'Max',
-	Count(FullName) as 'CountOfFiles',
-FROM #os.files('/some/path', true)
-GROUP BY DirectoryName
+```sql
+-- Count occurrences of each name in a table with headers
+select t.Name, Count(t.Name) from #stdin.table(true) t group by t.Name having Count(t.Name) > 1
+```
 
--- Prints the values from 1 to 9
-SELECT Value FROM #system.range(1, 10)
+### 🔧 CAN DBC File Analysis
+
+```sql
+select 
+    m.Id, 
+    m.Name, 
+    m.DLC, 
+    m.Transmitter, 
+    m.Comment as MessageComment, 
+    m.CycleTime,
+    s.Name, 
+    s.StartBit, 
+    s.Length, 
+    s.ByteOrder, 
+    s.InitialValue, 
+    s.Factor, 
+    s.IsInteger, 
+    s.Offset, 
+    s.Minimum, 
+    s.Maximum, 
+    s.Unit,
+    s.Comment as SignalsComment
+from #can.messages('@qfs/Model3CAN.dbc') m cross apply m.Signals s
 ```
 
 ## 🎬 Watch It Live
@@ -136,22 +205,20 @@ SELECT Value FROM #system.range(1, 10)
 
 Musoq supports a rich set of SQL-like features:
 
+- Parameterizable sources
 - Optional query reordering (FROM ... WHERE ... GROUP BY ... HAVING ... SELECT ... SKIP N TAKE N2)
 - Use of `*` to select all columns
 - GROUP BY and HAVING operators
 - SKIP & TAKE operators
-- Complex object accessing (`column.Name`)
-- User-defined functions and aggregation functions
 - Set operators (UNION, UNION ALL, EXCEPT, INTERSECT)
-- Parameterizable sources
 - LIKE / NOT LIKE operator
 - RLIKE / NOT RLIKE operator (regex)
 - CONTAINS operator
 - CTE expressions
-- DESC for schema, schema table constructors and tables
-- IN syntax
-- INNER, LEFT OUTER, RIGHT OUTER join syntax
-- ORDER BY clause
+- IN operator
+- INNER, LEFT OUTER, RIGHT OUTER JOIN operator
+- ORDER BY operator
+- CROSS / OUTER APPLY operator
 
 ## 🏗 Architecture
 
