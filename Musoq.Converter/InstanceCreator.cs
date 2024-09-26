@@ -13,6 +13,7 @@ using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
+using SchemaFromNode = Musoq.Evaluator.Parser.SchemaFromNode;
 
 namespace Musoq.Converter;
 
@@ -177,7 +178,10 @@ public static class InstanceCreator
                 f => f.Key.Id, 
                 f => f.Key.Id,
                 (f, s) => (SchemaFromNode: f.Key, UsedColumns: (IReadOnlyCollection<ISchemaColumn>)f.Value, UsedValues:s.Value)
-            ).ToDictionary(f => f.SchemaFromNode.Id, f => ((SchemaFromNode)f.SchemaFromNode, f.UsedColumns, f.UsedValues));
+            ).ToDictionary(f => f.SchemaFromNode.Id, f => (f.SchemaFromNode, f.UsedColumns, f.UsedValues, f.SchemaFromNode is SchemaFromNode
+            {
+                HasExternallyProvidedTypes: true
+            }));
 
         return runnable;
     }

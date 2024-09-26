@@ -11,48 +11,40 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator;
 
-public class RunnableDebugDecorator : IRunnable
+public class RunnableDebugDecorator(
+    IRunnable runnable,
+    AssemblyLoadContext assemblyLoadContext,
+    params string[] filesToDelete)
+    : IRunnable
 {
-    private readonly IRunnable _runnable;
-    private readonly AssemblyLoadContext _assemblyLoadContext;
-    private readonly string[] _filesToDelete;
-        
-
-    public RunnableDebugDecorator(IRunnable runnable, AssemblyLoadContext assemblyLoadContext, params string[] filesToDelete)
-    {
-        _runnable = runnable;
-        _assemblyLoadContext = assemblyLoadContext;
-        _filesToDelete = filesToDelete;
-    }
-
     public ISchemaProvider Provider
     {
-        get => _runnable.Provider;
-        set => _runnable.Provider = value;
+        get => runnable.Provider;
+        set => runnable.Provider = value;
     }
 
     public IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables
     {
-        get => _runnable.PositionalEnvironmentVariables;
-        set => _runnable.PositionalEnvironmentVariables = value;
+        get => runnable.PositionalEnvironmentVariables;
+        set => runnable.PositionalEnvironmentVariables = value;
     }
 
-    public IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode)> QueriesInformation
+    public IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode, bool HasExternallyProvidedTypes)> QueriesInformation
     {
-        get => _runnable.QueriesInformation;
-        set => _runnable.QueriesInformation = value;
+        get => runnable.QueriesInformation;
+        set => runnable.QueriesInformation = value;
     }
 
     public Table Run(CancellationToken token)
     {
-        var table = _runnable.Run(token);
+        var table = runnable.Run(token);
             
-        _assemblyLoadContext.Unload();
+        assemblyLoadContext.Unload();
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
 
-        foreach (var path in _filesToDelete)
+        foreach (var path in filesToDelete)
         {
             var file = new FileInfo(path);
 

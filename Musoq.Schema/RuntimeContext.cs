@@ -9,7 +9,7 @@ public class RuntimeContext(
     CancellationToken endWorkToken,
     IReadOnlyCollection<ISchemaColumn> originallyInferredColumns,
     IReadOnlyDictionary<string, string> environmentVariables,
-    (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> Columns, WhereNode WhereNode) queryInformation)
+    (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> Columns, WhereNode WhereNode, bool HasExternallyProvidedTypes) queryInformation)
 {
     public CancellationToken EndWorkToken { get; } = endWorkToken;
 
@@ -17,5 +17,5 @@ public class RuntimeContext(
 
     public IReadOnlyDictionary<string, string> EnvironmentVariables { get; } = environmentVariables;
 
-    public (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> Columns, WhereNode WhereNode) QueryInformation { get; } = queryInformation;
+    public (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> Columns, WhereNode WhereNode, bool HasExternallyProvidedTypes) QueryInformation { get; } = queryInformation;
 }

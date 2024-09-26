@@ -28,13 +28,12 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("ABCAACBA"),
                     new BasicEntity("AAeqwgQEW"),
                     new BasicEntity("XXX"),
                     new BasicEntity("dadsqqAA")
-                }
+                ]
             }
         };
 
@@ -66,13 +65,12 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("ABCAACBA", 10),
                     new BasicEntity("AAeqwgQEW", 20),
                     new BasicEntity("XXX", 30),
                     new BasicEntity("dadsqqAA", 40)
-                }
+                ]
             }
         };
 
@@ -118,23 +116,21 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("ABCAACBA", 10),
                     new BasicEntity("AAeqwgQEW", 20),
                     new BasicEntity("XXX", 30),
                     new BasicEntity("dadsqqAA", 40)
-                }
+                ]
             },
             {
                 "#B",
-                new[]
-                {
+                [
                     new BasicEntity("ABCAACBA"),
                     new BasicEntity("AAeqwgQEW"),
                     new BasicEntity("XXX"),
                     new BasicEntity("dadsqqAA")
-                }
+                ]
             }
         };
 
@@ -199,7 +195,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
 
         second.Text = "test2";
 
-        var vm = CreateAndRunVirtualMachine(query, null, new UnknownSchemaProvider(new[] {first, second}));
+        var vm = CreateAndRunVirtualMachine(query, null, new UnknownSchemaProvider([first, second]));
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Columns.Count());

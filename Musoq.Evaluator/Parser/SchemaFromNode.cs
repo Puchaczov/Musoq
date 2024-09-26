@@ -3,17 +3,21 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Parser;
 
-public class SchemaFromNode : Musoq.Parser.Nodes.From.SchemaFromNode
+public class SchemaFromNode(
+    string schema,
+    string method,
+    ArgsListNode parameters,
+    string alias,
+    int inSourcePosition,
+    bool hasExternallyProvidedTypes
+)
+    : Musoq.Parser.Nodes.From.SchemaFromNode(schema, method, parameters, alias, typeof(RowSource), inSourcePosition)
 {
-    private readonly string _positionalId;
-    
-    public SchemaFromNode(string schema, string method, ArgsListNode parameters, string alias, int inSourcePosition) 
-        : base(schema, method, parameters, alias, typeof(RowSource), inSourcePosition)
-    {
-        _positionalId = $"{alias}:{inSourcePosition}";
-    }
-    
+    private readonly string _positionalId = $"{alias}:{inSourcePosition}";
+
     public override string Id => _positionalId;
+    
+    public bool HasExternallyProvidedTypes { get; } = hasExternallyProvidedTypes;
 
     public override int GetHashCode()
     {

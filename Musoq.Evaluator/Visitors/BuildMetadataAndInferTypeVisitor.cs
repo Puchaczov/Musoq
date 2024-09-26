@@ -758,11 +758,12 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     public void Visit(SchemaFromNode node)
     {
         var schema = _provider.GetSchema(node.Schema);
+        const bool hasExternallyProvidedTypes = false;
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
 
-        var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(), _queryAlias, node.QueryId);
+        var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(), _queryAlias, node.QueryId, hasExternallyProvidedTypes);
  
         var isDesc = _currentScope.Name == "Desc";
         var table = !isDesc ? schema.GetTableByName(
@@ -773,7 +774,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
                     _positionalEnvironmentVariables.TryGetValue(_positionalEnvironmentVariablesKey, out var variable)
                         ? variable
                         : new Dictionary<string, string>(),
-                    (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)
+                    (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes)
                 ), 
                 _schemaFromArgs.ToArray())
             : new DynamicTable([]);
@@ -823,7 +824,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
                     _positionalEnvironmentVariables.TryGetValue(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, out var variable)
                         ? variable
                         : new Dictionary<string, string>(),
-                    (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)
+                    (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false)
                 ), 
                 schemaFrom.Parameters);
         }
@@ -891,6 +892,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var schemaInfo = _explicitlyUsedAliases[node.Identifier];
         var tableName = _explicitlyCoupledTablesWithAliases[node.Identifier];
         var table = _explicitlyDefinedTables[tableName];
+        const bool hasExternallyProvidedTypes = true;
 
         var schema = _provider.GetSchema(schemaInfo.Schema);
 
@@ -899,8 +901,14 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
 
-        var aliasedSchemaFromNode = new Parser.SchemaFromNode(schemaInfo.Schema, schemaInfo.Method, (ArgsListNode) Nodes.Pop(),
-            _queryAlias, node.InSourcePosition);
+        var aliasedSchemaFromNode = new Parser.SchemaFromNode(
+            schemaInfo.Schema, 
+            schemaInfo.Method, 
+            (ArgsListNode) Nodes.Pop(),
+            _queryAlias, 
+            node.InSourcePosition, 
+            hasExternallyProvidedTypes
+        );
 
         var tableSymbol = new TableSymbol(
             _queryAlias, 
@@ -913,7 +921,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
                     _positionalEnvironmentVariables.TryGetValue(_positionalEnvironmentVariablesKey, out var variable)
                         ? variable
                         : new Dictionary<string, string>(),
-                    (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode)
+                    (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes)
                 ),
                 _schemaFromArgs.ToArray()
             ) ?? table, 

@@ -43,7 +43,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 {
     private const char EscapeQuoteStringCharacter = '"';
     private const char EscapeQuoteStringCharacterReplacement = '\'';
-        
+
     private readonly Dictionary<string, int> _inMemoryTableIndexes = new();
     private readonly List<string> _loadedAssemblies = [];
 
@@ -56,7 +56,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     private readonly Dictionary<string, Type> _typesToInstantiate = new();
     private BlockSyntax _emptyBlock;
     private SyntaxNode _groupHaving;
-        
+
     private readonly Dictionary<string, LocalDeclarationStatementSyntax> _getRowsSourceStatement = new();
 
     private VariableDeclarationSyntax _groupKeys;
@@ -150,9 +150,9 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     private Stack<SyntaxNode> Nodes { get; }
 
     private List<StatementSyntax> Statements { get; } = [];
-        
+
     private List<Stack<SyntaxNode>> NullSuspiciousNodes { get; } = [];
-        
+
     private IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
     public void Visit(Node node)
@@ -224,7 +224,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         var a = Nodes.Pop();
 
         var rawSyntax = Generator.LogicalAndExpression(a, b);
-            
+
         Nodes.Push(rawSyntax);
     }
 
@@ -234,7 +234,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         var a = Nodes.Pop();
 
         var rawSyntax = Generator.LogicalOrExpression(a, b);
-            
+
         Nodes.Push(rawSyntax);
     }
 
@@ -390,7 +390,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
         var typeIdentifier = SyntaxFactory.IdentifierName(
             EvaluationHelper.GetCasteableType(node.ReturnType));
-            
+
         if (node.ReturnType is NullNode.NullType)
         {
             typeIdentifier = SyntaxFactory.IdentifierName("object");
@@ -413,7 +413,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             SyntaxFactory.LiteralExpression(
                 SyntaxKind.StringLiteralExpression,
                 SyntaxFactory.Literal(
-                    $"@\"{EscapeQuoteString(node.Value, EscapeQuoteStringCharacterReplacement)}\"", 
+                    $"@\"{EscapeQuoteString(node.Value, EscapeQuoteStringCharacterReplacement)}\"",
                     UnescapeLanguageSpecificString(node.Value))));
     }
 
@@ -445,7 +445,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.Token(SyntaxKind.SByteKeyword)),
                             SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((sbyte)node.ObjValue)))
+                                SyntaxFactory.Literal((sbyte) node.ObjValue)))
                         .WithOpenParenToken(
                             SyntaxFactory.Token(SyntaxKind.OpenParenToken))
                         .WithCloseParenToken(
@@ -460,7 +460,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.Token(SyntaxKind.ByteKeyword)),
                             SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((byte)node.ObjValue)))
+                                SyntaxFactory.Literal((byte) node.ObjValue)))
                         .WithOpenParenToken(
                             SyntaxFactory.Token(SyntaxKind.OpenParenToken))
                         .WithCloseParenToken(
@@ -475,7 +475,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.Token(SyntaxKind.ShortKeyword)),
                             SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((short)node.ObjValue)))
+                                SyntaxFactory.Literal((short) node.ObjValue)))
                         .WithOpenParenToken(
                             SyntaxFactory.Token(SyntaxKind.OpenParenToken))
                         .WithCloseParenToken(
@@ -490,7 +490,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.Token(SyntaxKind.UShortKeyword)),
                             SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((ushort)node.ObjValue)))
+                                SyntaxFactory.Literal((ushort) node.ObjValue)))
                         .WithOpenParenToken(
                             SyntaxFactory.Token(SyntaxKind.OpenParenToken))
                         .WithCloseParenToken(
@@ -505,7 +505,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.Token(SyntaxKind.IntKeyword)),
                             SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((int)node.ObjValue)))
+                                SyntaxFactory.Literal((int) node.ObjValue)))
                         .WithOpenParenToken(
                             SyntaxFactory.Token(SyntaxKind.OpenParenToken))
                         .WithCloseParenToken(
@@ -520,7 +520,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
                             SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((uint)node.ObjValue)))
+                                SyntaxFactory.Literal((uint) node.ObjValue)))
                         .WithOpenParenToken(
                             SyntaxFactory.Token(SyntaxKind.OpenParenToken))
                         .WithCloseParenToken(
@@ -535,7 +535,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.Token(SyntaxKind.LongKeyword)),
                             SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((long)node.ObjValue)))
+                                SyntaxFactory.Literal((long) node.ObjValue)))
                         .WithOpenParenToken(
                             SyntaxFactory.Token(SyntaxKind.OpenParenToken))
                         .WithCloseParenToken(
@@ -550,7 +550,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.Token(SyntaxKind.ULongKeyword)),
                             SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((ulong)node.ObjValue)))
+                                SyntaxFactory.Literal((ulong) node.ObjValue)))
                         .WithOpenParenToken(
                             SyntaxFactory.Token(SyntaxKind.OpenParenToken))
                         .WithCloseParenToken(
@@ -638,7 +638,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         foreach (var parameterInfo in parameters)
         {
             var attribute = parameterInfo.GetCustomAttributeThatInherits<InjectTypeAttribute>();
-                
+
             switch (attribute)
             {
                 case InjectSpecificSourceAttribute _:
@@ -646,7 +646,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
                     if (node.CanSkipInjectSource)
                         continue;
-                        
+
                     var componentsOfComplexTable = _scope[MetaAttributes.Contexts].Split(',');
 
                     string objectName;
@@ -676,8 +676,9 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                     int currentContext;
                     if (_isInsideJoinOrApply)
                     {
-                        var preformattedContexts = 
-                            (IndexBasedContextsPositionsSymbol)_scope.ScopeSymbolTable.GetSymbol(MetaAttributes.PreformatedContexts);
+                        var preformattedContexts =
+                            (IndexBasedContextsPositionsSymbol) _scope.ScopeSymbolTable.GetSymbol(MetaAttributes
+                                .PreformatedContexts);
                         var orderNumber = int.Parse(_scope[MetaAttributes.OrderNumber]);
                         currentContext = preformattedContexts.GetIndexFor(orderNumber, node.Alias);
                     }
@@ -686,7 +687,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         var aliases =
                             _scope.Parent.ScopeSymbolTable.GetSymbol<AliasesPositionsSymbol>(MetaAttributes
                                 .AllQueryContexts);
-                            
+
                         currentContext = aliases.GetContextIndexOf(node.Alias);
                     }
 
@@ -703,9 +704,9 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                         SyntaxFactory.SeparatedList(
                                         [
                                             SyntaxFactory.Argument(
-                                                    SyntaxFactory.LiteralExpression(
-                                                        SyntaxKind.NumericLiteralExpression,
-                                                        SyntaxFactory.Literal(currentContext)))
+                                                SyntaxFactory.LiteralExpression(
+                                                    SyntaxKind.NumericLiteralExpression,
+                                                    SyntaxFactory.Literal(currentContext)))
                                         ]))))));
                     break;
                 case InjectGroupAttribute _:
@@ -742,10 +743,10 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         if (node.Method.IsGenericMethod && method.GetCustomAttribute<AggregationMethodAttribute>() != null)
         {
             var genericArgs = node.Method.GetGenericArguments();
-                
+
             if (genericArgs.Length == 0)
                 throw new NotSupportedException("Generic method without generic arguments.");
-                
+
             var syntaxArgs = new List<SyntaxNodeOrToken>();
 
             for (var i = 0; i < genericArgs.Length - 1; ++i)
@@ -862,7 +863,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         var typeIdentifier =
             SyntaxFactory.IdentifierName(
                 EvaluationHelper.GetCasteableType(node.ReturnType));
-            
+
         if (node.ReturnType is NullNode.NullType)
         {
             typeIdentifier = SyntaxFactory.IdentifierName("object");
@@ -1034,7 +1035,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
         var a2 = SyntaxFactory.ExpressionStatement(invocation)
             .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-            
+
         _selectBlock = SyntaxFactory.Block(a1, a2);
     }
 
@@ -1051,7 +1052,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         SyntaxFactory.ContinueStatement()
                     ])
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-            
+
         Nodes.Push(ifStatement);
     }
 
@@ -1116,7 +1117,6 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
     public void Visit(HavingNode node)
     {
-            
         Nodes.Push(Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
                 [SyntaxFactory.ContinueStatement()])
             .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
@@ -1604,7 +1604,13 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             tableInfoVariableName,
             SyntaxHelper.CreateArrayOf(
                 nameof(ISchemaColumn),
-                originColumns.Select(column => SyntaxHelper.CreateObjectOf(nameof(Column), SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(column.ColumnName))), SyntaxHelper.TypeLiteralArgument(EvaluationHelper.GetCasteableType(column.ColumnType)), SyntaxHelper.IntLiteralArgument(column.ColumnIndex)])))).Cast<ExpressionSyntax>().ToArray()));
+                originColumns.Select(column => SyntaxHelper.CreateObjectOf(nameof(Column),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression,
+                            SyntaxFactory.Literal(column.ColumnName))),
+                        SyntaxHelper.TypeLiteralArgument(EvaluationHelper.GetCasteableType(column.ColumnType)),
+                        SyntaxHelper.IntLiteralArgument(column.ColumnIndex)
+                    ])))).Cast<ExpressionSyntax>().ToArray()));
 
         var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
             node.Alias,
@@ -1853,14 +1859,14 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                     SyntaxFactory.SeparatedList(
                                     [
                                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
-                                            SyntaxFactory.Argument(
-                                                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                                            SyntaxFactory.Argument(
-                                                SyntaxFactory.MemberAccessExpression(
-                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                    SyntaxFactory.IdentifierName($"{node.Second.Alias}Row"),
-                                                    SyntaxFactory.IdentifierName(
-                                                        $"{nameof(IObjectResolver.Contexts)}")))
+                                        SyntaxFactory.Argument(
+                                            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                                        SyntaxFactory.Argument(
+                                            SyntaxFactory.MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.IdentifierName($"{node.Second.Alias}Row"),
+                                                SyntaxFactory.IdentifierName(
+                                                    $"{nameof(IObjectResolver.Contexts)}")))
                                     ])
                                 ),
                                 SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
@@ -1904,7 +1910,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                         SyntaxFactory.ExpressionStatement(invocation))))));
                 break;
         }
-            
+
         _joinOrApplyBlock = computingBlock;
     }
 
@@ -2042,7 +2048,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                         SyntaxFactory.ExpressionStatement(invocation))))));
                 break;
         }
-            
+
         _joinOrApplyBlock = computingBlock;
     }
 
@@ -2088,7 +2094,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     public void Visit(AccessMethodFromNode node)
     {
         AddNamespace(node.ReturnType);
-            
+
         _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
             .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory
@@ -2102,8 +2108,9 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
                                     SyntaxFactory.Argument(
                                         SyntaxFactory.CastExpression(
-                                            SyntaxFactory.ParseTypeName(EvaluationHelper.GetCasteableType(node.ReturnType)),
-                                            (ExpressionSyntax)Nodes.Pop())))))))))));
+                                            SyntaxFactory.ParseTypeName(
+                                                EvaluationHelper.GetCasteableType(node.ReturnType)),
+                                            (ExpressionSyntax) Nodes.Pop())))))))))));
     }
 
     public void Visit(SchemaMethodFromNode node)
@@ -2113,7 +2120,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     public void Visit(PropertyFromNode node)
     {
         AddNamespace(node.ReturnType);
-            
+
         _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
             .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory
@@ -2127,7 +2134,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
                                     SyntaxFactory.Argument(
                                         SyntaxFactory.CastExpression(
-                                            SyntaxFactory.ParseTypeName(EvaluationHelper.GetCasteableType(node.ReturnType)),
+                                            SyntaxFactory.ParseTypeName(
+                                                EvaluationHelper.GetCasteableType(node.ReturnType)),
                                             SyntaxFactory.ElementAccessExpression(
                                                     SyntaxFactory.IdentifierName($"{node.SourceAlias}Row"))
                                                 .WithArgumentList(
@@ -2167,7 +2175,9 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.LiteralExpression(
                                         SyntaxKind.StringLiteralExpression,
-                                        SyntaxFactory.Literal($"@\"{EscapeQuoteString(field.FieldName, EscapeQuoteStringCharacter)}\"", field.FieldName))),
+                                        SyntaxFactory.Literal(
+                                            $"@\"{EscapeQuoteString(field.FieldName, EscapeQuoteStringCharacter)}\"",
+                                            field.FieldName))),
                                 SyntaxHelper.TypeLiteralArgument(
                                     EvaluationHelper.GetCasteableType(type)),
                                 SyntaxHelper.IntLiteralArgument(field.FieldOrder)
@@ -2182,10 +2192,10 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         SyntaxFactory.SeparatedList(
                         [
                             SyntaxFactory.Argument((ExpressionSyntax) Generator.LiteralExpression(node.Name)),
-                                SyntaxFactory.Argument(
-                                    SyntaxHelper.CreateArrayOf(
-                                        nameof(Column),
-                                        cols.ToArray()))
+                            SyntaxFactory.Argument(
+                                SyntaxHelper.CreateArrayOf(
+                                    nameof(Column),
+                                    cols.ToArray()))
                         ]))));
 
             Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
@@ -2229,17 +2239,18 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     {
         var detailedQuery = (DetailedQueryNode) node;
 
-        var orderByFields = detailedQuery.OrderBy is not null ? 
-            new (FieldOrderedNode Field, ExpressionSyntax Syntax)[detailedQuery.OrderBy.Fields.Length] : [];
-            
-        for (var i = orderByFields.Length - 1; i >= 0 ; i--)
+        var orderByFields = detailedQuery.OrderBy is not null
+            ? new (FieldOrderedNode Field, ExpressionSyntax Syntax)[detailedQuery.OrderBy.Fields.Length]
+            : [];
+
+        for (var i = orderByFields.Length - 1; i >= 0; i--)
         {
             var orderBy = detailedQuery.OrderBy!;
             var field = orderBy.Fields[i];
             var syntax = (ExpressionSyntax) Nodes.Pop();
             orderByFields[i] = (field, syntax);
         }
-            
+
         var skip = node.Skip != null ? Nodes.Pop() as StatementSyntax : null;
         var take = node.Take != null ? Nodes.Pop() as BlockSyntax : null;
 
@@ -2247,7 +2258,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         var where = node.Where != null ? Nodes.Pop() as StatementSyntax : null;
 
         var block = (BlockSyntax) Nodes.Pop();
-            
+
         block = block.AddStatements(GenerateCancellationExpression());
 
         if (where != null)
@@ -2266,13 +2277,13 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         fullBlock = fullBlock.AddStatements(
             GetRowsSourceOrEmpty(node.From.Alias),
             SyntaxHelper.Foreach("score", _scope[MetaAttributes.SourceName], block, orderByFields));
-            
+
         fullBlock = fullBlock.AddStatements(
             (StatementSyntax) Generator.ReturnStatement(
                 SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName)));
 
         Statements.AddRange(fullBlock.Statements);
-        
+
         _getRowsSourceStatement.Clear();
     }
 
@@ -2302,10 +2313,10 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(_groupValues));
 
             block = block.AddStatements(SyntaxFactory.ParseStatement("var parent = rootGroup;")
-                .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn)))
+                    .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn)))
                 .NormalizeWhitespace();
             block = block.AddStatements(SyntaxFactory.ParseStatement("Group group = null;")
-                .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn)))
+                    .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn)))
                 .NormalizeWhitespace();
 
             block = block.AddStatements(GroupForStatement());
@@ -2324,7 +2335,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         SyntaxKind.ComplexElementInitializerExpression,
                         SyntaxFactory.SeparatedList<ExpressionSyntax>()
                             .Add((LiteralExpressionSyntax) Generator.LiteralExpression(j))
-                            .Add((LiteralExpressionSyntax) Generator.LiteralExpression(EscapeQuoteString(node.Select.Fields[i].FieldName, EscapeQuoteStringCharacter))));
+                            .Add((LiteralExpressionSyntax) Generator.LiteralExpression(
+                                EscapeQuoteString(node.Select.Fields[i].FieldName, EscapeQuoteStringCharacter))));
 
             const string indexToValueDictVariableName = "indexToValueDict";
 
@@ -2340,7 +2352,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             Statements.Add(SyntaxFactory.LocalDeclarationStatement(columnToValueDict));
 
             block = block.AddStatements(AddGroupStatement(node.From.Alias.ToGroupingTable()));
-            block = GroupByForeach(block, node.From.Alias, node.From.Alias.ToRowItem(), _scope[MetaAttributes.SourceName]);
+            block = GroupByForeach(block, node.From.Alias, node.From.Alias.ToRowItem(),
+                _scope[MetaAttributes.SourceName]);
             Statements.AddRange(block.Statements);
         }
         else
@@ -2350,7 +2363,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             _joinOrApplyBlock = _joinOrApplyBlock.ReplaceNode(_emptyBlock, select.Statements);
             Statements.AddRange(_joinOrApplyBlock.Statements);
         }
-            
+
         _getRowsSourceStatement.Clear();
     }
 
@@ -2480,7 +2493,12 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                                 SyntaxFactory.TupleElement(
                                                         SyntaxFactory.IdentifierName("WhereNode"))
                                                     .WithIdentifier(
-                                                        SyntaxFactory.Identifier("WhereNode"))
+                                                        SyntaxFactory.Identifier("WhereNode")),
+                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                SyntaxFactory.TupleElement(
+                                                        SyntaxFactory.IdentifierName("bool"))
+                                                    .WithIdentifier(
+                                                        SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
                                             }))
                                 }))),
                 SyntaxFactory.Identifier("QueriesInformation"))
@@ -2492,13 +2510,13 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                     SyntaxFactory.List(
                     [
                         SyntaxFactory.AccessorDeclaration(
-                                    SyntaxKind.GetAccessorDeclaration)
-                                .WithSemicolonToken(
-                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                            SyntaxFactory.AccessorDeclaration(
-                                    SyntaxKind.SetAccessorDeclaration)
-                                .WithSemicolonToken(
-                                    SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                                SyntaxKind.GetAccessorDeclaration)
+                            .WithSemicolonToken(
+                                SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                        SyntaxFactory.AccessorDeclaration(
+                                SyntaxKind.SetAccessorDeclaration)
+                            .WithSemicolonToken(
+                                SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                     ])))
             .NormalizeWhitespace();
 
@@ -2865,7 +2883,12 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                                             SyntaxFactory.TupleElement(
                                                                     SyntaxFactory.IdentifierName("WhereNode"))
                                                                 .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("WhereNode"))
+                                                                    SyntaxFactory.Identifier("WhereNode")),
+                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                            SyntaxFactory.TupleElement(
+                                                                    SyntaxFactory.IdentifierName("bool"))
+                                                                .WithIdentifier(
+                                                                    SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
                                                         }))
                                             })))),
 
@@ -3002,7 +3025,12 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                                             SyntaxFactory.TupleElement(
                                                                     SyntaxFactory.IdentifierName("WhereNode"))
                                                                 .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("WhereNode"))
+                                                                    SyntaxFactory.Identifier("WhereNode")),
+                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                            SyntaxFactory.TupleElement(
+                                                                    SyntaxFactory.IdentifierName("bool"))
+                                                                .WithIdentifier(
+                                                                    SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
                                                         }))
                                             })))),
 
@@ -3038,9 +3066,9 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                     SyntaxFactory.SeparatedList(
                     [
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queriesInformation")),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queriesInformation")),
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
                     ]))))));
     }
 
@@ -3119,7 +3147,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         foreach (var assembly in assemblies)
         {
             if (_loadedAssemblies.Contains(assembly.Location)) continue;
-                
+
             _loadedAssemblies.Add(assembly.Location);
             Compilation =
                 Compilation.AddReferences(MetadataReference.CreateFromFile(assembly.Location));
@@ -3135,7 +3163,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1))));
     }
 
-    private BlockSyntax GroupByForeach(BlockSyntax foreachInstructions, string alias, string variableName, string tableVariable)
+    private BlockSyntax GroupByForeach(BlockSyntax foreachInstructions, string alias, string variableName,
+        string tableVariable)
     {
         return Block(
             GetRowsSourceOrEmpty(alias),
@@ -3289,11 +3318,42 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                 SyntaxFactory.SeparatedList(
                 [
                     SyntaxFactory.Parameter(SyntaxFactory.Identifier("provider"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider))),
-                        SyntaxFactory.Parameter(
+                        .WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider))),
+                    SyntaxFactory.Parameter(
                         [],
-                            SyntaxTokenList.Create(
-                                new SyntaxToken()),
+                        SyntaxTokenList.Create(
+                            new SyntaxToken()),
+                        SyntaxFactory.GenericName(
+                                SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                            .WithTypeArgumentList(
+                                SyntaxFactory.TypeArgumentList(
+                                    SyntaxFactory.SeparatedList<TypeSyntax>(
+                                        new SyntaxNodeOrToken[]
+                                        {
+                                            SyntaxFactory.PredefinedType(
+                                                SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
+                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                            SyntaxFactory.GenericName(
+                                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                                                .WithTypeArgumentList(
+                                                    SyntaxFactory.TypeArgumentList(
+                                                        SyntaxFactory.SeparatedList<TypeSyntax>(
+                                                            new SyntaxNodeOrToken[]
+                                                            {
+                                                                SyntaxFactory.PredefinedType(
+                                                                    SyntaxFactory.Token(SyntaxKind
+                                                                        .StringKeyword)),
+                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                                SyntaxFactory.PredefinedType(
+                                                                    SyntaxFactory.Token(SyntaxKind
+                                                                        .StringKeyword))
+                                                            })))
+                                        })))
+                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                        SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
+                    SyntaxFactory.Parameter(
+                            SyntaxFactory.Identifier("queriesInformation"))
+                        .WithType(
                             SyntaxFactory.GenericName(
                                     SyntaxFactory.Identifier("IReadOnlyDictionary"))
                                 .WithTypeArgumentList(
@@ -3302,72 +3362,46 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                             new SyntaxNodeOrToken[]
                                             {
                                                 SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
+                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.GenericName(
-                                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                                    .WithTypeArgumentList(
-                                                        SyntaxFactory.TypeArgumentList(
-                                                            SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                                new SyntaxNodeOrToken[]
-                                                                {
-                                                                    SyntaxFactory.PredefinedType(
-                                                                        SyntaxFactory.Token(SyntaxKind
-                                                                            .StringKeyword)),
-                                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                    SyntaxFactory.PredefinedType(
-                                                                        SyntaxFactory.Token(SyntaxKind
-                                                                            .StringKeyword))
-                                                                })))
-                                            })))
-                                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                            SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
-                        SyntaxFactory.Parameter(
-                                SyntaxFactory.Identifier("queriesInformation"))
-                            .WithType(
-                                SyntaxFactory.GenericName(
-                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                    .WithTypeArgumentList(
-                                        SyntaxFactory.TypeArgumentList(
-                                            SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                new SyntaxNodeOrToken[]
-                                                {
-                                                    SyntaxFactory.PredefinedType(
-                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                    SyntaxFactory.TupleType(
-                                                        SyntaxFactory.SeparatedList<TupleElementSyntax>(
-                                                            new SyntaxNodeOrToken[]
-                                                            {
-                                                                SyntaxFactory.TupleElement(
-                                                                        SyntaxFactory.IdentifierName(
-                                                                            "SchemaFromNode"))
-                                                                    .WithIdentifier(
-                                                                        SyntaxFactory.Identifier("FromNode")),
-                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                SyntaxFactory.TupleElement(
-                                                                        SyntaxFactory.GenericName(
-                                                                                SyntaxFactory.Identifier(
-                                                                                    "IReadOnlyCollection"))
-                                                                            .WithTypeArgumentList(
-                                                                                SyntaxFactory.TypeArgumentList(
-                                                                                    SyntaxFactory
-                                                                                        .SingletonSeparatedList<
-                                                                                            TypeSyntax>(
-                                                                                            SyntaxFactory
-                                                                                                .IdentifierName(
-                                                                                                    "ISchemaColumn")))))
-                                                                    .WithIdentifier(
-                                                                        SyntaxFactory.Identifier("UsedColumns")),
-                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                SyntaxFactory.TupleElement(
-                                                                        SyntaxFactory.IdentifierName("WhereNode"))
-                                                                    .WithIdentifier(
-                                                                        SyntaxFactory.Identifier("WhereNode"))
-                                                            }))
-                                                })))),
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken)))
+                                                SyntaxFactory.TupleType(
+                                                    SyntaxFactory.SeparatedList<TupleElementSyntax>(
+                                                        new SyntaxNodeOrToken[]
+                                                        {
+                                                            SyntaxFactory.TupleElement(
+                                                                    SyntaxFactory.IdentifierName(
+                                                                        "SchemaFromNode"))
+                                                                .WithIdentifier(
+                                                                    SyntaxFactory.Identifier("FromNode")),
+                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                            SyntaxFactory.TupleElement(
+                                                                    SyntaxFactory.GenericName(
+                                                                            SyntaxFactory.Identifier(
+                                                                                "IReadOnlyCollection"))
+                                                                        .WithTypeArgumentList(
+                                                                            SyntaxFactory.TypeArgumentList(
+                                                                                SyntaxFactory
+                                                                                    .SingletonSeparatedList<
+                                                                                        TypeSyntax>(
+                                                                                        SyntaxFactory
+                                                                                            .IdentifierName(
+                                                                                                "ISchemaColumn")))))
+                                                                .WithIdentifier(
+                                                                    SyntaxFactory.Identifier("UsedColumns")),
+                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                            SyntaxFactory.TupleElement(
+                                                                    SyntaxFactory.IdentifierName("WhereNode"))
+                                                                .WithIdentifier(
+                                                                    SyntaxFactory.Identifier("WhereNode")),
+                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                            SyntaxFactory.TupleElement(
+                                                                    SyntaxFactory.IdentifierName("bool"))
+                                                                .WithIdentifier(
+                                                                    SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
+                                                        }))
+                                            })))),
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
+                        .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken)))
                 ]))).WithBody(
                 SyntaxFactory.Block(
                     SyntaxFactory.SingletonList<StatementSyntax>(
@@ -3630,7 +3664,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         throw new NotSupportedException();
     }
 
-    private ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node, ExpressionSyntax originallyInferredColumns)
+    private ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node,
+        ExpressionSyntax originallyInferredColumns)
     {
         return SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
@@ -3639,31 +3674,31 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                     SyntaxFactory.SeparatedList(
                     [
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
-                            SyntaxFactory.Argument(
-                                originallyInferredColumns),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.ElementAccessExpression(
-                                        SyntaxFactory.IdentifierName(
-                                            "positionalEnvironmentVariables"))
-                                    .WithArgumentList(
-                                        SyntaxFactory.BracketedArgumentList(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                SyntaxFactory.Argument(
-                                                    SyntaxFactory.LiteralExpression(
-                                                        SyntaxKind.NumericLiteralExpression,
-                                                        SyntaxFactory.Literal(
-                                                            _schemaFromIndex++))))))
-                            ),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.ElementAccessExpression(
-                                        SyntaxFactory.IdentifierName("queriesInformation"))
-                                    .WithArgumentList(
-                                        SyntaxFactory.BracketedArgumentList(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                SyntaxFactory.Argument(
-                                                    SyntaxFactory.LiteralExpression(
-                                                        SyntaxKind.StringLiteralExpression,
-                                                        SyntaxFactory.Literal(node.Id)))))))
+                        SyntaxFactory.Argument(
+                            originallyInferredColumns),
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.ElementAccessExpression(
+                                    SyntaxFactory.IdentifierName(
+                                        "positionalEnvironmentVariables"))
+                                .WithArgumentList(
+                                    SyntaxFactory.BracketedArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Argument(
+                                                SyntaxFactory.LiteralExpression(
+                                                    SyntaxKind.NumericLiteralExpression,
+                                                    SyntaxFactory.Literal(
+                                                        _schemaFromIndex++))))))
+                        ),
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.ElementAccessExpression(
+                                    SyntaxFactory.IdentifierName("queriesInformation"))
+                                .WithArgumentList(
+                                    SyntaxFactory.BracketedArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Argument(
+                                                SyntaxFactory.LiteralExpression(
+                                                    SyntaxKind.StringLiteralExpression,
+                                                    SyntaxFactory.Literal(node.Id)))))))
                     ])));
     }
 
@@ -3708,7 +3743,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         SyntaxFactory.SeparatedList(
                         [
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
-                                SyntaxHelper.StringLiteralArgument(((SchemaFromNode) node.From).Method)
+                            SyntaxHelper.StringLiteralArgument(((SchemaFromNode) node.From).Method)
                         ]))), false);
     }
 
@@ -3733,7 +3768,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         {
             var args = schemaNode.Parameters.Args.Select(arg =>
                 (ExpressionSyntax) Generator.LiteralExpression(((ConstantValueNode) arg).ObjValue)).ToArray();
-                
+
             var originallyInferredColumns = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
@@ -3870,7 +3905,12 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                                             SyntaxFactory.TupleElement(
                                                                     SyntaxFactory.IdentifierName("WhereNode"))
                                                                 .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("WhereNode"))
+                                                                    SyntaxFactory.Identifier("WhereNode")),
+                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                            SyntaxFactory.TupleElement(
+                                                                SyntaxFactory.IdentifierName("bool"))
+                                                                .WithIdentifier(
+                                                                    SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
                                                         }))
                                             })))),
 
@@ -3896,11 +3936,12 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         {
             return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
         }
-            
+
         var typeIdentifier = SyntaxFactory.IdentifierName(
             EvaluationHelper.GetCasteableType(nodeReturnType));
-            
-        return Generator.CastExpression(Generator.NullableTypeExpression(typeIdentifier), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+
+        return Generator.CastExpression(Generator.NullableTypeExpression(typeIdentifier),
+            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
     }
 
     private string EscapeQuoteString(string text, char escapingCharacter)
@@ -3911,18 +3952,18 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         {
             if (c == '"')
                 builder.Append(escapingCharacter);
-                
+
             builder.Append(c);
         }
 
         return builder.ToString();
     }
-        
+
     private StatementSyntax GetRowsSourceOrEmpty(string alias)
     {
-        return _getRowsSourceStatement.TryGetValue(alias, out var value) 
-            ? value : 
-            SyntaxFactory.EmptyStatement();
+        return _getRowsSourceStatement.TryGetValue(alias, out var value)
+            ? value
+            : SyntaxFactory.EmptyStatement();
     }
 
     private static string UnescapeLanguageSpecificString(string value)
@@ -3933,17 +3974,17 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
         return result;
     }
-        
+
     private static bool CheckIfNullable(Type type)
     {
         if (type.IsValueType)
         {
             return Nullable.GetUnderlyingType(type) != null;
         }
-            
+
         return true;
     }
-    
+
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {
         return SyntaxFactory.Block(statements.Where(f => f is not EmptyStatementSyntax));

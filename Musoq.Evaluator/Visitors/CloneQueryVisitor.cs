@@ -324,7 +324,10 @@ public class CloneQueryVisitor : IExpressionVisitor
 
     public virtual void Visit(SchemaFromNode node)
     {
-        Nodes.Push(new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId));
+        Nodes.Push(
+            node is Parser.SchemaFromNode schemaFromNode ?
+                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, schemaFromNode.HasExternallyProvidedTypes) :
+                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, false));
     }
 
     public virtual void Visit(JoinSourcesTableFromNode node)
