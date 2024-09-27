@@ -57,7 +57,7 @@ SELECT
 	ToHex(GetFileBytes(10, 5), '|')
 FROM #os.files('/some/directory', false)
 
---diff between two folders
+-- Diff between two folders
 SELECT 
     (CASE WHEN SourceFile IS NOT NULL 
      THEN SourceFileRelative 
@@ -177,7 +177,7 @@ select
     ) as Events
 from Events e
 
--- Count word frequencies from text
+-- Count word frequencies within text
 with p as (
     select 
         Replace(Replace(ToLowerInvariant(w.Value), '.', ''), ',', '') as Word
@@ -236,10 +236,19 @@ from #can.messages('@qfs/Model3CAN.dbc') m cross apply m.Signals s
 
 ## 🛠 Supported Data Sources
 
-- SeparatedValues (CSV, TSV, etc.)
-- Archives
-- OS (File System - files and directories)
-- ...many more, Look at the [Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSources) repository
+- Airtable (allows to query tables from Airtable)
+- Archives (allows to treat archives as tables)
+- CANBus (allows to treat CAN .dbc files and corresponding .csv files that contains records of a CAN bus as tables)
+- Docker (allows to treat docker containers, images, etc as tables)
+- FlatFile (allows to treat flat files as table)
+- Json (allows to treat json files as tables)
+- Kubernetes (allows to treat kubernetes pods, services, etc as tables) - experimental
+- OpenAI (exists mainly to be combined with other plugins to allow fuzzy search by GPT models)
+- Postgres (allows to treat postgres database as tables) - experimental
+- SeparatedValues (allows to treat separated values files as tables)
+- Sqlite (allows to treat sqlite database as tables) - experimental
+- System (mostly utils, ranges and dual table resides here) -
+- Time (allows to treat time as table)
 
 ## 🔧 Syntax Features
 
