@@ -234,22 +234,6 @@ from #can.messages('@qfs/Model3CAN.dbc') m cross apply m.Signals s
 
 ![Musoq Demo](https://github.com/Puchaczov/Musoq/blob/59603028e8fbe90ce8444077cf3561ff8e698afd/musoq.gif)
 
-## 🛠 Supported Data Sources
-
-- Airtable (allows to query tables from Airtable)
-- Archives (allows to treat archives as tables)
-- CANBus (allows to treat CAN .dbc files and corresponding .csv files that contains records of a CAN bus as tables)
-- Docker (allows to treat docker containers, images, etc as tables)
-- FlatFile (allows to treat flat files as table)
-- Json (allows to treat json files as tables)
-- Kubernetes (allows to treat kubernetes pods, services, etc as tables) - experimental
-- OpenAI (exists mainly to be combined with other plugins to allow fuzzy search by GPT models)
-- Postgres (allows to treat postgres database as tables) - experimental
-- SeparatedValues (allows to treat separated values files as tables)
-- Sqlite (allows to treat sqlite database as tables) - experimental
-- System (mostly utils, ranges and dual table resides here) -
-- Time (allows to treat time as table)
-
 ## 🔧 Syntax Features
 
 Musoq supports a rich set of SQL-like features:
@@ -269,6 +253,57 @@ Musoq supports a rich set of SQL-like features:
 - ORDER BY operator
 - CROSS / OUTER APPLY operator
 
+## 🛠 Supported Data Sources
+
+- Airtable (allows to query tables from Airtable)
+- Archives (allows to treat archives as tables)
+- CANBus (allows to treat CAN .dbc files and corresponding .csv files that contains records of a CAN bus as tables)
+- Docker (allows to treat docker containers, images, etc as tables)
+- FlatFile (allows to treat flat files as table)
+- Json (allows to treat json files as tables)
+- Kubernetes (allows to treat kubernetes pods, services, etc as tables) - experimental
+- OpenAI (exists mainly to be combined with other plugins to allow fuzzy search by GPT models)
+- Postgres (allows to treat postgres database as tables) - experimental
+- SeparatedValues (allows to treat separated values files as tables)
+- Sqlite (allows to treat sqlite database as tables) - experimental
+- System (mostly utils, ranges and dual table resides here) -
+- Time (allows to treat time as table)
+
+## 🧭 Roadmap
+
+The order is accidental. I will work on things that are the most urgent from the perspective of my current or near future work I will be using it with.
+
+- Comprehensive documentation
+- Roslyn data source
+- Improve runtime efficiency
+- Parallelize query execution
+- Recursive CTE
+- Rework JSON & XML support
+- Subqueries
+- More tests & better handling of syntax / runtime exceptions
+
+If you think something might be important for the project to broaden its capabilities, feel free to submit a feature request.
+
+## 🌱 Project Maturity
+
+Musoq is an evolving project designed primarily for querying and analyzing smaller datasets, with a focus on user-friendly and efficient operations. Here's an overview of its current state:
+
+- **Primary Use Case:** Musoq serves as a tool for ad-hoc querying data and manipulation tasks. It intentionally support only reads. It excels at handling smaller datasets where its SQL-like syntax can provide more intuitive and efficient data operations.
+
+- **Innovative SQL Syntax:** I introduce new SQL syntax variants to simplify some complex queries and reduce the effort required for specific operations. This approach prioritizes user efficiency and ease of use, even if it means deviating from standard SQL in some cases.
+
+- **Development Stage:** Musoq is in active development, continuously improving its core functionality and expanding its syntax to better serve its primary use case. This includes introduction of new syntax features sometimes.
+
+- **Dataset Size:** At the current stage, Musoq is best suited for smaller to medium-sized datasets. For very large datasets or big data scenarios, traditional big data tools will be more appropriate.
+
+- **Real-World Usage:** As the project creator, I use Musoq in various workplaces to facilitate my daily tasks and improve my workflow efficiency. It has proven to be a valuable tool in real-world scenarios, helping me perform data operations more effectively across different professional environments.
+
+- **API and Syntax Stability:** The core functionality is stable. These changes are always aimed at improving usability and efficiency. While I strive for backwards compatibility, new syntax features may be introduced regularly.
+
+- **Project Suitability:** Musoq is well-suited for projects that involve data analysis, file system operations, and other tasks typically handled by scripting languages. It's designed to be a reliable and efficient tool for these scenarios, especially where its unique syntax features can simplify complex operations.
+
+I'm commited to improving Musoq within its intended scope, with a particular focus on innovative SQL syntax that makes data querying tasks easier. I welcome feedback, bug reports, and contributions from the community, especially those that align with the goal of simplifying complex data operations through clever syntax innovations.
+
 ## 🏗 Architecture
 
 ### High-level Overview
@@ -279,7 +314,7 @@ Musoq offers a plugin API that all sources use. To learn how to implement your o
 
 ## 💡 Motivation
 
-Developed out of a need for a versatile tool that could query various data sources with SQL syntax, Musoq aims to minimize the effort and time required for data querying and analysis.
+I hate loops. Developed out of a need for a versatile tool that could query various data sources with SQL syntax, without those horrible loops, Musoq aims to minimize the effort and time required for data querying and analysis.
 
 ## 📄 License
 
