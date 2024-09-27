@@ -21,7 +21,7 @@ To try out Musoq, follow the instructions in our [CLI repository](https://github
 
 ## 💡 Where To Use It
 
-Musoq works with many data sources, including:
+Musoq might be using in various places, including:
 
 ### 📂 File System Analysis
 
@@ -56,6 +56,24 @@ SELECT
 	ToHex(Tail(5), '|'),
 	ToHex(GetFileBytes(10, 5), '|')
 FROM #os.files('/some/directory', false)
+
+--diff between two folders
+SELECT 
+    (CASE WHEN SourceFile IS NOT NULL 
+     THEN SourceFileRelative 
+     ELSE DestinationFileRelative 
+     END) AS FullName, 
+    (CASE WHEN State = 'TheSame' 
+     THEN 'The Same' 
+     ELSE State 
+     END) AS Status 
+FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
+
+-- Compute Sha on files
+SELECT
+   FullName,
+   f.Sha256File()
+FROM #os.files('@qfs/', false) f
 ```
 
 ### 📦 Archive Exploration
@@ -106,14 +124,23 @@ WHERE f.Extension IN ('.md', '.c')
 
 -- Extract data from recipe image
 select s.Shop, s.ProductName, s.Price from #stdin.image('OpenAi', 'gpt-4o') s
+
+-- Compute sentiment on a comments
+SELECT 
+    csv.PostId,
+    csv.Comment,
+    gpt.Sentiment(csv.Comment) as Sentiment,
+    csv.Date
+FROM #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
+INNER JOIN #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
 ```
 
 🔍 SQL-Powered Data Extraction
 
 ```sql
--- Extract imports like this from proto file:
+-- Extract imports from proto file:
 -- import "some/some_message_1"
--- ant turn it into:
+-- ant turn them into:
 -- some/SomeMessage1
 with Events as (
     select
@@ -149,6 +176,19 @@ select
         ''
     ) as Events
 from Events e
+
+-- Count word frequencies from text
+with p as (
+    select 
+        Replace(Replace(ToLowerInvariant(w.Value), '.', ''), ',', '') as Word
+    from #flat.file('/some/path/to/text/file.txt') f cross apply f.Split(f.Line, ' ') w
+)
+select
+    Count(p.Word, 1) as AllWordsCount, 
+    Count(p.Word) as SpecificWordCount,
+    Round(ToDecimal((Count(p.Word) * 100)) / Count(p.Word, 1), 2) as WordFrequencies,
+    Word
+from p group by p.Word having Count(p.Word) > 1
 ```
 
 ### 🤖 AI-Assisted Text Structuring
