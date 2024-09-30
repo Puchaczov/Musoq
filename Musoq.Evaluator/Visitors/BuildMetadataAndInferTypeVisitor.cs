@@ -71,8 +71,8 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     private readonly IDictionary<string, string> _aliasMapToInMemoryTableMap = 
         new Dictionary<string, string>();
         
-    private readonly IDictionary<string, VariableTable> _variableTables 
-        = new Dictionary<string, VariableTable>();
+    private readonly IDictionary<string, ISchemaTable> _variableTables 
+        = new Dictionary<string, ISchemaTable>();
 
     private readonly List<FieldNode> _groupByFields = [];
     private readonly List<Type> _nullSuspiciousTypes;
@@ -761,6 +761,13 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         const bool hasExternallyProvidedTypes = false;
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+
+        if (_variableTables.ContainsKey(_queryAlias))
+        {
+            throw new NotSupportedException(
+                $"Alias {_queryAlias} for node {node} is already used. Please use different alias.");
+        }
+        
         _generatedAliases.Add(_queryAlias);
 
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(), _queryAlias, node.QueryId, hasExternallyProvidedTypes);
@@ -809,24 +816,50 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     public void Visit(PropertyFromNode node)
     {
-        ISchema schema;
         ISchemaTable table;
+        ISchema schema;
+
         if (_aliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
-            schemaFrom = _aliasToSchemaFromNodeMap[node.SourceAlias];
             schema = _provider.GetSchema(schemaFrom.Schema);
-            
-            table = schema.GetTableByName(
-                schemaFrom.Method, 
-                new RuntimeContext(
-                    CancellationToken.None,
-                    _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
-                    _positionalEnvironmentVariables.TryGetValue(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, out var variable)
-                        ? variable
-                        : new Dictionary<string, string>(),
-                    (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false)
-                ), 
-                schemaFrom.Parameters);
+            table = GetTableFromSchema(schema, schemaFrom);
+        }
+        else
+        {
+            var name = _aliasMapToInMemoryTableMap[node.SourceAlias];
+            table = _variableTables[name];
+            schema = new TransitionSchema(name, table);
+        }
+        
+        _aliasMapToInMemoryTableMap.Add(node.Alias, node.SourceAlias);
+
+        var targetColumn = table.GetColumnByName(node.PropertyName);
+        if (targetColumn == null)
+        {
+            PrepareAndThrowUnknownColumnExceptionMessage(node.PropertyName, table.Columns);
+            return;
+        }
+
+        ValidateBindablePropertyAsTable(table, targetColumn);
+        
+        AddAssembly(targetColumn.ColumnType.Assembly);
+        var nestedTable = TurnTypeIntoTable(targetColumn.ColumnType);
+        _variableTables.TryAdd(node.SourceAlias, nestedTable);
+        table = nestedTable;
+
+        UpdateQueryAliasAndSymbolTable(node, schema, table);
+        
+        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, targetColumn.ColumnType));
+    }
+
+    public void Visit(AccessMethodFromNode node)
+    {
+        ISchemaTable table;
+        ISchema schema;
+        
+        if (_aliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
+        {
+            schema = _provider.GetSchema(schemaFrom.Schema);
         }
         else
         {
@@ -837,52 +870,14 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
-            
-        _schemaFromArgs.Clear();
-
-        var targetColumn = table.GetColumnByName(node.PropertyName);
-
-        if (targetColumn == null)
-        {
-            PrepareAndThrowUnknownColumnExceptionMessage(node.PropertyName, table.Columns);
-            return;
-        }
-
-        var propertyInfo = table.Metadata.TableEntityType.GetProperty(targetColumn.ColumnName);
-        var bindablePropertyAsTableAttribute = propertyInfo?.GetCustomAttribute<BindablePropertyAsTableAttribute>();
-        if (
-            bindablePropertyAsTableAttribute != null && 
-            !IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType) && 
-            !IsArray(propertyInfo.PropertyType!, out elementType) && 
-            !elementType.IsPrimitive && elementType != typeof(string)
-        )
-        {
-            throw new NotSupportedException("Column must be marked as BindablePropertyAsTable.");
-        }
-            
-        AddAssembly(targetColumn.ColumnType.Assembly);
-
-        var nestedTable = TurnTypeIntoTable(targetColumn.ColumnType);
-        var tableSymbol = new TableSymbol(_queryAlias, schema, nestedTable, !string.IsNullOrEmpty(node.Alias));
-        _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
-        _currentScope[node.Id] = _queryAlias;
-            
-        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, targetColumn.ColumnType));
-    }
-
-    public void Visit(AccessMethodFromNode node)
-    {
-        var schemaFrom = _aliasToSchemaFromNodeMap[node.SourceAlias];
-        var schema = _provider.GetSchema(schemaFrom.Schema);
-
-        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
-        _generatedAliases.Add(_queryAlias);
-            
+        
         var accessMethodNode = (AccessMethodNode) Nodes.Pop();
-        var table = TurnTypeIntoTable(accessMethodNode.ReturnType);
+        table = TurnTypeIntoTable(accessMethodNode.ReturnType);
         var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
         _currentScope[node.Id] = _queryAlias;
+        _aliasMapToInMemoryTableMap.Add(_queryAlias, node.SourceAlias);
+        _variableTables.TryAdd(node.SourceAlias, table);
             
         Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethodNode, accessMethodNode.ReturnType));
     }
@@ -1746,6 +1741,31 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         }
     }
 
+    private ISchemaTable GetTableFromSchema(ISchema schema, SchemaFromNode schemaFrom)
+    {
+        var runtimeContext = new RuntimeContext(
+            CancellationToken.None,
+            _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
+            _positionalEnvironmentVariables.TryGetValue(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, out var variable)
+                ? variable
+                : new Dictionary<string, string>(),
+            (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false)
+        );
+
+        return schema.GetTableByName(schemaFrom.Method, runtimeContext, schemaFrom.Parameters);
+    }
+
+    private void UpdateQueryAliasAndSymbolTable(PropertyFromNode node, ISchema schema, ISchemaTable table)
+    {
+        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+        _generatedAliases.Add(_queryAlias);
+        
+        _schemaFromArgs.Clear();
+        var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
+        _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
+        _currentScope[node.Id] = _queryAlias;
+    }
+
     private static int[] CreateSetOperatorPositionIndexes(QueryNode node, string[] keys)
     {
         var indexes = new int[keys.Length];
@@ -2013,7 +2033,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
             columns.Add(new SchemaColumn(property.Name, columns.Count, property.PropertyType));
         }
     
-        return new DynamicTable(columns.ToArray());
+        return new DynamicTable(columns.ToArray(), nestedType);
     }
 
     private static bool IsGenericEnumerable(Type type, out Type elementType)
@@ -2036,6 +2056,23 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         }
 
         return false;
+    }
+
+    private static void ValidateBindablePropertyAsTable(ISchemaTable table, ISchemaColumn targetColumn)
+    {
+        var propertyInfo = table.Metadata.TableEntityType.GetProperty(targetColumn.ColumnName);
+        var bindablePropertyAsTableAttribute = propertyInfo?.GetCustomAttribute<BindablePropertyAsTableAttribute>();
+
+        if (bindablePropertyAsTableAttribute == null) return;
+        
+        var isValid = IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType) ||
+                      IsArray(propertyInfo.PropertyType!, out elementType) ||
+                      elementType.IsPrimitive || elementType == typeof(string);
+
+        if (!isValid)
+        {
+            throw new NotSupportedException("Column must be marked as BindablePropertyAsTable.");
+        }
     }
         
     private static bool IsArray(Type type, out Type elementType)

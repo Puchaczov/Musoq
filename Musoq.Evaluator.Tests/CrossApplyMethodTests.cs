@@ -22,6 +22,13 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         public string Text { get; set; }
     }
     
+    private class CrossApplyClass3
+    {
+        public string Numbers { get; set; }
+        
+        public string Words { get; set; }
+    }
+    
     [TestMethod]
     public void CrossApplyProperty_NoMatch_ShouldPass()
     {
@@ -113,6 +120,90 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
                 var index = i * words.Length + j;
                 Assert.AreEqual(words[i], table[index][0], $"Mismatch at index {index}, column 0");
                 Assert.AreEqual(words[j], table[index][1], $"Mismatch at index {index}, column 1");
+            }
+        }
+    }
+    
+    [TestMethod]
+    public void CrossApplyProperty_SplitWithMultipleProperties_ShouldPass()
+    {
+        const string query = "select b.Value, c.Value from #schema.first() a cross apply a.Split(a.Numbers, ',') as b cross apply a.Split(a.Words, ' ') as c";
+        
+        string[] words = ["Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."];
+        
+        var firstSource = new List<CrossApplyClass3>
+        {
+            new()
+            {
+                Words = string.Join(" ", words),
+                Numbers = "1,2"
+            }
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(16, table.Count);
+        
+        for (var i = 0; i < 2; i++)
+        {
+            for (var j = 0; j < words.Length; j++)
+            {
+                var index = i * words.Length + j;
+                Assert.AreEqual(i == 0 ? "1" : "2", table[index][0], $"Mismatch at index {index}, column 0");
+                Assert.AreEqual(words[j], table[index][1], $"Mismatch at index {index}, column 1");
+            }
+        }
+    }
+    
+    [TestMethod]
+    public void CrossApplyProperty_SplitWithMultipleProperties_ShouldPass2()
+    {
+        const string query = "select b.Value, c.Value from #schema.first() a cross apply a.Split(a.Words, ' ') as b cross apply b.ToCharArray(b.Value) as c";
+        
+        string[] words = ["Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."];
+        
+        var firstSource = new List<CrossApplyClass3>
+        {
+            new()
+            {
+                Words = string.Join(" ", words)
+            }
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(char), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(49, table.Count);
+        
+        var index = 0;
+        foreach (var word in words)
+        {
+            foreach (var character in word)
+            {
+                Assert.AreEqual(word, table[index][0], $"Mismatch at index {index}, column 0");
+                Assert.AreEqual(character, table[index][1], $"Mismatch at index {index}, column 1");
+                index++;
             }
         }
     }

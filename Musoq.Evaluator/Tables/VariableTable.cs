@@ -1,9 +1,10 @@
-﻿using Musoq.Schema;
+﻿using System;
+using Musoq.Schema;
 using System.Linq;
 
 namespace Musoq.Evaluator.Tables;
 
-internal class VariableTable(ISchemaColumn[] columns) : ISchemaTable
+internal class VariableTable(ISchemaColumn[] columns, Type metadata = null) : ISchemaTable
 {
     public ISchemaColumn[] Columns { get; } = columns;
 
@@ -17,5 +18,5 @@ internal class VariableTable(ISchemaColumn[] columns) : ISchemaTable
         return Columns.Where(column => column.ColumnName == name).ToArray();
     }
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(object));
+    public SchemaTableMetadata Metadata { get; } = new(metadata ?? typeof(object));
 }

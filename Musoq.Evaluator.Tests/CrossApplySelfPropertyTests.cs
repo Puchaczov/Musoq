@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
@@ -54,6 +55,29 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         public double[] Values1 { get; set; }
         
         public double[] Values2 { get; set; }
+    }
+    
+    public class ComplexType4
+    {
+        public string Value { get; set; }
+    }
+    
+    public class ComplexType3
+    {
+        public List<ComplexType4> Values { get; set; }
+    }
+    
+    // ReSharper disable once MemberCanBePrivate.Global
+    public class ComplexType2
+    {
+        [BindablePropertyAsTable]
+        public List<ComplexType3> Values { get; set; }
+    }
+    
+    private class CrossApplyClass6
+    {
+        [BindablePropertyAsTable]
+        public List<ComplexType2> Values { get; set; }
     }
     
     [TestMethod]
@@ -350,5 +374,107 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         
         Assert.AreEqual(6d, table[15].Values[0]);
         Assert.AreEqual(6.1d, table[15].Values[1]);
+    }
+    
+    [TestMethod]
+    public void CrossApplyProperty_MultipleComplexArrays_ShouldPass()
+    {
+        const string query = "select d.Value from #schema.first() a cross apply a.Values as b cross apply b.Values as c cross apply c.Values as d";
+        
+        var firstSource = new List<CrossApplyClass6>
+        {
+            new() {Values =
+                [
+                    new()
+                    {
+                        Values =
+                        [
+                            new() {Values = [new() {Value = "Value1"}, new() {Value = "Value2"}]},
+                            new() {Values = [new() {Value = "Value3"}, new() {Value = "Value4"}]}
+                        ]
+                    },
+
+                    new()
+                    {
+                        Values =
+                        [
+                            new() {Values = [new() {Value = "Value5"}, new() {Value = "Value6"}]},
+                            new() {Values = [new() {Value = "Value7"}, new() {Value = "Value8"}]}
+                        ]
+                    }
+                ]
+            }
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual("d.Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        
+        Assert.AreEqual(8, table.Count);
+        
+        Assert.AreEqual("Value1", table[0].Values[0]);
+        Assert.AreEqual("Value2", table[1].Values[0]);
+        Assert.AreEqual("Value3", table[2].Values[0]);
+        Assert.AreEqual("Value4", table[3].Values[0]);
+        Assert.AreEqual("Value5", table[4].Values[0]);
+        Assert.AreEqual("Value6", table[5].Values[0]);
+        Assert.AreEqual("Value7", table[6].Values[0]);
+        Assert.AreEqual("Value8", table[7].Values[0]);
+    }
+    
+    [TestMethod]
+    public void CrossApplyProperty_AliasClashingWithCte_ShouldThrow()
+    {
+        const string query = 
+        """
+        with a as (
+            select 1 from #schema.first()
+        )
+        select d.Value from #schema.first() a cross apply a.Values as b cross apply b.Values as c cross apply c.Values as d
+        """;
+
+        var firstSource = new List<CrossApplyClass6>
+        {
+            new()
+            {
+                Values =
+                [
+                    new()
+                    {
+                        Values =
+                        [
+                            new() {Values = [new() {Value = "Value1"}, new() {Value = "Value2"}]},
+                            new() {Values = [new() {Value = "Value3"}, new() {Value = "Value4"}]}
+                        ]
+                    },
+
+                    new()
+                    {
+                        Values =
+                        [
+                            new() {Values = [new() {Value = "Value5"}, new() {Value = "Value6"}]},
+                            new() {Values = [new() {Value = "Value7"}, new() {Value = "Value8"}]}
+                        ]
+                    }
+                ]
+            }
+        }.ToArray();
+        
+        Assert.ThrowsException<NotSupportedException>(() =>
+        {
+            var vm = CreateAndRunVirtualMachine(
+                query,
+                firstSource
+            );
+            
+            vm.Run();
+        });
     }
 }

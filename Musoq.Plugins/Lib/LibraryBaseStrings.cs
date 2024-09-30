@@ -600,6 +600,14 @@ public abstract partial class LibraryBase
     /// <returns></returns>
     [BindableMethod]
     public string[] Split(string value, params string[] separators) => value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+    
+    /// <summary>
+    /// Splits the string into an array of characters
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <returns>Array of characters</returns>
+    [BindableMethod]
+    public char[] ToCharArray(string value) => value.ToCharArray();
 
     /// <summary>
     /// Computes the longest common subsequence between two source and pattern
