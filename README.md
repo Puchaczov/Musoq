@@ -1,19 +1,41 @@
-# Musoq
+# Musoq: SQL-like Queries for Various Data Sources
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Puchaczov/Musoq/graphs/code-frequency)
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 ![Tests](https://raw.githubusercontent.com/puchaczov/musoq/master/badges/tests-badge.svg)
 
-Musoq brings SQL power to your data, wherever it lives. Query files, directories, CSVs, and more with familiar SQL syntax – no database required.
+Musoq lets you use SQL-like queries on files, directories, images and other data sources without a database. It's designed to simplify data analysis for developers and IT professionals.
 
 ## 🌟 Key Features
 
-- **Versatility:** Data sources come as plugins. Visit the [Musoq.DataSources](https://github.com/Puchaczov/Musoq.DataSources) repository where they are all stored..
-- **SQL Syntax Variant:** The engine uses SQL syntax variant with support for complex queries.
-- **Cross-Platform:** Runs on Linux, Windows, and Docker. MacOS compatibility is anticipated.
-- **In-place querying without data movement:** Query data where it resides, without the need to move or load it into a central data store.
-- **Extensible architecture for custom data sources:** Add support for custom data sources through a plugin architecture.
+- Query files and directories using familiar SQL-like syntax
+- Analyze data in place, without importing into a database
+- Extend functionality with plugins for various data sources
+- Run on Windows, Linux, and Docker (MacOS support planned)
+- Create custom data source plugins to fit your needs
+
+Musoq aims to make data exploration easier, whether you're analyzing log files, searching through directories, or extracting information from CSVs. It's a tool built to save time and reduce complexity in everyday data tasks.
+
+## 🎯 What Musoq Is (and Isn't)
+
+Musoq is designed to simplify data querying across various sources using SQL-like syntax. To help you decide if Musoq is right for your needs, here's what you should know:
+
+### 🚀 Musoq Shines At:
+- Quick, ad-hoc querying of diverse data sources (files, CSVs, archives, etc.)
+- Providing SQL-like syntax for non-database data
+- Simplifying complex queries with innovative syntax features
+- Handling small to medium-sized datasets efficiently
+
+### 🤔 Consider Alternatives If You Need:
+- Full SQL standard compliance (we prioritize user-friendly syntax over strict standards)
+- High-performance processing of large datasets
+- A mature, unchanging API
+
+### 🤝 Community:
+- Your feedback and contributions are welcome to shape the project's future
+
+If Musoq aligns with your needs, I'm excited to have you on board! If not, I appreciate your interest and welcome any suggestions for improvement.
 
 ## 🚀 Quick Start
 
