@@ -33,4 +33,9 @@ public interface ISchema
         // The default implementation does nothing and it is intended as most of the schemas won't require any additional dependencies.
         return Task.CompletedTask;
     }
+    
+    static virtual void LoadRequiredDependencies()
+    {
+        // The default implementation does nothing and it is intended as most of the schemas won't require any additional dependencies.
+    }
 }
