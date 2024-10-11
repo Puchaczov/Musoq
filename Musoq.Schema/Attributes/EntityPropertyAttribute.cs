@@ -2,6 +2,4 @@
 
 namespace Musoq.Schema.Attributes;
 
-public class EntityPropertyAttribute : Attribute
-{
-}
+public class EntityPropertyAttribute : Attribute;
