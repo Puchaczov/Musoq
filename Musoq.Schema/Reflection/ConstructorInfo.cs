@@ -22,7 +22,7 @@ public class ConstructorInfo
 
     public static ConstructorInfo Empty<T>()
     {
-        return new ConstructorInfo(null, typeof(T), false, Array.Empty<(string, Type)>());
+        return new ConstructorInfo(null, typeof(T), false, []);
     }
 }
 

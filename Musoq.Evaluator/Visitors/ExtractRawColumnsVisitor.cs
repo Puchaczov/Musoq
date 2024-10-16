@@ -424,4 +424,8 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     public void SetTheMostInnerIdentifierOfDotNode(IdentifierNode node)
     {
     }
+
+    public void SetOperatorLeftFinished()
+    {
+    }
 }

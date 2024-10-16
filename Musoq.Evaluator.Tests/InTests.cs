@@ -16,13 +16,12 @@ public class InTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("A", 100),
                     new BasicEntity("AB", 200),
                     new BasicEntity("ABC", 300),
                     new BasicEntity("ABCD", 400)
-                }
+                ]
             }
         };
 
@@ -43,13 +42,12 @@ public class InTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("A", 100),
                     new BasicEntity("AB", 200),
                     new BasicEntity("ABC", 300),
                     new BasicEntity("ABCD", 400)
-                }
+                ]
             }
         };
 
@@ -70,14 +68,13 @@ public class InTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("Poland", "Warsaw"),
                     new BasicEntity("Berlin", "Germany"),
                     new BasicEntity("Singapore", "Singapore"),
                     new BasicEntity("France", "Paris"),
-                    new BasicEntity("Monaco", "Monaco") 
-                }
+                    new BasicEntity("Monaco", "Monaco")
+                ]
             }
         };
 
@@ -99,14 +96,13 @@ public class InTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("Poland", "Warsaw"),
                     new BasicEntity("Berlin", "Germany"),
                     new BasicEntity("Singapore", "Singapore"),
                     new BasicEntity("France", "Paris"),
                     new BasicEntity("Monaco", "Monaco")
-                }
+                ]
             }
         };
 

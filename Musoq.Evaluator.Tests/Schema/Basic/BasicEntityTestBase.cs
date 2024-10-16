@@ -31,7 +31,7 @@ public class BasicEntityTestBase
             Guid.NewGuid().ToString(), 
             typeof(T) == typeof(UsedColumnsOrUsedWhereEntity) ? 
                 new UsedColumnsOrUsedWhereSchemaProvider<UsedColumnsOrUsedWhereEntity>(CreateMockObjectFor<UsedColumnsOrUsedWhereEntity>()) :
-                new BasicSchemaProvider<BasicEntity>(CreateMockObjectFor<BasicEntity>()));
+                new MockBasedSchemaProvider(CreateMockObjectFor<BasicEntity>()));
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine<T>(
@@ -95,5 +95,14 @@ public class BasicEntityTestBase
         mock.Setup(f => f[It.IsAny<string>()]).Returns(new List<T>());
             
         return mock.Object;
+    }
+
+    private class MockBasedSchemaProvider(IDictionary<string, IEnumerable<BasicEntity>> schemas)
+        : BasicSchemaProvider<BasicEntity>(schemas)
+    {
+        public override ISchema GetSchema(string schema)
+        {
+            return new GenericSchema<BasicEntity, BasicEntityTable>(Values[schema], BasicEntity.TestNameToIndexMap, BasicEntity.TestIndexToObjectAccessMap);
+        }
     }
 }

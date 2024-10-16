@@ -14,7 +14,7 @@ public abstract class IndexedList<TKey, TValue>
     protected IndexedList()
     {
         Indexes = new Dictionary<TKey, List<int>>();
-        Rows = new List<TValue>();
+        Rows = [];
     }
 
     public TValue this[int index] => Rows[index];
@@ -66,7 +66,7 @@ public abstract class IndexedList<TKey, TValue>
 
     protected void AddIndex(TKey index)
     {
-        Indexes.Add(index, new List<int>());
+        Indexes.Add(index, []);
     }
 
     protected bool HasIndex(TKey key)

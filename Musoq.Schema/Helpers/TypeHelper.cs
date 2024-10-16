@@ -155,7 +155,8 @@ public static class TypeHelper
             Func<TType, object> del;
             if (property.PropertyType.IsValueType)
             {
-                var dynMethod = new DynamicMethod($"Dynamic_Get_{typeof(TType).Name}_{property.Name}", typeof(object), new[] { typeof(TType) }, typeof(TType).Module);
+                var dynMethod = new DynamicMethod($"Dynamic_Get_{typeof(TType).Name}_{property.Name}", typeof(object),
+                    [typeof(TType)], typeof(TType).Module);
                 var ilGen = dynMethod.GetILGenerator();
                 ilGen.Emit(OpCodes.Ldarg_0);
                 ilGen.Emit(OpCodes.Callvirt, property.GetGetMethod());

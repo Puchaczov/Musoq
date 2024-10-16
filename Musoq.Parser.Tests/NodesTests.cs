@@ -9,9 +9,9 @@ public class NodesTests
     [TestMethod]
     public void WhenOrderByNode_ShouldReturnString()
     {
-        var node = new OrderByNode(new []{
+        var node = new OrderByNode([
             new FieldOrderedNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, null, Order.Ascending)
-        });
+        ]);
 
         Assert.AreEqual("order by col1", node.ToString());
     } 
@@ -19,9 +19,9 @@ public class NodesTests
     [TestMethod]
     public void WhenOrderByDescendingNode_ShouldReturnString()
     {
-        var node = new OrderByNode(new []{
+        var node = new OrderByNode([
             new FieldOrderedNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, null, Order.Descending)
-        });
+        ]);
 
         Assert.AreEqual("order by col1 desc", node.ToString());
     }

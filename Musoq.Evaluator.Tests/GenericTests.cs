@@ -169,4 +169,31 @@ public class GenericTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("test", table[0].Values[0]);
     }
+    
+    [TestMethod]
+    public void WhenToJsonGenericMethodCall_ShouldReturnCorrectJson()
+    {
+        var table = TestResultMethodTemplate("ToJson('test')");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("\"test\"", table[0].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenToJsonGenericMethodCallWithArray_ShouldReturnCorrectJson()
+    {
+        var table = TestResultMethodTemplate("ToJson(1)");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("1", table[0].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenToJsonGenericMethodCallWithObject_ShouldReturnCorrectJson()
+    {
+        var table = TestResultMethodTemplate("ToJson(ToTimeSpan('00:11:22'))");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("\"00:11:22\"", table[0].Values[0]);
+    }
 }

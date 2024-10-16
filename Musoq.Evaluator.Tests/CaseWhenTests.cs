@@ -16,10 +16,9 @@ public class CaseWhenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
-                }
+                ]
             }
         };
 
@@ -38,10 +37,9 @@ public class CaseWhenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
-                }
+                ]
             }
         };
 
@@ -60,10 +58,9 @@ public class CaseWhenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
-                }
+                ]
             }
         };
 
@@ -82,10 +79,9 @@ public class CaseWhenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
-                }
+                ]
             }
         };
 
@@ -104,10 +100,9 @@ public class CaseWhenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
-                }
+                ]
             }
         };
 
@@ -126,10 +121,9 @@ public class CaseWhenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("KRAKOW", "POLAND", 500)
-                }
+                ]
             }
         };
 
@@ -148,10 +142,9 @@ public class CaseWhenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
-                }
+                ]
             }
         };
 

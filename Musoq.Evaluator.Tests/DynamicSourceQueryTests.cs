@@ -139,7 +139,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         const string query = "select Complex.Array[0], Complex.Array[1] from #dynamic.all()";
         var sources = new List<dynamic>()
         {
-            CreateExpandoObject(CreateExpandoObject(new[] {1, 2}))
+            CreateExpandoObject(CreateExpandoObject([1, 2]))
         };
         var schema = new Dictionary<string, Type>()
         {
@@ -165,10 +165,9 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         const string query = "select Complex.Array[0].Id, Complex.Array[0].Name from #dynamic.all()";
         var sources = new List<dynamic>()
         {
-            CreateExpandoObject(CreateExpandoObject(new[]
-            {
-                CreateExpandoObject(1, "Test1"),
-            }))
+            CreateExpandoObject(CreateExpandoObject([
+                CreateExpandoObject(1, "Test1")
+            ]))
         };
         var schema = new Dictionary<string, Type>
         {
@@ -195,10 +194,9 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         const string query = "select Increment(Complex.Array[0].Id) from #dynamic.all()";
         var sources = new List<dynamic>()
         {
-            CreateExpandoObject(CreateExpandoObject(new[]
-            {
-                CreateExpandoObject(1),
-            }))
+            CreateExpandoObject(CreateExpandoObject([
+                CreateExpandoObject(1)
+            ]))
         };
         var schema = new Dictionary<string, Type>
         {
@@ -252,11 +250,10 @@ inner join #location.all() location on weather.Location = location.Name
             {"Name", typeof(string)}
         };
         
-        var vm = CreateAndRunVirtualMachine(query, new []
-        {
+        var vm = CreateAndRunVirtualMachine(query, [
             ("#weather", (IReadOnlyCollection<dynamic>)weatherSource, (IReadOnlyDictionary<string, Type>)weatherSchema),
             ("#location", locationSource, locationSchema)
-        });
+        ]);
         
         var table = vm.Run();
         

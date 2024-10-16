@@ -16,7 +16,7 @@ public class DynamicObjectResolver : IObjectResolver
         _indexToNameMap = indexToNameMap;
     }
 
-    public object[] Contexts => new object[] { _dynamicObject };
+    public object[] Contexts => [_dynamicObject];
 
     public object this[string name]
     {

@@ -9,7 +9,7 @@ public class GenericTests : LibraryBaseBaseTests
     [TestMethod]
     public void WhenMergeArraysWithSingleArgument_ShouldReturnArray()
     {
-        var result = Library.MergeArrays(Encoding.UTF8.GetBytes("test1"));
+        var result = Library.MergeArrays("test1"u8.ToArray());
 
         Assert.IsNotNull(result);
         Assert.AreEqual(5, result.Length);
@@ -19,7 +19,7 @@ public class GenericTests : LibraryBaseBaseTests
     [TestMethod]
     public void WhenMergeArraysWithTwoArguments_ShouldReturnArray()
     {
-        var result = Library.MergeArrays(Encoding.UTF8.GetBytes("test1"), Encoding.UTF8.GetBytes("test2"));
+        var result = Library.MergeArrays("test1"u8.ToArray(), "test2"u8.ToArray());
 
         Assert.IsNotNull(result);
         Assert.AreEqual(10, result.Length);
@@ -29,7 +29,7 @@ public class GenericTests : LibraryBaseBaseTests
     [TestMethod]
     public void WhenMergeArraysWithThreeArguments_ShouldReturnArray()
     {
-        var result = Library.MergeArrays(Encoding.UTF8.GetBytes("test1"), Encoding.UTF8.GetBytes("test2"), Encoding.UTF8.GetBytes("test3"));
+        var result = Library.MergeArrays("test1"u8.ToArray(), "test2"u8.ToArray(), "test3"u8.ToArray());
 
         Assert.IsNotNull(result);
         Assert.AreEqual(15, result.Length);

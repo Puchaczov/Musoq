@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -38,12 +37,12 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 {
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
-        
+
     private readonly ISchemaProvider _provider;
     private readonly IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> _positionalEnvironmentVariables;
-    private readonly List<AccessMethodNode> _refreshMethods = new();
-    private readonly List<object> _schemaFromArgs = new();
-    private readonly List<string> _generatedAliases = new();
+    private readonly List<AccessMethodNode> _refreshMethods = [];
+    private readonly List<object> _schemaFromArgs = [];
+    private readonly List<string> _generatedAliases = [];
 
     private readonly IDictionary<string, ISchemaTable> _explicitlyDefinedTables =
         new Dictionary<string, ISchemaTable>();
@@ -62,23 +61,26 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     private readonly IDictionary<SchemaFromNode, WhereNode> _usedWhereNodes =
         new Dictionary<SchemaFromNode, WhereNode>();
-        
+
     private readonly Dictionary<string, List<FieldNode>> _generatedColumns = [];
-        
+
     private readonly IDictionary<string, SchemaFromNode> _aliasToSchemaFromNodeMap =
         new Dictionary<string, SchemaFromNode>();
-        
-    private readonly IDictionary<string, string> _aliasMapToInMemoryTableMap = 
+
+    private readonly IDictionary<string, string> _aliasMapToInMemoryTableMap =
         new Dictionary<string, string>();
-        
-    private readonly IDictionary<string, ISchemaTable> _variableTables 
-        = new Dictionary<string, ISchemaTable>();
+
+    private readonly IDictionary<string, ISchemaTable> _variableTables =
+        new Dictionary<string, ISchemaTable>();
+
+    private readonly IDictionary<string, FieldNode[]> _cachedSetFields =
+        new Dictionary<string, FieldNode[]>();
 
     private readonly List<FieldNode> _groupByFields = [];
     private readonly List<Type> _nullSuspiciousTypes;
     private readonly IReadOnlyDictionary<string, string[]> _columns;
-        
-    private  readonly IDictionary<string,  (int SchemaFromKey, uint PositionalEnvironmentVariableKey)> _schemaFromInfo = 
+
+    private readonly IDictionary<string, (int SchemaFromKey, uint PositionalEnvironmentVariableKey)> _schemaFromInfo =
         new Dictionary<string, (int, uint)>();
 
     private QueryPart _queryPart;
@@ -444,7 +446,8 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var identifier = _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
-        if (!string.IsNullOrWhiteSpace(node.Alias) /* r.* */ || (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) /* * from #abc.cda() */)
+        if (!string.IsNullOrWhiteSpace(node.Alias) /* r.* */ ||
+            (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) /* * from #abc.cda() */)
         {
             ProcessSingleTable(node, tableSymbol, identifier);
         }
@@ -452,7 +455,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         {
             ProcessCompoundTable(tableSymbol);
         }
-            
+
         Nodes.Push(node);
     }
 
@@ -479,27 +482,29 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var parentNodeType = Nodes.Peek().ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            var typeHintingAttributes = 
+            var typeHintingAttributes =
                 parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
 
             foreach (var t in typeHintingAttributes)
             {
                 if (t.Name != node.Name) continue;
-                    
+
                 Nodes.Push(new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
                 return;
             }
-                
-            var defaultTypeHintingAttributes = 
+
+            var defaultTypeHintingAttributes =
                 parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
 
             if (defaultTypeHintingAttributes is not null)
             {
-                Nodes.Push(new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
+                Nodes.Push(new AccessObjectArrayNode(node.Token,
+                    new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
                 return;
             }
-                
-            var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? (_theMostInnerIdentifier.Name == node.Name ? typeof(object[]) : typeof(ExpandoObject[]));
+
+            var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ??
+                       (_theMostInnerIdentifier.Name == node.Name ? typeof(object[]) : typeof(ExpandoObject[]));
             Nodes.Push(
                 new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, type)));
         }
@@ -548,32 +553,34 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         {
             throw new ConstructionNotYetSupported($"Construction ${node.ToString()} is not yet supported.");
         }
-            
+
         var parentNode = Nodes.Peek();
         var parentNodeType = parentNode.ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            var typeHintingAttributes = 
+            var typeHintingAttributes =
                 parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
 
             foreach (var t in typeHintingAttributes)
             {
                 if (t.Name != node.Name) continue;
-                    
+
                 Nodes.Push(new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
                 return;
             }
-                
-            var defaultTypeHintingAttributes = 
+
+            var defaultTypeHintingAttributes =
                 parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
 
             if (defaultTypeHintingAttributes is not null)
             {
-                Nodes.Push(new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
+                Nodes.Push(new AccessObjectKeyNode(node.Token,
+                    new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
                 return;
             }
-                
-            var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? (_theMostInnerIdentifier.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
+
+            var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ??
+                       (_theMostInnerIdentifier.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
             Nodes.Push(
                 new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, type)));
         }
@@ -597,17 +604,17 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
                 return;
             }
-                
+
             var property = parentNodeType.GetProperty(node.Name);
-                    
+
             isIndexer = HasIndexer(property?.PropertyType);
-                
+
             if (!isIndexer)
             {
                 throw new ObjectDoesNotImplementIndexerException(
                     $"Object {node.Name} does not implement indexer.");
             }
-                
+
             Nodes.Push(new AccessObjectKeyNode(node.Token, property));
         }
     }
@@ -618,27 +625,29 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var parentNodeType = parentNode.ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            var typeHintingAttributes = 
+            var typeHintingAttributes =
                 parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
 
             foreach (var t in typeHintingAttributes)
             {
                 if (t.Name != node.Name) continue;
-                    
+
                 Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
                 return;
             }
-                
-            var defaultTypeHintingAttributes = 
+
+            var defaultTypeHintingAttributes =
                 parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
 
             if (defaultTypeHintingAttributes is not null)
             {
-                Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
+                Nodes.Push(new PropertyValueNode(node.Name,
+                    new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
                 return;
             }
-                
-            var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ?? (_theMostInnerIdentifier.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
+
+            var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ??
+                       (_theMostInnerIdentifier.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
             Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, type)));
         }
         else
@@ -651,7 +660,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     {
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
-            
+
         DotNode newNode;
         if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
@@ -767,22 +776,25 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
             throw new NotSupportedException(
                 $"Alias {_queryAlias} for node {node} is already used. Please use different alias.");
         }
-        
+
         _generatedAliases.Add(_queryAlias);
 
-        var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(), _queryAlias, node.QueryId, hasExternallyProvidedTypes);
- 
+        var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
+            _queryAlias, node.QueryId, hasExternallyProvidedTypes);
+
         var isDesc = _currentScope.Name == "Desc";
-        var table = !isDesc ? schema.GetTableByName(
-                node.Method, 
+        var table = !isDesc
+            ? schema.GetTableByName(
+                node.Method,
                 new RuntimeContext(
                     CancellationToken.None,
-                    _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
+                    _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
+                        .ToArray(),
                     _positionalEnvironmentVariables.TryGetValue(_positionalEnvironmentVariablesKey, out var variable)
                         ? variable
                         : new Dictionary<string, string>(),
                     (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes)
-                ), 
+                ),
                 _schemaFromArgs.ToArray())
             : new DynamicTable([]);
 
@@ -795,7 +807,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
         _currentScope[node.Id] = _queryAlias;
-            
+
         _aliasToSchemaFromNodeMap.Add(_queryAlias, aliasedSchemaFromNode);
 
         if (!_inferredColumns.ContainsKey(aliasedSchemaFromNode))
@@ -830,7 +842,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
             table = _variableTables[name];
             schema = new TransitionSchema(name, table);
         }
-        
+
         _aliasMapToInMemoryTableMap.Add(node.Alias, node.SourceAlias);
 
         var targetColumn = table.GetColumnByName(node.PropertyName);
@@ -841,22 +853,23 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         }
 
         ValidateBindablePropertyAsTable(table, targetColumn);
-        
+
         AddAssembly(targetColumn.ColumnType.Assembly);
         var nestedTable = TurnTypeIntoTable(targetColumn.ColumnType);
         _variableTables.TryAdd(node.SourceAlias, nestedTable);
         table = nestedTable;
 
         UpdateQueryAliasAndSymbolTable(node, schema, table);
-        
-        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, targetColumn.ColumnType));
+
+        Nodes.Push(
+            new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, targetColumn.ColumnType));
     }
 
     public void Visit(AccessMethodFromNode node)
     {
         ISchemaTable table;
         ISchema schema;
-        
+
         if (_aliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
             schema = _provider.GetSchema(schemaFrom.Schema);
@@ -870,7 +883,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
-        
+
         var accessMethodNode = (AccessMethodNode) Nodes.Pop();
         table = TurnTypeIntoTable(accessMethodNode.ReturnType);
         var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
@@ -878,8 +891,9 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         _currentScope[node.Id] = _queryAlias;
         _aliasMapToInMemoryTableMap.Add(_queryAlias, node.SourceAlias);
         _variableTables.TryAdd(node.SourceAlias, table);
-            
-        Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethodNode, accessMethodNode.ReturnType));
+
+        Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethodNode,
+            accessMethodNode.ReturnType));
     }
 
     public void Visit(AliasedFromNode node)
@@ -897,17 +911,17 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         _generatedAliases.Add(_queryAlias);
 
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(
-            schemaInfo.Schema, 
-            schemaInfo.Method, 
+            schemaInfo.Schema,
+            schemaInfo.Method,
             (ArgsListNode) Nodes.Pop(),
-            _queryAlias, 
-            node.InSourcePosition, 
+            _queryAlias,
+            node.InSourcePosition,
             hasExternallyProvidedTypes
         );
 
         var tableSymbol = new TableSymbol(
-            _queryAlias, 
-            schema, 
+            _queryAlias,
+            schema,
             schema.GetTableByName(
                 schemaInfo.Method,
                 new RuntimeContext(
@@ -919,12 +933,12 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
                     (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes)
                 ),
                 _schemaFromArgs.ToArray()
-            ) ?? table, 
+            ) ?? table,
             !string.IsNullOrEmpty(node.Alias)
         );
-            
+
         _schemaFromArgs.Clear();
-            
+
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
         _currentScope[node.Id] = _queryAlias;
 
@@ -970,9 +984,9 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         else
         {
             var scope = _currentScope;
-                
+
             while (scope != null && scope.Name != "CTE") scope = scope.Parent;
-                
+
             if (scope is null)
                 throw new NotSupportedException($"Table {node.VariableName} is not defined.");
 
@@ -983,7 +997,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias,
             new TableSymbol(_queryAlias, tableSchemaPair.Schema, tableSchemaPair.Table, node.Alias == _queryAlias));
         _currentScope[node.Id] = _queryAlias;
-            
+
         _aliasMapToInMemoryTableMap.Add(_queryAlias, node.VariableName);
 
         Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, _queryAlias));
@@ -1132,12 +1146,26 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     public void Visit(UnionNode node)
     {
+        if (node.Keys.Length == 0)
+        {
+            throw SetOperatorDoesNotHaveKeysException("Union");
+        }
+        
         var key = CreateSetOperatorPositionKey();
         _currentScope[MetaAttributes.SetOperatorName] = key;
         SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
 
         var right = Nodes.Pop();
         var left = Nodes.Pop();
+
+        if (right is QueryNode rightAsQueryNode)
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
+        }
+        else
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
+        }
 
         var rightMethodName = Methods.Pop();
         var leftMethodName = Methods.Pop();
@@ -1152,12 +1180,26 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     public void Visit(UnionAllNode node)
     {
+        if (node.Keys.Length == 0)
+        {
+            throw SetOperatorDoesNotHaveKeysException("Union All");
+        }
+        
         var key = CreateSetOperatorPositionKey();
         _currentScope[MetaAttributes.SetOperatorName] = key;
         SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
 
         var right = Nodes.Pop();
         var left = Nodes.Pop();
+
+        if (right is QueryNode rightAsQueryNode)
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
+        }
+        else
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
+        }
 
         var rightMethodName = Methods.Pop();
         var leftMethodName = Methods.Pop();
@@ -1173,12 +1215,26 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     public void Visit(ExceptNode node)
     {
+        if (node.Keys.Length == 0)
+        {
+            throw SetOperatorDoesNotHaveKeysException("Except");
+        }
+        
         var key = CreateSetOperatorPositionKey();
         _currentScope[MetaAttributes.SetOperatorName] = key;
         SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
 
         var right = Nodes.Pop();
         var left = Nodes.Pop();
+
+        if (right is QueryNode rightAsQueryNode)
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
+        }
+        else
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
+        }
 
         var rightMethodName = Methods.Pop();
         var leftMethodName = Methods.Pop();
@@ -1193,12 +1249,26 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     public void Visit(IntersectNode node)
     {
+        if (node.Keys.Length == 0)
+        {
+            throw SetOperatorDoesNotHaveKeysException("Intersect");
+        }
+        
         var key = CreateSetOperatorPositionKey();
         _currentScope[MetaAttributes.SetOperatorName] = key;
         SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
 
         var right = Nodes.Pop();
         var left = Nodes.Pop();
+
+        if (right is QueryNode rightAsQueryNode)
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
+        }
+        else
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
+        }
 
         var rightMethodName = Methods.Pop();
         var leftMethodName = Methods.Pop();
@@ -1230,7 +1300,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     public void Visit(CteExpressionNode node)
     {
         _variableTables.Clear();
-            
+
         var sets = new CteInnerExpressionNode[node.InnerExpression.Length];
 
         var set = Nodes.Pop();
@@ -1253,7 +1323,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var table = new VariableTable(collector.CollectedFieldNames);
         _currentScope.Parent.ScopeSymbolTable.AddSymbol(node.Name,
             new TableSymbol(node.Name, new TransitionSchema(node.Name, table), table, false));
-            
+
         _variableTables.Add(node.Name, table);
 
         Nodes.Push(new CteInnerExpressionNode(set, node.Name));
@@ -1321,8 +1391,8 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     private void AddAllColumnsFields(List<FieldNode> fields, AllColumnsNode allColumnsNode, ref int positionCounter)
     {
-        var identifier = !string.IsNullOrWhiteSpace(allColumnsNode.Alias) 
-            ? allColumnsNode.Alias 
+        var identifier = !string.IsNullOrWhiteSpace(allColumnsNode.Alias)
+            ? allColumnsNode.Alias
             : _identifier;
 
         if (_generatedColumns.TryGetValue(identifier, out var generatedColumns))
@@ -1338,7 +1408,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
             foreach (var compoundTableIdentifier in tableSymbol.CompoundTables)
             {
                 if (!_generatedColumns.TryGetValue(compoundTableIdentifier, out var compoundColumns)) continue;
-                    
+
                 foreach (var column in compoundColumns)
                 {
                     fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName));
@@ -1362,10 +1432,10 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
         var schemaTablePair = tableSymbol.GetTableByAlias(alias);
         var entityType = schemaTablePair.Table.Metadata.TableEntityType;
-            
+
         AddAssembly(entityType.Assembly);
         AddBaseTypeAssembly(entityType);
-            
+
         var canSkipInjectSource = false;
         if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), entityType,
                 out var method))
@@ -1634,6 +1704,11 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         _theMostInnerIdentifier = node;
     }
 
+    public void SetOperatorLeftFinished()
+    {
+        _variableTables.Clear();
+    }
+
     private Type FindGreatestCommonSubtype()
     {
         var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance).Select(StripNullable)
@@ -1666,8 +1741,13 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     {
         var key = _setKey++;
         return key.ToString().ToSetOperatorKey(key.ToString());
-    }        
-        
+    }
+
+    private string PreviousSetOperatorPositionKey()
+    {
+        return (_setKey - 2).ToString().ToSetOperatorKey((_setKey - 2).ToString());
+    }
+
     private void ProcessSingleTable(AllColumnsNode node, TableSymbol tableSymbol, string identifier)
     {
         var generatedColumnIdentifier = node.Alias ?? identifier;
@@ -1706,7 +1786,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     {
         if (!_generatedColumns.TryGetValue(identifier, out var generatedColumns))
         {
-            generatedColumns = new List<FieldNode>();
+            generatedColumns = [];
             _generatedColumns.Add(identifier, generatedColumns);
         }
         else
@@ -1764,6 +1844,54 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
         _currentScope[node.Id] = _queryAlias;
+    }
+
+    private Exception SetOperatorDoesNotHaveKeysException(string setOperator)
+    {
+        return new NotSupportedException(
+            $"{setOperator} set operator does not have keys.");
+    }
+
+    private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, QueryNode right, string cachedSetOperatorKey)
+    {
+        var leftFields = left.Select.Fields;
+        var rightFields = right.Select.Fields;
+
+        if (leftFields.Length != rightFields.Length)
+        {
+            throw new NotSupportedException("Both sides of the set operator must have the same number of fields.");
+        }
+
+        for (var i = 0; i < leftFields.Length; i++)
+        {
+            if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
+            {
+                throw new NotSupportedException($"Both sides of the set operator must have the same fields types. Affected expressions: {leftFields[i].ToString()}, {rightFields[i].ToString()}");
+            }
+        }
+
+        _cachedSetFields.TryAdd(cachedSetOperatorKey, rightFields);
+    }
+
+    private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, string cachedSetOperatorKey, string currentSetOperatorKey)
+    {
+        var leftFields = left.Select.Fields;
+        var rightFields = _cachedSetFields[cachedSetOperatorKey];
+
+        if (leftFields.Length != rightFields.Length)
+        {
+            throw new NotSupportedException("Both sides of the set operator must have the same number of fields.");
+        }
+
+        for (var i = 0; i < leftFields.Length; i++)
+        {
+            if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
+            {
+                throw new NotSupportedException($"Both sides of the set operator must have the same fields types. Affected expressions: {leftFields[i].ToString()}, {rightFields[i].ToString()}");
+            }
+        }
+
+        _cachedSetFields.TryAdd(currentSetOperatorKey, leftFields);
     }
 
     private static int[] CreateSetOperatorPositionIndexes(QueryNode node, string[] keys)
@@ -1954,7 +2082,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
                 var returnType = args.Args.Where((_, index) => index == i - shiftArgsWhenInjectSpecificSourcePresent).Single().ReturnType;
                 var elementType = returnType.GetElementType();
 
-                if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition())
+                if (returnType.IsGenericType && parameter.ParameterType.IsGenericType && returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition())
                 {
                     genericArgumentsDistinct.Add(returnType.GetGenericArguments()[0]);
                     continue;

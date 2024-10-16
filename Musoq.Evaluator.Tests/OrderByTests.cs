@@ -15,12 +15,11 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }
+                ]
             }
         };
 
@@ -40,12 +39,11 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }
+                ]
             }
         };
 
@@ -65,12 +63,11 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }
+                ]
             }
         };
 
@@ -90,12 +87,11 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }
+                ]
             }
         };
 
@@ -115,12 +111,11 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }
+                ]
             }
         };
 
@@ -140,13 +135,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10))
-                }
+                ]
             }
         };
 
@@ -167,13 +161,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10))
-                }
+                ]
             }
         };
 
@@ -193,13 +186,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10))
-                }
+                ]
             }
         };
 
@@ -219,13 +211,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10))
-                }
+                ]
             }
         };
 
@@ -250,13 +241,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10))
-                }
+                ]
             }
         };
 
@@ -281,13 +271,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10))
-                }
+                ]
             }
         };
 
@@ -308,13 +297,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10))
-                }
+                ]
             }
         };
 
@@ -336,14 +324,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -367,14 +354,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -398,14 +384,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -429,14 +414,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -460,14 +444,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -491,14 +474,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -522,14 +504,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -558,14 +539,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -589,14 +569,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -620,14 +599,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -651,14 +629,13 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -682,13 +659,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -711,13 +687,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -740,13 +715,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             
@@ -769,13 +743,12 @@ public class OrderByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
                     new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
-                }
+                ]
             }
         };
             

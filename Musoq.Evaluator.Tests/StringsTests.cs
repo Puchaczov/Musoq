@@ -16,10 +16,9 @@ public class StringsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("test")
-                }
+                ]
             }
         };
 
@@ -43,10 +42,9 @@ public class StringsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("test")
-                }
+                ]
             }
         };
 
@@ -70,10 +68,9 @@ public class StringsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("test")
-                }
+                ]
             }
         };
 
@@ -97,10 +94,9 @@ public class StringsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("test")
-                }
+                ]
             }
         };
 
@@ -124,10 +120,9 @@ public class StringsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("test")
-                }
+                ]
             }
         };
 
@@ -147,10 +142,9 @@ public class StringsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("test")
-                }
+                ]
             }
         };
 
@@ -170,10 +164,9 @@ public class StringsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("test")
-                }
+                ]
             }
         };
 
@@ -193,10 +186,9 @@ public class StringsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("test")
-                }
+                ]
             }
         };
         
@@ -247,10 +239,9 @@ public class StringsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("test")
-                }
+                ]
             }
         };
         

@@ -22,12 +22,12 @@ internal sealed class ExpandoObjectPropertyInfo : PropertyInfo
 
     public override object[] GetCustomAttributes(bool inherit)
     {
-        return Array.Empty<object>();
+        return [];
     }
 
     public override object[] GetCustomAttributes(Type attributeType, bool inherit)
     {
-        return Array.Empty<object>();
+        return [];
     }
 
     public override bool IsDefined(Type attributeType, bool inherit)
@@ -43,7 +43,7 @@ internal sealed class ExpandoObjectPropertyInfo : PropertyInfo
     
     public override MethodInfo[] GetAccessors(bool nonPublic)
     {
-        return Array.Empty<MethodInfo>();
+        return [];
     }
 
     public override MethodInfo GetGetMethod(bool nonPublic)
@@ -53,7 +53,7 @@ internal sealed class ExpandoObjectPropertyInfo : PropertyInfo
 
     public override ParameterInfo[] GetIndexParameters()
     {
-        return Array.Empty<ParameterInfo>();
+        return [];
     }
 
     public override MethodInfo GetSetMethod(bool nonPublic)

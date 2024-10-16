@@ -14,7 +14,8 @@ public class UsedColumnsOrUsedWhereTable : ISchemaTable
     {
     }
 
-    public ISchemaColumn[] Columns { get; } = {
+    public ISchemaColumn[] Columns { get; } =
+    [
         new SchemaColumn(nameof(UsedColumnsOrUsedWhereEntity.Name), 10,
             typeof(BasicEntity).GetProperty(nameof(UsedColumnsOrUsedWhereEntity.Name))!.PropertyType),
         new SchemaColumn(nameof(BasicEntity.City), 11,
@@ -25,7 +26,7 @@ public class UsedColumnsOrUsedWhereTable : ISchemaTable
             typeof(BasicEntity).GetProperty(nameof(UsedColumnsOrUsedWhereEntity.Population))!.PropertyType),
         new SchemaColumn(nameof(UsedColumnsOrUsedWhereEntity.Month), 14,
             typeof(BasicEntity).GetProperty(nameof(UsedColumnsOrUsedWhereEntity.Month))!.PropertyType)
-    };
+    ];
 
     public ISchemaColumn GetColumnByName(string name)
     {

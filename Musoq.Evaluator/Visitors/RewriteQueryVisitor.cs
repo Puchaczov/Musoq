@@ -951,7 +951,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         var query = (InternalQueryNode) Nodes.Pop();
 
-        var nodes = new Node[] {new CreateTransformationTableNode(query.From.Alias, Array.Empty<string>(), query.Select.Fields, false), query};
+        var nodes = new Node[] {new CreateTransformationTableNode(query.From.Alias, [], query.Select.Fields, false), query};
 
         Nodes.Push(new MultiStatementNode(nodes, null));
     }
