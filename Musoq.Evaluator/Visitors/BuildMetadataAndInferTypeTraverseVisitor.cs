@@ -778,6 +778,7 @@ public class BuildMetadataAndInferTypeTraverseVisitor : IQueryPartAwareExpressio
     private void TraverseSetOperator(SetOperatorNode node)
     {
         node.Left.Accept(this);
+        _visitor.SetOperatorLeftFinished();
         node.Right.Accept(this);
         node.Accept(_visitor);
         RestoreScope();

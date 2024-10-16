@@ -17,7 +17,7 @@ public abstract class SchemaBase : ISchema
     private readonly MethodsAggregator _aggregator;
 
     private IDictionary<string, Reflection.ConstructorInfo[]> Constructors { get; } = new Dictionary<string, Reflection.ConstructorInfo[]>();
-    private List<SchemaMethodInfo> ConstructorsMethods { get; } = new();
+    private List<SchemaMethodInfo> ConstructorsMethods { get; } = [];
     private IDictionary<string, object[]> AdditionalArguments { get; } = new Dictionary<string, object[]>();
 
     protected SchemaBase(string name, MethodsAggregator methodsAggregator)

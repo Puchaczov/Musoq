@@ -9,7 +9,7 @@ public abstract class BinaryNode : Node
 
     protected BinaryNode(Node left, Node right)
     {
-        _nodes = new[] {left, right};
+        _nodes = [left, right];
     }
 
     public Node Left => _nodes[0];

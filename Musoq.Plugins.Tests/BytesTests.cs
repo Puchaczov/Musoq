@@ -11,7 +11,7 @@ public class BytesTests : LibraryBaseBaseTests
     [TestMethod]
     public void GetBytesForString()
     {
-        AssertLoop(Encoding.UTF8.GetBytes("abc"), Library.GetBytes("abc"));
+        AssertLoop("abc"u8.ToArray(), Library.GetBytes("abc"));
         AssertLoop(BitConverter.GetBytes('a'), Library.GetBytes('a'));
         AssertLoop(BitConverter.GetBytes(5L), Library.GetBytes(5L));
         AssertLoop(BitConverter.GetBytes(true), Library.GetBytes(true));

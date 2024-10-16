@@ -306,7 +306,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KInnerJoin = @"(?<=[\s]{1,}|^)inner[\s]{1,}join(?=[\s]{1,}|$)";
 
         public static readonly string KOuterJoin =
-            @"(?<=[\s]{1,}|^)(left|right)[\s]{1,}(outer[\s]{1,}join)(?=[\s]{1,}|$)";
+            @"(?<=[\s]{1,}|^)(left|right)(?:\s+outer)?[\s]{1,}join(?=[\s]{1,}|$)";
 
         public static readonly string KCrossApply =
             @"(?<=[\s]{1,}|^)cross[\s]{1,}apply(?=[\s]{1,}|$)";

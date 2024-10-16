@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
@@ -12,6 +13,20 @@ namespace Musoq.Evaluator.Tests;
 public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void WhenMissingSchema_ShouldFail()
+    {
+        var query = "select Name from #B.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", []
+            }
+        };
+
+        Assert.ThrowsException<SchemaNotFoundException>(() => CreateAndRunVirtualMachine(query, sources));
+    }
+    
+    [TestMethod]
     public void LikeOperatorTest()
     {
         var query = "select Name from #A.Entities() where Name like '%AA%'";
@@ -19,13 +34,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("ABCAACBA"), 
                     new BasicEntity("AAeqwgQEW"), 
                     new BasicEntity("XXX"),
                     new BasicEntity("dadsqqAA")
-                }
+                ]
             }
         };
 
@@ -50,11 +64,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
                     new BasicEntity("dadsqqAA")
-                }
+                ]
             }
         };
 
@@ -78,11 +91,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
                     new BasicEntity("dadsqqAA")
-                }
+                ]
             }
         };
 
@@ -97,13 +109,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
                     new BasicEntity("david.jones@proseware.com"),
                     new BasicEntity("ma@hostname.com")
-                }
+                ]
             }
         };
 
@@ -128,13 +139,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
                     new BasicEntity("david.jones@proseware.com"),
                     new BasicEntity("ma@hostname.com")
-                }
+                ]
             }
         };
 
@@ -158,13 +168,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
                     new BasicEntity("david.jones@proseware.com"),
                     new BasicEntity("ma@hostname.com")
-                }
+                ]
             }
         };
 
@@ -188,13 +197,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
                     new BasicEntity("david.jones@proseware.com"),
                     new BasicEntity("ma@hostname.com")
-                }
+                ]
             }
         };
 
@@ -218,10 +226,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                }
+                "#A", [
+                    new BasicEntity("WARSAW", "POLAND", 500)
+                ]
             }
         };
 
@@ -237,10 +244,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                }
+                "#A", [
+                    new BasicEntity("WARSAW", "POLAND", 500)
+                ]
             }
         };
 
@@ -263,10 +269,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                }
+                "#A", [
+                    new BasicEntity("WARSAW", "POLAND", 500)
+                ]
             }
         };
 
@@ -289,10 +294,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                }
+                "#A", [
+                    new BasicEntity("WARSAW", "POLAND", 500)
+                ]
             }
         };
 
@@ -315,10 +319,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                }
+                "#A", [
+                    new BasicEntity("WARSAW", "POLAND", 500)
+                ]
             }
         };
 
@@ -341,13 +344,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 99),
                     new BasicEntity("KATOWICE", "POLAND", 101),
                     new BasicEntity("BERLIN", "GERMANY", 50)
-                }
+                ]
             }
         };
 
@@ -372,7 +374,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[] {new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")}
+                [new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")]
             }
         };
 
@@ -396,7 +398,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[] {new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")}
+                [new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")]
             }
         };
 
@@ -419,7 +421,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = "select 'abc' + 'cda' from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", new[] {new BasicEntity("ABCAACBA")}}
+            {"#A", [new BasicEntity("ABCAACBA")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -441,13 +443,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("ABC"),
                     new BasicEntity("XXX"),
                     new BasicEntity("CDA"),
                     new BasicEntity("DDABC")
-                }
+                ]
             }
         };
 
@@ -472,8 +473,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("001")
                     {
                         Name = "ABBA",
@@ -483,7 +483,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
                         Month = "JANUARY",
                         Population = 250
                     }
-                }
+                ]
             }
         };
 
@@ -506,8 +506,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("001")
                     {
                         Name = "ABBA",
@@ -517,7 +516,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
                         Month = "JANUARY",
                         Population = 250
                     }
-                }
+                ]
             }
         };
 
@@ -550,7 +549,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = "select 1, *, Name as Name2, ToString(Self) as SelfString from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", new[] {entity}}
+            {"#A", [entity]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -629,7 +628,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Self.Array[2] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}}
+            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -649,7 +648,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Self.Array from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", new[] {new BasicEntity("001")}}
+            {"#A", [new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -667,7 +666,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Self.Self.Array from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", new[] {new BasicEntity("001")}}
+            {"#A", [new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -685,7 +684,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Inc(Self.Array[2]) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}}
+            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -705,7 +704,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Name from #A.Entities() where Name = '001' or Name = '005'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", new[] {new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")}}
+            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -722,7 +721,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Name as 'x1' from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", new[] {new BasicEntity("001"), new BasicEntity("002")}}
+            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -741,11 +740,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
-                }
+                ]
             }
         };
 
@@ -767,15 +765,14 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("001"),
                     new BasicEntity("002"),
                     new BasicEntity("003"),
                     new BasicEntity("004"),
                     new BasicEntity("005"),
                     new BasicEntity("006")
-                }
+                ]
             }
         };
 
@@ -795,10 +792,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
-                    new BasicEntity("001"),
-                }
+                [
+                    new BasicEntity("001")
+                ]
             }
         };
 
@@ -817,11 +813,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
-                }
+                ]
             }
         };
 
@@ -841,11 +836,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
-                }
+                ]
             }
         };
 
@@ -863,11 +857,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
-                }
+                ]
             }
         };
 
@@ -891,11 +884,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
-                }
+                ]
             }
         };
 
@@ -912,7 +904,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             @"select Name as TestName, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", new BasicEntity[] { }}
+            {"#A", []}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -939,10 +931,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("ABBA", 200)
-                }
+                ]
             }
         };
 
@@ -965,10 +956,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity(DateTime.MinValue)
-                }
+                ]
             }
         };
 
@@ -989,15 +979,14 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("001"),
                     new BasicEntity("002"),
                     new BasicEntity("003"),
                     new BasicEntity("004"),
                     new BasicEntity("005"),
                     new BasicEntity("006")
-                }
+                ]
             }
         };
 
@@ -1021,10 +1010,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("xX")
-                }
+                ]
             }
         };
 
@@ -1050,10 +1038,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("xX")
-                }
+                ]
             }
         };
 
@@ -1090,10 +1077,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("xX")
-                }
+                ]
             }
         };
 
@@ -1113,10 +1099,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("xX")
-                }
+                ]
             }
         };
 
@@ -1138,11 +1123,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("A"),
                     new BasicEntity("B")
-                }
+                ]
             }
         };
 
@@ -1162,11 +1146,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("A"),
                     new BasicEntity("B")
-                }
+                ]
             }
         };
 
@@ -1184,10 +1167,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("A")
-                }
+                ]
             }
         };
 
@@ -1205,10 +1187,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("A")
-                }
+                ]
             }
         };
 
@@ -1226,10 +1207,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("3213213")
-                }
+                ]
             }
         };
 
@@ -1247,10 +1227,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("3213213")
-                }
+                ]
             }
         };
 
@@ -1268,10 +1247,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("3213213")
-                }
+                ]
             }
         };
 
@@ -1289,10 +1267,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("may", 2512m)
-                }
+                ]
             }
         };
 
@@ -1310,10 +1287,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("may", 100m) { Population = 10 }
-                }
+                ]
             }
         };
 
@@ -1331,11 +1307,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("may", 100m) { Population = 10 },
                     new BasicEntity("june", 200m) { Population = 20 }
-                }
+                ]
             }
         };
 
@@ -1354,11 +1329,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("may", 100m) { Population = 10 },
                     new BasicEntity("june", 200m) { Population = 20 }
-                }
+                ]
             }
         };
 
@@ -1382,11 +1356,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("may", 100m) { Population = 100 },
                     new BasicEntity("june", 200m) { Population = 200 }
-                }
+                ]
             }
         };
 
@@ -1413,11 +1386,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("may", 100m) { Population = 100 },
                     new BasicEntity("june", 200m) { Population = 200 }
-                }
+                ]
             }
         };
 
@@ -1449,11 +1421,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("may", 100m) { Population = 100 },
                     new BasicEntity("june", 200m) { Population = 200 }
-                }
+                ]
             }
         };
 
@@ -1476,10 +1447,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity("may", 100m) { Population = 100 },
-                }
+                "#A", [
+                    new BasicEntity("may", 100m) { Population = 100 }
+                ]
             }
         };
 
@@ -1498,10 +1468,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity("may", 100m) { Population = 100 },
-                }
+                "#A", [
+                    new BasicEntity("may", 100m) { Population = 100 }
+                ]
             }
         };
 
@@ -1520,10 +1489,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity("may", 100m) { Population = 100 },
-                }
+                "#A", [
+                    new BasicEntity("may", 100m) { Population = 100 }
+                ]
             }
         };
 
@@ -1542,10 +1510,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity("may", 100m) { Population = 100 },
-                }
+                "#A", [
+                    new BasicEntity("may", 100m) { Population = 100 }
+                ]
             }
         };
 

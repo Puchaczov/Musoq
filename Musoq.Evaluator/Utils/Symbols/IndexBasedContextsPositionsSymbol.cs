@@ -22,7 +22,7 @@ public class IndexBasedContextsPositionsSymbol : Symbol
         {
             var leftRight = line.Split(',');
                 
-            _contextsPositions.Add(i--, (leftRight[0].Split('|'), new[] { leftRight[1] }));
+            _contextsPositions.Add(i--, (leftRight[0].Split('|'), [leftRight[1]]));
         }
     }
 }

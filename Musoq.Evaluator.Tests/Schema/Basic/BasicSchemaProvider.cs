@@ -1,20 +1,19 @@
 ﻿using System.Collections.Generic;
+using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests.Schema.Basic;
 
-public class BasicSchemaProvider<T> : ISchemaProvider
+public class BasicSchemaProvider<T>(IDictionary<string, IEnumerable<T>> values) : ISchemaProvider
     where T : BasicEntity
 {
-    private readonly IDictionary<string, IEnumerable<T>> _values;
+    protected readonly IDictionary<string, IEnumerable<T>> Values = values;
 
-    public BasicSchemaProvider(IDictionary<string, IEnumerable<T>> values)
+    public virtual ISchema GetSchema(string schema)
     {
-        _values = values;
-    }
-
-    public ISchema GetSchema(string schema)
-    {
-        return new GenericSchema<BasicEntity, BasicEntityTable>(_values[schema], BasicEntity.TestNameToIndexMap, BasicEntity.TestIndexToObjectAccessMap);
+        if (Values.TryGetValue(schema, out var value) == false)
+            throw new SchemaNotFoundException();
+        
+        return new GenericSchema<BasicEntity, BasicEntityTable>(value, BasicEntity.TestNameToIndexMap, BasicEntity.TestIndexToObjectAccessMap);
     }
 }

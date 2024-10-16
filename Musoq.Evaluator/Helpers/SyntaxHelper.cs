@@ -165,12 +165,11 @@ public static class SyntaxHelper
             rankSpecifiers = rankSpecifiers.Add(
                 SyntaxFactory.ArrayRankSpecifier(
                     SyntaxFactory.Token(SyntaxKind.OpenBracketToken),
-                    new SeparatedSyntaxList<ExpressionSyntax>
-                    {
+                    [
                         SyntaxFactory.OmittedArraySizeExpression(
                             SyntaxFactory.Token(SyntaxKind.OmittedArraySizeExpressionToken)
                         )
-                    },
+                    ],
                     SyntaxFactory.Token(SyntaxKind.CloseBracketToken)
                 )
             );

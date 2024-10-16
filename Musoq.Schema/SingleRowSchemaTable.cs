@@ -14,9 +14,10 @@ public class SingleRowSchemaTable : ISchemaTable
         public Type ColumnType => typeof(string);
     }
 
-    public ISchemaColumn[] Columns => new ISchemaColumn[]{
+    public ISchemaColumn[] Columns =>
+    [
         new SimpleColumn()
-    };
+    ];
 
     public ISchemaColumn GetColumnByName(string name)
     {

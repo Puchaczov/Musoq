@@ -52,7 +52,7 @@ public class StringsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToHexTest()
     {
-        Assert.AreEqual("01,05,07,09,0B,0D,0F,11,19", Library.ToHex(new byte[] { 1, 5, 7, 9, 11, 13, 15, 17, 25 }, ","));
+        Assert.AreEqual("01,05,07,09,0B,0D,0F,11,19", Library.ToHex([1, 5, 7, 9, 11, 13, 15, 17, 25], ","));
     }
 
     [TestMethod]

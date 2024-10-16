@@ -60,9 +60,9 @@ public class Parser(Lexer lexer)
             case TokenType.Desc:
                 return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeDesc()), TokenType.Semicolon);
             case TokenType.Select:
-                return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeSetOps(0)), TokenType.Semicolon);
+                return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeSetOperators(0)), TokenType.Semicolon);
             case TokenType.From:
-                return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeSetOps(0)), TokenType.Semicolon);
+                return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeSetOperators(0)), TokenType.Semicolon);
             case TokenType.With:
                 return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeCteExpression()), TokenType.Semicolon);
             case TokenType.Table:
@@ -165,7 +165,7 @@ public class Parser(Lexer lexer)
             
         Consume(TokenType.As);
         Consume(TokenType.LeftParenthesis);
-        var innerSets = ComposeSetOps(0);
+        var innerSets = ComposeSetOperators(0);
         expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
         Consume(TokenType.RightParenthesis);
 
@@ -183,17 +183,17 @@ public class Parser(Lexer lexer)
             Consume(TokenType.As);
 
             Consume(TokenType.LeftParenthesis);
-            innerSets = ComposeSetOps(0);
+            innerSets = ComposeSetOperators(0);
             Consume(TokenType.RightParenthesis);
             expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
         }
 
-        var outerSets = ComposeSetOps(0);
+        var outerSets = ComposeSetOperators(0);
 
         return new CteExpressionNode(expressions.ToArray(), outerSets);
     }
 
-    private Node ComposeSetOps(int nestingLevel)
+    private Node ComposeSetOperators(int nestingLevel)
     {
         var isSet = false;
         var query = ComposeQuery();
@@ -207,7 +207,7 @@ public class Parser(Lexer lexer)
 
             var keys = ComposeSetOperatorKeys();
 
-            var nextSet = ComposeSetOps(nestingLevel + 1);
+            var nextSet = ComposeSetOperators(nestingLevel + 1);
             var isQuery = nextSet is QueryNode;
             node = setOperatorType switch
             {
@@ -231,6 +231,13 @@ public class Parser(Lexer lexer)
         if (Current.TokenType != TokenType.LeftParenthesis) return keys.ToArray();
 
         Consume(TokenType.LeftParenthesis);
+        
+        if (Current.TokenType == TokenType.RightParenthesis)
+        {
+            Consume(TokenType.RightParenthesis);
+            return keys.ToArray();
+        }
+        
         var value = Current.Value;
         Consume(Current.TokenType);
         if (Current.TokenType == TokenType.Dot)
@@ -527,6 +534,8 @@ public class Parser(Lexer lexer)
             case TokenType.Comma:
                 return Order.Ascending;
             case TokenType.EndOfFile:
+                return Order.Ascending;
+            case TokenType.Semicolon:
                 return Order.Ascending;
             case TokenType.RightParenthesis:
                 return Order.Ascending;

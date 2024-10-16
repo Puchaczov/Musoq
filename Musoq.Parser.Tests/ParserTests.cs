@@ -129,4 +129,26 @@ public class ParserTests
             
         Assert.AreEqual("select 1 form #some.", exc.QueryPart);
     }
+    
+    [TestMethod]
+    public void SemicolonAtTheEnd_ShouldPass()
+    {
+        var query = "select 1 from #some.a() order by x;";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        parser.ComposeAll();
+    }
+    
+    [TestMethod]
+    public void WhenCaseWhenWithMissingEnd_ShouldFail()
+    {
+        var query = "select case when 1 = 1 then 1 else 0 from #some.a()";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
+    }
 }

@@ -122,7 +122,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         const string query = "select Complex.Array[0], Complex.Array[1] from #dynamic.all()";
         var sources = new List<dynamic>
         {
-            CreateExpandoObject(new ComplexArrayOfShortsType(new short[] {1, 2}))
+            CreateExpandoObject(new ComplexArrayOfShortsType([1, 2]))
         };
         var schema = new Dictionary<string, Type>()
         {
@@ -148,10 +148,9 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         const string query = "select Complex.Array[0].Id, Complex.Array[0].Name from #dynamic.all()";
         var sources = new List<dynamic>()
         {
-            CreateExpandoObject(new ComplexArrayOfComplexTypeType(new[]
-            {
-                new ComplexType(1, "Test1"),
-            }))
+            CreateExpandoObject(new ComplexArrayOfComplexTypeType([
+                new ComplexType(1, "Test1")
+            ]))
         };
         var schema = new Dictionary<string, Type>
         {
@@ -178,10 +177,9 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         const string query = "select Increment(Complex.Array[0].Id) from #dynamic.all()";
         var sources = new List<dynamic>()
         {
-            CreateExpandoObject(new ComplexArrayOfComplexTypeType(new[]
-            {
-                new ComplexType(1, "test1"),
-            }))
+            CreateExpandoObject(new ComplexArrayOfComplexTypeType([
+                new ComplexType(1, "test1")
+            ]))
         };
         var schema = new Dictionary<string, Type>
         {

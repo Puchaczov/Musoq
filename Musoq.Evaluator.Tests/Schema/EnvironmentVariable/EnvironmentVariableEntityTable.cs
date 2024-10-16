@@ -6,12 +6,13 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 
 public class EnvironmentVariableEntityTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns { get; } = {
+    public ISchemaColumn[] Columns { get; } =
+    [
         new SchemaColumn(nameof(EnvironmentVariableEntity.Key), 0,
             typeof(EnvironmentVariableEntity).GetProperty(nameof(EnvironmentVariableEntity.Key))!.PropertyType),
         new SchemaColumn(nameof(EnvironmentVariableEntity.Value), 1,
-            typeof(EnvironmentVariableEntity).GetProperty(nameof(EnvironmentVariableEntity.Value))!.PropertyType),
-    };
+            typeof(EnvironmentVariableEntity).GetProperty(nameof(EnvironmentVariableEntity.Value))!.PropertyType)
+    ];
 
     public ISchemaColumn GetColumnByName(string name)
     {

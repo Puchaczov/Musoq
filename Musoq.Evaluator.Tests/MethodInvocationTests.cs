@@ -15,14 +15,13 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -44,14 +43,13 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -73,14 +71,13 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -102,14 +99,13 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -131,14 +127,13 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -160,14 +155,13 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -189,14 +183,13 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 

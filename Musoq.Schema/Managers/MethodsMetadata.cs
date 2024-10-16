@@ -18,15 +18,15 @@ public class MethodsMetadata
     {
         TypeCompatibilityTable = new Dictionary<Type, Type[]>
         {
-            {typeof(bool), new[] {typeof(bool)}},
-            {typeof(short), new[] {typeof(short), typeof(bool)}},
-            {typeof(int), new[] {typeof(int), typeof(short), typeof(bool)}},
-            {typeof(long), new[] {typeof(long), typeof(int), typeof(short), typeof(bool)}},
-            {typeof(DateTimeOffset), new[] {typeof(DateTimeOffset), typeof(TimeSpan)}},
-            {typeof(DateTime), new[] {typeof(DateTime), typeof(TimeSpan)}},
-            {typeof(string), new[] {typeof(string)}},
-            {typeof(decimal), new[] {typeof(decimal)}},
-            {typeof(TimeSpan), new[]{typeof(TimeSpan)}}
+            {typeof(bool), [typeof(bool)]},
+            {typeof(short), [typeof(short), typeof(bool)]},
+            {typeof(int), [typeof(int), typeof(short), typeof(bool)]},
+            {typeof(long), [typeof(long), typeof(int), typeof(short), typeof(bool)]},
+            {typeof(DateTimeOffset), [typeof(DateTimeOffset), typeof(TimeSpan)]},
+            {typeof(DateTime), [typeof(DateTime), typeof(TimeSpan)]},
+            {typeof(string), [typeof(string)]},
+            {typeof(decimal), [typeof(decimal)]},
+            {typeof(TimeSpan), [typeof(TimeSpan)]}
         };
     }
 
@@ -306,7 +306,7 @@ public class MethodsMetadata
         if (_methods.TryGetValue(name, out var method))
             method.Add(methodInfo);
         else
-            _methods.Add(name, new List<MethodInfo> {methodInfo});
+            _methods.Add(name, [methodInfo]);
     }
 
     private bool CanBeAssignedFromGeneric(Type paramType, Type arrayType)

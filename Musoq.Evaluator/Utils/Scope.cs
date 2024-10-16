@@ -9,7 +9,7 @@ public class Scope
     private static int _scopeId;
 
     private readonly Dictionary<string, string> _attributes = new();
-    private readonly List<Scope> _scopes = new();
+    private readonly List<Scope> _scopes = [];
 
     public Scope(Scope parent, int selfIndex, string name = "")
     {

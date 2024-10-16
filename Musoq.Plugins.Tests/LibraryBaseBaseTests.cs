@@ -17,8 +17,8 @@ public class LibraryBaseBaseTests
     public void Initialize()
     {
         Library = CreateLibrary();
-        _root = new Group(null, Array.Empty<string>(), Array.Empty<object>());
-        Group = new Group(_root, Array.Empty<string>(), Array.Empty<object>());
+        _root = new Group(null, [], []);
+        Group = new Group(_root, [], []);
 
         Culture.ApplyWithDefaultCulture();
     }

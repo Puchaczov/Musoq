@@ -17,12 +17,11 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity{NullableValue = 1},
                     new BasicEntity{NullableValue = null},
                     new BasicEntity{NullableValue = 2}
-                }
+                ]
             }
         };
 
@@ -43,11 +42,10 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity{NullableValue = null},
                     new BasicEntity{NullableValue = 125}
-                }
+                ]
             }
         };
             
@@ -68,12 +66,11 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity{ NullableValue = 1 },
                     new BasicEntity{ NullableValue = null },
                     new BasicEntity{ NullableValue = 2 }
-                }
+                ]
             }
         };
 
@@ -92,8 +89,7 @@ public class NullabilityTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -103,7 +99,7 @@ public class NullabilityTests : BasicEntityTestBase
                     new BasicEntity("ABBA"),
                     new BasicEntity(null),
                     new BasicEntity(null)
-                }
+                ]
             }
         };
 
@@ -130,16 +126,15 @@ public class NullabilityTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("POLAND", "WARSAW"),
                     new BasicEntity("POLAND", null),
                     new BasicEntity("UK", "LONDON"),
                     new BasicEntity("POLAND", null),
                     new BasicEntity("UK", "MANCHESTER"),
                     new BasicEntity("ANGOLA", "LLL"),
-                    new BasicEntity("POLAND", "WARSAW"),
-                }
+                    new BasicEntity("POLAND", "WARSAW")
+                ]
             }
         };
 
@@ -179,11 +174,10 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("001"), new BasicEntity(null), new BasicEntity("003"), new BasicEntity(null),
                     new BasicEntity("005"), new BasicEntity("006")
-                }
+                ]
             }
         };
 
@@ -206,10 +200,9 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("Poland", "Gdansk"), new BasicEntity(null, "Warsaw"), new BasicEntity("France", "Paris"), new BasicEntity(null, "Bratislava")
-                }
+                ]
             }
         };
 
@@ -231,10 +224,9 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("ABC", 100), new BasicEntity("CBA", 200), new BasicEntity("aaa")
-                }
+                ]
             }
         };
 
@@ -257,12 +249,11 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("ABC", 100), 
                     new BasicEntity("CBA", 200), 
                     new BasicEntity("aaa")
-                }
+                ]
             }
         };
 
@@ -281,14 +272,13 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
                     new BasicEntity(null, null)
-                }
+                ]
             }
         };
 
@@ -316,14 +306,13 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
                     new BasicEntity(null, null)
-                }
+                ]
             }
         };
 
@@ -351,14 +340,13 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
                     new BasicEntity(null, null)
-                }
+                ]
             }
         };
 
@@ -386,14 +374,13 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
                     new BasicEntity(null, null)
-                }
+                ]
             }
         };
 
@@ -415,14 +402,13 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
                     new BasicEntity(null, null)
-                }
+                ]
             }
         };
 
@@ -444,14 +430,13 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
                     new BasicEntity(null, null)
-                }
+                ]
             }
         };
 
@@ -473,12 +458,11 @@ public class NullabilityTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity{ NullableValue = 1 },
                     new BasicEntity{ NullableValue = null },
                     new BasicEntity{ NullableValue = 2 }
-                }
+                ]
             }
         };
 

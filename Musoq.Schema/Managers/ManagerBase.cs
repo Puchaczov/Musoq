@@ -11,7 +11,7 @@ public abstract class ManagerBase<TReflectedType>
 
     protected ManagerBase()
     {
-        Parts = new List<TReflectedType>();
+        Parts = [];
     }
 
     protected bool TryAddLibraryParts(object library)

@@ -16,12 +16,11 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }
+                ]
             }
         };
 
@@ -46,11 +45,10 @@ public class GroupByTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity("jan", Convert.ToDecimal(400)), new BasicEntity("jan", Convert.ToDecimal(300)),
                     new BasicEntity("jan", Convert.ToDecimal(-200))
-                }
+                ]
             }
         };
 
@@ -70,8 +68,7 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -79,7 +76,7 @@ public class GroupByTests : BasicEntityTestBase
                     new BasicEntity("BABBA"),
                     new BasicEntity("CECCA"),
                     new BasicEntity("ABBA")
-                }
+                ]
             }
         };
 
@@ -107,8 +104,7 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -116,7 +112,7 @@ public class GroupByTests : BasicEntityTestBase
                     new BasicEntity("BABBA"),
                     new BasicEntity("CECCA"),
                     new BasicEntity("ABBA")
-                }
+                ]
             }
         };
 
@@ -152,8 +148,7 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -161,7 +156,7 @@ public class GroupByTests : BasicEntityTestBase
                     new BasicEntity("BABBA"),
                     new BasicEntity("CECCA"),
                     new BasicEntity("ABBA")
-                }
+                ]
             }
         };
 
@@ -186,8 +181,7 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -195,7 +189,7 @@ public class GroupByTests : BasicEntityTestBase
                     new BasicEntity("BABBA"),
                     new BasicEntity("CECCA"),
                     new BasicEntity("ABBA")
-                }
+                ]
             }
         };
 
@@ -222,8 +216,7 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -231,7 +224,7 @@ public class GroupByTests : BasicEntityTestBase
                     new BasicEntity("BABBA"),
                     new BasicEntity("CECCA"),
                     new BasicEntity("ABBA")
-                }
+                ]
             }
         };
 
@@ -256,15 +249,14 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("ABBA", 200),
                     new BasicEntity("ABBA", 500),
                     new BasicEntity("BABBA", 100),
                     new BasicEntity("ABBA", 10),
                     new BasicEntity("BABBA", 100),
                     new BasicEntity("CECCA", 1000)
-                }
+                ]
             }
         };
 
@@ -293,15 +285,14 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("POLAND", "WARSAW"),
                     new BasicEntity("POLAND", "CZESTOCHOWA"),
                     new BasicEntity("UK", "LONDON"),
                     new BasicEntity("POLAND", "CZESTOCHOWA"),
                     new BasicEntity("UK", "MANCHESTER"),
                     new BasicEntity("ANGOLA", "LLL")
-                }
+                ]
             }
         };
 
@@ -349,15 +340,14 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("AA:1"),
                     new BasicEntity("AA:2"),
                     new BasicEntity("AA:3"),
                     new BasicEntity("BB:1"),
                     new BasicEntity("BB:2"),
                     new BasicEntity("CC:1")
-                }
+                ]
             }
         };
 
@@ -390,15 +380,14 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
                     new BasicEntity("CECCA")
-                }
+                ]
             }
         };
 
@@ -435,12 +424,11 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW:TARGOWEK", "POLAND", 500),
                     new BasicEntity("WARSAW:URSYNOW", "POLAND", 500),
                     new BasicEntity("KATOWICE:ZAWODZIE", "POLAND", 250)
-                }
+                ]
             }
         };
 
@@ -477,14 +465,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -537,14 +524,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -574,14 +560,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -615,14 +600,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -665,14 +649,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -703,14 +686,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -734,14 +716,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -764,14 +745,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -816,14 +796,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -850,14 +829,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350)
-                }
+                ]
             }
         };
 
@@ -880,12 +858,11 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }
+                ]
             }
         };
 
@@ -903,12 +880,11 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
-                }
+                ]
             }
         };
 
@@ -926,13 +902,12 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
                     new BasicEntity("cracow", "feb", Convert.ToDecimal(100))
-                }
+                ]
             }
         };
 
@@ -956,14 +931,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
                     new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
-                }
+                    new BasicEntity("cracow", "march", Convert.ToDecimal(100))
+                ]
             }
         };
 
@@ -983,14 +957,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
                     new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
-                }
+                    new BasicEntity("cracow", "march", Convert.ToDecimal(100))
+                ]
             }
         };
 
@@ -1010,14 +983,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
                     new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
-                }
+                    new BasicEntity("cracow", "march", Convert.ToDecimal(100))
+                ]
             }
         };
 
@@ -1049,14 +1021,13 @@ public class GroupByTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
                     new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("cracow", "march", Convert.ToDecimal(100)),
-                }
+                    new BasicEntity("cracow", "march", Convert.ToDecimal(100))
+                ]
             }
         };
 
@@ -1096,31 +1067,28 @@ group by countries.GetCountry()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Germany"},
-                }
+                    new BasicEntity {Country = "Germany"}
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity {Country = "Poland", City = "Krakow"},
                     new BasicEntity {Country = "Poland", City = "Wroclaw"},
                     new BasicEntity {Country = "Poland", City = "Warszawa"},
                     new BasicEntity {Country = "Poland", City = "Gdansk"},
                     new BasicEntity {Country = "Germany", City = "Berlin"}
-                }
+                ]
             },
             {
-                "#C", new[]
-                {
+                "#C", [
                     new BasicEntity {City = "Krakow", Population = 400},
                     new BasicEntity {City = "Wroclaw", Population = 500},
                     new BasicEntity {City = "Warszawa", Population = 1000},
                     new BasicEntity {City = "Gdansk", Population = 200},
                     new BasicEntity {City = "Berlin", Population = 400}
-                }
+                ]
             }
         };
 
@@ -1148,17 +1116,15 @@ group by a.Country";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity {Country = "Poland"},
-                }
+                "#A", [
+                    new BasicEntity {Country = "Poland"}
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity {City = "Warsaw", Country = "Poland"},
-                    new BasicEntity {City = "Gdansk", Country = "Poland"},
-                }
+                    new BasicEntity {City = "Gdansk", Country = "Poland"}
+                ]
             }
         };
             
@@ -1185,17 +1151,15 @@ group by a.Country";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
-                    new BasicEntity {Country = "Poland"},
-                }
+                "#A", [
+                    new BasicEntity {Country = "Poland"}
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity {City = "Warsaw", Country = "Poland", Population = 200},
-                    new BasicEntity {City = "Gdansk", Country = "Poland", Population = 300},
-                }
+                    new BasicEntity {City = "Gdansk", Country = "Poland", Population = 300}
+                ]
             }
         };
             
@@ -1221,11 +1185,10 @@ group by a.Country";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Brazil"}
-                }
+                ]
             }
         };
             
@@ -1254,11 +1217,10 @@ group by a.Country";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Brazil"}
-                }
+                ]
             }
         };
             

@@ -15,11 +15,10 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Brazil"}
-                }
+                ]
             }
         };
         
@@ -53,11 +52,10 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"}
-                }
+                ]
             }
         };
         
@@ -81,12 +79,11 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"},
                     new BasicEntity {Country = "Poland"}
-                }
+                ]
             }
         };
         
@@ -111,12 +108,11 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"},
                     new BasicEntity {Country = "Poland"}
-                }
+                ]
             }
         };
         
@@ -152,12 +148,11 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"},
                     new BasicEntity {Country = "Poland"}
-                }
+                ]
             }
         };
         
@@ -193,12 +188,11 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"},
                     new BasicEntity {Country = "Poland"}
-                }
+                ]
             }
         };
         
