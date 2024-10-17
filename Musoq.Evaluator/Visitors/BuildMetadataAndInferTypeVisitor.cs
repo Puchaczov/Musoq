@@ -82,6 +82,8 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     private readonly IDictionary<string, (int SchemaFromKey, uint PositionalEnvironmentVariableKey)> _schemaFromInfo =
         new Dictionary<string, (int, uint)>();
+    
+    private int _usedSchemasQuantity;
 
     private QueryPart _queryPart;
 
@@ -773,8 +775,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         if (_variableTables.ContainsKey(_queryAlias))
         {
-            throw new NotSupportedException(
-                $"Alias {_queryAlias} for node {node} is already used. Please use different alias.");
+            throw new AliasAlreadyUsedException(node, _queryAlias);
         }
 
         _generatedAliases.Add(_queryAlias);
@@ -817,12 +818,14 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
             _usedColumns.Add(aliasedSchemaFromNode, []);
 
         _usedWhereNodes.TryAdd(aliasedSchemaFromNode, AllTrueWhereNode);
+        _usedSchemasQuantity += 1;
 
         Nodes.Push(aliasedSchemaFromNode);
     }
 
     public void Visit(SchemaMethodFromNode node)
     {
+        _usedSchemasQuantity += 1;
         Nodes.Push(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
     }
 
@@ -949,6 +952,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
             _usedColumns.Add(aliasedSchemaFromNode, []);
 
         _usedWhereNodes.TryAdd(aliasedSchemaFromNode, AllTrueWhereNode);
+        _usedSchemasQuantity += 1;
 
         Nodes.Push(aliasedSchemaFromNode);
     }
@@ -988,7 +992,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
             while (scope != null && scope.Name != "CTE") scope = scope.Parent;
 
             if (scope is null)
-                throw new NotSupportedException($"Table {node.VariableName} is not defined.");
+                throw new TableIsNotDefinedException(node.VariableName);
 
             tableSymbol = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.VariableName);
         }
@@ -999,6 +1003,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         _currentScope[node.Id] = _queryAlias;
 
         _aliasMapToInMemoryTableMap.Add(_queryAlias, node.VariableName);
+        _usedSchemasQuantity += 1;
 
         Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, _queryAlias));
     }
@@ -1087,7 +1092,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         if (from is null)
         {
-            throw new NotSupportedException("From node is null.");
+            throw new FromNodeIsNull();
         }
 
         if (groupBy == null && _refreshMethods.Count > 0)
@@ -1109,6 +1114,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         _aliasToSchemaFromNodeMap.Clear();
         _schemaFromInfo.Clear();
         _aliasMapToInMemoryTableMap.Clear();
+        _usedSchemasQuantity = 0;
     }
 
     public void Visit(JoinInMemoryWithSourceTableFromNode node)
@@ -1128,7 +1134,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     public void Visit(InternalQueryNode node)
     {
-        throw new NotSupportedException();
+        throw new NotSupportedException("Internal Query Node is not supported here");
     }
 
     public void Visit(RootNode node)
@@ -1417,16 +1423,17 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         }
     }
 
-    private void VisitAccessMethod(
-        AccessMethodNode node,
-        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
+    private void VisitAccessMethod(AccessMethodNode node, Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
     {
         if (Nodes.Pop() is not ArgsListNode args)
-            throw new NotSupportedException($"Cannot resolve method {node.Name}. Arguments are null.");
+            throw CannotResolveMethodException.CreateForNullArguments(node.Name);
 
         var groupArgs = new List<Type> {typeof(string)};
         groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
 
+        if (_usedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
+            throw new AliasMissingException(node);
+        
         var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
 
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
@@ -1446,11 +1453,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
                 if (!schemaTablePair.Schema.TryResolveRawMethod(node.Name,
                         args.Args.Select(f => f.ReturnType).ToArray(), out method))
                 {
-                    var types = args.Args.Length > 0
-                        ? args.Args.Select(f => f.ReturnType.ToString()).Aggregate((a, b) => a + ", " + b)
-                        : string.Empty;
-
-                    throw new UnresolvableMethodException($"{node.Name}({types}) cannot be resolved.");
+                    throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.Name, args.Args);
                 }
 
                 canSkipInjectSource = true;
@@ -1491,11 +1494,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
                     entityType,
                     out var setMethod))
             {
-                var names = argTypes.Length == 0
-                    ? string.Empty
-                    : argTypes.Select(arg => arg.Name).Aggregate((a, b) => a + ", " + b);
-
-                throw new NotSupportedException($"Cannot resolve method {setMethodName} with parameters {names}");
+                throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(setMethodName, newSetArgs.ToArray());
             }
 
             if (setMethod.IsGenericMethodDefinition)
@@ -1848,8 +1847,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     private Exception SetOperatorDoesNotHaveKeysException(string setOperator)
     {
-        return new NotSupportedException(
-            $"{setOperator} set operator does not have keys.");
+        return new SetOperatorMustHaveKeyColumnsException(setOperator);
     }
 
     private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, QueryNode right, string cachedSetOperatorKey)
@@ -1859,14 +1857,14 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         if (leftFields.Length != rightFields.Length)
         {
-            throw new NotSupportedException("Both sides of the set operator must have the same number of fields.");
+            throw new SetOperatorMustHaveSameQuantityOfColumnsException();
         }
 
         for (var i = 0; i < leftFields.Length; i++)
         {
             if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
             {
-                throw new NotSupportedException($"Both sides of the set operator must have the same fields types. Affected expressions: {leftFields[i].ToString()}, {rightFields[i].ToString()}");
+                throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
             }
         }
 
@@ -1880,14 +1878,14 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         if (leftFields.Length != rightFields.Length)
         {
-            throw new NotSupportedException("Both sides of the set operator must have the same number of fields.");
+            throw new SetOperatorMustHaveSameQuantityOfColumnsException();
         }
 
         for (var i = 0; i < leftFields.Length; i++)
         {
             if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
             {
-                throw new NotSupportedException($"Both sides of the set operator must have the same fields types. Affected expressions: {leftFields[i].ToString()}, {rightFields[i].ToString()}");
+                throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
             }
         }
 
@@ -2143,7 +2141,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         }
         else
         {
-            throw new NotSupportedException("Column must be an array or implement IEnumerable<T>.");
+            throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
         }
 
         if (nestedType == null)
@@ -2199,7 +2197,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         if (!isValid)
         {
-            throw new NotSupportedException("Column must be marked as BindablePropertyAsTable.");
+            throw new ColumnMustBeMarkedAsBindablePropertyAsTableException();
         }
     }
         

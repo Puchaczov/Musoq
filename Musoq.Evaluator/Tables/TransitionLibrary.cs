@@ -2,6 +2,4 @@
 
 namespace Musoq.Evaluator.Tables;
 
-public class TransitionLibrary : LibraryBase
-{
-}
+public class TransitionLibrary : LibraryBase;

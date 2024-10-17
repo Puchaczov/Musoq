@@ -2,11 +2,4 @@
 
 namespace Musoq.Evaluator.Exceptions;
 
-public class UnresolvableMethodException : Exception
-{
-    public UnresolvableMethodException(string message)
-        : base(message)
-    {
-
-    }
-}
+public class UnresolvableMethodException(string message) : Exception(message);

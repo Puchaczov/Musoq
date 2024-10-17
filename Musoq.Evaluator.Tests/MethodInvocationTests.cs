@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
@@ -201,5 +202,23 @@ public class MethodInvocationTests : BasicEntityTestBase
         Assert.AreEqual("WARSAW", table[0].Values[0]);
         Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
         Assert.AreEqual("KATOWICE", table[2].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenMethodCallDoesNotHaveAlias_ShouldThrows()
+    {
+        var query = "select Contains(first.City, 'W') from #A.entities() first inner join #B.entities() second on first.Country = second.Country";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", []
+            },
+            {
+                "#B", []
+            }
+        };
+
+        Assert.ThrowsException<AliasMissingException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 }
