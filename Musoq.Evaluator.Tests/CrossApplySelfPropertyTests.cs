@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Plugins.Attributes;
 
@@ -467,7 +468,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             }
         }.ToArray();
         
-        Assert.ThrowsException<NotSupportedException>(() =>
+        Assert.ThrowsException<AliasAlreadyUsedException>(() =>
         {
             var vm = CreateAndRunVirtualMachine(
                 query,

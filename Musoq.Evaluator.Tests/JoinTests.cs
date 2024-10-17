@@ -722,7 +722,7 @@ with p as (
 		Country
 	from p group by Country 
 )
-select p.Country, Count(p.Country) from p inner join x on p.Country = x.Country group by p.Country having Count(p.Country) > 1
+select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Country group by p.Country having p.Count(p.Country) > 1
 ";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>

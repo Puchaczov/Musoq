@@ -1058,7 +1058,7 @@ public class GroupByTests : BasicEntityTestBase
             @"
 select 
     countries.GetCountry() as Country,
-    Sum(population.GetPopulation()) as Population
+    population.Sum(population.GetPopulation()) as Population
 from #A.entities() countries 
 inner join #B.entities() cities on countries.GetCountry() = cities.GetCountry() 
 inner join #C.entities() population on cities.GetCity() = population.GetCity()
@@ -1107,7 +1107,7 @@ group by countries.GetCountry()";
         var query = @"
 select 
     a.Country,
-    AggregateValues(b.City)
+    b.AggregateValues(b.City)
 from #A.entities() a     
 inner join #B.entities() b on a.Country = b.Country
 where a.Country = 'Poland'
@@ -1142,7 +1142,7 @@ group by a.Country";
         var query = @"
 select 
     a.Country,
-    AggregateValues(b.City)
+    b.AggregateValues(b.City)
 from #A.entities() a     
 inner join #B.entities() b on a.Country = b.Country
 where b.Population > 200

@@ -263,7 +263,7 @@ public class OuterApplyTests : GenericEntityTestBase
     public void OuterApply_WithAggregation_ShouldPass()
     {
         const string query = @"
-            select a.Country, Sum(b.Money) as TotalMoney, Count(b.Money) as TransactionCount
+            select a.Country, b.Sum(b.Money) as TotalMoney, b.Count(b.Money) as TransactionCount
             from #schema.first() a 
             outer apply #schema.second(a.Country) b
             group by a.Country";

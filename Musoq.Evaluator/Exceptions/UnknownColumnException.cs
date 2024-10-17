@@ -2,10 +2,4 @@
 
 namespace Musoq.Evaluator.Exceptions;
 
-public class UnknownColumnException : Exception
-{
-    public UnknownColumnException(string message)
-        : base(message)
-    {
-    }
-}
+public class UnknownColumnException(string message) : Exception(message);
