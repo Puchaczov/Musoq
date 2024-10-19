@@ -210,7 +210,7 @@ public class MethodsMetadata
 
             if (paramsParameter.HasParameters())
             {
-                var paramsParameters = methodArgs.Skip(parameters.Length - 1);
+                var paramsParameters = methodArgs.Skip(notAnnotatedParametersCount - 1);
                 var arrayType = paramsParameters.ElementAt(0).MakeArrayType();
                 var paramType = parameters[^1].ParameterType;
                 hasMatchedArgTypes = paramType == arrayType || CanBeAssignedFromGeneric(paramType, arrayType);
