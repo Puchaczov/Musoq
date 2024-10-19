@@ -103,4 +103,15 @@ public partial class LibraryBase
     {
         return BitConverter.ToDouble(value, 0);
     }
+    
+    /// <summary>
+    /// Converts bytes to a string.
+    /// </summary>
+    /// <param name="value">Byte array containing the value to convert.</param>
+    /// <returns>The string value</returns>
+    [BindableMethod]
+    public string FromBytesToString(byte[] value)
+    {
+        return System.Text.Encoding.UTF8.GetString(value);
+    }
 }
