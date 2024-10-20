@@ -77,7 +77,7 @@ public class MethodsMetadata
     }
 
     /// <summary>
-    ///     Tries match function as if it weren't annotated. Assume that method specified parameters explicitly.
+    ///     Tries to match method as if it weren't annotated. Assume that method specified parameters explicitly.
     /// </summary>
     /// <param name="name">Function name</param>
     /// <param name="methodArgs">Types of method arguments</param>
@@ -105,21 +105,19 @@ public class MethodsMetadata
     }
 
     /// <summary>
-    ///     Tries match function as if it weren't annotated. Assume that method specified parameters explicitly.
+    ///     Tries to match method as if it weren't annotated. Assume that method specified parameters explicitly.
     /// </summary>
-    /// <param name="name">Function name</param>
+    /// <param name="name">Method name</param>
     /// <param name="methodArgs">Types of method arguments</param>
     /// <param name="index">Index of method that fits requirements.</param>
     /// <returns>True if some method fits, else false.</returns>
     private bool TryGetRawMethod(string name, Type[] methodArgs, out int index)
     {
-        if (!_methods.ContainsKey(name))
+        if (!_methods.TryGetValue(name, out var methods))
         {
             index = -1;
             return false;
         }
-
-        var methods = _methods[name];
 
         for (var i = 0; i < methods.Count; ++i)
         {
@@ -309,7 +307,7 @@ public class MethodsMetadata
             _methods.Add(name, [methodInfo]);
     }
 
-    private bool CanBeAssignedFromGeneric(Type paramType, Type arrayType)
+    private static bool CanBeAssignedFromGeneric(Type paramType, Type arrayType)
     {
         var isParamArray = paramType.IsArray;
 
