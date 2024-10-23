@@ -45,6 +45,26 @@ To try out Musoq, follow the instructions in our [CLI repository](https://github
 
 Musoq might be using in various places, including:
 
+### 🧮 Solution analysis
+
+```sql
+--Extract all SQL queries from tests from loaded solution
+select 
+    p.RowNumber() as RowNumber, 
+    p.Name, 
+    c.Name, 
+    m.Name, 
+    g.ToBase64(g.GetBytes(g.LlmPerform('You are C# developer. Your task is to extract SQL query without any markdown characters. If no sql, then return empty string', m.Body))) as QueryBase64
+from #csharp.solution('/some/path/Musoq.sln') s 
+inner join #openai.gpt('gpt-4o') g on 1 = 1 
+cross apply s.Projects p 
+cross apply p.Documents d 
+cross apply d.Classes c 
+cross apply c.Attributes a 
+cross apply c.Methods m 
+where a.Name = 'TestClassAttribute'
+```
+
 ### 📂 File System Analysis
 
 ```sql
