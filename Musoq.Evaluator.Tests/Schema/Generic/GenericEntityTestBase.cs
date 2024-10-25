@@ -37,6 +37,25 @@ public class GenericEntityTestBase
         return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
     }
 
+    protected CompiledQuery CreateAndRunVirtualMachine<TFirstEntity, TLibrary>(
+        string script,
+        TFirstEntity[] first,
+        Func<TFirstEntity, bool> filterFirst = null,
+        Func<object[], RowSource, RowSource> filter = null 
+    ) where TLibrary : LibraryBase, new()
+    {
+        
+        var schema = new GenericSchema<TLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>()
+        {
+            {"first", (new GenericEntityTable<TFirstEntity>(), new GenericRowsSource<TFirstEntity>(first, GenericEntityTable<TFirstEntity>.NameToIndexMap, GenericEntityTable<TFirstEntity>.IndexToObjectAccessMap, filterFirst))}
+        }, new Dictionary<string, Func<object[], RowSource, RowSource>>()
+        {
+            {"first", filter}
+        });
+        
+        return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
+    }
+
     protected CompiledQuery CreateAndRunVirtualMachine<TFirstEntity, TSecondEntity>(
         string script,
         TFirstEntity[] first,

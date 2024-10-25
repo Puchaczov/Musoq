@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
@@ -522,5 +522,62 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("Alice", table[4][0]);
         Assert.AreEqual("Johnson", table[4][1]);
         Assert.AreEqual("Negotiation", table[4][2]);
+    }
+    
+    public class SpecialCaseEmptyType
+    {
+        public string Value => "Value";
+    }
+
+    public class SpecialCaseLibrary1 : GenericLibrary
+    {
+        [BindableMethod]
+        public IEnumerable<string> GetOne()
+        {
+            return ["One"];
+        }
+        
+        [BindableMethod]
+        public IEnumerable<SpecialCaseComplexType2> GetSpecialCaseComplexType2(string whatever)
+        {
+            return
+            [
+                new SpecialCaseComplexType2()
+            ];
+        }
+    }
+    
+    public class SpecialCaseComplexType1
+    {
+        public string Name => "John";
+    }
+    
+    public class SpecialCaseComplexType2
+    {
+        [BindablePropertyAsTable]
+        public IEnumerable<SpecialCaseComplexType1> Employees => [new()];
+    }
+
+    [TestMethod]
+    public void CrossApply_WhenTwoMethodsReturnsEntities_AndThenUseColumnOfEntity_ShouldPass()
+    {
+        const string query = @"select a.Value, d.Name from #schema.first() a cross apply a.GetOne() b cross apply a.GetSpecialCaseComplexType2(b.Value) c cross apply c.Employees d";
+        
+        var vm = CreateAndRunVirtualMachine<SpecialCaseEmptyType, SpecialCaseLibrary1>(query, [new SpecialCaseEmptyType()]);
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(2, table.Columns.Count());
+        
+        Assert.AreEqual("a.Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        
+        Assert.AreEqual("d.Name", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        
+        Assert.AreEqual(1, table.Count);
+        
+        Assert.AreEqual("Value", table[0][0]);
+        Assert.AreEqual("John", table[0][1]);
     }
 }

@@ -893,7 +893,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
         _currentScope[node.Id] = _queryAlias;
         _aliasMapToInMemoryTableMap.Add(_queryAlias, node.SourceAlias);
-        _variableTables.TryAdd(node.SourceAlias, table);
+        _variableTables[node.SourceAlias] = table;
 
         Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethodNode,
             accessMethodNode.ReturnType));

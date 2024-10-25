@@ -626,7 +626,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                     SyntaxHelper.CreateAssignment(
                         variableName,
                         SyntaxHelper.CreateObjectOf(
-                            method.ReflectedType.Name,
+                            method.ReflectedType.FullName!.Replace("+", "."),
                             SyntaxFactory.ArgumentList()))));
         }
 
