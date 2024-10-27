@@ -94,6 +94,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     private string _identifier;
     private string _queryAlias;
     private IdentifierNode _theMostInnerIdentifier;
+    private bool _innerCteBegan;
 
     private Stack<string> Methods { get; } = new();
 
@@ -773,7 +774,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
 
-        if (_variableTables.ContainsKey(_queryAlias))
+        if (_variableTables.ContainsKey(_queryAlias) && !_innerCteBegan)
         {
             throw new AliasAlreadyUsedException(node, _queryAlias);
         }
@@ -859,7 +860,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         AddAssembly(targetColumn.ColumnType.Assembly);
         var nestedTable = TurnTypeIntoTable(targetColumn.ColumnType);
-        _variableTables.TryAdd(node.SourceAlias, nestedTable);
+        _variableTables[node.SourceAlias] = nestedTable;
         table = nestedTable;
 
         UpdateQueryAliasAndSymbolTable(node, schema, table);
@@ -1706,6 +1707,16 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     public void SetOperatorLeftFinished()
     {
         _variableTables.Clear();
+    }
+
+    public void InnerCteBegins()
+    {
+        _innerCteBegan = true;
+    }
+
+    public void InnerCteEnds()
+    {
+        _innerCteBegan = false;
     }
 
     private Type FindGreatestCommonSubtype()

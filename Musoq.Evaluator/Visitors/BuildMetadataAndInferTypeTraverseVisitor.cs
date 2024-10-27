@@ -715,7 +715,10 @@ public class BuildMetadataAndInferTypeTraverseVisitor : IQueryPartAwareExpressio
     public void Visit(CteExpressionNode node)
     {
         LoadScope("CTE");
-        foreach (var exp in node.InnerExpression) exp.Accept(this);
+        foreach (var exp in node.InnerExpression)
+        {
+            exp.Accept(this);
+        }
         node.OuterExpression.Accept(this);
         node.Accept(_visitor);
         RestoreScope();
@@ -724,7 +727,9 @@ public class BuildMetadataAndInferTypeTraverseVisitor : IQueryPartAwareExpressio
     public void Visit(CteInnerExpressionNode node)
     {
         LoadScope("CTE Inner Expression");
+        _visitor.InnerCteBegins();
         node.Value.Accept(this);
+        _visitor.InnerCteEnds();
         node.Accept(_visitor);
         RestoreScope();
     }

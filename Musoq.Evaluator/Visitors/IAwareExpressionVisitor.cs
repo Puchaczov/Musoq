@@ -8,4 +8,8 @@ public interface IAwareExpressionVisitor : IScopeAwareExpressionVisitor, IQueryP
     void SetTheMostInnerIdentifierOfDotNode(IdentifierNode node);
     
     void SetOperatorLeftFinished();
+    
+    void InnerCteBegins();
+    
+    void InnerCteEnds();
 }
