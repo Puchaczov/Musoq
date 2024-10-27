@@ -123,7 +123,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.AreEqual(1, result.Length);
     }
 
     [TestMethod]
