@@ -48,7 +48,7 @@ Musoq might be using in various places, including:
 ### 🧮 Solution analysis
 
 ```sql
---Extract all SQL queries from tests from loaded solution
+-- Extract all SQL queries from tests from loaded solution
 select 
     p.RowNumber() as RowNumber, 
     p.Name, 
@@ -63,6 +63,30 @@ cross apply d.Classes c
 cross apply c.Attributes a 
 cross apply c.Methods m 
 where a.Name = 'TestClassAttribute'
+
+-- How many lines of code does the project contains?
+select 
+    Sum(c.LinesOfCode) as TotalLinesOfCode,
+    Sum(c.MethodsCount) as TotalMethodsCount
+from #csharp.solution('/some/path/Musoq.sln') s 
+cross apply s.Projects p 
+cross apply p.Documents d 
+cross apply d.Classes c 
+group by 'fake'
+
+-- Top 3 methods with highest complexity
+select
+    c.Name as ClassName,
+    m.Name as MethodName,
+    Max(m.CyclomaticComplexity) as HighestComplexity
+from #csharp.solution('/some/path/Musoq.sln') s
+cross apply s.Projects p 
+cross apply p.Documents d 
+cross apply d.Classes c 
+cross apply c.Methods m 
+group by c.Name, m.Name
+order by Max(m.CyclomaticComplexity) desc
+take 3
 ```
 
 ### 📂 File System Analysis
