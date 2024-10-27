@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -227,8 +228,12 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     }
 
     public void Visit(SchemaFromNode node)
-    {
+    {   
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) + _schemaFromKey;
+        
+        if (_columns.ContainsKey(_queryAlias))
+            throw new AliasAlreadyUsedException(node, _queryAlias);
+        
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
     }
@@ -426,6 +431,14 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     }
 
     public void SetOperatorLeftFinished()
+    {
+    }
+
+    public void InnerCteBegins()
+    {
+    }
+
+    public void InnerCteEnds()
     {
     }
 }

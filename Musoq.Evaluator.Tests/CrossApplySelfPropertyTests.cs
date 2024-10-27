@@ -441,32 +441,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         select d.Value from #schema.first() a cross apply a.Values as b cross apply b.Values as c cross apply c.Values as d
         """;
 
-        var firstSource = new List<CrossApplyClass6>
-        {
-            new()
-            {
-                Values =
-                [
-                    new()
-                    {
-                        Values =
-                        [
-                            new() {Values = [new() {Value = "Value1"}, new() {Value = "Value2"}]},
-                            new() {Values = [new() {Value = "Value3"}, new() {Value = "Value4"}]}
-                        ]
-                    },
-
-                    new()
-                    {
-                        Values =
-                        [
-                            new() {Values = [new() {Value = "Value5"}, new() {Value = "Value6"}]},
-                            new() {Values = [new() {Value = "Value7"}, new() {Value = "Value8"}]}
-                        ]
-                    }
-                ]
-            }
-        }.ToArray();
+        var firstSource = new List<CrossApplyClass6>().ToArray();
         
         Assert.ThrowsException<AliasAlreadyUsedException>(() =>
         {

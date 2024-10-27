@@ -580,4 +580,16 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("Value", table[0][0]);
         Assert.AreEqual("John", table[0][1]);
     }
+
+    [TestMethod]
+    public void WhenCteHasTheSameAliasWithinDifferentQueries_ShouldNotThrow()
+    {
+        const string query = "with p as (select 1 from #schema.first() a cross apply a.Split('a,b', ',') b), r as (select 1 from #schema.first() a cross apply a.Split('a,b', ',') b) select * from p";
+        var firstSource = System.Array.Empty<CrossApplyClass5>();
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource);
+        
+        vm.Run();
+    }
 }

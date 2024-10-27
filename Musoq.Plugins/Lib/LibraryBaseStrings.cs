@@ -938,5 +938,58 @@ public abstract partial class LibraryBase
             return null;
             
         return System.Text.RegularExpressions.Regex.Replace(value, pattern, replacement);
+    }    
+    
+    /// <summary>
+    /// Split string by Linux-style newlines (\n)
+    /// </summary>
+    /// <param name="input">The input</param>
+    /// <returns>Array of strings</returns>
+    [BindableMethod]
+    public string[]? SplitByLinuxNewLines(string? input)
+    {
+        if (input is null)
+            return null;
+        
+        if (string.IsNullOrEmpty(input))
+            return [];
+            
+        return input.Split(['\n'], StringSplitOptions.None);
+    }
+
+    /// <summary>
+    /// Split string by Windows-style newlines (\r\n)
+    /// </summary>
+    /// <param name="input">The input</param>
+    /// <returns>Array of strings</returns>
+    [BindableMethod]
+    public string[]? SplitByWindowsNewLines(string? input)
+    {
+        if (input is null)
+            return null;
+        
+        if (string.IsNullOrEmpty(input))
+            return [];
+            
+        return input.Split(["\r\n"], StringSplitOptions.None);
+    }
+
+    /// <summary>
+    /// Smart split that handles both Windows (\r\n) and Linux (\n) newlines
+    /// </summary>
+    /// <param name="input">The input</param>
+    /// <returns>Array of strings</returns>
+    [BindableMethod]
+    public string[]? SplitByNewLines(string? input)
+    {
+        if (input is null)
+            return null;
+        
+        if (string.IsNullOrEmpty(input))
+            return [];
+        
+        var normalizedInput = input.Replace("\r\n", "\n");
+        
+        return normalizedInput.Split(['\n'], StringSplitOptions.None);
     }
 }

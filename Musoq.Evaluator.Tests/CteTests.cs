@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
@@ -128,6 +129,22 @@ public class CteTests : BasicEntityTestBase
 
         Assert.AreEqual("GERMANY", table[1].Values[0]);
         Assert.AreEqual(600m, table[1].Values[1]);
+    }
+
+    [TestMethod]
+    public void WhenSameAliasesUsedWithinCteInnerExpression_ShouldThrow()
+    {
+        var query =
+            "with p as (select 1 from #A.entities() a inner join #A.entities() a on 1 = 1) select * from p";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", []
+            }
+        };
+
+        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
 

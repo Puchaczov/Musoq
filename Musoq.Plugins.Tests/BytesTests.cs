@@ -23,7 +23,7 @@ public class BytesTests : LibraryBaseBaseTests
     {
         Assert.AreEqual(byte1.Length, byte2.Length);
 
-        for(int i = 0; i < byte1.Length; ++i)
+        for(var i = 0; i < byte1.Length; ++i)
         {
             Assert.AreEqual(byte1[i], byte2[i]);
         }

@@ -84,4 +84,220 @@ public class StringsTests : LibraryBaseBaseTests
         Assert.IsTrue(Library.HasFuzzyMatchedWord("this is the world first query", "owlrd"));
         Assert.IsTrue(Library.HasFuzzyMatchedWord("this is the world first query", "worlded"));
     }
+    
+        [TestMethod]
+    public void WhenSplitByLinuxNewLines_InputIsNull_ReturnsNull()
+    {
+        // Arrange
+        string? input = null;
+
+        // Act
+        var result = Library.SplitByLinuxNewLines(input);
+
+        // Assert
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void WhenSplitByLinuxNewLines_InputIsEmpty_ReturnsEmptyArray()
+    {
+        // Arrange
+        var input = "";
+
+        // Act
+        var result = Library.SplitByLinuxNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0, result.Length);
+    }
+
+    [TestMethod]
+    public void WhenSplitByLinuxNewLines_InputIsWhitespace_ReturnsEmptyArray()
+    {
+        // Arrange
+        var input = "   ";
+
+        // Act
+        var result = Library.SplitByLinuxNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0, result.Length);
+    }
+
+    [TestMethod]
+    public void WhenSplitByLinuxNewLines_InputIsSingleLine_ReturnsSingleElement()
+    {
+        // Arrange
+        var input = "Single line";
+
+        // Act
+        var result = Library.SplitByLinuxNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1, result.Length);
+        Assert.AreEqual("Single line", result[0]);
+    }
+
+    [TestMethod]
+    public void WhenSplitByLinuxNewLines_InputHasMultipleLines_ReturnsCorrectElements()
+    {
+        // Arrange
+        var input = "Line1\nLine2\nLine3";
+
+        // Act
+        var result = Library.SplitByLinuxNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(3, result.Length);
+        Assert.AreEqual("Line1", result[0]);
+        Assert.AreEqual("Line2", result[1]);
+        Assert.AreEqual("Line3", result[2]);
+    }
+
+    [TestMethod]
+    public void WhenSplitByWindowsNewLines_InputIsNull_ReturnsNull()
+    {
+        // Arrange
+        string? input = null;
+
+        // Act
+        var result = Library.SplitByWindowsNewLines(input);
+
+        // Assert
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void WhenSplitByWindowsNewLines_InputIsEmpty_ReturnsEmptyArray()
+    {
+        // Arrange
+        var input = "";
+
+        // Act
+        var result = Library.SplitByWindowsNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0, result.Length);
+    }
+
+    [TestMethod]
+    public void WhenSplitByWindowsNewLines_InputHasMultipleLines_ReturnsCorrectElements()
+    {
+        // Arrange
+        var input = "Line1\r\nLine2\r\nLine3";
+
+        // Act
+        var result = Library.SplitByWindowsNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(3, result.Length);
+        Assert.AreEqual("Line1", result[0]);
+        Assert.AreEqual("Line2", result[1]);
+        Assert.AreEqual("Line3", result[2]);
+    }
+
+    [TestMethod]
+    public void WhenSplitByNewLines_InputIsNull_ReturnsNull()
+    {
+        // Arrange
+        string? input = null;
+
+        // Act
+        var result = Library.SplitByNewLines(input);
+
+        // Assert
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void WhenSplitByNewLines_InputIsEmpty_ReturnsEmptyArray()
+    {
+        // Arrange
+        var input = "";
+
+        // Act
+        var result = Library.SplitByNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0, result.Length);
+    }
+
+    [TestMethod]
+    public void WhenSplitByNewLines_InputHasMixedNewLines_ReturnsCorrectElements()
+    {
+        // Arrange
+        var input = "Line1\nLine2\r\nLine3\nLine4\r\nLine5";
+
+        // Act
+        var result = Library.SplitByNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(5, result.Length);
+        Assert.AreEqual("Line1", result[0]);
+        Assert.AreEqual("Line2", result[1]);
+        Assert.AreEqual("Line3", result[2]);
+        Assert.AreEqual("Line4", result[3]);
+        Assert.AreEqual("Line5", result[4]);
+    }
+
+    [TestMethod]
+    public void WhenSplitByNewLines_InputHasConsecutiveNewLines_PreservesEmptyLines()
+    {
+        // Arrange
+        var input = "Line1\n\nLine3\r\n\r\nLine5";
+
+        // Act
+        var result = Library.SplitByNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(5, result.Length);
+        Assert.AreEqual("Line1", result[0]);
+        Assert.AreEqual("", result[1]);
+        Assert.AreEqual("Line3", result[2]);
+        Assert.AreEqual("", result[3]);
+        Assert.AreEqual("Line5", result[4]);
+    }
+
+    [TestMethod]
+    [DataRow("Line1\nLine2", 2)]
+    [DataRow("Line1\r\nLine2", 2)]
+    [DataRow("Line1\nLine2\r\nLine3", 3)]
+    [DataRow("\n\n\n", 4)]
+    [DataRow("\r\n\r\n\r\n", 4)]
+    public void WhenSplitByNewLines_InputHasVariousFormats_ReturnsCorrectCount(string input, int expectedCount)
+    {
+        // Act
+        var result = Library.SplitByNewLines(input);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(expectedCount, result.Length);
+    }
+
+    [TestMethod]
+    public void WhenSplitByNewLines_InputHasOnlyNewlines_ReturnsArrayOfEmptyStrings()
+    {
+        // Arrange
+        var input1 = "\n\n\n";
+        var input2 = "\r\n\r\n\r\n";
+
+        // Act
+        var result1 = Library.SplitByNewLines(input1);
+        var result2 = Library.SplitByNewLines(input2);
+
+        // Assert
+        Assert.IsNotNull(result1);
+        Assert.IsNotNull(result2);
+        Assert.AreEqual(4, result1.Length);
+        Assert.AreEqual(4, result2.Length);
+    }
 }
