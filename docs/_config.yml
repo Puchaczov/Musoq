@@ -1,6 +1,5 @@
 title: Musoq
-description: SQL Swiss Army Knife - Engine for Diverse Data Sources
-theme: just-the-docs
+description: SQL Swiss Army Knife - Engine for Diverse Data data-sources
 
 remote_theme: just-the-docs/just-the-docs
 markdown: kramdown
