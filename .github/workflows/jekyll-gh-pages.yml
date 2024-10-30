@@ -33,7 +33,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.x'
+          ruby-version: '3.3.5'
           bundler-cache: true
           working-directory: ./docs
       - name: Build with Jekyll
