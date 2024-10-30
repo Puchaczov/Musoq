@@ -34,8 +34,13 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3.5'
-          bundler-cache: true
+          bundler-cache: false
           working-directory: ./docs
+      - name: Install dependencies
+        working-directory: ./docs
+        run: |
+          bundle config set --local path 'vendor/bundle'
+          bundle install
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
