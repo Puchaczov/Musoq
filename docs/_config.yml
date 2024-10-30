@@ -3,8 +3,19 @@ description: SQL Swiss Army Knife - Engine for Diverse Data Sources
 theme: just-the-docs
 
 remote_theme: just-the-docs/just-the-docs
+markdown: kramdown
 plugins:
   - jekyll-remote-theme
+
+lsi: false
+safe: true
+incremental: false
+highlighter: rouge
+gist:
+  noscript: false
+kramdown:
+  math_engine: mathjax
+  syntax_highlighter: rouge
 
 url: https://just-the-docs.github.io
 
