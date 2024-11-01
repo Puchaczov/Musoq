@@ -111,6 +111,7 @@ nav_order: 3
 | Home Appliances | Vacuum Cleaner | 88 | 155.43 |
 | Home Appliances | Microwave | 10 | 71.59 |
 | Computer Accessories | Mouse | 3 | 26.24 |
+
 ## Enriching the Table with Calculations
 
 First, we will enrich our calculations by determining the total price `UnitPrice` * `Quantity`.
