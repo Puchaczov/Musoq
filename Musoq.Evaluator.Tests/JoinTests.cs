@@ -326,6 +326,82 @@ group by cities.Country";
         Assert.AreEqual("Germany", table[1][0]);
         Assert.AreEqual(400m, table[1][1]);
     }
+    
+    [TestMethod]
+    public void JoinWithGroupByAndOrderByTest()
+    {
+        var query = @"
+select 
+    cities.GetTypeName(cities.Country)
+from #A.entities() countries 
+inner join #B.entities() cities on countries.Country = cities.Country
+group by cities.GetTypeName(cities.Country)
+order by cities.GetTypeName(cities.Country)";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("Poland", "Krakow"),
+                    new BasicEntity("Germany", "Berlin")
+                ]
+            },
+            {
+                "#B", [
+                    new BasicEntity("Poland", "Krakow"),
+                    new BasicEntity("Poland", "Wroclaw"),
+                    new BasicEntity("Poland", "Warszawa"),
+                    new BasicEntity("Poland", "Gdansk"),
+                    new BasicEntity("Germany", "Berlin")
+                ]
+            },
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        
+        Assert.AreEqual("GetTypeName(cities.Country)", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        
+        Assert.AreEqual(1, table.Count);
+        
+        Assert.AreEqual("System.String", table[0][0]);
+    }
+    
+    [TestMethod]
+    public void JoinWithOrderByTest()
+    {
+        var query = @"
+select 
+    cities.Country
+from #A.entities() countries 
+inner join #B.entities() cities on countries.Country = cities.Country
+order by cities.GetTypeName(cities.Country)";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("Poland", "Krakow"),
+                    new BasicEntity("Germany", "Berlin")
+                ]
+            },
+            {
+                "#B", [
+                    new BasicEntity("Poland", "Krakow"),
+                    new BasicEntity("Poland", "Wroclaw"),
+                    new BasicEntity("Poland", "Warszawa"),
+                    new BasicEntity("Poland", "Gdansk"),
+                    new BasicEntity("Germany", "Berlin")
+                ]
+            },
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+    }
 
     [TestMethod]
     public void JoinWithExceptTest()
@@ -784,7 +860,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual(typeof(int?), column.ColumnType);
 
         Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual((int?)null, table[0][1]);
+        Assert.AreEqual(null, table[0][1]);
     }
 
     [TestMethod]

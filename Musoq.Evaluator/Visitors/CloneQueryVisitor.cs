@@ -218,7 +218,7 @@ public class CloneQueryVisitor : IExpressionVisitor
 
     public virtual void Visit(AccessMethodNode node)
     {
-        Nodes.Push(new AccessMethodNode(node.FToken, (ArgsListNode) Nodes.Pop(), null, node.CanSkipInjectSource, node.Method, node.Alias));
+        Nodes.Push(new AccessMethodNode(node.FunctionToken, (ArgsListNode) Nodes.Pop(), null, node.CanSkipInjectSource, node.Method, node.Alias));
     }
 
     public virtual void Visit(AccessRawIdentifierNode node)
@@ -382,7 +382,7 @@ public class CloneQueryVisitor : IExpressionVisitor
 
     public virtual void Visit(PropertyFromNode node)
     {
-        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, node.ReturnType));
+        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));
     }
 
     public virtual void Visit(AliasedFromNode node)
