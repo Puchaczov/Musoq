@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Parser;
 using Musoq.Parser;
@@ -54,7 +55,18 @@ public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> us
     public override void Visit(PropertyFromNode node)
     {
         base.Visit(usedTables.TryGetValue(node.SourceAlias, out var alias)
-            ? new Parser.PropertyFromNode(node.Alias, alias, NamingHelper.ToColumnName(node.SourceAlias, node.PropertyName), node.ReturnType)
+            ? new Parser.PropertyFromNode(node.Alias, alias, node.PropertiesChain.Select((p, i) =>
+            {
+                if (i == 0)
+                {
+                    return p with
+                    {
+                        PropertyName = NamingHelper.ToColumnName(node.SourceAlias, p.PropertyName)
+                    };
+                }
+
+                return p;
+            }).ToArray())
             : node);
     }
 }

@@ -762,4 +762,32 @@ public class OrderByTests : BasicEntityTestBase
         Assert.AreEqual("czestochowa", table[2].Values[0]);
         Assert.AreEqual("cracow", table[3].Values[0]);
     }
+
+    [TestMethod]
+    public void WhenOrderByWithGroupBy_ShouldSucceed()
+    {
+        const string query = """
+                             select 
+                                GetTypeName(a.Name),
+                                Count(a.Name)
+                             from #A.Entities() a
+                             group by GetTypeName(a.Name)
+                             order by GetTypeName(a.Name)
+                             """;
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [new BasicEntity("a"), new BasicEntity("b"), new BasicEntity("c")]
+            }
+        };
+        
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Count);
+        
+        Assert.AreEqual("System.String", table[0].Values[0]);
+        Assert.AreEqual(3, table[0].Values[1]);
+    }
 }

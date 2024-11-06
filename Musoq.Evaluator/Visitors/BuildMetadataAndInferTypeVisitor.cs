@@ -849,24 +849,72 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         _aliasMapToInMemoryTableMap.Add(node.Alias, node.SourceAlias);
 
-        var targetColumn = table.GetColumnByName(node.PropertyName);
+        var targetColumn = table.GetColumnByName(node.FirstProperty.PropertyName);
         if (targetColumn == null)
         {
-            PrepareAndThrowUnknownColumnExceptionMessage(node.PropertyName, table.Columns);
+            PrepareAndThrowUnknownColumnExceptionMessage(node.FirstProperty.PropertyName, table.Columns);
             return;
         }
 
         ValidateBindablePropertyAsTable(table, targetColumn);
 
         AddAssembly(targetColumn.ColumnType.Assembly);
-        var nestedTable = TurnTypeIntoTable(targetColumn.ColumnType);
+        var nestedTable = TurnTypeIntoTable(FollowProperties(targetColumn.ColumnType, node.PropertiesChain));
         _variableTables[node.SourceAlias] = nestedTable;
         table = nestedTable;
 
         UpdateQueryAliasAndSymbolTable(node, schema, table);
 
         Nodes.Push(
-            new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, targetColumn.ColumnType));
+            new Parser.PropertyFromNode(
+                node.Alias, 
+                node.SourceAlias, 
+                RewritePropertiesChainWithTargetColumn(targetColumn, node.PropertiesChain)
+            )
+        );
+    }
+
+    private static Type FollowProperties(Type type, PropertyFromNode.PropertyNameAndTypePair[] propertiesChain)
+    {
+        var propertiesWithoutColumnType = propertiesChain.Skip(1);
+        
+        foreach (var property in propertiesWithoutColumnType)
+        {
+            var propertyInfo = type.GetProperty(property.PropertyName);
+            
+            if (propertyInfo == null)
+            {
+                PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, type.GetProperties());
+                return null;
+            }
+
+            type = propertyInfo.PropertyType;
+        }
+        
+        return type;
+    }
+
+    private static PropertyFromNode.PropertyNameAndTypePair[] RewritePropertiesChainWithTargetColumn(ISchemaColumn targetColumn, PropertyFromNode.PropertyNameAndTypePair[] nodePropertiesChain)
+    {
+        var propertiesChain = new PropertyFromNode.PropertyNameAndTypePair[nodePropertiesChain.Length];
+        var rootType = targetColumn.ColumnType;
+        propertiesChain[0] = new PropertyFromNode.PropertyNameAndTypePair(targetColumn.ColumnName, rootType);
+        
+        for (var i = 1; i < nodePropertiesChain.Length; i++)
+        {
+            var property = nodePropertiesChain[i];
+            var propertyInfo = rootType.GetProperty(property.PropertyName);
+            
+            if (propertyInfo == null)
+            {
+                PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, rootType.GetProperties());
+                return null;
+            }
+            
+            propertiesChain[i] = new PropertyFromNode.PropertyNameAndTypePair(propertyInfo.Name, propertyInfo.PropertyType);
+        }
+
+        return propertiesChain;
     }
 
     public void Visit(AccessMethodFromNode node)
@@ -1477,7 +1525,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         AccessMethodNode accessMethod;
         if (isAggregateMethod)
         {
-            accessMethod = func(node.FToken, args, node.ExtraAggregateArguments, method, alias, false);
+            accessMethod = func(node.FunctionToken, args, node.ExtraAggregateArguments, method, alias, false);
             var identifier = accessMethod.ToString();
 
             var newArgs = new List<Node> {new WordNode(identifier)};
@@ -1530,12 +1578,12 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
             _refreshMethods.Add(setMethodNode);
 
-            accessMethod = func(node.FToken, new ArgsListNode(newArgs.ToArray()), null, method, alias,
+            accessMethod = func(node.FunctionToken, new ArgsListNode(newArgs.ToArray()), null, method, alias,
                 canSkipInjectSource);
         }
         else
         {
-            accessMethod = func(node.FToken, args, new ArgsListNode([]), method, alias,
+            accessMethod = func(node.FunctionToken, args, new ArgsListNode([]), method, alias,
                 canSkipInjectSource);
         }
 
@@ -1942,11 +1990,11 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         {
             candidates.Append(candidatesColumns[^1].ColumnName);
 
-            throw new UnknownColumnException(
-                $"Column '{identifier}' could not be found. Did you mean to use [{candidates}]?");
+            throw new UnknownColumnOrAliasException(
+                $"Column or Alias '{identifier}' could not be found. Did you mean to use [{candidates}]?");
         }
 
-        throw new UnknownColumnException($"Column {identifier} could not be found.");
+        throw new UnknownColumnOrAliasException($"Column or Alias {identifier} could not be found.");
     }
 
     private static void PrepareAndThrowUnknownPropertyExceptionMessage(string identifier, PropertyInfo[] properties)

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>7.4.2</Version>
+    <Version>7.4.3</Version>
     <Authors>Jakub Puchała</Authors>
     <Product>Musoq</Product>
     <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
@@ -43,10 +43,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>MetaAttributes.resx</DependentUpon>
     </Compile>
-    <Compile Update="Visitors\RewriteFieldOrderedWithGroupMethodCall.cs">
+    <Compile Update="Visitors\RewriteFieldWithGroupMethodCall.cs">
       <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
     </Compile>
-    <Compile Update="Visitors\RewriteFieldWithGroupMethodCall.cs">
+    <Compile Update="Visitors\RewriteFieldOrderedWithGroupMethodCall.cs">
       <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
     </Compile>
   </ItemGroup>

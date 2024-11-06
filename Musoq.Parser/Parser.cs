@@ -747,20 +747,36 @@ public class Parser(Lexer lexer)
         {
             Consume(Current.TokenType);
 
-            if (Current.TokenType == TokenType.Property)
+            var properties = new List<string>();
+            var anyParsed = false;
+            
+            while (Current.TokenType == TokenType.Property)
             {
+                if (!anyParsed)
+                    anyParsed = true;
+                
                 var propertyName = Current.Value;
+                properties.Add(propertyName);
                     
                 Consume(TokenType.Property);
-                    
+
+                if (Current.TokenType == TokenType.Dot)
+                {
+                    Consume(TokenType.Dot);
+                    continue;
+                }
+                
+                break;
+            }
+            
+            if (anyParsed)
+            {
                 alias = ComposeAlias();
-                    
+            
                 if (string.IsNullOrWhiteSpace(alias))
                     throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
-                    
-                var fromNode = new PropertyFromNode(alias, column.Name, propertyName);
-
-                return fromNode;
+                
+                return new PropertyFromNode(alias, column.Name, properties.ToArray());
             }
                 
             throw new NotSupportedException($"Unrecognized token {Current.TokenType} when parsing From clause.");

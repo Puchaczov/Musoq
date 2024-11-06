@@ -61,8 +61,8 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
     public override void Visit(PropertyFromNode node)
     {
         _accessColumns.TryAdd(node.SourceAlias, []);
-     
-        _accessColumns[node.SourceAlias].Add(new AccessColumnNode(node.PropertyName, node.SourceAlias, node.ReturnType, TextSpan.Empty));
+        _accessColumns[node.SourceAlias].Add(
+            new AccessColumnNode(node.FirstProperty.PropertyName, node.SourceAlias, node.ReturnType, TextSpan.Empty));
         
         base.Visit(node);
     }

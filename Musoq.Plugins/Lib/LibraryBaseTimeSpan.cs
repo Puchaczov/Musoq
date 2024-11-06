@@ -107,12 +107,12 @@ public partial class LibraryBase
         => MinTimeSpan(group, name, 0);
     
     /// <summary>
-    /// Gets the min value of a given group.
+    /// Gets the max value of a given group.
     /// </summary>
     /// <param name="group">The group object</param>
     /// <param name="name">The name</param>
     /// <param name="parent">The parent</param>
-    /// <returns>Min of group</returns>
+    /// <returns>Max of group</returns>
     [AggregationGetMethod]
     public TimeSpan? MaxTimeSpan([InjectGroup] Group group, string name, int parent)
     {

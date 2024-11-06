@@ -150,11 +150,11 @@ public static class EvaluationHelper
         return output;
     }
 
-    public static string GetCasteableType(Type type)
+    public static string GetCastableType(Type type)
     {
         if (type is NullNode.NullType) return "System.Object";
         if (type.IsGenericType) return GetFriendlyTypeName(type);
-        if (type.IsNested) return $"{GetCasteableType(type.DeclaringType)}.{type.Name}";
+        if (type.IsNested) return $"{GetCastableType(type.DeclaringType)}.{type.Name}";
 
         return ReplacePlusWithDotForNestedClasses(type.FullName);
     }

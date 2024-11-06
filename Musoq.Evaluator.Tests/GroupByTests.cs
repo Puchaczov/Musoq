@@ -419,7 +419,15 @@ public class GroupByTests : BasicEntityTestBase
     public void GroupByColumnSubstringTest()
     {
         var query =
-            "select Country, Substring(City, IndexOf(City, ':')) as 'City', Count(City) as 'Count', Sum(Population) as 'Sum' from #A.Entities() group by Substring(City, IndexOf(City, ':')), Country";
+            """
+select 
+    Country, 
+    Substring(City, IndexOf(City, ':')) as 'City', 
+    Count(City) as 'Count', 
+    Sum(Population) as 'Sum' 
+from #A.Entities() 
+group by Substring(City, IndexOf(City, ':')), Country
+""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {

@@ -57,6 +57,25 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         public double[] Values2 { get; set; }
     }
     
+    private class OuterApplyClass7
+    {
+        public ComplexType5 ComplexType { get; set; }
+    }
+    
+    public class ComplexType5
+    {
+        [BindablePropertyAsTable]
+        public List<int> PrimitiveValues { get; set; }
+        
+        [BindablePropertyAsTable]
+        public List<ComplexType6> ComplexValues { get; set; }
+    }
+
+    public class ComplexType6
+    {
+        public int Value { get; set; }
+    }
+    
     [TestMethod]
     public void OuterApplyProperty_NoMatch_ShouldPass()
     {
@@ -432,5 +451,75 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         
         Assert.AreEqual(6d, table[15].Values[0]);
         Assert.AreEqual(6.1d, table[15].Values[1]);
+    }
+    
+    [TestMethod]
+    public void WhenApplyChainedProperty_WithPrimitiveList_ShouldPass()
+    {
+        const string query = """
+                             select 
+                                b.Value 
+                             from #schema.first() a 
+                             outer apply a.ComplexType.PrimitiveValues as b
+                             """;
+        
+        var firstSource = new List<OuterApplyClass7>
+        {
+            new() {
+                ComplexType = new ComplexType5
+                {
+                    PrimitiveValues = [1, 2]
+                }
+            }
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        
+        Assert.AreEqual(2, table.Count);
+        
+        Assert.AreEqual(1, table[0].Values[0]);
+        Assert.AreEqual(2, table[1].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenApplyChainedProperty_WithComplexList_ShouldPass()
+    {
+        const string query = """
+                             select 
+                                b.Value 
+                             from #schema.first() a 
+                             outer apply a.ComplexType.ComplexValues as b
+                             """;
+        
+        var firstSource = new List<OuterApplyClass7>
+        {
+            new() {
+                ComplexType = new ComplexType5
+                {
+                    ComplexValues = [new ComplexType6 { Value = 1}, new ComplexType6 { Value = 2}]
+                }
+            }
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        
+        Assert.AreEqual(2, table.Count);
+        
+        Assert.AreEqual(1, table[0].Values[0]);
+        Assert.AreEqual(2, table[1].Values[0]);
     }
 }

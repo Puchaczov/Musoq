@@ -406,7 +406,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(PropertyFromNode node)
     {
-        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertyName, node.ReturnType));
+        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));
     }
 
     public void Visit(AliasedFromNode node)
@@ -782,10 +782,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 : from;
 
             var refreshMethods = CreateRefreshMethods(usedRefreshMethods);
-            var split = SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
-            var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(split[0], groupBy.Fields)
+            var splitSelectFields = SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
+            var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(splitSelectFields[0], groupBy.Fields)
                 .Reverse().ToArray());
-            var outSelect = new SelectNode(split[1]);
+            var outSelect = new SelectNode(splitSelectFields[1]);
 
             var scopeCreateTransformingTable = _scope.AddScope("Table");
             var scopeTransformedQuery = _scope.AddScope("Query");
@@ -829,7 +829,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                     }
 
                     var newArgs = new ArgsListNode(newNodes.ToArray());
-                    newRefreshMethods.Add(new AccessMethodNode(method.FToken, newArgs,
+                    newRefreshMethods.Add(new AccessMethodNode(method.FunctionToken, newArgs,
                         method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method));
                 }
 
@@ -1130,7 +1130,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         var args = Nodes.Pop() as ArgsListNode;
 
-        Nodes.Push(new AccessMethodNode(node.FToken, args, null, node.CanSkipInjectSource, node.Method, node.Alias));
+        Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource, node.Method, node.Alias));
     }
 
     private FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields, bool useOuterFields)

@@ -1,17 +1,11 @@
 ﻿using Musoq.Evaluator.Helpers;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class RewritePartsToUseJoinTransitionTable : CloneQueryVisitor
+public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQueryVisitor
 {
-    private readonly string _alias;
-
-    public RewritePartsToUseJoinTransitionTable(string alias = "")
-    {
-        _alias = alias;
-    }
-
     public SelectNode ChangedSelect { get; private set; }
         
     public GroupByNode ChangedGroupBy { get; private set; }
@@ -24,7 +18,7 @@ public class RewritePartsToUseJoinTransitionTable : CloneQueryVisitor
 
     public override void Visit(AccessColumnNode node)
     {
-        base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), _alias, node.ReturnType,
+        base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), alias, node.ReturnType,
             node.Span));
     }
 

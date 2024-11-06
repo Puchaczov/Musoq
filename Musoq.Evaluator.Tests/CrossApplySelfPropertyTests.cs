@@ -81,6 +81,25 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         public List<ComplexType2> Values { get; set; }
     }
     
+    private class CrossApplyClass7
+    {
+        public ComplexType5 ComplexType { get; set; }
+    }
+    
+    public class ComplexType5
+    {
+        [BindablePropertyAsTable]
+        public List<int> PrimitiveValues { get; set; }
+        
+        [BindablePropertyAsTable]
+        public List<ComplexType6> ComplexValues { get; set; }
+    }
+
+    public class ComplexType6
+    {
+        public int Value { get; set; }
+    }
+    
     [TestMethod]
     public void CrossApplyProperty_NoMatch_ShouldPass()
     {
@@ -452,5 +471,111 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             
             vm.Run();
         });
+    }
+    
+    [TestMethod]
+    public void WhenApplyChainedProperty_WithPrimitiveList_ShouldPass()
+    {
+        const string query = """
+                             select 
+                                b.Value 
+                             from #schema.first() a 
+                             cross apply a.ComplexType.PrimitiveValues as b
+                             """;
+        
+        var firstSource = new List<CrossApplyClass7>
+        {
+            new() {
+                ComplexType = new ComplexType5
+                {
+                    PrimitiveValues = [1, 2]
+                }
+            }
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        
+        Assert.AreEqual(2, table.Count);
+        
+        Assert.AreEqual(1, table[0].Values[0]);
+        Assert.AreEqual(2, table[1].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenApplyChainedProperty_WithComplexList_ShouldPass()
+    {
+        const string query = """
+                             select 
+                                b.Value 
+                             from #schema.first() a 
+                             cross apply a.ComplexType.ComplexValues as b
+                             """;
+        
+        var firstSource = new List<CrossApplyClass7>
+        {
+            new() {
+                ComplexType = new ComplexType5
+                {
+                    ComplexValues = [new ComplexType6 { Value = 1}, new ComplexType6 { Value = 2}]
+                }
+            }
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        
+        Assert.AreEqual(2, table.Count);
+        
+        Assert.AreEqual(1, table[0].Values[0]);
+        Assert.AreEqual(2, table[1].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenGroupByAndOrderByWithAccessMethod_ShouldPass()
+    {
+        const string query = """
+                             select 
+                                GetTypeName(b.Value)
+                             from #schema.first() a 
+                             cross apply a.ComplexType.ComplexValues as b
+                             group by a.GetTypeName(b.Value)
+                             order by a.GetTypeName(b.Value)
+                             """;
+        
+        var firstSource = new List<CrossApplyClass7>
+        {
+            new() {
+                ComplexType = new ComplexType5
+                {
+                    ComplexValues = [new ComplexType6 { Value = 1}, new ComplexType6 { Value = 2}]
+                }
+            }
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        
+        Assert.AreEqual(1, table.Count);
+        
+        Assert.AreEqual("System.Int32", table[0].Values[0]);
     }
 }

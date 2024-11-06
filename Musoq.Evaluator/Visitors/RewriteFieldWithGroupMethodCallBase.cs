@@ -8,17 +8,13 @@ using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Visitors;
 
-public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode> : CloneQueryVisitor
+public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFieldNode>(TInputFieldNode[] fields) : CloneQueryVisitor
     where TFieldNode : FieldNode
+    where TInputFieldNode : FieldNode
 {
-    private readonly FieldNode[] _fields;
-
-    protected RewriteFieldWithGroupMethodCallBase(FieldNode[] fields)
-    {
-        _fields = fields;
-    }
-
     public TFieldNode Expression { get; protected set; }
+    
+    protected abstract string ExtractOriginalExpression(TInputFieldNode node);
 
     public override void Visit(AccessColumnNode node)
     {
@@ -56,7 +52,7 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode> : CloneQue
                 new ArgsListNode(args.ToArray()), node.ExtraAggregateArguments, node.CanSkipInjectSource, node.Method, node.Alias);
             Nodes.Push(extractFromGroup);
         }
-        else if (_fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))
+        else if (fields.Select(ExtractOriginalExpression).Contains(node.ToString()))
         {
             Nodes.Push(new AccessColumnNode(node.ToString(), string.Empty, node.ReturnType, TextSpan.Empty));
         }
@@ -73,7 +69,7 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode> : CloneQue
 
     public override void Visit(CaseNode node)
     {
-        if (_fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))
+        if (fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))
             Nodes.Push(new AccessColumnNode(node.ToString(), string.Empty, node.ReturnType, TextSpan.Empty));
         else
             base.Visit(node);

@@ -98,7 +98,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<UnknownColumnException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.ThrowsException<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -232,7 +232,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<UnknownColumnException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.ThrowsException<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]

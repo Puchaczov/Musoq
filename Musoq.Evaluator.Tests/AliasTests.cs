@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Multi;
 
 namespace Musoq.Evaluator.Tests;
@@ -24,6 +25,18 @@ public class AliasTests : MultiSchemaTestBase
         Assert.AreEqual(1, table.Columns.Count());
         
         Assert.AreEqual("ZeroItem", table.Columns.ElementAt(0).ColumnName);
+    }
+    
+    [TestMethod]
+    public void WhenNonExistingAliasUsed_ShouldThrow()
+    {
+        const string query = "select b.ZeroItem from #schema.first() a";
+        
+        Assert.ThrowsException<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, [
+            new()
+        ], [
+            new()
+        ]));
     }
     
     [TestMethod]

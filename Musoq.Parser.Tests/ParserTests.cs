@@ -151,4 +151,16 @@ public class ParserTests
 
         Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
     }
+
+    [TestMethod]
+    [DataRow("select 1 from #some.thing() r cross apply r.Prop.Nested c")]
+    [DataRow("select 1 from #some.thing() r cross apply r.Prop.Nested c cross apply c.Prop.Nested2 d")]
+    [DataRow("select 1 from #some.thing() r cross apply r.Prop.Nested.Deeply c")]
+    public void WhenNestedPropertyUsedWithCrossApply_ShouldPass(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
 }
