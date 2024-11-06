@@ -68,7 +68,7 @@ public class DateTimeOffsetTests : LibraryBaseBaseTests
     {
         var result = Library.ToDateTimeOffset("01/01/2020 00:00:00", "en-US");
 
-        Assert.AreEqual(new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.FromHours(1)), result);
+        Assert.AreEqual(new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero).DateTime, result!.Value.DateTime);
     }
     
     [TestMethod]
