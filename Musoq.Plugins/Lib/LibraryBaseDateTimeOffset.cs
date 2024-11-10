@@ -33,7 +33,7 @@ public partial class LibraryBase
     }
     
     /// <summary>
-    /// Subtracts the second DateTimeOffset from the first DateTimeOffset.
+    /// Subtracts the first DateTimeOffset from the second DateTimeOffset.
     /// </summary>
     /// <param name="first">The first DateTimeOffset.</param>
     /// <param name="second">The second DateTimeOffset.</param>
