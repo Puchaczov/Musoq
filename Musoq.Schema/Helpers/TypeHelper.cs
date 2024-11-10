@@ -27,11 +27,19 @@ public static class TypeHelper
     /// <returns>The type.</returns>
     public static Type GetUnderlyingNullable(this Type type)
     {
+        if (type.IsArray)
+        {
+            var elementType = type.GetElementType();
+            
+            if (elementType == null)
+                throw new InvalidOperationException("Element type cannot be null.");
+            
+            var underlyingElementType = Nullable.GetUnderlyingType(elementType);
+            return (underlyingElementType ?? elementType).MakeArrayType();
+        }
+
         var nullableType = Nullable.GetUnderlyingType(type);
-
-        var isNullableType = nullableType != null;
-
-        return isNullableType ? nullableType : type;
+        return nullableType ?? type;
     }
 
     /// <summary>

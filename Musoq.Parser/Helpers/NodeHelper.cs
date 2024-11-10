@@ -133,9 +133,9 @@ public static class NodeHelper
             {(typeof(string), typeof(string)), typeof(string)},
             {(typeof(bool), typeof(bool)), typeof(bool)},
                 
-            {(typeof(DateTimeOffset), typeof(DateTimeOffset)), typeof(DateTimeOffset)},
+            {(typeof(DateTimeOffset), typeof(DateTimeOffset)), typeof(TimeSpan)},
             {(typeof(DateTimeOffset), typeof(TimeSpan)), typeof(DateTimeOffset)},
-            {(typeof(DateTime), typeof(DateTime)), typeof(DateTime)},
+            {(typeof(DateTime), typeof(DateTime)), typeof(TimeSpan)},
             {(typeof(DateTime), typeof(TimeSpan)), typeof(DateTime)},
             {(typeof(TimeSpan), typeof(TimeSpan)), typeof(TimeSpan)}
         };

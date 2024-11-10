@@ -211,7 +211,7 @@ public class MethodsMetadata
                 var paramsParameters = methodArgs.Skip(notAnnotatedParametersCount - 1);
                 var arrayType = paramsParameters.ElementAt(0).MakeArrayType();
                 var paramType = parameters[^1].ParameterType;
-                hasMatchedArgTypes = paramType == arrayType || CanBeAssignedFromGeneric(paramType, arrayType);
+                hasMatchedArgTypes = paramType.GetUnderlyingNullable() == arrayType || CanBeAssignedFromGeneric(paramType, arrayType);
             }
 
             if (!hasMatchedArgTypes)

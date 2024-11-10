@@ -1,10 +1,75 @@
 ﻿using System;
+using System.Linq;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
+    /// <summary>
+    /// Adds a given set of time spans.
+    /// </summary>
+    /// <param name="timeSpans">Time spans that should be added</param>
+    /// <returns>Sum of time spans</returns>
+    [BindableMethod]
+    public TimeSpan? AddTimeSpans(params TimeSpan?[] timeSpans)
+    {
+        var firstNonNull = timeSpans.Select((value, index) => new {TimeSpan = value, Index = index})
+            .FirstOrDefault(pair => pair.TimeSpan.HasValue);
+        
+        if (firstNonNull == null)
+            return null;
+        
+        var sum = firstNonNull.TimeSpan!.Value;
+        
+        for (var i = firstNonNull.Index + 1; i < timeSpans.Length; i++)
+        {
+            if (timeSpans[i].HasValue)
+                sum += timeSpans[i]!.Value;
+        }
+        
+        return sum;
+    }
+    
+    /// <summary>
+    /// Subtracts a given set of time spans.
+    /// </summary>
+    /// <param name="timeSpans">Time spans that should be subtracted</param>
+    /// <returns>Subtracted time spans</returns>
+    [BindableMethod]
+    public TimeSpan? SubtractTimeSpans(params TimeSpan?[] timeSpans)
+    {
+        var firstNonNull = timeSpans.Select((value, index) => new {TimeSpan = value, Index = index})
+            .FirstOrDefault(pair => pair.TimeSpan.HasValue);
+        
+        if (firstNonNull == null)
+            return null;
+        
+        var sum = firstNonNull.TimeSpan!.Value;
+        
+        for (var i = firstNonNull.Index + 1; i < timeSpans.Length; i++)
+        {
+            if (timeSpans[i].HasValue)
+                sum -= timeSpans[i]!.Value;
+        }
+        
+        return sum;
+    }
+    
+    /// <summary>
+    /// Turns a string into a time span.
+    /// </summary>
+    /// <param name="timeSpan">String that should be converted</param>
+    /// <returns>Time span</returns>
+    [BindableMethod]
+    public TimeSpan? FromString(string timeSpan)
+    {
+        if (TimeSpan.TryParse(timeSpan, out var result))
+            return result;
+        
+        return null;
+    }
+    
     /// <summary>
     /// Gets the sum value of a given group.
     /// </summary>
