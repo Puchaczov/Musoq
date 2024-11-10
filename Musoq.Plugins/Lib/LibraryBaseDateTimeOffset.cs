@@ -31,6 +31,21 @@ public partial class LibraryBase
 
         return result;
     }
+    
+    /// <summary>
+    /// Subtracts the first DateTimeOffset from the second DateTimeOffset.
+    /// </summary>
+    /// <param name="first">The first DateTimeOffset.</param>
+    /// <param name="second">The second DateTimeOffset.</param>
+    /// <returns>The result of the subtraction, or null if either of the values is null.</returns>
+    [BindableMethod]
+    public TimeSpan? SubtractDateTimeOffsets(DateTimeOffset? first, DateTimeOffset? second)
+    {
+        if (first is null || second is null)
+            return null;
+
+        return first.Value - second.Value;
+    }
 
     /// <summary>
     /// Retrieves the maximum DateTimeOffset value from the specified group.

@@ -38,4 +38,52 @@ public class TimeSpanTests : LibraryBaseBaseTests
         
         Assert.AreEqual(new TimeSpan(3, 0, 0), Library.MaxTimeSpan(Group, "test"));
     }
+
+    [TestMethod]
+    public void AddTimeSpansTest()
+    {
+        var timeSpan = Library.AddTimeSpans(TimeSpan.Zero, TimeSpan.FromHours(1));
+        
+        Assert.AreEqual(TimeSpan.FromHours(1), timeSpan);
+    }
+    
+    [TestMethod]
+    public void WhenFirstTimeSpanIsNull_Add_ShouldReturnRightOne()
+    {
+        var timeSpan = Library.AddTimeSpans(null, TimeSpan.FromMinutes(30));
+        
+        Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
+    }
+    
+    [TestMethod]
+    public void WhenSecondTimeSpanIsNull_Add_ShouldReturnLeftOne()
+    {
+        var timeSpan = Library.AddTimeSpans(TimeSpan.FromMinutes(30), null);
+        
+        Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
+    }
+    
+    [TestMethod]
+    public void SubtractTimeSpansTest()
+    {
+        var timeSpan = Library.SubtractTimeSpans(TimeSpan.FromHours(1), TimeSpan.FromMinutes(30));
+        
+        Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
+    }
+    
+    [TestMethod]
+    public void WhenFirstTimeSpanIsNull_Subtract_ShouldReturnRightOne()
+    {
+        var timeSpan = Library.SubtractTimeSpans(null, TimeSpan.FromMinutes(30));
+        
+        Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
+    }
+    
+    [TestMethod]
+    public void WhenSecondTimeSpanIsNull_Subtract_ShouldReturnLeftOne()
+    {
+        var timeSpan = Library.SubtractTimeSpans(TimeSpan.FromMinutes(30), null);
+        
+        Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
+    }
 }

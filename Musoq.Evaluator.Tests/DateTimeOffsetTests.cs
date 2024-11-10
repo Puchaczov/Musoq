@@ -69,4 +69,62 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 2, 1)), table[0].Values[0]);
     }
+    
+    [TestMethod]
+    public void SubtractDateTimeOffsetsTest()
+    {
+        const string query = "table Dates {" +
+                             "  Date1 'System.DateTimeOffset'," +
+                             "  Date2 'System.DateTimeOffset'" +
+                             "};" +
+                             "couple #test.whatever with table Dates as Dates; " +
+                             "select SubtractDateTimeOffsets(Date1, Date2) from Dates()";
+        
+        dynamic first = new ExpandoObject();
+        first.Date1 = new DateTimeOffset(new DateTime(2023, 1, 1));
+        first.Date2 = new DateTimeOffset(new DateTime(2023, 1, 1));
+        
+        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
+        {
+            first
+        });
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual("SubtractDateTimeOffsets(Date1, Date2)", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(TimeSpan?), table.Columns.ElementAt(0).ColumnType);
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(TimeSpan.Zero, table[0].Values[0]);
+    }
+    
+    [TestMethod]
+    public void SubtractDateTimeOffsets_MinusOperatorTest()
+    {
+        const string query = "table Dates {" +
+                             "  Date1 'System.DateTimeOffset'," +
+                             "  Date2 'System.DateTimeOffset'" +
+                             "};" +
+                             "couple #test.whatever with table Dates as Dates; " +
+                             "select Date1 - Date2 from Dates()";
+        
+        dynamic first = new ExpandoObject();
+        first.Date1 = new DateTimeOffset(new DateTime(2023, 1, 1));
+        first.Date2 = new DateTimeOffset(new DateTime(2023, 1, 1));
+        
+        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
+        {
+            first
+        });
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual("Date1 - Date2", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(TimeSpan), table.Columns.ElementAt(0).ColumnType);
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(TimeSpan.Zero, table[0].Values[0]);
+    }
 }

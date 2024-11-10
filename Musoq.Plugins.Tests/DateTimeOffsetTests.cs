@@ -100,4 +100,28 @@ public class DateTimeOffsetTests : LibraryBaseBaseTests
         Assert.AreEqual(new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero), min);
         Assert.AreEqual(new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero), max);
     }
+    
+    [TestMethod]
+    public void WhenTwoDateTimeOffsetsSubtracted_ShouldReturnTimeSpan()
+    {
+        var result = Library.SubtractDateTimeOffsets(new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero), new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero));
+
+        Assert.AreEqual(TimeSpan.Zero, result);
+    }
+    
+    [TestMethod]
+    public void WhenOneDateTimeOffsetNull_ShouldReturnNull()
+    {
+        var result = Library.SubtractDateTimeOffsets(new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero), null);
+
+        Assert.IsNull(result);
+    }
+    
+    [TestMethod]
+    public void WhenBothDateTimeOffsetsNull_ShouldReturnNull()
+    {
+        var result = Library.SubtractDateTimeOffsets(null, null);
+
+        Assert.IsNull(result);
+    }
 }
