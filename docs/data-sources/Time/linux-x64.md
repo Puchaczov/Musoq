@@ -5,7 +5,7 @@ parent: Time
 ---
 
 # Musoq.DataSources.Time
-
+Provides schema to work with time.
 ## Tables
 
 Table is a collection of rows and columns that the plugin exposes. Below are the tables that are exposed by this data source.
@@ -1041,13 +1041,33 @@ Gets the day of week from DateTimeOffset
 
 Extracts time from DateTimeOffset
 
-### DateTime? ToDateTimeOffset(string value)
+### DateTimeOffset? ToDateTimeOffset(string value)
 
-Converts given value to DateTimeOffset
+Converts the given value to DateTimeOffset using the current culture.
 
 ### DateTimeOffset? ToDateTimeOffset(string value, string culture)
 
-Converts given value to DateTimeOffset
+Converts the given value to DateTimeOffset using the specified culture.
+
+### TimeSpan? SubtractDateTimeOffsets(DateTimeOffset? first, DateTimeOffset? second)
+
+Subtracts the first DateTimeOffset from the second DateTimeOffset.
+
+### DateTimeOffset? MaxDateTimeOffset(string name, int parent)
+
+Retrieves the maximum DateTimeOffset value from the specified group.
+
+### DateTimeOffset? MaxDateTimeOffset(string name)
+
+Retrieves the maximum DateTimeOffset value from the specified group.
+
+### DateTimeOffset? MinDateTimeOffset(string name, int parent)
+
+Retrieves the minimum DateTimeOffset value from the specified group.
+
+### DateTimeOffset? MinDateTimeOffset(string name)
+
+Retrieves the minimum DateTimeOffset value from the specified group.
 
 ### IEnumerable\<T\>? Skip\<T\>(IEnumerable\<T\>? values, int? skipCount)
 
@@ -1557,6 +1577,18 @@ Gets the outcome value of a given group.
 
 Gets the outcome value of a given group.
 
+### TimeSpan? AddTimeSpans(TimeSpan?[] timeSpans)
+
+Adds a given set of time spans.
+
+### TimeSpan? SubtractTimeSpans(TimeSpan?[] timeSpans)
+
+Subtracts a given set of time spans.
+
+### TimeSpan? FromString(string timeSpan)
+
+Turns a string into a time span.
+
 ### TimeSpan? SumTimeSpan(string name)
 
 Gets the sum value of a given group.
@@ -1579,7 +1611,7 @@ Gets the max value of a given group.
 
 ### TimeSpan? MaxTimeSpan(string name, int parent)
 
-Gets the min value of a given group.
+Gets the max value of a given group.
 
 ### char? ToChar(string? value)
 
@@ -1608,6 +1640,10 @@ Converts given value to DateTime
 ### DateTime? ToDateTime(string value, string culture)
 
 Converts given value to DateTime
+
+### TimeSpan? SubtractDates(DateTime? date1, DateTime? date2)
+
+Subtracts two DateTime values and returns the difference as a TimeSpan
 
 ### Decimal? ToDecimal(string? value)
 

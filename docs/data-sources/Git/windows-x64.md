@@ -5,7 +5,7 @@ parent: Git
 ---
 
 # Musoq.DataSources.Git
-
+Provides schema to work with Git repositories.
 ## Tables
 
 Table is a collection of rows and columns that the plugin exposes. Below are the tables that are exposed by this data source.
@@ -26,6 +26,7 @@ Allows to perform queries on the given Git repository path.
 | Configuration | ConfigurationEntityKeyValue[] | Repository configuration |
 | Information | RepositoryInformationEntity | Repository information |
 | Stashes | StashEntity[] | Repository stashes |
+| Self | RepositoryEntity | This instance |
 
 ## Private Tables
 
@@ -48,6 +49,8 @@ Represents a Git branch
 | Commits | CommitEntity[] | Branch commits |
 | UpstreamBranchCanonicalName | string | Upstream branch canonical name |
 | RemoteName | string | Remote name |
+| ParentBranch | BranchEntity | Parent branch |
+| Self | BranchEntity | This instance |
 
 ### CommitEntity
 
@@ -63,6 +66,7 @@ Represents a Git commit
 | Committer | string | Committer name |
 | CommitterEmail | string | Committer email |
 | CommittedWhen | DateTimeOffset | Commit date and time |
+| Self | CommitEntity | This instance |
 
 ### TagEntity
 
@@ -75,6 +79,7 @@ Represents a Git tag
 | Message | string? | Tag message |
 | IsAnnotated | bool | Is annotated tag |
 | Annotation | AnnotationEntity | Tag annotation |
+| Commit | CommitEntity? | Tag commit |
 
 ### StashEntity
 
@@ -183,6 +188,16 @@ Represents Git patch entry changes
 | Mode | string | Gets the mode |
 | IsBinaryComparison | string | Determines if at least one side of the comparison holds binary content |
 
+### MergeBaseEntity
+
+Represents a merge base in a git repository
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| MergeBaseCommit | CommitEntity | Merge base commit |
+| FirstBranch | BranchEntity | First branch |
+| SecondBranch | BranchEntity | Second branch |
+
 ## Methods
 
 Methods are functions that can be called on the data source specific column. Below are the methods that are exposed by this data source.
@@ -218,6 +233,34 @@ Gets a branch entity from a canonical name.
 ### IEnumerable\<Musoq.DataSources.Git.Entities.PatchEntity\> PatchBetween(Musoq.DataSources.Git.Entities.CommitEntity first, Musoq.DataSources.Git.Entities.CommitEntity second)
 
 Gets the patch between two commits.
+
+### IEnumerable\<Musoq.DataSources.Git.Entities.BranchEntity\> SearchForBranches(string searchPatternRegex)
+
+Gets the branches that match a search pattern.
+
+### IEnumerable\<Musoq.DataSources.Git.Entities.CommitEntity\> GetBranchSpecificCommits(Musoq.DataSources.Git.Entities.RepositoryEntity repository, Musoq.DataSources.Git.Entities.BranchEntity branch, bool excludeMergeBase)
+
+Gets commits unique to this branch since it diverged from its parent.
+
+### Musoq.DataSources.Git.Entities.MergeBaseEntity? FindMergeBase(Musoq.DataSources.Git.Entities.RepositoryEntity? repository, Musoq.DataSources.Git.Entities.BranchEntity? branch)
+
+Finds the merge base between this branch and another branch.
+
+### Musoq.DataSources.Git.Entities.CommitEntity? MaxCommit(string name, int parent)
+
+Gets the max commit from a given group.
+
+### Musoq.DataSources.Git.Entities.CommitEntity? MaxCommit(string name)
+
+Gets the max commit from a given group.
+
+### Musoq.DataSources.Git.Entities.CommitEntity? MinCommit(string name, int parent)
+
+Gets the min commit from a given group.
+
+### Musoq.DataSources.Git.Entities.CommitEntity? MinCommit(string name)
+
+Gets the min commit from a given group.
 
 
 ## Base Methods
@@ -1232,13 +1275,33 @@ Gets the day of week from DateTimeOffset
 
 Extracts time from DateTimeOffset
 
-### DateTime? ToDateTimeOffset(string value)
+### DateTimeOffset? ToDateTimeOffset(string value)
 
-Converts given value to DateTimeOffset
+Converts the given value to DateTimeOffset using the current culture.
 
 ### DateTimeOffset? ToDateTimeOffset(string value, string culture)
 
-Converts given value to DateTimeOffset
+Converts the given value to DateTimeOffset using the specified culture.
+
+### TimeSpan? SubtractDateTimeOffsets(DateTimeOffset? first, DateTimeOffset? second)
+
+Subtracts the first DateTimeOffset from the second DateTimeOffset.
+
+### DateTimeOffset? MaxDateTimeOffset(string name, int parent)
+
+Retrieves the maximum DateTimeOffset value from the specified group.
+
+### DateTimeOffset? MaxDateTimeOffset(string name)
+
+Retrieves the maximum DateTimeOffset value from the specified group.
+
+### DateTimeOffset? MinDateTimeOffset(string name, int parent)
+
+Retrieves the minimum DateTimeOffset value from the specified group.
+
+### DateTimeOffset? MinDateTimeOffset(string name)
+
+Retrieves the minimum DateTimeOffset value from the specified group.
 
 ### IEnumerable\<T\>? Skip\<T\>(IEnumerable\<T\>? values, int? skipCount)
 
@@ -1748,6 +1811,18 @@ Gets the outcome value of a given group.
 
 Gets the outcome value of a given group.
 
+### TimeSpan? AddTimeSpans(TimeSpan?[] timeSpans)
+
+Adds a given set of time spans.
+
+### TimeSpan? SubtractTimeSpans(TimeSpan?[] timeSpans)
+
+Subtracts a given set of time spans.
+
+### TimeSpan? FromString(string timeSpan)
+
+Turns a string into a time span.
+
 ### TimeSpan? SumTimeSpan(string name)
 
 Gets the sum value of a given group.
@@ -1770,7 +1845,7 @@ Gets the max value of a given group.
 
 ### TimeSpan? MaxTimeSpan(string name, int parent)
 
-Gets the min value of a given group.
+Gets the max value of a given group.
 
 ### char? ToChar(string? value)
 
@@ -1799,6 +1874,10 @@ Converts given value to DateTime
 ### DateTime? ToDateTime(string value, string culture)
 
 Converts given value to DateTime
+
+### TimeSpan? SubtractDates(DateTime? date1, DateTime? date2)
+
+Subtracts two DateTime values and returns the difference as a TimeSpan
 
 ### Decimal? ToDecimal(string? value)
 
