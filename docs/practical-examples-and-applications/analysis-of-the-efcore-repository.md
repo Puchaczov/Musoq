@@ -414,7 +414,9 @@ select * from DifferenceInfo;
 |.config/guardian/.gdnbaselines|
 |.config/tsaoptions.json|
 |test/EFCore.Cosmos.FunctionalTests/ConfigPatternsCosmosTest.cs|
+
 ...well, mostly `yaml` configuration files
+
 ## I'm going to try out different way...
 
 Let's check what files changed between v5.0.0 and v6.0.0:
