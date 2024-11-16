@@ -13,7 +13,7 @@ public class ChunkEnumeratorTests
     public void EnumerateAllTest()
     {
         var tokenSource = new CancellationTokenSource();
-        var readedChunks = new BlockingCollection<IReadOnlyList<IObjectResolver>>
+        var readChunks = new BlockingCollection<IReadOnlyList<IObjectResolver>>
         {
             new List<EntityResolver<string>>(),
             new List<EntityResolver<string>>
@@ -34,7 +34,7 @@ public class ChunkEnumeratorTests
 
 
         var enumerator =
-            new ChunkEnumerator<string>(readedChunks,
+            new ChunkEnumerator<string>(readChunks,
                 tokenSource.Token);
 
         tokenSource.Cancel();

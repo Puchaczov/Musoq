@@ -33,7 +33,7 @@ public class EvaluationHelperTests
     [TestMethod]
     public void CreateComplexTypeDescriptionArrayTest()
     {
-        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("Test", typeof(TestClass));
+        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("Test", typeof(TestClass)).ToArray();
 
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test" && pair.Type == typeof(TestClass)));
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.Test" && pair.Type == typeof(TestClass)));
