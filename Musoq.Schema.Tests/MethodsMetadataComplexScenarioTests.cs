@@ -93,7 +93,6 @@ public class MethodsMetadataComplexScenarioTests
             "Should resolve without optional parameters"
         );
 
-        // Test with null for optional parameter
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "ComplexAggregation",

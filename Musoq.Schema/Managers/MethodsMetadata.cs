@@ -11,24 +11,110 @@ namespace Musoq.Schema.Managers;
 
 public class MethodsMetadata
 {
-    private static readonly Dictionary<Type, Type[]> TypeCompatibilityTable;
-    private readonly Dictionary<string, List<MethodInfo>> _methods;
-
-    static MethodsMetadata()
+    private static readonly Dictionary<Type, Type[]> TypeCompatibilityTable = new()
     {
-        TypeCompatibilityTable = new Dictionary<Type, Type[]>
-        {
-            {typeof(bool), [typeof(bool)]},
-            {typeof(short), [typeof(short)]},
-            {typeof(int), [typeof(int), typeof(short)]},
-            {typeof(long), [typeof(long), typeof(int), typeof(short)]},
-            {typeof(DateTimeOffset), [typeof(DateTimeOffset)]},
-            {typeof(DateTime), [typeof(DateTime)]},
-            {typeof(string), [typeof(string)]},
-            {typeof(decimal), [typeof(decimal)]},
-            {typeof(TimeSpan), [typeof(TimeSpan)]}
-        };
-    }
+        {typeof(bool), [typeof(bool)]},
+        {typeof(short), [typeof(short)]},
+        {typeof(int), [typeof(int), typeof(short)]},
+        {typeof(long), [typeof(long), typeof(int), typeof(short)]},
+        {typeof(DateTimeOffset), [typeof(DateTimeOffset)]},
+        {typeof(DateTime), [typeof(DateTime)]},
+        {typeof(string), [typeof(string)]},
+        {typeof(decimal), [typeof(decimal)]},
+        {typeof(TimeSpan), [typeof(TimeSpan)]}
+    };
+
+    private static readonly Dictionary<Type, HashSet<Type>> ValidImplicitConversions = new()
+    {
+        [typeof(sbyte)] =
+            [typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
+        [typeof(byte)] =
+        [
+            typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float),
+            typeof(double), typeof(decimal)
+        ],
+        [typeof(short)] = [typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
+        [typeof(ushort)] =
+        [
+            typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)
+        ],
+        [typeof(int)] = [typeof(long), typeof(float), typeof(double), typeof(decimal)],
+        [typeof(uint)] = [typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)],
+        [typeof(long)] = [typeof(float), typeof(double), typeof(decimal)],
+        [typeof(ulong)] = [typeof(float), typeof(double), typeof(decimal)],
+        [typeof(float)] = [typeof(double)],
+        [typeof(char)] =
+        [
+            typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double),
+            typeof(decimal)
+        ]
+    };
+
+    private static readonly Dictionary<(Type, Type), int> ConversationCosts = new()
+    {
+        [(typeof(sbyte), typeof(short))] = 1,
+        [(typeof(sbyte), typeof(int))] = 2,
+        [(typeof(sbyte), typeof(long))] = 3,
+        [(typeof(sbyte), typeof(float))] = 4,
+        [(typeof(sbyte), typeof(double))] = 5,
+        [(typeof(sbyte), typeof(decimal))] = 6,
+
+        [(typeof(byte), typeof(short))] = 1,
+        [(typeof(byte), typeof(ushort))] = 1,
+        [(typeof(byte), typeof(int))] = 2,
+        [(typeof(byte), typeof(uint))] = 2,
+        [(typeof(byte), typeof(long))] = 3,
+        [(typeof(byte), typeof(ulong))] = 3,
+        [(typeof(byte), typeof(float))] = 4,
+        [(typeof(byte), typeof(double))] = 5,
+        [(typeof(byte), typeof(decimal))] = 6,
+
+        [(typeof(short), typeof(int))] = 1,
+        [(typeof(short), typeof(long))] = 2,
+        [(typeof(short), typeof(float))] = 3,
+        [(typeof(short), typeof(double))] = 4,
+        [(typeof(short), typeof(decimal))] = 5,
+
+        [(typeof(ushort), typeof(int))] = 1,
+        [(typeof(ushort), typeof(uint))] = 1,
+        [(typeof(ushort), typeof(long))] = 2,
+        [(typeof(ushort), typeof(ulong))] = 2,
+        [(typeof(ushort), typeof(float))] = 3,
+        [(typeof(ushort), typeof(double))] = 4,
+        [(typeof(ushort), typeof(decimal))] = 5,
+
+        [(typeof(int), typeof(long))] = 1,
+        [(typeof(int), typeof(float))] = 2,
+        [(typeof(int), typeof(double))] = 2,
+        [(typeof(int), typeof(decimal))] = 3,
+
+        [(typeof(uint), typeof(long))] = 1,
+        [(typeof(uint), typeof(ulong))] = 1,
+        [(typeof(uint), typeof(float))] = 2,
+        [(typeof(uint), typeof(double))] = 2,
+        [(typeof(uint), typeof(decimal))] = 3,
+
+        [(typeof(long), typeof(float))] = 1,
+        [(typeof(long), typeof(double))] = 1,
+        [(typeof(long), typeof(decimal))] = 2,
+
+        [(typeof(ulong), typeof(float))] = 1,
+        [(typeof(ulong), typeof(double))] = 1,
+        [(typeof(ulong), typeof(decimal))] = 2,
+
+        [(typeof(float), typeof(double))] = 1,
+
+        [(typeof(char), typeof(ushort))] = 1,
+        [(typeof(char), typeof(int))] = 2,
+        [(typeof(char), typeof(uint))] = 2,
+        [(typeof(char), typeof(long))] = 3,
+        [(typeof(char), typeof(ulong))] = 3,
+        [(typeof(char), typeof(float))] = 4,
+        [(typeof(char), typeof(double))] = 5,
+        [(typeof(char), typeof(decimal))] = 6
+    };
+    
+    private readonly Dictionary<string, List<MethodInfo>> _methods;
 
     /// <summary>
     ///     Initialize object.
@@ -49,7 +135,9 @@ public class MethodsMetadata
     {
         if (!TryGetAnnotatedMethod(name, methodArgs, entityType, out var index))
         {
-            var args = methodArgs.Length == 0 ? string.Empty : methodArgs.Select(arg => arg.Name).Aggregate((a, b) => a + ", " + b);
+            var args = methodArgs.Length == 0
+                ? string.Empty
+                : methodArgs.Select(arg => arg.Name).Aggregate((a, b) => a + ", " + b);
             throw new MissingMethodException("Unresolvable", $"{name}({args})");
         }
 
@@ -181,11 +269,17 @@ public class MethodsMetadata
             //Wrong amount of argument's. That's not our function.
             if (!paramsParameter.HasParameters() &&
                 (HasMoreArgumentsThanMethodDefinitionContains(methodArgs, notAnnotatedParametersCount) ||
-                 !CanUseSomeArgumentsAsDefaultParameters(methodArgs, notAnnotatedParametersCount, optionalParametersCount)))
+                 !CanUseSomeArgumentsAsDefaultParameters(methodArgs, notAnnotatedParametersCount,
+                     optionalParametersCount)))
                 continue;
 
             var hasMatchedArgTypes = true;
-            for (int f = 0, g = paramsParameter.HasParameters() ? Math.Min(methodArgs.Count - (parameters.Length - 1), parameters.Length) : methodArgs.Count; f < g; ++f)
+            for (int f = 0,
+                 g = paramsParameter.HasParameters()
+                     ? Math.Min(methodArgs.Count - (parameters.Length - 1), parameters.Length)
+                     : methodArgs.Count;
+                 f < g;
+                 ++f)
             {
                 //1. When constant value, it won't be nullable<type> but type.
                 //So it is possible to call function with such value. 
@@ -197,11 +291,13 @@ public class MethodsMetadata
                 if (IsTypePossibleToConvert(param, arg) ||
                     CanSafelyPassNull(rawParam, arg) ||
                     (param.IsGenericParameter && TypeConformsToConstraints(param, arg)) ||
-                    (arg.IsArray || arg.GetInterface("IEnumerable") != null) && param.IsGenericType && param.Name == "IEnumerable`1" || 
-                    param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" && arg.Name == "IEnumerable`1" ||
+                    (arg.IsArray || arg.GetInterface("IEnumerable") != null) && param.IsGenericType &&
+                    param.Name == "IEnumerable`1" ||
+                    param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" &&
+                    arg.Name == "IEnumerable`1" ||
                     (param.IsArray && param.GetElementType().IsGenericParameter && arg.IsArray) ||
                     arg.IsArray && arg.GetElementType().IsGenericParameter
-                )
+                   )
                     continue;
 
                 hasMatchedArgTypes = false;
@@ -211,10 +307,13 @@ public class MethodsMetadata
             if (paramsParameter.HasParameters() && methodArgs.Count > notAnnotatedParametersCount - 1)
             {
                 var paramsParameters = methodArgs.Skip(notAnnotatedParametersCount - 1).ToArray();
-                var commonType = paramsParameters.Length == 1 ? paramsParameters[0] : FindCommonBaseType(paramsParameters);
+                var commonType = paramsParameters.Length == 1
+                    ? paramsParameters[0]
+                    : FindCommonBaseType(paramsParameters);
                 var arrayType = commonType.MakeArrayType();
                 var paramType = parameters[^1].ParameterType;
-                hasMatchedArgTypes = paramType.GetUnderlyingNullable() == arrayType || CanBeAssignedFromGeneric(paramType, arrayType);
+                hasMatchedArgTypes = paramType.GetUnderlyingNullable() == arrayType ||
+                                     CanBeAssignedFromGeneric(paramType, arrayType);
             }
 
             if (!hasMatchedArgTypes)
@@ -225,43 +324,45 @@ public class MethodsMetadata
             if (entityType is not null)
             {
                 var injectTypeAttributes = GetInjectTypeAttribute(methodInfo);
-                var injectTypeAttribute = injectTypeAttributes.SingleOrDefault(f => f is InjectSpecificSourceAttribute, injectTypeAttributes.FirstOrDefault());
-                
+                var injectTypeAttribute = injectTypeAttributes.SingleOrDefault(f => f is InjectSpecificSourceAttribute,
+                    injectTypeAttributes.FirstOrDefault());
+
                 if (injectTypeAttribute is null)
                     goto breakAll;
-                
+
                 var isGroupAttribute = injectTypeAttribute is InjectGroupAttribute;
 
                 if (isGroupAttribute)
                     goto breakAll;
-                
+
                 var isQueryStatsAttribute = injectTypeAttribute is InjectQueryStatsAttribute;
-                
+
                 if (isQueryStatsAttribute)
                     goto breakAll;
-                
+
                 if (!IsEntityTypeInjectableIntoMethod(entityType, injectTypeAttribute))
                     continue;
             }
+
             breakAll:
 
             index = _methods[name].IndexOf(methodInfo);
             matchingMethodsIndexes.Add((index, methodInfo));
         }
-        
-        if (matchingMethodsIndexes.Count == 0)
-        {
-            index = -1;
-            return false;
-        }
 
-        if (matchingMethodsIndexes.Count > 1)
+        switch (matchingMethodsIndexes.Count)
         {
-            var orderedMatchingMethods = matchingMethodsIndexes
-                .Select(f => f.Method)
-                .OrderBy(MeasureHowCloseTheMethodIsAgainstTheArguments);
-            index = _methods[name].IndexOf(orderedMatchingMethods.First());
-            return true;
+            case 0:
+                index = -1;
+                return false;
+            case > 1:
+            {
+                var orderedMatchingMethods = matchingMethodsIndexes
+                    .Select(f => f.Method)
+                    .OrderBy(MeasureHowCloseTheMethodIsAgainstTheArguments);
+                index = _methods[name].IndexOf(orderedMatchingMethods.First());
+                return true;
+            }
         }
 
         index = matchingMethodsIndexes[0].Index;
@@ -293,20 +394,20 @@ public class MethodsMetadata
 
             return howClosePassedTypesAre;
         }
-        
+
         int GetInheritanceDepth(Type derived, Type target)
         {
             if (derived == target) return 0;
-    
+
             var depth = 0;
             var current = derived;
-    
+
             while (current != null && current != target)
             {
                 depth++;
                 current = current.BaseType;
             }
-    
+
             return current == null ? -1 : depth;
         }
     }
@@ -336,7 +437,7 @@ public class MethodsMetadata
     {
         return methodArgs.Count > parametersCount;
     }
-        
+
     private void RegisterMethod(string name, MethodInfo methodInfo)
     {
         if (_methods.TryGetValue(name, out var method))
@@ -351,11 +452,11 @@ public class MethodsMetadata
 
         if (!isParamArray)
             return false;
-        
+
         var paramElementType = paramType.GetElementType()!;
         var isParamGeneric = paramElementType.IsGenericParameter || paramElementType.IsArray;
         var isArrayArray = arrayType.IsArray;
-        
+
         return isParamGeneric && isArrayArray;
     }
 
@@ -373,7 +474,7 @@ public class MethodsMetadata
             .Cast<InjectTypeAttribute>()
             .ToArray();
     }
-        
+
     private static bool IsTypePossibleToConvert(Type to, Type from)
     {
         if (from == typeof(IDynamicMetaObjectProvider))
@@ -382,7 +483,7 @@ public class MethodsMetadata
             return value.Any(f => f == from);
         return to == from || to.IsAssignableFrom(from);
     }
-        
+
     private static bool CanSafelyPassNull(Type to, Type from)
     {
         if (from.FullName != typeof(NullNode.NullType).FullName)
@@ -392,30 +493,29 @@ public class MethodsMetadata
                || to.IsGenericParameter
                || !to.IsValueType;
     }
-    
+
     private static bool TypeConformsToConstraints(Type genericType, Type type)
     {
         var effectiveType = Nullable.GetUnderlyingType(type) ?? type;
-    
+
         var interfaces = genericType.GetGenericParameterConstraints()
             .Where(t => t.IsInterface);
-        
-        foreach (var @interface in interfaces)
+
+        if (interfaces.Any(@interface => !effectiveType.GetInterfaces().Contains(@interface)))
         {
-            if (!effectiveType.GetInterfaces().Contains(@interface))
-                return false;
+            return false;
         }
-    
+
         var specialConstraints = genericType.GenericParameterAttributes;
-    
-        if ((specialConstraints & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0 
+
+        if ((specialConstraints & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0
             && !effectiveType.IsValueType)
             return false;
-        
-        if ((specialConstraints & GenericParameterAttributes.ReferenceTypeConstraint) != 0 
+
+        if ((specialConstraints & GenericParameterAttributes.ReferenceTypeConstraint) != 0
             && effectiveType.IsValueType)
             return false;
-    
+
         var baseConstraint = genericType.GetGenericParameterConstraints()
             .FirstOrDefault(t => !t.IsInterface);
         if (baseConstraint != null)
@@ -425,40 +525,33 @@ public class MethodsMetadata
         }
 
         if ((specialConstraints & GenericParameterAttributes.DefaultConstructorConstraint) == 0) return true;
-        
-        if (effectiveType.IsValueType) return true;
-        
-        var constructor = effectiveType.GetConstructor(Type.EmptyTypes);
-        if (constructor == null)
-            return false;
 
-        return true;
+        if (effectiveType.IsValueType) return true;
+
+        var constructor = effectiveType.GetConstructor(Type.EmptyTypes);
+        
+        return constructor != null;
     }
-    
+
     private static Type FindCommonBaseType(params Type[] types)
     {
-        // Handle empty or null cases
         if (types == null || types.Length == 0)
             return typeof(object);
-        
+
         if (types.Length == 1)
             return types[0];
-        
-        // Get all base types for the first type
-        HashSet<Type> commonBaseTypes = GetTypeHierarchy(types[0]);
-    
-        // Intersect with hierarchies of all other types
-        for (int i = 1; i < types.Length; i++)
+
+        var commonBaseTypes = GetTypeHierarchy(types[0]);
+
+        for (var i = 1; i < types.Length; i++)
         {
             var currentHierarchy = GetTypeHierarchy(types[i]);
             commonBaseTypes.IntersectWith(currentHierarchy);
-        
-            // If we're down to just Object, we can stop
+
             if (commonBaseTypes.Count == 1 && commonBaseTypes.Single() == typeof(object))
                 return typeof(object);
         }
-    
-        // Find the most specific type (furthest from Object)
+
         return FindMostSpecificType(commonBaseTypes);
     }
 
@@ -467,14 +560,14 @@ public class MethodsMetadata
         var hierarchy = new HashSet<Type>();
         if (type == null)
             return hierarchy;
-        
-        Type current = type;
+
+        var current = type;
         while (current != null)
         {
             hierarchy.Add(current);
             current = current.BaseType;
         }
-    
+
         return hierarchy;
     }
 
@@ -482,8 +575,8 @@ public class MethodsMetadata
     {
         if (types == null || types.Count == 0)
             return typeof(object);
-        
-        Type mostSpecific = typeof(object);
+
+        var mostSpecific = typeof(object);
         foreach (var type in types)
         {
             if (mostSpecific == typeof(object))
@@ -491,124 +584,26 @@ public class MethodsMetadata
                 mostSpecific = type;
                 continue;
             }
-        
+
             if (type.IsSubclassOf(mostSpecific))
                 mostSpecific = type;
         }
-    
+
         return mostSpecific;
     }
-    
+
     private static bool CanImplicitlyConvert(Type from, Type to)
     {
+        if (from == null || to == null)
+            return false;
+
         if (!from.IsPrimitive || !to.IsPrimitive) return false;
-        
-        var implicitConversions = new Dictionary<Type, HashSet<Type>>
-        {
-            [typeof(sbyte)] =
-                [typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
-            [typeof(byte)] =
-            [
-                typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float),
-                typeof(double), typeof(decimal)
-            ],
-            [typeof(short)] = [typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
-            [typeof(ushort)] =
-            [
-                typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)
-            ],
-            [typeof(int)] = [typeof(long), typeof(float), typeof(double), typeof(decimal)],
-            [typeof(uint)] = [typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)],
-            [typeof(long)] = [typeof(float), typeof(double), typeof(decimal)],
-            [typeof(ulong)] = [typeof(float), typeof(double), typeof(decimal)],
-            [typeof(float)] = [typeof(double)],
-            [typeof(char)] =
-            [
-                typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double),
-                typeof(decimal)
-            ]
-        };
 
-        return implicitConversions.ContainsKey(from) && implicitConversions[from].Contains(to);
-
+        return ValidImplicitConversions.ContainsKey(from) && ValidImplicitConversions[from].Contains(to);
     }
 
     private static int GetNumericConversionCost(Type from, Type to)
     {
-        var conversionCosts = new Dictionary<(Type, Type), int>
-        {
-            // From sbyte (8-bit signed)
-            [(typeof(sbyte), typeof(short))] = 1,
-            [(typeof(sbyte), typeof(int))] = 2,
-            [(typeof(sbyte), typeof(long))] = 3,
-            [(typeof(sbyte), typeof(float))] = 4,
-            [(typeof(sbyte), typeof(double))] = 5,
-            [(typeof(sbyte), typeof(decimal))] = 6,
-
-            // From byte (8-bit unsigned)
-            [(typeof(byte), typeof(short))] = 1,
-            [(typeof(byte), typeof(ushort))] = 1,
-            [(typeof(byte), typeof(int))] = 2,
-            [(typeof(byte), typeof(uint))] = 2,
-            [(typeof(byte), typeof(long))] = 3,
-            [(typeof(byte), typeof(ulong))] = 3,
-            [(typeof(byte), typeof(float))] = 4,
-            [(typeof(byte), typeof(double))] = 5,
-            [(typeof(byte), typeof(decimal))] = 6,
-
-            // From short (16-bit signed)
-            [(typeof(short), typeof(int))] = 1,
-            [(typeof(short), typeof(long))] = 2,
-            [(typeof(short), typeof(float))] = 3,
-            [(typeof(short), typeof(double))] = 4,
-            [(typeof(short), typeof(decimal))] = 5,
-
-            // From ushort (16-bit unsigned)
-            [(typeof(ushort), typeof(int))] = 1,
-            [(typeof(ushort), typeof(uint))] = 1,
-            [(typeof(ushort), typeof(long))] = 2,
-            [(typeof(ushort), typeof(ulong))] = 2,
-            [(typeof(ushort), typeof(float))] = 3,
-            [(typeof(ushort), typeof(double))] = 4,
-            [(typeof(ushort), typeof(decimal))] = 5,
-
-            // From int (32-bit signed)
-            [(typeof(int), typeof(long))] = 1,
-            [(typeof(int), typeof(float))] = 2,
-            [(typeof(int), typeof(double))] = 2,
-            [(typeof(int), typeof(decimal))] = 3,
-
-            // From uint (32-bit unsigned)
-            [(typeof(uint), typeof(long))] = 1,
-            [(typeof(uint), typeof(ulong))] = 1,
-            [(typeof(uint), typeof(float))] = 2,
-            [(typeof(uint), typeof(double))] = 2,
-            [(typeof(uint), typeof(decimal))] = 3,
-
-            // From long (64-bit signed)
-            [(typeof(long), typeof(float))] = 1,
-            [(typeof(long), typeof(double))] = 1,
-            [(typeof(long), typeof(decimal))] = 2,
-
-            // From ulong (64-bit unsigned)
-            [(typeof(ulong), typeof(float))] = 1,
-            [(typeof(ulong), typeof(double))] = 1,
-            [(typeof(ulong), typeof(decimal))] = 2,
-
-            // From float (32-bit floating-point)
-            [(typeof(float), typeof(double))] = 1,
-
-            // From char (16-bit unsigned)
-            [(typeof(char), typeof(ushort))] = 1,
-            [(typeof(char), typeof(int))] = 2,
-            [(typeof(char), typeof(uint))] = 2,
-            [(typeof(char), typeof(long))] = 3,
-            [(typeof(char), typeof(ulong))] = 3,
-            [(typeof(char), typeof(float))] = 4,
-            [(typeof(char), typeof(double))] = 5,
-            [(typeof(char), typeof(decimal))] = 6
-        };
-
-        return conversionCosts.GetValueOrDefault((from, to), int.MaxValue);
+        return ConversationCosts.GetValueOrDefault((from, to), int.MaxValue);
     }
 }
