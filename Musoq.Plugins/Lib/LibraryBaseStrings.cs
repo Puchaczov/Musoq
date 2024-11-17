@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -991,5 +992,41 @@ public abstract partial class LibraryBase
         var normalizedInput = input.Replace("\r\n", "\n");
         
         return normalizedInput.Split(['\n'], StringSplitOptions.None);
+    }
+    
+    /// <summary>
+    /// Joins the specified values with the separator
+    /// </summary>
+    /// <param name="separator">The separator</param>
+    /// <param name="values">The values</param>
+    /// <returns>Joined values</returns>
+    [BindableMethod]
+    public string? StringsJoin(string? separator, params string?[]? values)
+    {
+        if (separator is null)
+            return null;
+        
+        if (values is null)
+            return null;
+        
+        return string.Join(separator, values.Where(str => str != null));
+    }
+    
+    /// <summary>
+    /// Joins the specified values with the separator
+    /// </summary>
+    /// <param name="separator">The separator</param>
+    /// <param name="values">The values</param>
+    /// <returns>Joined values</returns>
+    [BindableMethod]
+    public string? StringsJoin(string? separator, IEnumerable<string?>? values)
+    {
+        if (separator is null)
+            return null;
+        
+        if (values is null)
+            return null;
+        
+        return string.Join(separator, values.Where(str => str != null));
     }
 }

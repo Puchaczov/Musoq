@@ -121,12 +121,12 @@ public abstract class SchemaBase : ISchema
 
     private bool ParamsMatchConstructor(Reflection.ConstructorInfo constructor, object[] parameters)
     {
-        bool matchingResult = true;
+        var matchingResult = true;
 
         if (parameters.Length != constructor.Arguments.Length)
             return false;
 
-        for (int i = 0; i < parameters.Length && matchingResult; ++i)
+        for (var i = 0; i < parameters.Length && matchingResult; ++i)
         {
             matchingResult &= 
                 constructor.Arguments[i].Type.IsInstanceOfType(parameters[i]);

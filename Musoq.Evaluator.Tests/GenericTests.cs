@@ -142,6 +142,24 @@ public class GenericTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("t", Encoding.UTF8.GetString((byte[])table[0].Values[0]));
     }
+
+    [TestMethod]
+    public void WhenConcatenationOfSingleValue_AndStringJoinsEnumerable_ShouldPass()
+    {
+        var table = TestResultMethodTemplate("Concat(StringsJoin('/', Take(Split('something/is/wrong/here', '/'), 3)))");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("something/is/wrong", table[0].Values[0]);
+    }
+
+    [TestMethod]
+    public void WhenConcatenationOfSingleValue_AndStringJoinsArray_ShouldPass()
+    {
+        var table = TestResultMethodTemplate("Concat(StringsJoin('/', EnumerableToArray(Take(Split('something/is/wrong/here', '/'), 3))))");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("something/is/wrong", table[0].Values[0]);
+    }
     
     [TestMethod]
     public void WhenSkipAndTakeWithoutReductionRequired_ShouldPass()
