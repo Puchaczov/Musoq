@@ -9,17 +9,13 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class BuildMetadataAndInferTypeTraverseVisitor : IQueryPartAwareExpressionVisitor
+public class BuildMetadataAndInferTypeTraverseVisitor(IAwareExpressionVisitor visitor)
+    : IQueryPartAwareExpressionVisitor
 {
     private readonly Stack<Scope> _scopes = new();
-    private readonly IAwareExpressionVisitor _visitor;
+    private readonly IAwareExpressionVisitor _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         
     private IdentifierNode _theMostInnerIdentifier;
-
-    public BuildMetadataAndInferTypeTraverseVisitor(IAwareExpressionVisitor visitor)
-    {
-        _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
-    }
 
     public Scope Scope { get; private set; } = new(null, -1, "Root");
 

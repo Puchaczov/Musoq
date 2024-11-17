@@ -17,39 +17,34 @@ public class MethodsMetadataEntityTypeInjectionTests
 
     private class TestClass
     {
-        // Basic injection tests
         public void Method1(
-            [InjectSpecificSourceAttribute(typeof(IBaseEntity))] IBaseEntity entity,
+            [InjectSpecificSource(typeof(IBaseEntity))] IBaseEntity entity,
             int param)
         { }
 
         public void Method2(
-            [InjectSpecificSourceAttribute(typeof(ISpecificEntity))] ISpecificEntity entity,
+            [InjectSpecificSource(typeof(ISpecificEntity))] ISpecificEntity entity,
             int param)
         { }
 
-        // Testing InjectGroupAttribute
         public void GroupMethod(
-            [InjectGroupAttribute] object groupContext,
+            [InjectGroup] object groupContext,
             int param)
         { }
 
-        // Testing InjectQueryStatsAttribute
         public void StatsMethod(
-            [InjectQueryStatsAttribute] object stats,
+            [InjectQueryStats] object stats,
             int param)
         { }
 
-        // Multiple injected parameters
         public void MultipleInjection(
-            [InjectSpecificSourceAttribute(typeof(IBaseEntity))] IBaseEntity entity,
-            [InjectGroupAttribute] object groupContext,
+            [InjectSpecificSource(typeof(IBaseEntity))] IBaseEntity entity,
+            [InjectGroup] object groupContext,
             int param)
         { }
 
-        // Optional parameters with injection
         public void OptionalWithInjection(
-            [InjectSpecificSourceAttribute(typeof(IBaseEntity))] IBaseEntity entity,
+            [InjectSpecificSource(typeof(IBaseEntity))] IBaseEntity entity,
             int param = 42)
         { }
     }
@@ -65,15 +60,13 @@ public class MethodsMetadataEntityTypeInjectionTests
     [TestMethod]
     public void TryGetMethod_BasicInjection_MatchingEntityType()
     {
-        // Base entity should match IBaseEntity injection
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("Method1", new[] { typeof(int) }, typeof(BaseEntity), out var method),
+            _methodsMetadata.TryGetMethod("Method1", [typeof(int)], typeof(BaseEntity), out _),
             "Should resolve with BaseEntity"
         );
 
-        // Specific entity should match IBaseEntity injection
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("Method1", new[] { typeof(int) }, typeof(SpecificEntity), out method),
+            _methodsMetadata.TryGetMethod("Method1", [typeof(int)], typeof(SpecificEntity), out _),
             "Should resolve with SpecificEntity"
         );
     }
@@ -81,9 +74,8 @@ public class MethodsMetadataEntityTypeInjectionTests
     [TestMethod]
     public void TryGetMethod_BasicInjection_NonMatchingEntityType()
     {
-        // String type should not match IBaseEntity injection
         Assert.IsFalse(
-            _methodsMetadata.TryGetMethod("Method1", new[] { typeof(int) }, typeof(string), out _),
+            _methodsMetadata.TryGetMethod("Method1", [typeof(int)], typeof(string), out _),
             "Should not resolve with String type"
         );
     }
@@ -91,9 +83,8 @@ public class MethodsMetadataEntityTypeInjectionTests
     [TestMethod]
     public void TryGetMethod_SpecificInjection_MatchingEntityType()
     {
-        // Specific entity should match ISpecificEntity injection
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("Method2", new[] { typeof(int) }, typeof(SpecificEntity), out _),
+            _methodsMetadata.TryGetMethod("Method2", [typeof(int)], typeof(SpecificEntity), out _),
             "Should resolve with SpecificEntity"
         );
     }
@@ -101,15 +92,13 @@ public class MethodsMetadataEntityTypeInjectionTests
     [TestMethod]
     public void TryGetMethod_SpecificInjection_NonMatchingEntityType()
     {
-        // Base entity should not match ISpecificEntity injection
         Assert.IsFalse(
-            _methodsMetadata.TryGetMethod("Method2", new[] { typeof(int) }, typeof(BaseEntity), out _),
+            _methodsMetadata.TryGetMethod("Method2", [typeof(int)], typeof(BaseEntity), out _),
             "Should not resolve with BaseEntity"
         );
         
-        // Other entity should not match ISpecificEntity injection
         Assert.IsFalse(
-            _methodsMetadata.TryGetMethod("Method2", new[] { typeof(int) }, typeof(OtherEntity), out _),
+            _methodsMetadata.TryGetMethod("Method2", [typeof(int)], typeof(OtherEntity), out _),
             "Should not resolve with OtherEntity"
         );
     }
@@ -117,14 +106,13 @@ public class MethodsMetadataEntityTypeInjectionTests
     [TestMethod]
     public void TryGetMethod_GroupInjection()
     {
-        // Group injection should work with any entity type
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("GroupMethod", new[] { typeof(int) }, typeof(BaseEntity), out _),
+            _methodsMetadata.TryGetMethod("GroupMethod", [typeof(int)], typeof(BaseEntity), out _),
             "Should resolve with any entity type"
         );
         
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("GroupMethod", new[] { typeof(int) }, typeof(string), out _),
+            _methodsMetadata.TryGetMethod("GroupMethod", [typeof(int)], typeof(string), out _),
             "Should resolve with string type"
         );
     }
@@ -132,14 +120,13 @@ public class MethodsMetadataEntityTypeInjectionTests
     [TestMethod]
     public void TryGetMethod_StatsInjection()
     {
-        // Stats injection should work with any entity type
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("StatsMethod", new[] { typeof(int) }, typeof(BaseEntity), out _),
+            _methodsMetadata.TryGetMethod("StatsMethod", [typeof(int)], typeof(BaseEntity), out _),
             "Should resolve with any entity type"
         );
         
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("StatsMethod", new[] { typeof(int) }, typeof(string), out _),
+            _methodsMetadata.TryGetMethod("StatsMethod", [typeof(int)], typeof(string), out _),
             "Should resolve with string type"
         );
     }
@@ -147,19 +134,18 @@ public class MethodsMetadataEntityTypeInjectionTests
     [TestMethod]
     public void TryGetMethod_MultipleInjection()
     {
-        // Should work with matching entity type for multiple injections
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("MultipleInjection", new[] { typeof(int) }, typeof(BaseEntity), out _),
+            _methodsMetadata.TryGetMethod("MultipleInjection", [typeof(int)], typeof(BaseEntity), out _),
             "Should resolve with base entity"
         );
         
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("MultipleInjection", new[] { typeof(int) }, typeof(SpecificEntity), out _),
+            _methodsMetadata.TryGetMethod("MultipleInjection", [typeof(int)], typeof(SpecificEntity), out _),
             "Should resolve with specific entity"
         );
         
         Assert.IsFalse(
-            _methodsMetadata.TryGetMethod("MultipleInjection", new[] { typeof(int) }, typeof(string), out _),
+            _methodsMetadata.TryGetMethod("MultipleInjection", [typeof(int)], typeof(string), out _),
             "Should not resolve with non-matching type"
         );
     }
@@ -167,19 +153,18 @@ public class MethodsMetadataEntityTypeInjectionTests
     [TestMethod]
     public void TryGetMethod_OptionalWithInjection()
     {
-        // Should work with optional parameters
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("OptionalWithInjection", Array.Empty<Type>(), typeof(BaseEntity), out _),
+            _methodsMetadata.TryGetMethod("OptionalWithInjection", [], typeof(BaseEntity), out _),
             "Should resolve with no parameters"
         );
         
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("OptionalWithInjection", new[] { typeof(int) }, typeof(BaseEntity), out _),
+            _methodsMetadata.TryGetMethod("OptionalWithInjection", [typeof(int)], typeof(BaseEntity), out _),
             "Should resolve with parameter"
         );
         
         Assert.IsFalse(
-            _methodsMetadata.TryGetMethod("OptionalWithInjection", Array.Empty<Type>(), typeof(string), out _),
+            _methodsMetadata.TryGetMethod("OptionalWithInjection", [], typeof(string), out _),
             "Should not resolve with non-matching type"
         );
     }

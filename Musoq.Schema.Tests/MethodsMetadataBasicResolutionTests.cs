@@ -31,13 +31,10 @@ public class BasicMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_NoParameters_ShouldResolveCorrectly()
     {
-        // Arrange
         var types = Array.Empty<Type>();
 
-        // Act
         var success = _methodsMetadata.TryGetMethod("NoParameters", types, _entityType, out var method);
 
-        // Assert
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("NoParameters", method.Name);
@@ -47,13 +44,10 @@ public class BasicMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_SingleParameter_ShouldResolveCorrectly()
     {
-        // Arrange
         var types = new[] { typeof(int) };
 
-        // Act
         var success = _methodsMetadata.TryGetMethod("SingleParameter", types, _entityType, out var method);
 
-        // Assert
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("SingleParameter", method.Name);
@@ -64,13 +58,10 @@ public class BasicMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_TwoParameters_ShouldResolveCorrectly()
     {
-        // Arrange
         var types = new[] { typeof(int), typeof(string) };
 
-        // Act
         var success = _methodsMetadata.TryGetMethod("TwoParameters", types, _entityType, out var method);
 
-        // Assert
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("TwoParameters", method.Name);
@@ -82,13 +73,10 @@ public class BasicMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_Overloaded_ShouldResolveCorrectIntOverload()
     {
-        // Arrange
         var types = new[] { typeof(int) };
 
-        // Act
         var success = _methodsMetadata.TryGetMethod("Overloaded", types, _entityType, out var method);
 
-        // Assert
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("Overloaded", method.Name);
@@ -99,13 +87,10 @@ public class BasicMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_Overloaded_ShouldResolveCorrectStringOverload()
     {
-        // Arrange
         var types = new[] { typeof(string) };
 
-        // Act
         var success = _methodsMetadata.TryGetMethod("Overloaded", types, _entityType, out var method);
 
-        // Assert
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("Overloaded", method.Name);
@@ -116,13 +101,10 @@ public class BasicMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_NonExistentMethod_ShouldReturnFalse()
     {
-        // Arrange
         var types = new[] { typeof(int) };
 
-        // Act
         var success = _methodsMetadata.TryGetMethod("NonExistentMethod", types, _entityType, out var method);
 
-        // Assert
         Assert.IsFalse(success);
         Assert.IsNull(method);
     }
@@ -130,13 +112,10 @@ public class BasicMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_WrongParameterTypes_ShouldReturnFalse()
     {
-        // Arrange
         var types = new[] { typeof(DateTime) }; // Method expects int
 
-        // Act
         var success = _methodsMetadata.TryGetMethod("SingleParameter", types, _entityType, out var method);
 
-        // Assert
         Assert.IsFalse(success);
         Assert.IsNull(method);
     }
@@ -152,7 +131,7 @@ public class BasicMethodResolutionTests
             }
         }
 
-        public new void RegisterMethod(MethodInfo methodInfo)
+        private new void RegisterMethod(MethodInfo methodInfo)
         {
             base.RegisterMethod(methodInfo);
         }

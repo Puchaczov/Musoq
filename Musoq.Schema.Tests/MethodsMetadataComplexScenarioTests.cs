@@ -11,18 +11,16 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class MethodsMetadataComplexScenarioTests
 {
-    // Type hierarchy for testing
     private interface IEntity { }
     private interface IAggregatable { }
     private class Entity : IEntity { }
 
     private class TestClass
     {
-        // Complex aggregation with entity injection and optional params
-        [AggregationMethodAttribute]
+        [AggregationMethod]
         public void ComplexAggregation(
             string name,
-            [InjectSpecificSourceAttribute(typeof(IEntity))] IEntity entity,
+            [InjectSpecificSource(typeof(IEntity))] IEntity entity,
             decimal value,
             string format = "F2",
             params string[] tags)
@@ -31,30 +29,26 @@ public class MethodsMetadataComplexScenarioTests
         [AggregationGetMethod]
         public decimal AggregateData(string name) { return 0m; }
 
-        // Generic method with multiple constraints and injections
         public TResult ProcessData<TSource, TResult>(
-            [InjectSpecificSourceAttribute(typeof(IEntity))] IEntity entity,
+            [InjectSpecificSource(typeof(IEntity))] IEntity entity,
             TSource source,
             Func<TSource, TResult> transformer)
             where TSource : struct
             where TResult : class
         { return null; }
 
-        // Multiple overloads with different generic/non-generic combinations
         public void ProcessCollection<T>(IEnumerable<T> items) { }
         public void ProcessCollection(IEnumerable<int> items) { }
         public void ProcessCollection(int[] items) { }
         public void ProcessCollection(params object[] items) { }
 
-        // Complex nullable scenarios with multiple overloads
         public string HandleNullableData(int? value, string format = null) { return string.Empty; }
         public string HandleNullableData(DateTime? value, string format = null) { return string.Empty; }
         public string HandleNullableData(object value, string format = null) { return string.Empty; }
 
-        // Mixed injection types with generics
         public void ComplexInjection<T>(
-            [InjectSpecificSourceAttribute(typeof(IEntity))] IEntity entity,
-            [InjectGroupAttribute] object group,
+            [InjectSpecificSource(typeof(IEntity))] IEntity entity,
+            [InjectGroup] object group,
             T value,
             params string[] additionalData)
             where T : IEntity
@@ -72,11 +66,10 @@ public class MethodsMetadataComplexScenarioTests
     [TestMethod]
     public void TryGetMethod_ComplexAggregation_WithAllParameters()
     {
-        // Test full parameter set
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "ComplexAggregation",
-                new[] { typeof(string), typeof(decimal), typeof(string), typeof(string), typeof(string) },
+                [typeof(string), typeof(decimal), typeof(string), typeof(string), typeof(string)],
                 typeof(Entity),
                 out var method),
             "Should resolve with all parameters"
@@ -91,13 +84,12 @@ public class MethodsMetadataComplexScenarioTests
     [TestMethod]
     public void TryGetMethod_ComplexAggregation_WithOptionalParameters()
     {
-        // Test without optional parameters
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "ComplexAggregation",
-                new[] { typeof(string), typeof(decimal) },
+                [typeof(string), typeof(decimal)],
                 typeof(Entity),
-                out var method),
+                out _),
             "Should resolve without optional parameters"
         );
 
@@ -105,9 +97,9 @@ public class MethodsMetadataComplexScenarioTests
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "ComplexAggregation",
-                new[] { typeof(string), typeof(decimal), typeof(NullNode.NullType) },
+                [typeof(string), typeof(decimal), typeof(NullNode.NullType)],
                 typeof(Entity),
-                out method),
+                out _),
             "Should resolve with null optional parameter"
         );
     }
@@ -115,31 +107,28 @@ public class MethodsMetadataComplexScenarioTests
     [TestMethod]
     public void TryGetMethod_ProcessCollection_Overloads()
     {
-        // Test specific array type
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "ProcessCollection",
-                new[] { typeof(int[]) },
+                [typeof(int[])],
                 null,
                 out var arrayMethod),
             "Should resolve array method"
         );
 
-        // Test generic enumerable
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "ProcessCollection",
-                new[] { typeof(IEnumerable<string>) },
+                [typeof(IEnumerable<string>)],
                 null,
                 out var genericMethod),
             "Should resolve generic method"
         );
 
-        // Test params array
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "ProcessCollection",
-                new[] { typeof(object), typeof(object) },
+                [typeof(object), typeof(object)],
                 null,
                 out var paramsMethod),
             "Should resolve params method"
@@ -152,33 +141,30 @@ public class MethodsMetadataComplexScenarioTests
     [TestMethod]
     public void TryGetMethod_HandleNullableData_ComplexResolution()
     {
-        // Test with explicit null
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "HandleNullableData",
-                new[] { typeof(NullNode.NullType), typeof(NullNode.NullType) },
+                [typeof(NullNode.NullType), typeof(NullNode.NullType)],
                 null,
-                out var method),
+                out _),
             "Should resolve with explicit nulls"
         );
 
-        // Test with specific nullable type
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "HandleNullableData",
-                new[] { typeof(int?), typeof(string) },
+                [typeof(int?), typeof(string)],
                 null,
-                out method),
+                out _),
             "Should resolve with specific nullable type"
         );
 
-        // Test with non-nullable value
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod(
                 "HandleNullableData",
-                new[] { typeof(int), typeof(string) },
+                [typeof(int), typeof(string)],
                 null,
-                out method),
+                out _),
             "Should resolve with non-nullable value"
         );
     }
