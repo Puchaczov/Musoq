@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
+using Musoq.Evaluator.Visitors;
+using Musoq.Parser.Lexing;
 
 namespace Musoq.Evaluator.Tests;
 

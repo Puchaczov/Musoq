@@ -14,8 +14,12 @@ public class EnvironmentVariablesBuildMetadataAndInferTypesVisitor(
     IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources)
     : BuildMetadataAndInferTypesVisitor(provider, columns)
 {
+    public List<Type> PassedSchemaArguments { get; private set; } = new();
+    
     protected override IReadOnlyDictionary<string, string> RetrieveEnvironmentVariables(uint position, SchemaFromNode node)
     {
+        PassedSchemaArguments.AddRange(node.Parameters.Args.Select(f => f.ReturnType));
+        
         if (sources.TryGetValue(position, out var environmentVariables))
         {
             var loadEnvironmentVariables = environmentVariables.ToDictionary(

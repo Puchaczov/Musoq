@@ -198,7 +198,6 @@ public static class InstanceCreator
             {
                 HasExternallyProvidedTypes: true
             }));
-        runnable.PositionalEnvironmentVariables = items.PositionalEnvironmentVariables;
 
         return runnable;
     }
