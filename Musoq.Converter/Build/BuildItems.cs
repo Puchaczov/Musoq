@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
@@ -85,5 +87,11 @@ public class BuildItems : Dictionary<string, object>
     {
         get => (IReadOnlyDictionary<SchemaFromNode, WhereNode>) this["USED_WHERE_NODES"];
         set => this["USED_WHERE_NODES"] = value;
+    }
+
+    public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, BuildMetadataAndInferTypesVisitor> CreateBuildMetadataAndInferTypesVisitor
+    {
+        get => (Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, BuildMetadataAndInferTypesVisitor>) this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"];
+        set => this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"] = value;
     }
 }

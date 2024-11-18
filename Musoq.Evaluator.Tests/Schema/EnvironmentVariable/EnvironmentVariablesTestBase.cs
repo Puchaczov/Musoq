@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Moq;
 using Musoq.Converter;
+using Musoq.Converter.Build;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Plugins;
 using Musoq.Schema;
@@ -13,21 +14,34 @@ public class EnvironmentVariablesTestBase
 {
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
-        IDictionary<string, IEnumerable<EnvironmentVariableEntity>> sources,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
+        IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources)
     {
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(), 
-            new EnvironmentVariablesSchemaProvider(sources),
-            positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
+            new EnvironmentVariablesSchemaProvider(),
+            () =>
+            {
+                var chain =
+                    new CreateTree(
+                        new TransformTree(
+                            new TurnQueryIntoRunnableCode(null)
+                        )
+                    );
+                
+                return chain;
+            }, items =>
+            {
+                items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns) =>
+                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources);
+            });
     }
-        
+
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IDictionary<string, IEnumerable<BasicEntity>> basicSources,
         IDictionary<string, IEnumerable<EnvironmentVariableEntity>> environmentSources,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
+        IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources)
     {
         var schemas = new Dictionary<string, ISchemaProvider>();
             
@@ -38,22 +52,21 @@ public class EnvironmentVariablesTestBase
             
         foreach (var environmentSource in environmentSources)
         {
-            schemas.Add(environmentSource.Key, new EnvironmentVariablesSchemaProvider(environmentSources));
+            schemas.Add(environmentSource.Key, new EnvironmentVariablesSchemaProvider());
         }
 
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(), 
-            new MultipleSchemasSchemaProvider(schemas),
-            positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
-    }
-
-    private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()
-    {
-        var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
-        environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
-
-        return environmentVariablesMock.Object;
+            new MultipleSchemasSchemaProvider(schemas), () => new CreateTree(
+                new TransformTree(
+                    new TurnQueryIntoRunnableCode(null))
+            ), 
+            items =>
+            {
+                items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns) =>
+                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources);
+            });
     }
 
     static EnvironmentVariablesTestBase()

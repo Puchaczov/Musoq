@@ -23,8 +23,7 @@ public class DynamicQueryTestsBase
             new AnySchemaNameProvider(new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
             {
                 { "dynamic", (schema, values) }
-            }),
-            CreateMockedEnvironmentVariables());
+            }));
     }
     
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -38,8 +37,7 @@ public class DynamicQueryTestsBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(),
-            new DynamicSchemaProvider(schemas),
-            CreateMockedEnvironmentVariables());
+            new DynamicSchemaProvider(schemas));
     }
     
     protected static ExpandoObject CreateExpandoObject(ExpandoObject complex)

@@ -33,13 +33,12 @@ using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
+public class BuildMetadataAndInferTypesVisitor : IAwareExpressionVisitor
 {
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
 
     private readonly ISchemaProvider _provider;
-    private readonly IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> _positionalEnvironmentVariables;
     private readonly List<AccessMethodNode> _refreshMethods = [];
     private readonly List<object> _schemaFromArgs = [];
     private readonly List<string> _generatedAliases = [];
@@ -98,19 +97,20 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
     private Stack<string> Methods { get; } = new();
 
-    public BuildMetadataAndInferTypeVisitor(
-        ISchemaProvider provider,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables,
-        IReadOnlyDictionary<string, string[]> columns)
+    protected Stack<Node> Nodes { get; } = new();
+
+    protected readonly Dictionary<uint, IReadOnlyDictionary<string, string>> InternalPositionalEnvironmentVariables = new();
+
+    public BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOnlyDictionary<string, string[]> columns)
     {
         _provider = provider;
-        _positionalEnvironmentVariables = positionalEnvironmentVariables;
         _columns = columns;
         _positionalEnvironmentVariablesKey = 0;
         _nullSuspiciousTypes = [];
     }
 
-    protected Stack<Node> Nodes { get; } = new();
+    public virtual IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables =>
+        InternalPositionalEnvironmentVariables;
 
     public List<Assembly> Assemblies { get; } = [];
 
@@ -784,21 +784,19 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
             _queryAlias, node.QueryId, hasExternallyProvidedTypes);
 
+        var environmentVariables =
+            RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode);
         var isDesc = _currentScope.Name == "Desc";
-        var table = !isDesc
-            ? schema.GetTableByName(
-                node.Method,
-                new RuntimeContext(
-                    CancellationToken.None,
-                    _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
-                        .ToArray(),
-                    _positionalEnvironmentVariables.TryGetValue(_positionalEnvironmentVariablesKey, out var variable)
-                        ? variable
-                        : new Dictionary<string, string>(),
-                    (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes)
-                ),
-                _schemaFromArgs.ToArray())
-            : new DynamicTable([]);
+        var table = !isDesc ? schema.GetTableByName(
+            node.Method,
+            new RuntimeContext(
+                CancellationToken.None,
+                _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
+                    .ToArray(),
+                environmentVariables,
+                (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes)
+            ),
+            _schemaFromArgs.ToArray()) : new DynamicTable([]);
 
         _schemaFromInfo.Add(_queryAlias, (_schemaFromKey, _positionalEnvironmentVariablesKey));
         _positionalEnvironmentVariablesKey += 1;
@@ -979,9 +977,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
                 new RuntimeContext(
                     CancellationToken.None,
                     table.Columns,
-                    _positionalEnvironmentVariables.TryGetValue(_positionalEnvironmentVariablesKey, out var variable)
-                        ? variable
-                        : new Dictionary<string, string>(),
+                    RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode),
                     (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes)
                 ),
                 _schemaFromArgs.ToArray()
@@ -1002,6 +998,8 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
 
         _usedWhereNodes.TryAdd(aliasedSchemaFromNode, AllTrueWhereNode);
         _usedSchemasQuantity += 1;
+        _schemaFromInfo.Add(_queryAlias, (_schemaFromKey, _positionalEnvironmentVariablesKey));
+        _positionalEnvironmentVariablesKey += 1;
 
         Nodes.Push(aliasedSchemaFromNode);
     }
@@ -1399,6 +1397,15 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
     public void SetScope(Scope scope)
     {
         _currentScope = scope;
+    }
+
+    protected virtual IReadOnlyDictionary<string, string> RetrieveEnvironmentVariables(uint position, SchemaFromNode node)
+    {
+        var environmentVariables = new Dictionary<string, string>();
+        
+        InternalPositionalEnvironmentVariables.TryAdd(position, environmentVariables);
+
+        return environmentVariables;
     }
 
     private void AddAssembly(Assembly asm)
@@ -1884,9 +1891,7 @@ public class BuildMetadataAndInferTypeVisitor : IAwareExpressionVisitor
         var runtimeContext = new RuntimeContext(
             CancellationToken.None,
             _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
-            _positionalEnvironmentVariables.TryGetValue(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, out var variable)
-                ? variable
-                : new Dictionary<string, string>(),
+            RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, schemaFrom),
             (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false)
         );
 
