@@ -128,7 +128,6 @@ public class GenericEntityTestBase
             new GenericSchemaProvider(new Dictionary<string, ISchema>()
             {
                 {"#schema", schema}
-            }),
-            positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
+            }));
     }
 }

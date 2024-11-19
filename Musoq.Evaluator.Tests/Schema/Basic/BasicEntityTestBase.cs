@@ -36,15 +36,13 @@ public class BasicEntityTestBase
 
     protected CompiledQuery CreateAndRunVirtualMachine<T>(
         string script,
-        IDictionary<string, IEnumerable<T>> sources,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
+        IDictionary<string, IEnumerable<T>> sources)
         where T : BasicEntity
     {
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(), 
-            new BasicSchemaProvider<T>(sources),
-            positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
+            new BasicSchemaProvider<T>(sources));
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -55,8 +53,7 @@ public class BasicEntityTestBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(), 
-            schemaProvider,
-            positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
+            schemaProvider);
     }
 
     private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()

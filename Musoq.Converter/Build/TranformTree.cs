@@ -20,8 +20,10 @@ public class TransformTree(BuildChain successor) : BuildChain(successor)
 
         queryTree.Accept(extractRawColumnsTraverseVisitor);
 
-        var metadata = new BuildMetadataAndInferTypeVisitor(items.SchemaProvider, items.PositionalEnvironmentVariables, extractColumnsVisitor.Columns);
-        var metadataTraverser = new BuildMetadataAndInferTypeTraverseVisitor(metadata);
+        var metadata = 
+            items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(items.SchemaProvider, extractColumnsVisitor.Columns) ?? 
+            new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns);
+        var metadataTraverser = new BuildMetadataAndInferTypesTraverseVisitor(metadata);
 
         queryTree.Accept(metadataTraverser);
         queryTree = metadata.Root;
@@ -43,6 +45,7 @@ public class TransformTree(BuildChain successor) : BuildChain(successor)
         items.TransformedQueryTree = queryTree;
         items.Compilation = csharpRewriter.Compilation;
         items.AccessToClassPath = csharpRewriter.AccessToClassPath;
+        items.PositionalEnvironmentVariables = metadata.PositionalEnvironmentVariables;
 
         Successor?.Build(items);
     }

@@ -9,7 +9,7 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class BuildMetadataAndInferTypeTraverseVisitor(IAwareExpressionVisitor visitor)
+public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor visitor)
     : IQueryPartAwareExpressionVisitor
 {
     private readonly Stack<Scope> _scopes = new();

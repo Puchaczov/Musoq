@@ -11,7 +11,6 @@ public class EnvironmentVariablesSchema : SchemaBase
 {
     private static readonly IReadOnlyDictionary<string, int> EnvironmentVariableNameToIndexMap;
     private static readonly IReadOnlyDictionary<int, Func<EnvironmentVariableEntity, object>> EnvironmentVariableIndexToObjectAccessMap;
-    private readonly IEnumerable<EnvironmentVariableEntity> _sources;
 
     static EnvironmentVariablesSchema()
     {
@@ -28,13 +27,11 @@ public class EnvironmentVariablesSchema : SchemaBase
         };
     }
 
-    public EnvironmentVariablesSchema(IEnumerable<EnvironmentVariableEntity> sources)
+    public EnvironmentVariablesSchema()
         : base("environmentVariables", CreateLibrary())
     {
-        _sources = sources;
-            
-        AddSource<EntitySource<EnvironmentVariableEntity>>("all", sources, EnvironmentVariableNameToIndexMap, EnvironmentVariableIndexToObjectAccessMap);
         AddTable<EnvironmentVariableEntityTable>("all");
+        AddSource<EnvironmentVariablesSource>("all");
     }
 
     public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
@@ -53,20 +50,13 @@ public class EnvironmentVariablesSchema : SchemaBase
         return new MethodsAggregator(methodManager);
     }
         
-    private class EnvironmentVariablesSource : RowSource
+    private class EnvironmentVariablesSource(RuntimeContext runtimeContext) : RowSource
     {
-        private readonly RuntimeContext _runtimeContext;
-            
-        public EnvironmentVariablesSource(RuntimeContext runtimeContext)
-        {
-            _runtimeContext = runtimeContext;
-        }
-
         public override IEnumerable<IObjectResolver> Rows
         {
             get
             {
-                return _runtimeContext.EnvironmentVariables.Select(variable => new EntityResolver<EnvironmentVariableEntity>(
+                return runtimeContext.EnvironmentVariables.Select(variable => new EntityResolver<EnvironmentVariableEntity>(
                     new EnvironmentVariableEntity(variable.Key, variable.Value), 
                     EnvironmentVariableNameToIndexMap, 
                     EnvironmentVariableIndexToObjectAccessMap));

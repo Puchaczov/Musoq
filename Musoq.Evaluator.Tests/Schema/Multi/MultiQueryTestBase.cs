@@ -52,7 +52,6 @@ public class MultiSchemaTestBase
             new MultiSchemaProvider(new Dictionary<string, ISchema>()
             {
                 {"#schema", schema}
-            }),
-            positionalEnvironmentVariables ?? CreateMockedEnvironmentVariables());
+            }));
     }
 }

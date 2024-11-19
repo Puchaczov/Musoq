@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
+using Musoq.Evaluator.Visitors;
+using Musoq.Parser.Lexing;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -13,24 +16,15 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     public void WhenDescEnvironmentVariables_ShouldListAllColumns()
     {
         var query = "desc #EnvironmentVariables.All()";
-        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
+        var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                "#EnvironmentVariables",
+                0,
                 Array.Empty<EnvironmentVariableEntity>()
             }
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources, new Dictionary<uint, IReadOnlyDictionary<string, string>>()
-        {
-            {
-                0, new Dictionary<string, string>()
-                {
-                    {"KEY_1", "VALUE_1"},
-                    {"KEY_2", "VALUE_2"}
-                }
-            }
-        });
+        var vm = CreateAndRunVirtualMachine(query, sources);
         
         var table = vm.Run();
         
@@ -47,24 +41,20 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     public void WhenPassedEnvironmentVariables_ShouldListThemAll()
     {
         var query = "select Key, Value from #EnvironmentVariables.All()";
-        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
+        
+        var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                "#EnvironmentVariables",
-                Array.Empty<EnvironmentVariableEntity>()
+                0,
+                [
+                    new ("KEY_1", "VALUE_1"),
+                    new ("KEY_2", "VALUE_2")
+                ]
             }
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources, new Dictionary<uint, IReadOnlyDictionary<string, string>>()
-        {
-            {
-                0, new Dictionary<string, string>()
-                {
-                    {"KEY_1", "VALUE_1"},
-                    {"KEY_2", "VALUE_2"}
-                }
-            }
-        });
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Count);
@@ -73,36 +63,30 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         Assert.AreEqual("KEY_2", table[1][0]);
         Assert.AreEqual("VALUE_2", table[1][1]);
     }
-    
+
     [TestMethod]
     public void WhenPassedEnvironmentVariables_JoinedDataSources_ShouldListThemAll()
     {
         var query = "select e1.Key, e1.Value, e2.Value from #EnvironmentVariables.All() e1 inner join #EnvironmentVariables.All() e2 on e1.Key = e2.Key";
-        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
+        var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                "#EnvironmentVariables",
-                Array.Empty<EnvironmentVariableEntity>()
+                0,
+                [
+                    new("KEY_1", "VALUE_1"),
+                    new("KEY_2", "VALUE_2"),
+                ]
+            },
+            {
+                1,
+                [
+                    new("KEY_1", "VALUE_3"),
+                    new("KEY_2", "VALUE_4")
+                ]
             }
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources, new Dictionary<uint, IReadOnlyDictionary<string, string>>()
-        {
-            {
-                0, new Dictionary<string, string>()
-                {
-                    {"KEY_1", "VALUE_1"},
-                    {"KEY_2", "VALUE_2"}
-                }
-            },
-            {
-                1, new Dictionary<string, string>()
-                {
-                    {"KEY_1", "VALUE_3"},
-                    {"KEY_2", "VALUE_4"}
-                }
-            }
-        });
+        var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Count);
@@ -120,31 +104,25 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     public void WhenPassedEnvironmentVariables_UnionDataSources_ShouldListThemAll()
     {
         var query = "select Key, Value from #EnvironmentVariables.All() union all (Key) select Key, Value from #EnvironmentVariables.All()";
-        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
+        var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                "#EnvironmentVariables",
-                Array.Empty<EnvironmentVariableEntity>()
+                0,
+                [
+                    new("KEY_1", "VALUE_1"),
+                    new("KEY_2", "VALUE_2")
+                ]
+            },
+            {
+                1,
+                [
+                    new("KEY_3", "VALUE_3"),
+                    new("KEY_4", "VALUE_4")
+                ]
             }
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources, new Dictionary<uint, IReadOnlyDictionary<string, string>>()
-        {
-            {
-                0, new Dictionary<string, string>()
-                {
-                    {"KEY_1", "VALUE_1"},
-                    {"KEY_2", "VALUE_2"}
-                }
-            },
-            {
-                1, new Dictionary<string, string>()
-                {
-                    {"KEY_3", "VALUE_3"},
-                    {"KEY_4", "VALUE_4"}
-                }
-            }
-        });
+        var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
         Assert.AreEqual(4, table.Count);
@@ -179,31 +157,37 @@ select Key, Value from #EnvironmentVariables.All()";
             }
         };
         
-        var environmentVariablesSource = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
+        var environmentVariablesEntitiesSource = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
                 "#EnvironmentVariables",
+                [
+                    new("KEY_1", "VALUE_1"),
+                    new("KEY_2", "VALUE_2")
+                ]
+            }
+        };
+        
+        var environmentVariablesSource = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
+        {
+            {
+                0,
                 Array.Empty<EnvironmentVariableEntity>()
+            },
+            {
+                1,
+                [
+                    new("KEY_1", "VALUE_1"),
+                    new("KEY_2", "VALUE_2")
+                ]
             }
         };
 
         var vm = CreateAndRunVirtualMachine(
             query, 
             basicEntitiesSource,
-            environmentVariablesSource,
-            new Dictionary<uint, IReadOnlyDictionary<string, string>>()
-        {
-            {
-                0, new Dictionary<string, string>()
-            },
-            {
-                1, new Dictionary<string, string>()
-                {
-                    {"KEY_1", "VALUE_1"},
-                    {"KEY_2", "VALUE_2"}
-                }
-            }
-        });
+            environmentVariablesEntitiesSource,
+            environmentVariablesSource);
         
         var table = vm.Run();
         

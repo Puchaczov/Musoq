@@ -26,7 +26,7 @@ public static class InstanceCreator
             SchemaProvider = provider,
             RawQuery = script,
             AssemblyName = assemblyName,
-            PositionalEnvironmentVariables = new Dictionary<uint, IReadOnlyDictionary<string, string>>()
+            CreateBuildMetadataAndInferTypesVisitor = null
         };
 
         RuntimeLibraries.CreateReferences();
@@ -52,24 +52,40 @@ public static class InstanceCreator
         return Task.Factory.StartNew(() => CompileForStore(script, assemblyName, provider));
     }
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
+    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider)
+    {
+        return CompileForExecution(
+            script, 
+            assemblyName, 
+            schemaProvider, 
+            () => new CreateTree(
+                new TransformTree(
+                    new TurnQueryIntoRunnableCode(null))),
+            _ => {});
+    }
+
+    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, Func<BuildChain> createChain, Action<BuildItems> modifyBuildItems)
     {
         var items = new BuildItems
         {
             SchemaProvider = schemaProvider,
             RawQuery = script,
             AssemblyName = assemblyName,
-            PositionalEnvironmentVariables = positionalEnvironmentVariables
+            CreateBuildMetadataAndInferTypesVisitor = null
         };
+        
+        modifyBuildItems(items);
 
         var compiled = true;
 
         RuntimeLibraries.CreateReferences();
 
-        BuildChain chain = 
+        var chain = 
+            createChain?.Invoke() ??
             new CreateTree(
                 new TransformTree(
-                    new TurnQueryIntoRunnableCode(null)));
+                    new TurnQueryIntoRunnableCode(null))
+            );
 
         CompilationException compilationError = null;
         try
@@ -134,7 +150,7 @@ public static class InstanceCreator
 
     public static Task<CompiledQuery> CompileForExecutionAsync(string script, string assemblyName, ISchemaProvider schemaProvider, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
     {
-        return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider, positionalEnvironmentVariables));
+        return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider));
     }
 
     private static IRunnable CreateRunnableForDebug(BuildItems items, Func<Assembly> loadAssembly)
@@ -186,10 +202,5 @@ public static class InstanceCreator
         return runnable;
     }
         
-    private class DebugAssemblyLoadContext : AssemblyLoadContext
-    {
-        public DebugAssemblyLoadContext() : base(true)
-        {
-        }
-    }
+    private class DebugAssemblyLoadContext() : AssemblyLoadContext(true);
 }

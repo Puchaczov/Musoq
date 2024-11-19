@@ -16,8 +16,7 @@ public class UnknownQueryTestsBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(),
-            new UnknownSchemaProvider(values),
-            CreateMockedEnvironmentVariables());
+            new UnknownSchemaProvider(values));
     }
 
     private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()
