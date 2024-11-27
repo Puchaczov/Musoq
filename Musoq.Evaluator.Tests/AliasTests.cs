@@ -176,4 +176,120 @@ select q.[p.first.FirstItem], q.[p.second.FirstItem] from q";
         Assert.AreEqual("q.p.first.FirstItem", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("q.p.second.FirstItem", table.Columns.ElementAt(1).ColumnName);
     }
+
+    [TestMethod]
+    public void WhenAliasUsedWithinCte_AndSameUsedWithinOuterQuery_AliasesShouldNotClash()
+    {
+        const string query = @"
+with p as (
+    select 
+        1 
+    from #schema.first() first
+    cross apply first.Split('') b
+)
+select 
+    1 
+from p inner join #schema.first() first on 1 = 1
+cross apply first.Split('') b";
+        
+        var vm = CreateAndRunVirtualMachine(query, [
+            new()
+        ], [
+            new()
+        ]);
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        
+        Assert.AreEqual("1", table.Columns.ElementAt(0).ColumnName);
+    }    
+    
+    [TestMethod]
+    public void WhenSameAliasUsedInFromAndJoin_ShouldThrow()
+    {
+        const string query = "select a.FirstItem from #schema.first() a inner join #schema.second() a on a.FirstItem = a.FirstItem";
+        
+        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+            new(),
+            new()
+        ], [
+            new(),
+            new()
+        ]));
+    }    
+    
+    [TestMethod]
+    public void WhenSameAliasUsedInMultipleJoins_ShouldThrow()
+    {
+        const string query = @"
+            select src.FirstItem 
+            from #schema.first() src 
+            inner join #schema.second() b on src.FirstItem = b.FirstItem
+            inner join #schema.third() b on b.FirstItem = src.FirstItem";
+        
+        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+            new(),
+            new(),
+            new()
+        ], [
+            new(),
+            new(),
+            new()
+        ]));
+    }
+    
+    [TestMethod]
+    public void WhenSameAliasUsedInCTEAndMainQuery_ShouldThrow()
+    {
+        const string query = @"
+            with src as (
+                select FirstItem from #schema.first()
+            )
+            select src.FirstItem 
+            from #schema.second() src
+            inner join src on src.FirstItem = src.FirstItem";
+        
+        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+            new(),
+            new()
+        ], [
+            new(),
+            new()
+        ]));
+    }
+    
+    [TestMethod]
+    public void WhenSameAliasUsedInCrossApply_ShouldThrow()
+    {
+        const string query = @"
+            select a.FirstItem 
+            from #schema.first() a 
+            cross apply #schema.second() a";
+        
+        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+            new(),
+            new()
+        ], [
+            new(),
+            new()
+        ]));
+    }
+
+    [TestMethod]
+    public void WhenSameAliasUsedInOuterApply_ShouldThrow()
+    {
+        const string query = @"
+            select a.FirstItem 
+            from #schema.first() a 
+            outer apply #schema.second() a";
+        
+        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+            new(),
+            new()
+        ], [
+            new(), 
+            new()
+        ]));
+    }
 }

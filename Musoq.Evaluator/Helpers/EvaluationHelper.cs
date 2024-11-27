@@ -24,9 +24,9 @@ public static class EvaluationHelper
         return new GenericRowsSource<T>(enumerable);
     }
         
-    public static RowSource ConvertTableToSource(Table table)
+    public static RowSource ConvertTableToSource(Table table, bool skipContext)
     {
-        return new TableRowSource(table);
+        return new TableRowSource(table, skipContext);
     }
 
     public static RowSource ConvertTableToSource(List<Group> list)

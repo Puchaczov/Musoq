@@ -11,6 +11,18 @@ public class SymbolTable
     {
         _symbols.Add(key, symbol);
     }
+    
+    public TSymbol AddOrGetSymbol<TSymbol>(object key) where TSymbol : Symbol, new()
+    {
+        if (_symbols.TryGetValue(key, out var symbol) && symbol is TSymbol castedSymbol)
+        {
+            return castedSymbol;
+        }
+
+        var newSymbol = new TSymbol();
+        _symbols.Add(key, newSymbol);
+        return newSymbol;
+    }
 
     public void AddSymbolIfNotExist(object key, Symbol symbol)
     {
@@ -26,6 +38,18 @@ public class SymbolTable
     {
         return (TSymbol) GetSymbol(key);
     }
+
+    public bool TryGetSymbol<TSymbol>(object key, out TSymbol symbol)
+    {
+        if (_symbols.TryGetValue(key, out var plainSymbol) && plainSymbol is TSymbol castedSymbol)
+        {
+            symbol = castedSymbol;
+            return true;
+        }
+
+        symbol = default;
+        return false;
+    } 
 
     public void MoveSymbol(object oldKey, object newKey)
     {

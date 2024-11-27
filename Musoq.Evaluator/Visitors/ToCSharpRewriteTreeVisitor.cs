@@ -1190,7 +1190,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
                         SyntaxFactory.IdentifierName(
-                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
+                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
                         Block(
                             GetRowsSourceOrEmpty(node.SourceTable.Alias),
                             SyntaxFactory.ForEachStatement(
@@ -1291,7 +1291,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
                         SyntaxFactory.IdentifierName(
-                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
+                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
                         Block(
                             SyntaxFactory.LocalDeclarationStatement(
                                 SyntaxHelper.CreateAssignment("hasAnyRowMatched",
@@ -1420,7 +1420,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.IdentifierName("var"),
                                 SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
                                 SyntaxFactory.IdentifierName(
-                                    $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
+                                    $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
                                 SyntaxFactory.Block(
                                     GenerateCancellationExpression(),
                                     (StatementSyntax) ifStatement,
@@ -1460,7 +1460,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
                         SyntaxFactory.IdentifierName(
-                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
+                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
                         Block(
                             GetRowsSourceOrEmpty(node.SourceTable.Alias),
                             SyntaxFactory.ForEachStatement(
@@ -1560,7 +1560,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
                         SyntaxFactory.IdentifierName(
-                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable).{nameof(RowSource.Rows)}"),
+                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
                         Block(
                             SyntaxFactory.LocalDeclarationStatement(
                                 SyntaxHelper.CreateAssignment("hasAnyRowMatched",
@@ -2054,6 +2054,23 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
     public void Visit(InMemoryTableFromNode node)
     {
+        var tableArgument = SyntaxFactory.Argument(
+            SyntaxFactory
+                .ElementAccessExpression(
+                    SyntaxFactory.IdentifierName("_tableResults")).WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(
+                                        _inMemoryTableIndexes[
+                                            node.VariableName])))))));
+
+        var literalFalseArgument = SyntaxFactory.Argument(
+            SyntaxFactory.LiteralExpression(
+                SyntaxKind.TrueLiteralExpression));
+
         _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
             .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory
@@ -2064,18 +2081,11 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
                                 SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertTableToSource))))
                             .WithArgumentList(
-                                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Argument(SyntaxFactory
-                                        .ElementAccessExpression(
-                                            SyntaxFactory.IdentifierName("_tableResults")).WithArgumentList(
-                                            SyntaxFactory.BracketedArgumentList(
-                                                SyntaxFactory.SingletonSeparatedList(
-                                                    SyntaxFactory.Argument(
-                                                        SyntaxFactory.LiteralExpression(
-                                                            SyntaxKind.NumericLiteralExpression,
-                                                            SyntaxFactory.Literal(
-                                                                _inMemoryTableIndexes[
-                                                                    node.VariableName]))))))))))))))));
+                                SyntaxFactory.ArgumentList(
+                                    SyntaxFactory.SeparatedList([
+                                        tableArgument,
+                                        literalFalseArgument
+                                    ])))))))));
     }
 
     public void Visit(JoinFromNode node)
