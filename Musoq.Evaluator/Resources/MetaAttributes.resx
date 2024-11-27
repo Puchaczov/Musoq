@@ -153,4 +153,7 @@
   <data name="OrderNumber" xml:space="preserve">
     <value>OrderNumber</value>
   </data>
+  <data name="Aliases" xml:space="preserve">
+    <value>Aliases</value>
+  </data>
 </root>

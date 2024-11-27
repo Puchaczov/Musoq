@@ -591,7 +591,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             splitNodes.Add(joinedQuery);
 
             lastJoinQuery = joinedQuery;
-            source = targetTableName.ToTransitionTable().ToTransformedRowsSource();
+            source = targetTableName.ToTransitionTable().ToTransformedRowsSource(false);
 
             var usedTables = new Dictionary<string, string>
             {
@@ -757,7 +757,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 splitNodes.Add(joinedQuery);
 
                 lastJoinQuery = joinedQuery;
-                source = targetTableName.ToTransitionTable().ToTransformedRowsSource();
+                source = targetTableName.ToTransitionTable().ToTransformedRowsSource(false);
             }
 
             var rewriter = new RewritePartsToUseJoinTransitionTable();
@@ -795,10 +795,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             scopeCreateTransformingTable[MetaAttributes.CreateTableVariableName] = nestedFrom.Alias.ToGroupingTable();
             scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = nestedFrom.Alias.ToScoreTable();
 
-            var destination = nestedFrom.Alias.ToGroupingTable().ToTransformedRowsSource();
+            var destination = nestedFrom.Alias.ToGroupingTable().ToTransformedRowsSource(true);
             scopeTransformedQuery[MetaAttributes.SelectIntoVariableName] = destination;
             scopeTransformedQuery[MetaAttributes.SourceName] = splitNodes.Count > 0
-                ? nestedFrom.Alias.ToTransitionTable().ToTransformedRowsSource()
+                ? nestedFrom.Alias.ToTransitionTable().ToTransformedRowsSource(false)
                 : nestedFrom.Alias.ToRowsSource().WithRowsUsage();
             scopeTransformedQuery[MetaAttributes.OriginAlias] = nestedFrom.Alias;
             scopeTransformedQuery.ScopeSymbolTable.AddSymbol(nestedFrom.Alias,

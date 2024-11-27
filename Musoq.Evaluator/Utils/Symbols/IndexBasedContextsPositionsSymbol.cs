@@ -5,14 +5,15 @@ namespace Musoq.Evaluator.Utils.Symbols;
 
 public class IndexBasedContextsPositionsSymbol : Symbol
 {
-    private readonly IDictionary<int, (string[] Left, string[] Right)> _contextsPositions = new Dictionary<int, (string[] Left, string[] Right)>();
+    private readonly Dictionary<int, (string[] Left, string[] Right)> _contextsPositions = new();
 
     public int GetIndexFor(int index, string alias)
     {
         var leftRight = _contextsPositions[index];
+        
         var inLeftIndex = Array.IndexOf(leftRight.Left, alias);
             
-        return inLeftIndex != -1 ? inLeftIndex : Array.IndexOf(leftRight.Right, alias);
+        return inLeftIndex == -1 ? Array.IndexOf(leftRight.Right, alias) : inLeftIndex;
     }
 
     public void Add(IReadOnlyCollection<string> lines)

@@ -221,4 +221,41 @@ public class MethodInvocationTests : BasicEntityTestBase
 
         Assert.ThrowsException<AliasMissingException>(() => CreateAndRunVirtualMachine(query, sources));
     }
+
+    [TestMethod]
+    public void WhenContextsOfInnerCteShouldTurnContextOfResultingTable_ShouldPass()
+    {
+        var query = """
+                    with first as (
+                        select 
+                            x.Name as Name
+                        from #A.entities() x
+                        cross apply x.JustReturnArrayOfString() b
+                    )
+                    select 
+                        p.Value
+                    from first b
+                    inner join #A.entities() r2 on 1 = 1
+                    cross apply r2.MethodArrayOfStrings(r2.TestMethodWithInjectEntityAndParameter(b.Name), r2.TestMethodWithInjectEntityAndParameter(b.Name)) p
+                    """;
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>()
+        {
+            {
+                "#A", [
+                    new BasicEntity("TEST")
+                ]
+            }
+        };
+        
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        
+        var table = vm.Run();
+        
+        Assert.AreEqual(4, table.Count);
+        Assert.AreEqual("TEST", table[0].Values[0]);
+        Assert.AreEqual("TEST", table[1].Values[0]);
+        Assert.AreEqual("TEST", table[2].Values[0]);
+        Assert.AreEqual("TEST", table[3].Values[0]);
+    }
 }

@@ -758,7 +758,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         var newScope = Scope.AddScope(name);
         _scopes.Push(Scope);
         Scope = newScope;
-
+        
         _visitor.SetScope(newScope);
     }
 
@@ -779,7 +779,6 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     private void TraverseSetOperator(SetOperatorNode node)
     {
         node.Left.Accept(this);
-        _visitor.SetOperatorLeftFinished();
         node.Right.Accept(this);
         node.Accept(_visitor);
         RestoreScope();

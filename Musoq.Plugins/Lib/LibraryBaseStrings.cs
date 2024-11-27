@@ -134,7 +134,7 @@ public abstract partial class LibraryBase
     }
 
     /// <summary>
-    /// Concatenates specified string fir characters
+    /// Concatenates specified string first characters
     /// </summary>
     /// <param name="firstString">The string</param>
     /// <param name="chars">The characters</param>

@@ -89,7 +89,11 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_MultipleSplitWords_ShouldPass()
     {
-        const string query = "select b.Value, c.Value from #schema.first() a cross apply a.Split(a.Text, ' ') as b cross apply a.Split(a.Text, ' ') as c";
+        const string query = @"
+select 
+    b.Value, 
+    c.Value 
+from #schema.first() a cross apply a.Split(a.Text, ' ') as b cross apply a.Split(a.Text, ' ') as c";
         
         string[] words = ["Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."];
         

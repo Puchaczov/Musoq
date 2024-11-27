@@ -27,6 +27,31 @@ public class Library : LibraryBase
     {
         return entity.Name;
     }
+    
+    [BindableMethod]
+    public string[] MethodArrayOfStrings([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, string name1, string name2)
+    {
+        return [
+            name1,
+            name2
+        ];
+    }
+    
+    [BindableMethod]
+    public string TestMethodWithInjectEntityAndParameter([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, string name)
+    {
+        return name;
+    }
+
+    [BindableMethod]
+    public string[] JustReturnArrayOfString()
+    {
+        return
+        [
+            "1",
+            "2"
+        ];
+    }
 
     [BindableMethod]
     public string Extension([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)

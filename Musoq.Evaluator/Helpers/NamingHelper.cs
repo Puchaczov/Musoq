@@ -32,9 +32,14 @@ public static class NamingHelper
         return $"{name}Score";
     }
 
-    public static string ToTransformedRowsSource(this string name)
+    public static string ToTransformedRowsSource(this string name, bool isForGrouping)
     {
-        return $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({name}).Rows";
+        if (isForGrouping)
+        {
+            return $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({name}).Rows";
+        }
+        
+        return $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({name}, false).Rows";
     }
 
     public static string WithRowsUsage(this string name)
@@ -60,5 +65,10 @@ public static class NamingHelper
     public static string ListOf<T>()
     {
         return $"List<{typeof(T).Name}>";
+    }
+
+    private static string GetSkipContextLiteral(bool skipContexts)
+    {
+        return skipContexts ? "true" : "false";
     }
 }

@@ -35,6 +35,8 @@ public class TableSymbol : Symbol
     {
         HasAlias = true;
     }
+    
+    public ISchemaTable FullTable => _fullTable;
 
     public bool HasAlias { get; }
 

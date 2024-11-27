@@ -60,6 +60,15 @@ namespace Musoq.Evaluator.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Aliases.
+        /// </summary>
+        internal static string Aliases {
+            get {
+                return ResourceManager.GetString("Aliases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to AllQueryContexts.
         /// </summary>
         internal static string AllQueryContexts {
