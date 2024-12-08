@@ -680,6 +680,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                             (IndexBasedContextsPositionsSymbol) _scope.ScopeSymbolTable.GetSymbol(MetaAttributes
                                 .PreformatedContexts);
                         var orderNumber = int.Parse(_scope[MetaAttributes.OrderNumber]);
+                        
                         currentContext = preformattedContexts.GetIndexFor(orderNumber, node.Alias);
                     }
                     else
@@ -2067,7 +2068,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                         _inMemoryTableIndexes[
                                             node.VariableName])))))));
 
-        var literalFalseArgument = SyntaxFactory.Argument(
+        var literalTrueArgument = SyntaxFactory.Argument(
             SyntaxFactory.LiteralExpression(
                 SyntaxKind.TrueLiteralExpression));
 
@@ -2084,7 +2085,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.ArgumentList(
                                     SyntaxFactory.SeparatedList([
                                         tableArgument,
-                                        literalFalseArgument
+                                        literalTrueArgument
                                     ])))))))));
     }
 

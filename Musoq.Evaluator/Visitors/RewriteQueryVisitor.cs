@@ -463,8 +463,6 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         var scoreWhere = where;
         var scoreOrderBy = orderBy;
 
-        QueryNode query;
-
         var splitNodes = new List<Node>();
         var source = from.Alias.ToRowsSource().WithRowsUsage();
 
@@ -860,7 +858,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 modifiedOrderBy = new OrderByNode(splitOrderBy);
             }
 
-            query = new DetailedQueryNode(
+            QueryNode query = new DetailedQueryNode(
                 outSelect,
                 new Parser.ExpressionFromNode(
                     new InMemoryGroupedFromNode(returnScore)),
@@ -887,8 +885,6 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 
             if (IsQueryWithMixedAggregateAndNonAggregateMethods(split))
             {
-                query = new InternalQueryNode(select, from, where, null, orderBy, skip, take,
-                    CreateRefreshMethods(usedRefreshMethods));
                 throw new NotImplementedException("Mixing aggregate and non aggregate methods is not implemented yet");
             }
 

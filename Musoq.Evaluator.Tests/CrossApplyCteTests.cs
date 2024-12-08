@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
@@ -33,6 +34,11 @@ public class CrossApplyCteTests : GenericEntityTestBase
         
         [BindablePropertyAsTable]
         public string[] Skills { get; set; }
+    }
+    
+    public class CrossApplyClass4
+    {
+        public string Name { get; set; }
     }
     
     [TestMethod]
@@ -319,5 +325,46 @@ select a.Name, b.Value from first a cross apply a.Skills b";
         
         Assert.AreEqual("Name3", table[8].Values[0]);
         Assert.AreEqual("Skill9", table[8].Values[1]);
+    }
+
+    [TestMethod]
+    public void WhenCrossApplyComponentsMustInjectMultipleEntities_ShouldNotThrow()
+    {
+        var query = """
+                    with first as (
+                        select 
+                            r.AggregateValues(r.Name) as Name1,
+                            r.AggregateValues(r.Name) as Name2
+                        from #schema.first() r
+                        cross apply r.JustReturnArrayOfString() b
+                        cross apply r.JustReturnArrayOfString() c
+                        group by 'fake'
+                    )
+                    select
+                        b.Name1,
+                        b.Name2,
+                        p.Value
+                    from first b
+                    inner join #schema.first() r on 1 = 1
+                    cross apply r.MethodArrayOfStrings(r.TestMethodWithInjectEntityAndParameter(b.Name1), r.TestMethodWithInjectEntityAndParameter(b.Name2)) p
+                    """;
+        
+        var firstSource = new List<CrossApplyClass4>
+        {
+            new() {Name = "Name1"}
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query, 
+            firstSource);
+
+        try
+        {
+            vm.Run();
+        }
+        catch (Exception)
+        {
+            Assert.Fail($"Expected not to throw exception but got: ");
+        }
     }
 }
