@@ -235,8 +235,8 @@ public class MethodInvocationTests : BasicEntityTestBase
                     select 
                         p.Value
                     from first b
-                    inner join #A.entities() r2 on 1 = 1
-                    cross apply r2.MethodArrayOfStrings(r2.TestMethodWithInjectEntityAndParameter(b.Name), r2.TestMethodWithInjectEntityAndParameter(b.Name)) p
+                    inner join #A.entities() r on 1 = 1
+                    cross apply r.MethodArrayOfStrings(r.TestMethodWithInjectEntityAndParameter(b.Name), r.TestMethodWithInjectEntityAndParameter(b.Name)) p
                     """;
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>()

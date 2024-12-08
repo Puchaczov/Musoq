@@ -1482,8 +1482,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             method = reducedMethod;
         }
 
-        if (!isAggregateMethod && method.IsGenericMethod && !method.IsConstructedGenericMethod &&
-            TryConstructGenericMethod(method, args, out var constructedMethod))
+        if (
+            !isAggregateMethod && 
+            method.IsGenericMethod && 
+            !method.IsConstructedGenericMethod &&
+            TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
         {
             method = constructedMethod;
         }
@@ -2076,7 +2079,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         return true;
     }
 
-    private static bool TryConstructGenericMethod(MethodInfo methodInfo, ArgsListNode args, out MethodInfo constructedMethod)
+    private static bool TryConstructGenericMethod(MethodInfo methodInfo, ArgsListNode args, Type entity, out MethodInfo constructedMethod)
     {
         var genericArguments = methodInfo.GetGenericArguments();
         var genericArgumentsDistinct = new List<Type>();
@@ -2090,6 +2093,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             {
                 i = 1;
                 shiftArgsWhenInjectSpecificSourcePresent = 1;
+                if ((genericArgument.IsGenericParameter || genericArgument.IsGenericMethodParameter) && parameters[0].ParameterType.IsGenericParameter)
+                {
+                    genericArgumentsDistinct.Add(entity);
+                }
             }
             for (; i < parameters.Length; i++)
             {
@@ -2138,7 +2145,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
             
         var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
-            
+        
         constructedMethod = methodInfo.MakeGenericMethod(genericArgumentsConcreteTypes);
         return true;
     }

@@ -6,14 +6,16 @@ namespace Musoq.Evaluator.Tables;
 
 public class TableRowSource : RowSource
 {
+    private static readonly object[] DiscardedContexts = [new DiscardedRowContext()];
+    
     private readonly IDictionary<string, int> _columnToIndexMap;
     private readonly Table _table;
-    private readonly bool _skipContext;
+    private readonly bool _discardedContext;
 
-    public TableRowSource(Table rowSource, bool skipContext)
+    public TableRowSource(Table rowSource, bool discardContext)
     {
         _table = rowSource;
-        _skipContext = skipContext;
+        _discardedContext = discardContext;
         
         _columnToIndexMap = new Dictionary<string, int>();
 
@@ -21,11 +23,13 @@ public class TableRowSource : RowSource
             _columnToIndexMap.Add(column.ColumnName, column.ColumnIndex);
     }
 
-    public override IEnumerable<IObjectResolver> Rows => _skipContext ? RowsWithSkippedContexts : RowsWithContexts;
+    public override IEnumerable<IObjectResolver> Rows => _discardedContext ? RowsWithDiscardedContexts : RowsWithContexts;
     
     private IEnumerable<IObjectResolver> RowsWithContexts =>
         _table.Select(row => new RowResolver((ObjectsRow)row, _columnToIndexMap));
     
-    private IEnumerable<IObjectResolver> RowsWithSkippedContexts =>
-        _table.Select(row => new RowResolver(new ObjectsRow(row.Values, row.Values), _columnToIndexMap));
+    private IEnumerable<IObjectResolver> RowsWithDiscardedContexts =>
+        _table.Select(row => new RowResolver(new ObjectsRow(row.Values, DiscardedContexts), _columnToIndexMap));
+
+    private class DiscardedRowContext;
 }
