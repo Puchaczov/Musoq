@@ -1851,6 +1851,14 @@ Split string by Windows-style newlines (\r\n)
 
 Smart split that handles both Windows (\r\n) and Linux (\n) newlines
 
+#### string StringsJoin(string separator, string[] values)
+
+Joins the specified values with the separator
+
+#### string StringsJoin(string separator, IEnumerable\<string\> values)
+
+Joins the specified values with the separator
+
 #### TimeSpan? AddTimeSpans(TimeSpan?[] timeSpans)
 
 Adds a given set of time spans.
