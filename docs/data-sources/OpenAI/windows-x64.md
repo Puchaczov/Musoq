@@ -1560,7 +1560,7 @@ Concatenates the specified characters
 
 #### string Concat(string firstString, char[] chars)
 
-Concatenates specified string fir characters
+Concatenates specified string first characters
 
 #### string Concat(char? firstChar, string[] strings)
 
@@ -1757,6 +1757,14 @@ Split string by Windows-style newlines (\r\n)
 #### string[] SplitByNewLines(string input)
 
 Smart split that handles both Windows (\r\n) and Linux (\n) newlines
+
+#### string StringsJoin(string separator, string[] values)
+
+Joins the specified values with the separator
+
+#### string StringsJoin(string separator, IEnumerable\<string\> values)
+
+Joins the specified values with the separator
 
 #### TimeSpan? AddTimeSpans(TimeSpan?[] timeSpans)
 

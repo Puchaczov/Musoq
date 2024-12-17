@@ -79,16 +79,17 @@ Gets the files
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Full name of the directory |
+| FileName | string | Name of the file |
 | CreationTime | DateTime | Creation time |
 | CreationTimeUtc | DateTime | Creation time in UTC |
 | LastAccessTime | DateTime | Last access time |
 | LastAccessTimeUtc | DateTime | Last access time in UTC |
 | LastWriteTime | DateTime | Last write time |
 | LastWriteTimeUtc | DateTime | Last write time in UTC |
-| DirectoryName | string | Gets the directory name |
 | Extension | string | Gets the extension part of the file name |
-| FullName | string | Gets the full path of file |
+| FullPath | string | Gets the full path of file |
+| DirectoryName | string | Gets the directory name |
+| DirectoryPath | string | Gets the directory path |
 | Exists | bool | Determine whether file exists or not |
 | IsReadOnly | bool | Determine whether the file is readonly |
 | Length | long | Gets the length of file |
@@ -147,7 +148,19 @@ Gets the metadata for file or for files within the directory
 | TagName | string | Gets the tag name |
 | Description | string | Gets the description |
 
-### os.metadata(string directory, bool useSubdirectories)
+### os.metadata(string directory, bool throwOnMetadataReadError)
+
+Gets the metadata for files within directories
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| FullName | string | Gets the full path of the file |
+| DirectoryName | string | Gets the directory the metadata resides in |
+| TagName | string | Gets the tag name |
+| Description | string | Gets the description |
+
+### os.metadata(string directory, bool useSubdirectories, bool throwOnMetadataReadError)
 
 Gets the metadata for files within directories
 
@@ -166,7 +179,7 @@ Methods allow operations on columns or values within queries. They provide speci
 ### Aggregation methods
 
 Aggregation methods process multiple rows to compute a single result value. These methods are used with GROUP BY clauses to summarize data across row groups. Below are the aggregation methods supported by this data source:
-#### IReadOnlyList\<ExtendedFileInfo\> AggregateFiles(string name)
+#### IReadOnlyList\<FileEntity\> AggregateFiles(string name)
 
 Gets the aggregated average value from the given group name
 
@@ -325,11 +338,11 @@ Gets the relative SubPath from the path
 
 Gets the length of the file
 
-#### ExtendedFileInfo GetFileInfo(string fullPath)
+#### FileEntity GetFileInfo(string fullPath)
 
 Gets the file info
 
-#### ExtendedFileInfo GetExtendedFileInfo()
+#### FileEntity GetExtendedFileInfo()
 
 Gets extended file info
 
@@ -1786,7 +1799,7 @@ Concatenates the specified characters
 
 #### string Concat(string firstString, char[] chars)
 
-Concatenates specified string fir characters
+Concatenates specified string first characters
 
 #### string Concat(char? firstChar, string[] strings)
 

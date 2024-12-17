@@ -2,7 +2,7 @@
 title: Analysis of the EFCore Repository
 layout: default
 parent: Practical Examples and Applications
-nav_order: 5
+nav_order: 7
 ---
 
 # Analysis of the EFCore Repository

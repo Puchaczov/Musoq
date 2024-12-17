@@ -2,7 +2,7 @@
 title: Querying Git Repositories
 layout: default
 parent: Practical Examples and Applications
-nav_order: 6
+nav_order: 5
 ---
 
 # Git Operations with SQL Queries

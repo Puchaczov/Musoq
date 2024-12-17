@@ -173,6 +173,7 @@ Represents Git patch
 | LinesAdded | int | Lines added |
 | LinesDeleted | int | Lines deleted |
 | Content | string | Gets the full patch file of this diff |
+| Changes | PatchEntryChangesEntity[] | Gets the changes in this patch |
 
 ### PatchEntryChangesEntity
 
@@ -260,7 +261,7 @@ Gets the patch between two commits.
 
 Gets the branches that match a search pattern.
 
-#### IEnumerable\<CommitEntity\> GetBranchSpecificCommits(RepositoryEntity repository, BranchEntity branch, bool excludeMergeBase)
+#### IEnumerable\<CommitEntity\> GetBranchSpecificCommits(BranchEntity branch, bool excludeMergeBase)
 
 Gets commits unique to this branch since it diverged from its parent.
 
@@ -1653,7 +1654,7 @@ Concatenates the specified characters
 
 #### string Concat(string firstString, char[] chars)
 
-Concatenates specified string fir characters
+Concatenates specified string first characters
 
 #### string Concat(char? firstChar, string[] strings)
 
