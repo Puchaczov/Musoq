@@ -32,6 +32,9 @@ public partial class LibraryBase
         var list = foundedGroup.GetOrCreateValue<List<string>>(name);
 
         var builder = new StringBuilder();
+        
+        if (list == null) return builder.ToString();
+        
         for (int i = 0, j = list.Count - 1; i < j; i++)
         {
             builder.Append(list[i]);
@@ -281,7 +284,27 @@ public partial class LibraryBase
             return;
         }
 
-        AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
+        AggregateAdd(group, name, value.Value.ToString("dd.MM.yyyy HH:mm:ss zzz", CultureInfo.CurrentCulture), parent);
+    }
+
+    /// <summary>
+    /// Sets the value of the group.
+    /// </summary>
+    /// <param name="group" injectedByRuntime="true">The group object</param>
+    /// <param name="name">Name of the group</param>
+    /// <param name="value">Value that should be aggregated</param>
+    /// <param name="culture">What culture the object will be represented at</param>
+    /// <param name="parent">Which group should be used to store value</param>
+    [AggregationSetMethod]
+    public void SetAggregateValues([InjectGroup] Group group, string name, DateTimeOffset? value, string culture, int parent = 0)
+    {
+        if (!value.HasValue)
+        {
+            AggregateAdd(group, name, string.Empty, parent);
+            return;
+        }
+
+        AggregateAdd(group, name, value.Value.ToString("dd.MM.yyyy HH:mm:ss zzz", CultureInfo.GetCultureInfo(culture)), parent);
     }
         
     /// <summary>
@@ -300,7 +323,7 @@ public partial class LibraryBase
             return;
         }
 
-        AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
+        AggregateAdd(group, name, value.Value.ToString("dd.MM.yyyy HH:mm:ss", CultureInfo.CurrentCulture), parent);
     }
         
     /// <summary>

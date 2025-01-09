@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Musoq.Parser.Helpers;
 
-public static class NodeHelper
+public static class NodeHelpers
 {
-    static NodeHelper()
+    static NodeHelpers()
     {
         var binaryTypes = new Dictionary<(Type, Type), Type>
         {

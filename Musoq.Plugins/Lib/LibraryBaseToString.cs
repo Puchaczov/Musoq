@@ -29,7 +29,7 @@ public partial class LibraryBase
     [BindableMethod]
     public string? ToString(DateTimeOffset? value)
     {
-        return value?.ToString(CultureInfo.CurrentCulture);
+        return value?.ToString();
     }
 
     /// <summary>
@@ -39,9 +39,22 @@ public partial class LibraryBase
     /// <param name="format">The format</param>
     /// <returns>Converted to string value</returns>
     [BindableMethod]
-    public string? ToString(DateTimeOffset? value, string format)
+    public string? ToString(DateTimeOffset? value, string? format)
     {
-        return value?.ToString(format, CultureInfo.CurrentCulture);
+        return value?.ToString(format ?? "dd.MM.yyyy HH:mm:ss zzz", CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Converts given value to string
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <param name="format">The format</param>
+    /// <param name="culture">The culture</param>
+    /// <returns>Converted to string value</returns>
+    [BindableMethod]
+    public string? ToString(DateTimeOffset? value, string? format, string? culture)
+    {
+        return value?.ToString(format ?? "dd.MM.yyyy HH:mm:ss zzz", CultureInfo.GetCultureInfo(culture ?? "en-EN"));
     }
 
     /// <summary>
