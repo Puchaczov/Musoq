@@ -350,4 +350,66 @@ public partial class LibraryBase
     {
         return values?.Distinct();
     }
+    
+    /// <summary>
+    /// Returns the first element of a sequence, or a default value if the sequence contains no elements.
+    /// </summary>
+    /// <param name="values">The values</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>The first element of a sequence, or a default value if the sequence contains no elements.</returns>
+    public T? FirstOrDefault<T>(IEnumerable<T>? values)
+    {
+        if (values == null)
+            return default;
+        
+        return values.FirstOrDefault();
+    }
+    
+    /// <summary>
+    /// Returns the last element of a sequence, or a default value if the sequence contains no elements.
+    /// </summary>
+    /// <param name="values">The values</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>The last element of a sequence, or a default value if the sequence contains no elements.</returns>
+    public T? LastOrDefault<T>(IEnumerable<T>? values)
+    {
+        if (values == null)
+            return default;
+        
+        return values.LastOrDefault();
+    }
+    
+    /// <summary>
+    /// Returns the element at a specified index in a sequence or a default value if the index is out of range.
+    /// </summary>
+    /// <param name="values">The values</param>
+    /// <param name="index">The index</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>The element at a specified index in a sequence or a default value if the index is out of range.</returns>
+    public T? NthOrDefault<T>(IEnumerable<T>? values, int index)
+    {
+        if (values == null)
+            return default;
+        
+        return values.ElementAtOrDefault(index);
+    }
+    
+    /// <summary>
+    /// Returns the element at a specified index from the end of a sequence or a default value if the index is out of range.
+    /// </summary>
+    /// <param name="values">The values</param>
+    /// <param name="index">The index</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>The element at a specified index from the end of a sequence or a default value if the index is out of range.</returns>
+    public T? NthFromEndOrDefault<T>(IEnumerable<T>? values, int index)
+    {
+        if (values == null)
+            return default;
+
+        return values.GetType() switch {
+            List<T> list => list.ElementAtOrDefault(list.Count - index - 1),
+            T[] array => array.ElementAtOrDefault(array.Length - index - 1),
+            _ => values.Reverse().ElementAtOrDefault(index)
+        }; 
+    }
 }

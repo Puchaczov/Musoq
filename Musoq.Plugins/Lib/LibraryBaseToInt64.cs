@@ -11,7 +11,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Int64 value</returns>
     [BindableMethod]
-    public long? ToInt64(string value)
+    public long? ToInt64(string? value)
     {
         if (long.TryParse(value, out var number))
             return number;

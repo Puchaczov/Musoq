@@ -105,9 +105,9 @@ public class AggregateValuesTests : LibraryBaseBaseTests
     [TestMethod]
     public void AggregateValuesDateTimeOffsetParentTest()
     {
-        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("01.01.2010 00:00:00 +01:00"));
-        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("05.05.2015 00:00:00 +02:00"), 1);
-        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("03.02.2001 00:00:00 +01:00"), 1);
+        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("01.01.2010 00:00:00 +01:00"), "pl-PL");
+        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("05.05.2015 00:00:00 +02:00"), "pl-PL", 1);
+        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("03.02.2001 00:00:00 +01:00"), "pl-PL", 1);
 
         Assert.AreEqual("05.05.2015 00:00:00 +02:00,03.02.2001 00:00:00 +01:00", Library.AggregateValues(Group, "test", 1));
         Assert.AreEqual("01.01.2010 00:00:00 +01:00", Library.AggregateValues(Group, "test"));

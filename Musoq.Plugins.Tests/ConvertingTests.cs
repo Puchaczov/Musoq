@@ -39,13 +39,13 @@ public class ConvertingTests : LibraryBaseBaseTests
     public void ToLongTest()
     {
         Assert.AreEqual(12321L, Library.ToInt64("12321"));
-        Assert.AreEqual(null, Library.ToInt64((string)null));
+        Assert.AreEqual(null, Library.ToInt64((string?)null));
     }
 
     [TestMethod]
     public void ToStringDateTimeOffsetTest()
     {
-        Assert.AreEqual("01.01.2015 00:00:00 +00:00", Library.ToString(DateTimeOffset.Parse("01.01.2015 00:00:00 +00:00")));
+        Assert.AreEqual("01.01.2015 00:00:00 +00:00", Library.ToString(DateTimeOffset.Parse("01.01.2015 00:00:00 +00:00"), "dd.MM.yyyy HH:mm:ss zzz"));
         Assert.AreEqual(null, Library.ToString((DateTimeOffset?)null));
     }
 

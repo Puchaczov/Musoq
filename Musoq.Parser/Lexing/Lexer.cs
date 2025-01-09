@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Musoq.Parser.Helpers;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -266,7 +267,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KStar = Format(Keyword, $@"\{StarToken.TokenText}");
         public static readonly string KWhere = Format(Keyword, WhereToken.TokenText);
         public static readonly string KWhiteSpace = @"[\s]{1,}";
-        public static readonly string KWordSingleQuoted = @"'(.*?[^\\])'";
+        public static readonly string KWordSingleQuoted = @"'([^'\\]|\\.)*'";
         public static readonly string KEmptyString = "''";
         public static readonly string KEqual = Format(Keyword, EqualityToken.TokenText);
         public static readonly string KSelect = Format(Keyword, SelectToken.TokenText);
@@ -639,13 +640,18 @@ public class Lexer : LexerBase<Token>
         }
 
         var regex = matchedDefinition.Regex.ToString();
-            
-        if (regex == TokenRegexDefinition.KWordSingleQuoted)
-            return new WordToken(match.Groups[1].Value, new TextSpan(Position + 1, match.Groups[1].Value.Length));
-        if (regex == TokenRegexDefinition.KEmptyString)
-            return new WordToken(string.Empty, new TextSpan(Position + 1, 0));
 
-        return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+        if (regex != TokenRegexDefinition.KWordSingleQuoted)
+            return regex == TokenRegexDefinition.KEmptyString
+                ? new WordToken(string.Empty, new TextSpan(Position + 1, 0))
+                : new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+        
+        var subValue = match.Groups[0].Value[1..^1];
+        var value = subValue.Unescape();
+        return new WordToken(
+            value,
+            new TextSpan(Position + 1, match.Groups[0].Value.Length)
+        );
     }
 
     private static string GetAbbreviation(string tokenText)

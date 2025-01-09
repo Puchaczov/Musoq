@@ -413,8 +413,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             SyntaxFactory.LiteralExpression(
                 SyntaxKind.StringLiteralExpression,
                 SyntaxFactory.Literal(
-                    $"@\"{EscapeQuoteString(node.Value, EscapeQuoteStringCharacterReplacement)}\"",
-                    UnescapeLanguageSpecificString(node.Value))));
+                    $"@\"{EscapeQuoteString(node.Value, EscapeQuoteStringCharacterReplacement)}\"", node.Value)));
     }
 
     public void Visit(DecimalNode node)
@@ -571,9 +570,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
     public void Visit(WordNode node)
     {
-        Nodes.Push(Generator.LiteralExpression(
-            UnescapeLanguageSpecificString(
-                EscapeQuoteString(node.Value, EscapeQuoteStringCharacterReplacement))));
+        Nodes.Push(Generator.LiteralExpression(node.Value));
     }
 
     public void Visit(NullNode node)
@@ -3998,15 +3995,6 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         return _getRowsSourceStatement.TryGetValue(alias, out var value)
             ? value
             : SyntaxFactory.EmptyStatement();
-    }
-
-    private static string UnescapeLanguageSpecificString(string value)
-    {
-        const string pattern = @"(?<!\\)'";
-        var result = Regex.Replace(value, pattern, string.Empty);
-        result = result.Replace("\\'", "'");
-
-        return result;
     }
 
     private static bool CheckIfNullable(Type type)
