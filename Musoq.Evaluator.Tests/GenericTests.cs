@@ -214,4 +214,40 @@ public class GenericTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("\"00:11:22\"", table[0].Values[0]);
     }
+    
+    [TestMethod]
+    public void WhenFirstElementLookedFor_ShouldSuccess()
+    {
+        var table = TestResultMethodTemplate("FirstOrDefault(Split('a/b/c', '/'))");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("a", table[0].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenNthElementLookedFor_ShouldSuccess()
+    {
+        var table = TestResultMethodTemplate("NthOrDefault(Split('a/b/c', '/'), 1)");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("b", table[0].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenLastElementLookedFor_ShouldSuccess()
+    {
+        var table = TestResultMethodTemplate("LastOrDefault(Split('a/b/c', '/'))");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("c", table[0].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenNthElementFromEndLookedFor_ShouldSuccess()
+    {
+        var table = TestResultMethodTemplate("NthFromEndOrDefault(Split('a/b/c', '/'), 1)");
+        
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("b", table[0].Values[0]);
+    }
 }

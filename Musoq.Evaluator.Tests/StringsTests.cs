@@ -253,5 +253,68 @@ public class StringsTests : BasicEntityTestBase
         
         Assert.AreEqual(specialCharacter.ToString(), table[0].Values[0]);
     }
+    
+    [TestMethod]
+    public void WhenIndexOfCalled_ShouldReturnFirstIndex()
+    {
+        const string query = """select IndexOf('a/b/c', '/') from #A.entities()""";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity(string.Empty)
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(1, table[0].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenNthIndexOfCalled_ShouldReturnSecondIndex()
+    {
+        const string query = """select NthIndexOf('a/b/c', '/', 1) from #A.entities()""";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity(string.Empty)
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(3, table[0].Values[0]);
+    }
+    
+    [TestMethod]
+    public void WhenLastIndexOfCalled_ShouldReturnLastIndex()
+    {
+        const string query = """select LastIndexOf('a/b/c', '/') from #A.entities()""";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity(string.Empty)
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+        
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(3, table[0].Values[0]);
+    }
 }
 
