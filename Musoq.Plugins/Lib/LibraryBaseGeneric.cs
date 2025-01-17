@@ -357,6 +357,7 @@ public partial class LibraryBase
     /// <param name="values">The values</param>
     /// <typeparam name="T">Type</typeparam>
     /// <returns>The first element of a sequence, or a default value if the sequence contains no elements.</returns>
+    [BindableMethod]
     public T? FirstOrDefault<T>(IEnumerable<T>? values)
     {
         if (values == null)
@@ -371,6 +372,7 @@ public partial class LibraryBase
     /// <param name="values">The values</param>
     /// <typeparam name="T">Type</typeparam>
     /// <returns>The last element of a sequence, or a default value if the sequence contains no elements.</returns>
+    [BindableMethod]
     public T? LastOrDefault<T>(IEnumerable<T>? values)
     {
         if (values == null)
@@ -386,6 +388,7 @@ public partial class LibraryBase
     /// <param name="index">The index</param>
     /// <typeparam name="T">Type</typeparam>
     /// <returns>The element at a specified index in a sequence or a default value if the index is out of range.</returns>
+    [BindableMethod]
     public T? NthOrDefault<T>(IEnumerable<T>? values, int index)
     {
         if (values == null)
@@ -401,6 +404,7 @@ public partial class LibraryBase
     /// <param name="index">The index</param>
     /// <typeparam name="T">Type</typeparam>
     /// <returns>The element at a specified index from the end of a sequence or a default value if the index is out of range.</returns>
+    [BindableMethod]
     public T? NthFromEndOrDefault<T>(IEnumerable<T>? values, int index)
     {
         if (values == null)

@@ -245,6 +245,56 @@ public abstract partial class LibraryBase
     }
 
     /// <summary>
+    /// Position of the nth occurrence of the specified value
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <param name="text">The text</param>
+    /// <param name="index">The index</param>
+    /// <returns>Index of specific text</returns>
+    [BindableMethod]
+    public int? NthIndexOf(string? value, string? text, int index)
+    {
+        if (value == null || text == null || index < 0)
+            return null;
+        
+        var searchText = text;
+        if (string.IsNullOrEmpty(searchText))
+            return null;
+    
+        var count = 0;
+        var position = -1;
+
+        do
+        {
+            position = value.IndexOf(searchText, position + 1, StringComparison.Ordinal);
+        
+            if (position == -1)
+                return null;
+            
+            if (count == index)
+                return position;
+            
+            count++;
+        } while (true);
+    }
+    
+    /// <summary>
+    /// Position of the last occurrence of the specified pattern
+    /// </summary>
+    /// <param name="value">The content to search in</param>
+    /// <param name="text">The pattern to find</param>
+    /// <returns>Index of the last occurrence of the pattern</returns>
+    [BindableMethod]
+    public int? LastIndexOf(string? value, string? text)
+    {
+        if (value == null || text == null || text.Length == 0)
+            return null;
+        
+        var position = value.LastIndexOf(text, StringComparison.Ordinal);
+        return position == -1 ? null : position;
+    }
+
+    /// <summary>
     /// Computes soundex for the specified value
     /// </summary>
     /// <param name="value">The value</param>
@@ -598,7 +648,7 @@ public abstract partial class LibraryBase
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="separators">The separators</param>
-    /// <returns></returns>
+    /// <returns>Separated values</returns>
     [BindableMethod]
     public string[] Split(string value, params string[] separators) => value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
     
