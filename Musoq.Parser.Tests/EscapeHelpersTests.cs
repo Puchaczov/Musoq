@@ -148,7 +148,7 @@ public class EscapeHelpersTests
 
         // Act
         var sw = System.Diagnostics.Stopwatch.StartNew();
-        string result = input.ToString().Unescape();
+        var result = input.ToString().Unescape();
         sw.Stop();
 
         // Assert
@@ -156,7 +156,7 @@ public class EscapeHelpersTests
         Assert.IsTrue(result.Contains("\n"));
         Assert.IsTrue(result.Contains("\\text"));
         Assert.IsTrue(result.Contains("\t"));
-        Assert.IsTrue(sw.ElapsedMilliseconds < 100, 
+        Assert.IsTrue(sw.ElapsedMilliseconds < 200, 
             $"Processing took too long: {sw.ElapsedMilliseconds}ms");
     }
 

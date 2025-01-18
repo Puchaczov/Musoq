@@ -11,6 +11,8 @@ namespace Musoq.Plugins;
 public abstract partial class LibraryBase
 {
     private readonly Soundex _soundex = new();
+    
+    private static readonly char[] Separator = ['\n'];
 
     /// <summary>
     /// Gets the new identifier
@@ -1005,7 +1007,9 @@ public abstract partial class LibraryBase
         if (string.IsNullOrEmpty(input))
             return [];
             
-        return input.Split(['\n'], StringSplitOptions.None);
+        // ReSharper disable once UseCollectionExpression
+        // ReSharper disable once RedundantExplicitArrayCreation
+        return input.Split(Separator, StringSplitOptions.None);
     }
 
     /// <summary>
@@ -1041,7 +1045,7 @@ public abstract partial class LibraryBase
         
         var normalizedInput = input.Replace("\r\n", "\n");
         
-        return normalizedInput.Split(['\n'], StringSplitOptions.None);
+        return normalizedInput.Split(Separator, StringSplitOptions.None);
     }
     
     /// <summary>
