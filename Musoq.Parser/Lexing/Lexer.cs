@@ -55,12 +55,14 @@ public class Lexer : LexerBase<Token>
     ///     Resolve the statement type.
     /// </summary>
     /// <param name="tokenText">Text that match some definition</param>
-    /// <param name="matchedDefinition">Definition that text matched.</param>
+    /// <param name="regex">Definition that text matched.</param>
     /// <returns>Statement type.</returns>
-    private TokenType GetTokenCandidate(string tokenText, TokenDefinition matchedDefinition)
+    private TokenType GetTokenCandidate(string tokenText, string regex)
     {
-        var regex = matchedDefinition.Regex.ToString();
         var loweredToken = tokenText.ToLowerInvariant();
+
+        if (regex == TokenRegexDefinition.KComment)
+            return TokenType.Comment;
             
         if (regex == TokenRegexDefinition.Function)
             return TokenType.Function;
@@ -222,9 +224,7 @@ public class Lexer : LexerBase<Token>
             return TokenType.Word;
             
         if (_decimalCandidates.Any(decimalCandidate => decimalCandidate.IsMatch(tokenText)))
-        {
             return TokenType.Decimal;
-        }
                 
         var regexSignedInteger = new Regex(TokenRegexDefinition.KSignedInteger);
                 
@@ -297,6 +297,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KSignedInteger = @"-?\d+(?:I|i|L|l|S|s|B|b)?";
         public static readonly string KUnsignedInteger = "[0-9]+(?:UI|ui|UL|ul|US|us|UB|ub){1}";
         public static readonly string KDecimalOrInteger = $"({KDecimalWithDotAndSuffix}|{KDecimalWithDot}|{KDecimalWithSuffix}|{KUnsignedInteger}|{KSignedInteger})";
+        public static readonly string KComment = "--[^\\r\\n]*|/\\*[\\s\\S]*?\\*/";
 
         public static readonly string KMethodAccess =
             "([a-zA-Z1-9_]{1,})(?=\\.[a-zA-Z_-]{1,}[a-zA-Z1-9_-]{1,}[\\d]*[\\(])";
@@ -352,6 +353,7 @@ public class Lexer : LexerBase<Token>
         /// </summary>
         public static TokenDefinition[] General =>
         [
+            new(TokenRegexDefinition.KComment),
             new(TokenRegexDefinition.KDecimalOrInteger),
             new(TokenRegexDefinition.KDesc),
             new(TokenRegexDefinition.KAsc),
@@ -437,7 +439,7 @@ public class Lexer : LexerBase<Token>
     public override Token Next()
     {
         var token = base.Next();
-        while (_skipWhiteSpaces && token.TokenType == TokenType.WhiteSpace)
+        while (ShouldSkipToken(token))
             token = base.Next();
             
         _alreadyResolvedTokens.Add(token);
@@ -454,7 +456,7 @@ public class Lexer : LexerBase<Token>
     public override Token NextOf(Regex regex, Func<string, Token> getToken)
     {
         var token = base.NextOf(regex, getToken);
-        while (_skipWhiteSpaces && token.TokenType == TokenType.WhiteSpace)
+        while (ShouldSkipToken(token))
             token = base.NextOf(regex, getToken);
             
         _alreadyResolvedTokens.Add(token);
@@ -479,8 +481,9 @@ public class Lexer : LexerBase<Token>
     /// <returns>The token.</returns>
     protected override Token GetToken(TokenDefinition matchedDefinition, Match match)
     {
+        var regex = matchedDefinition.Regex.ToString();
         var tokenText = match.Value;
-        var token = GetTokenCandidate(tokenText, matchedDefinition);
+        var token = GetTokenCandidate(tokenText, regex);
 
         switch (token)
         {
@@ -637,9 +640,9 @@ public class Lexer : LexerBase<Token>
                 return new EndToken(new TextSpan(Position, tokenText.Length));
             case TokenType.FieldLink:
                 return new FieldLinkToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Comment:
+                return new CommentToken(tokenText, new TextSpan(Position, tokenText.Length));
         }
-
-        var regex = matchedDefinition.Regex.ToString();
 
         if (regex != TokenRegexDefinition.KWordSingleQuoted)
             return regex == TokenRegexDefinition.KEmptyString
@@ -652,6 +655,11 @@ public class Lexer : LexerBase<Token>
             value,
             new TextSpan(Position + 1, match.Groups[0].Value.Length)
         );
+    }
+
+    private bool ShouldSkipToken(Token token)
+    {
+        return (_skipWhiteSpaces && token.TokenType == TokenType.WhiteSpace) || token.TokenType == TokenType.Comment;
     }
 
     private static string GetAbbreviation(string tokenText)
