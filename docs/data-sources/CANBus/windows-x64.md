@@ -161,10 +161,6 @@ Treats ulong as encoded signal of a message for CAN bus and decodes it.
 
 Converts timestamp to date time offset.
 
-#### DateTimeOffset? ToDateTimeOffset(string date, string format)
-
-Creates the date time offset from given date and time in a given format.
-
 
 ## Standard Methods
 
@@ -1376,6 +1372,22 @@ Gets the first non-null value in a list
 
 Returns distinct elements from a collection.
 
+#### T FirstOrDefault\<T\>(IEnumerable\<T\> values)
+
+Returns the first element of a sequence, or a default value if the sequence contains no elements.
+
+#### T LastOrDefault\<T\>(IEnumerable\<T\> values)
+
+Returns the last element of a sequence, or a default value if the sequence contains no elements.
+
+#### T NthOrDefault\<T\>(IEnumerable\<T\> values, int index)
+
+Returns the element at a specified index in a sequence or a default value if the index is out of range.
+
+#### T NthFromEndOrDefault\<T\>(IEnumerable\<T\> values, int index)
+
+Returns the element at a specified index from the end of a sequence or a default value if the index is out of range.
+
 #### string Md5(string content)
 
 Gets the md5 hash of the given string.
@@ -1571,6 +1583,14 @@ Determine whether the string contains the specified value
 #### int? IndexOf(string value, string text)
 
 Position of the first occurrence of the specified value
+
+#### int? NthIndexOf(string value, string text, int index)
+
+Position of the nth occurrence of the specified value
+
+#### int? LastIndexOf(string value, string text)
+
+Position of the last occurrence of the specified pattern
 
 #### string Soundex(string value)
 
@@ -2053,6 +2073,10 @@ Converts given value to string
 Converts given value to string
 
 #### string ToString(DateTimeOffset? value, string format)
+
+Converts given value to string
+
+#### string ToString(DateTimeOffset? value, string format, string culture)
 
 Converts given value to string
 
