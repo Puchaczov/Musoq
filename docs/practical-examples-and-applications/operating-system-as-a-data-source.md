@@ -18,15 +18,15 @@ SELECT
     ProcessName,
     Directory,
     FileName
-FROM #os.processes() where ProcessName like '%Musoq%'
+FROM #os.processes() WHERE ProcessName LIKE '%Musoq%'
 ```
 
 ## Finding `.cfg` and `.tmp` Files in Downloads
 
-This query retrieves the file size (`Length`) and the full path (`FullName`) of all files located in the `Downloads` directory of the user `{USER}` that have either a `.cfg` or `.tmp` extension. It searches through all the subdirectories (`true` parameter indicates recursive search) within the specified path for files matching the criteria.
+This query retrieves the file size (`Length`) and the full path (`FullPath`) of all files located in the `Downloads` directory of the user `{USER}` that have either a `.cfg` or `.tmp` extension. It searches through all the subdirectories (`true` parameter indicates recursive search) within the specified path for files matching the criteria.
 
 ```sql
-SELECT Length, FullName FROM #os.files('C:\Users\{USER}\Downloads', true) WHERE FullName LIKE '%.cfg' OR FullName LIKE '%.tmp'
+SELECT Length, FullPath FROM #os.files('C:\Users\{USER}\Downloads', true) WHERE FullPath LIKE '%.cfg' OR FullPath LIKE '%.tmp'
 ```
 
 ## Listing Non-empty Files
@@ -55,10 +55,10 @@ SELECT Name FROM #os.files('C:\Users\{USER}\Downloads', true) skip 5 take 5
 
 ## Finding CSV Files Containing 'Frames' Word in File Name
 
-This query searches for `.csv` files that contain the word 'Frames' within their full path (`FullName`) in the `Downloads` directory of the user `{USER}`. It leverages the `rlike` operator for regex pattern matching to filter files. The `true` parameter ensures that the search is conducted recursively through all subdirectories within the specified path, targeting only those `.csv` files whose names include 'Frames'.
+This query searches for `.csv` files that contain the word 'Frames' within their full path (`FullPath`) in the `Downloads` directory of the user `{USER}`. It leverages the `rlike` operator for regex pattern matching to filter files. The `true` parameter ensures that the search is conducted recursively through all subdirectories within the specified path, targeting only those `.csv` files whose names include 'Frames'.
 
 ```sql
-SELECT Name FROM #os.files('C:\Users\{USER}\Downloads', true) WHERE FullName rlike '.*Frames.*.csv'
+SELECT Name FROM #os.files('C:\Users\{USER}\Downloads', true) WHERE FullPath rlike '.*Frames.*.csv'
 ```
 
 ## Filtering `.tmp` and `.cfg` Files by Size
@@ -67,10 +67,21 @@ This query selects the names (`Name`) of files within the `Downloads` directory 
 
 ## Combining JPG Files from Two Folders
 
-This query aggregates the full paths (`FullName`) of `.jpg` files from two specific locations: `Folder1` and `Folder2` within the user `{USER}`'s directory. It uses the `UNION ALL` operation to combine the results from both folders into a single list, including duplicates if they exist. The `true` parameter for each `#os.files` function call ensures that the search includes all subdirectories within both specified paths, targeting `.jpg` files exclusively.
+This query aggregates the full paths (`FullPath`) of `.jpg` files from two specific locations: `Folder1` and `Folder2` within the user `{USER}`'s directory. It uses the `UNION ALL` operation to combine the results from both folders into a single list, including duplicates if they exist. The `true` parameter for each `#os.files` function call ensures that the search includes all subdirectories within both specified paths, targeting `.jpg` files exclusively.
 
 ```sql
-SELECT FullName FROM #os.files('C:\Users\{USER}\Folder1', true) WHERE Name LIKE '%.jpg'
-UNION ALL (FullName)
-SELECT FullName FROM #os.files('C:\Users\{USER}\Folder2', true) WHERE Name LIKE '%.jpg'
+SELECT FullPath FROM #os.files('C:\Users\{USER}\Folder1', true) WHERE Name LIKE '%.jpg'
+UNION ALL (FullPath)
+SELECT FullPath FROM #os.files('C:\Users\{USER}\Folder2', true) WHERE Name LIKE '%.jpg'
+```
+
+or you can use cross apply operator:
+
+```sql
+SELECT
+    f.DirectoryName,
+    f.FileName
+FROM #os.directories('C:\Users\{USER}', false) d
+CROSS APPLY #os.files(d.FullName, true) f
+WHERE d.Name IN ('Folder1', 'Folder2')
 ```
