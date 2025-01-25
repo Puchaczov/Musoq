@@ -8,14 +8,8 @@ public abstract class IndexedList<TKey, TValue>
     where TValue : IValue<TKey>
     where TKey : IEquatable<TKey>
 {
-    protected readonly Dictionary<TKey, List<int>> Indexes;
-    protected internal readonly List<TValue> Rows;
-
-    protected IndexedList()
-    {
-        Indexes = new Dictionary<TKey, List<int>>();
-        Rows = [];
-    }
+    protected readonly Dictionary<TKey, List<int>> Indexes = new();
+    protected internal readonly List<TValue> Rows = [];
 
     public TValue this[int index] => Rows[index];
 

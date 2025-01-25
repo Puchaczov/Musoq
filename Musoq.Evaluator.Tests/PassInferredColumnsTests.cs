@@ -192,15 +192,21 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         Assert.AreEqual("Age", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.AreEqual(3, table.Count);
-        
-        Assert.AreEqual("Roland", table[0].Values[0]);
-        Assert.AreEqual(21, table[0].Values[1]);
-        
-        Assert.AreEqual("Mateusz", table[1].Values[0]);
-        Assert.AreEqual(22, table[1].Values[1]);
-        
-        Assert.AreEqual("John", table[2].Values[0]);
-        Assert.AreEqual(22, table[2].Values[1]);
+        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "Roland" && 
+                (int)row.Values[1] == 21), 
+            "Row with Roland age 21 not found");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "Mateusz" && 
+                (int)row.Values[1] == 22),
+            "Row with Mateusz age 22 not found");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "John" && 
+                (int)row.Values[1] == 22),
+            "Row with John age 22 not found");
     }
 }

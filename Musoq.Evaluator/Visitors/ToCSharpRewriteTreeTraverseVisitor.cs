@@ -375,6 +375,10 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         _visitor.SetScope(_walker.Scope);
 
         _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
+        
+        if (node.Skip != null || node.Take != null || node.OrderBy != null)
+            _visitor.SetResultParallelizationImpossible();
+        
         _visitor.SetQueryIdentifier(node.From.Alias);
 
         node.From.Accept(this);
@@ -386,6 +390,7 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.GroupBy?.Accept(this);
         node.OrderBy?.Accept(this);
         node.Accept(_visitor);
+        
         _walker = _walker.Parent();
     }
 

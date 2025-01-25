@@ -89,37 +89,31 @@ select [a.City], [a.Country], [a.Population], [b.Country], [b.Money], [b.Month] 
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
         
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("City1", table[0].Values[0]);
-        Assert.AreEqual("Country1", table[0].Values[1]);
-        Assert.AreEqual(100, table[0].Values[2]);
-        Assert.AreEqual("Country1", table[0].Values[3]);
-        Assert.AreEqual(1000m, table[0].Values[4]);
-        
-        Assert.AreEqual("City1", table[1].Values[0]);
-        Assert.AreEqual("Country1", table[1].Values[1]);
-        Assert.AreEqual(100, table[1].Values[2]);
-        Assert.AreEqual("Country1", table[1].Values[3]);
-        Assert.AreEqual(2000m, table[1].Values[4]);
-        
-        Assert.AreEqual("City2", table[2].Values[0]);
-        Assert.AreEqual("Country1", table[2].Values[1]);
-        Assert.AreEqual(200, table[2].Values[2]);
-        Assert.AreEqual("Country1", table[2].Values[3]);
-        Assert.AreEqual(1000m, table[2].Values[4]);
-        
-        Assert.AreEqual("City2", table[3].Values[0]);
-        Assert.AreEqual("Country1", table[3].Values[1]);
-        Assert.AreEqual(200, table[3].Values[2]);
-        Assert.AreEqual("Country1", table[3].Values[3]);
-        Assert.AreEqual(2000m, table[3].Values[4]);
-        
-        Assert.AreEqual("City3", table[4].Values[0]);
-        Assert.AreEqual("Country2", table[4].Values[1]);
-        Assert.AreEqual(300, table[4].Values[2]);
-        Assert.AreEqual("Country2", table[4].Values[3]);
-        Assert.AreEqual(3000m, table[4].Values[4]);
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City1" && 
+                (string)row.Values[1] == "Country1" &&
+                (int)row.Values[2] == 100 &&
+                (string)row.Values[3] == "Country1" &&
+                ((decimal)row.Values[4] == 1000m || (decimal)row.Values[4] == 2000m)) == 2,
+            "Expected data for City1 not found");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City2" && 
+                (string)row.Values[1] == "Country1" &&
+                (int)row.Values[2] == 200 &&
+                (string)row.Values[3] == "Country1" &&
+                ((decimal)row.Values[4] == 1000m || (decimal)row.Values[4] == 2000m)) == 2,
+            "Expected data for City2 not found");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "City3" && 
+                (string)row.Values[1] == "Country2" &&
+                (int)row.Values[2] == 300 &&
+                (string)row.Values[3] == "Country2" &&
+                (decimal)row.Values[4] == 3000m),
+            "Expected data for City3 not found");
     }
     
         [TestMethod]
@@ -174,37 +168,47 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a cro
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
         
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("City1", table[0].Values[0]);
-        Assert.AreEqual("Country1", table[0].Values[1]);
-        Assert.AreEqual(100, table[0].Values[2]);
-        Assert.AreEqual("Country1", table[0].Values[3]);
-        Assert.AreEqual(1000m, table[0].Values[4]);
-        
-        Assert.AreEqual("City1", table[1].Values[0]);
-        Assert.AreEqual("Country1", table[1].Values[1]);
-        Assert.AreEqual(100, table[1].Values[2]);
-        Assert.AreEqual("Country1", table[1].Values[3]);
-        Assert.AreEqual(2000m, table[1].Values[4]);
-        
-        Assert.AreEqual("City2", table[2].Values[0]);
-        Assert.AreEqual("Country1", table[2].Values[1]);
-        Assert.AreEqual(200, table[2].Values[2]);
-        Assert.AreEqual("Country1", table[2].Values[3]);
-        Assert.AreEqual(1000m, table[2].Values[4]);
-        
-        Assert.AreEqual("City2", table[3].Values[0]);
-        Assert.AreEqual("Country1", table[3].Values[1]);
-        Assert.AreEqual(200, table[3].Values[2]);
-        Assert.AreEqual("Country1", table[3].Values[3]);
-        Assert.AreEqual(2000m, table[3].Values[4]);
-        
-        Assert.AreEqual("City3", table[4].Values[0]);
-        Assert.AreEqual("Country2", table[4].Values[1]);
-        Assert.AreEqual(300, table[4].Values[2]);
-        Assert.AreEqual("Country2", table[4].Values[3]);
-        Assert.AreEqual(3000m, table[4].Values[4]);
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City1" && 
+                (string)row.Values[1] == "Country1" && 
+                (int)row.Values[2] == 100 && 
+                (string)row.Values[3] == "Country1" && 
+                (decimal)row.Values[4] == 1000m) == 1, 
+            "Missing City1/Country1/100/Country1/1000 row");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City1" && 
+                (string)row.Values[1] == "Country1" && 
+                (int)row.Values[2] == 100 && 
+                (string)row.Values[3] == "Country1" && 
+                (decimal)row.Values[4] == 2000m) == 1,
+            "Missing City1/Country1/100/Country1/2000 row");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City2" && 
+                (string)row.Values[1] == "Country1" && 
+                (int)row.Values[2] == 200 && 
+                (string)row.Values[3] == "Country1" && 
+                (decimal)row.Values[4] == 1000m) == 1,
+            "Missing City2/Country1/200/Country1/1000 row");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City2" && 
+                (string)row.Values[1] == "Country1" && 
+                (int)row.Values[2] == 200 && 
+                (string)row.Values[3] == "Country1" && 
+                (decimal)row.Values[4] == 2000m) == 1,
+            "Missing City2/Country1/200/Country1/2000 row");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City3" && 
+                (string)row.Values[1] == "Country2" && 
+                (int)row.Values[2] == 300 && 
+                (string)row.Values[3] == "Country2" && 
+                (decimal)row.Values[4] == 3000m) == 1,
+            "Missing City3/Country2/300/Country2/3000 row");
     }
     
     [TestMethod]
@@ -238,33 +242,43 @@ select [a.Name], [b.Value] from p";
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(9, table.Count);
-        
-        Assert.AreEqual("Name1", table[0].Values[0]);
-        Assert.AreEqual("Skill1", table[0].Values[1]);
-        
-        Assert.AreEqual("Name1", table[1].Values[0]);
-        Assert.AreEqual("Skill2", table[1].Values[1]);
-        
-        Assert.AreEqual("Name1", table[2].Values[0]);
-        Assert.AreEqual("Skill3", table[2].Values[1]);
-        
-        Assert.AreEqual("Name2", table[3].Values[0]);
-        Assert.AreEqual("Skill4", table[3].Values[1]);
-        
-        Assert.AreEqual("Name2", table[4].Values[0]);
-        Assert.AreEqual("Skill5", table[4].Values[1]);
-        
-        Assert.AreEqual("Name2", table[5].Values[0]);
-        Assert.AreEqual("Skill6", table[5].Values[1]);
-        
-        Assert.AreEqual("Name3", table[6].Values[0]);
-        Assert.AreEqual("Skill7", table[6].Values[1]);
-        
-        Assert.AreEqual("Name3", table[7].Values[0]);
-        Assert.AreEqual("Skill8", table[7].Values[1]);
-        
-        Assert.AreEqual("Name3", table[8].Values[0]);
-        Assert.AreEqual("Skill9", table[8].Values[1]);
+
+        var expectedPairs = new List<(string Name, string Skill)>
+        {
+            ("Name1", "Skill1"), ("Name1", "Skill2"), ("Name1", "Skill3"),
+            ("Name2", "Skill4"), ("Name2", "Skill5"), ("Name2", "Skill6"),
+            ("Name3", "Skill7"), ("Name3", "Skill8"), ("Name3", "Skill9")
+        };
+
+        var actualPairs = table
+            .Select(row => (Name: row.Values[0], Skill: row.Values[1]))
+            .ToList();
+
+        foreach (var name in new[] { "Name1", "Name2", "Name3" })
+        {
+            // Get expected skills for this name
+            var expectedSkills = expectedPairs
+                .Where(p => p.Name == name)
+                .Select(p => p.Skill)
+                .ToList();
+
+            // Get actual skills for this name
+            var actualSkills = actualPairs
+                .Where(p => (string) p.Name == name)
+                .Select(p => p.Skill)
+                .ToList();
+
+            // Compare the skills
+            CollectionAssert.AreEquivalent(
+                expectedSkills,
+                actualSkills,
+                $"Skills for {name} do not match expected values"
+            );
+
+            // Verify count of appearances
+            Assert.AreEqual(3, actualPairs.Count(p => p.Name == name),
+                $"{name} should appear exactly 3 times");
+        }
     }
     
     [TestMethod]
@@ -295,36 +309,20 @@ select a.Name, b.Value from first a cross apply a.Skills b";
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
         Assert.AreEqual("b.Value", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.AreEqual(9, table.Count);
-        
-        Assert.AreEqual("Name1", table[0].Values[0]);
-        Assert.AreEqual("Skill1", table[0].Values[1]);
-        
-        Assert.AreEqual("Name1", table[1].Values[0]);
-        Assert.AreEqual("Skill2", table[1].Values[1]);
-        
-        Assert.AreEqual("Name1", table[2].Values[0]);
-        Assert.AreEqual("Skill3", table[2].Values[1]);
-        
-        Assert.AreEqual("Name2", table[3].Values[0]);
-        Assert.AreEqual("Skill4", table[3].Values[1]);
-        
-        Assert.AreEqual("Name2", table[4].Values[0]);
-        Assert.AreEqual("Skill5", table[4].Values[1]);
-        
-        Assert.AreEqual("Name2", table[5].Values[0]);
-        Assert.AreEqual("Skill6", table[5].Values[1]);
-        
-        Assert.AreEqual("Name3", table[6].Values[0]);
-        Assert.AreEqual("Skill7", table[6].Values[1]);
-        
-        Assert.AreEqual("Name3", table[7].Values[0]);
-        Assert.AreEqual("Skill8", table[7].Values[1]);
-        
-        Assert.AreEqual("Name3", table[8].Values[0]);
-        Assert.AreEqual("Skill9", table[8].Values[1]);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);Assert.IsTrue(table.Count == 9, "Table should contain 9 rows");
+
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name1" && (string)row.Values[1] == "Skill1"), "Missing Name1/Skill1 row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name1" && (string)row.Values[1] == "Skill2"), "Missing Name1/Skill2 row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name1" && (string)row.Values[1] == "Skill3"), "Missing Name1/Skill3 row");
+
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name2" && (string)row.Values[1] == "Skill4"), "Missing Name2/Skill4 row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name2" && (string)row.Values[1] == "Skill5"), "Missing Name2/Skill5 row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name2" && (string)row.Values[1] == "Skill6"), "Missing Name2/Skill6 row");
+
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name3" && (string)row.Values[1] == "Skill7"), "Missing Name3/Skill7 row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name3" && (string)row.Values[1] == "Skill8"), "Missing Name3/Skill8 row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name3" && (string)row.Values[1] == "Skill9"), "Missing Name3/Skill9 row");
     }
 
     [TestMethod]

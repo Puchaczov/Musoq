@@ -192,56 +192,22 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(3).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(4).ColumnType);
+        
+        Assert.IsTrue(table.Count == 8, "Table should contain 8 rows");
 
-        Assert.AreEqual(8, table.Count);
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "IT" && 
+                (int)row[1] == 500000 &&
+                new[] { ("John Doe", 50000), ("Jane Smith", 60000) }.Contains(((string)row[2], (int)row[3])) &&
+                new[] { "C#", "JavaScript" }.Contains((string)row[4])) == 4,
+            "Expected 4 IT rows with correct employee and skill combinations");
 
-        Assert.AreEqual("IT", table[0][0]);
-        Assert.AreEqual(500000, table[0][1]);
-        Assert.AreEqual("John Doe", table[0][2]);
-        Assert.AreEqual(50000, table[0][3]);
-        Assert.AreEqual("C#", table[0][4]);
-
-        Assert.AreEqual("IT", table[1][0]);
-        Assert.AreEqual(500000, table[1][1]);
-        Assert.AreEqual("John Doe", table[1][2]);
-        Assert.AreEqual(50000, table[1][3]);
-        Assert.AreEqual("JavaScript", table[1][4]);
-
-        Assert.AreEqual("IT", table[2][0]);
-        Assert.AreEqual(500000, table[2][1]);
-        Assert.AreEqual("Jane Smith", table[2][2]);
-        Assert.AreEqual(60000, table[2][3]);
-        Assert.AreEqual("C#", table[2][4]);
-
-        Assert.AreEqual("IT", table[3][0]);
-        Assert.AreEqual(500000, table[3][1]);
-        Assert.AreEqual("Jane Smith", table[3][2]);
-        Assert.AreEqual(60000, table[3][3]);
-        Assert.AreEqual("JavaScript", table[3][4]);
-
-        Assert.AreEqual("HR", table[4][0]);
-        Assert.AreEqual(300000, table[4][1]);
-        Assert.AreEqual("John Doe", table[4][2]);
-        Assert.AreEqual(50000, table[4][3]);
-        Assert.AreEqual("Communication", table[4][4]);
-
-        Assert.AreEqual("HR", table[5][0]);
-        Assert.AreEqual(300000, table[5][1]);
-        Assert.AreEqual("John Doe", table[5][2]);
-        Assert.AreEqual(50000, table[5][3]);
-        Assert.AreEqual("Negotiation", table[5][4]);
-
-        Assert.AreEqual("HR", table[6][0]);
-        Assert.AreEqual(300000, table[6][1]);
-        Assert.AreEqual("Jane Smith", table[6][2]);
-        Assert.AreEqual(60000, table[6][3]);
-        Assert.AreEqual("Communication", table[6][4]);
-
-        Assert.AreEqual("HR", table[7][0]);
-        Assert.AreEqual(300000, table[7][1]);
-        Assert.AreEqual("Jane Smith", table[7][2]);
-        Assert.AreEqual(60000, table[7][3]);
-        Assert.AreEqual("Negotiation", table[7][4]);
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "HR" && 
+                (int)row[1] == 300000 &&
+                new[] { ("John Doe", 50000), ("Jane Smith", 60000) }.Contains(((string)row[2], (int)row[3])) &&
+                new[] { "Communication", "Negotiation" }.Contains((string)row[4])) == 4,
+            "Expected 4 HR rows with correct employee and skill combinations");
     }
 
     private class OuterApplyClass5
@@ -439,27 +405,42 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("John", table[0][0]);
-        Assert.AreEqual("Doe", table[0][1]);
-        Assert.AreEqual("C#", table[0][2]);
-        
-        Assert.AreEqual("John", table[1][0]);
-        Assert.AreEqual("Doe", table[1][1]);
-        Assert.AreEqual("JavaScript", table[1][2]);
-        
-        Assert.AreEqual("Jane", table[2][0]);
-        Assert.AreEqual("Smith", table[2][1]);
-        Assert.AreEqual("Java", table[2][2]);
-            
-        Assert.AreEqual("Alice", table[3][0]);
-        Assert.AreEqual("Johnson", table[3][1]);
-        Assert.AreEqual("Communication", table[3][2]);
-        
-        Assert.AreEqual("Alice", table[4][0]);
-        Assert.AreEqual("Johnson", table[4][1]);
-        Assert.AreEqual("Negotiation", table[4][2]);
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.Count(row => 
+                          (string) row[0] == "John" && 
+                          (string) row[1] == "Doe") == 2 &&
+                      table.Any(row =>
+                          (string) row[0] == "John" && 
+                          (string) row[1] == "Doe" && 
+                          (string) row[2] == "C#") &&
+                      table.Any(row =>
+                          (string) row[0] == "John" && 
+                          (string) row[1] == "Doe" && 
+                          (string) row[2] == "JavaScript"),
+            "Expected two rows for John Doe with C# and JavaScript skills");
+
+        Assert.IsTrue(table.Count(row =>
+                          (string) row[0] == "Jane" && 
+                          (string) row[1] == "Smith") == 1 &&
+                      table.Any(row =>
+                          (string) row[0] == "Jane" && 
+                          (string) row[1] == "Smith" && 
+                          (string) row[2] == "Java"),
+            "Expected one row for Jane Smith with Java skill");
+
+        Assert.IsTrue(table.Count(row =>
+                          (string) row[0] == "Alice" && 
+                          (string) row[1] == "Johnson") == 2 &&
+                      table.Any(row =>
+                          (string) row[0] == "Alice" && 
+                          (string) row[1] == "Johnson" && 
+                          (string) row[2] == "Communication") &&
+                      table.Any(row =>
+                          (string) row[0] == "Alice" && 
+                          (string) row[1] == "Johnson" && 
+                          (string) row[2] == "Negotiation"),
+            "Expected two rows for Alice Johnson with Communication and Negotiation skills");
     }
     
     [TestMethod]
@@ -500,26 +481,24 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("John", table[0][0]);
-        Assert.AreEqual("Doe", table[0][1]);
-        Assert.AreEqual("C#", table[0][2]);
-        
-        Assert.AreEqual("John", table[1][0]);
-        Assert.AreEqual("Doe", table[1][1]);
-        Assert.AreEqual("JavaScript", table[1][2]);
-        
-        Assert.AreEqual("Jane", table[2][0]);
-        Assert.AreEqual("Smith", table[2][1]);
-        Assert.AreEqual("Java", table[2][2]);
-            
-        Assert.AreEqual("Alice", table[3][0]);
-        Assert.AreEqual("Johnson", table[3][1]);
-        Assert.AreEqual("Communication", table[3][2]);
-        
-        Assert.AreEqual("Alice", table[4][0]);
-        Assert.AreEqual("Johnson", table[4][1]);
-        Assert.AreEqual("Negotiation", table[4][2]);
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "John" && 
+                (string)row[1] == "Doe" && 
+                new[] { "C#", "JavaScript" }.Contains((string)row[2])) == 2,
+            "Expected 2 rows for John Doe with C# and JavaScript skills");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row[0] == "Jane" && 
+                (string)row[1] == "Smith" && 
+                (string)row[2] == "Java"),
+            "Row for Jane Smith with Java skill not found");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "Alice" && 
+                (string)row[1] == "Johnson" && 
+                new[] { "Communication", "Negotiation" }.Contains((string)row[2])) == 2,
+            "Expected 2 rows for Alice Johnson with Communication and Negotiation skills");
     }
 }

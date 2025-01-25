@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class ComparsionsTests : BasicEntityTestBase
+public class ComparisonTests : BasicEntityTestBase
 {
     [TestMethod]
     public void ArithmeticOpsGreaterTest()
@@ -60,9 +60,10 @@ public class ComparsionsTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
-        Assert.AreEqual(2, table.Count());
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
+        Assert.IsTrue(table.Count() == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "WARSAW"), "First entry should be 'WARSAW'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "CZESTOCHOWA"), "Second entry should be 'CZESTOCHOWA'");
     }
 
     [TestMethod]
@@ -90,8 +91,8 @@ public class ComparsionsTests : BasicEntityTestBase
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
         Assert.AreEqual(2, table.Count());
-        Assert.AreEqual("KATOWICE", table[0].Values[0]);
-        Assert.AreEqual("BERLIN", table[1].Values[0]);
+        Assert.IsTrue(table.Any(row => (string) row.Values[0] == "KATOWICE"), "Collection should contain KATOWICE");
+        Assert.IsTrue(table.Any(row => (string) row.Values[0] == "BERLIN"), "Collection should contain BERLIN");
     }
 
     [TestMethod]
@@ -117,10 +118,11 @@ public class ComparsionsTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+        
+        Assert.IsTrue(table.Count() == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count());
-        Assert.AreEqual("KATOWICE", table[0].Values[0]);
-        Assert.AreEqual("BERLIN", table[1].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "BERLIN"), "Second entry should be 'BERLIN'");
     }
 
 
@@ -147,10 +149,11 @@ public class ComparsionsTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
+        
+        Assert.IsTrue(table.Count() == 3, "Table should have 3 entries");
 
-        Assert.AreEqual(3, table.Count());
-        Assert.AreEqual("KATOWICE", table[0].Values[0]);
-        Assert.AreEqual("BERLIN", table[1].Values[0]);
-        Assert.AreEqual("MUNICH", table[2].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "BERLIN"), "Second entry should be 'BERLIN'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "MUNICH"), "Third entry should be 'MUNICH'");
     }
 }

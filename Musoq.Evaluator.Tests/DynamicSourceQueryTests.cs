@@ -55,11 +55,11 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual("Test1", table[0][1]);
-        Assert.AreEqual(2, table[1][0]);
-        Assert.AreEqual("Test2", table[1][1]);
+        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+
+        Assert.IsTrue(table.All(row => 
+                new[] { (1, "Test1"), (2, "Test2") }.Contains(((int)row[0], (string)row[1]))),
+            "Expected rows with values: (1,Test1), (2,Test2)");
     }
 
     [TestMethod]

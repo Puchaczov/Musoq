@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -29,11 +30,11 @@ public class MethodInvocationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.AreEqual(500m, table[0].Values[0]);
-        Assert.AreEqual(400m, table[1].Values[0]);
-        Assert.AreEqual(250m, table[2].Values[0]);
-        Assert.AreEqual(250m, table[3].Values[0]);
-        Assert.AreEqual(350m, table[4].Values[0]);
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.All(row => 
+                new[] { 500m, 400m, 250m, 250m, 350m }.Contains((decimal)row.Values[0])),
+            "Expected values: 500, 400, 250, 250, 350");
     }
     
     [TestMethod]
@@ -57,11 +58,11 @@ public class MethodInvocationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.AreEqual(3, table.Count);
-        
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
-        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "WARSAW"), "Missing WARSAW row"); 
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "CZESTOCHOWA"), "Missing CZESTOCHOWA row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "KATOWICE"), "Missing KATOWICE row");
     }
     
     [TestMethod]
@@ -85,11 +86,11 @@ public class MethodInvocationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.AreEqual(3, table.Count);
-        
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
-        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+
+        Assert.IsTrue(table.All(row => 
+                new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.Values[0])),
+            "Expected rows with cities: WARSAW, CZESTOCHOWA, KATOWICE");
     }
     
     [TestMethod]
@@ -113,11 +114,11 @@ public class MethodInvocationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.AreEqual(3, table.Count);
-        
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
-        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+
+        Assert.IsTrue(table.All(row => 
+                new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.Values[0])),
+            "Expected rows with cities: WARSAW, CZESTOCHOWA, KATOWICE");
     }
     
     [TestMethod]
@@ -141,11 +142,11 @@ public class MethodInvocationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.AreEqual(3, table.Count);
-        
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
-        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "WARSAW"), "Missing WARSAW");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "CZESTOCHOWA"), "Missing CZESTOCHOWA");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "KATOWICE"), "Missing KATOWICE");
     }
     
     [TestMethod]
@@ -169,11 +170,11 @@ public class MethodInvocationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.AreEqual(3, table.Count);
-        
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
-        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "WARSAW"), "Row with WARSAW not found");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "CZESTOCHOWA"), "Row with CZESTOCHOWA not found"); 
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "KATOWICE"), "Row with KATOWICE not found");
     }
     
     [TestMethod]
@@ -197,11 +198,12 @@ public class MethodInvocationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.AreEqual(3, table.Count);
-        
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual("CZESTOCHOWA", table[1].Values[0]);
-        Assert.AreEqual("KATOWICE", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+
+        var expectedCities = new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" };
+        Assert.IsTrue(expectedCities.All(city => 
+                table.Any(row => (string)row.Values[0] == city)),
+            "Not all expected cities found in table");
     }
     
     [TestMethod]

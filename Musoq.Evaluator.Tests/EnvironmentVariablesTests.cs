@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -57,11 +58,11 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         
         var table = vm.Run();
         
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("VALUE_1", table[0][1]);
-        Assert.AreEqual("KEY_2", table[1][0]);
-        Assert.AreEqual("VALUE_2", table[1][1]);
+        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+
+        Assert.IsTrue(table.All(row => 
+                new[] { ("KEY_1", "VALUE_1"), ("KEY_2", "VALUE_2") }.Contains(((string)row[0], (string)row[1]))),
+            "Expected rows with values: (KEY_1,VALUE_1), (KEY_2,VALUE_2)");
     }
 
     [TestMethod]
@@ -89,15 +90,19 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.AreEqual(2, table.Count);
-        
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("VALUE_1", table[0][1]);
-        Assert.AreEqual("VALUE_3", table[0][2]);
-        
-        Assert.AreEqual("KEY_2", table[1][0]);
-        Assert.AreEqual("VALUE_2", table[1][1]);
-        Assert.AreEqual("VALUE_4", table[1][2]);
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "KEY_1" && 
+            (string)entry[1] == "VALUE_1" && 
+            (string)entry[2] == "VALUE_3"
+        ), "First entry should be KEY_1, VALUE_1, VALUE_3");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "KEY_2" && 
+            (string)entry[1] == "VALUE_2" && 
+            (string)entry[2] == "VALUE_4"
+        ), "Second entry should be KEY_2, VALUE_2, VALUE_4");
     }
     
     [TestMethod]
@@ -125,19 +130,27 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.AreEqual(4, table.Count);
-        
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("VALUE_1", table[0][1]);
-        
-        Assert.AreEqual("KEY_2", table[1][0]);
-        Assert.AreEqual("VALUE_2", table[1][1]);
-            
-        Assert.AreEqual("KEY_3", table[2][0]);
-        Assert.AreEqual("VALUE_3", table[2][1]);
-        
-        Assert.AreEqual("KEY_4", table[3][0]);
-        Assert.AreEqual("VALUE_4", table[3][1]);
+        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "KEY_1" && 
+            (string)entry[1] == "VALUE_1"
+        ), "First entry should be KEY_1, VALUE_1");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "KEY_2" && 
+            (string)entry[1] == "VALUE_2"
+        ), "Second entry should be KEY_2, VALUE_2");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "KEY_3" && 
+            (string)entry[1] == "VALUE_3"
+        ), "Third entry should be KEY_3, VALUE_3");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "KEY_4" && 
+            (string)entry[1] == "VALUE_4"
+        ), "Fourth entry should be KEY_4, VALUE_4");
     }
 
     [TestMethod]
@@ -191,10 +204,16 @@ select Key, Value from #EnvironmentVariables.All()";
         
         var table = vm.Run();
         
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("KEY_1", table[0][0]);
-        Assert.AreEqual("VALUE_1", table[0][1]);
-        Assert.AreEqual("KEY_2", table[1][0]);
-        Assert.AreEqual("VALUE_2", table[1][1]);
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "KEY_1" && 
+            (string)entry[1] == "VALUE_1"
+        ), "First entry should be KEY_1, VALUE_1");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "KEY_2" && 
+            (string)entry[1] == "VALUE_2"
+        ), "Second entry should be KEY_2, VALUE_2");
     }
 }

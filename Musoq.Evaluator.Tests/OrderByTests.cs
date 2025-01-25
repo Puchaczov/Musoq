@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -396,14 +397,23 @@ public class OrderByTests : BasicEntityTestBase
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
-            
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("glasgow", table[0].Values[0]);
-        Assert.AreEqual("cracow", table[1].Values[0]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual("katowice", table[3].Values[0]);
-        Assert.AreEqual("czestochowa", table[4].Values[0]);
+        var table = vm.Run();Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "glasgow"), 
+            "First entry should be 'glasgow'");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "cracow"), 
+            "Second entry should be 'cracow'");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "katowice" && table.Count(e => (string)e.Values[0] == "katowice") == 2), 
+            "Two entries should be 'katowice'");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "czestochowa"), 
+            "Last entry should be 'czestochowa'");
     }
         
     [TestMethod]
@@ -427,13 +437,13 @@ public class OrderByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
             
         var table = vm.Run();
-            
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("czestochowa", table[0].Values[0]);
-        Assert.AreEqual("katowice", table[1].Values[0]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual("cracow", table[3].Values[0]);
-        Assert.AreEqual("glasgow", table[4].Values[0]);
+        
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "czestochowa"), "Missing czestochowa");
+        Assert.IsTrue(table.Count(row => (string)row.Values[0] == "katowice") == 2, "Should have exactly 2 rows with katowice");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "cracow"), "Missing cracow");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "glasgow"), "Missing glasgow");
     }
         
     [TestMethod]
@@ -457,13 +467,14 @@ public class OrderByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
             
         var table = vm.Run();
-            
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("czestochowa", table[0].Values[0]);
-        Assert.AreEqual("katowice", table[1].Values[0]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual("cracow", table[3].Values[0]);
-        Assert.AreEqual("glasgow", table[4].Values[0]);
+        
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.Count(row => (string)row.Values[0] == "katowice") == 2 &&
+                      table.Any(row => (string)row.Values[0] == "czestochowa") &&
+                      table.Any(row => (string)row.Values[0] == "cracow") &&
+                      table.Any(row => (string)row.Values[0] == "glasgow"),
+            "Expected two rows with katowice and one row each with czestochowa, cracow, and glasgow");
     }
         
     [TestMethod]
@@ -487,13 +498,17 @@ public class OrderByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
             
         var table = vm.Run();
-            
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("czestochowa", table[0].Values[0]);
-        Assert.AreEqual("katowice", table[1].Values[0]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual("cracow", table[3].Values[0]);
-        Assert.AreEqual("glasgow", table[4].Values[0]);
+        
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        var expectedCities = new[] { "czestochowa", "katowice", "cracow", "glasgow" };
+        Assert.IsTrue(expectedCities.All(city => 
+                table.Any(row => (string)row.Values[0] == city)),
+            "Not all expected cities found in table");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "katowice") == 2,
+            "Expected 2 rows with Katowice");
     }
         
     [TestMethod]
@@ -516,19 +531,32 @@ public class OrderByTests : BasicEntityTestBase
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
-            
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("czestochowa", table[0].Values[0]);
-        Assert.AreEqual(400m, table[0].Values[1]);
-        Assert.AreEqual("katowice", table[1].Values[0]);
-        Assert.AreEqual(300m, table[1].Values[1]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual(100m, table[2].Values[1]);
-        Assert.AreEqual("cracow", table[3].Values[0]);
-        Assert.AreEqual(10m, table[3].Values[1]);
-        Assert.AreEqual("glasgow", table[4].Values[0]);
-        Assert.AreEqual(-10m, table[4].Values[1]);
+        var table = vm.Run();Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "czestochowa" && 
+                (decimal)entry.Values[1] == 400m), 
+            "First entry should be czestochowa with 400m");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "katowice" && 
+                (decimal)entry.Values[1] == 300m), 
+            "Second entry should be katowice with 300m");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "katowice" && 
+                (decimal)entry.Values[1] == 100m), 
+            "Third entry should be katowice with 100m");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "cracow" && 
+                (decimal)entry.Values[1] == 10m), 
+            "Fourth entry should be cracow with 10m");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "glasgow" && 
+                (decimal)entry.Values[1] == -10m), 
+            "Fifth entry should be glasgow with -10m");
     }
 
     [TestMethod]

@@ -95,26 +95,38 @@ inner join #C.entities() population on cities.City = population.City";
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
+        
+        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
 
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Krakow", table[0][1]);
-        Assert.AreEqual(400m, table[0][2]);
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Poland" && 
+                (string)entry[1] == "Krakow" && 
+                (decimal)entry[2] == 400m), 
+            "Entry for Krakow should match");
 
-        Assert.AreEqual("Poland", table[1][0]);
-        Assert.AreEqual("Wroclaw", table[1][1]);
-        Assert.AreEqual(500m, table[1][2]);
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Poland" && 
+                (string)entry[1] == "Wroclaw" && 
+                (decimal)entry[2] == 500m), 
+            "Entry for Wroclaw should match");
 
-        Assert.AreEqual("Poland", table[2][0]);
-        Assert.AreEqual("Warszawa", table[2][1]);
-        Assert.AreEqual(1000m, table[2][2]);
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Poland" && 
+                (string)entry[1] == "Warszawa" && 
+                (decimal)entry[2] == 1000m), 
+            "Entry for Warszawa should match");
 
-        Assert.AreEqual("Poland", table[3][0]);
-        Assert.AreEqual("Gdansk", table[3][1]);
-        Assert.AreEqual(200m, table[3][2]);
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Poland" && 
+                (string)entry[1] == "Gdansk" && 
+                (decimal)entry[2] == 200m), 
+            "Entry for Gdansk should match");
 
-        Assert.AreEqual("Germany", table[4][0]);
-        Assert.AreEqual("Berlin", table[4][1]);
-        Assert.AreEqual(400m, table[4][2]);
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Germany" && 
+                (string)entry[1] == "Berlin" && 
+                (decimal)entry[2] == 400m), 
+            "Entry for Berlin should match");
     }
 
     [TestMethod]
@@ -172,27 +184,38 @@ inner join #C.entities() population on cities.City = population.City";
 
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
+        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);// Verify the total count
+        Assert.AreEqual(5, table.Count);
 
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Krakow", table[0][1]);
-        Assert.AreEqual(400m, table[0][2]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "Poland" && 
+            (string)row[1] == "Krakow" && 
+            (decimal)row[2] == 400m
+        ), "Expected row (Poland, Krakow, 400) not found");
 
-        Assert.AreEqual("Poland", table[1][0]);
-        Assert.AreEqual("WROCLAW", table[1][1]);
-        Assert.AreEqual(500m, table[1][2]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "Poland" && 
+            (string)row[1] == "WROCLAW" && 
+            (decimal)row[2] == 500m
+        ), "Expected row (Poland, WROCLAW, 500) not found");
 
-        Assert.AreEqual("Poland", table[2][0]);
-        Assert.AreEqual("WARSZAWA", table[2][1]);
-        Assert.AreEqual(1000m, table[2][2]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "Poland" && 
+            (string)row[1] == "WARSZAWA" && 
+            (decimal)row[2] == 1000m
+        ), "Expected row (Poland, WARSZAWA, 1000) not found");
 
-        Assert.AreEqual("Poland", table[3][0]);
-        Assert.AreEqual("Gdansk", table[3][1]);
-        Assert.AreEqual(200m, table[3][2]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "Poland" && 
+            (string)row[1] == "Gdansk" && 
+            (decimal)row[2] == 200m
+        ), "Expected row (Poland, Gdansk, 200) not found");
 
-        Assert.AreEqual("Germany", table[4][0]);
-        Assert.AreEqual("Berlin", table[4][1]);
-        Assert.AreEqual(400m, table[4][2]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "Germany" && 
+            (string)row[1] == "Berlin" && 
+            (decimal)row[2] == 400m
+        ), "Expected row (Germany, Berlin, 400) not found");
     }
 
     [TestMethod]
@@ -245,26 +268,26 @@ inner join #C.entities() population on cities.City = population.City";
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
+        
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
 
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("low", table[0][1]);
-        Assert.AreEqual(400m, table[0][2]);
+        var polandLow = table.Count(row => 
+            (string)row[0] == "Poland" && 
+            (string)row[1] == "low" && 
+            ((decimal)row[2] == 400m || (decimal)row[2] == 200m)) == 2;
 
-        Assert.AreEqual("Poland", table[1][0]);
-        Assert.AreEqual("big", table[1][1]);
-        Assert.AreEqual(500m, table[1][2]);
+        var polandBig = table.Count(row => 
+            (string)row[0] == "Poland" && 
+            (string)row[1] == "big" && 
+            ((decimal)row[2] == 500m || (decimal)row[2] == 1000m)) == 2;
 
-        Assert.AreEqual("Poland", table[2][0]);
-        Assert.AreEqual("big", table[2][1]);
-        Assert.AreEqual(1000m, table[2][2]);
+        var germanyLow = table.Count(row => 
+            (string)row[0] == "Germany" && 
+            (string)row[1] == "low" && 
+            (decimal)row[2] == 400m) == 1;
 
-        Assert.AreEqual("Poland", table[3][0]);
-        Assert.AreEqual("low", table[3][1]);
-        Assert.AreEqual(200m, table[3][2]);
-
-        Assert.AreEqual("Germany", table[4][0]);
-        Assert.AreEqual("low", table[4][1]);
-        Assert.AreEqual(400m, table[4][2]);
+        Assert.IsTrue(polandLow && polandBig && germanyLow, 
+            "Expected data distribution not found");
     }
 
     [TestMethod]
@@ -320,11 +343,15 @@ group by cities.Country";
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual(2100m, table[0][1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "Poland" && 
+            (decimal)entry[1] == 2100m
+        ), "First entry should be Poland with 2100");
 
-        Assert.AreEqual("Germany", table[1][0]);
-        Assert.AreEqual(400m, table[1][1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "Germany" && 
+            (decimal)entry[1] == 400m
+        ), "Second entry should be Germany with 400");
     }
     
     [TestMethod]
@@ -528,28 +555,20 @@ inner join #C.entities() population on cities.City = population.City";
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
+        
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
 
-        Assert.AreEqual(5, table.Count);
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "Poland" && 
+                new[] { "Krakow", "Wroclaw", "Warszawa", "Gdansk" }.Contains((string)row[1]) &&
+                new[] { 400m, 500m, 1000m, 200m }.Contains((decimal)row[2])) == 4,
+            "Expected 4 Polish cities with their values not found");
 
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Krakow", table[0][1]);
-        Assert.AreEqual(400m, table[0][2]);
-
-        Assert.AreEqual("Poland", table[1][0]);
-        Assert.AreEqual("Wroclaw", table[1][1]);
-        Assert.AreEqual(500m, table[1][2]);
-
-        Assert.AreEqual("Poland", table[2][0]);
-        Assert.AreEqual("Warszawa", table[2][1]);
-        Assert.AreEqual(1000m, table[2][2]);
-
-        Assert.AreEqual("Poland", table[3][0]);
-        Assert.AreEqual("Gdansk", table[3][1]);
-        Assert.AreEqual(200m, table[3][2]);
-
-        Assert.AreEqual("Germany", table[4][0]);
-        Assert.AreEqual("Berlin", table[4][1]);
-        Assert.AreEqual(400m, table[4][2]);
+        Assert.IsTrue(table.Any(row => 
+                (string)row[0] == "Germany" && 
+                (string)row[1] == "Berlin" &&
+                (decimal)row[2] == 400m),
+            "Expected data for Berlin not found");
     }
 
     [TestMethod]
@@ -613,48 +632,38 @@ inner join #C.entities() population on cities.City = population.City";
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
+        
+        Assert.IsTrue(table.Count == 10, "Table should contain 10 rows");
 
-        Assert.AreEqual(10, table.Count);
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "Poland" && 
+                (string)row[1] == "Krakow" && 
+                (decimal)row[2] == 400m) == 2,
+            "Should have exactly 2 rows of Poland/Krakow/400");
 
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Krakow", table[0][1]);
-        Assert.AreEqual(400m, table[0][2]);
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "Poland" && 
+                (string)row[1] == "Wroclaw" && 
+                (decimal)row[2] == 500m) == 2,
+            "Should have exactly 2 rows of Poland/Wroclaw/500");
 
-        Assert.AreEqual("Poland", table[1][0]);
-        Assert.AreEqual("Wroclaw", table[1][1]);
-        Assert.AreEqual(500m, table[1][2]);
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "Poland" && 
+                (string)row[1] == "Warszawa" && 
+                (decimal)row[2] == 1000m) == 2,
+            "Should have exactly 2 rows of Poland/Warszawa/1000");
 
-        Assert.AreEqual("Poland", table[2][0]);
-        Assert.AreEqual("Warszawa", table[2][1]);
-        Assert.AreEqual(1000m, table[2][2]);
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "Poland" && 
+                (string)row[1] == "Gdansk" && 
+                (decimal)row[2] == 200m) == 2,
+            "Should have exactly 2 rows of Poland/Gdansk/200");
 
-        Assert.AreEqual("Poland", table[3][0]);
-        Assert.AreEqual("Gdansk", table[3][1]);
-        Assert.AreEqual(200m, table[3][2]);
-
-        Assert.AreEqual("Germany", table[4][0]);
-        Assert.AreEqual("Berlin", table[4][1]);
-        Assert.AreEqual(400m, table[4][2]);
-
-        Assert.AreEqual("Poland", table[5][0]);
-        Assert.AreEqual("Krakow", table[5][1]);
-        Assert.AreEqual(400m, table[5][2]);
-
-        Assert.AreEqual("Poland", table[6][0]);
-        Assert.AreEqual("Wroclaw", table[6][1]);
-        Assert.AreEqual(500m, table[6][2]);
-
-        Assert.AreEqual("Poland", table[7][0]);
-        Assert.AreEqual("Warszawa", table[7][1]);
-        Assert.AreEqual(1000m, table[7][2]);
-
-        Assert.AreEqual("Poland", table[8][0]);
-        Assert.AreEqual("Gdansk", table[8][1]);
-        Assert.AreEqual(200m, table[8][2]);
-
-        Assert.AreEqual("Germany", table[9][0]);
-        Assert.AreEqual("Berlin", table[9][1]);
-        Assert.AreEqual(400m, table[9][2]);
+        Assert.IsTrue(table.Count(row => 
+                    (string)row[0] == "Germany" && 
+                    (string)row[1] == "Berlin" && 
+                    (decimal)row[2] == 400m) == 2,
+                "Should have exactly 2 rows of Germany/Berlin/400");
     }
 
     [TestMethod]
@@ -690,24 +699,14 @@ select p.Id, x.Id from p inner join x on p.Country = x.Country";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 5 && table.Columns.Count() == 2, "Table should contain 5 rows and 2 columns");
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
+        Assert.IsTrue(table.Count(row => (int)row[0] == 0) == 4, "Expected 4 rows with first column value 0");
 
-        Assert.AreEqual(0, table[0][0]);
-        Assert.AreEqual(0, table[0][1]);
-
-        Assert.AreEqual(0, table[1][0]);
-        Assert.AreEqual(1, table[1][1]);
-
-        Assert.AreEqual(0, table[2][0]);
-        Assert.AreEqual(2, table[2][1]);
-
-        Assert.AreEqual(0, table[3][0]);
-        Assert.AreEqual(3, table[3][1]);
-
-        Assert.AreEqual(1, table[4][0]);
-        Assert.AreEqual(4, table[4][1]);
+        Assert.IsTrue(table.All(row =>
+                new[] { (0,0), (0,1), (0,2), (0,3), (1,4) }.Contains(((int)row[0], (int)row[1]))),
+            "Expected rows with values: (0,0), (0,1), (0,2), (0,3), (1,4)");
     }
 
     [TestMethod]
@@ -734,18 +733,21 @@ select p.Id, x.Id from p p inner join x on p.Country = x.Country";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.IsTrue(table.Columns.Count() == 2, "Table should have 2 columns");
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
+        Assert.IsTrue(table.Any(entry => 
+            (int)entry[0] == 0 && 
+            (int)entry[1] == 0), "First entry should be 0, 0");
 
-        Assert.AreEqual(0, table[0][0]);
-        Assert.AreEqual(0, table[0][1]);
+        Assert.IsTrue(table.Any(entry => 
+            (int)entry[0] == 1 && 
+            (int)entry[1] == 1), "Second entry should be 1, 1");
 
-        Assert.AreEqual(1, table[1][0]);
-        Assert.AreEqual(1, table[1][1]);
-
-        Assert.AreEqual(2, table[2][0]);
-        Assert.AreEqual(2, table[2][1]);
+        Assert.IsTrue(table.Any(entry => 
+            (int)entry[0] == 2 && 
+            (int)entry[1] == 2), "Third entry should be 2, 2");
     }
 
     [TestMethod]
@@ -1394,29 +1396,33 @@ inner join #C.entities() population on cities.GetCity() = population.GetCity()";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 5 && table.Columns.Count() == 3, "Table should contain 5 rows and 3 columns");
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual(5, table.Count);
+        Assert.IsTrue(table.Count(row => (string)row[0] == "Poland") == 4 &&
+                      table.Any(row => 
+                          (string)row[0] == "Poland" && 
+                          (string)row[1] == "Krakow" && 
+                          (decimal)row[2] == 400m) &&
+                      table.Any(row => 
+                          (string)row[0] == "Poland" && 
+                          (string)row[1] == "Wroclaw" && 
+                          (decimal)row[2] == 500m) &&
+                      table.Any(row => 
+                          (string)row[0] == "Poland" && 
+                          (string)row[1] == "Warszawa" && 
+                          (decimal)row[2] == 1000m) &&
+                      table.Any(row => 
+                          (string)row[0] == "Poland" && 
+                          (string)row[1] == "Gdansk" && 
+                          (decimal)row[2] == 200m),
+            "Expected four rows for Poland with cities Krakow(400), Wroclaw(500), Warszawa(1000), Gdansk(200)");
 
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Krakow", table[0][1]);
-        Assert.AreEqual(400m, table[0][2]);
-
-        Assert.AreEqual("Poland", table[1][0]);
-        Assert.AreEqual("Wroclaw", table[1][1]);
-        Assert.AreEqual(500m, table[1][2]);
-
-        Assert.AreEqual("Poland", table[2][0]);
-        Assert.AreEqual("Warszawa", table[2][1]);
-        Assert.AreEqual(1000m, table[2][2]);
-
-        Assert.AreEqual("Poland", table[3][0]);
-        Assert.AreEqual("Gdansk", table[3][1]);
-        Assert.AreEqual(200m, table[3][2]);
-
-        Assert.AreEqual("Germany", table[4][0]);
-        Assert.AreEqual("Berlin", table[4][1]);
-        Assert.AreEqual(400m, table[4][2]);
+        Assert.IsTrue(table.Any(row =>
+                (string)row[0] == "Germany" && 
+                (string)row[1] == "Berlin" && 
+                (decimal)row[2] == 400m),
+            "Expected one row for Germany with city Berlin(400)");
     }
         
     [TestMethod]
@@ -1495,11 +1501,15 @@ select * from third
         
         Assert.AreEqual(2, table.Count);
         
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Poland", table[0][1]);
-        
-        Assert.AreEqual("Germany", table[1][0]);
-        Assert.AreEqual("Germany", table[1][1]);
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Poland" && 
+                (string)entry[1] == "Poland"), 
+            "First entry should be Poland");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Germany" && 
+                (string)entry[1] == "Germany"), 
+            "Second entry should be Germany");
     }
         
     [TestMethod]
@@ -1541,12 +1551,16 @@ select * from third
         Assert.AreEqual("b.Country", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.AreEqual(2, table.Count);
-        
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Poland", table[0][1]);
-        
-        Assert.AreEqual("Germany", table[1][0]);
-        Assert.AreEqual("Germany", table[1][1]);
+        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+
+        Assert.IsTrue(table.Any(row => 
+                (string) row[0] == "Poland" && 
+                (string) row[1] == "Poland"),
+            "Expected row with Poland in both columns");
+
+        Assert.IsTrue(table.Any(row => 
+                (string) row[0] == "Germany" && 
+                (string) row[1] == "Germany"),
+            "Expected row with Germany in both columns");
     }
 }

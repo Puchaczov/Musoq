@@ -44,11 +44,23 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("ABCAACBA", table[0].Values[0]);
-        Assert.AreEqual("AAeqwgQEW", table[1].Values[0]);
-        Assert.AreEqual("XXX", table[2].Values[0]);
-        Assert.AreEqual("dadsqqAA", table[3].Values[0]);
+        Assert.AreEqual(4, table.Count, "Result should contain exactly 4 strings");
+
+        var actualStrings = table
+            .Select(row => (string)row.Values[0])
+            .ToList();
+
+        Assert.IsTrue(actualStrings.Any(s => s == "ABCAACBA"),
+            "Expected string 'ABCAACBA' not found in results");
+
+        Assert.IsTrue(actualStrings.Any(s => s == "AAeqwgQEW"),
+            "Expected string 'AAeqwgQEW' not found in results");
+
+        Assert.IsTrue(actualStrings.Any(s => s == "XXX"),
+            "Expected string 'XXX' not found in results");
+
+        Assert.IsTrue(actualStrings.Any(s => s == "dadsqqAA"),
+            "Expected string 'dadsqqAA' not found in results");
     }
     
     [TestMethod]
@@ -85,17 +97,22 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("ABCAACBA", table[0].Values[0]);
-        Assert.AreEqual(10m, table[0].Values[1]);
-        
-        Assert.AreEqual("AAeqwgQEW", table[1].Values[0]);
-        Assert.AreEqual(20m, table[1].Values[1]);
-        
-        Assert.AreEqual("XXX", table[2].Values[0]);
-        Assert.AreEqual(30m, table[2].Values[1]);
-        
-        Assert.AreEqual("dadsqqAA", table[3].Values[0]);
-        Assert.AreEqual(40m, table[3].Values[1]);
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "ABCAACBA" && 
+            (decimal)row.Values[1] == 10m));
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "AAeqwgQEW" && 
+            (decimal)row.Values[1] == 20m));
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "XXX" && 
+            (decimal)row.Values[1] == 30m));
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "dadsqqAA" && 
+            (decimal)row.Values[1] == 40m));
     }
     
     [TestMethod]
@@ -140,12 +157,23 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("s2.Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("ABCAACBA", table[0].Values[0]);
-        Assert.AreEqual("AAeqwgQEW", table[1].Values[0]);
-        Assert.AreEqual("XXX", table[2].Values[0]);
-        Assert.AreEqual("dadsqqAA", table[3].Values[0]);
+        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "ABCAACBA"), 
+            "First entry should be 'ABCAACBA'");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "AAeqwgQEW"), 
+            "Second entry should be 'AAeqwgQEW'");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "XXX"), 
+            "Third entry should be 'XXX'");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "dadsqqAA"), 
+            "Fourth entry should be 'dadsqqAA'");
     }
     
     [TestMethod]
@@ -202,10 +230,15 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual("Text", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual(2, table.Count, "Result should contain exactly 2 test values");
 
-        Assert.AreEqual("test1", table[0].Values[0]);
-        Assert.AreEqual("test2", table[1].Values[0]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "test1"
+        ), "Expected value 'test1' not found in results");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "test2"
+        ), "Expected value 'test2' not found in results");
     }
 
     private class ParametersSchemaProvider : ISchemaProvider

@@ -74,6 +74,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     private MethodAccessType _oldType;
     private MethodAccessType _type;
     private bool _isInsideJoinOrApply;
+    private bool _isResultParallelizationImpossible;
 
     public ToCSharpRewriteTreeVisitor(
         IEnumerable<Assembly> assemblies,
@@ -124,6 +125,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         AddNamespace("System");
         AddNamespace(typeof(CancellationToken).Namespace);
         AddNamespace("System.Collections.Generic");
+        AddNamespace("System.Threading.Tasks");
+        AddNamespace("System.Linq");
         AddNamespace("Musoq.Plugins");
         AddNamespace("Musoq.Schema");
         AddNamespace("Musoq.Evaluator");
@@ -677,7 +680,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                             (IndexBasedContextsPositionsSymbol) _scope.ScopeSymbolTable.GetSymbol(MetaAttributes
                                 .PreformatedContexts);
                         var orderNumber = int.Parse(_scope[MetaAttributes.OrderNumber]);
-                        
+
                         currentContext = preformattedContexts.GetIndexFor(orderNumber, node.Alias);
                     }
                     else
@@ -724,7 +727,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                 case InjectQueryStatsAttribute _:
                     args.Add(
                         SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("stats")));
+                            SyntaxFactory.IdentifierName("currentRowStats")));
                     break;
             }
         }
@@ -1047,8 +1050,11 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             Generator.IfStatement(
                     Generator.LogicalNotExpression(Nodes.Pop()),
                     [
-                        SyntaxFactory.ContinueStatement()
-                    ])
+                        _isResultParallelizationImpossible || _type != MethodAccessType.ResultQuery
+                            ? SyntaxFactory.ContinueStatement()
+                            : SyntaxFactory.ReturnStatement()
+                    ]
+                )
                 .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
 
         Nodes.Push(ifStatement);
@@ -2128,7 +2134,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     public void Visit(PropertyFromNode node)
     {
         AddNamespace(node.ReturnType);
-        
+
         ExpressionSyntax propertyAccess = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.CastExpression(
                 SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(node.PropertiesChain[0].PropertyType)),
@@ -2151,26 +2157,27 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
         var statement = SyntaxFactory.LocalDeclarationStatement(
             SyntaxFactory.VariableDeclaration(
-                SyntaxFactory.IdentifierName("var"))
-            .WithVariables(
-                SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(
-                        SyntaxFactory.Identifier(node.Alias.ToRowsSource()))
-                    .WithInitializer(
-                        SyntaxFactory.EqualsValueClause(
-                            SyntaxFactory.InvocationExpression(
-                                SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertEnumerableToSource))))
-                            .WithArgumentList(
-                                SyntaxFactory.ArgumentList(
-                                    SyntaxFactory.SingletonSeparatedList(
-                                        SyntaxFactory.Argument(
-                                            SyntaxFactory.CastExpression(
-                                                SyntaxFactory.ParseTypeName(
-                                                    EvaluationHelper.GetCastableType(node.ReturnType)),
-                                                propertyAccess))))))))));
+                    SyntaxFactory.IdentifierName("var"))
+                .WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(
+                                SyntaxFactory.Identifier(node.Alias.ToRowsSource()))
+                            .WithInitializer(
+                                SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.InvocationExpression(
+                                            SyntaxFactory.MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                                                SyntaxFactory.IdentifierName(
+                                                    nameof(EvaluationHelper.ConvertEnumerableToSource))))
+                                        .WithArgumentList(
+                                            SyntaxFactory.ArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.CastExpression(
+                                                            SyntaxFactory.ParseTypeName(
+                                                                EvaluationHelper.GetCastableType(node.ReturnType)),
+                                                            propertyAccess))))))))));
 
         _getRowsSourceStatement.Add(node.Alias, statement);
     }
@@ -2303,7 +2310,9 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
         fullBlock = fullBlock.AddStatements(
             GetRowsSourceOrEmpty(node.From.Alias),
-            SyntaxHelper.Foreach("score", _scope[MetaAttributes.SourceName], block, orderByFields));
+            _isResultParallelizationImpossible
+                ? SyntaxHelper.Foreach("score", _scope[MetaAttributes.SourceName], block, orderByFields)
+                : SyntaxHelper.ParallelForeach("score", _scope[MetaAttributes.SourceName], block));
 
         fullBlock = fullBlock.AddStatements(
             (StatementSyntax) Generator.ReturnStatement(
@@ -2312,6 +2321,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         Statements.AddRange(fullBlock.Statements);
 
         _getRowsSourceStatement.Clear();
+        _isResultParallelizationImpossible = false;
     }
 
     public void Visit(InternalQueryNode node)
@@ -2392,6 +2402,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         }
 
         _getRowsSourceStatement.Clear();
+        _isResultParallelizationImpossible = false;
     }
 
     private StatementSyntax GenerateCancellationExpression()
@@ -3127,6 +3138,11 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         return _oldType;
     }
 
+    public void SetResultParallelizationImpossible()
+    {
+        _isResultParallelizationImpossible = true;
+    }
+
     public void IncrementMethodIdentifier()
     {
         _setOperatorMethodIdentifier += 1;
@@ -3185,11 +3201,21 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
     private StatementSyntax GenerateStatsUpdateStatements()
     {
-        return SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-            SyntaxKind.AddAssignmentExpression,
-            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName("stats"), SyntaxFactory.IdentifierName("RowNumber")),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1))));
+        return SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(
+                    SyntaxFactory.IdentifierName("var"))
+                .WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(
+                                SyntaxFactory.Identifier("currentRowStats"))
+                            .WithInitializer(
+                                SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.InvocationExpression(
+                                        SyntaxFactory.MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.IdentifierName("stats"),
+                                            SyntaxFactory.IdentifierName(nameof(AmendableQueryStats
+                                                .IncrementRowNumber)))))))));
     }
 
     private BlockSyntax GroupByForeach(BlockSyntax foreachInstructions, string alias, string variableName,

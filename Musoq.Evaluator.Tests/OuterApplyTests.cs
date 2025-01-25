@@ -75,28 +75,34 @@ public class OuterApplyTests : GenericEntityTestBase
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
         
-        Assert.AreEqual(3, table.Count);
-        
-        Assert.AreEqual("City1", table[0][0]);
-        Assert.AreEqual("Country1", table[0][1]);
-        Assert.AreEqual(100, table[0][2]);
-        Assert.AreEqual("Country1", table[0][3]);
-        Assert.AreEqual(1000m, table[0][4]);
-        Assert.AreEqual("January", table[0][5]);
-        
-        Assert.AreEqual("City2", table[1][0]);
-        Assert.AreEqual("Country1", table[1][1]);
-        Assert.AreEqual(200, table[1][2]);
-        Assert.AreEqual("Country1", table[1][3]);
-        Assert.AreEqual(1000m, table[1][4]);
-        Assert.AreEqual("January", table[1][5]);
-        
-        Assert.AreEqual("City3", table[2][0]);
-        Assert.AreEqual("Country2", table[2][1]);
-        Assert.AreEqual(300, table[2][2]);
-        Assert.IsNull(table[2][3]);
-        Assert.IsNull(table[2][4]);
-        Assert.IsNull(table[2][5]);
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "City1" && 
+            (string)entry[1] == "Country1" && 
+            (int)entry[2] == 100 && 
+            (string)entry[3] == "Country1" && 
+            (decimal)entry[4] == 1000m && 
+            (string)entry[5] == "January"
+        ), "First entry should match City1 details");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "City2" && 
+            (string)entry[1] == "Country1" && 
+            (int)entry[2] == 200 && 
+            (string)entry[3] == "Country1" && 
+            (decimal)entry[4] == 1000m && 
+            (string)entry[5] == "January"
+        ), "Second entry should match City2 details");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "City3" && 
+            (string)entry[1] == "Country2" && 
+            (int)entry[2] == 300 && 
+            entry[3] == null && 
+            entry[4] == null && 
+            entry[5] == null
+        ), "Third entry should match City3 details");
     }
     
     [TestMethod]
@@ -133,27 +139,24 @@ public class OuterApplyTests : GenericEntityTestBase
         Assert.AreEqual("b.Money", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(3).ColumnName);
         
-        Assert.AreEqual(4, table.Count);
-        
-        Assert.AreEqual("City1", table[0][0]);
-        Assert.AreEqual("Country1", table[0][1]);
-        Assert.AreEqual(1000m, table[0][2]);
-        Assert.AreEqual("January", table[0][3]);
-        
-        Assert.AreEqual("City1", table[1][0]);
-        Assert.AreEqual("Country1", table[1][1]);
-        Assert.AreEqual(2000m, table[1][2]);
-        Assert.AreEqual("February", table[1][3]);
-        
-        Assert.AreEqual("City2", table[2][0]);
-        Assert.AreEqual("Country1", table[2][1]);
-        Assert.AreEqual(1000m, table[2][2]);
-        Assert.AreEqual("January", table[2][3]);
-        
-        Assert.AreEqual("City2", table[3][0]);
-        Assert.AreEqual("Country1", table[3][1]);
-        Assert.AreEqual(2000m, table[3][2]);
-        Assert.AreEqual("February", table[3][3]);
+        Assert.IsTrue(table.Count == 4, "Table should contain 4 rows");
+
+        Assert.IsTrue(table.Count(row =>
+                new[] { "City1", "City2" }.Contains((string)row[0]) &&
+                (string)row[1] == "Country1" &&
+                new[] { 1000m, 2000m }.Contains((decimal)row[2]) &&
+                new[] { "January", "February" }.Contains((string)row[3])) == 4,
+            "Expected 4 rows matching the pattern: (City1|City2), Country1, (1000|2000), (January|February)");
+
+        Assert.IsTrue(table.Count(row =>
+                (string)row[0] == "City1" &&
+                new[] { (1000m, "January"), (2000m, "February") }.Contains(((decimal)row[2], (string)row[3]))) == 2,
+            "Expected 2 rows for City1 with correct amount/month combinations");
+
+        Assert.IsTrue(table.Count(row =>
+                (string)row[0] == "City2" &&
+                new[] { (1000m, "January"), (2000m, "February") }.Contains(((decimal)row[2], (string)row[3]))) == 2,
+            "Expected 2 rows for City2 with correct amount/month combinations");
     }
     
     [TestMethod]
@@ -299,22 +302,25 @@ public class OuterApplyTests : GenericEntityTestBase
         Assert.AreEqual("TotalMoney", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual("TransactionCount", table.Columns.ElementAt(2).ColumnName);
         
-        Assert.AreEqual(3, table.Count);
-        
-        // Country1 (two cities, two transactions)
-        Assert.AreEqual("Country1", table[0][0]);
-        Assert.AreEqual(6000m, table[0][1]);  // (1000 + 2000) * 2 cities
-        Assert.AreEqual(4, table[0][2]);  // 2 transactions * 2 cities
-        
-        // Country2 (one city, one transaction)
-        Assert.AreEqual("Country2", table[1][0]);
-        Assert.AreEqual(3000m, table[1][1]);
-        Assert.AreEqual(1, table[1][2]);
-        
-        // Country3 (one city, no transactions)
-        Assert.AreEqual("Country3", table[2][0]);
-        Assert.AreEqual(0m, table[2][1]);  // No money, so sum is 0
-        Assert.AreEqual(0, table[2][2]);  // No transactions, so count is 0
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Country1" && 
+                (decimal)entry[1] == 6000m && 
+                (int)entry[2] == 4), 
+            "First entry should represent Country1 with total 6000m and 4 transactions");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Country2" && 
+                (decimal)entry[1] == 3000m && 
+                (int)entry[2] == 1), 
+            "Second entry should represent Country2 with total 3000m and 1 transaction");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Country3" && 
+                (decimal)entry[1] == 0m && 
+                (int)entry[2] == 0), 
+            "Third entry should represent Country3 with 0m total and 0 transactions");
     }    
     
     [TestMethod]
@@ -357,24 +363,27 @@ public class OuterApplyTests : GenericEntityTestBase
         Assert.AreEqual("b.Money", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(3).ColumnName);
         
-        Assert.AreEqual(3, table.Count);
-        
-        // City1, Country1 (matches with Money > 1500)
-        Assert.AreEqual("City1", table[0][0]);
-        Assert.AreEqual("Country1", table[0][1]);
-        Assert.AreEqual(2000m, table[0][2]);
-        Assert.AreEqual("February", table[0][3]);
-        
-        // City2, Country2 (matches with Money > 1500)
-        Assert.AreEqual("City2", table[1][0]);
-        Assert.AreEqual("Country2", table[1][1]);
-        Assert.AreEqual(3000m, table[1][2]);
-        Assert.AreEqual("March", table[1][3]);
-        
-        // City3, Country3 (matches because Money is null)
-        Assert.AreEqual("City3", table[2][0]);
-        Assert.AreEqual("Country3", table[2][1]);
-        Assert.IsNull(table[2][2]);
-        Assert.IsNull(table[2][3]);
+        Assert.AreEqual(3, table.Count, "Result should contain exactly 3 rows");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "City1" && 
+            (string)row[1] == "Country1" && 
+            (decimal)row[2] == 2000m && 
+            (string)row[3] == "February"
+        ), "Expected combination (City1, Country1, 2000, February) not found");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "City2" && 
+            (string)row[1] == "Country2" && 
+            (decimal)row[2] == 3000m && 
+            (string)row[3] == "March"
+        ), "Expected combination (City2, Country2, 3000, March) not found");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "City3" && 
+            (string)row[1] == "Country3" && 
+            row[2] == null && 
+            row[3] == null
+        ), "Expected combination (City3, Country3, null, null) not found");
     }
 }
