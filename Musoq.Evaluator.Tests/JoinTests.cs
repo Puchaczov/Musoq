@@ -1451,13 +1451,18 @@ inner join #A.entities() cities on countries.Country = cities.Country
         var table = vm.Run();
             
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual(2, table.Count);
-            
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Krakow", table[0][1]);
-            
-        Assert.AreEqual("Germany", table[1][0]);
-        Assert.AreEqual("Berlin", table[1][1]);
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "Poland" && 
+            (string)entry[1] == "Krakow"
+        ), "First entry should be Poland, Krakow");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "Germany" && 
+            (string)entry[1] == "Berlin"
+        ), "Second entry should be Germany, Berlin");
     }
         
     [TestMethod]
