@@ -1,0 +1,43 @@
+﻿using Musoq.Benchmarks.Schema;
+using Musoq.Benchmarks.Schema.Country;
+using Musoq.Benchmarks.Schema.Profiles;
+using Musoq.Converter;
+using Musoq.Evaluator;
+using Musoq.Plugins;
+using Musoq.Tests.Common;
+
+namespace Musoq.Benchmarks.Components;
+
+public class BenchmarkBase
+{
+    static BenchmarkBase()
+    {
+        new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
+
+        Culture.ApplyWithDefaultCulture();
+    }
+        
+    protected CancellationTokenSource TokenSource { get; } = new();
+
+    protected CompiledQuery CreateForCountryWithOptions(
+        string script,
+        IDictionary<string, IEnumerable<CountryEntity>> sources,
+        CompilationOptions compilationOptions)
+    {
+        return InstanceCreator.CompileForExecution(
+            script, 
+            Guid.NewGuid().ToString(), 
+            new GenericSchemaProvider<CountryEntity, CountryEntityTable>(sources, CountryEntity.KNameToIndexMap, CountryEntity.KIndexToObjectAccessMap), compilationOptions);
+    }
+
+    protected CompiledQuery CreateForProfilesWithOptions(
+        string script,
+        IDictionary<string, IEnumerable<ProfileEntity>> sources,
+        CompilationOptions compilationOptions)
+    {
+        return InstanceCreator.CompileForExecution(
+            script, 
+            Guid.NewGuid().ToString(), 
+            new GenericSchemaProvider<ProfileEntity, ProfileEntityTable>(sources, ProfileEntity.KNameToIndexMap, ProfileEntity.KIndexToObjectAccessMap), compilationOptions);
+    }
+}

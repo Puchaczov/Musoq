@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -11,11 +12,13 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
 {
     private readonly IToCSharpTranslationExpressionVisitor _visitor;
     private ScopeWalker _walker;
+    private readonly CompilationOptions _compilationOptions;
 
-    public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor, ScopeWalker walker)
+    public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor, ScopeWalker walker, CompilationOptions compilationOptions)
     {
         _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         _walker = walker;
+        _compilationOptions = compilationOptions;
     }
 
     public void Visit(SelectNode node)
@@ -376,8 +379,15 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
 
         _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
         
-        if (node.Skip != null || node.Take != null || node.OrderBy != null)
+        if (
+            _compilationOptions.ParallelizationMode == ParallelizationMode.None || 
+            node.Skip != null || 
+            node.Take != null || 
+            node.OrderBy != null
+        )
+        {
             _visitor.SetResultParallelizationImpossible();
+        }
         
         _visitor.SetQueryIdentifier(node.From.Alias);
 

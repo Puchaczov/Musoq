@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -27,10 +28,11 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(100m, table[0][0]);
-        Assert.AreEqual(400m, table[1][0]);
+        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 100m), "First entry should be 100");
+        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 400m), "Second entry should be 400");
     }
 
     [TestMethod]
@@ -53,10 +55,11 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(200m, table[0][0]);
-        Assert.AreEqual(300m, table[1][0]);
+        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 200m), "First entry should be 200");
+        Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 300m), "Second entry should be 300");
     }
 
     [TestMethod]
@@ -80,11 +83,12 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Singapore", table[1][0]);
-        Assert.AreEqual("Monaco", table[2][0]);
+        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Poland"), "First entry should be Poland");
+        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Singapore"), "Second entry should be Singapore");
+        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Monaco"), "Third entry should be Monaco");
     }
 
     [TestMethod]
@@ -108,9 +112,10 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Berlin", table[0][0]);
-        Assert.AreEqual("France", table[1][0]);
+        Assert.IsTrue(table.Any(entry => (string)entry[0] == "Berlin"), "First entry should be Berlin");
+        Assert.IsTrue(table.Any(entry => (string)entry[0] == "France"), "Second entry should be France");
     }
 }

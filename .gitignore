@@ -264,3 +264,5 @@ merged-test-results.xml
 
 _site/
 .jekyll-cache/
+
+**/BenchmarkDotNet.Artifacts

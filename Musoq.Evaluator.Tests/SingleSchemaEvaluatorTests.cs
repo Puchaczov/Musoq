@@ -1394,11 +1394,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-
-        Assert.AreEqual(false, table[0][0]);
-        Assert.AreEqual(true, table[1][0]);
+        Assert.IsTrue(table.Any(entry => (bool)entry[0] == false), "First entry should be false");
+        Assert.IsTrue(table.Any(entry => (bool)entry[0] == true), "Second entry should be true");
     }
 
     [TestMethod]

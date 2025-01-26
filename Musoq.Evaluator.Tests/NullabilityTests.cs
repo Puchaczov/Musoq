@@ -76,10 +76,11 @@ public class NullabilityTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(1, table[0].Values[0]);
-        Assert.AreEqual(2, table[1].Values[0]);
+        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 1), "First entry should be 1");
+        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 2), "Second entry should be 2");
     }
 
     [TestMethod]
@@ -109,14 +110,13 @@ public class NullabilityTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        
+        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
 
-        Assert.AreEqual(4, table.Count);
-
-        Assert.AreEqual("ABBA", table[0].Values[0]);
-        Assert.AreEqual("BABBA", table[1].Values[0]);
-        Assert.AreEqual("CECCA", table[2].Values[0]);
-        Assert.AreEqual(null, table[3].Values[0]);
-
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABBA"), "First entry should be 'ABBA'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "BABBA"), "Second entry should be 'BABBA'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "CECCA"), "Third entry should be 'CECCA'");
+        Assert.IsTrue(table.Any(entry => entry.Values[0] == null), "Fourth entry should be null");
     }
 
     [TestMethod]
@@ -147,22 +147,32 @@ public class NullabilityTests : BasicEntityTestBase
         Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
-        Assert.AreEqual(5, table.Count);
+        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
 
-        Assert.AreEqual("POLAND", table[0].Values[0]);
-        Assert.AreEqual("WARSAW", table[0].Values[1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "POLAND" && 
+            (string)entry.Values[1] == "WARSAW"
+        ), "First entry should be POLAND, WARSAW");
 
-        Assert.AreEqual("POLAND", table[1].Values[0]);
-        Assert.AreEqual(null, table[1].Values[1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "POLAND" && 
+            entry.Values[1] == null
+        ), "Second entry should be POLAND with null city");
 
-        Assert.AreEqual("UK", table[2].Values[0]);
-        Assert.AreEqual("LONDON", table[2].Values[1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "UK" && 
+            (string)entry.Values[1] == "LONDON"
+        ), "Third entry should be UK, LONDON");
 
-        Assert.AreEqual("UK", table[3].Values[0]);
-        Assert.AreEqual("MANCHESTER", table[3].Values[1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "UK" && 
+            (string)entry.Values[1] == "MANCHESTER"
+        ), "Fourth entry should be UK, MANCHESTER");
 
-        Assert.AreEqual("ANGOLA", table[4].Values[0]);
-        Assert.AreEqual("LLL", table[4].Values[1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "ANGOLA" && 
+            (string)entry.Values[1] == "LLL"
+        ), "Fifth entry should be ANGOLA, LLL");
     }
 
     [TestMethod]
