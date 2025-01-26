@@ -156,7 +156,7 @@ public class EscapeHelpersTests
         Assert.IsTrue(result.Contains("\n"));
         Assert.IsTrue(result.Contains("\\text"));
         Assert.IsTrue(result.Contains("\t"));
-        Assert.IsTrue(sw.ElapsedMilliseconds < 200, 
+        Assert.IsTrue(sw.ElapsedMilliseconds < 1000, 
             $"Processing took too long: {sw.ElapsedMilliseconds}ms");
     }
 

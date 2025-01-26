@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
@@ -93,5 +94,17 @@ public class BuildItems : Dictionary<string, object>
     {
         get => (Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, BuildMetadataAndInferTypesVisitor>) this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"];
         set => this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"] = value;
+    }
+    
+    public CompilationOptions CompilationOptions
+    {
+        get
+        {
+            if (ContainsKey("COMPILATION_OPTIONS") == false)
+                this["COMPILATION_OPTIONS"] = new CompilationOptions(ParallelizationMode.Full);
+
+            return (CompilationOptions) this["COMPILATION_OPTIONS"];
+        }
+        set => this["COMPILATION_OPTIONS"] = value;
     }
 }

@@ -97,26 +97,34 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
 
         Assert.AreEqual(4, table.Count);
+        
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "New York" && 
+            (string)row[1] == "USA" && 
+            (string)row[2] == "Broadway" && 
+            (int)row[3] == 123
+        ), "First row should match New York, USA, Broadway, 123");
 
-        Assert.AreEqual("New York", table[0][0]);
-        Assert.AreEqual("USA", table[0][1]);
-        Assert.AreEqual("Broadway", table[0][2]);
-        Assert.AreEqual(123, table[0][3]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "New York" && 
+            (string)row[1] == "USA" && 
+            (string)row[2] == "Fifth Avenue" && 
+            (int)row[3] == 456
+        ), "Second row should match New York, USA, Fifth Avenue, 456");
 
-        Assert.AreEqual("New York", table[1][0]);
-        Assert.AreEqual("USA", table[1][1]);
-        Assert.AreEqual("Fifth Avenue", table[1][2]);
-        Assert.AreEqual(456, table[1][3]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "Los Angeles" && 
+            (string)row[1] == "USA" && 
+            (string)row[2] == "Broadway" && 
+            (int)row[3] == 123
+        ), "Third row should match Los Angeles, USA, Broadway, 123");
 
-        Assert.AreEqual("Los Angeles", table[2][0]);
-        Assert.AreEqual("USA", table[2][1]);
-        Assert.AreEqual("Broadway", table[2][2]);
-        Assert.AreEqual(123, table[2][3]);
-
-        Assert.AreEqual("Los Angeles", table[3][0]);
-        Assert.AreEqual("USA", table[3][1]);
-        Assert.AreEqual("Fifth Avenue", table[3][2]);
-        Assert.AreEqual(456, table[3][3]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "Los Angeles" && 
+            (string)row[1] == "USA" && 
+            (string)row[2] == "Fifth Avenue" && 
+            (int)row[3] == 456
+        ), "Fourth row should match Los Angeles, USA, Fifth Avenue, 456");
     }
 
     private class CrossApplyClass3
@@ -193,56 +201,74 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(4).ColumnType);
+        
+        Assert.IsTrue(table.Count == 8, "Table should have 8 entries");
 
-        Assert.AreEqual(8, table.Count);
+        // IT Department with John Doe
+        Assert.IsTrue(table.Any(entry => 
+           (string)entry[0] == "IT" && 
+           (int)entry[1] == 500000 && 
+           (string)entry[2] == "John Doe" && 
+           (int)entry[3] == 50000 && 
+           (string)entry[4] == "C#"), 
+           "Should have IT entry for John Doe with C#");
 
-        Assert.AreEqual("IT", table[0][0]);
-        Assert.AreEqual(500000, table[0][1]);
-        Assert.AreEqual("John Doe", table[0][2]);
-        Assert.AreEqual(50000, table[0][3]);
-        Assert.AreEqual("C#", table[0][4]);
+        Assert.IsTrue(table.Any(entry => 
+           (string)entry[0] == "IT" && 
+           (int)entry[1] == 500000 && 
+           (string)entry[2] == "John Doe" && 
+           (int)entry[3] == 50000 && 
+           (string)entry[4] == "JavaScript"), 
+           "Should have IT entry for John Doe with JavaScript");
 
-        Assert.AreEqual("IT", table[1][0]);
-        Assert.AreEqual(500000, table[1][1]);
-        Assert.AreEqual("John Doe", table[1][2]);
-        Assert.AreEqual(50000, table[1][3]);
-        Assert.AreEqual("JavaScript", table[1][4]);
+        Assert.IsTrue(table.Any(entry => 
+           (string)entry[0] == "IT" && 
+           (int)entry[1] == 500000 && 
+           (string)entry[2] == "Jane Smith" && 
+           (int)entry[3] == 60000 && 
+           (string)entry[4] == "C#"), 
+           "Should have IT entry for Jane Smith with C#");
 
-        Assert.AreEqual("IT", table[2][0]);
-        Assert.AreEqual(500000, table[2][1]);
-        Assert.AreEqual("Jane Smith", table[2][2]);
-        Assert.AreEqual(60000, table[2][3]);
-        Assert.AreEqual("C#", table[2][4]);
+        Assert.IsTrue(table.Any(entry => 
+           (string)entry[0] == "IT" && 
+           (int)entry[1] == 500000 && 
+           (string)entry[2] == "Jane Smith" && 
+           (int)entry[3] == 60000 && 
+           (string)entry[4] == "JavaScript"), 
+           "Should have IT entry for Jane Smith with JavaScript");
 
-        Assert.AreEqual("IT", table[3][0]);
-        Assert.AreEqual(500000, table[3][1]);
-        Assert.AreEqual("Jane Smith", table[3][2]);
-        Assert.AreEqual(60000, table[3][3]);
-        Assert.AreEqual("JavaScript", table[3][4]);
+        // HR Department with John Doe
+        Assert.IsTrue(table.Any(entry => 
+           (string)entry[0] == "HR" && 
+           (int)entry[1] == 300000 && 
+           (string)entry[2] == "John Doe" && 
+           (int)entry[3] == 50000 && 
+           (string)entry[4] == "Communication"), 
+           "Should have HR entry for John Doe with Communication");
 
-        Assert.AreEqual("HR", table[4][0]);
-        Assert.AreEqual(300000, table[4][1]);
-        Assert.AreEqual("John Doe", table[4][2]);
-        Assert.AreEqual(50000, table[4][3]);
-        Assert.AreEqual("Communication", table[4][4]);
+        Assert.IsTrue(table.Any(entry => 
+           (string)entry[0] == "HR" && 
+           (int)entry[1] == 300000 && 
+           (string)entry[2] == "John Doe" && 
+           (int)entry[3] == 50000 && 
+           (string)entry[4] == "Negotiation"), 
+           "Should have HR entry for John Doe with Negotiation");
 
-        Assert.AreEqual("HR", table[5][0]);
-        Assert.AreEqual(300000, table[5][1]);
-        Assert.AreEqual("John Doe", table[5][2]);
-        Assert.AreEqual(50000, table[5][3]);
-        Assert.AreEqual("Negotiation", table[5][4]);
+        Assert.IsTrue(table.Any(entry => 
+           (string)entry[0] == "HR" && 
+           (int)entry[1] == 300000 && 
+           (string)entry[2] == "Jane Smith" && 
+           (int)entry[3] == 60000 && 
+           (string)entry[4] == "Communication"), 
+           "Should have HR entry for Jane Smith with Communication");
 
-        Assert.AreEqual("HR", table[6][0]);
-        Assert.AreEqual(300000, table[6][1]);
-        Assert.AreEqual("Jane Smith", table[6][2]);
-        Assert.AreEqual(60000, table[6][3]);
-        Assert.AreEqual("Communication", table[6][4]);
-
-        Assert.AreEqual("HR", table[7][0]);
-        Assert.AreEqual(300000, table[7][1]);
-        Assert.AreEqual("Jane Smith", table[7][2]);
-        Assert.AreEqual(60000, table[7][3]);
-        Assert.AreEqual("Negotiation", table[7][4]);
+        Assert.IsTrue(table.Any(entry => 
+           (string)entry[0] == "HR" && 
+           (int)entry[1] == 300000 && 
+           (string)entry[2] == "Jane Smith" && 
+           (int)entry[3] == 60000 && 
+           (string)entry[4] == "Negotiation"), 
+           "Should have HR entry for Jane Smith with Negotiation");        
     }
 
     private class CrossApplyClass5
@@ -316,15 +342,19 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.AreEqual(2, table.Count);
-        
-        Assert.AreEqual("IT", table[0][0]);
-        Assert.AreEqual("John Doe", table[0][1]);
-        Assert.AreEqual("C#", table[0][2]);
-        
-        Assert.AreEqual("IT", table[1][0]);
-        Assert.AreEqual("Jane Smith", table[1][1]);
-        Assert.AreEqual("Java", table[1][2]);
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "IT" && 
+            (string)row[1] == "John Doe" && 
+            (string)row[2] == "C#"
+        ), "First row should match IT, John Doe, C#");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "IT" && 
+            (string)row[1] == "Jane Smith" && 
+            (string)row[2] == "Java"
+        ), "Second row should match IT, Jane Smith, Java");
     }
 
     [TestMethod]
@@ -379,10 +409,12 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("Count(a.Department)", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.AreEqual(1, table.Count);
-        
-        Assert.AreEqual("IT", table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
+        Assert.IsTrue(table.Count == 1, "Table should have 1 entry");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "IT" && 
+            (int)row[1] == 2
+        ), "First row should match IT, 2");
     }
 
     private class CrossApplyClass6
@@ -440,27 +472,37 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("John", table[0][0]);
-        Assert.AreEqual("Doe", table[0][1]);
-        Assert.AreEqual("C#", table[0][2]);
-        
-        Assert.AreEqual("John", table[1][0]);
-        Assert.AreEqual("Doe", table[1][1]);
-        Assert.AreEqual("JavaScript", table[1][2]);
-        
-        Assert.AreEqual("Jane", table[2][0]);
-        Assert.AreEqual("Smith", table[2][1]);
-        Assert.AreEqual("Java", table[2][2]);
-            
-        Assert.AreEqual("Alice", table[3][0]);
-        Assert.AreEqual("Johnson", table[3][1]);
-        Assert.AreEqual("Communication", table[3][2]);
-        
-        Assert.AreEqual("Alice", table[4][0]);
-        Assert.AreEqual("Johnson", table[4][1]);
-        Assert.AreEqual("Negotiation", table[4][2]);
+        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "John" && 
+                (string)entry[1] == "Doe" && 
+                (string)entry[2] == "C#"), 
+            "First entry for John Doe should match");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "John" && 
+                (string)entry[1] == "Doe" && 
+                (string)entry[2] == "JavaScript"), 
+            "Second entry for John Doe should match");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Jane" && 
+                (string)entry[1] == "Smith" && 
+                (string)entry[2] == "Java"), 
+            "Entry for Jane Smith should match");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Alice" && 
+                (string)entry[1] == "Johnson" && 
+                (string)entry[2] == "Communication"), 
+            "First entry for Alice Johnson should match");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry[0] == "Alice" && 
+                (string)entry[1] == "Johnson" && 
+                (string)entry[2] == "Negotiation"), 
+            "Second entry for Alice Johnson should match");
     }
     
     [TestMethod]
@@ -501,27 +543,25 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("John", table[0][0]);
-        Assert.AreEqual("Doe", table[0][1]);
-        Assert.AreEqual("C#", table[0][2]);
-        
-        Assert.AreEqual("John", table[1][0]);
-        Assert.AreEqual("Doe", table[1][1]);
-        Assert.AreEqual("JavaScript", table[1][2]);
-        
-        Assert.AreEqual("Jane", table[2][0]);
-        Assert.AreEqual("Smith", table[2][1]);
-        Assert.AreEqual("Java", table[2][2]);
-            
-        Assert.AreEqual("Alice", table[3][0]);
-        Assert.AreEqual("Johnson", table[3][1]);
-        Assert.AreEqual("Communication", table[3][2]);
-        
-        Assert.AreEqual("Alice", table[4][0]);
-        Assert.AreEqual("Johnson", table[4][1]);
-        Assert.AreEqual("Negotiation", table[4][2]);
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "John" && 
+                (string)row[1] == "Doe" &&
+                ((string)row[2] == "C#" || (string)row[2] == "JavaScript")) == 2,
+            "Expected data for John Doe not found");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row[0] == "Jane" && 
+                (string)row[1] == "Smith" &&
+                (string)row[2] == "Java"),
+            "Expected data for Jane Smith not found");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row[0] == "Alice" && 
+                (string)row[1] == "Johnson" &&
+                ((string)row[2] == "Communication" || (string)row[2] == "Negotiation")) == 2,
+            "Expected data for Alice Johnson not found");
     }
     
     public class SpecialCaseEmptyType
@@ -577,8 +617,10 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         
         Assert.AreEqual(1, table.Count);
         
-        Assert.AreEqual("Value", table[0][0]);
-        Assert.AreEqual("John", table[0][1]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "Value" && 
+            (string)row[1] == "John"
+        ), "First row should match Value, John");
     }
 
     [TestMethod]

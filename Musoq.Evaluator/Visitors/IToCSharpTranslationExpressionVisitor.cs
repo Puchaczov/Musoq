@@ -5,6 +5,8 @@ public interface IToCSharpTranslationExpressionVisitor : IScopeAwareExpressionVi
     void SetQueryIdentifier(string identifier);
 
     MethodAccessType SetMethodAccessType(MethodAccessType type);
+    
+    void SetResultParallelizationImpossible();
 
     void IncrementMethodIdentifier();
         

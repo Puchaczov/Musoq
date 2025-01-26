@@ -76,38 +76,47 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
-        
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("City1", table[0].Values[0]);
-        Assert.AreEqual("Country1", table[0].Values[1]);
-        Assert.AreEqual(100, table[0].Values[2]);
-        Assert.AreEqual("Country1", table[0].Values[3]);
-        Assert.AreEqual(1000m, table[0].Values[4]);
-        
-        Assert.AreEqual("City1", table[1].Values[0]);
-        Assert.AreEqual("Country1", table[1].Values[1]);
-        Assert.AreEqual(100, table[1].Values[2]);
-        Assert.AreEqual("Country1", table[1].Values[3]);
-        Assert.AreEqual(2000m, table[1].Values[4]);
-        
-        Assert.AreEqual("City2", table[2].Values[0]);
-        Assert.AreEqual("Country1", table[2].Values[1]);
-        Assert.AreEqual(200, table[2].Values[2]);
-        Assert.AreEqual("Country1", table[2].Values[3]);
-        Assert.AreEqual(1000m, table[2].Values[4]);
-        
-        Assert.AreEqual("City2", table[3].Values[0]);
-        Assert.AreEqual("Country1", table[3].Values[1]);
-        Assert.AreEqual(200, table[3].Values[2]);
-        Assert.AreEqual("Country1", table[3].Values[3]);
-        Assert.AreEqual(2000m, table[3].Values[4]);
-        
-        Assert.AreEqual("City3", table[4].Values[0]);
-        Assert.AreEqual("Country2", table[4].Values[1]);
-        Assert.AreEqual(300, table[4].Values[2]);
-        Assert.AreEqual("Country2", table[4].Values[3]);
-        Assert.AreEqual(3000m, table[4].Values[4]);
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "City1" && 
+                (string)row.Values[1] == "Country1" && 
+                (int)row.Values[2] == 100 && 
+                (string)row.Values[3] == "Country1" && 
+                (decimal)row.Values[4] == 1000m), 
+            "Row City1/Country1/100/Country1/1000 not found");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "City1" && 
+                (string)row.Values[1] == "Country1" && 
+                (int)row.Values[2] == 100 && 
+                (string)row.Values[3] == "Country1" && 
+                (decimal)row.Values[4] == 2000m),
+            "Row City1/Country1/100/Country1/2000 not found");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "City2" && 
+                (string)row.Values[1] == "Country1" && 
+                (int)row.Values[2] == 200 && 
+                (string)row.Values[3] == "Country1" && 
+                (decimal)row.Values[4] == 1000m),
+            "Row City2/Country1/200/Country1/1000 not found");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "City2" && 
+                (string)row.Values[1] == "Country1" && 
+                (int)row.Values[2] == 200 && 
+                (string)row.Values[3] == "Country1" && 
+                (decimal)row.Values[4] == 2000m),
+            "Row City2/Country1/200/Country1/2000 not found");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "City3" && 
+                (string)row.Values[1] == "Country2" && 
+                (int)row.Values[2] == 300 && 
+                (string)row.Values[3] == "Country2" && 
+                (decimal)row.Values[4] == 3000m),
+            "Row City3/Country2/300/Country2/3000 not found");
     }
     
     [TestMethod]
@@ -148,27 +157,37 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual("b.Month", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("Country1", table[0].Values[0]);
-        Assert.AreEqual(1000m, table[0].Values[1]);
-        Assert.AreEqual("January", table[0].Values[2]);
-        
-        Assert.AreEqual("Country1", table[1].Values[0]);
-        Assert.AreEqual(2000m, table[1].Values[1]);
-        Assert.AreEqual("February", table[1].Values[2]);
-        
-        Assert.AreEqual("Country1", table[2].Values[0]);
-        Assert.AreEqual(1000m, table[2].Values[1]);
-        Assert.AreEqual("January", table[2].Values[2]);
-        
-        Assert.AreEqual("Country1", table[3].Values[0]);
-        Assert.AreEqual(2000m, table[3].Values[1]);
-        Assert.AreEqual("February", table[3].Values[2]);
-        
-        Assert.AreEqual("Country2", table[4].Values[0]);
-        Assert.AreEqual(3000m, table[4].Values[1]);
-        Assert.AreEqual("March", table[4].Values[2]);
+        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "Country1" && 
+            (decimal)entry.Values[1] == 1000m && 
+            (string)entry.Values[2] == "January"
+        ), "First entry should be Country1, 1000, January");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "Country1" && 
+            (decimal)entry.Values[1] == 2000m && 
+            (string)entry.Values[2] == "February"
+        ), "Second entry should be Country1, 2000, February");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "Country1" && 
+            (decimal)entry.Values[1] == 1000m && 
+            (string)entry.Values[2] == "January"
+        ), "Third entry should be Country1, 1000, January");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "Country1" && 
+            (decimal)entry.Values[1] == 2000m && 
+            (string)entry.Values[2] == "February"
+        ), "Fourth entry should be Country1, 2000, February");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "Country2" && 
+            (decimal)entry.Values[1] == 3000m && 
+            (string)entry.Values[2] == "March"
+        ), "Fifth entry should be Country2, 3000, March");
     }
     
     [TestMethod]
@@ -263,43 +282,25 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(2).ColumnName);
         
-        Assert.AreEqual(9, table.Count);
-        
-        Assert.AreEqual("Country1", table[0].Values[0]);
-        Assert.AreEqual(1000m, table[0].Values[1]);
-        Assert.AreEqual("January", table[0].Values[2]);
-        
-        Assert.AreEqual("Country1", table[1].Values[0]);
-        Assert.AreEqual(1000m, table[1].Values[1]);
-        Assert.AreEqual("January", table[1].Values[2]);
-        
-        Assert.AreEqual("Country1", table[2].Values[0]);
-        Assert.AreEqual(2000m, table[2].Values[1]);
-        Assert.AreEqual("February", table[2].Values[2]);
-        
-        Assert.AreEqual("Country1", table[3].Values[0]);
-        Assert.AreEqual(2000m, table[3].Values[1]);
-        Assert.AreEqual("February", table[3].Values[2]);
-        
-        Assert.AreEqual("Country1", table[4].Values[0]);
-        Assert.AreEqual(1000m, table[4].Values[1]);
-        Assert.AreEqual("January", table[4].Values[2]);
-        
-        Assert.AreEqual("Country1", table[5].Values[0]);
-        Assert.AreEqual(1000m, table[5].Values[1]);
-        Assert.AreEqual("January", table[5].Values[2]);
-        
-        Assert.AreEqual("Country1", table[6].Values[0]);
-        Assert.AreEqual(2000m, table[6].Values[1]);
-        Assert.AreEqual("February", table[6].Values[2]);
-        
-        Assert.AreEqual("Country1", table[7].Values[0]);
-        Assert.AreEqual(2000m, table[7].Values[1]);
-        Assert.AreEqual("February", table[7].Values[2]);
-        
-        Assert.AreEqual("Country2", table[8].Values[0]);
-        Assert.AreEqual(3000m, table[8].Values[1]);
-        Assert.AreEqual("March", table[8].Values[2]);
+        Assert.IsTrue(table.Count == 9, "Table should contain 9 rows");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "Country1" && 
+                (decimal)row.Values[1] == 1000m && 
+                (string)row.Values[2] == "January") == 4,
+            "Should have exactly 4 rows of Country1/1000/January");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "Country1" && 
+                (decimal)row.Values[1] == 2000m && 
+                (string)row.Values[2] == "February") == 4,
+            "Should have exactly 4 rows of Country1/2000/February");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "Country2" && 
+                (decimal)row.Values[1] == 3000m && 
+                (string)row.Values[2] == "March") == 1,
+            "Should have exactly 1 row of Country2/3000/March");
     }
     
     [TestMethod]
@@ -346,10 +347,10 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual("b.Country", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.AreEqual(2, table.Count);
-        
-        Assert.AreEqual("Country1", table[0].Values[0]);
-        Assert.AreEqual("Country2", table[1].Values[0]);
+        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Country1"), "Missing Country1 row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Country2"), "Missing Country2 row");
     }
     
     [TestMethod]
@@ -445,26 +446,36 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual("Month", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("Country1", table[0].Values[0]);
-        Assert.AreEqual(1000m, table[0].Values[1]);
-        Assert.AreEqual("January", table[0].Values[2]);
-        
-        Assert.AreEqual("Country1", table[1].Values[0]);
-        Assert.AreEqual(2000m, table[1].Values[1]);
-        Assert.AreEqual("February", table[1].Values[2]);
-        
-        Assert.AreEqual("Country1", table[2].Values[0]);
-        Assert.AreEqual(1000m, table[2].Values[1]);
-        Assert.AreEqual("January", table[2].Values[2]);
-        
-        Assert.AreEqual("Country1", table[3].Values[0]);
-        Assert.AreEqual(2000m, table[3].Values[1]);
-        Assert.AreEqual("February", table[3].Values[2]);
-        
-        Assert.AreEqual("Country2", table[4].Values[0]);
-        Assert.AreEqual(3000m, table[4].Values[1]);
-        Assert.AreEqual("March", table[4].Values[2]);
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "Country1" && 
+                (decimal)row.Values[1] == 1000m && 
+                (string)row.Values[2] == "January"), 
+            "Missing Country1/1000/January row");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "Country1" && 
+                (decimal)row.Values[1] == 2000m && 
+                (string)row.Values[2] == "February"),
+            "Missing Country1/2000/February row");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "Country1" && 
+                (decimal)row.Values[1] == 1000m && 
+                (string)row.Values[2] == "January") == 2,
+            "Should have exactly 2 rows of Country1/1000/January");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "Country1" && 
+                (decimal)row.Values[1] == 2000m && 
+                (string)row.Values[2] == "February") == 2,
+            "Should have exactly 2 rows of Country1/2000/February");
+
+        Assert.IsTrue(table.Any(row => 
+                (string)row.Values[0] == "Country2" && 
+                (decimal)row.Values[1] == 3000m && 
+                (string)row.Values[2] == "March"),
+            "Missing Country2/3000/March row");
     }
 }

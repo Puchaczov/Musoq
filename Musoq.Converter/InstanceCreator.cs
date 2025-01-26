@@ -64,6 +64,21 @@ public static class InstanceCreator
             _ => {});
     }
 
+    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, CompilationOptions compilationOptions)
+    {
+        return CompileForExecution(
+            script, 
+            assemblyName, 
+            schemaProvider, 
+            () => new CreateTree(
+                new TransformTree(
+                    new TurnQueryIntoRunnableCode(null))),
+            buildItems =>
+            {
+                buildItems.CompilationOptions = compilationOptions;
+            });
+    }
+
     public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, Func<BuildChain> createChain, Action<BuildItems> modifyBuildItems)
     {
         var items = new BuildItems

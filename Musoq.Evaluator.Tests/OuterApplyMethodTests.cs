@@ -69,16 +69,12 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.AreEqual(8, table.Count);
-        
-        Assert.AreEqual("Lorem", table[0][0]);
-        Assert.AreEqual("ipsum", table[1][0]);
-        Assert.AreEqual("dolor", table[2][0]);
-        Assert.AreEqual("sit", table[3][0]);
-        Assert.AreEqual("amet,", table[4][0]);
-        Assert.AreEqual("consectetur", table[5][0]);
-        Assert.AreEqual("adipiscing", table[6][0]);
-        Assert.AreEqual("elit.", table[7][0]);
+        Assert.IsTrue(table.Count == 8, "Table should contain 8 rows");
+
+        var expectedStrings = new[] {"Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."};
+        foreach (var expected in expectedStrings) {
+            Assert.IsTrue(table.Any(row => (string)row[0] == expected), $"Row with value {expected} not found");
+        }
     }
     
     [TestMethod]
@@ -102,15 +98,15 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.AreEqual(7, table.Count);
-        
-        Assert.AreEqual("ipsum", table[0][0]);
-        Assert.AreEqual("dolor", table[1][0]);
-        Assert.AreEqual("sit", table[2][0]);
-        Assert.AreEqual("amet,", table[3][0]);
-        Assert.AreEqual("consectetur", table[4][0]);
-        Assert.AreEqual("adipiscing", table[5][0]);
-        Assert.AreEqual("elit.", table[6][0]);
+        Assert.IsTrue(table.Count == 7, "Table should contain 7 rows");
+
+        Assert.IsTrue(table.Any(row => (string)row[0] == "ipsum"), "Missing ipsum");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "dolor"), "Missing dolor");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "sit"), "Missing sit");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "amet,"), "Missing amet,");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "consectetur"), "Missing consectetur");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "adipiscing"), "Missing adipiscing");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "elit."), "Missing elit.");
     }
     
     [TestMethod]
@@ -134,14 +130,14 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.AreEqual(6, table.Count);
-        
-        Assert.AreEqual("ipsum", table[0][0]);
-        Assert.AreEqual("dolor", table[1][0]);
-        Assert.AreEqual("sit", table[2][0]);
-        Assert.AreEqual("amet,", table[3][0]);
-        Assert.AreEqual("consectetur", table[4][0]);
-        Assert.AreEqual("adipiscing", table[5][0]);
+        Assert.IsTrue(table.Count == 6, "Table should contain 6 rows");
+
+        Assert.IsTrue(table.Any(row => (string)row[0] == "ipsum"), "Missing ipsum");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "dolor"), "Missing dolor");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "sit"), "Missing sit");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "amet,"), "Missing amet,");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "consectetur"), "Missing consectetur");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "adipiscing"), "Missing adipiscing");
     }
     
     [TestMethod]
@@ -165,10 +161,10 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.AreEqual(2, table.Count);
-        
-        Assert.AreEqual("consectetur", table[0][0]);
-        Assert.AreEqual("adipiscing", table[1][0]);
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.Any(entry => (string)entry[0] == "consectetur"), "First entry should be 'consectetur'");
+        Assert.IsTrue(table.Any(entry => (string)entry[0] == "adipiscing"), "Second entry should be 'adipiscing'");
     }
     
     [TestMethod]
@@ -194,19 +190,27 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("Count(Length(b.Value))", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.AreEqual(4, table.Count);
-        
-        Assert.AreEqual(5, table[0][0]);
-        Assert.AreEqual(5, table[0][1]);
-        
-        Assert.AreEqual(3, table[1][0]);
-        Assert.AreEqual(1, table[1][1]);
-        
-        Assert.AreEqual(11, table[2][0]);
-        Assert.AreEqual(1, table[2][1]);
-        
-        Assert.AreEqual(10, table[3][0]);
-        Assert.AreEqual(1, table[3][1]);
+        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+
+        Assert.IsTrue(table.Any(row => 
+            (int)row[0] == 5 && 
+            (int)row[1] == 5
+        ), "First row should be 5, 5");
+
+        Assert.IsTrue(table.Any(row => 
+            (int)row[0] == 3 && 
+            (int)row[1] == 1
+        ), "Second row should be 3, 1");
+
+        Assert.IsTrue(table.Any(row => 
+            (int)row[0] == 11 && 
+            (int)row[1] == 1
+        ), "Third row should be 11, 1");
+
+        Assert.IsTrue(table.Any(row => 
+            (int)row[0] == 10 && 
+            (int)row[1] == 1
+        ), "Fourth row should be 10, 1");
     }
     
     [TestMethod]
@@ -234,16 +238,32 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.AreEqual(64, table.Count);
-    
-        for (var i = 0; i < words.Length; i++)
+        var expectedCount = words.Length * words.Length;
+        Assert.AreEqual(expectedCount, table.Count,
+            $"Should have {expectedCount} rows (each word combining with every word)");
+
+        foreach (var firstWord in words)
         {
-            for (var j = 0; j < words.Length; j++)
+            foreach (var secondWord in words)
             {
-                var index = i * words.Length + j;
-                Assert.AreEqual(words[i], table[index][0], $"Mismatch at index {index}, column 0");
-                Assert.AreEqual(words[j], table[index][1], $"Mismatch at index {index}, column 1");
+                Assert.IsTrue(
+                    table.Any(row => 
+                        (string)row[0] == firstWord && 
+                        (string)row[1] == secondWord),
+                    $"Combination of '{firstWord}' with '{secondWord}' not found"
+                );
             }
+        }
+
+        foreach (var word in words)
+        {
+            var firstColumnCount = table.Count(row => (string)row[0] == word);
+            Assert.AreEqual(words.Length, firstColumnCount,
+                $"Word '{word}' should appear {words.Length} times in first column");
+
+            var secondColumnCount = table.Count(row => (string)row[1] == word);
+            Assert.AreEqual(words.Length, secondColumnCount,
+                $"Word '{word}' should appear {words.Length} times in second column");
         }
     }
 }

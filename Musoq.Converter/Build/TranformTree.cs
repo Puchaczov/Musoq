@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Musoq.Evaluator;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
@@ -36,7 +37,7 @@ public class TransformTree(BuildChain successor) : BuildChain(successor)
         queryTree = rewriter.RootScript;
 
         var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadata.Assemblies, metadata.SetOperatorFieldPositions, metadata.InferredColumns, items.AssemblyName);
-        var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, new ScopeWalker(metadataTraverser.Scope));
+        var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, new ScopeWalker(metadataTraverser.Scope), items.CompilationOptions);
 
         queryTree.Accept(csharpRewriteTraverser);
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -21,12 +22,13 @@ public class SetsOperatorsTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 4, "Table should contain 4 rows");
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("003", table[2].Values[0]);
-        Assert.AreEqual("004", table[3].Values[0]);
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "001"), "Missing 001");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "002"), "Missing 002");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "003"), "Missing 003");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "004"), "Missing 004");
     }
     
     [TestMethod]
@@ -68,9 +70,10 @@ cross apply a.ToCharArray(a.Name) b
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("002", table[0].Values[0]);
-        Assert.AreEqual("005", table[1].Values[0]);
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Second entry should be '005'");
     }
 
     [TestMethod]
@@ -86,9 +89,9 @@ cross apply a.ToCharArray(a.Name) b
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("005", table[0].Values[0]);
-        Assert.AreEqual("005", table[1].Values[0]);
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.All(entry => (string)entry.Values[0] == "005"), "All entries should be '005'");
     }
 
     [TestMethod]
@@ -108,13 +111,12 @@ select Name from #A.Entities()";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("005", table[0].Values[0]);
-        Assert.AreEqual("005", table[1].Values[0]);
-        Assert.AreEqual("005", table[2].Values[0]);
-        Assert.AreEqual("005", table[3].Values[0]);
-        Assert.AreEqual("005", table[4].Values[0]);
+        Assert.IsTrue(table.All(entry => 
+                (string)entry.Values[0] == "005"), 
+            "All entries should be '005'");
     }
 
     [TestMethod]
@@ -138,17 +140,23 @@ select Id, Name from p
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
-            
-        Assert.AreEqual(3, table.Count);
-            
-        Assert.AreEqual(1, table[0].Values[0]);
-        Assert.AreEqual("EMPTY", table[0].Values[1]);
-            
-        Assert.AreEqual(2, table[1].Values[0]);
-        Assert.AreEqual("EMPTY2", table[1].Values[1]);
-            
-        Assert.AreEqual(3, table[2].Values[0]);
-        Assert.AreEqual("EMPTY3", table[2].Values[1]);
+        
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+                Convert.ToInt32(entry.Values[0]) == 1 && 
+                (string)entry.Values[1] == "EMPTY"), 
+            "First entry should match expected values");
+
+        Assert.IsTrue(table.Any(entry => 
+                Convert.ToInt32(entry.Values[0]) == 2 && 
+                (string)entry.Values[1] == "EMPTY2"), 
+            "Second entry should match expected values");
+
+        Assert.IsTrue(table.Any(entry => 
+                Convert.ToInt32(entry.Values[0]) == 3 && 
+                (string)entry.Values[1] == "EMPTY3"), 
+            "Third entry should match expected values");
     }
 
     [TestMethod]
@@ -172,17 +180,23 @@ select Id, Name from p
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
-            
-        Assert.AreEqual(3, table.Count);
-            
-        Assert.AreEqual(1, table[0].Values[0]);
-        Assert.AreEqual("EMPTY", table[0].Values[1]);
-            
-        Assert.AreEqual(2, table[1].Values[0]);
-        Assert.AreEqual("EMPTY2", table[1].Values[1]);
-            
-        Assert.AreEqual(3, table[2].Values[0]);
-        Assert.AreEqual("EMPTY3", table[2].Values[1]);
+        
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+                Convert.ToInt32(entry.Values[0]) == 1 && 
+                (string)entry.Values[1] == "EMPTY"), 
+            "First entry should match expected values");
+
+        Assert.IsTrue(table.Any(entry => 
+                Convert.ToInt32(entry.Values[0]) == 2 && 
+                (string)entry.Values[1] == "EMPTY2"), 
+            "Second entry should match expected values");
+
+        Assert.IsTrue(table.Any(entry => 
+                Convert.ToInt32(entry.Values[0]) == 3 && 
+                (string)entry.Values[1] == "EMPTY3"), 
+            "Third entry should match expected values");
     }
 
     [TestMethod]
@@ -209,10 +223,9 @@ select Name from #C.Entities() skip 3";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("005", table[0].Values[0]);
-        Assert.AreEqual("005", table[1].Values[0]);
-        Assert.AreEqual("005", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+
+        Assert.IsTrue(table.All(entry => (string)entry.Values[0] == "005"), "All entries should be '005'");
     }
 
     [TestMethod]
@@ -227,12 +240,14 @@ select Name from #C.Entities() skip 3";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 4, "Table should contain 4 rows");
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("003", table[2].Values[0]);
-        Assert.AreEqual("004", table[3].Values[0]);
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "001") &&
+                      table.Any(row => (string)row.Values[0] == "002") &&
+                      table.Any(row => (string)row.Values[0] == "003") &&
+                      table.Any(row => (string)row.Values[0] == "004"),
+            "Expected rows with values 001, 002, 003, and 004");
     }
 
     [TestMethod]
@@ -247,11 +262,12 @@ select Name from #C.Entities() skip 3";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("005", table[2].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Third entry should be '005'");
     }
 
     [TestMethod]
@@ -269,10 +285,11 @@ select Name from #C.Entities() skip 3";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("005", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Third entry should be '005'");
     }
 
     [TestMethod]
@@ -290,10 +307,11 @@ select Name from #C.Entities() skip 3";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("005", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Third entry should be '005'");
     }
 
     [TestMethod]
@@ -317,11 +335,12 @@ select Name from #D.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("005", table[2].Values[0]);
-        Assert.AreEqual("007", table[3].Values[0]);
+        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Third entry should be '005'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "007"), "Fourth entry should be '007'");
     }
 
     [TestMethod]
@@ -336,13 +355,14 @@ select Name from #D.Entities()";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("001", table[2].Values[0]);
-        Assert.AreEqual("002", table[3].Values[0]);
-        Assert.AreEqual("005", table[4].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Third entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Fourth entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Fifth entry should be '005'");
     }
 
     [TestMethod]
@@ -407,13 +427,14 @@ select Name from #D.Entities()";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("005", table[2].Values[0]);
-        Assert.AreEqual("007", table[3].Values[0]);
-        Assert.AreEqual("001", table[4].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Third entry should be '005'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "007"), "Fourth entry should be '007'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Fifth entry should be '001'");
     }
 
     [TestMethod]
@@ -428,13 +449,14 @@ select Name from #D.Entities()";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("003", table[2].Values[0]);
-        Assert.AreEqual("004", table[3].Values[0]);
-        Assert.AreEqual("001", table[4].Values[0]);
+        Assert.IsTrue(table.Count(row => (string)row.Values[0] == "001") == 2 &&
+                      table.Any(row => (string)row.Values[0] == "002") &&
+                      table.Any(row => (string)row.Values[0] == "003") &&
+                      table.Any(row => (string)row.Values[0] == "004"),
+            "Expected two rows with 001 and one row each with 002, 003, and 004");
     }
 
     [TestMethod]
@@ -652,10 +674,11 @@ select Name from #D.Entities()";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("007", table[1].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "007"), "Second entry should be '007'");
     }
 
     [TestMethod]
@@ -677,10 +700,11 @@ select Name from #C.Entities()";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("002", table[0].Values[0]);
-        Assert.AreEqual("001", table[1].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Second entry should be '001'");
     }
 
     [TestMethod]
@@ -702,10 +726,11 @@ select Name from #C.Entities()";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("002", table[0].Values[0]);
-        Assert.AreEqual("001", table[1].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Second entry should be '001'");
     }
 
     [TestMethod]
@@ -756,10 +781,11 @@ select Name from #C.Entities() skip 3";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("006", table[1].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "006"), "Second entry should be '006'");
     }
 
     [TestMethod]
@@ -781,10 +807,11 @@ select Name, RandomNumber() from #C.Entities()";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("002", table[0].Values[0]);
-        Assert.AreEqual("001", table[1].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Second entry should be '001'");
     }
 
     [TestMethod]
@@ -813,10 +840,11 @@ select Name from #D.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("003", table[2].Values[0]);
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "003"), "Third entry should be '003'");
     }
 
     [TestMethod]
@@ -843,14 +871,23 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual(200m, table[0].Values[1]);
-        Assert.AreEqual("003", table[1].Values[0]);
-        Assert.AreEqual(39m, table[1].Values[1]);
-        Assert.AreEqual("002", table[2].Values[0]);
-        Assert.AreEqual(28m, table[2].Values[1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "001" && 
+            (decimal)entry.Values[1] == 200m
+        ), "First entry should be '001' with value 200");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "003" && 
+            (decimal)entry.Values[1] == 39m
+        ), "Second entry should be '003' with value 39");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "002" && 
+            (decimal)entry.Values[1] == 28m
+        ), "Third entry should be '002' with value 28");
     }
 
     [TestMethod]
@@ -877,14 +914,24 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual(200m, table[0].Values[1]);
-        Assert.AreEqual("003", table[1].Values[0]);
-        Assert.AreEqual(39m, table[1].Values[1]);
-        Assert.AreEqual("002", table[2].Values[0]);
-        Assert.AreEqual(28m, table[2].Values[1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "001" && 
+            (decimal)entry.Values[1] == 200m
+        ), "First entry should be '001' with value 200");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "003" && 
+            (decimal)entry.Values[1] == 39m
+        ), "Second entry should be '003' with value 39");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "002" && 
+            (decimal)entry.Values[1] == 28m
+        ), "Third entry should be '002' with value 28");
+        
     }
 
     [TestMethod]
@@ -917,10 +964,13 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 1, "Table should have 1 entry");
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual(200m, table[0].Values[1]);
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "001" && 
+            (decimal)entry.Values[1] == 200m
+        ), "First entry should be '001' with value 200");
     }
 
     [TestMethod]
@@ -975,10 +1025,11 @@ select Name from #A.Entities() where Name = '002'";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
     }
 
     [TestMethod]
@@ -1009,13 +1060,14 @@ select Name from #A.Entities() where Name = '005'";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
+        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("003", table[2].Values[0]);
-        Assert.AreEqual("004", table[3].Values[0]);
-        Assert.AreEqual("005", table[4].Values[0]);
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "003"), "Third entry should be '003'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "004"), "Fourth entry should be '004'");
+        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Fifth entry should be '005'");
     }
     
     [TestMethod]

@@ -61,11 +61,17 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual("Test1", table[0][1]);
-        Assert.AreEqual(2, table[1][0]);
-        Assert.AreEqual("Test2", table[1][1]);
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+                (int)entry[0] == 1 && 
+                (string)entry[1] == "Test1"), 
+            "First entry should have values 1 and 'Test1'");
+
+        Assert.IsTrue(table.Any(entry => 
+                (int)entry[0] == 2 && 
+                (string)entry[1] == "Test2"), 
+            "Second entry should have values 2 and 'Test2'");
     }
 
     [TestMethod]

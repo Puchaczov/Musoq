@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -128,23 +129,22 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         
         Assert.AreEqual(6, table.Count);
         
-        Assert.AreEqual("City1", table[0].Values[0]);
-        Assert.AreEqual(1d, table[0].Values[1]);
-        
-        Assert.AreEqual("City2", table[1].Values[0]);
-        Assert.AreEqual(2d, table[1].Values[1]);
-        
-        Assert.AreEqual("City2", table[2].Values[0]);
-        Assert.AreEqual(3d, table[2].Values[1]);
-        
-        Assert.AreEqual("City3", table[3].Values[0]);
-        Assert.AreEqual(4d, table[3].Values[1]);
-        
-        Assert.AreEqual("City3", table[4].Values[0]);
-        Assert.AreEqual(5d, table[4].Values[1]);
-        
-        Assert.AreEqual("City3", table[5].Values[0]);
-        Assert.AreEqual(6d, table[5].Values[1]);
+        Assert.IsTrue(table.Count == 6, "Table should contain 6 rows");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City1" && 
+                new[] { 1d }.Contains((double)row.Values[1])) == 1,
+            "Expected 1 row for City1 with value 1");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City2" && 
+                new[] { 2d, 3d }.Contains((double)row.Values[1])) == 2,
+            "Expected 2 rows for City2 with values 2 and 3");
+
+        Assert.IsTrue(table.Count(row => 
+                (string)row.Values[0] == "City3" && 
+                new[] { 4d, 5d, 6d }.Contains((double)row.Values[1])) == 3,
+            "Expected 3 rows for City3 with values 4, 5 and 6");
     }
     
     [TestMethod]
@@ -170,22 +170,32 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.AreEqual(5, table.Count);
-        
-        Assert.AreEqual("City2", table[0].Values[0]);
-        Assert.AreEqual(2d, table[0].Values[1]);
-        
-        Assert.AreEqual("City2", table[1].Values[0]);
-        Assert.AreEqual(3d, table[1].Values[1]);
-        
-        Assert.AreEqual("City3", table[2].Values[0]);
-        Assert.AreEqual(4d, table[2].Values[1]);
-        
-        Assert.AreEqual("City3", table[3].Values[0]);
-        Assert.AreEqual(5d, table[3].Values[1]);
-        
-        Assert.AreEqual("City3", table[4].Values[0]);
-        Assert.AreEqual(6d, table[4].Values[1]);
+        Assert.AreEqual(5, table.Count, "Result should contain exactly 5 city-value pairs");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "City2" && 
+            Math.Abs((double)row.Values[1] - 2.0) < 0.0001
+        ), "Expected pair (City2, 2.0) not found");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "City2" && 
+            Math.Abs((double)row.Values[1] - 3.0) < 0.0001
+        ), "Expected pair (City2, 3.0) not found");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "City3" && 
+            Math.Abs((double)row.Values[1] - 4.0) < 0.0001
+        ), "Expected pair (City3, 4.0) not found");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "City3" && 
+            Math.Abs((double)row.Values[1] - 5.0) < 0.0001
+        ), "Expected pair (City3, 5.0) not found");
+
+        Assert.IsTrue(table.Any(row => 
+            (string)row.Values[0] == "City3" && 
+            Math.Abs((double)row.Values[1] - 6.0) < 0.0001
+        ), "Expected pair (City3, 6.0) not found");
     }
     
     [TestMethod]
@@ -213,16 +223,19 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("Sum(b.Value)", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.AreEqual(3, table.Count);
-        
-        Assert.AreEqual("City1", table[0].Values[0]);
-        Assert.AreEqual(1m, table[0].Values[1]);
-        
-        Assert.AreEqual("City2", table[1].Values[0]);
-        Assert.AreEqual(5m, table[1].Values[1]);
-        
-        Assert.AreEqual("City3", table[2].Values[0]);
-        Assert.AreEqual(15m, table[2].Values[1]);
+        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "City1" && 
+            (decimal)entry.Values[1] == 1m), "First entry should be City1 with 1m");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "City2" && 
+            (decimal)entry.Values[1] == 5m), "Second entry should be City2 with 5m");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry.Values[0] == "City3" && 
+            (decimal)entry.Values[1] == 15m), "Third entry should be City3 with 15m");
     }
     
     [TestMethod]
@@ -248,25 +261,37 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.AreEqual(6, table.Count);
-        
-        Assert.AreEqual("City1", table[0].Values[0]);
-        Assert.AreEqual(1d, table[0].Values[1]);
-        
-        Assert.AreEqual("City2", table[1].Values[0]);
-        Assert.AreEqual(2d, table[1].Values[1]);
-        
-        Assert.AreEqual("City2", table[2].Values[0]);
-        Assert.AreEqual(3d, table[2].Values[1]);
-        
-        Assert.AreEqual("City3", table[3].Values[0]);
-        Assert.AreEqual(4d, table[3].Values[1]);
-        
-        Assert.AreEqual("City3", table[4].Values[0]);
-        Assert.AreEqual(5d, table[4].Values[1]);
-        
-        Assert.AreEqual("City3", table[5].Values[0]);
-        Assert.AreEqual(6d, table[5].Values[1]);
+        Assert.IsTrue(table.Count == 6, "Table should contain 6 rows");
+
+        Assert.IsTrue(table.Count(row => 
+                          (string)row.Values[0] == "City1") == 1 &&
+                      table.Any(row => 
+                          (string)row.Values[0] == "City1" && 
+                          (double)row.Values[1] == 1d),
+            "Expected one row for City1 with value 1");
+
+        Assert.IsTrue(table.Count(row => 
+                          (string)row.Values[0] == "City2") == 2 &&
+                      table.Any(row => 
+                          (string)row.Values[0] == "City2" && 
+                          (double)row.Values[1] == 2d) &&
+                      table.Any(row =>
+                          (string)row.Values[0] == "City2" && 
+                          (double)row.Values[1] == 3d),
+            "Expected two rows for City2 with values 2 and 3");
+
+        Assert.IsTrue(table.Count(row => 
+                          (string)row.Values[0] == "City3") == 3 &&
+                      table.Any(row => 
+                          (string)row.Values[0] == "City3" && 
+                          (double)row.Values[1] == 4d) &&
+                      table.Any(row =>
+                          (string)row.Values[0] == "City3" && 
+                          (double)row.Values[1] == 5d) &&
+                      table.Any(row =>
+                          (string)row.Values[0] == "City3" && 
+                          (double)row.Values[1] == 6d),
+            "Expected three rows for City3 with values 4, 5 and 6");
     }
     
     [TestMethod]
@@ -296,31 +321,43 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("b.Value2", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.AreEqual(6, table.Count);
-        
-        Assert.AreEqual("City1", table[0].Values[0]);
-        Assert.AreEqual("Value1", table[0].Values[1]);
-        Assert.AreEqual(1, table[0].Values[2]);
-        
-        Assert.AreEqual("City2", table[1].Values[0]);
-        Assert.AreEqual("Value2", table[1].Values[1]);
-        Assert.AreEqual(2, table[1].Values[2]);
-        
-        Assert.AreEqual("City2", table[2].Values[0]);
-        Assert.AreEqual("Value3", table[2].Values[1]);
-        Assert.AreEqual(3, table[2].Values[2]);
-        
-        Assert.AreEqual("City3", table[3].Values[0]);
-        Assert.AreEqual("Value4", table[3].Values[1]);
-        Assert.AreEqual(4, table[3].Values[2]);
-        
-        Assert.AreEqual("City3", table[4].Values[0]);
-        Assert.AreEqual("Value5", table[4].Values[1]);
-        Assert.AreEqual(5, table[4].Values[2]);
-        
-        Assert.AreEqual("City3", table[5].Values[0]);
-        Assert.AreEqual("Value6", table[5].Values[1]);
-        Assert.AreEqual(6, table[5].Values[2]);
+        Assert.IsTrue(table.Count == 6, "Table should contain 6 rows");
+
+        Assert.IsTrue(table.Count(row => 
+                          (string)row.Values[0] == "City1") == 1 &&
+                      table.Any(row => 
+                          (string)row.Values[0] == "City1" && 
+                          (string)row.Values[1] == "Value1" && 
+                          (int)row.Values[2] == 1),
+            "Expected one row for City1 with Value1 and number 1");
+
+        Assert.IsTrue(table.Count(row => 
+                          (string)row.Values[0] == "City2") == 2 &&
+                      table.Any(row => 
+                          (string)row.Values[0] == "City2" && 
+                          (string)row.Values[1] == "Value2" && 
+                          (int)row.Values[2] == 2) &&
+                      table.Any(row =>
+                          (string)row.Values[0] == "City2" && 
+                          (string)row.Values[1] == "Value3" && 
+                          (int)row.Values[2] == 3),
+            "Expected two rows for City2 with Value2/3 and numbers 2/3");
+
+        Assert.IsTrue(table.Count(row => 
+                          (string)row.Values[0] == "City3") == 3 &&
+                      table.Any(row => 
+                          (string)row.Values[0] == "City3" && 
+                          (string)row.Values[1] == "Value4" && 
+                          (int)row.Values[2] == 4) &&
+                      table.Any(row =>
+                          (string)row.Values[0] == "City3" && 
+                          (string)row.Values[1] == "Value5" && 
+                          (int)row.Values[2] == 5) &&
+                      table.Any(row =>
+                          (string)row.Values[0] == "City3" && 
+                          (string)row.Values[1] == "Value6" && 
+                          (int)row.Values[2] == 6),
+            "Expected three rows for City3 with Value4/5/6 and numbers 4/5/6");
     }
     
     [TestMethod]
@@ -350,31 +387,43 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("b.Value2", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.AreEqual(6, table.Count);
-        
-        Assert.AreEqual("City1", table[0].Values[0]);
-        Assert.AreEqual("Value1", table[0].Values[1]);
-        Assert.AreEqual(1, table[0].Values[2]);
-        
-        Assert.AreEqual("City2", table[1].Values[0]);
-        Assert.AreEqual("Value2", table[1].Values[1]);
-        Assert.AreEqual(2, table[1].Values[2]);
-        
-        Assert.AreEqual("City2", table[2].Values[0]);
-        Assert.AreEqual("Value3", table[2].Values[1]);
-        Assert.AreEqual(3, table[2].Values[2]);
-        
-        Assert.AreEqual("City3", table[3].Values[0]);
-        Assert.AreEqual("Value4", table[3].Values[1]);
-        Assert.AreEqual(4, table[3].Values[2]);
-        
-        Assert.AreEqual("City3", table[4].Values[0]);
-        Assert.AreEqual("Value5", table[4].Values[1]);
-        Assert.AreEqual(5, table[4].Values[2]);
-        
-        Assert.AreEqual("City3", table[5].Values[0]);
-        Assert.AreEqual("Value6", table[5].Values[1]);
-        Assert.AreEqual(6, table[5].Values[2]);
+        Assert.IsTrue(table.Count == 6, "Table should have 6 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "City1" && 
+                (string)entry.Values[1] == "Value1" && 
+                Convert.ToInt32(entry.Values[2]) == 1), 
+            "First entry should match expected values");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "City2" && 
+                (string)entry.Values[1] == "Value2" && 
+                Convert.ToInt32(entry.Values[2]) == 2), 
+            "Second entry should match expected values");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "City2" && 
+                (string)entry.Values[1] == "Value3" && 
+                Convert.ToInt32(entry.Values[2]) == 3), 
+            "Third entry should match expected values");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "City3" && 
+                (string)entry.Values[1] == "Value4" && 
+                Convert.ToInt32(entry.Values[2]) == 4), 
+            "Fourth entry should match expected values");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "City3" && 
+                (string)entry.Values[1] == "Value5" && 
+                Convert.ToInt32(entry.Values[2]) == 5), 
+            "Fifth entry should match expected values");
+
+        Assert.IsTrue(table.Any(entry => 
+                (string)entry.Values[0] == "City3" && 
+                (string)entry.Values[1] == "Value6" && 
+                Convert.ToInt32(entry.Values[2]) == 6), 
+            "Sixth entry should match expected values");
     }
     
     [TestMethod]
@@ -396,6 +445,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         
         var table = vm.Run();
         
+        // Verify column structure - this remains ordered as SQL column order matters
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(double?), table.Columns.ElementAt(0).ColumnType);
@@ -403,54 +453,48 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual(typeof(double?), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(16, table.Count);
-        
-        Assert.AreEqual(1d, table[0].Values[0]);
-        Assert.AreEqual(1.1d, table[0].Values[1]);
-        
-        Assert.AreEqual(2d, table[1].Values[0]);
-        Assert.AreEqual(2.1d, table[1].Values[1]);
-        
-        Assert.AreEqual(2d, table[2].Values[0]);
-        Assert.AreEqual(2.2d, table[2].Values[1]);
-        
-        Assert.AreEqual(2d, table[3].Values[0]);
-        Assert.AreEqual(3.3d, table[3].Values[1]);
-        
-        Assert.AreEqual(3d, table[4].Values[0]);
-        Assert.AreEqual(2.1d, table[4].Values[1]);
-        
-        Assert.AreEqual(3d, table[5].Values[0]);
-        Assert.AreEqual(2.2d, table[5].Values[1]);
-        
-        Assert.AreEqual(3d, table[6].Values[0]);
-        Assert.AreEqual(3.3d, table[6].Values[1]);
-        
-        Assert.AreEqual(4d, table[7].Values[0]);
-        Assert.AreEqual(4.1d, table[7].Values[1]);
-        
-        Assert.AreEqual(4d, table[8].Values[0]);
-        Assert.AreEqual(5.1d, table[8].Values[1]);
-        
-        Assert.AreEqual(4d, table[9].Values[0]);
-        Assert.AreEqual(6.1d, table[9].Values[1]);
-        
-        Assert.AreEqual(5d, table[10].Values[0]);
-        Assert.AreEqual(4.1d, table[10].Values[1]);
+
+        var expectedPairs = new List<(double First, double Second)>
+        {
+            (1.0, 1.1),
             
-        Assert.AreEqual(5d, table[11].Values[0]);
-        Assert.AreEqual(5.1d, table[11].Values[1]);
-        
-        Assert.AreEqual(5d, table[12].Values[0]);
-        Assert.AreEqual(6.1d, table[12].Values[1]);
-        
-        Assert.AreEqual(6d, table[13].Values[0]);
-        Assert.AreEqual(4.1d, table[13].Values[1]);
-        
-        Assert.AreEqual(6d, table[14].Values[0]);
-        Assert.AreEqual(5.1d, table[14].Values[1]);
-        
-        Assert.AreEqual(6d, table[15].Values[0]);
-        Assert.AreEqual(6.1d, table[15].Values[1]);
+            (2.0, 2.1), (2.0, 2.2), (2.0, 3.3),
+            (3.0, 2.1), (3.0, 2.2), (3.0, 3.3),
+            
+            (4.0, 4.1), (4.0, 5.1), (4.0, 6.1),
+            (5.0, 4.1), (5.0, 5.1), (5.0, 6.1),
+            (6.0, 4.1), (6.0, 5.1), (6.0, 6.1)
+        };
+
+        foreach (var expected in expectedPairs)
+        {
+            Assert.IsTrue(
+                table.Any(row => 
+                    Math.Abs((double)row.Values[0] - expected.First) < 0.0001 && 
+                    Math.Abs((double)row.Values[1] - expected.Second) < 0.0001
+                ),
+                $"Expected combination ({expected.First}, {expected.Second}) not found"
+            );
+        }
+
+        var firstColumnFrequencies = new Dictionary<double, int>
+        {
+            {1.0, 1},  // Value 1 appears once
+            {2.0, 3},  // Value 2 appears three times
+            {3.0, 3},  // Value 3 appears three times
+            {4.0, 3},  // Values 4,5,6 each appear three times
+            {5.0, 3},
+            {6.0, 3}
+        };
+
+        foreach (var pair in firstColumnFrequencies)
+        {
+            var actualCount = table.Count(row => 
+                Math.Abs((double)row.Values[0] - pair.Key) < 0.0001
+            );
+            Assert.AreEqual(pair.Value, actualCount,
+                $"Value {pair.Key} in first column should appear {pair.Value} times");
+        }
     }
     
     [TestMethod]
@@ -482,10 +526,15 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         
         Assert.AreEqual(1, table.Columns.Count());
         
-        Assert.AreEqual(2, table.Count);
-        
-        Assert.AreEqual(1, table[0].Values[0]);
-        Assert.AreEqual(2, table[1].Values[0]);
+        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+
+        Assert.IsTrue(table.Any(row => 
+                (int)row.Values[0] == 1), 
+            "Expected row with value 1");
+
+        Assert.IsTrue(table.Any(row => 
+                (int)row.Values[0] == 2),
+            "Expected row with value 2");
     }
     
     [TestMethod]

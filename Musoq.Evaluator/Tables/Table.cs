@@ -10,6 +10,7 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
 {
     private readonly Dictionary<int, Column> _columnsByIndex;
     private readonly Dictionary<string, List<Column>> _columnsByName;
+    private readonly object _guard;
 
     public Table(string name, Column[] columns)
     {
@@ -17,6 +18,7 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
 
         _columnsByIndex = new Dictionary<int, Column>();
         _columnsByName = new Dictionary<string, List<Column>>();
+        _guard = new object();
 
         AddColumns(columns);
     }
@@ -25,22 +27,45 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
 
     public IEnumerable<Column> Columns => _columnsByIndex.Values;
 
-    public IEnumerator<Row> CurrentEnumerator { get; private set; }
-
     IReadOnlyList<IReadOnlyRow> IReadOnlyTable.Rows => Rows;
 
     public IEnumerator<Row> GetEnumerator()
     {
-        CurrentEnumerator = Rows.GetEnumerator();
-        return CurrentEnumerator;
+        lock (_guard)
+            return Rows.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return GetEnumerator();
+        lock (_guard)
+            return GetEnumerator();
     }
 
-    public void AddColumns(params Column[] columns)
+    public void Add(Row value)
+    {
+        lock (_guard)
+        {
+            if (value.Count != _columnsByIndex.Count)
+                throw new NotSupportedException(
+                    $"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
+
+            for (var i = 0; i < value.Count; i++)
+            {
+                if (value[i] == null)
+                    continue;
+
+                var t1 = value[i].GetType();
+                var t2 = _columnsByIndex[i].ColumnType;
+                if (!t2.IsAssignableFrom(t1))
+                    throw new NotSupportedException(
+                        $"({nameof(Add)}) Mismatched types. {t2.Name} is not assignable from {t1.Name}");
+            }
+
+            Rows.Add(value);
+        }
+    }
+
+    private void AddColumns(params Column[] columns)
     {
         foreach (var column in columns)
         {
@@ -60,26 +85,5 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
                 
             _columnsByName.Add(column.ColumnName, [column]);
         }
-    }
-
-    public void Add(Row value)
-    {
-        if (value.Count != _columnsByIndex.Count)
-            throw new NotSupportedException(
-                $"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
-
-        for (var i = 0; i < value.Count; i++)
-        {
-            if (value[i] == null)
-                continue;
-
-            var t1 = value[i].GetType();
-            var t2 = _columnsByIndex[i].ColumnType;
-            if (!t2.IsAssignableFrom(t1))
-                throw new NotSupportedException(
-                    $"({nameof(Add)}) Mismatched types. {t2.Name} is not assignable from {t1.Name}");
-        }
-
-        Rows.Add(value);
     }
 }

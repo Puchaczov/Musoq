@@ -106,15 +106,7 @@ public static class SyntaxHelper
 
         if (orderByFields.Length == 0)
         {
-            return SyntaxFactory.ForEachStatement(
-                SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
-                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                SyntaxFactory.IdentifierName("var").WithTrailingTrivia(WhiteSpace),
-                SyntaxFactory.Identifier(variable).WithTrailingTrivia(WhiteSpace),
-                SyntaxFactory.Token(SyntaxKind.InKeyword).WithTrailingTrivia(WhiteSpace),
-                orderByExpression,
-                SyntaxFactory.Token(SyntaxKind.CloseParenToken),
-                block);
+            return CreateForEachStatement(variable, block, orderByExpression);
         }
             
         var sourceTable = source.Replace(".Rows", string.Empty);
@@ -139,15 +131,88 @@ public static class SyntaxHelper
             );
         }
 
-        return SyntaxFactory.ForEachStatement(
-            SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
-            SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-            SyntaxFactory.IdentifierName("var").WithTrailingTrivia(WhiteSpace),
-            SyntaxFactory.Identifier(variable).WithTrailingTrivia(WhiteSpace),
-            SyntaxFactory.Token(SyntaxKind.InKeyword).WithTrailingTrivia(WhiteSpace),
-            orderByExpression,
-            SyntaxFactory.Token(SyntaxKind.CloseParenToken),
-            block);
+        return CreateForEachStatement(variable, block, orderByExpression);
+    }
+
+    public static StatementSyntax ParallelForeach(string variable, string source, BlockSyntax block)
+    {
+        return CreateParallelForEachStatement(SyntaxFactory.IdentifierName(source), variable, block);
+    }
+
+    // This method encapsulates the creation of the Parallel.ForEach syntax
+    private static StatementSyntax CreateParallelForEachStatement(
+        ExpressionSyntax collection,
+        string variable,
+        BlockSyntax block)
+    {
+        // Create the parameter list for the lambda
+        var parameterList = SyntaxFactory.ParameterList(
+            SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Parameter(
+                    SyntaxFactory.Identifier(variable)
+                )
+            )
+        );
+
+        // Create the lambda expression that will process each item
+        var lambda = SyntaxFactory.ParenthesizedLambdaExpression(
+            parameterList,
+            block
+        );
+
+        // Create the Parallel.ForEach invocation
+        var parallelForEachInvocation = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName("Parallel"),
+                SyntaxFactory.IdentifierName("ForEach")
+            )
+        )
+        .WithArgumentList(
+            SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                    new[]
+                    {
+                        SyntaxFactory.Argument(collection),
+                        SyntaxFactory.Argument(lambda)
+                    }
+                )
+            )
+        );
+
+        // Create the try-catch statement
+        return SyntaxFactory.TryStatement(
+            SyntaxFactory.Block(
+                SyntaxFactory.ExpressionStatement(parallelForEachInvocation)
+            ),
+            SyntaxFactory.SingletonList(
+                SyntaxFactory.CatchClause()
+                    .WithDeclaration(
+                        SyntaxFactory.CatchDeclaration(
+                            SyntaxFactory.IdentifierName("AggregateException"),
+                            SyntaxFactory.Identifier("ex")
+                        )
+                    )
+                    .WithBlock(
+                        SyntaxFactory.Block(
+                            SyntaxFactory.ThrowStatement(
+                                SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.IdentifierName("ex"),
+                                            SyntaxFactory.IdentifierName("InnerExceptions")
+                                        ),
+                                        SyntaxFactory.IdentifierName("First")
+                                    )
+                                )
+                            )
+                        )
+                    )
+            ),
+            null  // No finally clause
+        );
     }
 
     public static ArrayCreationExpressionSyntax CreateArrayOf(string typeName, ExpressionSyntax[] expressions,
@@ -265,5 +330,18 @@ public static class SyntaxHelper
                                 .WithExpressionBody(
                                     orderByFields[index].Syntax))}))
         );
+    }
+
+    private static ForEachStatementSyntax CreateForEachStatement(string variable, BlockSyntax block, ExpressionSyntax orderByExpression)
+    {
+        return SyntaxFactory.ForEachStatement(
+            SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
+            SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+            SyntaxFactory.IdentifierName("var").WithTrailingTrivia(WhiteSpace),
+            SyntaxFactory.Identifier(variable).WithTrailingTrivia(WhiteSpace),
+            SyntaxFactory.Token(SyntaxKind.InKeyword).WithTrailingTrivia(WhiteSpace),
+            orderByExpression,
+            SyntaxFactory.Token(SyntaxKind.CloseParenToken),
+            block);
     }
 }
