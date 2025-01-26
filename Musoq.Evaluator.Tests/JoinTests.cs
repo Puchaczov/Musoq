@@ -1010,14 +1010,20 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual(2, column.ColumnIndex);
         Assert.AreEqual("c.Id", column.ColumnName);
         Assert.AreEqual(typeof(int?), column.ColumnType);
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1, table[0][2]);
+        Assert.IsTrue(table.Any(entry => 
+            (int)entry[0] == 1 && 
+            (int)entry[1] == 1 && 
+            (int)entry[2] == 1
+        ), "First entry should be 1, 1, 1");
 
-        Assert.AreEqual(2, table[1][0]);
-        Assert.AreEqual((int?)null, table[1][1]);
-        Assert.AreEqual((int?)null, table[1][2]);
+        Assert.IsTrue(table.Any(entry => 
+            (int)entry[0] == 2 && 
+            entry[1] == null && 
+            entry[2] == null
+        ), "Second entry should be 2, null, null");
     }
 
     [TestMethod]
@@ -1106,14 +1112,20 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual(2, column.ColumnIndex);
         Assert.AreEqual("c.Id", column.ColumnName);
         Assert.AreEqual(typeof(int), column.ColumnType);
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
 
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1, table[0][2]);
+        Assert.IsTrue(table.Any(entry => 
+            (int?)entry[0] == 1 && 
+            (int?)entry[1] == 1 && 
+            (int?)entry[2] == 1
+        ), "First entry should be 1, 1, 1");
 
-        Assert.AreEqual((int?)null, table[1][0]);
-        Assert.AreEqual((int?)null, table[1][1]);
-        Assert.AreEqual(2, table[1][2]);
+        Assert.IsTrue(table.Any(entry => 
+            entry[0] == null && 
+            entry[1] == null && 
+            (int?)entry[2] == 2
+        ), "Second entry should be null, null, 2");
     }
 
     [TestMethod]
