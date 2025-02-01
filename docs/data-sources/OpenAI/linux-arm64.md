@@ -64,7 +64,7 @@ In order to use the plugin, the user must set any required environment variables
 {: .warning }
  This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
-### openai.gpt(string model, int maxTokens, double temperature)
+### openai.gpt(string model, int maxTokens, decimal temperature)
 
 Gives the access to OpenAI api
 
@@ -82,7 +82,7 @@ In order to use the plugin, the user must set any required environment variables
 {: .warning }
  This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
-### openai.gpt(string model, int maxTokens, double temperature, double frequencyPenalty)
+### openai.gpt(string model, int maxTokens, decimal temperature, decimal frequencyPenalty)
 
 Gives the access to OpenAI api
 
@@ -100,7 +100,7 @@ In order to use the plugin, the user must set any required environment variables
 {: .warning }
  This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
-### openai.gpt(string model, int maxTokens, double temperature, double frequencyPenalty, double presencePenalty)
+### openai.gpt(string model, int maxTokens, decimal temperature, decimal frequencyPenalty, decimal presencePenalty)
 
 Gives the access to OpenAI api
 

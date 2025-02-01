@@ -28,7 +28,7 @@ In order to use the plugin, the user must set any required environment variables
 {: .warning }
  This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
-### ollama.llm(string model, float temperature)
+### ollama.llm(string model, decimal temperature)
 
 Gives the access to Ollama api
 

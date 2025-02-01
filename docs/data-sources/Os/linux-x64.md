@@ -25,7 +25,7 @@ Compares two directories
 | SourceFileRelative | string | Relative path to source file |
 | DestinationFileRelative | string | Relative path to destination file |
 
-### os.directories(string directory, boolean useSubdirectories)
+### os.directories(string directory, bool useSubdirectories)
 
 Gets the directories
 
@@ -72,7 +72,7 @@ Gets the dlls
 | Assembly | Assembly | Gets the Assembly object |
 | Version | FileVersionInfo | Gets the assembly version |
 
-### os.files(string directory, boolean useSubdirectories)
+### os.files(string directory, bool useSubdirectories)
 
 Gets the files
 
