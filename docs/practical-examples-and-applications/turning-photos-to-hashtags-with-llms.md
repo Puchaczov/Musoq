@@ -22,7 +22,9 @@ This way, we can index photos and do something useful with them, like creating a
 Here's an example SQL query using the `llama3.2-vision:latest` model to generate image descriptions:
 
 ```sql
-select f.Name, l.AskImage('Describe this photo of my child in one sentence.', f.Base64File()) as description 
+select 
+    f.Name, 
+    l.AskImage('Describe this photo of my child in one sentence.', f.Base64File()) as description 
 from #os.files('/some/folder/with/photos', false) f 
 cross apply #ollama.llm('llama3.2-vision:latest') l
 ```
@@ -43,7 +45,9 @@ cross apply #ollama.llm('llama3.2-vision:latest') l
 For comparison, the following query uses the `gpt-4o` model to generate image descriptions:
 
 ```sql
-select f.Name, l.AskImage('this is the photo of my little child I want you to describe. Be conscise, use only single statement.', f.Base64File()) as description 
+select 
+    f.Name, 
+    l.AskImage('this is the photo of my little child I want you to describe. Be conscise, use only single statement.', f.Base64File()) as description 
 from #os.files('/some/folder/with/photos', false) f 
 cross apply #openai.gpt('gpt-4o') l
 ```
@@ -59,7 +63,7 @@ cross apply #openai.gpt('gpt-4o') l
 ```
 
 ## Final Try With Both Models Combined
-As I don't want to send private images (e.g., pictures of your child) to external services. By generating photo descriptions locally, you keep sensitive data in-house. You can then send just these descriptions to external LLM services, minimizing your data exposure while still benefiting from features which for me is hashtags generation.
+Because I don't want to send private photos (e.g., pictures of my child) to external services, I plan to generate photo descriptions using a local LLM model. By generating descriptions this way, I avoid leaking data that I don't want to show to the whole world. These generated descriptions are then sent to a much more powerful model which will generate the hashtags I request.
 
 ```sql
 with PhotosDescription as (
