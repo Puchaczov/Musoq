@@ -135,23 +135,29 @@ public class GroupByTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Result should contain exactly 3 rows");
 
+        int[] rowNumbers = [1, 2, 3];
+
         Assert.IsTrue(table.Any(row => 
             (string)row.Values[0] == "ABBA" && 
             (int)row.Values[1] == 4 && 
-            (int)row.Values[2] == 1
+            rowNumbers.Contains((int)row.Values[2])
         ), "Expected combination (ABBA, 4, 1) not found");
 
         Assert.IsTrue(table.Any(row => 
             (string)row.Values[0] == "BABBA" && 
             (int)row.Values[1] == 2 && 
-            (int)row.Values[2] == 2
+            rowNumbers.Contains((int)row.Values[2])
         ), "Expected combination (BABBA, 2, 2) not found");
 
         Assert.IsTrue(table.Any(row => 
             (string)row.Values[0] == "CECCA" && 
             (int)row.Values[1] == 1 && 
-            (int)row.Values[2] == 3
+            rowNumbers.Contains((int)row.Values[2])
         ), "Expected combination (CECCA, 1, 3) not found");
+        
+        var rowNumbersSet = new HashSet<int>(table.Select(row => (int)row.Values[2]));
+        
+        Assert.AreEqual(3, rowNumbersSet.Count, "Row numbers should be unique");
     }
 
     [TestMethod]

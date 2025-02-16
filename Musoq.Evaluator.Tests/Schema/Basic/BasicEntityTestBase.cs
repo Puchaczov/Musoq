@@ -7,7 +7,6 @@ using Moq;
 using Musoq.Converter;
 using Musoq.Converter.Build;
 using Musoq.Evaluator.Tables;
-using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Tests.Common;
 
@@ -17,8 +16,6 @@ public class BasicEntityTestBase
 {
     static BasicEntityTestBase()
     {
-        new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
-
         Culture.ApplyWithDefaultCulture();
     }
         

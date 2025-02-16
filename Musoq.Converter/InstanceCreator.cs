@@ -11,7 +11,6 @@ using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
-using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 using SchemaFromNode = Musoq.Evaluator.Parser.SchemaFromNode;
 

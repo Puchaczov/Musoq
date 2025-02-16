@@ -4,7 +4,6 @@ using System.Dynamic;
 using System.Linq;
 using Moq;
 using Musoq.Converter;
-using Musoq.Plugins;
 using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Dynamic;
@@ -86,11 +85,6 @@ public class DynamicQueryTestsBase
 
     static DynamicQueryTestsBase()
     {
-        new Plugins.Environment()
-            .SetValue(
-                Constants.NetStandardDllEnvironmentVariableName, 
-                EnvironmentUtils.GetOrCreateEnvironmentVariable());
-
         Culture.ApplyWithDefaultCulture();
     }
 }

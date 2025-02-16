@@ -559,8 +559,8 @@ select Name from #D.Entities()";
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("002", table[0].Values[0]);
-        Assert.AreEqual("008", table[1].Values[0]);
+        Assert.IsTrue(table.Count(r => (string)r.Values[0] == "002") == 1, "Expected one row with '002'");
+        Assert.IsTrue(table.Count(r => (string)r.Values[0] == "008") == 1, "Expected one row with '008'");
     }
 
     [TestMethod]

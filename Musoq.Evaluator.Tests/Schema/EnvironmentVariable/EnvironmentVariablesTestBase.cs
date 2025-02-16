@@ -4,7 +4,6 @@ using Musoq.Converter;
 using Musoq.Converter.Build;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Tests.Common;
 
@@ -71,11 +70,6 @@ public class EnvironmentVariablesTestBase
 
     static EnvironmentVariablesTestBase()
     {
-        new Plugins.Environment()
-            .SetValue(
-                Constants.NetStandardDllEnvironmentVariableName, 
-                EnvironmentUtils.GetOrCreateEnvironmentVariable());
-
         Culture.ApplyWithDefaultCulture();
     }
 }

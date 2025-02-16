@@ -11,11 +11,20 @@ public class ConvertingTests : LibraryBaseBaseTests
     public void ToDecimalTest()
     {
         var oldCulture = CultureInfo.CurrentCulture;
-        CultureInfo.CurrentCulture = new CultureInfo("gb-GB");
+        var culture = new CultureInfo("gb-GB")
+        {
+            NumberFormat =
+            {
+                NumberDecimalSeparator = ",",
+                NumberGroupSeparator = "."
+            }
+        };
 
-        Assert.AreEqual(12.323m, Library.ToDecimal("12.323"));
-        Assert.AreEqual(-12.323m, Library.ToDecimal("-12.323"));
-        Assert.AreEqual(null, Library.ToDecimal(""));
+        CultureInfo.CurrentCulture = culture;
+
+        Assert.AreEqual(12.323m, Library.ToDecimal("12,323"));
+        Assert.AreEqual(-12.323m, Library.ToDecimal("-12,323"));
+        Assert.AreEqual(null, Library.ToDecimal(string.Empty));
 
         CultureInfo.CurrentCulture = oldCulture;
     }
@@ -23,10 +32,12 @@ public class ConvertingTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDecimalWithCultureTest()
     {
+        var culture = CultureInfo.GetCultureInfo("gb-GB");
+        
         Assert.AreEqual(1.23m, Library.ToDecimal("1,23", "pl-PL"));
         Assert.AreEqual(-1.23m, Library.ToDecimal("-1,23", "pl-PL"));
-        Assert.AreEqual(1.23m, Library.ToDecimal("1.23", "gb-GB"));
-        Assert.AreEqual(-1.23m, Library.ToDecimal("-1.23", "gb-GB"));
+        Assert.AreEqual(1.23m, Library.ToDecimal($"1{culture.NumberFormat.NumberDecimalSeparator}23", "gb-GB"));
+        Assert.AreEqual(-1.23m, Library.ToDecimal($"-1{culture.NumberFormat.NumberDecimalSeparator}23", "gb-GB"));
     }
 
     [TestMethod]
@@ -67,7 +78,7 @@ public class ConvertingTests : LibraryBaseBaseTests
     public void ToStringObjectTest()
     {
         Assert.AreEqual("test class", Library.ToString(new TestToStringClass()));
-        Assert.AreEqual(null, Library.ToString((TestToStringClass)null));
+        Assert.AreEqual(null, Library.ToString((TestToStringClass?)null));
     }
 
     [TestMethod]

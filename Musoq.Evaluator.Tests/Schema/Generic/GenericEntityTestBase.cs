@@ -13,8 +13,6 @@ public class GenericEntityTestBase
 {
     static GenericEntityTestBase()
     {
-        new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
-
         Culture.ApplyWithDefaultCulture();
     }
 
