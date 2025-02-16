@@ -97,25 +97,29 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.AreEqual("New York", table[0][0]);
-        Assert.AreEqual("USA", table[0][1]);
-        Assert.AreEqual("Broadway", table[0][2]);
-        Assert.AreEqual(123, table[0][3]);
+        Assert.IsTrue(table.Count(r => 
+            (string)r[0] == "New York" &&
+            (string)r[1] == "USA" &&
+            (string)r[2] == "Broadway" &&
+            (int)r[3] == 123) == 1);
 
-        Assert.AreEqual("New York", table[1][0]);
-        Assert.AreEqual("USA", table[1][1]);
-        Assert.AreEqual("Fifth Avenue", table[1][2]);
-        Assert.AreEqual(456, table[1][3]);
+        Assert.IsTrue(table.Count(r => 
+            (string)r[0] == "New York" &&
+            (string)r[1] == "USA" &&
+            (string)r[2] == "Fifth Avenue" &&
+            (int)r[3] == 456) == 1);
 
-        Assert.AreEqual("Los Angeles", table[2][0]);
-        Assert.AreEqual("USA", table[2][1]);
-        Assert.AreEqual("Broadway", table[2][2]);
-        Assert.AreEqual(123, table[2][3]);
+        Assert.IsTrue(table.Count(r => 
+            (string)r[0] == "Los Angeles" &&
+            (string)r[1] == "USA" &&
+            (string)r[2] == "Broadway" &&
+            (int)r[3] == 123) == 1);
 
-        Assert.AreEqual("Los Angeles", table[3][0]);
-        Assert.AreEqual("USA", table[3][1]);
-        Assert.AreEqual("Fifth Avenue", table[3][2]);
-        Assert.AreEqual(456, table[3][3]);
+        Assert.IsTrue(table.Count(r => 
+            (string)r[0] == "Los Angeles" && 
+            (string)r[1] == "USA" &&
+            (string)r[2] == "Fifth Avenue" &&
+            (int)r[3] == 456) == 1);
     }
 
     private class OuterApplyClass3

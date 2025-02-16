@@ -2,8 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Schema;
-using Musoq.Evaluator;
-using Musoq.Plugins;
 using Musoq.Tests.Common;
 
 namespace Musoq.Converter.Tests;
@@ -46,8 +44,6 @@ public class BuildTests
 
     static BuildTests()
     {
-        new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
-
         Culture.ApplyWithDefaultCulture();
     }
 }

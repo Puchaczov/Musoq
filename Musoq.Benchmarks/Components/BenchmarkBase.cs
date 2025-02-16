@@ -3,7 +3,6 @@ using Musoq.Benchmarks.Schema.Country;
 using Musoq.Benchmarks.Schema.Profiles;
 using Musoq.Converter;
 using Musoq.Evaluator;
-using Musoq.Plugins;
 using Musoq.Tests.Common;
 
 namespace Musoq.Benchmarks.Components;
@@ -12,8 +11,6 @@ public class BenchmarkBase
 {
     static BenchmarkBase()
     {
-        new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
-
         Culture.ApplyWithDefaultCulture();
     }
         

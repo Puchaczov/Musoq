@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Parser;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using PropertyFromNode = Musoq.Parser.Nodes.From.PropertyFromNode;

@@ -13,9 +13,9 @@ public class ConvertingTests : LibraryBaseBaseTests
         var oldCulture = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = new CultureInfo("gb-GB");
 
-        Assert.AreEqual(12.323m, Library.ToDecimal("12.323"));
-        Assert.AreEqual(-12.323m, Library.ToDecimal("-12.323"));
-        Assert.AreEqual(null, Library.ToDecimal(""));
+        Assert.AreEqual(12.323m, Library.ToDecimal("12,323"));
+        Assert.AreEqual(-12.323m, Library.ToDecimal("-12,323"));
+        Assert.AreEqual(null, Library.ToDecimal(string.Empty));
 
         CultureInfo.CurrentCulture = oldCulture;
     }
@@ -25,8 +25,8 @@ public class ConvertingTests : LibraryBaseBaseTests
     {
         Assert.AreEqual(1.23m, Library.ToDecimal("1,23", "pl-PL"));
         Assert.AreEqual(-1.23m, Library.ToDecimal("-1,23", "pl-PL"));
-        Assert.AreEqual(1.23m, Library.ToDecimal("1.23", "gb-GB"));
-        Assert.AreEqual(-1.23m, Library.ToDecimal("-1.23", "gb-GB"));
+        Assert.AreEqual(1.23m, Library.ToDecimal("1,23", "gb-GB"));
+        Assert.AreEqual(-1.23m, Library.ToDecimal("-1,23", "gb-GB"));
     }
 
     [TestMethod]

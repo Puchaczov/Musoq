@@ -17,7 +17,7 @@ public partial class LibraryBase
         if (value == null)
             return null;
 
-        if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out decimal result))
+        if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out var result))
             return result;
 
         return null;
@@ -32,7 +32,7 @@ public partial class LibraryBase
     [BindableMethod]
     public decimal? ToDecimal(string value, string culture)
     {
-        if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.GetCultureInfo(culture), out decimal result))
+        if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.GetCultureInfo(culture), out var result))
             return result;
 
         return null;

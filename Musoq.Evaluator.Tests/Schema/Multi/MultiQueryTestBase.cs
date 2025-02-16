@@ -4,7 +4,6 @@ using Moq;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Evaluator.Tests.Schema.Multi.Second;
-using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Tests.Common;
@@ -15,8 +14,6 @@ public class MultiSchemaTestBase
 {
     static MultiSchemaTestBase()
     {
-        new Plugins.Environment().SetValue(Constants.NetStandardDllEnvironmentVariableName, EnvironmentUtils.GetOrCreateEnvironmentVariable());
-
         Culture.ApplyWithDefaultCulture();
     }
 

@@ -4,7 +4,6 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -90,13 +89,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
         Compilation = CSharpCompilation.Create(assemblyName);
-
         Compilation = Compilation.AddReferences(RuntimeLibraries.References);
-
-        var env = new Plugins.Environment();
-        Compilation = Compilation
-            .AddReferences(
-                MetadataReference.CreateFromFile(env.Value<string>(Constants.NetStandardDllEnvironmentVariableName)));
 
         AddReference(typeof(object));
         AddReference(typeof(CancellationToken));
