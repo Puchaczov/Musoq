@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
@@ -33,7 +34,7 @@ using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOnlyDictionary<string, string[]> columns)
+public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOnlyDictionary<string, string[]> columns, ILogger<BuildMetadataAndInferTypesVisitor> logger)
     : IAwareExpressionVisitor
 {
     private static readonly WhereNode AllTrueWhereNode =
@@ -781,7 +782,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
                     .ToArray(),
                 environmentVariables,
-                (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes)
+                (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes),
+                logger
             ),
             _schemaFromArgs.ToArray()) : new DynamicTable([]);
 
@@ -934,7 +936,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 CancellationToken.None,
                 table.Columns,
                 RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode),
-                (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes)
+                (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes),
+                logger
             ),
             _schemaFromArgs.ToArray()
         ) ?? table;
@@ -1161,140 +1164,22 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(UnionNode node)
     {
-        if (node.Keys.Length == 0)
-        {
-            throw SetOperatorDoesNotHaveKeysException("Union");
-        }
-        
-        var key = CreateSetOperatorPositionKey();
-        _currentScope[MetaAttributes.SetOperatorName] = key;
-        SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
-
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-
-        if (right is QueryNode rightAsQueryNode)
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
-        }
-        else
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
-        }
-
-        var rightMethodName = Methods.Pop();
-        var leftMethodName = Methods.Pop();
-
-        var methodName = $"{leftMethodName}_Union_{rightMethodName}";
-        Methods.Push(methodName);
-        _currentScope.ScopeSymbolTable.AddSymbol(methodName,
-            _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode) left).From.Alias));
-
-        Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+        VisitSetOperationNode(node, "Union");
     }
 
     public void Visit(UnionAllNode node)
     {
-        if (node.Keys.Length == 0)
-        {
-            throw SetOperatorDoesNotHaveKeysException("Union All");
-        }
-        
-        var key = CreateSetOperatorPositionKey();
-        _currentScope[MetaAttributes.SetOperatorName] = key;
-        SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
-
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-
-        if (right is QueryNode rightAsQueryNode)
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
-        }
-        else
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
-        }
-
-        var rightMethodName = Methods.Pop();
-        var leftMethodName = Methods.Pop();
-
-        var methodName = $"{leftMethodName}_UnionAll_{rightMethodName}";
-        Methods.Push(methodName);
-        _currentScope.ScopeSymbolTable.AddSymbol(methodName,
-            _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode) left).From.Alias));
-
-        Nodes.Push(new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
-            node.IsTheLastOne));
+        VisitSetOperationNode(node, "UnionAll");
     }
 
     public void Visit(ExceptNode node)
     {
-        if (node.Keys.Length == 0)
-        {
-            throw SetOperatorDoesNotHaveKeysException("Except");
-        }
-        
-        var key = CreateSetOperatorPositionKey();
-        _currentScope[MetaAttributes.SetOperatorName] = key;
-        SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
-
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-
-        if (right is QueryNode rightAsQueryNode)
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
-        }
-        else
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
-        }
-
-        var rightMethodName = Methods.Pop();
-        var leftMethodName = Methods.Pop();
-
-        var methodName = $"{leftMethodName}_Except_{rightMethodName}";
-        Methods.Push(methodName);
-        _currentScope.ScopeSymbolTable.AddSymbol(methodName,
-            _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode) left).From.Alias));
-
-        Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+        VisitSetOperationNode(node, "Except");
     }
 
     public void Visit(IntersectNode node)
     {
-        if (node.Keys.Length == 0)
-        {
-            throw SetOperatorDoesNotHaveKeysException("Intersect");
-        }
-        
-        var key = CreateSetOperatorPositionKey();
-        _currentScope[MetaAttributes.SetOperatorName] = key;
-        SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
-
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-
-        if (right is QueryNode rightAsQueryNode)
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
-        }
-        else
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
-        }
-
-        var rightMethodName = Methods.Pop();
-        var leftMethodName = Methods.Pop();
-
-        var methodName = $"{leftMethodName}_Intersect_{rightMethodName}";
-        Methods.Push(methodName);
-        _currentScope.ScopeSymbolTable.AddSymbol(methodName,
-            _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode) left).From.Alias));
-
-        Nodes.Push(
-            new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
+        VisitSetOperationNode(node, "Intersect");
     }
 
     public void Visit(PutTrueNode node)
@@ -1847,7 +1732,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             CancellationToken.None,
             columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
             RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, schemaFrom),
-            (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false)
+            (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false),
+            logger
         );
 
         return schema.GetTableByName(schemaFrom.Method, runtimeContext, schemaFrom.Parameters);
@@ -2276,5 +2162,51 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
 
         return propertiesChain;
+    }
+
+    private void VisitSetOperationNode(SetOperatorNode node, string setOperatorName)
+    {
+        if (node.Keys.Length == 0)
+        {
+            throw SetOperatorDoesNotHaveKeysException(setOperatorName);
+        }
+        
+        var key = CreateSetOperatorPositionKey();
+        _currentScope[MetaAttributes.SetOperatorName] = key;
+        SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
+
+        var right = Nodes.Pop();
+        var left = Nodes.Pop();
+
+        if (right is QueryNode rightAsQueryNode)
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
+        }
+        else
+        {
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
+        }
+
+        var rightMethodName = Methods.Pop();
+        var leftMethodName = Methods.Pop();
+
+        var methodName = $"{leftMethodName}_{setOperatorName}_{rightMethodName}";
+        Methods.Push(methodName);
+        _currentScope.ScopeSymbolTable.AddSymbol(methodName,
+            _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode) left).From.Alias));
+
+        Nodes.Push(CreateSetOperatorNode(setOperatorName, node, left, right));
+    }
+
+    private SetOperatorNode CreateSetOperatorNode(string setOperatorName, SetOperatorNode node, Node left, Node right)
+    {
+        return setOperatorName switch
+        {
+            "Union" => new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
+            "UnionAll" => new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
+            "Except" => new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
+            "Intersect" => new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
+            _ => throw new NotSupportedException($"Set operator '{setOperatorName}' is not supported.")
+        };
     }
 }

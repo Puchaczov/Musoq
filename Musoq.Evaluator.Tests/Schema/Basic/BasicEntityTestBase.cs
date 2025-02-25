@@ -7,6 +7,7 @@ using Moq;
 using Musoq.Converter;
 using Musoq.Converter.Build;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Schema;
 using Musoq.Tests.Common;
 
@@ -20,6 +21,8 @@ public class BasicEntityTestBase
     }
         
     protected CancellationTokenSource TokenSource { get; } = new();
+    
+    protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
         
     protected BuildItems CreateBuildItems<T>(string script)
     {
@@ -28,7 +31,8 @@ public class BasicEntityTestBase
             Guid.NewGuid().ToString(), 
             typeof(T) == typeof(UsedColumnsOrUsedWhereEntity) ? 
                 new UsedColumnsOrUsedWhereSchemaProvider<UsedColumnsOrUsedWhereEntity>(CreateMockObjectFor<UsedColumnsOrUsedWhereEntity>()) :
-                new MockBasedSchemaProvider(CreateMockObjectFor<BasicEntity>()));
+                new MockBasedSchemaProvider(CreateMockObjectFor<BasicEntity>()),
+            LoggerResolver);
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine<T>(
@@ -39,7 +43,8 @@ public class BasicEntityTestBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(), 
-            new BasicSchemaProvider<T>(sources));
+            new BasicSchemaProvider<T>(sources),
+            LoggerResolver);
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -50,7 +55,8 @@ public class BasicEntityTestBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(), 
-            schemaProvider);
+            schemaProvider,
+            LoggerResolver);
     }
 
     private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()

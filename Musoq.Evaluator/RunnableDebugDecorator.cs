@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.Loader;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -33,6 +34,12 @@ public class RunnableDebugDecorator(
     {
         get => runnable.QueriesInformation;
         set => runnable.QueriesInformation = value;
+    }
+
+    public ILogger Logger
+    {
+        get => runnable.Logger;
+        set => runnable.Logger = value;
     }
 
     public Table Run(CancellationToken token)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Moq;
 using Musoq.Converter;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Evaluator.Tests.Schema.Multi.Second;
 using Musoq.Schema;
@@ -16,6 +17,8 @@ public class MultiSchemaTestBase
     {
         Culture.ApplyWithDefaultCulture();
     }
+    
+    protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
@@ -49,6 +52,7 @@ public class MultiSchemaTestBase
             new MultiSchemaProvider(new Dictionary<string, ISchema>()
             {
                 {"#schema", schema}
-            }));
+            }),
+            LoggerResolver);
     }
 }

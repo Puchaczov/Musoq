@@ -1,5 +1,6 @@
 ﻿namespace Musoq.Plugins.Attributes;
 
-public sealed class AggregationSetMethodAttribute : AggregationMethodAttribute
-{
-}
+/// <summary>
+/// Represents a set method that takes part in aggregation.
+/// </summary>
+public sealed class AggregationSetMethodAttribute : AggregationMethodAttribute;

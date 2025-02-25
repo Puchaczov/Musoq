@@ -11,6 +11,8 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 
 public class EnvironmentVariablesTestBase
 {
+    protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
+    
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources)
@@ -19,12 +21,14 @@ public class EnvironmentVariablesTestBase
             script, 
             Guid.NewGuid().ToString(), 
             new EnvironmentVariablesSchemaProvider(),
+            LoggerResolver,
             () =>
             {
                 var chain =
                     new CreateTree(
                         new TransformTree(
-                            new TurnQueryIntoRunnableCode(null)
+                            new TurnQueryIntoRunnableCode(null),
+                            LoggerResolver
                         )
                     );
                 
@@ -32,7 +36,7 @@ public class EnvironmentVariablesTestBase
             }, items =>
             {
                 items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns) =>
-                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources);
+                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources, LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>());
             });
     }
 
@@ -57,14 +61,14 @@ public class EnvironmentVariablesTestBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(), 
-            new MultipleSchemasSchemaProvider(schemas), () => new CreateTree(
+            new MultipleSchemasSchemaProvider(schemas), LoggerResolver, () => new CreateTree(
                 new TransformTree(
-                    new TurnQueryIntoRunnableCode(null))
+                    new TurnQueryIntoRunnableCode(null), LoggerResolver)
             ), 
             items =>
             {
                 items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns) =>
-                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources);
+                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources, LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>());
             });
     }
 

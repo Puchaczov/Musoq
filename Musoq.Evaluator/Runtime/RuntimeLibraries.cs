@@ -16,6 +16,7 @@ public static class RuntimeLibraries
     private static readonly object LockGuard = new();
     private static Task _loadingTask;
     private static bool _readInProgress;
+    private static bool _readFinished;
     private static readonly ManualResetEvent ManualResetEvent = new(false);
 
     public static MetadataReference[] References
@@ -38,7 +39,7 @@ public static class RuntimeLibraries
         if (_hasLoadedReferences)
             return;
 
-        if (_readInProgress)
+        if (_readFinished)
             return;
 
         lock (LockGuard)
@@ -97,13 +98,16 @@ public static class RuntimeLibraries
                         }));
                     }
 
-                    Task.WaitAll(tasks.ToArray());
+                    Task.WaitAll(tasks.Cast<Task>().ToArray());
 
                     _references = tasks.Where(task => task.Result != null).Select(task => task.Result).ToArray();
                 }
                 finally
                 {
                     _hasLoadedReferences = true;
+                    // ReSharper disable once InconsistentlySynchronizedField
+                    _readInProgress = false;
+                    _readFinished = true;
 
                     ManualResetEvent.Set();
                 }

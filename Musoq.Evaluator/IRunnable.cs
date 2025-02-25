@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -15,6 +16,8 @@ public interface IRunnable
     IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables { get; set; }
         
     IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode, bool HasExternallyProvidedTypes)> QueriesInformation { get; set; }
+    
+    public ILogger Logger { get; set; }
 
     Table Run(CancellationToken token);
     

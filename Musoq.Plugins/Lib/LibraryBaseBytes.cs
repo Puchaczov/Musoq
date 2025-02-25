@@ -13,7 +13,7 @@ public partial class LibraryBase
     /// <param name="content">The string</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
-    public byte[] GetBytes(string? content)
+    public byte[]? GetBytes(string? content)
     {
         if (content == null)
             return null;
@@ -29,7 +29,7 @@ public partial class LibraryBase
     /// <param name="offset">The offset of substring</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
-    public byte[] GetBytes(string? content, int length, int offset)
+    public byte[]? GetBytes(string? content, int length, int offset)
     {
         if (content == null)
             return null;

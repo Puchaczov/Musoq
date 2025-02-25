@@ -29,5 +29,5 @@ public class SingleRowSchemaTable : ISchemaTable
         return Columns.Where(column => column.ColumnName == name).ToArray();
     }
 
-    public SchemaTableMetadata Metadata { get; }
+    public SchemaTableMetadata Metadata => new(typeof(string));
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 using Musoq.Evaluator.Visitors;
@@ -19,6 +21,7 @@ public class BuildMetadataAndInferTypesVisitorTests
         var lexer = new Lexer(query, true);
         var parser = new Musoq.Parser.Parser(lexer);
         var tree = parser.ComposeAll();
+        var logger = new Mock<ILogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>>();
         
         var visitor = new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(
             new EnvironmentVariablesSchemaProvider(),
@@ -31,7 +34,7 @@ public class BuildMetadataAndInferTypesVisitorTests
             {
                 {0, Array.Empty<EnvironmentVariableEntity>()},
                 {1, [new ("KEY_1", "VALUE_1")]}
-            });
+            }, logger.Object);
         
         var traverser = new BuildMetadataAndInferTypesTraverseVisitor(visitor);
         
