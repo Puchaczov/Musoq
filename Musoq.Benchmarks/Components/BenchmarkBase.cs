@@ -9,6 +9,8 @@ namespace Musoq.Benchmarks.Components;
 
 public class BenchmarkBase
 {
+    private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
+
     static BenchmarkBase()
     {
         Culture.ApplyWithDefaultCulture();
@@ -24,7 +26,7 @@ public class BenchmarkBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(), 
-            new GenericSchemaProvider<CountryEntity, CountryEntityTable>(sources, CountryEntity.KNameToIndexMap, CountryEntity.KIndexToObjectAccessMap), compilationOptions);
+            new GenericSchemaProvider<CountryEntity, CountryEntityTable>(sources, CountryEntity.KNameToIndexMap, CountryEntity.KIndexToObjectAccessMap), _loggerResolver, compilationOptions);
     }
 
     protected CompiledQuery CreateForProfilesWithOptions(
@@ -35,6 +37,6 @@ public class BenchmarkBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(), 
-            new GenericSchemaProvider<ProfileEntity, ProfileEntityTable>(sources, ProfileEntity.KNameToIndexMap, ProfileEntity.KIndexToObjectAccessMap), compilationOptions);
+            new GenericSchemaProvider<ProfileEntity, ProfileEntityTable>(sources, ProfileEntity.KNameToIndexMap, ProfileEntity.KIndexToObjectAccessMap), _loggerResolver, compilationOptions);
     }
 }

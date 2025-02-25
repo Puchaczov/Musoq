@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
@@ -25,6 +26,9 @@ public partial class LibraryBase
         }
 
         var values = parentGroup.GetOrCreateValue(name, () => new List<T>());
+        
+        if (values == null)
+            throw new InvalidOperationException($"Group list must not be null. Group name: {name}");
 
         values.Add(value);
     }
@@ -39,6 +43,11 @@ public partial class LibraryBase
     [AggregationGetMethod]
     public IEnumerable<T> Window<T>([InjectGroup] Group group, string name)
     {
-        return group.GetValue<List<T>>(name);
+        var window = group.GetValue<List<T>>(name);
+        
+        if (window == null)
+            throw new InvalidOperationException($"Group list must not be null. Group name: {name}");
+        
+        return window;
     }
 }

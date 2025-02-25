@@ -20,6 +20,9 @@ public partial class LibraryBase
         var avg = (double)Avg(group, $"{name}:avgStDev");
         var parentGroup = GetParentGroup(group, parent);
         var values = parentGroup.GetValue<List<double>>($"{name}:itemsStDev");
+        
+        if (values == null)
+            throw new InvalidOperationException($"Group list must not be null. Group name: {name}");
 
         var sum = values.Sum(value => Math.Pow(value - avg, 2));
 
@@ -154,7 +157,11 @@ public partial class LibraryBase
         if (!value.HasValue)
             return;
 
-        var list = parentGroup.GetOrCreateValue($"{name}:itemsStDev", () => new List<double>());
+        var groupName = $"{name}:itemsStDev";
+        var list = parentGroup.GetOrCreateValue(groupName, () => new List<double>());
+        
+        if (list == null)
+            throw new InvalidOperationException($"Group list must not be null. Group name: {groupName}");
 
         list.Add((double)value.Value);
     }

@@ -7,7 +7,7 @@ using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build;
 
-public class TransformTree(BuildChain successor) : BuildChain(successor)
+public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver) : BuildChain(successor)
 {
     public override void Build(BuildItems items)
     {
@@ -22,7 +22,7 @@ public class TransformTree(BuildChain successor) : BuildChain(successor)
 
         var metadata = 
             items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(items.SchemaProvider, extractColumnsVisitor.Columns) ?? 
-            new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns);
+            new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns, loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>());
         var metadataTraverser = new BuildMetadataAndInferTypesTraverseVisitor(metadata);
 
         queryTree.Accept(metadataTraverser);

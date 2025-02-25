@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Runtime;
@@ -99,6 +100,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         AddReference(typeof(SyntaxFactory));
         AddReference(typeof(ExpandoObject));
         AddReference(typeof(SchemaFromNode));
+        AddReference(typeof(ILogger));
         AddReference(assemblies.ToArray());
 
         Compilation = Compilation.WithOptions(
@@ -117,6 +119,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
 
         AddNamespace("System");
         AddNamespace(typeof(CancellationToken).Namespace);
+        AddNamespace("Microsoft.Extensions.Logging");
         AddNamespace("System.Collections.Generic");
         AddNamespace("System.Threading.Tasks");
         AddNamespace("System.Linq");
@@ -133,7 +136,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
     public string Namespace { get; } =
         $"{Resources.Compilation.NamespaceConstantPart}_{StringHelpers.GenerateNamespaceIdentifier()}";
 
-    public string ClassName { get; } = "CompiledQuery";
+    public string ClassName => "CompiledQuery";
 
     public string AccessToClassPath { get; }
 
@@ -2430,7 +2433,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                 ])),
             [],
             SyntaxFactory.Block(SyntaxFactory.ParseStatement(
-                $"return {_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, QueriesInformation, token);")),
+                $"return {_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, QueriesInformation, Logger, token);")),
             null);
 
         var providerParam = SyntaxFactory.PropertyDeclaration(
@@ -2551,10 +2554,29 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                     ])))
             .NormalizeWhitespace();
 
+        var loggerParam = SyntaxFactory.PropertyDeclaration(
+            [],
+            SyntaxFactory.TokenList(
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+            SyntaxFactory.IdentifierName(nameof(ILogger)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+            null,
+            SyntaxFactory.Identifier(nameof(IRunnable.Logger)),
+            SyntaxFactory.AccessorList(
+                SyntaxFactory.List([
+                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                ])),
+            null,
+            null);
+            
+
         _members.Add(method);
         _members.Add(providerParam);
         _members.Add(positionalEnvironmentVariablesParam);
         _members.Add(queriesInformationParam);
+        _members.Add(loggerParam);
 
         var inMemoryTables = SyntaxFactory
             .FieldDeclaration(SyntaxFactory
@@ -2632,6 +2654,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("queriesInformation")),
                             SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("logger")),
+                            SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("token"))
                         ]
                     )));
@@ -2648,6 +2672,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("queriesInformation")),
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("logger")),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("token"))
                         ]
@@ -2677,6 +2703,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("queriesInformation")),
                             SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("logger")),
+                            SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("token"))
                         ]
                     )));
@@ -2693,6 +2721,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("queriesInformation")),
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("logger")),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("token"))
                         ]
@@ -2722,6 +2752,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("queriesInformation")),
                             SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("logger")),
+                            SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("token"))
                         ]
                     )));
@@ -2738,6 +2770,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("queriesInformation")),
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("logger")),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("token"))
                         ]
@@ -2767,6 +2801,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("queriesInformation")),
                             SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("logger")),
+                            SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("token"))
                         ]
                     )));
@@ -2783,6 +2819,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                 SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("queriesInformation")),
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("logger")),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.IdentifierName("token"))
                         ]
@@ -2923,6 +2961,14 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                                                         "HasExternallyProvidedTypes"))
                                                         }))
                                             })))),
+                    
+                    SyntaxFactory.Parameter(
+                        [],
+                        SyntaxTokenList.Create(
+                            new SyntaxToken()),
+                        SyntaxFactory.IdentifierName(nameof(ILogger))
+                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                        SyntaxFactory.Identifier("logger"), null),
 
                     SyntaxFactory.Parameter(
                         [],
@@ -2965,6 +3011,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queriesInformation")),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger")),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
                         ])))));
 
@@ -3066,6 +3113,14 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                                                         "HasExternallyProvidedTypes"))
                                                         }))
                                             })))),
+                    
+                    SyntaxFactory.Parameter(
+                        [],
+                        SyntaxTokenList.Create(
+                            new SyntaxToken()),
+                        SyntaxFactory.IdentifierName(nameof(ILogger))
+                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                        SyntaxFactory.Identifier("logger"), null),
 
                     SyntaxFactory.Parameter(
                         [],
@@ -3101,6 +3156,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queriesInformation")),
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger")),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
                     ]))))));
     }
@@ -3449,6 +3505,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                                                         "HasExternallyProvidedTypes"))
                                                         }))
                                             })))),
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("logger"))
+                        .WithType(SyntaxFactory.IdentifierName(nameof(ILogger))),
                     SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
                         .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken)))
                 ]))).WithBody(
@@ -3747,7 +3805,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                             SyntaxFactory.Argument(
                                                 SyntaxFactory.LiteralExpression(
                                                     SyntaxKind.StringLiteralExpression,
-                                                    SyntaxFactory.Literal(node.Id)))))))
+                                                    SyntaxFactory.Literal(node.Id))))))),
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger"))
                     ])));
     }
 
@@ -3963,6 +4022,14 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                                                                         "HasExternallyProvidedTypes"))
                                                         }))
                                             })))),
+                    
+                    SyntaxFactory.Parameter(
+                        [],
+                        SyntaxTokenList.Create(
+                            new SyntaxToken()),
+                        SyntaxFactory.IdentifierName(nameof(ILogger))
+                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                        SyntaxFactory.Identifier("logger"), null),
 
                     SyntaxFactory.Parameter(
                         [],
@@ -3970,7 +4037,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                             new SyntaxToken()),
                         SyntaxFactory.IdentifierName(nameof(CancellationToken))
                             .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("token"), null)
+                        SyntaxFactory.Identifier("token"), null),
                 ])),
             [],
             SyntaxFactory.Block(Statements),

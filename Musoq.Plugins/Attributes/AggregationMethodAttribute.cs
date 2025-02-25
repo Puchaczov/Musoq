@@ -1,5 +1,6 @@
 ﻿namespace Musoq.Plugins.Attributes;
 
-public class AggregationMethodAttribute : BindableMethodAttribute
-{
-}
+/// <summary>
+/// Represents a method that computes final result of the aggregation.
+/// </summary>
+public class AggregationMethodAttribute : BindableMethodAttribute;

@@ -122,15 +122,13 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         public SchemaTableMetadata Metadata { get; } = new(typeof(TestEntity));
     }
 
-    private class TestEntity
-    {
-    }
+    private class TestEntity;
 
     private CompiledQuery CreateAndRunVirtualMachine(string script, IEnumerable<TestEntity> source, Action<object[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
     {
         var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
         environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
             
-        return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked));
+        return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked), LoggerResolver);
     }
 }
