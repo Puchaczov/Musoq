@@ -18,7 +18,7 @@ namespace Musoq.Converter;
 
 public static class InstanceCreator
 {
-    public static BuildItems CreateForAnalyze(string script, string assemblyName, ISchemaProvider provider)
+    public static BuildItems CreateForAnalyze(string script, string assemblyName, ISchemaProvider provider, ILoggerResolver loggerResolver)
     {
         var items = new BuildItems
         {
@@ -32,53 +32,55 @@ public static class InstanceCreator
 
         var chain = new CreateTree(
             new TransformTree(
-                new TurnQueryIntoRunnableCode(null)));
+                new TurnQueryIntoRunnableCode(null), loggerResolver));
 
         chain.Build(items);
 
         return items;
     }
         
-    public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider)
+    public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider, ILoggerResolver loggerResolver)
     {
-        var items = CreateForAnalyze(script, assemblyName, provider);
+        var items = CreateForAnalyze(script, assemblyName, provider, loggerResolver);
 
         return (items.DllFile, items.PdbFile);
     }
 
-    public static Task<(byte[] DllFile, byte[] PdbFile)> CompileForStoreAsync(string script, string assemblyName, ISchemaProvider provider)
+    public static Task<(byte[] DllFile, byte[] PdbFile)> CompileForStoreAsync(string script, string assemblyName, ISchemaProvider provider, ILoggerResolver loggerResolver)
     {
-        return Task.Factory.StartNew(() => CompileForStore(script, assemblyName, provider));
+        return Task.Factory.StartNew(() => CompileForStore(script, assemblyName, provider, loggerResolver));
     }
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider)
+    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver)
     {
         return CompileForExecution(
             script, 
             assemblyName, 
-            schemaProvider, 
+            schemaProvider,
+            loggerResolver,
             () => new CreateTree(
                 new TransformTree(
-                    new TurnQueryIntoRunnableCode(null))),
+                    new TurnQueryIntoRunnableCode(null), loggerResolver)),
             _ => {});
     }
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, CompilationOptions compilationOptions)
+    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions compilationOptions)
     {
         return CompileForExecution(
             script, 
             assemblyName, 
-            schemaProvider, 
+            schemaProvider,
+            loggerResolver,
             () => new CreateTree(
                 new TransformTree(
-                    new TurnQueryIntoRunnableCode(null))),
+                    new TurnQueryIntoRunnableCode(null), loggerResolver)),
             buildItems =>
             {
                 buildItems.CompilationOptions = compilationOptions;
             });
     }
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, Func<BuildChain> createChain, Action<BuildItems> modifyBuildItems)
+    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, Func<BuildChain> createChain, Action<BuildItems> modifyBuildItems)
     {
         var items = new BuildItems
         {
@@ -98,7 +100,7 @@ public static class InstanceCreator
             createChain?.Invoke() ??
             new CreateTree(
                 new TransformTree(
-                    new TurnQueryIntoRunnableCode(null))
+                    new TurnQueryIntoRunnableCode(null), loggerResolver)
             );
 
         CompilationException compilationError = null;
@@ -162,9 +164,9 @@ public static class InstanceCreator
         return new CompiledQuery(runnable);
     }
 
-    public static Task<CompiledQuery> CompileForExecutionAsync(string script, string assemblyName, ISchemaProvider schemaProvider, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
+    public static Task<CompiledQuery> CompileForExecutionAsync(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
     {
-        return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider));
+        return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider, loggerResolver));
     }
 
     private static IRunnable CreateRunnableForDebug(BuildItems items, Func<Assembly> loadAssembly)

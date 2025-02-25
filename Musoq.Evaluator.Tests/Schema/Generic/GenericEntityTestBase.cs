@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Moq;
 using Musoq.Converter;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -15,6 +16,8 @@ public class GenericEntityTestBase
     {
         Culture.ApplyWithDefaultCulture();
     }
+    
+    protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
     protected CompiledQuery CreateAndRunVirtualMachine<TFirstEntity>(
         string script,
@@ -107,25 +110,26 @@ public class GenericEntityTestBase
         return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
     }
 
+    private CompiledQuery CreateAndRunVirtualMachine(
+        string script,
+        ISchema schema,
+        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
+    {
+        return InstanceCreator.CompileForExecution(
+            script,
+            Guid.NewGuid().ToString(), 
+            new GenericSchemaProvider(new Dictionary<string, ISchema>()
+            {
+                {"#schema", schema}
+            }),
+            LoggerResolver);
+    }
+
     private static IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()
     {
         var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
         environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
 
         return environmentVariablesMock.Object;
-    }
-
-    private static CompiledQuery CreateAndRunVirtualMachine(
-        string script,
-        ISchema schema,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
-    {
-        return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
-            new GenericSchemaProvider(new Dictionary<string, ISchema>()
-            {
-                {"#schema", schema}
-            }));
     }
 }

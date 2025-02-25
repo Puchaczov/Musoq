@@ -4,12 +4,15 @@ using System.Dynamic;
 using System.Linq;
 using Moq;
 using Musoq.Converter;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
 public class DynamicQueryTestsBase
 {
+    protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
+    
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IReadOnlyCollection<dynamic> values,
@@ -22,7 +25,8 @@ public class DynamicQueryTestsBase
             new AnySchemaNameProvider(new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
             {
                 { "dynamic", (schema, values) }
-            }));
+            }),
+            LoggerResolver);
     }
     
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -36,7 +40,8 @@ public class DynamicQueryTestsBase
         return InstanceCreator.CompileForExecution(
             script, 
             Guid.NewGuid().ToString(),
-            new DynamicSchemaProvider(schemas));
+            new DynamicSchemaProvider(schemas),
+            LoggerResolver);
     }
     
     protected static ExpandoObject CreateExpandoObject(ExpandoObject complex)

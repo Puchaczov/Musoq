@@ -2,6 +2,7 @@
 
 namespace Musoq.Plugins.Attributes;
 
-public sealed class BindableClassAttribute : Attribute
-{
-}
+/// <summary>
+/// Represents a class that can be bound to the query.
+/// </summary>
+public sealed class BindableClassAttribute : Attribute;

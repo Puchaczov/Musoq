@@ -366,8 +366,13 @@ public partial class LibraryBase
 
     private static void AggregateAdd<TType>(Group group, string name, TType value, int parent)
     {
-        var foundedGroup = GetParentGroup(group, parent);
-        var list = foundedGroup.GetOrCreateValue(name, new List<TType>());
+        var foundGroup = GetParentGroup(group, parent);
+        
+        var list = foundGroup.GetOrCreateValue(name, new List<TType>());
+        
+        if (list == null)
+            throw new InvalidOperationException($"Group list must not be null. Group name: {name}");
+        
         list.Add(value);
     }
 }
