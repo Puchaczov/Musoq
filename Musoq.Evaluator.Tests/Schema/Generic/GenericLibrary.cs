@@ -36,6 +36,15 @@ public class GenericLibrary : LibraryBase
     }
     
     [BindableMethod]
+    public string[] MethodArrayOfStringsWithOneParamAndDefaultParameter<TEntity>([InjectSpecificSource(typeof(object))] TEntity entity, string someValue, bool param = true)
+    {
+        return [
+            "one",
+            "two"
+        ];
+    }
+    
+    [BindableMethod]
     public string[] MethodArrayOfStrings<TEntity>([InjectSpecificSource(typeof(object))] TEntity entity, string name1, string name2)
     {
         return [
