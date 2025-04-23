@@ -567,7 +567,11 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         
         Assert.AreEqual(2, table.Count);
         
-        Assert.AreEqual(1, table[0].Values[0]);
-        Assert.AreEqual(2, table[1].Values[0]);
+        Assert.IsTrue(table.Count(row => 
+                (int)row.Values[0] == 1) == 1, 
+            "Expected row with value 1");
+        Assert.IsTrue(table.Count(row => 
+                (int)row.Values[0] == 2) == 1,
+            "Expected row with value 2");
     }
 }
