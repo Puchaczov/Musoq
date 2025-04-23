@@ -17,7 +17,7 @@ public interface IRunnable
         
     IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode, bool HasExternallyProvidedTypes)> QueriesInformation { get; set; }
     
-    public ILogger Logger { get; set; }
+    ILogger Logger { get; set; }
 
     Table Run(CancellationToken token);
     

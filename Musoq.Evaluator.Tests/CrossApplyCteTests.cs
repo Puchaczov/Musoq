@@ -365,4 +365,66 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             Assert.Fail($"Expected not to throw exception but got: ");
         }
     }
+
+    [TestMethod]
+    public void X()
+    {
+        var query = """
+                    select
+                        p.Value,
+                        np.Value
+                    from #schema.first() sln
+                    cross apply sln.Skills p
+                    cross apply p.MethodArrayOfStringsWithDefaultParameter() np
+                    """;
+        
+        var firstSource = new List<CrossApplyClass3>
+        {
+            new() {Name = "Name1", Skills = ["Skill1", "Skill2", "Skill3"] },
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query, 
+            firstSource);
+
+        try
+        {
+            var table = vm.Run();
+        }
+        catch (Exception)
+        {
+            Assert.Fail($"Expected not to throw exception but got: ");
+        }
+    }
+
+    [TestMethod]
+    public void Y()
+    {
+        var query = """
+                    select
+                        p.Value,
+                        np.Value
+                    from #schema.first() sln
+                    cross apply sln.Skills p
+                    cross apply p.MethodArrayOfStringsWithDefaultParameter(true) np
+                    """;
+        
+        var firstSource = new List<CrossApplyClass3>
+        {
+            new() {Name = "Name1", Skills = ["Skill1", "Skill2", "Skill3"] },
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query, 
+            firstSource);
+
+        try
+        {
+            var table = vm.Run();
+        }
+        catch (Exception)
+        {
+            Assert.Fail($"Expected not to throw exception but got: ");
+        }
+    }
 }
