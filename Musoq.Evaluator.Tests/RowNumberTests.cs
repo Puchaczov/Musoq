@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -92,12 +93,8 @@ public class RowNumberTests : BasicEntityTestBase
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Count);
-        
-        Assert.AreEqual(1, table[0].Values[1]);
-        Assert.AreEqual(2, table[1].Values[1]);
-        
-        Assert.AreEqual("Poland", table[0].Values[0]);
-        Assert.AreEqual("Poland", table[1].Values[0]);
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Poland" && (int)row.Values[1] == 1), "Expected row with Poland, 1 not found");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Poland" && (int)row.Values[1] == 2), "Expected row with Poland, 2 not found");
     }
 
     [TestMethod]

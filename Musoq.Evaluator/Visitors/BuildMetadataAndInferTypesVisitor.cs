@@ -1975,6 +1975,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             var i = 0;
             var shiftArgsWhenInjectSpecificSourcePresent = 0;
+            
             if (parameters[0].GetCustomAttribute<InjectSpecificSourceAttribute>() != null)
             {
                 i = 1;
@@ -1984,9 +1985,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     genericArgumentsDistinct.Add(entity);
                 }
             }
+            
             for (; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
+
+                if (parameter.IsOptional && args.Args.Length < parameters.Length - shiftArgsWhenInjectSpecificSourcePresent)
+                {
+                    continue;
+                }
+                
                 var returnType = args.Args.Where((_, index) => index == i - shiftArgsWhenInjectSpecificSourcePresent).Single().ReturnType;
                 var elementType = returnType.GetElementType();
 

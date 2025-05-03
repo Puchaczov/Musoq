@@ -175,7 +175,6 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         
         var table = vm.Run();
         
-        // Verify column structure - this part remains the same as order matters for columns
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -297,10 +296,8 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_SkipAfterSplit_ShouldPass()
     {
-        // The query splits text by spaces and skips the first word
         const string query = "select b.Value from #schema.first() a cross apply a.Skip(a.Split(a.Text, ' '), 1) as b";
         
-        // Our input text contains words that will be split
         var inputText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
         var firstSource = new List<CrossApplyClass2>
         {
@@ -314,26 +311,21 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         
         var table = vm.Run();
         
-        // Verify column structure - this remains ordered as SQL column order matters
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        // Create our expected result set: all words except the first one
         var expectedWords = inputText.Split(' ')
-            .Skip(1)  // Skip first word to match our query's behavior
+            .Skip(1)
             .ToList();
         
-        // Verify the total count matches what we expect
         Assert.AreEqual(expectedWords.Count, table.Count,
             "Result should contain all words except the first one");
         
-        // Convert actual results to a comparable format
         var actualWords = table
             .Select(row => (string)row[0])
             .ToList();
         
-        // Verify each expected word appears exactly once
         foreach (var expectedWord in expectedWords)
         {
             Assert.AreEqual(
@@ -343,7 +335,6 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
             );
         }
         
-        // Verify no unexpected words appear
         foreach (var actualWord in actualWords)
         {
             Assert.IsTrue(
@@ -352,7 +343,6 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
             );
         }
         
-        // Additional verification: make sure first word is not present
         var firstWord = inputText.Split(' ')[0];
         Assert.IsFalse(
             actualWords.Contains(firstWord),

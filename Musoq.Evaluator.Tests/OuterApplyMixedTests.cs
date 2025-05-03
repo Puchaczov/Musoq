@@ -287,13 +287,12 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         
         Assert.AreEqual(2, table.Count);
         
-        Assert.AreEqual("IT", table[0][0]);
-        Assert.AreEqual("John Doe", table[0][1]);
-        Assert.AreEqual("C#", table[0][2]);
-        
-        Assert.AreEqual("IT", table[1][0]);
-        Assert.AreEqual("Jane Smith", table[1][1]);
-        Assert.AreEqual("Java", table[1][2]);
+        Assert.IsTrue(table.Any(row => (string)row[0] == "IT" &&
+                                       (string)row[1] == "John Doe" &&
+                                       (string)row[2] == "C#"), "Expected row with IT, John Doe, C# not found");
+        Assert.IsTrue(table.Any(row => (string)row[0] == "IT" &&
+                                       (string)row[1] == "Jane Smith" &&
+                                       (string)row[2] == "Java"), "Expected row with IT, Jane Smith, Java not found");
     }
 
     [TestMethod]

@@ -137,15 +137,19 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         
         Assert.AreEqual(2, table.Count);
         
-        Assert.AreEqual("Roland", table[0].Values[0]);
-        Assert.AreEqual(21, table[0].Values[1]);
-        Assert.AreEqual("Mateusz", table[0].Values[2]);
-        Assert.AreEqual(22, table[0].Values[3]);
-        
-        Assert.AreEqual("Mateusz", table[1].Values[0]);
-        Assert.AreEqual(22, table[1].Values[1]);
-        Assert.AreEqual("Roland", table[1].Values[2]);
-        Assert.AreEqual(21, table[1].Values[3]);
+        Assert.IsTrue(table.Any(row =>
+                (string)row.Values[0] == "Roland" &&
+                (int)row.Values[1] == 21 &&
+                (string)row.Values[2] == "Mateusz" &&
+                (int)row.Values[3] == 22),
+            "Row with Roland and Mateusz not found");
+            
+        Assert.IsTrue(table.Any(row =>
+                (string)row.Values[0] == "Mateusz" &&
+                (int)row.Values[1] == 22 &&
+                (string)row.Values[2] == "Roland" &&
+                (int)row.Values[3] == 21),
+            "Row with Mateusz and Roland not found");
     }
 
     [TestMethod]

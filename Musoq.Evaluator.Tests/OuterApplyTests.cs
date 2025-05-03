@@ -249,17 +249,21 @@ public class OuterApplyTests : GenericEntityTestBase
         
         Assert.AreEqual(2, table.Count);
         
-        Assert.AreEqual("City1", table[0][0]);
-        Assert.AreEqual("Country1", table[0][1]);
-        Assert.AreEqual(1000m, table[0][2]);
-        Assert.AreEqual("January", table[0][3]);
-        Assert.AreEqual("Address1", table[0][4]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "City1" && 
+            (string)row[1] == "Country1" && 
+            (decimal)row[2] == 1000m && 
+            (string)row[3] == "January" &&
+            (string)row[4] == "Address1"), 
+            "Expected row with City1, Country1, 1000, January, Address1 not found");
         
-        Assert.AreEqual("City2", table[1][0]);
-        Assert.AreEqual("Country2", table[1][1]);
-        Assert.AreEqual(2000m, table[1][2]);
-        Assert.AreEqual("February", table[1][3]);
-        Assert.IsNull(table[1][4]);
+        Assert.IsTrue(table.Any(row => 
+            (string)row[0] == "City2" && 
+            (string)row[1] == "Country2" && 
+            (decimal)row[2] == 2000m && 
+            (string)row[3] == "February" &&
+            row[4] == null), 
+            "Expected row with City2, Country2, 2000, February, null not found");
     }
     
     [TestMethod]

@@ -365,4 +365,144 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             Assert.Fail($"Expected not to throw exception but got: ");
         }
     }
+
+    [TestMethod]
+    public void WhenCrossApplyAndMethodWithDefaultParameterUsed_ShouldPass()
+    {
+        var query = """
+                    select
+                        p.Value,
+                        np.Value
+                    from #schema.first() sln
+                    cross apply sln.Skills p
+                    cross apply p.MethodArrayOfStringsWithDefaultParameter() np
+                    """;
+        
+        var firstSource = new List<CrossApplyClass3>
+        {
+            new() {Name = "Name1", Skills = ["Skill1", "Skill2", "Skill3"] },
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query, 
+            firstSource);
+
+        var table = vm.Run();
+            
+        Assert.IsTrue(table.Count == 6, "Table should contain 3 rows");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"), "Missing Skill1/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"), "Missing Skill1/two row");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "one"), "Missing Skill2/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "two"), "Missing Skill2/two row");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "one"), "Missing Skill3/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "two"), "Missing Skill3/two row");
+    }
+
+    [TestMethod]
+    public void WhenCrossApplyAndMethodWithExplicitParameterUsed_ShouldPass()
+    {
+        var query = """
+                    select
+                        p.Value,
+                        np.Value
+                    from #schema.first() sln
+                    cross apply sln.Skills p
+                    cross apply p.MethodArrayOfStringsWithDefaultParameter(true) np
+                    """;
+        
+        var firstSource = new List<CrossApplyClass3>
+        {
+            new() {Name = "Name1", Skills = ["Skill1", "Skill2", "Skill3"] },
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query, 
+            firstSource);
+
+        var table = vm.Run();
+            
+        Assert.IsTrue(table.Count == 6, "Table should contain 3 rows");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"), "Missing Skill1/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"), "Missing Skill1/two row");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "one"), "Missing Skill2/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "two"), "Missing Skill2/two row");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "one"), "Missing Skill3/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "two"), "Missing Skill3/two row");
+    }
+
+    [TestMethod]
+    public void WhenCrossApplyAndMethodWithOneParameterAndDefaultParameterUsed_ShouldPass()
+    {
+        var query = """
+                    select
+                        p.Value,
+                        np.Value
+                    from #schema.first() sln
+                    cross apply sln.Skills p
+                    cross apply p.MethodArrayOfStringsWithOneParamAndDefaultParameter('value') np
+                    """;
+        
+        var firstSource = new List<CrossApplyClass3>
+        {
+            new() {Name = "Name1", Skills = ["Skill1", "Skill2", "Skill3"] },
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query, 
+            firstSource);
+
+        var table = vm.Run();
+            
+        Assert.IsTrue(table.Count == 6, "Table should contain 3 rows");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"), "Missing Skill1/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"), "Missing Skill1/two row");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "one"), "Missing Skill2/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "two"), "Missing Skill2/two row");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "one"), "Missing Skill3/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "two"), "Missing Skill3/two row");
+    }
+
+    [TestMethod]
+    public void WhenCrossApplyAndMethodWithOneParameterAndExplicitParameterUsed_ShouldPass()
+    {
+        var query = """
+                    select
+                        p.Value,
+                        np.Value
+                    from #schema.first() sln
+                    cross apply sln.Skills p
+                    cross apply p.MethodArrayOfStringsWithOneParamAndDefaultParameter('value', true) np
+                    """;
+        
+        var firstSource = new List<CrossApplyClass3>
+        {
+            new() {Name = "Name1", Skills = ["Skill1", "Skill2", "Skill3"] },
+        }.ToArray();
+        
+        var vm = CreateAndRunVirtualMachine(
+            query, 
+            firstSource);
+
+        var table = vm.Run();
+            
+        Assert.IsTrue(table.Count == 6, "Table should contain 3 rows");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"), "Missing Skill1/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"), "Missing Skill1/two row");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "one"), "Missing Skill2/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "two"), "Missing Skill2/two row");
+            
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "one"), "Missing Skill3/one row");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "two"), "Missing Skill3/two row");
+    }
 }
