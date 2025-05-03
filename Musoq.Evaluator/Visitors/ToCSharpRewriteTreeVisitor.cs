@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -100,7 +101,12 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         AddReference(typeof(SyntaxFactory));
         AddReference(typeof(ExpandoObject));
         AddReference(typeof(SchemaFromNode));
+
+        var abstractionDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Microsoft.Extensions.Logging.Abstractions.dll");
+        
+        AddReference(abstractionDll);
         AddReference(typeof(ILogger));
+        
         AddReference(assemblies.ToArray());
 
         Compilation = Compilation.WithOptions(
@@ -650,8 +656,8 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                     switch (_type)
                     {
                         case MethodAccessType.TransformingQuery:
-                            var naive = componentsOfComplexTable.Single(f => f.Contains(node.Alias));
-                            objectName = $"{naive}Row";
+                            var @object = componentsOfComplexTable.First(f => f.Contains(node.Alias));
+                            objectName = $"{@object}Row";
                             break;
                         case MethodAccessType.ResultQuery:
                         case MethodAccessType.CaseWhen:
@@ -3231,8 +3237,26 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             if (_loadedAssemblies.Contains(type.Assembly.Location)) continue;
 
             _loadedAssemblies.Add(type.Assembly.Location);
+
+            var reference = MetadataReference.CreateFromFile(type.Assembly.Location);
+            
             Compilation =
-                Compilation.AddReferences(MetadataReference.CreateFromFile(type.Assembly.Location));
+                Compilation.AddReferences(reference);
+        }
+    }
+
+    private void AddReference(params string[] assemblyDllsPaths)
+    {
+        foreach (var assemblyDllPath in assemblyDllsPaths)
+        {
+            if (_loadedAssemblies.Contains(assemblyDllPath)) continue;
+
+            _loadedAssemblies.Add(assemblyDllPath);
+
+            var reference = MetadataReference.CreateFromFile(assemblyDllPath);
+            
+            Compilation =
+                Compilation.AddReferences(reference);
         }
     }
 
@@ -3243,8 +3267,11 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
             if (_loadedAssemblies.Contains(assembly.Location)) continue;
 
             _loadedAssemblies.Add(assembly.Location);
+
+            var reference = MetadataReference.CreateFromFile(assembly.Location);
+            
             Compilation =
-                Compilation.AddReferences(MetadataReference.CreateFromFile(assembly.Location));
+                Compilation.AddReferences(reference);
         }
     }
 

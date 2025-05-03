@@ -114,7 +114,14 @@ public static class InstanceCreator
             compiled = false;
         }
 
-        if (compiled && !Debugger.IsAttached) return new CompiledQuery(CreateRunnable(items));
+        IRunnable runnable;
+        if (compiled && !Debugger.IsAttached)
+        {
+            runnable = CreateRunnable(items);
+            runnable.Logger = loggerResolver.ResolveLogger();
+            
+            return new CompiledQuery(runnable);
+        }
 
         var tempPath = Path.Combine(Path.GetTempPath(), "Musoq");
         var tempFileName = Guid.NewGuid().ToString();
@@ -154,7 +161,7 @@ public static class InstanceCreator
             throw compilationError;
 
         var assemblyLoadContext = new DebugAssemblyLoadContext();
-        var runnable = new RunnableDebugDecorator(
+        runnable = new RunnableDebugDecorator(
             CreateRunnableForDebug(items, () => assemblyLoadContext.LoadFromAssemblyPath(assemblyPath)),
             assemblyLoadContext,
             csPath, 
