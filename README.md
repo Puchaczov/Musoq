@@ -1,100 +1,63 @@
-# Musoq: SQL-like Queries for Various Data Sources
+# Musoq: SQL Superpowers for Developers
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Puchaczov/Musoq/graphs/code-frequency)
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 ![Tests](https://raw.githubusercontent.com/puchaczov/musoq/master/badges/tests-badge.svg)
 
-Musoq lets you use SQL-like queries on files, directories, images and other data sources without a database. It's designed to ease life for developers.
+**One query language for everything.** Musoq brings the power of SQL to diverse data sources without requiring a database. Query your filesystem, Git repos, code structure, and more—all with the SQL syntax you already know.
 
 ## 🚀 Quick Start
 
 To try out Musoq, follow the instructions in [CLI repository](https://github.com/Puchaczov/Musoq.CLI).
 
-## 🌟 Key Features
+## 🌟 Why Musoq?
 
-- Query files and directories using familiar SQL-like syntax
-- Analyze data in place, without importing into a database
-- Extend functionality with plugins for various data sources
-- Run on Windows, Linux, and Docker (MacOS support planned)
-- Create custom data source plugins to fit your needs
+Musoq transforms how developers interact with their data:
 
-Musoq aims to make data exploration easier, whether you're analyzing log files, searching through directories, or extracting information from CSVs. It's a tool built to save time and reduce complexity in everyday data tasks.
+- **Query anything with SQL:** From files and directories to Git history and C# code structure
+- **Data insights without databases:** Analyze in place—no import/export necessary
+- **Beyond grep and find:** Perform complex data operations with a familiar, declarative language
+- **Unified syntax across sources:** Use one query language for all your development assets
+- **Extensible plugin architecture:** Easily add new data sources to your query toolkit
+
+Musoq exists to eliminate tedious loops and scripts for everyday data tasks, helping you extract insights faster.
+
+## 🎯 Perfect For
+
+- **Code analysis:** Extract metrics and patterns from your codebase
+- **Git repository insights:** Understand contributor patterns and code evolution
+- **Data transformation:** Convert between formats with minimal effort
+- **System administration:** Query processes, files, and system metadata
+- **AI-enhanced analysis:** Combine SQL with AI models for advanced text and image analysis
 
 ## 🛠 Supported Data Sources
 
-### Operating System & Files
-- **OS**: Query your filesystem, processes, and system metadata - from file contents to EXIF data
-- **Archives**: Treat ZIP and other archive files as queryable tables
-- **FlatFile**: Work with any text-based files as database tables
-- **SeparatedValues**: Handle CSV, TSV and other delimited files with SQL capabilities
+### Development Assets
+- **Git:** Extract insights from commit history, branches, diffs, and more
+- **Roslyn:** Analyze C# code structure, methods, complexity, and patterns
+- **OS:** Query your filesystem, processes, and system metadata
+- **Docker/K8s:** Explore containers and Kubernetes resources *(experimental)*
 
-### Development Tools
-- **Git**: Query Git repositories - analyze commits, diffs, branches and more
-- **Roslyn**: Analyze C# code structure, metrics and patterns using SQL
-- **Docker**: Query containers, images and Docker resources *(experimental)*
-- **Kubernetes**: Interact with K8s clusters, pods and services *(experimental)*
+### Data & Documents
+- **Archives:** Query ZIP and archive contents without extraction *(experimental)*
+- **Files:** Parse text files, CSVs, JSONs, and more with SQL
+- **Images:** Extract metadata and use AI to analyze image content
+- **Databases:** Direct queries to Postgres, SQLite, and Airtable
 
-### Database & Storage
-- **Postgres**: Query PostgreSQL databases directly *(experimental)*
-- **Sqlite**: Work with SQLite databases *(experimental)*
-- **Airtable**: Access Airtable bases through SQL interface
-- **Json**: Query JSON files with SQL syntax
+### AI-Enhanced Analysis
+- **OpenAI/Ollama:** Extract structured data from unstructured content
+- **Image Understanding:** Use LLMs for understanding image content
+- **Text Extraction:** Turn plaintext into structured, queryable data
 
-### AI & Analysis
-- **OpenAI**: Enhance queries with GPT models for text extraction and analysis
-- **Ollama**: Use open-source LLMs for data extraction and processing
+View the [practilcal examples and applications](https://puchaczov.github.io/Musoq/practical-examples-and-applications.html) from the docs to understand how you can use it.
 
-### Domain-Specific
-- **CANBus**: Analyze CAN bus data and DBC files for automotive applications
-- **Time**: Work with time-series data and schedules
+## 💡 Real-World Examples
 
-### Utility
-- **System**: Core utilities including ranges, dual tables and common functions
-
-## 🎯 What Musoq Is (and Isn't)
-
-Musoq is designed to simplify data querying across various sources using SQL-like syntax. To help you decide if Musoq is right for your needs, here's what you should know:
-
-### 🚀 Musoq Shines At:
-- Quick, ad-hoc querying of diverse data sources (files, CSVs, archives, etc.)
-- Providing SQL-like syntax for non-database data
-- Simplifying complex queries with innovative syntax features
-- Handling small to medium-sized datasets efficiently
-
-### 🤔 Consider Alternatives If You Need:
-- Full SQL standard compliance (I prioritize user-friendly syntax over strict standards)
-- High-performance processing of large datasets
-- A mature, unchanging API
-
-### 🤝 Community
-- Your feedback and contributions are welcome to shape the project's future
-
-If Musoq aligns with your needs, I'm excited to have you on board! If not, I appreciate your interest and welcome any suggestions for improvement.
-
-## 📑 Documentation
-
-Look at the documentation for Musoq at https://puchaczov.github.io/Musoq/. What's inside: 
-
-- How to run this tool
-- Practical examples
-- Available Tables & Methods
-
-## 💡 Where To Use It
-
-Musoq might be using in various places, including:
-
-### ⎇ Git analysis
+### Git Insights: Who's Contributing What?
 
 ```sql
--- How many commits does the repositroy have
-select
-    Count(1) as CommitsCount
-from #git.repository('D:\repos\efcore') r
-cross apply r.Commits c
-group by 'fake'
-
--- Top 10 authors by number of commits
+-- Top contributors by number of commits
 select
     c.AuthorEmail,
     Count(c.Sha) as CommitCount
@@ -106,35 +69,9 @@ order by Count(c.Sha) desc
 take 10
 ```
 
-### 🧮 Solution analysis
+### Code Quality Analysis: Finding Complex Methods
 
 ```sql
--- Extract all SQL queries from tests from loaded solution
-select 
-    p.RowNumber() as RowNumber, 
-    p.Name, 
-    c.Name, 
-    m.Name, 
-    g.ToBase64(g.GetBytes(g.LlmPerform('You are C# developer. Your task is to extract SQL query without any markdown characters. If no sql, then return empty string', m.Body))) as QueryBase64
-from #csharp.solution('/some/path/Musoq.sln') s 
-inner join #openai.gpt('gpt-4o') g on 1 = 1 
-cross apply s.Projects p 
-cross apply p.Documents d 
-cross apply d.Classes c 
-cross apply c.Attributes a 
-cross apply c.Methods m 
-where a.Name = 'TestClassAttribute'
-
--- How many lines of code does the project contains?
-select 
-    Sum(c.LinesOfCode) as TotalLinesOfCode,
-    Sum(c.MethodsCount) as TotalMethodsCount
-from #csharp.solution('/some/path/Musoq.sln') s 
-cross apply s.Projects p 
-cross apply p.Documents d 
-cross apply d.Classes c 
-group by 'fake'
-
 -- Top 3 methods with highest complexity
 select
     c.Name as ClassName,
@@ -150,25 +87,176 @@ order by Max(m.CyclomaticComplexity) desc
 take 3
 ```
 
-### 📂 File System Analysis
+### Storage Management: Where's Your Space Going?
 
 ```sql
--- Look for files greater than 1 gig
+-- Analyze disk space usage by file extension
+SELECT
+    Extension,
+    Round(Sum(Length) / 1024 / 1024 / 1024, 1) as SpaceOccupiedInGB,
+    Count(Extension) as FileCount
+FROM #os.files('/some/directory', true)
+GROUP BY Extension
+HAVING Round(Sum(Length) / 1024 / 1024 / 1024, 1) > 0
+ORDER BY SpaceOccupiedInGB DESC
+```
+
+### AI-Enhanced Analysis: Extract Structure from Unstructured Data
+
+```sql
+-- Extract structured data from unstructured text
+select s.Who, s.Age from #stdin.text('from-text-extraction-model') s 
+where ToInt32(s.Age) > 26 and ToInt32(s.Age) < 75
+
+-- Extract product info from receipt images
+select s.Shop, s.ProductName, s.Price 
+from #stdin.image('from-image-extraction-model') s
+```
+
+## 🤔 When to Use Musoq
+
+Musoq shines when you need to:
+
+- **Extract insights** from code, Git history, or system data
+- **Transform data** between formats without writing custom scripts
+- **Combine sources** that normally don't speak to each other
+- **Avoid the overhead** of importing data into a database
+- **Leverage SQL skills** for non-database tasks
+
+Musoq is ideal for small to medium datasets where the cognitive efficiency of SQL outweighs raw performance requirements.
+
+## 📑 Documentation & Resources
+
+- **[Documentation](https://puchaczov.github.io/Musoq/)**: Project overview and documentation
+- **[Data Sources](https://github.com/Puchaczov/Musoq.DataSources)**: All data sources resides here
+- **[CLI Tool](https://github.com/Puchaczov/Musoq.CLI)**: CLI tool that allows to runs musoq queries
+
+## 🔧 Advanced Features
+
+Musoq supports a rich set of SQL-like features:
+
+- Parameterizable sources
+- Common Table Expressions (CTEs)
+- CROSS/OUTER APPLY operators
+- Set operations (UNION, EXCEPT, INTERSECT)
+- Regular expression matching
+- Advanced filtering with WHERE/HAVING
+- JOIN operations across disparate sources
+- Pagination with SKIP/TAKE
+
+## 🚀 Roadmap
+
+Key areas of development include:
+
+- Comprehensive documentation
+- Runtime efficiency improvements
+- Parallel query execution
+- Recursive CTE support
+- Enhanced JSON/XML handling
+- Subquery support
+- Improved error handling
+
+Have an idea? [Submit a feature request](https://github.com/Puchaczov/Musoq/issues/new).
+
+## 🌱 Project Maturity
+
+Musoq is an actively developed tool used in professional environments. It's designed with these principles:
+
+- **Read-only by design:** Focuses exclusively on querying, not modifying data
+- **Developer-friendly syntax:** Prioritizes ease of use over strict SQL compliance
+- **Right-sized solutions:** Optimized for small to medium datasets
+- **Pragmatic innovations:** Introduces syntax extensions when they simplify complex tasks
+
+I use Musoq daily across various workplaces, refining it based on real-world needs.
+
+## 📄 License
+
+Musoq is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🛠 Supported Data Sources (Complete)
+
+### Operating System & Files
+- **OS**: Query your filesystem, processes, and system metadata - from file contents to EXIF data
+- **Archives**: Treat ZIP and other archive files as queryable tables
+- **FlatFile**: Work with any text-based files as database tables
+- **SeparatedValues**: Handle CSV, TSV and other delimited files with SQL capabilities
+
+### Development Tools
+- **Git**: Query Git repositories - analyze commits, diffs, branches and more
+- **Roslyn**: Analyze C# code structure, metrics and patterns using SQL
+- **Docker**: Query containers, images and Docker resources *(experimental)*
+- **Kubernetes**: Interact with K8s clusters, pods and services *(experimental)*
+
+### Database & Storage
+- **Airtable**: Access Airtable bases through SQL interface
+- **Json**: Query JSON files with SQL syntax
+
+### AI & Analysis
+- **OpenAI**: Enhance queries with GPT models for text extraction and analysis
+- **Ollama**: Use open-source LLMs for data extraction and processing
+
+### Domain-Specific
+- **CANBus**: Analyze CAN bus data and DBC files for automotive applications
+- **Time**: Work with time-series data and schedules
+
+### Utility
+- **System**: Core utilities including ranges, dual tables and common functions
+
+## 🎬 More Examples
+
+### Git Repository Analysis
+
+```sql
+-- How many commits does the repository have
+select
+    Count(1) as CommitsCount
+from #git.repository('D:\repos\efcore') r
+cross apply r.Commits c
+group by 'fake'
+```
+
+### Solution Analysis
+
+```sql
+-- How many lines of code does the project contain?
+select 
+    Sum(c.LinesOfCode) as TotalLinesOfCode,
+    Sum(c.MethodsCount) as TotalMethodsCount
+from #csharp.solution('/some/path/Musoq.sln') s 
+cross apply s.Projects p 
+cross apply p.Documents d 
+cross apply d.Classes c 
+group by 'fake'
+
+-- Extract all SQL queries from tests
+select 
+    p.RowNumber() as RowNumber, 
+    p.Name, 
+    c.Name, 
+    m.Name, 
+    g.ToBase64(g.GetBytes(g.LlmPerform('You are C# developer. Your task is to extract SQL query without any markdown characters. If no sql, then return empty string', m.Body))) as QueryBase64
+from #csharp.solution('/some/path/Musoq.sln') s 
+inner join #openai.gpt('gpt-4o') g on 1 = 1 
+cross apply s.Projects p 
+cross apply p.Documents d 
+cross apply d.Classes c 
+cross apply c.Attributes a 
+cross apply c.Methods m 
+where a.Name = 'TestClassAttribute'
+```
+
+### File System Operations
+
+```sql
+-- Find large files
 SELECT 
 	FullName 
 FROM #os.files('/some/path', true) 
 WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
 
--- Look for how many space does the extensions occupies within some directory
-SELECT
-    Extension,
-    Round(Sum(Length) / 1024 / 1024 / 1024, 1) as SpaceOccupiedInGB,
-    Count(Extension) as HowManyFiles
-FROM #os.files('/some/directory', true)
-GROUP BY Extension
-HAVING Round(Sum(Length) / 1024 / 1024 / 1024, 1) > 0
-
--- Query your images folder, filter to include only .jpg files and show it's EXIF metadata
+-- Query image EXIF metadata
 SELECT
     f.Name,
     m.DirectoryName,
@@ -177,14 +265,7 @@ SELECT
 FROM #os.files('./Images', false) f CROSS APPLY #os.metadata(f.FullName) m
 WHERE f.Extension = '.jpg'
 
--- Get first, last 5 bits from files and consecutive 10 bytes of file with offset of 5 from tail
-SELECT
-	ToHex(Head(5), '|'),
-	ToHex(Tail(5), '|'),
-	ToHex(GetFileBytes(10, 5), '|')
-FROM #os.files('/some/directory', false)
-
--- Diff between two folders
+-- Compare directories
 SELECT 
     (CASE WHEN SourceFile IS NOT NULL 
      THEN SourceFileRelative 
@@ -195,15 +276,9 @@ SELECT
      ELSE State 
      END) AS Status 
 FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
-
--- Compute Sha on files
-SELECT
-   FullName,
-   f.Sha256File()
-FROM #os.files('@qfs/', false) f
 ```
 
-### 📦 Archive Exploration
+### Archive Exploration
 
 ```sql
 -- Query .csv files from archive file
@@ -232,43 +307,23 @@ inner join Files f on f.InZipPath = a.Key
 cross apply SourceOfPeopleDetails(a.GetStreamContent(), true, 0) as b;
 ```
 
-### 🖼️ Image Analysis with AI
+### Data Extraction & Transformation
 
 ```sql
--- Describe images using AI
-SELECT
-    llava.DescribeImage(photo.Base64File()),
-    photo.FullName
-FROM #os.files('/path/to/directory', false) photo 
-INNER JOIN #ollama.models('llava:13b', 0.0) llava ON 1 = 1
+-- Count word frequencies within text
+with p as (
+    select 
+        Replace(Replace(ToLowerInvariant(w.Value), '.', ''), ',', '') as Word
+    from #flat.file('/some/path/to/text/file.txt') f cross apply f.Split(f.Line, ' ') w
+)
+select
+    Count(p.Word, 1) as AllWordsCount, 
+    Count(p.Word) as SpecificWordCount,
+    Round(ToDecimal((Count(p.Word) * 100)) / Count(p.Word, 1), 2) as WordFrequencies,
+    Word
+from p group by p.Word having Count(p.Word) > 1
 
--- Count tokens in Markdown and C files
-SELECT 
-   SUM(gpt.CountTokens(f.GetFileContent())) AS TokensCount 
-FROM #os.files('/path/to/directory', true) f 
-INNER JOIN #openai.gpt('gpt-4') gpt ON 1 = 1 
-WHERE f.Extension IN ('.md', '.c')
-
--- Extract data from recipe image
-select s.Shop, s.ProductName, s.Price from #stdin.image('OpenAi', 'gpt-4o') s
-
--- Compute sentiment on a comments
-SELECT 
-    csv.PostId,
-    csv.Comment,
-    gpt.Sentiment(csv.Comment) as Sentiment,
-    csv.Date
-FROM #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
-INNER JOIN #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
-```
-
-### 🔍 SQL-Powered Data Extraction
-
-```sql
--- Extract imports from proto file:
--- import "some/some_message_1"
--- ant turn them into:
--- some/SomeMessage1
+-- Transform imports in proto files
 with Events as (
     select
         Replace(
@@ -303,38 +358,39 @@ select
         ''
     ) as Events
 from Events e
-
--- Count word frequencies within text
-with p as (
-    select 
-        Replace(Replace(ToLowerInvariant(w.Value), '.', ''), ',', '') as Word
-    from #flat.file('/some/path/to/text/file.txt') f cross apply f.Split(f.Line, ' ') w
-)
-select
-    Count(p.Word, 1) as AllWordsCount, 
-    Count(p.Word) as SpecificWordCount,
-    Round(ToDecimal((Count(p.Word) * 100)) / Count(p.Word, 1), 2) as WordFrequencies,
-    Word
-from p group by p.Word having Count(p.Word) > 1
 ```
 
-### 🤖 AI-Assisted Text Structuring
+### AI Integration
 
 ```sql
--- Extract structured data from unstructured text
-select s.Who, s.Age from #stdin.text('Ollama', 'llama3.1') s where ToInt32(s.Age) > 26 and ToInt32(s.Age) < 75
+-- Describe images using AI
+SELECT
+    llava.DescribeImage(photo.Base64File()),
+    photo.FullName
+FROM #os.files('/path/to/directory', false) photo 
+INNER JOIN #ollama.models('llava:13b', 0.0) llava ON 1 = 1
+
+-- Count tokens in files
+SELECT 
+   SUM(gpt.CountTokens(f.GetFileContent())) AS TokensCount 
+FROM #os.files('/path/to/directory', true) f 
+INNER JOIN #openai.gpt('gpt-4') gpt ON 1 = 1 
+WHERE f.Extension IN ('.md', '.c')
+
+-- Sentiment analysis on comments
+SELECT 
+    csv.PostId,
+    csv.Comment,
+    gpt.Sentiment(csv.Comment) as Sentiment,
+    csv.Date
+FROM #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
+INNER JOIN #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
 ```
 
-### 🔄 Universal Table Querying
+### Domain Specific Analysis
 
 ```sql
--- Count occurrences of each name in a table with headers
-select t.Name, Count(t.Name) from #stdin.table(true) t group by t.Name having Count(t.Name) > 1
-```
-
-### 🔧 CAN DBC File Analysis
-
-```sql
+-- Analyze CAN bus data
 select 
     m.Id, 
     m.Name, 
@@ -357,64 +413,6 @@ select
 from #can.messages('@qfs/Model3CAN.dbc') m cross apply m.Signals s
 ```
 
-## 🎬 Watch It Live
-
-![Musoq Demo](https://github.com/Puchaczov/Musoq/blob/59603028e8fbe90ce8444077cf3561ff8e698afd/musoq.gif)
-
-## 🔧 Syntax Features
-
-Musoq supports a rich set of SQL-like features:
-
-- Parameterizable sources
-- Optional query reordering (FROM ... WHERE ... GROUP BY ... HAVING ... SELECT ... SKIP N TAKE N2)
-- Use of `*` to select all columns
-- GROUP BY and HAVING operators
-- SKIP & TAKE operators
-- Set operators (UNION, UNION ALL, EXCEPT, INTERSECT)
-- LIKE / NOT LIKE operator
-- RLIKE / NOT RLIKE operator (regex)
-- CONTAINS operator
-- CTE expressions
-- IN operator
-- INNER, LEFT OUTER, RIGHT OUTER JOIN operator
-- ORDER BY operator
-- CROSS / OUTER APPLY operator
-
-## 🧭 Roadmap
-
-The order is accidental. I will work on things that are the most urgent from the perspective of my current or near future work I will be using it with.
-
-- Comprehensive documentation
-- Roslyn data source
-- Improve runtime efficiency
-- Parallelize query execution
-- Recursive CTE
-- Rework JSON & XML support
-- Subqueries
-- More tests & better handling of syntax / runtime exceptions
-
-If you think something might be important for the project to broaden its capabilities, feel free to submit a feature request.
-
-## 🌱 Project Maturity
-
-Musoq is an evolving project designed primarily for querying and analyzing smaller datasets, with a focus on user-friendly and efficient operations. Here's an overview of its current state:
-
-- **Primary Use Case:** Musoq serves as a tool for ad-hoc querying data and manipulation tasks. It intentionally support only reads. It excels at handling smaller datasets where its SQL-like syntax can provide more intuitive and efficient data operations.
-
-- **Innovative SQL Syntax:** I introduce new SQL syntax variants to simplify some complex queries and reduce the effort required for specific operations. This approach prioritizes user efficiency and ease of use, even if it means deviating from standard SQL in some cases.
-
-- **Development Stage:** Musoq is in active development, continuously improving its core functionality and expanding its syntax to better serve its primary use case. This includes introduction of new syntax features sometimes.
-
-- **Dataset Size:** At the current stage, Musoq is best suited for smaller to medium-sized datasets. For very large datasets or big data scenarios, traditional big data tools will be more appropriate.
-
-- **Real-World Usage:** As the project creator, I use Musoq in various workplaces to facilitate my daily tasks and improve my workflow efficiency. It has proven to be a valuable tool in real-world scenarios, helping me perform data operations more effectively across different professional environments.
-
-- **API and Syntax Stability:** The core functionality is stable. These changes are always aimed at improving usability and efficiency. While I strive for backwards compatibility, new syntax features may be introduced regularly.
-
-- **Project Suitability:** Musoq is well-suited for projects that involve data analysis, file system operations, and other tasks typically handled by scripting languages. It's designed to be a reliable and efficient tool for these scenarios, especially where its unique syntax features can simplify complex operations.
-
-I'm commited to improving Musoq within its intended scope, with a particular focus on innovative SQL syntax that makes data querying tasks easier. I welcome feedback, bug reports, and contributions from the community, especially those that align with the goal of simplifying complex data operations through clever syntax innovations.
-
 ## 🏗 Architecture
 
 ### High-level Overview
@@ -423,14 +421,6 @@ I'm commited to improving Musoq within its intended scope, with a particular foc
 ### Plugins
 Musoq offers a plugin API that all sources use. To learn how to implement your own plugin, you should examine how existing plugins are created.
 
-## 💡 Motivation
-
-I hate loops. Developed out of a need for a versatile tool that could query various data sources with SQL syntax, without those horrible loops, Musoq aims to minimize the effort and time required for data querying and analysis.
-
-## 📄 License
-
-Musoq is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ---
 
-**Note:** While Musoq uses SQL-like syntax, it may not be fully SQL compliant. Some differences may appear, and Musoq implements some experimental syntax and behaviors that are not used by traditional database engines and this is intended!
+**Note:** While Musoq uses SQL-like syntax, it may not be fully SQL compliant. Some differences may appear, and Musoq implements some experimental syntax and behaviors that are not used by traditional database engines. This is by design to optimize for developer productivity and clarity.
