@@ -420,7 +420,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_GroupBy_ShouldPass()
     {
-        const string query = "select Length(b.Value), Count(Length(b.Value)) from #schema.first() a cross apply a.Split(a.Text, ' ') as b group by Length(b.Value)";
+        const string query = "select b.Length(b.Value), b.Count(Length(b.Value)) from #schema.first() a cross apply a.Split(a.Text, ' ') as b group by b.Length(b.Value)";
         
         var firstSource = new List<CrossApplyClass2>
         {
@@ -435,9 +435,9 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("b.Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Count(Length(b.Value))", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("b.Count(Length(b.Value))", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(4, table.Count);

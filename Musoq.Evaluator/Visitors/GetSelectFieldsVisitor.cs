@@ -162,7 +162,7 @@ public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
     {
     }
 
-    public void Visit(AccessRefreshAggreationScoreNode node)
+    public void Visit(AccessRefreshAggregationScoreNode node)
     {
     }
 

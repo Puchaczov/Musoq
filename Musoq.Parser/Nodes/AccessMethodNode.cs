@@ -64,28 +64,6 @@ public class AccessMethodNode : Node
         return GetTheMostCommonBaseTypes(types.ToArray());
     }
 
-    private Type GetTheMostCommonBaseTypes(Type[] types)
-    {
-        if (types.Length == 0)
-            return typeof(object);
-
-        Type ret = types[0];
-
-        for (int i = 1; i < types.Length; ++i)
-        {
-            if (types[i].IsAssignableFrom(ret))
-                ret = types[i];
-            else
-            {
-                // This will always terminate when ret == typeof(object)
-                while (!ret.IsAssignableFrom(types[i]))
-                    ret = ret.BaseType;
-            }
-        }
-
-        return ret;
-    }
-
     public void ChangeMethod(MethodInfo method)
     {
         Method = method;
@@ -93,6 +71,29 @@ public class AccessMethodNode : Node
 
     public override string ToString()
     {
-        return ArgsCount > 0 ? $"{Name}({Arguments.ToString()})" : $"{Name}()";
+        var alias = !string.IsNullOrWhiteSpace(Alias) ? $"{Alias}." : string.Empty;
+        return ArgsCount > 0 ? $"{alias}{Name}({Arguments.ToString()})" : $"{alias}{Name}()";
+    }
+
+    private static Type GetTheMostCommonBaseTypes(Type[] types)
+    {
+        if (types.Length == 0)
+            return typeof(object);
+
+        var returnType = types[0];
+
+        for (var i = 1; i < types.Length; ++i)
+        {
+            if (types[i].IsAssignableFrom(returnType))
+                returnType = types[i];
+            else
+            {   
+                // This will always terminate when returnType == typeof(object)
+                while (returnType is not null && !returnType.IsAssignableFrom(types[i]))
+                    returnType = returnType.BaseType;
+            }
+        }
+
+        return returnType;
     }
 }

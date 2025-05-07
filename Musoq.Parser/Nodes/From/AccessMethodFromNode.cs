@@ -32,8 +32,8 @@ public class AccessMethodFromNode : FromNode
     public override string ToString()
     {
         if (!string.IsNullOrEmpty(Alias))
-            return $"{SourceAlias}.{AccessMethod.ToString()} {Alias}";
+            return $"{AccessMethod.ToString()} {Alias}";
         
-        return $"{SourceAlias}.{AccessMethod}";
+        return $"{AccessMethod}";
     }
 }

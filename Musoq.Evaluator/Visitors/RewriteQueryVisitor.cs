@@ -258,7 +258,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
     }
 
-    public void Visit(AccessRefreshAggreationScoreNode node)
+    public void Visit(AccessRefreshAggregationScoreNode node)
     {
         VisitAccessMethod(node);
     }

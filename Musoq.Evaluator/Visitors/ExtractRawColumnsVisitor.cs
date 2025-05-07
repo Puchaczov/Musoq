@@ -149,7 +149,7 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
-    public void Visit(AccessRefreshAggreationScoreNode node)
+    public void Visit(AccessRefreshAggregationScoreNode node)
     {
     }
 

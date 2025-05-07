@@ -600,11 +600,11 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     {
         const string query = """
                              select 
-                                GetTypeName(b.Value)
+                                b.GetTypeName(b.Value)
                              from #schema.first() a 
                              cross apply a.ComplexType.ComplexValues as b
-                             group by a.GetTypeName(b.Value)
-                             order by a.GetTypeName(b.Value)
+                             group by b.GetTypeName(b.Value)
+                             order by b.GetTypeName(b.Value)
                              """;
         
         var firstSource = new List<CrossApplyClass7>
@@ -612,7 +612,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             new() {
                 ComplexType = new ComplexType5
                 {
-                    ComplexValues = [new ComplexType6 { Value = 1}, new ComplexType6 { Value = 2}]
+                    ComplexValues = [new ComplexType6 {Value = 1}, new ComplexType6 {Value = 2}]
                 }
             }
         }.ToArray();
