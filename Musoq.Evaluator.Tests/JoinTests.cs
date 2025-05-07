@@ -339,7 +339,7 @@ group by cities.Country";
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-        Assert.AreEqual("Sum(population.Population)", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("countries.Sum(population.Population)", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
@@ -389,7 +389,7 @@ order by cities.GetTypeName(cities.Country)";
         
         Assert.AreEqual(1, table.Columns.Count());
         
-        Assert.AreEqual("GetTypeName(cities.Country)", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("cities.GetTypeName(cities.Country)", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
         Assert.AreEqual(1, table.Count);
@@ -1474,6 +1474,46 @@ inner join #A.entities() cities on countries.Country = cities.Country
         Assert.IsTrue(table.Any(entry => 
             (string)entry[0] == "Germany" && 
             (string)entry[1] == "Berlin"
+        ), "Second entry should be Germany, Berlin");
+    }
+        
+    [TestMethod]
+    public void WhenSelfJoined_WithMethodUsedModifyJoinedValues_ShouldPass()
+    {
+        var query =
+            @"
+select 
+    t.Country,
+    t2.City
+from #A.entities() t
+inner join #A.entities() t2 on t.Trim(t.Country) = t2.Trim(t2.Country)
+";
+                
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity(" Poland ", " Krakow"),
+                    new BasicEntity("Germany ", " Berlin")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+            
+        Assert.AreEqual(2, table.Columns.Count());
+        
+        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == " Poland " && 
+            (string)entry[1] == " Krakow"
+        ), "First entry should be Poland, Krakow");
+
+        Assert.IsTrue(table.Any(entry => 
+            (string)entry[0] == "Germany " && 
+            (string)entry[1] == " Berlin"
         ), "Second entry should be Germany, Berlin");
     }
         

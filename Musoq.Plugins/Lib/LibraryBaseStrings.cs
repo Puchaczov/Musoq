@@ -30,7 +30,7 @@ public abstract partial class LibraryBase
     /// <param name="value">The string to trim.</param>
     /// <returns>The trimmed string.</returns>
     [BindableMethod]
-    public static string? Trim(string? value)
+    public string? Trim(string? value)
     {
         return value?.Trim();
     }
@@ -41,7 +41,7 @@ public abstract partial class LibraryBase
     /// <param name="value">The string to trim.</param>
     /// <returns>The trimmed string.</returns>
     [BindableMethod]
-    public static string? TrimStart(string? value)
+    public string? TrimStart(string? value)
     {
         return value?.TrimStart();
     }
@@ -52,7 +52,7 @@ public abstract partial class LibraryBase
     /// <param name="value">The string to trim.</param>
     /// <returns>The trimmed string.</returns>
     [BindableMethod]
-    public static string? TrimEnd(string? value)
+    public string? TrimEnd(string? value)
     {
         return value?.TrimEnd();
     }

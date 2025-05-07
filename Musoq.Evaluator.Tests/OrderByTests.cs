@@ -796,11 +796,11 @@ public class OrderByTests : BasicEntityTestBase
     {
         const string query = """
                              select 
-                                GetTypeName(a.Name),
-                                Count(a.Name)
+                                a.GetTypeName(a.Name),
+                                a.Count(a.Name)
                              from #A.Entities() a
-                             group by GetTypeName(a.Name)
-                             order by GetTypeName(a.Name)
+                             group by a.GetTypeName(a.Name)
+                             order by a.GetTypeName(a.Name)
                              """;
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {

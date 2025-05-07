@@ -219,7 +219,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Sum(b.Value)", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("a.Sum(b.Value)", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
         
         Assert.IsTrue(table.Count == 3, "Table should have 3 entries");

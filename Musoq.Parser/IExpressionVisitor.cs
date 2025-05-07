@@ -38,7 +38,7 @@ public interface IExpressionVisitor
     void Visit(AccessMethodNode node);
     void Visit(AccessRawIdentifierNode node);
     void Visit(IsNullNode node);
-    void Visit(AccessRefreshAggreationScoreNode node);
+    void Visit(AccessRefreshAggregationScoreNode node);
     void Visit(AccessColumnNode node);
     void Visit(AllColumnsNode node);
     void Visit(IdentifierNode node);

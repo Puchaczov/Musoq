@@ -76,7 +76,7 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
-    public virtual void Visit(AccessRefreshAggreationScoreNode node)
+    public virtual void Visit(AccessRefreshAggregationScoreNode node)
     {
         node.Arguments.Accept(this);
         node.Accept(Visitor);

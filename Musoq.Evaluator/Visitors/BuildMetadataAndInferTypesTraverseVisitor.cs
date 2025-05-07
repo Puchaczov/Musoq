@@ -80,7 +80,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(AccessRefreshAggreationScoreNode node)
+    public void Visit(AccessRefreshAggregationScoreNode node)
     {
         node.Arguments.Accept(this);
         node.Accept(_visitor);

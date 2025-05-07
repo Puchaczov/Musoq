@@ -356,8 +356,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     public virtual void Visit(AccessMethodNode node)
     {
         VisitAccessMethod(node,
-            (token, node1, exArgs, arg3, alias, canSkipInjectSource) =>
-                new AccessMethodNode(token, node1 as ArgsListNode, exArgs, canSkipInjectSource, arg3, alias));
+            (token, modifiedNode, exArgs, arg3, alias, canSkipInjectSource) =>
+                new AccessMethodNode(token, modifiedNode as ArgsListNode, exArgs, canSkipInjectSource, arg3, alias));
     }
 
     public void Visit(AccessRawIdentifierNode node)
@@ -370,11 +370,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
     }
 
-    public void Visit(AccessRefreshAggreationScoreNode node)
+    public void Visit(AccessRefreshAggregationScoreNode node)
     {
         VisitAccessMethod(node,
             (token, node1, exArgs, arg3, alias, _) =>
-                new AccessRefreshAggreationScoreNode(token, node1 as ArgsListNode, exArgs, node.CanSkipInjectSource,
+                new AccessRefreshAggregationScoreNode(token, node1 as ArgsListNode, exArgs, node.CanSkipInjectSource,
                     arg3, alias));
     }
 
@@ -1464,7 +1464,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(CreateTableNode node)
     {
-        var columns = new List<ISchemaColumn>();
+        var tableColumns = new List<ISchemaColumn>();
 
         for (var i = 0; i < node.TableTypePairs.Length; i++)
         {
@@ -1477,10 +1477,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (type == null)
                 throw new TypeNotFoundException($"Type '{remappedType}' could not be found.");
 
-            columns.Add(new SchemaColumn(columnName, i, type));
+            tableColumns.Add(new SchemaColumn(columnName, i, type));
         }
 
-        var table = new DynamicTable(columns.ToArray());
+        var table = new DynamicTable(tableColumns.ToArray());
         _explicitlyDefinedTables.Add(node.Name, table);
 
         Nodes.Push(new CreateTableNode(node.Name, node.TableTypePairs));

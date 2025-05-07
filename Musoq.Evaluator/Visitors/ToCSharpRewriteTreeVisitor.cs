@@ -838,7 +838,7 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
                     SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
     }
 
-    public void Visit(AccessRefreshAggreationScoreNode node)
+    public void Visit(AccessRefreshAggregationScoreNode node)
     {
     }
 
