@@ -1,271 +1,86 @@
 ---
-title: Linux X64
+title: Alpine X64
 layout: home
-parent: Roslyn
+parent: CANBus
 ---
 
-# Musoq.DataSources.Roslyn
-Provides schema to work with Roslyn data source.
+# Musoq.DataSources.CANBus
+Provides schema to work with CAN bus data.
 ## Tables
 
 A table in Musoq represents a structured data source with rows and columns. Each table provides access to specific data types and can be queried using the FROM clause (e.g., 'FROM #source.table()'). Below are the available tables exposed by this data source:
 
-### csharp.solution(string path)
+### can.separatedvalues(string csvData, string dbcData, string idOfType = "dec" | "hex" | "bin")
 
-Allows to perform queries on the given solution file.
+Treats csv, tsv or others separated values files as CAN bus records. The file must be of format **Timestamp**, **ID**, **DLC**, **Data** where **Data** values must be in format of unsigned integer number (123) or in hexadecimal (0x7b). Based on the loaded dbc file, you will have access access to additional column named {DBC_MESSAGE_NAME}. From here, you can access value {DBC_SIGNAL_NAME} of a message (ie. {DBC_MESSAGE_NAME}.{DBC_SIGNAL_NAME}). Returned value will be of type double
 
 
-### Environment variables
-
-In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
-
-| Name | Is required | Description |
-| --- | --- | --- |
-| GITHUB_API_KEY | false | GitHub API key |
-| GITLAB_API_KEY | false | GitLab API key |
-| EXTERNAL_NUGET_PROPERTIES_RESOLVE_ENDPOINT | false | External server endpoint to resolve properties |
-
-### Columns
+{: .warning }
+ This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. However, the following core columns are always available:
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Id | string | Solution id |
-| Projects | ProjectEntity[] | Projects within the solution |
+| ID | uint | ID of the message entity |
+| Timestamp | ulong | Timestamp of the message entity |
+| Message | MessageEntity | The Message |
+| IsWellKnown | uint | Whether the message is well known or not (is within dbc file) |
+| DataAsBytes | byte[] | Data as bytes |
+| Data | ulong | Data as ulong |
+
+### can.messages(string dbc)
+
+Parses dbc file and returns all messages defined within it.
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Id | uint | ID of the message entity |
+| IsExtId | bool | Is external Id |
+| Name | string | Name of the message entity |
+| DLC | ushort | DLC of the message entity |
+| Transmitter | string | Transmitter of the message entity |
+| Comment | string | Comment for the message entity |
+| CycleTime | int | Cycle time for the message entity |
+| Signals | SignalEntity[] | Signals of the message |
+
+### can.signals(string dbc)
+
+Parses dbc file and returns all signals defined within it.
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Id | uint | Id of the signal entity |
+| Name | string | Name of the signal entity |
+| StartBit | ushort | Start bit of the signal entity |
+| Length | ushort | Length of the signal entity |
+| ByteOrder | byte | Byte order of the signal entity |
+| InitialValue | double | Initial value of the signal entity |
+| Factor | double | Factor for the signal entity |
+| IsInteger | bool | Whether the signal entity is integer or not |
+| Offset | double | Offset for the signal entity |
+| Minimum | double | Minimum value for the signal entity |
+| Maximum | double | Maximum value for the signal entity |
+| Unit | string | Unit for the signal entity |
+| Receiver | string[] | Receiver for the signal entity |
+| Comment | string | Comment for the signal entity |
+| Multiplexing | string | Multiplexing details for the signal entity |
+| MessageName | string | Message name for the signal entity |
+| ValueMap | string | Value map for the signal entity |
+| MessageOrder | int | Order of signal within the message definition |
 
 ## Private Tables
 
 Private tables are auxiliary data structures accessible only through CROSS APPLY or OUTER APPLY operators. They typically represent nested or related data structures within the primary table. While not directly queryable, these tables provide essential data relationships and hierarchical access patterns. Available private tables include:
 
-### ProjectEntity
+### ValueMapEntity[]
 
-Represent project of solution
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Id | string | Project id |
-| FilePath | string | File path |
-| OutputFilePath | string | Output file path |
-| OutputRefFilePath | string | Output reference file path |
-| DefaultNamespace | string | Default namespace |
-| Language | string | Language |
-| AssemblyName | string | Assembly name |
-| Name | string | Name |
-| IsSubmission | bool | Is submission |
-| Version | string | Version |
-| Documents | DocumentEntity[] | Documents |
-| Types | TypeEntity[] | Types |
-| NugetPackages | NugetPackageEntity[] | Nuget packages |
-
-### DocumentEntity
-
-Represent document of project
+Represent possible values of a signal
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
-
-### ReferencedDocumentEntity
-
-Represent referenced document of project
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
-| StartLine | int | Start line |
-| StartColumn | int | Start column |
-| EndLine | int | End line |
-| EndColumn | int | End column |
-
-### ClassEntity
-
-Represent class of document
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Text | string | Text |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| BaseTypes | string[] | Base types |
-| Interfaces | string[] | Interfaces |
-| TypeParameters | string[] | Type parameters |
-| MemberNames | string[] | Member names |
-| Attributes | string[] | Attributes |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-| MethodsCount | int | Methods count |
-| PropertiesCount | int | Properties count |
-| FieldsCount | int | Fields count |
-| InheritanceDepth | int | Inheritance depth |
-| ConstructorsCount | int | Constructors count |
-| NestedClassesCount | int | Nested classes count |
-| NestedInterfacesCount | int | Nested interfaces count |
-| InterfacesCount | int | Interfaces count |
-| LackOfCohesion | int | Lack of cohesion |
-| LinesOfCode | int | Lines of code |
-
-### EnumEntity
-
-Represent enum of document
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Members | string[] | Members |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-
-### InterfaceEntity
-
-Represent interface of document
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| BaseInterfaces | string[] | Base interfaces |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-
-### MethodEntity
-
-Represent method of class
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| ReturnType | string | Return type |
-| Parameters | ParameterEntity[] | Parameters |
-| Modifiers | string[] | Modifiers |
-| Text | string | Text |
-| Attributes | AttributeEntity[] | Attributes |
-| CyclomaticComplexity | int | Cyclomatic complexity |
-
-### PropertyEntity
-
-Represent property of class
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsIndexer | bool | Is indexer |
-| IsReadOnly | bool | Is read only |
-| IsWriteOnly | bool | Is write only |
-| IsRequired | bool | Is required |
-| IsWithEvents | bool | Is with events |
-| IsVirtual | bool | Is virtual |
-| IsOverride | bool | Is override |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| Modifiers | string[] | Modifiers |
-
-### ParameterEntity
-
-Represent parameter of method
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsOptional | bool | Is optional |
-| IsParams | bool | Is params |
-| IsThis | bool | Is this |
-| IsDiscard | bool | Is discard |
-| IsIn | bool | Is in |
-| IsOut | bool | Is out |
-| IsRef | bool | Is ref |
-| IsByRef | bool | Is by ref |
-| IsByValue | bool | Is by value |
-
-### ProjectReferenceEntity
-
-Represent project reference
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-
-### LibraryReferenceEntity
-
-Represent library reference
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Version | string | Version |
-| Culture | string | Culture |
-| Location | string | Location |
-
-### TypeEntity
-
-Represent type within project
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| IsInterface | bool | Is interface |
-| IsClass | bool | Is class |
-| IsEnum | bool | Is enum |
-| IsStruct | bool | Is struct |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| IsNested | bool | Is nested |
-| IsGenericType | bool | Is generic type |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-
-### NugetPackageEntity
-
-Represent nuget package
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Id | string | Package ID |
-| Version | string | Package version |
-| LicenseUrl | string | License URL |
-| ProjectUrl | string | Project URL |
-| Title | string | Package title |
-| Authors | string | Package authors |
-| Owners | string | Package owners |
-| RequireLicenseAcceptance | bool | License acceptance required |
-| Description | string | Package description |
-| Summary | string | Package summary |
-| ReleaseNotes | string | Release notes |
-| Copyright | string | Copyright info |
-| Language | string | Language |
-| Tags | string | Tags |
+| Value | int | Value of signal |
+| Name | string | Name of the value |
 
 ## This Data Source Methods
 
@@ -274,37 +89,77 @@ Methods allow operations on columns or values within queries. They provide speci
 ### Non aggregation methods
 
 Non-aggregation methods process data on a row-by-row basis, performing calculations or transformations for each individual row. These methods return a result for each input row. The following non-aggregation methods are available:
-#### IEnumerable\<ProjectEntity\> GetProjectsByNames(string[] names)
+#### ulong EncodeMessage(string name, byte value)
 
-Gets projects by names.
+Converts bytes to encoded signal of a message for CAN bus.
 
-#### IEnumerable\<ClassEntity\> GetClassesByNames(string[] names)
+#### ulong EncodeMessage(string name, short value)
 
-Gets classes by names.
+Converts short to encoded signal of a message for CAN bus.
 
-#### IEnumerable\<InterfaceEntity\> GetInterfacesByNames(string[] names)
+#### ulong EncodeMessage(string name, ushort value)
 
-Gets classes by names.
+Converts ushort to encoded signal of a message for CAN bus.
 
-#### IEnumerable\<EnumEntity\> GetEnumsByNames(string[] names)
+#### ulong EncodeMessage(string name, int value)
 
-Gets classes by names.
+Converts int to encoded signal of a message for CAN bus.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
+#### ulong EncodeMessage(string name, uint value)
 
-Finds references of the specified class entity.
+Converts uint to encoded signal of a message for CAN bus.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
+#### ulong EncodeMessage(string name, long value)
 
-Finds references of the specified interface entity.
+Converts long to encoded signal of a message for CAN bus.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
+#### ulong EncodeMessage(string name, ulong value)
 
-Finds references of the specified interface entity.
+Converts ulong to encoded signal of a message for CAN bus.
 
-#### IEnumerable\<NugetPackageEntity\> GetNugetPackages(bool withTransitivePackages)
+#### ulong EncodeMessage(string name, float value)
 
-Gets the NuGet packages for the specified project entity.
+Converts float to encoded signal of a message for CAN bus.
+
+#### ulong EncodeMessage(string name, double value)
+
+Converts double to encoded signal of a message for CAN bus.
+
+#### ulong EncodeMessage(string jsonValues)
+
+Converts structured json to encoded signals of a message for CAN bus. It's structure is of `{ signalName1: signalValue1, ..., signalNameN : signalValueN }`
+
+#### double DecodeMessage(string name, byte value)
+
+Treats byte as encoded signal of a message for CAN bus and decodes it.
+
+#### double DecodeMessage(string name, short value)
+
+Treats short as encoded signal of a message for CAN bus and decodes it.
+
+#### double DecodeMessage(string name, ushort value)
+
+Treats ushort as encoded signal of a message for CAN bus and decodes it.
+
+#### double DecodeMessage(string name, int value)
+
+Treats int as encoded signal of a message for CAN bus and decodes it.
+
+#### double DecodeMessage(string name, uint value)
+
+Treats uint as encoded signal of a message for CAN bus and decodes it.
+
+#### double DecodeMessage(string name, long value)
+
+Treats long as encoded signal of a message for CAN bus and decodes it.
+
+#### double DecodeMessage(string name, ulong value)
+
+Treats ulong as encoded signal of a message for CAN bus and decodes it.
+
+#### DateTimeOffset? FromTimestamp(ulong timestamp, string resolution)
+
+Converts timestamp to date time offset.
 
 
 ## Standard Methods

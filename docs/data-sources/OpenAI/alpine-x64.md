@@ -1,18 +1,18 @@
 ---
-title: Linux X64
+title: Alpine X64
 layout: home
-parent: Roslyn
+parent: OpenAI
 ---
 
-# Musoq.DataSources.Roslyn
-Provides schema to work with Roslyn data source.
+# Musoq.DataSources.OpenAI
+Provides interface to work with OpenAI API.
 ## Tables
 
 A table in Musoq represents a structured data source with rows and columns. Each table provides access to specific data types and can be queried using the FROM clause (e.g., 'FROM #source.table()'). Below are the available tables exposed by this data source:
 
-### csharp.solution(string path)
+### openai.gpt()
 
-Allows to perform queries on the given solution file.
+Gives the access to OpenAI api
 
 
 ### Environment variables
@@ -21,251 +21,102 @@ In order to use the plugin, the user must set any required environment variables
 
 | Name | Is required | Description |
 | --- | --- | --- |
-| GITHUB_API_KEY | false | GitHub API key |
-| GITLAB_API_KEY | false | GitLab API key |
-| EXTERNAL_NUGET_PROPERTIES_RESOLVE_ENDPOINT | false | External server endpoint to resolve properties |
+| OPENAI_API_KEY | true | Open AI api key |
 
 ### Columns
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Id | string | Solution id |
-| Projects | ProjectEntity[] | Projects within the solution |
+{: .warning }
+ This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
-## Private Tables
+### openai.gpt(string model)
 
-Private tables are auxiliary data structures accessible only through CROSS APPLY or OUTER APPLY operators. They typically represent nested or related data structures within the primary table. While not directly queryable, these tables provide essential data relationships and hierarchical access patterns. Available private tables include:
+Gives the access to OpenAI api
 
-### ProjectEntity
 
-Represent project of solution
+### Environment variables
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Id | string | Project id |
-| FilePath | string | File path |
-| OutputFilePath | string | Output file path |
-| OutputRefFilePath | string | Output reference file path |
-| DefaultNamespace | string | Default namespace |
-| Language | string | Language |
-| AssemblyName | string | Assembly name |
-| Name | string | Name |
-| IsSubmission | bool | Is submission |
-| Version | string | Version |
-| Documents | DocumentEntity[] | Documents |
-| Types | TypeEntity[] | Types |
-| NugetPackages | NugetPackageEntity[] | Nuget packages |
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
 
-### DocumentEntity
+| Name | Is required | Description |
+| --- | --- | --- |
+| OPENAI_API_KEY | true | Open AI api key |
 
-Represent document of project
+### Columns
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
+{: .warning }
+ This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
-### ReferencedDocumentEntity
+### openai.gpt(string model, int maxTokens)
 
-Represent referenced document of project
+Gives the access to OpenAI api
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
-| StartLine | int | Start line |
-| StartColumn | int | Start column |
-| EndLine | int | End line |
-| EndColumn | int | End column |
 
-### ClassEntity
+### Environment variables
 
-Represent class of document
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Text | string | Text |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| BaseTypes | string[] | Base types |
-| Interfaces | string[] | Interfaces |
-| TypeParameters | string[] | Type parameters |
-| MemberNames | string[] | Member names |
-| Attributes | string[] | Attributes |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-| MethodsCount | int | Methods count |
-| PropertiesCount | int | Properties count |
-| FieldsCount | int | Fields count |
-| InheritanceDepth | int | Inheritance depth |
-| ConstructorsCount | int | Constructors count |
-| NestedClassesCount | int | Nested classes count |
-| NestedInterfacesCount | int | Nested interfaces count |
-| InterfacesCount | int | Interfaces count |
-| LackOfCohesion | int | Lack of cohesion |
-| LinesOfCode | int | Lines of code |
+| Name | Is required | Description |
+| --- | --- | --- |
+| OPENAI_API_KEY | true | Open AI api key |
 
-### EnumEntity
+### Columns
 
-Represent enum of document
+{: .warning }
+ This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Members | string[] | Members |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
+### openai.gpt(string model, int maxTokens, decimal temperature)
 
-### InterfaceEntity
+Gives the access to OpenAI api
 
-Represent interface of document
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| BaseInterfaces | string[] | Base interfaces |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
+### Environment variables
 
-### MethodEntity
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
 
-Represent method of class
+| Name | Is required | Description |
+| --- | --- | --- |
+| OPENAI_API_KEY | true | Open AI api key |
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| ReturnType | string | Return type |
-| Parameters | ParameterEntity[] | Parameters |
-| Modifiers | string[] | Modifiers |
-| Text | string | Text |
-| Attributes | AttributeEntity[] | Attributes |
-| CyclomaticComplexity | int | Cyclomatic complexity |
+### Columns
 
-### PropertyEntity
+{: .warning }
+ This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
-Represent property of class
+### openai.gpt(string model, int maxTokens, decimal temperature, decimal frequencyPenalty)
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsIndexer | bool | Is indexer |
-| IsReadOnly | bool | Is read only |
-| IsWriteOnly | bool | Is write only |
-| IsRequired | bool | Is required |
-| IsWithEvents | bool | Is with events |
-| IsVirtual | bool | Is virtual |
-| IsOverride | bool | Is override |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| Modifiers | string[] | Modifiers |
+Gives the access to OpenAI api
 
-### ParameterEntity
 
-Represent parameter of method
+### Environment variables
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsOptional | bool | Is optional |
-| IsParams | bool | Is params |
-| IsThis | bool | Is this |
-| IsDiscard | bool | Is discard |
-| IsIn | bool | Is in |
-| IsOut | bool | Is out |
-| IsRef | bool | Is ref |
-| IsByRef | bool | Is by ref |
-| IsByValue | bool | Is by value |
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
 
-### ProjectReferenceEntity
+| Name | Is required | Description |
+| --- | --- | --- |
+| OPENAI_API_KEY | true | Open AI api key |
 
-Represent project reference
+### Columns
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
+{: .warning }
+ This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
-### LibraryReferenceEntity
+### openai.gpt(string model, int maxTokens, decimal temperature, decimal frequencyPenalty, decimal presencePenalty)
 
-Represent library reference
+Gives the access to OpenAI api
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Version | string | Version |
-| Culture | string | Culture |
-| Location | string | Location |
 
-### TypeEntity
+### Environment variables
 
-Represent type within project
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| IsInterface | bool | Is interface |
-| IsClass | bool | Is class |
-| IsEnum | bool | Is enum |
-| IsStruct | bool | Is struct |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| IsNested | bool | Is nested |
-| IsGenericType | bool | Is generic type |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
+| Name | Is required | Description |
+| --- | --- | --- |
+| OPENAI_API_KEY | true | Open AI api key |
 
-### NugetPackageEntity
+### Columns
 
-Represent nuget package
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Id | string | Package ID |
-| Version | string | Package version |
-| LicenseUrl | string | License URL |
-| ProjectUrl | string | Project URL |
-| Title | string | Package title |
-| Authors | string | Package authors |
-| Owners | string | Package owners |
-| RequireLicenseAcceptance | bool | License acceptance required |
-| Description | string | Package description |
-| Summary | string | Package summary |
-| ReleaseNotes | string | Release notes |
-| Copyright | string | Copyright info |
-| Language | string | Language |
-| Tags | string | Tags |
+{: .warning }
+ This table's structure is determined at runtime, meaning its columns and properties will vary based on the data source. Use the 'desc' command to view the current table structure.
 
 ## This Data Source Methods
 
@@ -274,37 +125,55 @@ Methods allow operations on columns or values within queries. They provide speci
 ### Non aggregation methods
 
 Non-aggregation methods process data on a row-by-row basis, performing calculations or transformations for each individual row. These methods return a result for each input row. The following non-aggregation methods are available:
-#### IEnumerable\<ProjectEntity\> GetProjectsByNames(string[] names)
+#### bool IsContentAbout(string content, string question)
 
-Gets projects by names.
+Determines whether the provided content is related to the given question.
+            Returns true if the content is related, otherwise returns false.
 
-#### IEnumerable\<ClassEntity\> GetClassesByNames(string[] names)
+#### string Sentiment(string content, bool throwOnUnknown)
 
-Gets classes by names.
+Performs sentiment analysis on the provided content and returns the sentiment
+            as one of the following strings: "POSITIVE", "NEGATIVE", "NEUTRAL", or "UNKNOWN".
 
-#### IEnumerable\<InterfaceEntity\> GetInterfacesByNames(string[] names)
+#### string SummarizeContent(string content)
 
-Gets classes by names.
+Summarizes the provided content using the OpenAI API and returns the summarized text.
 
-#### IEnumerable\<EnumEntity\> GetEnumsByNames(string[] names)
+#### string TranslateContent(string content, string from, string to)
 
-Gets classes by names.
+Translates the provided content from the source language to the destination language using the OpenAI API.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
+#### string[] Entities(string content, bool throwOnException)
 
-Finds references of the specified class entity.
+Extracts entities from the provided content using the OpenAI API and returns an array of entity strings.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
+#### string LlmPerform\<TColumnType\>(string whatToDo, TColumnType column)
 
-Finds references of the specified interface entity.
+Performs the specified action on the provided entity using the OpenAI API and returns the result.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
+#### string DescribeImage(string imageBase64)
 
-Finds references of the specified interface entity.
+Describes the provided image using the OpenAI API and returns a description of the image.
 
-#### IEnumerable\<NugetPackageEntity\> GetNugetPackages(bool withTransitivePackages)
+#### string AskImage(string question, string imageBase64)
 
-Gets the NuGet packages for the specified project entity.
+Asks a question about the provided image using the OpenAI API and returns the answer to the question.
+
+#### bool IsQuestionApplicableToImage(string question, string imageBase64)
+
+Asks a question about the provided image using the OpenAI API and returns a boolean result.
+
+#### int CountTokens(string content)
+
+Counts the number of tokens in the provided content using the specified model.
+
+#### int CountTokens(string content)
+
+Counts the number of tokens in the provided content using the specified model.
+
+#### int CountTokens(string encodingName, string content)
+
+Counts the number of tokens in the provided content using the specified model.
 
 
 ## Standard Methods

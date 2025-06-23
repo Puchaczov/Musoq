@@ -1,310 +1,419 @@
 ---
-title: Linux X64
+title: Alpine X64
 layout: home
-parent: Roslyn
+parent: Os
 ---
 
-# Musoq.DataSources.Roslyn
-Provides schema to work with Roslyn data source.
+# Musoq.DataSources.Os
+Provides schema to work with operating system abstractions
 ## Tables
 
 A table in Musoq represents a structured data source with rows and columns. Each table provides access to specific data types and can be queried using the FROM clause (e.g., 'FROM #source.table()'). Below are the available tables exposed by this data source:
 
-### csharp.solution(string path)
+### os.dirscompare(string sourceDirectory, string destinationDirectory)
 
-Allows to perform queries on the given solution file.
+Compares two directories
 
-
-### Environment variables
-
-In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
-
-| Name | Is required | Description |
-| --- | --- | --- |
-| GITHUB_API_KEY | false | GitHub API key |
-| GITLAB_API_KEY | false | GitLab API key |
-| EXTERNAL_NUGET_PROPERTIES_RESOLVE_ENDPOINT | false | External server endpoint to resolve properties |
-
-### Columns
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Id | string | Solution id |
-| Projects | ProjectEntity[] | Projects within the solution |
+| SourceFile | ExtendedFileInfo | Source file |
+| DestinationFile | ExtendedFileInfo | Destination file |
+| State | string | The Same / Modified / Added / Removed |
+| SourceRoot | DirectoryInfo | Source directory |
+| DestinationRoot | DirectoryInfo | Destination directory |
+| SourceFileRelative | string | Relative path to source file |
+| DestinationFileRelative | string | Relative path to destination file |
 
-## Private Tables
+### os.directories(string directory, bool useSubdirectories)
 
-Private tables are auxiliary data structures accessible only through CROSS APPLY or OUTER APPLY operators. They typically represent nested or related data structures within the primary table. While not directly queryable, these tables provide essential data relationships and hierarchical access patterns. Available private tables include:
+Gets the directories
 
-### ProjectEntity
-
-Represent project of solution
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Id | string | Project id |
-| FilePath | string | File path |
-| OutputFilePath | string | Output file path |
-| OutputRefFilePath | string | Output reference file path |
-| DefaultNamespace | string | Default namespace |
-| Language | string | Language |
-| AssemblyName | string | Assembly name |
-| Name | string | Name |
-| IsSubmission | bool | Is submission |
-| Version | string | Version |
-| Documents | DocumentEntity[] | Documents |
-| Types | TypeEntity[] | Types |
-| NugetPackages | NugetPackageEntity[] | Nuget packages |
-
-### DocumentEntity
-
-Represent document of project
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
+| FullName | string | Full name of the directory |
+| Attributes | FileAttributes | Directory attributes |
+| CreationTime | DateTime | Creation time |
+| CreationTimeUtc | DateTime | Creation time in UTC |
+| LastAccessTime | DateTime | Last access time |
+| LastAccessTimeUtc | DateTime | Last access time in UTC |
+| LastWriteTime | DateTime | Last write time |
+| LastWriteTimeUtc | DateTime | Last write time in UTC |
+| Exists | bool | Determine does the directory exists |
+| Extension | string | Gets the extension part of the file name |
+| LastAccessTime | DateTime | Gets the time the current file or directory was last accessed |
+| LastAccessTimeUtc | DateTime | Gets the time, in coordinated universal time (UTC), that the current file or directory was last accessed |
+| Name | string | Gets the directory name |
+| LastWriteTime | DateTime | Gets the date when the file or directory was written to |
+| Parent | DirectoryInfo | Gets the parent directory |
+| Root | DirectoryInfo | Gets the root directory |
+| DirectoryInfo | DirectoryInfo | Gets raw DirectoryInfo |
 
-### ReferencedDocumentEntity
+### os.dlls(string path)
 
-Represent referenced document of project
+Gets the dlls
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
-| StartLine | int | Start line |
-| StartColumn | int | Start column |
-| EndLine | int | End line |
-| EndColumn | int | End column |
-
-### ClassEntity
-
-Represent class of document
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Text | string | Text |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| BaseTypes | string[] | Base types |
-| Interfaces | string[] | Interfaces |
-| TypeParameters | string[] | Type parameters |
-| MemberNames | string[] | Member names |
-| Attributes | string[] | Attributes |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-| MethodsCount | int | Methods count |
-| PropertiesCount | int | Properties count |
-| FieldsCount | int | Fields count |
-| InheritanceDepth | int | Inheritance depth |
-| ConstructorsCount | int | Constructors count |
-| NestedClassesCount | int | Nested classes count |
-| NestedInterfacesCount | int | Nested interfaces count |
-| InterfacesCount | int | Interfaces count |
-| LackOfCohesion | int | Lack of cohesion |
-| LinesOfCode | int | Lines of code |
+| FileInfo | FileInfo | Gets the metadata about the DLL file |
+| Assembly | Assembly | Gets the Assembly object |
+| Version | FileVersionInfo | Gets the assembly version |
 
-### EnumEntity
+### os.dlls(string path)
 
-Represent enum of document
+Gets the dlls
+
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Members | string[] | Members |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
+| FileInfo | FileInfo | Gets the metadata about the DLL file |
+| Assembly | Assembly | Gets the Assembly object |
+| Version | FileVersionInfo | Gets the assembly version |
 
-### InterfaceEntity
+### os.files(string directory, bool useSubdirectories)
 
-Represent interface of document
+Gets the files
+
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| BaseInterfaces | string[] | Base interfaces |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
+| Name | string | Name of the file |
+| FileName | string | Name of the file |
+| CreationTime | DateTime | Creation time |
+| CreationTimeUtc | DateTime | Creation time in UTC |
+| LastAccessTime | DateTime | Last access time |
+| LastAccessTimeUtc | DateTime | Last access time in UTC |
+| LastWriteTime | DateTime | Last write time |
+| LastWriteTimeUtc | DateTime | Last write time in UTC |
+| Extension | string | Gets the extension part of the file name |
+| FullPath | string | Gets the full path of file |
+| DirectoryName | string | Gets the directory name |
+| DirectoryPath | string | Gets the directory path |
+| Exists | bool | Determine whether file exists or not |
+| IsReadOnly | bool | Determine whether the file is readonly |
+| Length | long | Gets the length of file |
 
-### MethodEntity
+### os.processes()
 
-Represent method of class
+Gets the processes
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| ReturnType | string | Return type |
-| Parameters | ParameterEntity[] | Parameters |
-| Modifiers | string[] | Modifiers |
-| Text | string | Text |
-| Attributes | AttributeEntity[] | Attributes |
-| CyclomaticComplexity | int | Cyclomatic complexity |
-
-### PropertyEntity
-
-Represent property of class
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsIndexer | bool | Is indexer |
-| IsReadOnly | bool | Is read only |
-| IsWriteOnly | bool | Is write only |
-| IsRequired | bool | Is required |
-| IsWithEvents | bool | Is with events |
-| IsVirtual | bool | Is virtual |
-| IsOverride | bool | Is override |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| Modifiers | string[] | Modifiers |
+| BasePriority | int | Gets the base priority of associated process |
+| EnableRaisingEvents | bool | Gets whether the exited event should be raised when the process terminates |
+| ExitCode | int | Gets the value describing process termination |
+| ExitTime | DateTime | Exit time in UTC |
+| Handle | IntPtr | Gets the native handle of the associated process |
+| HandleCount | int | Gets the number of handles opened by the process |
+| HasExited | bool | Gets a value indicating whether the associated process has been terminated |
+| Id | int | Gets the unique identifier for the associated process |
+| MachineName | string | Gets the name of the computer the associated process is running on |
+| MainWindowTitle | string | Gets the caption of the main window of the process |
+| PagedMemorySize64 | long | Gets a value indicating whether the user interface of the process is responding |
+| ProcessName | string | The name that the system uses to identify the process to the user |
+| ProcessorAffinity | IntPtr | Gets the processors on which the threads in this process can be scheduled to run |
+| Responding | bool | Gets a value indicating whether the user interface of the process is responding |
+| StartTime | DateTime | Gets the time that the associated process was started |
+| TotalProcessorTime | TimeSpan | Gets the total processor time for this process |
+| UserProcessorTime | TimeSpan | Gets the user processor time for this process |
+| Directory | string | Gets the directory of the process |
+| FileName | string | Gets the filename of the process |
 
-### ParameterEntity
+### os.zip(string path)
 
-Represent parameter of method
+Gets the zip files
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsOptional | bool | Is optional |
-| IsParams | bool | Is params |
-| IsThis | bool | Is this |
-| IsDiscard | bool | Is discard |
-| IsIn | bool | Is in |
-| IsOut | bool | Is out |
-| IsRef | bool | Is ref |
-| IsByRef | bool | Is by ref |
-| IsByValue | bool | Is by value |
-
-### ProjectReferenceEntity
-
-Represent project reference
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Name |
+| Name | string | Gets the file name of the entry in the zip archive |
+| FullName | string | Gets the relative path of the entry in the zip archive |
+| CompressedLength | long | Gets the compressed size of the entry in the zip archive |
+| LastWriteTime | DateTimeOffset | Gets the last time the entry in the zip archive was changed |
+| Length | long | Gets the uncompressed size of the entry in the zip archive |
+| IsDirectory | bool | Determine whether the entry is a directory |
+| Level | int | Gets the nesting level |
 
-### LibraryReferenceEntity
+### os.metadata(string directoryOrFile)
 
-Represent library reference
+Gets the metadata for file or for files within the directory
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Version | string | Version |
-| Culture | string | Culture |
-| Location | string | Location |
-
-### TypeEntity
-
-Represent type within project
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| IsInterface | bool | Is interface |
-| IsClass | bool | Is class |
-| IsEnum | bool | Is enum |
-| IsStruct | bool | Is struct |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| IsNested | bool | Is nested |
-| IsGenericType | bool | Is generic type |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
+| FullName | string | Gets the full path of the file |
+| DirectoryName | string | Gets the directory the metadata resides in |
+| TagName | string | Gets the tag name |
+| Description | string | Gets the description |
 
-### NugetPackageEntity
+### os.metadata(string directory, bool throwOnMetadataReadError)
 
-Represent nuget package
+Gets the metadata for files within directories
+
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Id | string | Package ID |
-| Version | string | Package version |
-| LicenseUrl | string | License URL |
-| ProjectUrl | string | Project URL |
-| Title | string | Package title |
-| Authors | string | Package authors |
-| Owners | string | Package owners |
-| RequireLicenseAcceptance | bool | License acceptance required |
-| Description | string | Package description |
-| Summary | string | Package summary |
-| ReleaseNotes | string | Release notes |
-| Copyright | string | Copyright info |
-| Language | string | Language |
-| Tags | string | Tags |
+| FullName | string | Gets the full path of the file |
+| DirectoryName | string | Gets the directory the metadata resides in |
+| TagName | string | Gets the tag name |
+| Description | string | Gets the description |
+
+### os.metadata(string directory, bool useSubdirectories, bool throwOnMetadataReadError)
+
+Gets the metadata for files within directories
+
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| FullName | string | Gets the full path of the file |
+| DirectoryName | string | Gets the directory the metadata resides in |
+| TagName | string | Gets the tag name |
+| Description | string | Gets the description |
 
 ## This Data Source Methods
 
 Methods allow operations on columns or values within queries. They provide specific operations and transformations on your data (e.g., 'SELECT Method(Column)'). The following methods are available in this data source:
 
+### Aggregation methods
+
+Aggregation methods process multiple rows to compute a single result value. These methods are used with GROUP BY clauses to summarize data across row groups. Below are the aggregation methods supported by this data source:
+#### IReadOnlyList\<FileEntity\> AggregateFiles(string name)
+
+Gets the aggregated average value from the given group name
+
+#### IReadOnlyList\<DirectoryInfo\> AggregateDirectories(string name)
+
+Gets the aggregated average value from the given group name
+
 ### Non aggregation methods
 
 Non-aggregation methods process data on a row-by-row basis, performing calculations or transformations for each individual row. These methods return a result for each input row. The following non-aggregation methods are available:
-#### IEnumerable\<ProjectEntity\> GetProjectsByNames(string[] names)
+#### bool IsZipArchive(string extension)
 
-Gets projects by names.
+Determines whether the extension is zip archive.
 
-#### IEnumerable\<ClassEntity\> GetClassesByNames(string[] names)
+#### bool IsZipArchive()
 
-Gets classes by names.
+Determines whether the extension is zip archive.
 
-#### IEnumerable\<InterfaceEntity\> GetInterfacesByNames(string[] names)
+#### bool IsArchive(string extension)
 
-Gets classes by names.
+Determine whether the extension is archive.
 
-#### IEnumerable\<EnumEntity\> GetEnumsByNames(string[] names)
+#### bool IsArchive()
 
-Gets classes by names.
+Determines whether the file is archive.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
+#### bool IsAudio(string extension)
 
-Finds references of the specified class entity.
+Determine whether the extension is audio.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
+#### bool IsAudio()
 
-Finds references of the specified interface entity.
+Determine whether the extension is audio.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
+#### bool IsBook(string extension)
 
-Finds references of the specified interface entity.
+Determine whether the extension is book.
 
-#### IEnumerable\<NugetPackageEntity\> GetNugetPackages(bool withTransitivePackages)
+#### bool IsBook()
 
-Gets the NuGet packages for the specified project entity.
+Determine whether the extension is book.
+
+#### bool IsDoc(string extension)
+
+Determine whether the extension is document.
+
+#### bool IsDoc()
+
+Determine whether the extension is document.
+
+#### bool IsImage(string extension)
+
+Determine whether the extension is image.
+
+#### bool IsImage()
+
+Determine whether the extension is image.
+
+#### bool IsSource(string extension)
+
+Determine whether the extension is source.
+
+#### bool IsSource()
+
+Determine whether the extension is source.
+
+#### bool IsVideo(string extension)
+
+Determine whether the extension is video.
+
+#### bool IsVideo()
+
+Determine whether the extension is video.
+
+#### string GetFileContent()
+
+Gets the file content
+
+#### string GetRelativePath()
+
+Gets the relative path of a file
+
+#### string GetRelativePath(string basePath)
+
+Gets the relative path of a file
+
+#### byte[] Head(int length)
+
+Gets head bytes of a file
+
+#### byte[] Tail(int length)
+
+Gets tail bytes of a file
+
+#### byte[] GetFileBytes(long bytesCount, long offset)
+
+Gets file bytes of a file
+
+#### string Sha1File()
+
+Computes Sha1 hash of a file
+
+#### string Sha256File()
+
+Computes Sha256 hash of a file
+
+#### string Sha256File(FileInfo file)
+
+Computes Sha256 hash of a file
+
+#### string Md5File()
+
+Computes Md5 hash of a file
+
+#### string Base64File()
+
+Turns file into base64 string
+
+#### bool HasContent(string pattern)
+
+Determine whether file has specific content
+
+#### bool HasAttribute(long flags)
+
+Determine whether file has attribute
+
+#### string GetLinesContainingWord(string word)
+
+Gets lines containing word
+
+#### long GetFileLength(string unit)
+
+Gets the file length
+
+#### long GetLengthOfFile(string unit)
+
+Gets the file length
+
+#### string SubPath(int nesting)
+
+Gets the SubPath from the path
+
+#### string SubPath(int nesting)
+
+Gets the SubPath from the path
+
+#### string RelativeSubPath(int nesting)
+
+Gets the relative SubPath from the path
+
+#### string SubPath(string directoryPath, int nesting)
+
+Gets the relative SubPath from the path
+
+#### long Length(string unit)
+
+Gets the length of the file
+
+#### FileEntity GetFileInfo(string fullPath)
+
+Gets the file info
+
+#### FileEntity GetExtendedFileInfo()
+
+Gets extended file info
+
+#### long CountOfLines()
+
+Gets the count of lines of a file
+
+#### long CountOfNotEmptyLines()
+
+Gets the count of non empty lines of a file
+
+#### string Combine(string path1, string path2)
+
+Combines the paths
+
+#### string Combine(string path1, string path2, string path3)
+
+Combines the paths
+
+#### string Combine(string path1, string path2, string path3, string path4)
+
+Combines the paths
+
+#### string Combine(string path1, string path2, string path3, string path4, string path5)
+
+Combines the paths
+
+#### string Combine(string[] paths)
+
+Combines the paths
+
+#### string GetDirectoryName(string path)
+
+Gets the directory name
+
+#### string GetFileName(string path)
+
+Gets the file name
+
+#### string GetFileNameWithoutExtension(string path)
+
+Gets the file name without extension
+
+#### string GetExtension(string path)
+
+Gets the extension
+
+#### string GetMetadata(string directoryName, string tagName)
+
+Gets the metadata of a file
+
+#### string GetMetadata(string tagName)
+
+Gets the metadata of a file
+
+#### bool HasMetadataDirectory(string directoryName)
+
+Checks whether file has metadata directory
+
+#### bool HasMetadataTag(string directoryName, string tagName)
+
+Checks whether file has metadata tag
+
+#### bool HasMetadataTag(string tagName)
+
+Checks whether file has metadata tag
+
+#### string AllMetadataJson()
+
+Gets all metadata of a file and returns it as json
 
 
 ## Standard Methods

@@ -15,6 +15,18 @@ A table in Musoq represents a structured data source with rows and columns. Each
 Allows to perform queries on the given solution file.
 
 
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| GITHUB_API_KEY | false | GitHub API key |
+| GITLAB_API_KEY | false | GitLab API key |
+| EXTERNAL_NUGET_PROPERTIES_RESOLVE_ENDPOINT | false | External server endpoint to resolve properties |
+
+### Columns
+
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | Id | string | Solution id |
@@ -41,6 +53,8 @@ Represent project of solution
 | IsSubmission | bool | Is submission |
 | Version | string | Version |
 | Documents | DocumentEntity[] | Documents |
+| Types | TypeEntity[] | Types |
+| NugetPackages | NugetPackageEntity[] | Nuget packages |
 
 ### DocumentEntity
 
@@ -210,6 +224,49 @@ Represent library reference
 | Culture | string | Culture |
 | Location | string | Location |
 
+### TypeEntity
+
+Represent type within project
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Name | string | Name |
+| FullName | string | Full name |
+| Namespace | string | Namespace |
+| IsInterface | bool | Is interface |
+| IsClass | bool | Is class |
+| IsEnum | bool | Is enum |
+| IsStruct | bool | Is struct |
+| IsAbstract | bool | Is abstract |
+| IsSealed | bool | Is sealed |
+| IsStatic | bool | Is static |
+| IsNested | bool | Is nested |
+| IsGenericType | bool | Is generic type |
+| Modifiers | string[] | Modifiers |
+| Methods | MethodEntity[] | Methods |
+| Properties | PropertyEntity[] | Properties |
+
+### NugetPackageEntity
+
+Represent nuget package
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Id | string | Package ID |
+| Version | string | Package version |
+| LicenseUrl | string | License URL |
+| ProjectUrl | string | Project URL |
+| Title | string | Package title |
+| Authors | string | Package authors |
+| Owners | string | Package owners |
+| RequireLicenseAcceptance | bool | License acceptance required |
+| Description | string | Package description |
+| Summary | string | Package summary |
+| ReleaseNotes | string | Release notes |
+| Copyright | string | Copyright info |
+| Language | string | Language |
+| Tags | string | Tags |
+
 ## This Data Source Methods
 
 Methods allow operations on columns or values within queries. They provide specific operations and transformations on your data (e.g., 'SELECT Method(Column)'). The following methods are available in this data source:
@@ -233,17 +290,21 @@ Gets classes by names.
 
 Gets classes by names.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences(ClassEntity entity)
+#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
 
 Finds references of the specified class entity.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences(InterfaceEntity entity)
+#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
 
 Finds references of the specified interface entity.
 
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences(EnumEntity entity)
+#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
 
 Finds references of the specified interface entity.
+
+#### IEnumerable\<NugetPackageEntity\> GetNugetPackages(bool withTransitivePackages)
+
+Gets the NuGet packages for the specified project entity.
 
 
 ## Standard Methods

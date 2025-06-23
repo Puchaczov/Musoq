@@ -1,310 +1,96 @@
 ---
-title: Linux X64
+title: Alpine X64
 layout: home
-parent: Roslyn
+parent: Docker
 ---
 
-# Musoq.DataSources.Roslyn
-Provides schema to work with Roslyn data source.
+# Musoq.DataSources.Docker
+Provides schema to work with docker containers, images, networks and volumes.
 ## Tables
 
 A table in Musoq represents a structured data source with rows and columns. Each table provides access to specific data types and can be queried using the FROM clause (e.g., 'FROM #source.table()'). Below are the available tables exposed by this data source:
 
-### csharp.solution(string path)
+### docker.containers()
 
-Allows to perform queries on the given solution file.
+Gets containers of local docker
 
-
-### Environment variables
-
-In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
-
-| Name | Is required | Description |
-| --- | --- | --- |
-| GITHUB_API_KEY | false | GitHub API key |
-| GITLAB_API_KEY | false | GitLab API key |
-| EXTERNAL_NUGET_PROPERTIES_RESOLVE_ENDPOINT | false | External server endpoint to resolve properties |
-
-### Columns
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Id | string | Solution id |
-| Projects | ProjectEntity[] | Projects within the solution |
+| ID | string | Container ID |
+| Names | IList\<string\> | Container names |
+| Image | string | Image name |
+| ImageID | string | Image ID |
+| Command | string | Command the container run on with |
+| Created | string | Container created datetime |
+| Ports | IList\<string\> | Mapped ports |
+| SizeRw | long | Size of the created or changed files |
+| SizeRootFs | long | Total size of all files in the container |
+| Labels | IDictionary\<string, string\> | Assigned labels to specific container |
+| Status | string | Status of the container |
+| NetworkSettings | SummaryNetworkSettings | Network settings |
+| Mounts | IList\<MountPoint\> | Mounted points |
+| FlattenPorts | string | Mapped ports as a string with comma delimiter |
 
-## Private Tables
+### docker.images()
 
-Private tables are auxiliary data structures accessible only through CROSS APPLY or OUTER APPLY operators. They typically represent nested or related data structures within the primary table. While not directly queryable, these tables provide essential data relationships and hierarchical access patterns. Available private tables include:
+Gets images of local docker
 
-### ProjectEntity
-
-Represent project of solution
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Id | string | Project id |
-| FilePath | string | File path |
-| OutputFilePath | string | Output file path |
-| OutputRefFilePath | string | Output reference file path |
-| DefaultNamespace | string | Default namespace |
-| Language | string | Language |
-| AssemblyName | string | Assembly name |
-| Name | string | Name |
-| IsSubmission | bool | Is submission |
-| Version | string | Version |
-| Documents | DocumentEntity[] | Documents |
-| Types | TypeEntity[] | Types |
-| NugetPackages | NugetPackageEntity[] | Nuget packages |
-
-### DocumentEntity
-
-Represent document of project
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
+| Containers | long | Number of containers |
+| Created | DateTime | Creation time |
+| ID | string | Unique identifier |
+| Labels | IDictionary\<string, string\> | Set of labels |
+| ParentID | string | Parent's unique identifier |
+| RepoDigests | IList\<string\> | List of repository digests |
+| RepoTags | IList\<string\> | List of repository tags |
+| SharedSize | long | Shared size in bytes |
+| Size | long | Size in bytes |
+| VirtualSize | long | Virtual size in bytes |
 
-### ReferencedDocumentEntity
+### docker.volumes()
 
-Represent referenced document of project
+Gets volumes of local docker
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
-| StartLine | int | Start line |
-| StartColumn | int | Start column |
-| EndLine | int | End line |
-| EndColumn | int | End column |
-
-### ClassEntity
-
-Represent class of document
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Text | string | Text |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| BaseTypes | string[] | Base types |
-| Interfaces | string[] | Interfaces |
-| TypeParameters | string[] | Type parameters |
-| MemberNames | string[] | Member names |
-| Attributes | string[] | Attributes |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-| MethodsCount | int | Methods count |
-| PropertiesCount | int | Properties count |
-| FieldsCount | int | Fields count |
-| InheritanceDepth | int | Inheritance depth |
-| ConstructorsCount | int | Constructors count |
-| NestedClassesCount | int | Nested classes count |
-| NestedInterfacesCount | int | Nested interfaces count |
-| InterfacesCount | int | Interfaces count |
-| LackOfCohesion | int | Lack of cohesion |
-| LinesOfCode | int | Lines of code |
+| CreatedAt | string | Creation time of the volume |
+| Driver | string | Driver used for the volume |
+| Labels | IDictionary\<string, string\> | Set of labels for the volume |
+| Mountpoint | string | Mount point for the volume |
+| Name | string | Name of the volume |
+| Options | IDictionary\<string, string\> | Set of options for the volume |
+| Scope | string | Scope of the volume |
+| Status | IDictionary\<string, string\> | Status information for the volume |
+| UsageData | VolumeUsageData | Usage data for the volume |
 
-### EnumEntity
+### docker.networks()
 
-Represent enum of document
+Gets networks of local docker
+
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Members | string[] | Members |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-
-### InterfaceEntity
-
-Represent interface of document
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| BaseInterfaces | string[] | Base interfaces |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-
-### MethodEntity
-
-Represent method of class
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| ReturnType | string | Return type |
-| Parameters | ParameterEntity[] | Parameters |
-| Modifiers | string[] | Modifiers |
-| Text | string | Text |
-| Attributes | AttributeEntity[] | Attributes |
-| CyclomaticComplexity | int | Cyclomatic complexity |
-
-### PropertyEntity
-
-Represent property of class
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsIndexer | bool | Is indexer |
-| IsReadOnly | bool | Is read only |
-| IsWriteOnly | bool | Is write only |
-| IsRequired | bool | Is required |
-| IsWithEvents | bool | Is with events |
-| IsVirtual | bool | Is virtual |
-| IsOverride | bool | Is override |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| Modifiers | string[] | Modifiers |
-
-### ParameterEntity
-
-Represent parameter of method
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsOptional | bool | Is optional |
-| IsParams | bool | Is params |
-| IsThis | bool | Is this |
-| IsDiscard | bool | Is discard |
-| IsIn | bool | Is in |
-| IsOut | bool | Is out |
-| IsRef | bool | Is ref |
-| IsByRef | bool | Is by ref |
-| IsByValue | bool | Is by value |
-
-### ProjectReferenceEntity
-
-Represent project reference
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-
-### LibraryReferenceEntity
-
-Represent library reference
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Version | string | Version |
-| Culture | string | Culture |
-| Location | string | Location |
-
-### TypeEntity
-
-Represent type within project
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| IsInterface | bool | Is interface |
-| IsClass | bool | Is class |
-| IsEnum | bool | Is enum |
-| IsStruct | bool | Is struct |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| IsNested | bool | Is nested |
-| IsGenericType | bool | Is generic type |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-
-### NugetPackageEntity
-
-Represent nuget package
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Id | string | Package ID |
-| Version | string | Package version |
-| LicenseUrl | string | License URL |
-| ProjectUrl | string | Project URL |
-| Title | string | Package title |
-| Authors | string | Package authors |
-| Owners | string | Package owners |
-| RequireLicenseAcceptance | bool | License acceptance required |
-| Description | string | Package description |
-| Summary | string | Package summary |
-| ReleaseNotes | string | Release notes |
-| Copyright | string | Copyright info |
-| Language | string | Language |
-| Tags | string | Tags |
-
-## This Data Source Methods
-
-Methods allow operations on columns or values within queries. They provide specific operations and transformations on your data (e.g., 'SELECT Method(Column)'). The following methods are available in this data source:
-
-### Non aggregation methods
-
-Non-aggregation methods process data on a row-by-row basis, performing calculations or transformations for each individual row. These methods return a result for each input row. The following non-aggregation methods are available:
-#### IEnumerable\<ProjectEntity\> GetProjectsByNames(string[] names)
-
-Gets projects by names.
-
-#### IEnumerable\<ClassEntity\> GetClassesByNames(string[] names)
-
-Gets classes by names.
-
-#### IEnumerable\<InterfaceEntity\> GetInterfacesByNames(string[] names)
-
-Gets classes by names.
-
-#### IEnumerable\<EnumEntity\> GetEnumsByNames(string[] names)
-
-Gets classes by names.
-
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
-
-Finds references of the specified class entity.
-
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
-
-Finds references of the specified interface entity.
-
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
-
-Finds references of the specified interface entity.
-
-#### IEnumerable\<NugetPackageEntity\> GetNugetPackages(bool withTransitivePackages)
-
-Gets the NuGet packages for the specified project entity.
+| Name | string | Name of the network |
+| ID | string | Unique identifier of the network |
+| Created | DateTime | Creation time of the network |
+| Scope | string | Scope of the network |
+| Driver | string | Driver used for the network |
+| EnableIPv6 | bool | Flag indicating if IPv6 is enabled |
+| IPAM | IPAM | IP Address Management specification |
+| Internal | bool | Flag indicating if the network is internal |
+| Attachable | bool | Flag indicating if the network is attachable |
+| Ingress | bool | Flag indicating if the network is ingress |
+| ConfigFrom | ConfigReference | Network configuration source |
+| ConfigOnly | bool | Flag indicating if the network is configuration only |
+| Containers | IDictionary\<string, EndpointResource\> | Dictionary of connected containers |
+| Options | IDictionary\<string, string\> | Set of options for the network |
+| Labels | IDictionary\<string, string\> | Set of labels for the network |
+| Peers | IList\<PeerInfo\> | List of network peers |
+| Services | IDictionary\<string, ServiceInfo\> | Dictionary of network services |
 
 
 ## Standard Methods

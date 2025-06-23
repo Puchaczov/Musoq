@@ -1,18 +1,18 @@
 ---
-title: Linux X64
+title: Alpine X64
 layout: home
-parent: Roslyn
+parent: Kubernetes
 ---
 
-# Musoq.DataSources.Roslyn
-Provides schema to work with Roslyn data source.
+# Musoq.DataSources.Kubernetes
+Provides schema to work with Kubernetes.
 ## Tables
 
 A table in Musoq represents a structured data source with rows and columns. Each table provides access to specific data types and can be queried using the FROM clause (e.g., 'FROM #source.table()'). Below are the available tables exposed by this data source:
 
-### csharp.solution(string path)
+### kubernetes.deployments()
 
-Allows to perform queries on the given solution file.
+Enumerate deployments
 
 
 ### Environment variables
@@ -21,251 +21,449 @@ In order to use the plugin, the user must set any required environment variables
 
 | Name | Is required | Description |
 | --- | --- | --- |
-| GITHUB_API_KEY | false | GitHub API key |
-| GITLAB_API_KEY | false | GitLab API key |
-| EXTERNAL_NUGET_PROPERTIES_RESOLVE_ENDPOINT | false | External server endpoint to resolve properties |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
 
 ### Columns
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Id | string | Solution id |
-| Projects | ProjectEntity[] | Projects within the solution |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| CreationTimestamp | DateTime? | CreationTimestamp of the DeploymentEntity |
+| Generation | long? | Generation of the DeploymentEntity |
+| ResourceVersion | string | ResourceVersion string |
+| Images | string | Image used within deployment |
+| ImagePullPolicies | string | ImagePullPolicies used within deployment |
+| RestartPolicy | string | RestartPolicy string |
+| ContainersNames | string | Names of containers used within deployment |
+| Statuses | string | Statuses of depl |
 
-## Private Tables
+### kubernetes.pods()
 
-Private tables are auxiliary data structures accessible only through CROSS APPLY or OUTER APPLY operators. They typically represent nested or related data structures within the primary table. While not directly queryable, these tables provide essential data relationships and hierarchical access patterns. Available private tables include:
+Enumerate pods
 
-### ProjectEntity
 
-Represent project of solution
+### Environment variables
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Id | string | Project id |
-| FilePath | string | File path |
-| OutputFilePath | string | Output file path |
-| OutputRefFilePath | string | Output reference file path |
-| DefaultNamespace | string | Default namespace |
-| Language | string | Language |
-| AssemblyName | string | Assembly name |
-| Name | string | Name |
-| IsSubmission | bool | Is submission |
-| Version | string | Version |
-| Documents | DocumentEntity[] | Documents |
-| Types | TypeEntity[] | Types |
-| NugetPackages | NugetPackageEntity[] | Nuget packages |
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
 
-### DocumentEntity
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
 
-Represent document of project
+### Columns
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Type | string | Type string |
+| PF | string | PF string |
+| Ready | string | Ready string |
+| Restarts | string | Restarts string |
+| Status | string | Status string |
+| Cpu | string | Cpu string |
+| Memory | string | Memory string |
+| IP | string | IP string |
 
-### ReferencedDocumentEntity
+### kubernetes.services()
 
-Represent referenced document of project
+Enumerates services
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Text | string | Text |
-| ClassCount | int | Class count |
-| InterfaceCount | int | Interface count |
-| EnumCount | int | Enum count |
-| Classes | ClassEntity[] | Struct count |
-| Interfaces | InterfaceEntity[] | Interfaces |
-| Enums | EnumEntity[] | Enums |
-| StartLine | int | Start line |
-| StartColumn | int | Start column |
-| EndLine | int | End line |
-| EndColumn | int | End column |
 
-### ClassEntity
+### Environment variables
 
-Represent class of document
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Text | string | Text |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| BaseTypes | string[] | Base types |
-| Interfaces | string[] | Interfaces |
-| TypeParameters | string[] | Type parameters |
-| MemberNames | string[] | Member names |
-| Attributes | string[] | Attributes |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
-| MethodsCount | int | Methods count |
-| PropertiesCount | int | Properties count |
-| FieldsCount | int | Fields count |
-| InheritanceDepth | int | Inheritance depth |
-| ConstructorsCount | int | Constructors count |
-| NestedClassesCount | int | Nested classes count |
-| NestedInterfacesCount | int | Nested interfaces count |
-| InterfacesCount | int | Interfaces count |
-| LackOfCohesion | int | Lack of cohesion |
-| LinesOfCode | int | Lines of code |
+| Metadata | V1ObjectMeta | Metadata of the ServiceEntity |
+| Spec | V1ServiceSpec | Spec of the ServiceEntity |
+| Kind | string | Kind string |
+| Status | V1ServiceStatus | Status of the ServiceEntity |
 
-### EnumEntity
+### kubernetes.nodes()
 
-Represent enum of document
+Enumerates nodes
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| Members | string[] | Members |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
+| Name | string | Name string |
+| Status | string | Status string |
+| Roles | string | Roles string |
+| Age | DateTime? | Age of the NodeEntity |
+| Version | string | Version string |
+| Kernel | string | Kernel string |
+| OS | string | OS string |
+| Architecture | string | Architecture string |
+| ContainerRuntime | string | Container Runtime string |
+| Cpu | string | CPU string |
+| Memory | string | Memory string |
 
-### InterfaceEntity
+### kubernetes.configmaps()
 
-Represent interface of document
+Enumerate configmaps
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Document | DocumentEntity | Document |
-| BaseInterfaces | string[] | Base interfaces |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
 
-### MethodEntity
+### Environment variables
 
-Represent method of class
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| ReturnType | string | Return type |
-| Parameters | ParameterEntity[] | Parameters |
-| Modifiers | string[] | Modifiers |
-| Text | string | Text |
-| Attributes | AttributeEntity[] | Attributes |
-| CyclomaticComplexity | int | Cyclomatic complexity |
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
 
-### PropertyEntity
-
-Represent property of class
+### Columns
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsIndexer | bool | Is indexer |
-| IsReadOnly | bool | Is read only |
-| IsWriteOnly | bool | Is write only |
-| IsRequired | bool | Is required |
-| IsWithEvents | bool | Is with events |
-| IsVirtual | bool | Is virtual |
-| IsOverride | bool | Is override |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| Modifiers | string[] | Modifiers |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Age | DateTime? | Age |
 
-### ParameterEntity
+### kubernetes.cronJobs()
 
-Represent parameter of method
+Enumerate cron jobs
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Type | string | Type |
-| IsOptional | bool | Is optional |
-| IsParams | bool | Is params |
-| IsThis | bool | Is this |
-| IsDiscard | bool | Is discard |
-| IsIn | bool | Is in |
-| IsOut | bool | Is out |
-| IsRef | bool | Is ref |
-| IsByRef | bool | Is by ref |
-| IsByValue | bool | Is by value |
 
-### ProjectReferenceEntity
+### Environment variables
 
-Represent project reference
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Name | string | Name |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Schedule | string | Dictionary of the schedule |
+| Active | bool | Flag indicating if the job is active |
+| LastScheduleTime | DateTime? | Last schedule time of the job |
 
-### LibraryReferenceEntity
+### kubernetes.daemonSets()
 
-Represent library reference
+Enumerate daemonsets
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| Version | string | Version |
-| Culture | string | Culture |
-| Location | string | Location |
 
-### TypeEntity
+### Environment variables
 
-Represent type within project
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| Name | string | Name |
-| FullName | string | Full name |
-| Namespace | string | Namespace |
-| IsInterface | bool | Is interface |
-| IsClass | bool | Is class |
-| IsEnum | bool | Is enum |
-| IsStruct | bool | Is struct |
-| IsAbstract | bool | Is abstract |
-| IsSealed | bool | Is sealed |
-| IsStatic | bool | Is static |
-| IsNested | bool | Is nested |
-| IsGenericType | bool | Is generic type |
-| Modifiers | string[] | Modifiers |
-| Methods | MethodEntity[] | Methods |
-| Properties | PropertyEntity[] | Properties |
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
 
-### NugetPackageEntity
-
-Represent nuget package
+### Columns
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| Id | string | Package ID |
-| Version | string | Package version |
-| LicenseUrl | string | License URL |
-| ProjectUrl | string | Project URL |
-| Title | string | Package title |
-| Authors | string | Package authors |
-| Owners | string | Package owners |
-| RequireLicenseAcceptance | bool | License acceptance required |
-| Description | string | Package description |
-| Summary | string | Package summary |
-| ReleaseNotes | string | Release notes |
-| Copyright | string | Copyright info |
-| Language | string | Language |
-| Tags | string | Tags |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Desired | int | Desired number of entities |
+| Current | int | Current number of entities |
+| Ready | int | Number of ready entities |
+| UpToDate | int? | Number of up-to-date entities |
+| Available | int? | Number of available entities |
+| Age | DateTime? | Age of the entity |
+
+### kubernetes.jobs()
+
+Enumerate jobs
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Completions | int | Number of completions |
+| Duration | TimeSpan? | Duration of job execution |
+| Images | string | Images string |
+| Age | DateTime? | Age of the job |
+
+### kubernetes.persistentVolumeClaims()
+
+Enumerate persistent volume claims
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Status | string | Status string |
+| Volume | string | Volume string |
+| Capacity | string | Capacity string |
+| Age | DateTime? | Age of the PersistentVolumeClaimsEntity |
+
+### kubernetes.persistentVolumes()
+
+Enumerate persistent volumes
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Name | string | Name string |
+| Capacity | IDictionary\<string, ResourceQuantity\> | Dictionary of capacities |
+| AccessModes | string | AccessModes string |
+| ReclaimPolicy | string | Reclaim policy string |
+| Status | string | Status string |
+| Claim | string | Claim string |
+| StorageClass | string | StorageClass string |
+| Reason | string | Reason string |
+| Age | DateTime? | Age of the PersistentVolumeEntity |
+
+### kubernetes.replicaSets()
+
+Enumerate replicasets
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Desired | int? | Desired number of replicas |
+| Current | string | Current string |
+| ReadyAge | DateTime? | Age when the ReplicaSetEntity is ready |
+
+### kubernetes.secretsData()
+
+Enumerate secrets data
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Key | string | Key string |
+| Value | byte[] | Value byte array |
+
+### kubernetes.secrets()
+
+Enumerate secrets
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Type | string | Type string |
+| Age | DateTime? | Age of the SecretEntity |
+
+### kubernetes.statefulsets()
+
+Enumerate statefulsets
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| Replicas | int? | Number of replicas |
+| Age | DateTime? | Age of the StatefulSetEntity |
+
+### kubernetes.podcontainers()
+
+Enumerate pod containers
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| ContainerName | string | Container name string |
+| Image | string | Image string |
+| ImagePullPolicy | string | Image pull policy string |
+| Age | DateTime? | Container age |
+
+### kubernetes.podlogs(string podName, string string containerName, string namespace)
+
+Enumerate pod containers
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Namespace | string | Namespace string |
+| Name | string | Name string |
+| ContainerName | string | Container name string |
+| Line | string | Line string |
+
+### kubernetes.events()
+
+Enumerate events
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Action | string | Action string |
+| ApiVersion | string | ApiVersion string |
+| Count | int? | Count of the event |
+| EventTime | DateTime? | EventTime of the event |
+| FirstTimestamp | DateTime? | FirstTimestamp of the event |
+| InvolvedObject | V1ObjectReference | InvolvedObject of the event |
+| Kind | string | Kind string |
+| LastTimestamp | DateTime? | LastTimestamp of the event |
+| Message | string | Message string |
+| Reason | string | Reason string |
+| Related | V1ObjectReference | Related of the event |
+| ReportingComponent | string | ReportingComponent string |
+| ReportingInstance | string | ReportingInstance string |
+| Series | Corev1EventSeries | Series of the event |
+| Source | V1EventSource | Source of the event |
+| Type | string | Type string |
+
+### kubernetes.events(string namespace)
+
+Enumerate events
+
+
+### Environment variables
+
+In order to use the plugin, the user must set any required environment variables as specified in the environments element. Failure to do so may result in the plugin not functioning correctly.
+
+| Name | Is required | Description |
+| --- | --- | --- |
+| MUSOQ_KUBERNETES_CONFIG_FILE | false | Kubernetes config file |
+
+### Columns
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| Action | string | Action string |
+| ApiVersion | string | ApiVersion string |
+| Count | int? | Count of the event |
+| EventTime | DateTime? | EventTime of the event |
+| FirstTimestamp | DateTime? | FirstTimestamp of the event |
+| InvolvedObject | V1ObjectReference | InvolvedObject of the event |
+| Kind | string | Kind string |
+| LastTimestamp | DateTime? | LastTimestamp of the event |
+| Message | string | Message string |
+| Reason | string | Reason string |
+| Related | V1ObjectReference | Related of the event |
+| ReportingComponent | string | ReportingComponent string |
+| ReportingInstance | string | ReportingInstance string |
+| Series | Corev1EventSeries | Series of the event |
+| Source | V1EventSource | Source of the event |
+| Type | string | Type string |
 
 ## This Data Source Methods
 
@@ -274,37 +472,21 @@ Methods allow operations on columns or values within queries. They provide speci
 ### Non aggregation methods
 
 Non-aggregation methods process data on a row-by-row basis, performing calculations or transformations for each individual row. These methods return a result for each input row. The following non-aggregation methods are available:
-#### IEnumerable\<ProjectEntity\> GetProjectsByNames(string[] names)
+#### string EncodeSecret(string text)
 
-Gets projects by names.
+Encodes the secret.
 
-#### IEnumerable\<ClassEntity\> GetClassesByNames(string[] names)
+#### string EncodeSecret(string text, string encoding)
 
-Gets classes by names.
+Encodes the secret.
 
-#### IEnumerable\<InterfaceEntity\> GetInterfacesByNames(string[] names)
+#### string DecodeSecret(string text)
 
-Gets classes by names.
+Decodes the secret.
 
-#### IEnumerable\<EnumEntity\> GetEnumsByNames(string[] names)
+#### string GetLabelOrDefault(string key)
 
-Gets classes by names.
-
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
-
-Finds references of the specified class entity.
-
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
-
-Finds references of the specified interface entity.
-
-#### IEnumerable\<ReferencedDocumentEntity\> FindReferences()
-
-Finds references of the specified interface entity.
-
-#### IEnumerable\<NugetPackageEntity\> GetNugetPackages(bool withTransitivePackages)
-
-Gets the NuGet packages for the specified project entity.
+Gets the pod container label.
 
 
 ## Standard Methods
