@@ -128,6 +128,7 @@ Musoq is ideal for small to medium datasets where the cognitive efficiency of SQ
 ## 📑 Documentation & Resources
 
 - **[Documentation](https://puchaczov.github.io/Musoq/)**: Project overview and documentation
+- **[Architecture Guide](ARCHITECTURE.md)**: Comprehensive architecture documentation for developers
 - **[Data Sources](https://github.com/Puchaczov/Musoq.DataSources)**: All data sources resides here
 - **[CLI Tool](https://github.com/Puchaczov/Musoq.CLI)**: CLI tool that allows to runs musoq queries
 
