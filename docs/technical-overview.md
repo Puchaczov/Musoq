@@ -1,3 +1,9 @@
+---
+title: Technical Overview
+layout: default
+nav_order: 3
+---
+
 # Technical Overview
 
 ## What is Musoq?

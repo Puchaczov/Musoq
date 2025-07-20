@@ -284,22 +284,6 @@ public class MySchema : SchemaBase
 }
 ```
 
-## Performance Considerations
-
-### 1. **Compilation Strategy**
-- JIT compilation for dynamic queries
-- Assembly caching for repeated queries
-- Optimized IL generation
-
-### 2. **Memory Management**
-- Streaming data processing
-- Minimal object allocation
-- Efficient garbage collection
-
-### 3. **Data Source Optimization**
-- Predicate pushdown to data sources
-- Parallel processing where applicable
-- Connection pooling and reuse
 
 ## Error Handling Strategy
 
@@ -335,39 +319,9 @@ public class MySchema : SchemaBase
 - Function library testing
 - Compatibility verification
 
-## Future Extensibility Points
 
-### 1. **Query Optimization**
-- Cost-based optimization
-- Query plan caching
-- Adaptive execution strategies
 
-### 2. **Data Source Expansion**
-- New plugin implementations
-- Protocol-specific optimizations
-- Cloud service integrations
 
-### 3. **Language Extensions**
-- Additional SQL features
-- Domain-specific languages
-- Query composition patterns
-
-## Security Considerations
-
-### 1. **Code Generation Security**
-- Sanitized code generation
-- Assembly isolation
-- Resource access controls
-
-### 2. **Data Source Security**
-- Authentication integration
-- Authorization checks
-- Secure communication protocols
-
-### 3. **Plugin Security**
-- Plugin validation
-- Sandboxed execution
-- Permission management
 
 ---
 
