@@ -42,6 +42,13 @@ The fastest way to try Musoq is through the [CLI tool](https://github.com/Puchac
 
 For detailed documentation, examples, and implementation details, please visit this [GitHub repository](https://github.com/Puchaczov/Musoq).
 
+## Developer Resources
+
+- **[Architecture Guide](architecture.html)**: Comprehensive technical documentation for developers
+- **[Data Sources](data-sources.html)**: Available data sources and usage examples
+- **[SQL Syntax](sql-syntax-of-the-tool.html)**: SQL syntax reference and extensions
+- **[Practical Examples](practical-examples-and-applications.html)**: Real-world usage examples
+
 ----
 
 [^1]: [It can take up to 10 minutes for changes to your site to publish after you push the changes to GitHub](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/creating-a-github-pages-site-with-jekyll#creating-your-site).
