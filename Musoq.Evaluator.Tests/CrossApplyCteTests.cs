@@ -276,7 +276,7 @@ select [a.Name], [b.Value] from p";
             );
 
             // Verify count of appearances
-            Assert.AreEqual(3, actualPairs.Count(p => p.Name == name),
+            Assert.AreEqual(3, actualPairs.Count(p => (string)p.Name == name),
                 $"{name} should appear exactly 3 times");
         }
     }
