@@ -888,7 +888,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         else
         {
             var name = _aliasMapToInMemoryTableMap[node.SourceAlias];
-            table = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name).FullTable;
+            table = FindTableSymbolInScopeHierarchy(name).FullTable;
             schema = new TransitionSchema(name, table);
         }
 
@@ -2216,5 +2216,21 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             "Intersect" => new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
             _ => throw new NotSupportedException($"Set operator '{setOperatorName}' is not supported.")
         };
+    }
+
+    private TableSymbol FindTableSymbolInScopeHierarchy(string name)
+    {
+        var scope = _currentScope;
+        while (scope != null)
+        {
+            if (scope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(name, out var tableSymbol))
+            {
+                return tableSymbol;
+            }
+            scope = scope.Parent;
+        }
+        
+        // If not found in any scope, fall back to current scope behavior for error consistency
+        return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
     }
 }
