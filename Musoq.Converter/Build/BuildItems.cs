@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
@@ -38,8 +39,14 @@ public class BuildItems : Dictionary<string, object>
 
     public string RawQuery
     {
-        get => (string)this["RAW_QUERY"];
-        set => this["RAW_QUERY"] = value;
+        get => TryGetValue("RAW_QUERY", out var value) && value is string str ? str : 
+               throw AstValidationException.ForInvalidNodeStructure("BuildItems", "RawQuery access", "RawQuery is not set or is null");
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw AstValidationException.ForInvalidNodeStructure("BuildItems", "RawQuery setting", "RawQuery cannot be null or whitespace");
+            this["RAW_QUERY"] = value;
+        }
     }
 
     public string AssemblyName

@@ -10,8 +10,15 @@ using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser;
 
-public class Parser(Lexer lexer)
+public class Parser
 {
+    private readonly Lexer _lexer;
+    
+    public Parser(Lexer lexer)
+    {
+        _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer), "Lexer cannot be null. Please provide a valid lexer instance.");
+    }
+
     private static readonly TokenType[] SetOperators =
         [TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect];
 
@@ -31,7 +38,7 @@ public class Parser(Lexer lexer)
             {TokenType.Dot, (3, Associativity.Left)}
         };
 
-    private Token Current => _hasReplacedToken ? _replacedToken : lexer.Current();
+    private Token Current => _hasReplacedToken ? _replacedToken : _lexer.Current();
         
     private Token Previous => _previousToken;
 
@@ -43,14 +50,25 @@ public class Parser(Lexer lexer)
 
     public RootNode ComposeAll()
     {
-        lexer.Next();
-        var statements = new List<StatementNode>();
-        while (Current.TokenType != TokenType.EndOfFile)
+        try
         {
-            statements.Add(ComposeStatement());
-        }
+            _lexer.Next();
+            var statements = new List<StatementNode>();
+            while (Current.TokenType != TokenType.EndOfFile)
+            {
+                var statement = ComposeStatement();
+                if (statement == null)
+                    throw new SyntaxException("Failed to compose statement. The SQL query structure is invalid.", _lexer.AlreadyResolvedQueryPart);
+                
+                statements.Add(statement);
+            }
 
-        return new RootNode(new StatementsArrayNode(statements.ToArray()));
+            return new RootNode(new StatementsArrayNode(statements.ToArray()));
+        }
+        catch (Exception ex) when (!(ex is SyntaxException))
+        {
+            throw new SyntaxException($"An error occurred while parsing the SQL query: {ex.Message}", _lexer.AlreadyResolvedQueryPart, ex);
+        }
     }
 
     private StatementNode ComposeStatement()
@@ -71,7 +89,7 @@ public class Parser(Lexer lexer)
                 return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeCouple()), TokenType.Semicolon);
 
             default:
-                throw new SyntaxException($"Cannot compose statement, {Current.TokenType} is not expected here", lexer.AlreadyResolvedQueryPart);
+                throw new SyntaxException($"Cannot compose statement, {Current.TokenType} is not expected here", _lexer.AlreadyResolvedQueryPart);
         }
     }
 
@@ -160,7 +178,7 @@ public class Parser(Lexer lexer)
 
         if (ComposeBaseTypes() is not IdentifierNode col)
         {
-            throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}", lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}", _lexer.AlreadyResolvedQueryPart);
         }
             
         Consume(TokenType.As);
@@ -177,7 +195,7 @@ public class Parser(Lexer lexer)
 
             if (col is null)
             {
-                throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}", lexer.AlreadyResolvedQueryPart);
+                throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}", _lexer.AlreadyResolvedQueryPart);
             }
                 
             Consume(TokenType.As);
@@ -405,14 +423,14 @@ public class Parser(Lexer lexer)
                 
         if (Current.TokenType == TokenType.Comma)
         {
-            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.", lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.", _lexer.AlreadyResolvedQueryPart);
         }
 
         var fields = ComposeFields();
 
         if (Previous.TokenType == TokenType.Comma && Current.TokenType == TokenType.EndOfFile)
         {
-            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.", lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.", _lexer.AlreadyResolvedQueryPart);
         }
                 
         if (fields.Length == 0) throw new NotSupportedException("Group by clause does not have any fields.");
@@ -433,14 +451,14 @@ public class Parser(Lexer lexer)
             
         if (Current.TokenType == TokenType.Comma)
         {
-            throw new SyntaxException("Unnecessary comma found after SELECT keyword.", lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException("Unnecessary comma found after SELECT keyword.", _lexer.AlreadyResolvedQueryPart);
         }
 
         var fields = ComposeFields();
             
         if (Previous.TokenType == TokenType.Comma && Current.TokenType == TokenType.From)
         {
-            throw new SyntaxException("Unnecessary comma found at the end of SELECT clause.", lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException("Unnecessary comma found at the end of SELECT clause.", _lexer.AlreadyResolvedQueryPart);
         }
 
         return new SelectNode(fields);
@@ -809,20 +827,20 @@ public class Parser(Lexer lexer)
     private void Consume(TokenType tokenType)
     {
         if (!Current.TokenType.Equals(tokenType))
-            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.", lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
             
         _previousToken = Current;
         _hasReplacedToken = false;
-        lexer.Next();
+        _lexer.Next();
     }
         
     private void ConsumeAsColumn(TokenType tokenType)
     {
         if (!Current.TokenType.Equals(tokenType))
-            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.", lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
             
         _hasReplacedToken = false;
-        lexer.NextOf(new Regex(Lexer.TokenRegexDefinition.KColumn), value => new ColumnToken(value, new TextSpan(lexer.Position, lexer.Position + value.Length)));
+        _lexer.NextOf(new Regex(Lexer.TokenRegexDefinition.KColumn), value => new ColumnToken(value, new TextSpan(_lexer.Position, _lexer.Position + value.Length)));
     }
 
     private ArgsListNode ComposeArgs()

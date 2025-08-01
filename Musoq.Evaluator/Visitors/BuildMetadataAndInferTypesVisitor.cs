@@ -35,10 +35,15 @@ using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 namespace Musoq.Evaluator.Visitors;
 
 public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOnlyDictionary<string, string[]> columns, ILogger<BuildMetadataAndInferTypesVisitor> logger)
-    : IAwareExpressionVisitor
+    : DefensiveVisitorBase, IAwareExpressionVisitor
 {
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
+
+    /// <summary>
+    /// Gets the name of this visitor for error reporting.
+    /// </summary>
+    protected override string VisitorName => nameof(BuildMetadataAndInferTypesVisitor);
 
     private readonly List<AccessMethodNode> _refreshMethods = [];
     private readonly List<object> _schemaFromArgs = [];
@@ -152,66 +157,76 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(DescNode node)
     {
-        Nodes.Push(new DescNode((FromNode) Nodes.Pop(), node.Type));
+        var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
+        Nodes.Push(new DescNode(fromNode, node.Type));
     }
 
     public void Visit(StarNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(StarNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new StarNode(left, right));
     }
 
     public void Visit(FSlashNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(FSlashNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new FSlashNode(left, right));
     }
 
     public void Visit(ModuloNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(ModuloNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new ModuloNode(left, right));
     }
 
     public void Visit(AddNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AddNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new AddNode(left, right));
     }
 
     public void Visit(HyphenNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(HyphenNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new HyphenNode(left, right));
     }
 
     public void Visit(AndNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AndNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new AndNode(left, right));
     }
 
     public void Visit(OrNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(OrNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new OrNode(left, right));
     }
 
     public void Visit(ShortCircuitingNodeLeft node)
     {
-        Nodes.Push(new ShortCircuitingNodeLeft(Nodes.Pop(), node.UsedFor));
+        var childNode = SafePop(Nodes, nameof(Visit) + nameof(ShortCircuitingNodeLeft));
+        Nodes.Push(new ShortCircuitingNodeLeft(childNode, node.UsedFor));
     }
 
     public void Visit(ShortCircuitingNodeRight node)
     {
-        Nodes.Push(new ShortCircuitingNodeRight(Nodes.Pop(), node.UsedFor));
+        var childNode = SafePop(Nodes, nameof(Visit) + nameof(ShortCircuitingNodeRight));
+        Nodes.Push(new ShortCircuitingNodeRight(childNode, node.UsedFor));
     }
 
     public void Visit(EqualityNode node)
@@ -284,12 +299,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(FieldNode node)
     {
-        Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));
+        var expression = SafePop(Nodes, nameof(Visit) + nameof(FieldNode));
+        Nodes.Push(new FieldNode(expression, node.FieldOrder, node.FieldName));
     }
 
     public void Visit(FieldOrderedNode node)
     {
-        Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.Order));
+        var expression = SafePop(Nodes, nameof(Visit) + nameof(FieldOrderedNode));
+        Nodes.Push(new FieldOrderedNode(expression, node.FieldOrder, node.FieldName, node.Order));
     }
 
     public void Visit(SelectNode node)
@@ -380,56 +397,86 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(AccessColumnNode node)
     {
-        var hasProcessedQueryId = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
-        var identifier = (hasProcessedQueryId
-            ? _currentScope[MetaAttributes.ProcessedQueryId]
-            : _identifier) ?? node.Alias;
-
-        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
-
-        var tuple = !string.IsNullOrEmpty(node.Alias)
-            ? tableSymbol.GetTableByAlias(node.Alias)
-            : tableSymbol.GetTableByColumnName(node.Name);
-
-        ISchemaColumn column;
         try
         {
-            column = tuple.Table.GetColumnByName(node.Name);
-        }
-        catch (KeyNotFoundException)
-        {
-            column = null;
-        }
-        catch (InvalidOperationException)
-        {
-            column = null;
-        }
+            var hasProcessedQueryId = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
+            var identifier = (hasProcessedQueryId
+                ? _currentScope[MetaAttributes.ProcessedQueryId]
+                : _identifier) ?? node.Alias;
 
-        if (column == null)
-        {
-            PrepareAndThrowUnknownColumnExceptionMessage(node.Name, tuple.Table.Columns);
-            return;
-        }
-
-        AddAssembly(column.ColumnType.Assembly);
-        node.ChangeReturnType(column.ColumnType);
-
-        var usedColumns = _usedColumns
-            .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == _schemaFromKey)
-            .Select(f => f.Value)
-            .FirstOrDefault();
-
-        if (usedColumns is not null)
-        {
-            if (usedColumns.All(c => c.ColumnName != column.ColumnName))
+            if (string.IsNullOrEmpty(identifier))
             {
-                usedColumns.Add(column);
+                throw VisitorException.CreateForProcessingFailure(
+                    VisitorName,
+                    nameof(Visit) + nameof(AccessColumnNode),
+                    "No valid identifier found for column access",
+                    "Ensure the query has proper FROM clause and table aliases are correctly specified."
+                );
             }
+
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
+            if (tableSymbol == null)
+            {
+                throw VisitorException.CreateForProcessingFailure(
+                    VisitorName,
+                    nameof(Visit) + nameof(AccessColumnNode),
+                    $"Table symbol not found for identifier '{identifier}'",
+                    "Verify that the table or alias is properly defined in the query."
+                );
+            }
+
+            var tuple = !string.IsNullOrEmpty(node.Alias)
+                ? tableSymbol.GetTableByAlias(node.Alias)
+                : tableSymbol.GetTableByColumnName(node.Name);
+
+            ISchemaColumn column;
+            try
+            {
+                column = tuple.Table.GetColumnByName(node.Name);
+            }
+            catch (KeyNotFoundException)
+            {
+                column = null;
+            }
+            catch (InvalidOperationException)
+            {
+                column = null;
+            }
+
+            if (column == null)
+            {
+                PrepareAndThrowUnknownColumnExceptionMessage(node.Name, tuple.Table.Columns);
+                return;
+            }
+
+            AddAssembly(column.ColumnType.Assembly);
+            node.ChangeReturnType(column.ColumnType);
+
+            var usedColumns = _usedColumns
+                .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == _schemaFromKey)
+                .Select(f => f.Value)
+                .FirstOrDefault();
+
+            if (usedColumns is not null)
+            {
+                if (usedColumns.All(c => c.ColumnName != column.ColumnName))
+                {
+                    usedColumns.Add(column);
+                }
+            }
+
+            var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span);
+            Nodes.Push(accessColumn);
         }
-
-        var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span);
-
-        Nodes.Push(accessColumn);
+        catch (Exception ex) when (!(ex is VisitorException))
+        {
+            throw VisitorException.CreateForProcessingFailure(
+                VisitorName,
+                nameof(Visit) + nameof(AccessColumnNode),
+                $"Failed to process column access for '{node.Name}': {ex.Message}",
+                "Check that the column exists in the specified table and that table aliases are correct."
+            );
+        }
     }
 
     public void Visit(AllColumnsNode node)

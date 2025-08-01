@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
+using Musoq.Schema.Exceptions;
 using Musoq.Schema.Helpers;
 
 namespace Musoq.Schema.Managers;
@@ -133,12 +134,20 @@ public class MethodsMetadata
     /// <returns>Method that fits requirements.</returns>
     public MethodInfo GetMethod(string name, Type[] methodArgs, Type entityType)
     {
+        // Add defensive programming checks
+        if (string.IsNullOrWhiteSpace(name))
+            throw SchemaArgumentException.ForEmptyString(nameof(name), "resolving a method");
+
+        if (methodArgs == null)
+            throw SchemaArgumentException.ForNullArgument(nameof(methodArgs), "resolving a method");
+
         if (!TryGetAnnotatedMethod(name, methodArgs, entityType, out var index))
         {
-            var args = methodArgs.Length == 0
-                ? string.Empty
-                : methodArgs.Select(arg => arg.Name).Aggregate((a, b) => a + ", " + b);
-            throw new MissingMethodException("Unresolvable", $"{name}({args})");
+            // Get available method signatures for better error message
+            var availableSignatures = GetAvailableMethodSignatures(name);
+            var providedTypes = methodArgs.Select(arg => arg?.Name ?? "null").ToArray();
+            
+            throw MethodResolutionException.ForUnresolvedMethod(name, providedTypes, availableSignatures);
         }
 
         return _methods[name][index];
@@ -605,5 +614,18 @@ public class MethodsMetadata
     private static int GetNumericConversionCost(Type from, Type to)
     {
         return ConversationCosts.GetValueOrDefault((from, to), int.MaxValue);
+    }
+
+    private string[] GetAvailableMethodSignatures(string methodName)
+    {
+        if (!_methods.TryGetValue(methodName, out var methods))
+            return [];
+
+        return methods.Select(m =>
+        {
+            var parameters = m.GetParameters();
+            var paramTypes = parameters.Select(p => p.ParameterType.Name).ToArray();
+            return $"{methodName}({string.Join(", ", paramTypes)})";
+        }).ToArray();
     }
 }

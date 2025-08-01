@@ -40,10 +40,15 @@ using TextSpan = Musoq.Parser.TextSpan;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
+public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTranslationExpressionVisitor
 {
     private const char EscapeQuoteStringCharacter = '"';
     private const char EscapeQuoteStringCharacterReplacement = '\'';
+
+    /// <summary>
+    /// Gets the name of this visitor for error reporting.
+    /// </summary>
+    protected override string VisitorName => nameof(ToCSharpRewriteTreeVisitor);
 
     private readonly Dictionary<string, int> _inMemoryTableIndexes = new();
     private readonly List<string> _loadedAssemblies = [];
@@ -83,6 +88,12 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
         string assemblyName)
     {
+        // Validate constructor parameters
+        ValidateConstructorParameter(nameof(assemblies), assemblies);
+        ValidateConstructorParameter(nameof(setOperatorFieldIndexes), setOperatorFieldIndexes);
+        ValidateConstructorParameter(nameof(inferredColumns), inferredColumns);
+        ValidateStringParameter(nameof(assemblyName), assemblyName, "constructor");
+
         _setOperatorFieldIndexes = setOperatorFieldIndexes;
         InferredColumns = inferredColumns;
         Workspace = new AdhocWorkspace();
@@ -93,11 +104,14 @@ public class ToCSharpRewriteTreeVisitor : IToCSharpTranslationExpressionVisitor
         Compilation = CSharpCompilation.Create(assemblyName);
         Compilation = Compilation.AddReferences(RuntimeLibraries.References);
 
-        AddReference(typeof(object));
-        AddReference(typeof(CancellationToken));
-        AddReference(typeof(ISchema));
-        AddReference(typeof(LibraryBase));
-        AddReference(typeof(Table));
+        SafeExecute(() =>
+        {
+            AddReference(typeof(object));
+            AddReference(typeof(CancellationToken));
+            AddReference(typeof(ISchema));
+            AddReference(typeof(LibraryBase));
+            AddReference(typeof(Table));
+        }, "initializing references");
         AddReference(typeof(SyntaxFactory));
         AddReference(typeof(ExpandoObject));
         AddReference(typeof(SchemaFromNode));
