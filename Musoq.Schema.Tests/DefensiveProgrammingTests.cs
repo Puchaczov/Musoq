@@ -1,10 +1,16 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
+using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
+using System.Collections.Generic;
 
 namespace Musoq.Schema.Tests.DefensiveProgramming;
 
@@ -90,10 +96,91 @@ public class DefensiveProgrammingTests
         Assert.AreEqual("methodArgs", exception.ParamName);
     }
 
+    [TestMethod]
+    public void CloneQueryVisitor_Should_ThrowMeaningfulException_WhenStackEmpty()
+    {
+        // Arrange
+        var visitor = new CloneQueryVisitor();
+
+        // Act & Assert
+        var exception = Assert.ThrowsException<VisitorException>(() => visitor.Root);
+        Assert.IsTrue(exception.Message.Contains("Stack underflow"));
+        Assert.IsTrue(exception.Message.Contains("CloneQueryVisitor"));
+        Assert.AreEqual("CloneQueryVisitor", exception.VisitorName);
+    }
+
+    [TestMethod]
+    public void DefensiveVisitorBase_Should_ThrowMeaningfulException_WhenStackUnderflow()
+    {
+        // Arrange
+        var visitor = new TestDefensiveVisitor();
+        var nodes = new Stack<Node>();
+
+        // Act & Assert
+        var exception = Assert.ThrowsException<VisitorException>(() => visitor.TestSafePop(nodes));
+        Assert.IsTrue(exception.Message.Contains("Stack underflow"));
+        Assert.IsTrue(exception.Message.Contains("Expected at least 1 item"));
+        Assert.IsTrue(exception.Message.Contains("found 0"));
+    }
+
+    [TestMethod]
+    public void DefensiveVisitorBase_Should_ThrowMeaningfulException_WhenInvalidNodeType()
+    {
+        // Arrange
+        var visitor = new TestDefensiveVisitor();
+        var stringNode = new StringNode("test");
+
+        // Act & Assert
+        var exception = Assert.ThrowsException<VisitorException>(() => visitor.TestSafeCast<IntegerNode>(stringNode));
+        Assert.IsTrue(exception.Message.Contains("Invalid node type"));
+        Assert.IsTrue(exception.Message.Contains("Expected 'IntegerNode'"));
+        Assert.IsTrue(exception.Message.Contains("got 'StringNode'"));
+    }
+
+    [TestMethod]
+    public void DefensiveVisitorBase_Should_ThrowMeaningfulException_WhenNullNode()
+    {
+        // Arrange
+        var visitor = new TestDefensiveVisitor();
+
+        // Act & Assert
+        var exception = Assert.ThrowsException<VisitorException>(() => visitor.TestSafeCast<StringNode>(null));
+        Assert.IsTrue(exception.Message.Contains("Expected 'StringNode' node but received null"));
+        Assert.IsTrue(exception.Message.Contains("AST processing error"));
+    }
+
+    [TestMethod]
+    public void ToCSharpRewriteTreeVisitor_Should_ThrowMeaningfulException_WhenNullAssemblies()
+    {
+        // Act & Assert
+        var exception = Assert.ThrowsException<VisitorException>(() => 
+            new ToCSharpRewriteTreeVisitor(null, new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "test"));
+        Assert.IsTrue(exception.Message.Contains("cannot be null"));
+        Assert.IsTrue(exception.Message.Contains("ToCSharpRewriteTreeVisitor"));
+    }
+
+    [TestMethod]
+    public void ToCSharpRewriteTreeVisitor_Should_ThrowMeaningfulException_WhenEmptyAssemblyName()
+    {
+        // Act & Assert
+        var exception = Assert.ThrowsException<VisitorException>(() => 
+            new ToCSharpRewriteTreeVisitor(new System.Reflection.Assembly[0], new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), ""));
+        Assert.IsTrue(exception.Message.Contains("cannot be null or empty"));
+        Assert.IsTrue(exception.Message.Contains("assemblyName"));
+    }
+
     private class TestSchema : SchemaBase
     {
         public TestSchema(string name, MethodsAggregator methodsAggregator) : base(name, methodsAggregator)
         {
         }
+    }
+
+    private class TestDefensiveVisitor : DefensiveVisitorBase
+    {
+        protected override string VisitorName => "TestDefensiveVisitor";
+
+        public Node TestSafePop(Stack<Node> nodes) => SafePop(nodes, "TestOperation");
+        public T TestSafeCast<T>(Node node) where T : Node => SafeCast<T>(node, "TestOperation");
     }
 }
