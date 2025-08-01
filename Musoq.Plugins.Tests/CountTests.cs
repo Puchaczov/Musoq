@@ -58,7 +58,7 @@ public class CountTests : LibraryBaseBaseTests
         Library.SetCount(Group, "test", "1");
         Library.SetCount(Group, "test", "4");
         Library.SetCount(Group, "test", "5");
-        Library.SetCount(Group, "test", (string)null);
+        Library.SetCount(Group, "test", (string?)null);
 
         Assert.AreEqual(3, Library.Count(Group, "test"));
     }
@@ -69,7 +69,7 @@ public class CountTests : LibraryBaseBaseTests
         Library.SetCount(Group, "test", "1", 1);
         Library.SetCount(Group, "test", "4", 1);
         Library.SetCount(Group, "test", "6");
-        Library.SetCount(Group, "test", (string)null, 1);
+        Library.SetCount(Group, "test", (string?)null, 1);
 
         Assert.AreEqual(2, Library.Count(Group, "test", 1));
         Assert.AreEqual(1, Library.Count(Group, "test"));

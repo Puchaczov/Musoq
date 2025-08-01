@@ -7,10 +7,10 @@ namespace Musoq.Plugins.Tests;
 public class LibraryBaseBaseTests
 {
     private class EmptyLibrary : LibraryBase { }
-    private Group _root;
+    private Group _root = null!;
 
-    protected LibraryBase Library;
-    protected Group Group;
+    protected LibraryBase Library = null!;
+    protected Group Group = null!;
 
     [TestInitialize]
     public void Initialize()
