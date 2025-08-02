@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>4.1.3</Version>
+    <Version>4.1.0</Version>
     <Authors>Jakub Puchała</Authors>
     <Product>Musoq</Product>
     <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
