@@ -7,11 +7,16 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class CloneQueryVisitor : IExpressionVisitor
+public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 {
     protected Stack<Node> Nodes { get; } = new();
 
-    public RootNode Root => (RootNode) Nodes.Peek();
+    /// <summary>
+    /// Gets the name of this visitor for error reporting.
+    /// </summary>
+    protected override string VisitorName => nameof(CloneQueryVisitor);
+
+    public RootNode Root => SafeCast<RootNode>(SafePeek(Nodes, "getting root"), "getting root");
 
     public void Visit(Node node)
     {
@@ -19,55 +24,63 @@ public class CloneQueryVisitor : IExpressionVisitor
 
     public virtual void Visit(DescNode node)
     {
-        Nodes.Push(new DescNode((FromNode) Nodes.Pop(), node.Type));
+        var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
+        Nodes.Push(new DescNode(fromNode, node.Type));
     }
 
     public virtual void Visit(StarNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(StarNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new StarNode(left, right));
     }
 
     public virtual void Visit(FSlashNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(FSlashNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new FSlashNode(left, right));
     }
 
     public virtual void Visit(ModuloNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(ModuloNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new ModuloNode(left, right));
     }
 
     public virtual void Visit(AddNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AddNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new AddNode(left, right));
     }
 
     public virtual void Visit(HyphenNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(HyphenNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new HyphenNode(left, right));
     }
 
     public virtual void Visit(AndNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AndNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new AndNode(left, right));
     }
 
     public virtual void Visit(OrNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(OrNode));
+        var right = nodes[1];
+        var left = nodes[0];
         Nodes.Push(new OrNode(left, right));
     }
 
