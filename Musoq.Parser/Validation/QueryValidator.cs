@@ -14,28 +14,17 @@ public class QueryValidator
 {
     private static readonly Dictionary<char, string[]> CharacterSuggestions = new()
     {
-        { '`', new[] { "Use double quotes \" for identifiers", "Use single quotes ' for string literals" } },
-        { '[', new[] { "Use double quotes \" for identifiers instead of square brackets" } },
-        { ']', new[] { "Use double quotes \" for identifiers instead of square brackets" } },
-        { '{', new[] { "Use parentheses ( ) for grouping expressions" } },
-        { '}', new[] { "Use parentheses ( ) for grouping expressions" } },
-        { ';', new[] { "Semicolon is not required at the end of queries in Musoq" } },
         { '\\', new[] { "Use forward slash / for division operations" } },
         { '?', new[] { "Use parameters with @ or # prefix for parameterized queries" } }
     };
 
     private static readonly string[] SuspiciousPatterns = new[]
     {
-        @"\bDROP\s+TABLE\b",
-        @"\bDELETE\s+FROM\b",
-        @"\bTRUNCATE\s+TABLE\b",
-        @"\bALTER\s+TABLE\b",
-        @"\bCREATE\s+TABLE\b",
-        @"\bINSERT\s+INTO\b",
-        @"\bUPDATE\s+SET\b"
+        @"\bDROP\s+DATABASE\b",
+        @"\bTRUNCATE\s+TABLE\b"
     };
 
-    private static readonly string[] RequiredKeywords = new[] { "SELECT", "FROM" };
+    private static readonly string[] RequiredKeywords = new[] { "SELECT" };
 
     /// <summary>
     /// Validates a query and returns validation issues if any are found.
@@ -310,10 +299,10 @@ public class QueryValidator
         if (string.IsNullOrWhiteSpace(query))
             return suggestions;
 
-        // Check for missing schema references
-        if (query.Contains("FROM ") && !query.Contains("#"))
+        // Check for missing schema references (only suggest, don't require)
+        if (query.Contains("FROM ") && !query.Contains("#") && !query.Contains("table "))
         {
-            suggestions.Add("Consider using schema references (e.g., #schema.table) for data sources in Musoq.");
+            suggestions.Add("Consider using schema references (e.g., #schema.table) for external data sources in Musoq.");
         }
 
         // Check for potential performance issues
