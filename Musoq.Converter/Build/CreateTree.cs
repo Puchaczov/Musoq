@@ -1,6 +1,7 @@
 ﻿using System;
 using Musoq.Converter.Exceptions;
 using Musoq.Parser.Lexing;
+using Musoq.Parser.Validation;
 
 namespace Musoq.Converter.Build;
 
@@ -16,6 +17,10 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
 
         try
         {
+            // Early validation before expensive parsing
+            var validator = new QueryValidator();
+            validator.ValidateAndThrow(items.RawQuery);
+
             var lexer = new Lexer(items.RawQuery, true);
             var parser = new Parser.Parser(lexer);
 
