@@ -738,12 +738,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(DotNode node)
     {
-        System.Console.WriteLine($"BuildMetadataAndInferTypesVisitor: DotNode - Root: {node.Root?.GetType().Name}, Expression: {node.Expression?.GetType().Name}");
-        
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
-
-        System.Console.WriteLine($"BuildMetadataAndInferTypesVisitor: Stack - Expression: {exp?.GetType().Name}, Root: {root?.GetType().Name}");
 
         DotNode newNode;
         if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
@@ -758,8 +754,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 // check if it's aliased column character access
                 if (exp is AccessObjectArrayNode arrayNode && root is IdentifierNode rootIdentifier)
                 {
-                    System.Console.WriteLine($"BuildMetadataAndInferTypesVisitor: Processing aliased character access - {rootIdentifier.Name}.{arrayNode.ObjectName}[{arrayNode.Token.Index}]");
-                    
                     // This is likely aliased column character access: alias.columnName[index]
                     // Create the AccessColumnNode for the column
                     var columnAccess = new AccessColumnNode(arrayNode.ObjectName, rootIdentifier.Name, typeof(string), arrayNode.Token.Span);
@@ -770,7 +764,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     // Create a DotNode with the expected pattern: AccessColumnNode + AccessObjectArrayNode
                     var dotNode = new DotNode(columnAccess, characterAccess, node.IsTheMostInner, string.Empty, typeof(string));
                     
-                    System.Console.WriteLine($"BuildMetadataAndInferTypesVisitor: Created new DotNode({columnAccess.GetType().Name}, {characterAccess.GetType().Name})");
                     Nodes.Push(dotNode);
                     return;
                 }
@@ -789,7 +782,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
         }
 
-        System.Console.WriteLine($"BuildMetadataAndInferTypesVisitor: Pushing DotNode - {newNode.Root?.GetType().Name}.{newNode.Expression?.GetType().Name}");
         Nodes.Push(newNode);
     }
 
