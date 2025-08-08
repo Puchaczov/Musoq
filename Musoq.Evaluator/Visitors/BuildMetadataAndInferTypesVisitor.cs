@@ -533,6 +533,22 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var parentNode = Nodes.Peek();
         var parentNodeType = Nodes.Peek().ReturnType;
         
+        // Special handling for aliased character access: check if parent is a table alias identifier
+        if (parentNode is IdentifierNode parentIdentifier && Nodes.Count == 1)
+        {
+            // This could be aliased character access like f.Name[0]
+            // The parent is likely a table alias, convert to column access pattern
+            var columnAccess = new AccessColumnNode(node.ObjectName, parentIdentifier.Name, typeof(string), node.Token.Span);
+            
+            // Replace the parent identifier with the column access
+            Nodes.Pop(); // Remove the identifier
+            Nodes.Push(columnAccess);
+            
+            // Push the character access node
+            Nodes.Push(new AccessObjectArrayNode(node.Token, null));
+            return;
+        }
+        
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
             var typeHintingAttributes =
@@ -762,19 +778,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 if (exp is AccessObjectArrayNode arrayNode && root is IdentifierNode rootIdentifier)
                 {
                     // This is aliased column character access: alias.columnName[index]
-                    // Create an AccessColumnNode for the column and apply character access to it
+                    // Convert to AccessColumnNode for the column, followed by character access
                     var columnAccess = new AccessColumnNode(arrayNode.ObjectName, rootIdentifier.Name, typeof(string), arrayNode.Token.Span);
                     
-                    // For proper visitor stack behavior, we need to simulate what would happen
-                    // if we had columnAccess[index] as separate operations
-                    
-                    // Push the column access as if it was visited
+                    // Push the column access
                     Nodes.Push(columnAccess);
                     
-                    // Then apply the character access to it
-                    var characterAccessNode = new AccessObjectArrayNode(arrayNode.Token, null);
-                    Visit(characterAccessNode);
-                    
+                    // Then push the character access node (PropertyInfo = null means string character access)
+                    Nodes.Push(new AccessObjectArrayNode(arrayNode.Token, null));
                     return;
                 }
                 
