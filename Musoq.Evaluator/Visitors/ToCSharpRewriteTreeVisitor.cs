@@ -919,9 +919,24 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
         var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
 
+        ExpressionSyntax targetExpression;
+        
+        // For string character access (when PropertyInfo is null), access the expression directly
+        // For property array access, access the property first
+        if (node.PropertyInfo == null)
+        {
+            // Direct character access like stringColumn[0]
+            targetExpression = exp;
+        }
+        else
+        {
+            // Property array access like object.PropertyName[0]
+            targetExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                exp, SyntaxFactory.IdentifierName(node.Name));
+        }
+
         Nodes.Push(SyntaxFactory
-            .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
+            .ElementAccessExpression(targetExpression).WithArgumentList(
                 SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
                         SyntaxFactory.Literal(node.Token.Index)))))));

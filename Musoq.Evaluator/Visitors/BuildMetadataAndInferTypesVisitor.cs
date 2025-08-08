@@ -516,6 +516,17 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(AccessObjectArrayNode node)
     {
+        // Handle the case where this is direct column character access like Name[0]
+        // without a parent object on the stack
+        if (Nodes.Count == 0)
+        {
+            // This is a direct column access with indexing, like Name[0]
+            // We need to treat this as accessing a column directly
+            // Create an identifier node for the column name and handle string indexing
+            var identifier = new IdentifierNode(node.ObjectName);
+            Visit(identifier);
+        }
+        
         var parentNode = Nodes.Peek();
         var parentNodeType = Nodes.Peek().ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
@@ -567,6 +578,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, propertyAccess));
 
+                return;
+            }
+
+            // Handle string character access
+            if (parentNodeType == typeof(string))
+            {
+                // For string character access, we don't need a property - we access the string directly
+                Nodes.Push(new AccessObjectArrayNode(node.Token, null));
                 return;
             }
 
