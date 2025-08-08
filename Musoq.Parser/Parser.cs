@@ -1076,36 +1076,41 @@ public class Parser
         Node orderBy = null;
         WindowFrameNode windowFrame = null;
 
-        // Parse PARTITION BY clause if present (handle as separate tokens for now)
-        if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "partition")
+        // Parse PARTITION BY clause if present (handle both as single token or separate tokens)
+        if (Current.TokenType == TokenType.PartitionBy || 
+            (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "partition"))
         {
-            Consume(TokenType.Identifier); // consume "PARTITION"
-            if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "by")
+            if (Current.TokenType == TokenType.PartitionBy)
             {
-                Consume(TokenType.Identifier); // consume "BY"
-                partitionBy = ComposeArithmeticExpression(0);
+                Consume(TokenType.PartitionBy); // consume "PARTITION BY" as single token
+                partitionBy = ComposeCommaSeperatedArithmeticExpressions();
+            }
+            else
+            {
+                Consume(TokenType.Identifier); // consume "PARTITION"
+                if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "by")
+                {
+                    Consume(TokenType.Identifier); // consume "BY"
+                    partitionBy = ComposeCommaSeperatedArithmeticExpressions();
+                }
             }
         }
 
-        // Parse ORDER BY clause if present (handle as separate tokens like PARTITION BY)
+        // Parse ORDER BY clause if present (handle comma-separated expressions with ASC/DESC)
         if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "order")
         {
             Consume(TokenType.Identifier); // consume "ORDER"
             if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "by")
             {
                 Consume(TokenType.Identifier); // consume "BY"
-                orderBy = ComposeArithmeticExpression(0);
+                orderBy = ComposeCommaSeperatedArithmeticExpressions();
                 
-                // Handle DESC/ASC if present
-                if (Current.TokenType == TokenType.Desc)
+                // Handle DESC/ASC if present - simplified approach
+                while (Current.TokenType == TokenType.Desc || Current.TokenType == TokenType.Asc ||
+                       (Current.TokenType == TokenType.Identifier && 
+                        (Current.Value.ToLowerInvariant() == "asc" || Current.Value.ToLowerInvariant() == "desc")))
                 {
-                    Consume(TokenType.Desc);
-                    // For now, just consume it - would need to be part of orderBy node in full implementation
-                }
-                else if (Current.TokenType == TokenType.Identifier && 
-                         (Current.Value.ToLowerInvariant() == "asc" || Current.Value.ToLowerInvariant() == "desc"))
-                {
-                    Consume(TokenType.Identifier);
+                    Consume(Current.TokenType);
                 }
             }
         }
@@ -1113,11 +1118,11 @@ public class Parser
         {
             // Handle if ORDER BY is parsed as a single token (fallback)
             Consume(TokenType.OrderBy);
-            orderBy = ComposeArithmeticExpression(0);
+            orderBy = ComposeCommaSeperatedArithmeticExpressions();
             
-            if (Current.TokenType == TokenType.Desc)
+            if (Current.TokenType == TokenType.Desc || Current.TokenType == TokenType.Asc)
             {
-                Consume(TokenType.Desc);
+                Consume(Current.TokenType);
             }
             else if (Current.TokenType == TokenType.Identifier && 
                      (Current.Value.ToLowerInvariant() == "asc" || Current.Value.ToLowerInvariant() == "desc"))
@@ -1135,6 +1140,44 @@ public class Parser
         Consume(TokenType.RightParenthesis);
 
         return new WindowSpecificationNode(partitionBy, orderBy, windowFrame);
+    }
+
+    private Node ComposeCommaSeperatedArithmeticExpressions()
+    {
+        var expressions = new List<Node>();
+        
+        do
+        {
+            expressions.Add(ComposeArithmeticExpression(0));
+            
+            // Skip DESC/ASC keywords if present
+            if (Current.TokenType == TokenType.Desc || Current.TokenType == TokenType.Asc ||
+                (Current.TokenType == TokenType.Identifier && 
+                 (Current.Value.ToLowerInvariant() == "asc" || Current.Value.ToLowerInvariant() == "desc")))
+            {
+                Consume(Current.TokenType);
+            }
+            
+            if (Current.TokenType == TokenType.Comma)
+            {
+                Consume(TokenType.Comma);
+            }
+            else
+            {
+                break;
+            }
+        } while (Current.TokenType != TokenType.RightParenthesis && 
+                 Current.TokenType != TokenType.EndOfFile &&
+                 !(Current.TokenType == TokenType.Identifier && 
+                   (Current.Value.ToLowerInvariant() == "order" || 
+                    Current.Value.ToLowerInvariant() == "rows")) &&
+                 !(Current.TokenType == TokenType.Word && 
+                   (Current.Value.ToLowerInvariant() == "order" || 
+                    Current.Value.ToLowerInvariant() == "rows")));
+        
+        // For simplicity, return just the first expression for now
+        // In a full implementation, this would return an ArgsListNode or similar
+        return expressions.Count > 0 ? expressions[0] : null;
     }
 
     private WindowFrameNode ComposeWindowFrame()

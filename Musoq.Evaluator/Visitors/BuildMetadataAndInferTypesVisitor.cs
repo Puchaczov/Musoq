@@ -1637,36 +1637,17 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(WindowFunctionNode node)
     {
-        // Handle window functions as expression nodes
-        // The traverser has processed arguments and window spec, but we just need to push a result
-        // Pop any arguments that were processed (similar to AccessMethodNode)
-        if (node.Arguments != null && node.Arguments.Args.Length > 0)
-        {
-            Nodes.Pop(); // Pop the ArgsListNode
-        }
+        // For now, treat window functions as regular function calls for metadata processing
+        // Create a FunctionToken from the function name
+        var functionToken = new FunctionToken(node.FunctionName, default);
         
-        // Create a result node based on the function type
-        Node resultNode;
-        switch (node.FunctionName.ToUpperInvariant())
-        {
-            case "SUM":
-                resultNode = new DecimalNode("0.0");
-                break;
-            case "COUNT":
-                resultNode = new IntegerNode("0", "l");
-                break;
-            case "AVG":
-                resultNode = new DecimalNode("0.0");
-                break;
-            case "RANK":
-            case "DENSERANK":
-            case "ROWNUMBER":
-            default:
-                resultNode = new IntegerNode("0", "i");
-                break;
-        }
+        // Create a temporary AccessMethodNode to reuse existing logic
+        var accessMethod = new AccessMethodNode(functionToken, node.Arguments, null, false, null, "");
         
-        Nodes.Push(resultNode);
+        // Process it like a regular method call
+        VisitAccessMethod(accessMethod,
+            (token, modifiedNode, exArgs, methodInfo, alias, canSkipInjectSource) =>
+                new AccessMethodNode(token, modifiedNode as ArgsListNode, exArgs, canSkipInjectSource, methodInfo, alias));
     }
 
     public void Visit(WindowFrameNode node)

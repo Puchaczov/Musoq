@@ -45,7 +45,7 @@ public partial class SystemSchema : SchemaBase
     {
         var methodsManager = new MethodsManager();
 
-        var library = new EmptyLibrary();
+        var library = new TestLibrary(); // Use TestLibrary which inherits from LibraryBase
 
         methodsManager.RegisterLibraries(library);
 
