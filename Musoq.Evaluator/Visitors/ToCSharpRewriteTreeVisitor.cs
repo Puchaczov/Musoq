@@ -965,12 +965,16 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         
         var topNode = Nodes.Peek();
         
+        Console.WriteLine($"DEBUG: AccessObjectArrayNode - topNode type: {topNode.GetType().Name}, content: {topNode}");
+        
         // If the top node is a BlockSyntax, this AccessObjectArrayNode is being processed
         // in the wrong context. BlockSyntax nodes are meant for query structure (FROM/WHERE/etc.)
         // and should not be consumed by expression-level nodes like AccessObjectArrayNode.
         // This suggests the visitor is being called at the wrong level or time.
         if (topNode is BlockSyntax)
         {
+            Console.WriteLine($"DEBUG: AccessObjectArrayNode - Handling BlockSyntax case");
+            
             // For direct column character access, generate the correct score["columnName"] pattern
             var variableName = _type switch
             {
@@ -1004,6 +1008,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     characterAccess,
                     SyntaxFactory.IdentifierName("ToString")));
             
+            Console.WriteLine($"DEBUG: AccessObjectArrayNode - Generated for BlockSyntax: {toStringCall}");
             Nodes.Push(toStringCall);
             return;
         }
@@ -1013,6 +1018,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             (expr.ToString().Contains("score[") || expr.ToString().Contains("Row[")) && 
             node.PropertyInfo == null)
         {
+            Console.WriteLine($"DEBUG: AccessObjectArrayNode - Handling column character access, expr: {expr}");
+            
             // This is character access on a column - generate character indexing
             var columnNode = Nodes.Pop();
             var columnExpr = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax)columnNode);
@@ -1035,12 +1042,16 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     characterAccess,
                     SyntaxFactory.IdentifierName("ToString")));
             
+            Console.WriteLine($"DEBUG: AccessObjectArrayNode - Generated column character access: {toStringCall}");
             Nodes.Push(toStringCall);
             return;
         }
         
+        Console.WriteLine($"DEBUG: AccessObjectArrayNode - Going to normal case, PropertyInfo: {node.PropertyInfo}");
+        
         // Normal case: pop the expression and process it
         var poppedNode = Nodes.Pop();
+        Console.WriteLine($"DEBUG: AccessObjectArrayNode - Popped node type: {poppedNode.GetType().Name}, content: {poppedNode}");
         var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) poppedNode);
 
         ExpressionSyntax targetExpression;
@@ -1123,10 +1134,30 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             }
             else if (root is BlockSyntax block)
             {
-                // If it's a BlockSyntax, we need to extract the expression from it
-                // For now, let's see what's in the block
+                // If it's a BlockSyntax, this might be the case where AccessObjectArrayNode already
+                // processed the character access and we don't need to do anything more
                 Console.WriteLine($"DEBUG: DotNode - root is BlockSyntax with {block.Statements.Count} statements");
-                // For debugging, let's try to continue and see what happens
+                Console.WriteLine($"DEBUG: DotNode - Stack count: {Nodes.Count}");
+                
+                // Check if we have the character access result on the stack
+                if (Nodes.Count > 0)
+                {
+                    var topNode = Nodes.Peek();
+                    Console.WriteLine($"DEBUG: DotNode - Top node on stack: {topNode.GetType().Name}, content: {topNode}");
+                    
+                    if (topNode.ToString().Contains("ToString()"))
+                    {
+                        Console.WriteLine($"DEBUG: DotNode - Character access already processed, using existing result");
+                        // The character access was already processed by AccessObjectArrayNode, just return the result
+                        return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"DEBUG: DotNode - Stack is empty");
+                }
+                
+                // For debugging, let's see what happens
                 throw new NotSupportedException($"Unexpected BlockSyntax in DotNode visitor for character access. Block has {block.Statements.Count} statements.");
             }
             else

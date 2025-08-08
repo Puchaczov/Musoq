@@ -137,14 +137,20 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             else if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
             {
                 // Handle aliased column character access: f.Name[0]
-                // Create AccessColumnNode for the column and preserve the array indexing
+                // Instead of creating a DotNode, create the AccessObjectArrayNode directly
+                // with the column access already resolved
+                Console.WriteLine($"DEBUG: BuildMetadataAndInferTypesTraverseVisitor - Handling aliased character access: {ident.Name}.{arrayNode.ObjectName}[{arrayNode.Token.Index}]");
+                
+                // Create AccessColumnNode for the column 
                 var columnAccess = new AccessColumnNode(arrayNode.ObjectName, ident.Name, typeof(string), TextSpan.Empty);
-                var characterAccess = new AccessObjectArrayNode(arrayNode.Token, null); // PropertyInfo = null for string character access
                 
-                // Create a DotNode with the pattern that ToCSharpRewriteTreeVisitor expects
-                var dotNodeForCharacterAccess = new DotNode(columnAccess, characterAccess, false, string.Empty, typeof(string));
+                // Visit the column access first
+                Visit(columnAccess);
                 
-                Visit(dotNodeForCharacterAccess);
+                // Then visit the array access with PropertyInfo = null for string character access
+                var characterAccess = new AccessObjectArrayNode(arrayNode.Token, null);
+                Visit(characterAccess);
+                
                 return;
             }
             else
