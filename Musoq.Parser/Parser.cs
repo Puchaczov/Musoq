@@ -1075,11 +1075,15 @@ public class Parser
         Node partitionBy = null;
         Node orderBy = null;
 
-        // Parse PARTITION BY clause if present
-        if (Current.TokenType == TokenType.PartitionBy)
+        // Parse PARTITION BY clause if present (handle as separate tokens for now)
+        if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "partition")
         {
-            Consume(TokenType.PartitionBy);
-            partitionBy = ComposeArithmeticExpression(0);
+            Consume(TokenType.Identifier); // consume "PARTITION"
+            if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "by")
+            {
+                Consume(TokenType.Identifier); // consume "BY"
+                partitionBy = ComposeArithmeticExpression(0);
+            }
         }
 
         // Parse ORDER BY clause if present

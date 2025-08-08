@@ -416,6 +416,7 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KExcept, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KIntersect, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KGroupBy, RegexOptions.IgnoreCase),
+            new(TokenRegexDefinition.KPartitionBy, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KHaving, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KSkip, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
@@ -445,7 +446,6 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KElse),
             new(TokenRegexDefinition.KEnd),
             new(TokenRegexDefinition.KOver, RegexOptions.IgnoreCase),
-            new(TokenRegexDefinition.KPartitionBy, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KFieldLink)
         ];
     }
