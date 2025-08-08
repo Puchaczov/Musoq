@@ -1632,52 +1632,31 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(WindowFunctionNode node)
     {
-        // Handle window functions specifically - they need special treatment for injected parameters
-        // The traverser has already visited the arguments and window specification and put them on the stack
-        
-        // Pop the arguments that were pushed by the traverser 
-        if (node.Arguments != null)
+        // Handle window functions as expression nodes
+        // The traverser has processed arguments and window spec, but we just need to push a result
+        // Pop any arguments that were processed (similar to AccessMethodNode)
+        if (node.Arguments != null && node.Arguments.Args.Length > 0)
         {
-            Nodes.Pop(); // Pop the ArgsListNode that was processed by traverser
+            Nodes.Pop(); // Pop the ArgsListNode
         }
         
-        // Pop window specification if it was processed
-        if (node.WindowSpecification != null)
-        {
-            // WindowSpecificationNode processing doesn't push anything currently, so nothing to pop
-        }
-        
-        var libraryType = typeof(Musoq.Plugins.LibraryBase);
-        var method = libraryType.GetMethods()
-            .FirstOrDefault(m => m.Name.Equals(node.FunctionName, StringComparison.OrdinalIgnoreCase));
-            
-        if (method == null)
-        {
-            throw new NotSupportedException($"Window function '{node.FunctionName}' is not supported");
-        }
-
-        // Create a simple node that can represent the window function's return type
-        // Based on the function name, return appropriate type
+        // Create a result node based on the function type
         Node resultNode;
         switch (node.FunctionName.ToUpperInvariant())
         {
             case "SUM":
-                // Sum returns the same type as the input, but for simplicity use decimal for now
                 resultNode = new DecimalNode("0.0");
                 break;
             case "COUNT":
-                // Count returns long
                 resultNode = new IntegerNode("0", "l");
                 break;
             case "AVG":
-                // Average returns double - use decimal for now
                 resultNode = new DecimalNode("0.0");
                 break;
             case "RANK":
             case "DENSERANK":
             case "ROWNUMBER":
             default:
-                // Most ranking window functions return int
                 resultNode = new IntegerNode("0", "i");
                 break;
         }

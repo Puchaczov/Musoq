@@ -868,7 +868,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     {
         node.Arguments?.Accept(this);
         node.WindowSpecification?.Accept(this);
-        _visitor.Visit(node);
+        node.Accept(_visitor);
     }
 
     public void Visit(WindowFrameNode node)
