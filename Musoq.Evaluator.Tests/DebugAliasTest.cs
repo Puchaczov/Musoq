@@ -32,10 +32,25 @@ namespace Musoq.Evaluator.Tests
                 Console.WriteLine($"Results: {table.Count} rows");
                 foreach (var row in table)
                 {
-                    Console.WriteLine($"Row: {row.Values[0]}");
+                    Console.WriteLine($"Row: '{row.Values[0]}' (Length: {row.Values[0].ToString().Length})");
                 }
 
                 Assert.IsTrue(table.Count >= 1, "Should return at least 1 row");
+                
+                // Let's verify what we're actually getting
+                var firstResult = table[0].Values[0].ToString();
+                Console.WriteLine($"First result type: {table[0].Values[0].GetType()}");
+                Console.WriteLine($"First result value: '{firstResult}'");
+                
+                // Check if we're getting individual characters or full strings
+                if (firstResult.Length == 1)
+                {
+                    Console.WriteLine("✅ Getting individual characters as expected");
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Getting full strings ({firstResult.Length} chars) instead of characters");
+                }
             }
             catch (Exception ex)
             {

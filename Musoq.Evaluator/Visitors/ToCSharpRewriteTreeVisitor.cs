@@ -1095,6 +1095,45 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(DotNode node)
     {
+        // Debug: Check what kind of DotNode we're dealing with
+        Console.WriteLine($"DotNode visitor: Root={node.Root?.GetType().Name}, Expression={node.Expression?.GetType().Name}");
+        
+        // Special case: AccessColumnNode + AccessObjectArrayNode (aliased character access like f.Name[0])
+        if (node.Root is AccessColumnNode columnNode && node.Expression is AccessObjectArrayNode arrayNode && arrayNode.PropertyInfo == null)
+        {
+            Console.WriteLine("✅ Detected aliased character access in ToCSharpRewriteTreeVisitor");
+            
+            // This represents aliased column character access like f.Name[0]
+            // Generate the C# code for column access with character indexing
+            
+            // Visit the column access node to get the column expression
+            Visit(columnNode);
+            var columnExpression = Nodes.Pop();
+            
+            // Cast the column value to string and apply character indexing
+            var castExpression = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.CastExpression(
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                    (ExpressionSyntax)columnExpression));
+
+            var characterAccess = SyntaxFactory
+                .ElementAccessExpression(castExpression).WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(arrayNode.Token.Index))))));
+            
+            // Convert char to string for SQL compatibility
+            var toStringCall = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    characterAccess,
+                    SyntaxFactory.IdentifierName("ToString")));
+            
+            Nodes.Push(toStringCall);
+            return;
+        }
+        
+        // For normal DotNode cases, let the default traversal handle it
+        Console.WriteLine("❌ DotNode not handled by special case, using default traversal");
     }
 
     public void Visit(AccessCallChainNode node)
