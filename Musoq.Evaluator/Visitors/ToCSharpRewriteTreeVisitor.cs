@@ -1095,30 +1095,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(DotNode node)
     {
-        // DotNode structure: Root.Expression
-        // For aliased character access: f.Name[0] becomes DotNode(AccessColumnNode, AccessObjectArrayNode)
-        // The traverse visitor calls: Root.Accept(), Expression.Accept(), then this method
-        // So stack contains: [Expression result, Root result] (top to bottom)
-        
-        var expression = Nodes.Pop(); // The right side (e.g., AccessObjectArrayNode result)
-        var root = Nodes.Pop();       // The left side (e.g., AccessColumnNode result)
-        
-        // For character access, the AccessObjectArrayNode should have already generated
-        // the correct character access syntax, so we just need to push the expression result
-        if (expression is ExpressionSyntax expr)
-        {
-            Nodes.Push(expr);
-        }
-        else
-        {
-            // Normal property access case
-            var memberAccess = SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                (ExpressionSyntax)root,
-                (SimpleNameSyntax)expression);
-                
-            Nodes.Push(memberAccess);
-        }
     }
 
     public void Visit(AccessCallChainNode node)
