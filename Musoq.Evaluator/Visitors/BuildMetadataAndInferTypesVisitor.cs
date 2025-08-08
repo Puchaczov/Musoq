@@ -756,6 +756,22 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (!hasProperty)
             {
+                // Special case: if root is a table alias and exp is AccessObjectArrayNode (character access),
+                // convert to AccessColumnNode + AccessObjectArrayNode pattern
+                if (exp is AccessObjectArrayNode arrayNode && root is IdentifierNode rootIdentifier)
+                {
+                    // This is aliased column character access: alias.columnName[index]
+                    // Convert to AccessColumnNode for the column, followed by character access
+                    var columnAccess = new AccessColumnNode(arrayNode.ObjectName, rootIdentifier.Name, typeof(string), arrayNode.Token.Span);
+                    
+                    // Push the column access
+                    Nodes.Push(columnAccess);
+                    
+                    // Then push the character access node (PropertyInfo = null means string character access)
+                    Nodes.Push(new AccessObjectArrayNode(arrayNode.Token, null));
+                    return;
+                }
+                
                 PrepareAndThrowUnknownPropertyExceptionMessage(identifierNode.Name,
                     root.ReturnType.GetProperties());
             }
