@@ -917,54 +917,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectArrayNode node)
     {
-        var topNode = Nodes.Pop();
-        
-        ExpressionSyntax exp;
-        
-        // Handle the case where we have a BlockSyntax instead of ExpressionSyntax
-        // This happens when we have direct column character access like Name[0] 
-        // where the column access context generates a block rather than an expression
-        if (topNode is BlockSyntax)
-        {
-            // For direct column access, we need to generate the proper column access expression
-            // This should generate something like: ((string)GetValue("Name"))
-            var getValueCall = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.IdentifierName("GetValue"))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.StringLiteralExpression,
-                                SyntaxFactory.Literal(node.ObjectName))))));
-            
-            exp = SyntaxFactory.ParenthesizedExpression(
-                SyntaxFactory.CastExpression(
-                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                    getValueCall));
-        }
-        else
-        {
-            exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) topNode);
-        }
-
-        ExpressionSyntax targetExpression;
-        
-        // For string character access (when PropertyInfo is null), access the expression directly
-        // For property array access, access the property first
-        if (node.PropertyInfo == null)
-        {
-            // Direct character access like stringColumn[0]
-            targetExpression = exp;
-        }
-        else
-        {
-            // Property array access like object.PropertyName[0]
-            targetExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                exp, SyntaxFactory.IdentifierName(node.Name));
-        }
+        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
 
         Nodes.Push(SyntaxFactory
-            .ElementAccessExpression(targetExpression).WithArgumentList(
+            .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
                 SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
                         SyntaxFactory.Literal(node.Token.Index)))))));
