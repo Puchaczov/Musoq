@@ -750,18 +750,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             if (exp is not IdentifierNode identifierNode)
             {
-                throw new NotSupportedException();
-            }
-
-            var hasProperty = root.ReturnType.GetProperty(identifierNode.Name) != null;
-
-            if (!hasProperty)
-            {
-                // Special case: if root is a table alias and exp is AccessObjectArrayNode (character access),
-                // convert to the pattern expected by ToCSharpRewriteTreeVisitor
+                // Special case: if this is AccessObjectArrayNode and we can't handle it as IdentifierNode,
+                // check if it's aliased column character access
                 if (exp is AccessObjectArrayNode arrayNode && root is IdentifierNode rootIdentifier)
                 {
-                    // This is aliased column character access: alias.columnName[index]
+                    // This is likely aliased column character access: alias.columnName[index]
                     // Create the AccessColumnNode for the column
                     var columnAccess = new AccessColumnNode(arrayNode.ObjectName, rootIdentifier.Name, typeof(string), arrayNode.Token.Span);
                     
@@ -775,6 +768,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     return;
                 }
                 
+                throw new NotSupportedException();
+            }
+
+            var hasProperty = root.ReturnType.GetProperty(identifierNode.Name) != null;
+
+            if (!hasProperty)
+            {
                 PrepareAndThrowUnknownPropertyExceptionMessage(identifierNode.Name,
                     root.ReturnType.GetProperties());
             }
