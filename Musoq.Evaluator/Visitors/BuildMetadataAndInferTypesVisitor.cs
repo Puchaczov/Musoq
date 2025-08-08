@@ -740,27 +740,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
 
-        // Special handling for table alias column access like "f.Name"
-        if (root is IdentifierNode tableAliasNode && exp is IdentifierNode columnNode)
-        {
-            // Check if this is a table alias column access pattern
-            if (tableAliasNode.Name == _identifier)
-            {
-                // This is table alias column access - resolve it to AccessColumnNode
-                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-                var column = tableSymbol.GetColumnByAliasAndName(_identifier, columnNode.Name);
-
-                if (column == null)
-                    PrepareAndThrowUnknownColumnExceptionMessage(columnNode.Name, tableSymbol.GetColumns());
-
-                // Create and visit an AccessColumnNode for this column
-                var accessColumnNode = new AccessColumnNode(columnNode.Name, string.Empty, column?.ColumnType, TextSpan.Empty);
-                Nodes.Push(accessColumnNode);
-                return;
-            }
-        }
-
-        // Original DotNode logic for other cases
         DotNode newNode;
         if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
