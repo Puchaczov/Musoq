@@ -809,7 +809,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             accessMethodExpr = Generator.InvocationExpression(
                 Generator.MemberAccessExpression(
                     Generator.IdentifierName(variableName),
-                    Generator.IdentifierName(node.Name)),
+                    Generator.IdentifierName(method.Name)), // Use method.Name instead of node.Name for correct case
                 args);
         }
 
@@ -3828,12 +3828,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         if (method != null)
         {
             // Create an AccessMethodNode and delegate to its handling
+            // Use the actual method name (proper case) instead of the parsed function name
             var accessMethodNode = new AccessMethodNode(
-                new Musoq.Parser.Tokens.FunctionToken(node.FunctionName, Musoq.Parser.TextSpan.Empty),
+                new Musoq.Parser.Tokens.FunctionToken(method.Name, Musoq.Parser.TextSpan.Empty), // Use method.Name instead of node.FunctionName
                 node.Arguments,
-                null, // alias
-                false, // canSkipInjectNode
-                method
+                null, // extraAggregateArguments
+                false, // canSkipInjectSource
+                method, // method
+                "" // alias
             );
             
             Visit(accessMethodNode);

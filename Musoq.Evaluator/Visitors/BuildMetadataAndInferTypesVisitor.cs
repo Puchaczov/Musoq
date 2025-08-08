@@ -1637,17 +1637,29 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(WindowFunctionNode node)
     {
-        // For now, treat window functions as regular function calls for metadata processing
-        // Create a FunctionToken from the function name
+        // Handle window functions similar to AccessMethodNode but without relying on stack
+        
+        // Get the schema table pair (similar to VisitAccessMethod)
+        var alias = _identifier; // Window functions don't have explicit alias in this context
+        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
+        var schemaTablePair = tableSymbol.GetTableByAlias(alias);
+        
+        // Create argument types array (empty for functions like RANK() with no explicit args)
+        var argTypes = node.Arguments?.Args?.Select(arg => arg.ReturnType).ToArray() ?? new Type[0];
+        
+        // Try to resolve the method using the case-insensitive system
+        if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, argTypes, out var method))
+        {
+            var args = node.Arguments?.Args ?? Array.Empty<Node>();
+            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.FunctionName, args);
+        }
+        
+        // Create a proper AccessMethodNode result and push it to the stack
         var functionToken = new FunctionToken(node.FunctionName, default);
+        var argsListNode = node.Arguments ?? new ArgsListNode(Array.Empty<Node>());
+        var resultNode = new AccessMethodNode(functionToken, argsListNode, null, false, method, "");
         
-        // Create a temporary AccessMethodNode to reuse existing logic
-        var accessMethod = new AccessMethodNode(functionToken, node.Arguments, null, false, null, "");
-        
-        // Process it like a regular method call
-        VisitAccessMethod(accessMethod,
-            (token, modifiedNode, exArgs, methodInfo, alias, canSkipInjectSource) =>
-                new AccessMethodNode(token, modifiedNode as ArgsListNode, exArgs, canSkipInjectSource, methodInfo, alias));
+        Nodes.Push(resultNode);
     }
 
     public void Visit(WindowFrameNode node)
