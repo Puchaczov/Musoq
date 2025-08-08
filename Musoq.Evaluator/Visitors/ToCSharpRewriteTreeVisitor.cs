@@ -858,6 +858,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessColumnNode node)
     {
+        Console.WriteLine($"DEBUG: AccessColumnNode Visit - Name: {node.Name}, Alias: {node.Alias}, ReturnType: {node.ReturnType}");
+        
         var variableName = _type switch
         {
             MethodAccessType.TransformingQuery => $"{node.Alias}Row",
@@ -896,6 +898,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         if (!node.ReturnType.IsTrueValueType() && NullSuspiciousNodes.Count > 0)
             NullSuspiciousNodes[^1].Push(sNode);
 
+        Console.WriteLine($"DEBUG: AccessColumnNode - Generated code: {sNode}");
         Nodes.Push(sNode);
     }
 
@@ -917,9 +920,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectArrayNode node)
     {
+        Console.WriteLine($"DEBUG: AccessObjectArrayNode Visit - ObjectName: {node.ObjectName}, PropertyInfo: {node.PropertyInfo}, Token.Index: {node.Token.Index}, Stack Count: {Nodes.Count}");
+        
         // Check if stack is empty - this can happen with direct column character access like Name[0]
         if (Nodes.Count == 0)
         {
+            Console.WriteLine($"DEBUG: AccessObjectArrayNode - Stack is empty, generating direct column character access");
+            
             // For direct column character access, generate the column access directly
             var variableName = _type switch
             {
@@ -951,6 +958,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     characterAccess,
                     SyntaxFactory.IdentifierName("ToString")));
             
+            Console.WriteLine($"DEBUG: AccessObjectArrayNode - Generated character access: {toStringCall}");
             Nodes.Push(toStringCall);
             return;
         }
@@ -1107,7 +1115,24 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             // We need to create the proper C# code for accessing the column and then indexing it
             
             // First get the column access expression (already generated and on stack as root)
-            var columnExpression = (ExpressionSyntax)root;
+            // Handle both ExpressionSyntax and BlockSyntax cases
+            ExpressionSyntax columnExpression;
+            if (root is ExpressionSyntax expr)
+            {
+                columnExpression = expr;
+            }
+            else if (root is BlockSyntax block)
+            {
+                // If it's a BlockSyntax, we need to extract the expression from it
+                // For now, let's see what's in the block
+                Console.WriteLine($"DEBUG: DotNode - root is BlockSyntax with {block.Statements.Count} statements");
+                // For debugging, let's try to continue and see what happens
+                throw new NotSupportedException($"Unexpected BlockSyntax in DotNode visitor for character access. Block has {block.Statements.Count} statements.");
+            }
+            else
+            {
+                throw new InvalidCastException($"Expected ExpressionSyntax or BlockSyntax but got {root.GetType().Name}");
+            }
             
             // Create character access: ((string)columnExpression)[index]
             var castExpression = SyntaxFactory.ParenthesizedExpression(
@@ -1125,7 +1150,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                     SyntaxKind.NumericLiteralExpression,
                                     SyntaxFactory.Literal(arrayNode.Token.Index))))));
 
-            Nodes.Push(characterAccess);
+            // Convert char to string for SQL compatibility
+            var toStringCall = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    characterAccess,
+                    SyntaxFactory.IdentifierName("ToString")));
+
+            Nodes.Push(toStringCall);
             return;
         }
         

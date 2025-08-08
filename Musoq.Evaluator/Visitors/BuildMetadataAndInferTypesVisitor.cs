@@ -738,8 +738,25 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(DotNode node)
     {
+        Console.WriteLine($"DEBUG: BuildMetadataAndInferTypesVisitor.Visit(DotNode) - Called");
+        
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
+
+        Console.WriteLine($"DEBUG: BuildMetadataAndInferTypesVisitor.Visit(DotNode) - Root: {root.GetType().Name}, Exp: {exp.GetType().Name}");
+
+        // Special case: AccessColumnNode + AccessObjectArrayNode (aliased character access)
+        if (root is AccessColumnNode columnNode && exp is AccessObjectArrayNode arrayAccess)
+        {
+            Console.WriteLine($"DEBUG: BuildMetadataAndInferTypesVisitor.Visit(DotNode) - Handling AccessColumnNode + AccessObjectArrayNode pattern");
+            
+            // This is the pattern created by BuildMetadataAndInferTypesTraverseVisitor for aliased character access
+            // Just create the DotNode with proper return type for character access
+            var dotNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, typeof(string));
+            
+            Nodes.Push(dotNode);
+            return;
+        }
 
         DotNode newNode;
         if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
@@ -750,10 +767,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             if (exp is not IdentifierNode identifierNode)
             {
+                Console.WriteLine($"DEBUG: BuildMetadataAndInferTypesVisitor.Visit(DotNode) - exp is not IdentifierNode");
+                
                 // Special case: if this is AccessObjectArrayNode and we can't handle it as IdentifierNode,
                 // check if it's aliased column character access
                 if (exp is AccessObjectArrayNode arrayNode && root is IdentifierNode rootIdentifier)
                 {
+                    Console.WriteLine($"DEBUG: BuildMetadataAndInferTypesVisitor.Visit(DotNode) - Handling aliased column character access");
+                    
                     // This is likely aliased column character access: alias.columnName[index]
                     // Create the AccessColumnNode for the column
                     var columnAccess = new AccessColumnNode(arrayNode.ObjectName, rootIdentifier.Name, typeof(string), arrayNode.Token.Span);
@@ -763,6 +784,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     
                     // Create a DotNode with the expected pattern: AccessColumnNode + AccessObjectArrayNode
                     var dotNode = new DotNode(columnAccess, characterAccess, node.IsTheMostInner, string.Empty, typeof(string));
+                    
+                    Console.WriteLine($"DEBUG: BuildMetadataAndInferTypesVisitor.Visit(DotNode) - Created character access DotNode");
                     
                     Nodes.Push(dotNode);
                     return;
@@ -782,6 +805,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
         }
 
+        Console.WriteLine($"DEBUG: BuildMetadataAndInferTypesVisitor.Visit(DotNode) - Pushing {newNode.GetType().Name}");
         Nodes.Push(newNode);
     }
 

@@ -134,6 +134,19 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             {
                 column = (IdentifierNode) dotNode.Root;
             }
+            else if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
+            {
+                // Handle aliased column character access: f.Name[0]
+                // Create AccessColumnNode for the column and preserve the array indexing
+                var columnAccess = new AccessColumnNode(arrayNode.ObjectName, ident.Name, typeof(string), TextSpan.Empty);
+                var characterAccess = new AccessObjectArrayNode(arrayNode.Token, null); // PropertyInfo = null for string character access
+                
+                // Create a DotNode with the pattern that ToCSharpRewriteTreeVisitor expects
+                var dotNodeForCharacterAccess = new DotNode(columnAccess, characterAccess, false, string.Empty, typeof(string));
+                
+                Visit(dotNodeForCharacterAccess);
+                return;
+            }
             else
             {
                 column = (IdentifierNode) theMostOuter.Expression;
