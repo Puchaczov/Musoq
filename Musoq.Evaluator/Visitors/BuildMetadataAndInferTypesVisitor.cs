@@ -594,11 +594,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 return;
             }
 
-            // Handle string character access
+            // Handle string character access  
             if (parentNodeType == typeof(string))
             {
                 // For string character access, we don't need a property - we access the string directly
-                // PropertyInfo = null means string character access, ReturnType will be char
+                // PropertyInfo = null means string character access, ReturnType will be string
                 Nodes.Push(new AccessObjectArrayNode(node.Token, null));
                 return;
             }
@@ -607,6 +607,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             isArray = property?.PropertyType.IsArray == true;
             isIndexer = HasIndexer(property?.PropertyType);
+            
+            // Additional check: if we're accessing an indexer on a string column type, 
+            // treat this as string character access even if a property was found
+            if (!isArray && !isIndexer && parentNodeType == typeof(string))
+            {
+                Nodes.Push(new AccessObjectArrayNode(node.Token, null));
+                return;
+            }
 
             if (!isArray && !isIndexer)
             {
