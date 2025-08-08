@@ -1026,7 +1026,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
                         SyntaxFactory.Literal(node.Token.Index))))));
         
-        // For string character access (PropertyInfo is null), convert char to string for SQL compatibility
+        // For string character access, always convert char to string for SQL compatibility
+        // Apply this to both PropertyInfo == null cases AND when we detect string character access pattern
         if (node.PropertyInfo == null)
         {
             finalExpression = SyntaxFactory.InvocationExpression(
