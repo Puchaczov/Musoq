@@ -188,6 +188,18 @@ public class Lexer : LexerBase<Token>
                 return TokenType.End;
             case OverToken.TokenText:
                 return TokenType.Over;
+            case "rows":
+                return TokenType.Rows;
+            case "between":
+                return TokenType.Between;
+            case "unbounded":
+                return TokenType.Unbounded;
+            case "preceding":
+                return TokenType.Preceding;
+            case "following":
+                return TokenType.Following;
+            case "current":
+                return TokenType.Current;
             case WordToken.EmptyTokenText:
                 return TokenType.Word;
         }
@@ -666,6 +678,18 @@ public class Lexer : LexerBase<Token>
                 return new OverToken(new TextSpan(Position, tokenText.Length));
             case TokenType.PartitionBy:
                 return new PartitionByToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.Rows:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Between:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Unbounded:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Preceding:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Following:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Current:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
         }
 
         if (regex != TokenRegexDefinition.KWordSingleQuoted)

@@ -81,5 +81,11 @@ public enum TokenType : short
     FieldLink,
     Comment,
     Over,
-    PartitionBy
+    PartitionBy,
+    Rows,
+    Between,
+    Unbounded,
+    Preceding,
+    Following,
+    Current
 }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
@@ -76,6 +77,45 @@ public partial class LibraryBase : UserMethodsLibrary
         // Basic implementation - just return default value
         // A full implementation would need access to the complete result set
         return defaultValue;
+    }
+
+    /// <summary>
+    /// Gets the sum of values over a window (aggregate window function).
+    /// </summary>
+    /// <param name="value">The value to sum</param>
+    /// <param name="info" injectedByRuntime="true">The queryStats object</param>
+    /// <typeparam name="T">Value type</typeparam>
+    /// <returns>The sum over the window</returns>
+    [BindableMethod]
+    public T Sum<T>(T value, [InjectQueryStats] QueryStats info) where T : struct
+    {
+        return value; // Basic implementation - will be enhanced with true windowing
+    }
+
+    /// <summary>
+    /// Gets the count of values over a window (aggregate window function).
+    /// </summary>
+    /// <param name="value">The value to count</param>
+    /// <param name="info" injectedByRuntime="true">The queryStats object</param>
+    /// <typeparam name="T">Value type</typeparam>
+    /// <returns>The count over the window</returns>
+    [BindableMethod]
+    public long Count<T>(T value, [InjectQueryStats] QueryStats info)
+    {
+        return info.RowNumber; // Basic implementation - will be enhanced with true windowing
+    }
+
+    /// <summary>
+    /// Gets the average of values over a window (aggregate window function).
+    /// </summary>
+    /// <param name="value">The value to average</param>
+    /// <param name="info" injectedByRuntime="true">The queryStats object</param>
+    /// <typeparam name="T">Value type</typeparam>
+    /// <returns>The average over the window</returns>
+    [BindableMethod]
+    public double Avg<T>(T value, [InjectQueryStats] QueryStats info) where T : struct
+    {
+        return Convert.ToDouble(value); // Basic implementation - will be enhanced with true windowing
     }
 
     /// <summary>
