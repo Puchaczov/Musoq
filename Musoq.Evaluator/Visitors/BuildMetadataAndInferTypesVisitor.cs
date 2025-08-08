@@ -521,9 +521,32 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         if (Nodes.Count == 0)
         {
             // This is a direct column access with indexing, like Name[0]
-            // Create an AccessColumnNode for the column name to provide the string context
-            var columnAccess = new AccessColumnNode(node.ObjectName, string.Empty, typeof(string), node.Token.Span);
-            Visit(columnAccess);
+            // We need to create the column context manually
+            var identifier = _identifier ?? node.ObjectName;
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
+            var tuple = tableSymbol.GetTableByAlias(identifier);
+            var column = tuple.Table.GetColumnByName(node.ObjectName);
+            
+            if (column == null)
+            {
+                PrepareAndThrowUnknownColumnExceptionMessage(node.ObjectName, tuple.Table.Columns);
+                return;
+            }
+            
+            AddAssembly(column.ColumnType.Assembly);
+            var columnNode = new AccessColumnNode(column.ColumnName, identifier, column.ColumnType, node.Token.Span);
+            Nodes.Push(columnNode);
+            
+            // Update used columns
+            var usedColumns = _usedColumns
+                .Where(c => c.Key.Alias == identifier && c.Key.QueryId == _schemaFromKey)
+                .Select(f => f.Value)
+                .FirstOrDefault();
+
+            if (usedColumns is not null && usedColumns.All(c => c.ColumnName != column.ColumnName))
+            {
+                usedColumns.Add(column);
+            }
             
             // Now push the array access node for character access (PropertyInfo = null means string character access)
             Nodes.Push(new AccessObjectArrayNode(node.Token, null));
