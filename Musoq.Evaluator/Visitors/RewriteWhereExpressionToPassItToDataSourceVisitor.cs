@@ -209,5 +209,12 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
             
             base.Visit(node);
         }
+        
+        public override void Visit(AccessObjectArrayNode node)
+        {
+            // AccessObjectArrayNode by itself shouldn't be marked as complex
+            // unless it's part of a complex expression structure
+            base.Visit(node);
+        }
     }
 }
