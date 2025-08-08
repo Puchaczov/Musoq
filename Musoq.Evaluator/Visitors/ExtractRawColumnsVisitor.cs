@@ -409,6 +409,14 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(WindowSpecificationNode node)
+    {
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+    }
+
     public void SetScope(Scope scope)
     {
     }

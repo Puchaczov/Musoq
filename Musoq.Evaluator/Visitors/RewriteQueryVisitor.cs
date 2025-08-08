@@ -1093,7 +1093,14 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new ElseNode(expression));
     }
 
-    public void Visit(FieldLinkNode node)
+    
+    public void Visit(WindowSpecificationNode node)
+    {
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+    }public void Visit(FieldLinkNode node)
     {
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }

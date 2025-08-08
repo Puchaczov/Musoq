@@ -52,7 +52,16 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
-    public virtual void Visit(ContainsNode node)
+    
+    public void Visit(WindowSpecificationNode node)
+    {
+        Visitor.Visit(node);
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+        Visitor.Visit(node);
+    }public virtual void Visit(ContainsNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);

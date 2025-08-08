@@ -1086,11 +1086,43 @@ public class Parser
             }
         }
 
-        // Parse ORDER BY clause if present
-        if (Current.TokenType == TokenType.OrderBy)
+        // Parse ORDER BY clause if present (handle as separate tokens like PARTITION BY)
+        if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "order")
         {
+            Consume(TokenType.Identifier); // consume "ORDER"
+            if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "by")
+            {
+                Consume(TokenType.Identifier); // consume "BY"
+                orderBy = ComposeArithmeticExpression(0);
+                
+                // Handle DESC/ASC if present
+                if (Current.TokenType == TokenType.Desc)
+                {
+                    Consume(TokenType.Desc);
+                    // For now, just consume it - would need to be part of orderBy node in full implementation
+                }
+                else if (Current.TokenType == TokenType.Identifier && 
+                         (Current.Value.ToLowerInvariant() == "asc" || Current.Value.ToLowerInvariant() == "desc"))
+                {
+                    Consume(TokenType.Identifier);
+                }
+            }
+        }
+        else if (Current.TokenType == TokenType.OrderBy)
+        {
+            // Handle if ORDER BY is parsed as a single token (fallback)
             Consume(TokenType.OrderBy);
             orderBy = ComposeArithmeticExpression(0);
+            
+            if (Current.TokenType == TokenType.Desc)
+            {
+                Consume(TokenType.Desc);
+            }
+            else if (Current.TokenType == TokenType.Identifier && 
+                     (Current.Value.ToLowerInvariant() == "asc" || Current.Value.ToLowerInvariant() == "desc"))
+            {
+                Consume(TokenType.Identifier);
+            }
         }
 
         Consume(TokenType.RightParenthesis);

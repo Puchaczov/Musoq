@@ -409,4 +409,11 @@ public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
     public void Visit(FieldLinkNode node)
     {
     }
-}
+
+    public void Visit(WindowSpecificationNode node)
+    {
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+    }}

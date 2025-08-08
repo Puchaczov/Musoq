@@ -1623,7 +1623,39 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(newNode);
     }
 
-    public void Visit(FieldLinkNode node)
+    
+    public void Visit(WindowSpecificationNode node)
+    {
+        // For now, window specifications don't need metadata processing
+        // In the future, this would handle partition and order by expressions
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+        // Treat window functions as regular function calls for metadata purposes
+        // Find the method for this function name
+        var libraryType = typeof(Musoq.Plugins.LibraryBase);
+        var method = libraryType.GetMethods()
+            .FirstOrDefault(m => m.Name.Equals(node.FunctionName, StringComparison.OrdinalIgnoreCase));
+            
+        if (method != null)
+        {
+            // Create an AccessMethodNode and delegate to its handling
+            var accessMethodNode = new AccessMethodNode(
+                new Musoq.Parser.Tokens.FunctionToken(node.FunctionName, Musoq.Parser.TextSpan.Empty),
+                node.Arguments,
+                null, // alias
+                false, // canSkipInjectNode
+                method
+            );
+            
+            Visit(accessMethodNode);
+        }
+        else
+        {
+            throw new NotSupportedException($"Window function '{node.FunctionName}' is not supported");
+        }
+    }public void Visit(FieldLinkNode node)
     {
         var index = node.Index - 1;
 

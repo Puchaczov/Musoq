@@ -3807,7 +3807,42 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
     }
 
-    public void Visit(FieldLinkNode node)
+    
+    public void Visit(WindowSpecificationNode node)
+    {
+        // For now, window specifications are not needed for basic functions
+        // The partitioning and ordering logic would be implemented here for advanced features
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+        // For now, convert window functions to regular function calls
+        // The OVER clause logic would be implemented here for advanced partitioning and ordering
+        // For basic functions like RANK(), DENSE_RANK(), LAG(), LEAD(), treat as regular functions
+        
+        // Find the method for this function name
+        var libraryType = typeof(Musoq.Plugins.LibraryBase);
+        var method = libraryType.GetMethods()
+            .FirstOrDefault(m => m.Name.Equals(node.FunctionName, StringComparison.OrdinalIgnoreCase));
+            
+        if (method != null)
+        {
+            // Create an AccessMethodNode and delegate to its handling
+            var accessMethodNode = new AccessMethodNode(
+                new Musoq.Parser.Tokens.FunctionToken(node.FunctionName, Musoq.Parser.TextSpan.Empty),
+                node.Arguments,
+                null, // alias
+                false, // canSkipInjectNode
+                method
+            );
+            
+            Visit(accessMethodNode);
+        }
+        else
+        {
+            throw new NotSupportedException($"Window function '{node.FunctionName}' is not supported");
+        }
+    }public void Visit(FieldLinkNode node)
     {
         throw new NotSupportedException();
     }

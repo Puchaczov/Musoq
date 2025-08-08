@@ -635,4 +635,18 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     {
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }
+
+    public virtual void Visit(WindowSpecificationNode node)
+    {
+        var partitionBy = node.PartitionBy != null ? Nodes.Pop() : null;
+        var orderBy = node.OrderBy != null ? Nodes.Pop() : null;
+        Nodes.Push(new WindowSpecificationNode(partitionBy, orderBy));
+    }
+
+    public virtual void Visit(WindowFunctionNode node)
+    {
+        var windowSpec = SafeCast<WindowSpecificationNode>(Nodes.Pop(), nameof(Visit) + nameof(WindowFunctionNode));
+        var arguments = node.Arguments != null ? SafeCast<ArgsListNode>(Nodes.Pop(), nameof(Visit) + nameof(WindowFunctionNode)) : null;
+        Nodes.Push(new WindowFunctionNode(node.FunctionName, arguments, windowSpec));
+    }
 }
