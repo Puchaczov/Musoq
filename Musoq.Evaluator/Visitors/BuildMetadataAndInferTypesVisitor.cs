@@ -1321,7 +1321,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var reorderedList = new FieldNode[oldFields.Length];
         for (var i = reorderedList.Length - 1; i >= 0; i--)
         {
-            reorderedList[i] = Nodes.Pop() as FieldNode;
+            var poppedNode = Nodes.Pop();
+            reorderedList[i] = poppedNode as FieldNode;
+            if (reorderedList[i] == null)
+            {
+                throw new InvalidOperationException($"Expected FieldNode but got {poppedNode?.GetType().Name ?? "null"} at position {i}. Total fields: {oldFields.Length}");
+            }
         }
 
         var fields = new List<FieldNode>(reorderedList.Length);
