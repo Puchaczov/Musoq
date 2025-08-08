@@ -7,11 +7,13 @@ public class WindowSpecificationNode : Node
 {
     public Node PartitionBy { get; }
     public Node OrderBy { get; }
+    public WindowFrameNode WindowFrame { get; }
 
-    public WindowSpecificationNode(Node partitionBy, Node orderBy)
+    public WindowSpecificationNode(Node partitionBy, Node orderBy, WindowFrameNode windowFrame = null)
     {
         PartitionBy = partitionBy;
         OrderBy = orderBy;
+        WindowFrame = windowFrame;
         Id = $"{nameof(WindowSpecificationNode)}{GetHashCode()}";
     }
 
@@ -26,6 +28,8 @@ public class WindowSpecificationNode : Node
             parts.Add($"PARTITION BY {PartitionBy}");
         if (OrderBy != null)
             parts.Add($"ORDER BY {OrderBy}");
+        if (WindowFrame != null)
+            parts.Add(WindowFrame.ToString());
         return string.Join(" ", parts);
     }
 

@@ -449,4 +449,9 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     public void InnerCteEnds()
     {
     }
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame node - basic implementation
+    }
+
 }

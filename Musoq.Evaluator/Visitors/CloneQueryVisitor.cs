@@ -649,4 +649,9 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         var arguments = node.Arguments != null ? SafeCast<ArgsListNode>(Nodes.Pop(), nameof(Visit) + nameof(WindowFunctionNode)) : null;
         Nodes.Push(new WindowFunctionNode(node.FunctionName, arguments, windowSpec));
     }
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame node - basic implementation
+    }
+
 }

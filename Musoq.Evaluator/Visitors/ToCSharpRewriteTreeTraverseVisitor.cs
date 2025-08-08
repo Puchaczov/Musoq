@@ -841,4 +841,9 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             _visitor.SetScope(_walker.Scope);
         }
     }
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame node - basic implementation
+    }
+
 }

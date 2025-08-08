@@ -1386,4 +1386,9 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             return false;
         };
     }
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame node - basic implementation
+    }
+
 }

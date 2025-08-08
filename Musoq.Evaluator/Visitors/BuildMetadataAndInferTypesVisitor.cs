@@ -1652,6 +1652,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(resultNode);
     }
 
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame nodes don't need special metadata processing for now
+        // They are part of window specification structure
+    }
+
     public void Visit(FieldLinkNode node)
     {
         var index = node.Index - 1;

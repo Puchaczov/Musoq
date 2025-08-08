@@ -630,4 +630,9 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Right.Accept(this);
         node.Accept(Visitor);
     }
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame node - basic implementation
+    }
+
 }

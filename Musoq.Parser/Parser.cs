@@ -1074,6 +1074,7 @@ public class Parser
 
         Node partitionBy = null;
         Node orderBy = null;
+        WindowFrameNode windowFrame = null;
 
         // Parse PARTITION BY clause if present (handle as separate tokens for now)
         if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "partition")
@@ -1125,9 +1126,89 @@ public class Parser
             }
         }
 
+        // Parse window frame (ROWS BETWEEN...) if present
+        if (Current.TokenType == TokenType.Rows)
+        {
+            windowFrame = ComposeWindowFrame();
+        }
+
         Consume(TokenType.RightParenthesis);
 
-        return new WindowSpecificationNode(partitionBy, orderBy);
+        return new WindowSpecificationNode(partitionBy, orderBy, windowFrame);
+    }
+
+    private WindowFrameNode ComposeWindowFrame()
+    {
+        // Consume ROWS token
+        Consume(TokenType.Rows);
+        
+        if (Current.TokenType == TokenType.Between)
+        {
+            // Handle ROWS BETWEEN ... AND ... syntax
+            Consume(TokenType.Between);
+            
+            string startBound = ComposeFrameBound();
+            
+            // Consume AND
+            if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "and")
+            {
+                Consume(TokenType.Identifier);
+            }
+            
+            string endBound = ComposeFrameBound();
+            
+            return new WindowFrameNode("ROWS", startBound, endBound);
+        }
+        else
+        {
+            // Handle simple ROWS startBound syntax
+            string startBound = ComposeFrameBound();
+            return new WindowFrameNode("ROWS", startBound);
+        }
+    }
+
+    private string ComposeFrameBound()
+    {
+        if (Current.TokenType == TokenType.Unbounded)
+        {
+            Consume(TokenType.Unbounded);
+            if (Current.TokenType == TokenType.Preceding)
+            {
+                Consume(TokenType.Preceding);
+                return "UNBOUNDED PRECEDING";
+            }
+            else if (Current.TokenType == TokenType.Following)
+            {
+                Consume(TokenType.Following);
+                return "UNBOUNDED FOLLOWING";
+            }
+        }
+        else if (Current.TokenType == TokenType.Current)
+        {
+            Consume(TokenType.Current);
+            if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "row")
+            {
+                Consume(TokenType.Identifier);
+                return "CURRENT ROW";
+            }
+        }
+        else if (Current.TokenType == TokenType.Integer)
+        {
+            var value = Current.Value;
+            Consume(TokenType.Integer);
+            if (Current.TokenType == TokenType.Preceding)
+            {
+                Consume(TokenType.Preceding);
+                return $"{value} PRECEDING";
+            }
+            else if (Current.TokenType == TokenType.Following)
+            {
+                Consume(TokenType.Following);
+                return $"{value} FOLLOWING";
+            }
+        }
+        
+        throw new InvalidOperationException($"Unexpected token in window frame bound: {Current.TokenType}");
     }
 
     private enum Associativity

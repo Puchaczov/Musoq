@@ -723,4 +723,9 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
         _walker = _walker.Parent();
     }
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame node - basic implementation
+    }
+
 }

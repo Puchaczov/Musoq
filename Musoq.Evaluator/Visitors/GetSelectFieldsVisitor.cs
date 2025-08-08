@@ -416,4 +416,12 @@ public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
 
     public void Visit(WindowFunctionNode node)
     {
-    }}
+        // Window function node - basic implementation for select fields extraction
+    }
+
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame node - basic implementation
+    }
+
+}

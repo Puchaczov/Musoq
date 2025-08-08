@@ -3842,7 +3842,15 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         {
             throw new NotSupportedException($"Window function '{node.FunctionName}' is not supported");
         }
-    }public void Visit(FieldLinkNode node)
+    }
+
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame nodes don't need C# generation for now
+        // They are part of window specification structure and would be handled during execution
+    }
+
+    public void Visit(FieldLinkNode node)
     {
         throw new NotSupportedException();
     }

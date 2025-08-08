@@ -858,6 +858,9 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     
     public void Visit(WindowSpecificationNode node)
     {
+        node.PartitionBy?.Accept(this);
+        node.OrderBy?.Accept(this);
+        node.WindowFrame?.Accept(this);
         _visitor.Visit(node);
     }
 
@@ -866,7 +869,14 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Arguments?.Accept(this);
         node.WindowSpecification?.Accept(this);
         _visitor.Visit(node);
-    }public void Visit(FieldLinkNode node)
+    }
+
+    public void Visit(WindowFrameNode node)
+    {
+        _visitor.Visit(node);
+    }
+
+    public void Visit(FieldLinkNode node)
     {
         node.Accept(_visitor);
     }

@@ -102,4 +102,5 @@ public interface IExpressionVisitor
     void Visit(FieldLinkNode node);
     void Visit(WindowSpecificationNode node);
     void Visit(WindowFunctionNode node);
+    void Visit(WindowFrameNode node);
 }
