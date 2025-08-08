@@ -28,7 +28,7 @@ public class AccessObjectArrayNode : IdentifierNode
         get
         {
             if (PropertyInfo == null)
-                return null;
+                return typeof(char); // String character access returns char
                 
             if (PropertyInfo.PropertyType.IsArray)
                 return PropertyInfo.PropertyType.GetElementType();

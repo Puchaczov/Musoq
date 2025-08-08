@@ -521,10 +521,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         if (Nodes.Count == 0)
         {
             // This is a direct column access with indexing, like Name[0]
-            // We need to treat this as accessing a column directly
-            // Create an identifier node for the column name and handle string indexing
-            var identifier = new IdentifierNode(node.ObjectName);
-            Visit(identifier);
+            // Create an AccessColumnNode for the column name to provide the string context
+            var columnAccess = new AccessColumnNode(node.ObjectName, string.Empty, typeof(string), node.Token.Span);
+            Visit(columnAccess);
+            
+            // Now push the array access node for character access (PropertyInfo = null means string character access)
+            Nodes.Push(new AccessObjectArrayNode(node.Token, null));
+            return;
         }
         
         var parentNode = Nodes.Peek();
@@ -585,6 +588,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (parentNodeType == typeof(string))
             {
                 // For string character access, we don't need a property - we access the string directly
+                // PropertyInfo = null means string character access, ReturnType will be char
                 Nodes.Push(new AccessObjectArrayNode(node.Token, null));
                 return;
             }
