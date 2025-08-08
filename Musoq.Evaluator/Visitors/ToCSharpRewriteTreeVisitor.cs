@@ -917,7 +917,21 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectArrayNode node)
     {
-        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
+        var topNode = Nodes.Pop();
+        
+        // Handle the case where we have a BlockSyntax instead of ExpressionSyntax
+        // This happens when we have direct column character access like Name[0]
+        ExpressionSyntax exp;
+        if (topNode is BlockSyntax blockSyntax)
+        {
+            // Extract the expression from the block - this is a special case for direct column access
+            // For direct column access, we need to create the column access expression
+            exp = SyntaxFactory.IdentifierName(node.ObjectName);
+        }
+        else
+        {
+            exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) topNode);
+        }
 
         ExpressionSyntax targetExpression;
         
