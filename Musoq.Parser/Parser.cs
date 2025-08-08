@@ -881,7 +881,14 @@ public class Parser
                 ReplaceCurrentToken(new FunctionToken(Current.Value, Current.Span));
                 return ComposeAccessMethod(string.Empty);
             case TokenType.Function:
-                return ComposeAccessMethod(string.Empty);
+                var accessMethod = ComposeAccessMethod(string.Empty);
+                // Check for OVER clause to detect window functions
+                if (Current.TokenType == TokenType.Over)
+                {
+                    var windowSpec = ComposeWindowSpecification();
+                    return new WindowFunctionNode(accessMethod.Name, accessMethod.Arguments, windowSpec);
+                }
+                return accessMethod;
             case TokenType.Identifier:
 
                 if (Current is not ColumnToken column)
@@ -1058,6 +1065,33 @@ public class Parser
     private static bool IsNumericToken(Token current)
     {
         return current.TokenType is TokenType.Decimal or TokenType.Integer;
+    }
+
+    private WindowSpecificationNode ComposeWindowSpecification()
+    {
+        Consume(TokenType.Over);
+        Consume(TokenType.LeftParenthesis);
+
+        Node partitionBy = null;
+        Node orderBy = null;
+
+        // Parse PARTITION BY clause if present
+        if (Current.TokenType == TokenType.PartitionBy)
+        {
+            Consume(TokenType.PartitionBy);
+            partitionBy = ComposeArithmeticExpression(0);
+        }
+
+        // Parse ORDER BY clause if present
+        if (Current.TokenType == TokenType.OrderBy)
+        {
+            Consume(TokenType.OrderBy);
+            orderBy = ComposeArithmeticExpression(0);
+        }
+
+        Consume(TokenType.RightParenthesis);
+
+        return new WindowSpecificationNode(partitionBy, orderBy);
     }
 
     private enum Associativity

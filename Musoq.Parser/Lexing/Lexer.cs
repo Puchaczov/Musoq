@@ -186,6 +186,8 @@ public class Lexer : LexerBase<Token>
                 return TokenType.Else;
             case EndToken.TokenText:
                 return TokenType.End;
+            case OverToken.TokenText:
+                return TokenType.Over;
             case WordToken.EmptyTokenText:
                 return TokenType.Word;
         }
@@ -209,6 +211,8 @@ public class Lexer : LexerBase<Token>
             return TokenType.NumericAccess;
         if (regex == TokenRegexDefinition.KGroupBy)
             return TokenType.GroupBy;
+        if (regex == TokenRegexDefinition.KPartitionBy)
+            return TokenType.PartitionBy;
         if (regex == TokenRegexDefinition.KUnionAll)
             return TokenType.UnionAll;
         if (regex == TokenRegexDefinition.KOrderBy)
@@ -347,6 +351,8 @@ public class Lexer : LexerBase<Token>
         public static readonly string KThen = Format(Keyword, ThenToken.TokenText);
         public static readonly string KElse = Format(Keyword, ElseToken.TokenText);
         public static readonly string KEnd = Format(Keyword, EndToken.TokenText);
+        public static readonly string KOver = Format(Keyword, OverToken.TokenText);
+        public static readonly string KPartitionBy = @"(?<=[\s]{1,}|^)partition[\s]{1,}by(?=[\s]{1,}|$)";
         public static readonly string KAliasedStar = @"\b[a-zA-Z_]\w*\.\*";
 
         private static string Format(string keyword, string arg)
@@ -438,6 +444,8 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KThen),
             new(TokenRegexDefinition.KElse),
             new(TokenRegexDefinition.KEnd),
+            new(TokenRegexDefinition.KOver, RegexOptions.IgnoreCase),
+            new(TokenRegexDefinition.KPartitionBy, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KFieldLink)
         ];
     }
@@ -654,6 +662,10 @@ public class Lexer : LexerBase<Token>
                 return new FieldLinkToken(tokenText, new TextSpan(Position, tokenText.Length));
             case TokenType.Comment:
                 return new CommentToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Over:
+                return new OverToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.PartitionBy:
+                return new PartitionByToken(new TextSpan(Position, tokenText.Length));
         }
 
         if (regex != TokenRegexDefinition.KWordSingleQuoted)
