@@ -568,16 +568,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (isNotRoot)
             {
-                // Special case: if parent is context with RowSource type, and we're accessing a column name with index,
-                // treat this as string character access
-                if (parentNodeType.Name == "RowSource" && !string.IsNullOrEmpty(node.ObjectName))
-                {
-                    // This is direct column character access like Name[0]
-                    // We don't need a property lookup - directly create the array access for string character access
-                    Nodes.Push(new AccessObjectArrayNode(node.Token, null));
-                    return;
-                }
-                
                 var propertyAccess = parentNodeType.GetProperty(node.Name);
 
                 isArray = propertyAccess?.PropertyType.IsArray == true;
@@ -585,6 +575,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
                 if (!isArray && !isIndexer)
                 {
+                    // Special case: if parent is RowSource and we can't find a property,
+                    // this might be direct column character access like Name[0]
+                    if (parentNodeType.Name == "RowSource")
+                    {
+                        // For direct column access, we assume it's string character access
+                        // PropertyInfo = null indicates string character access
+                        Nodes.Push(new AccessObjectArrayNode(node.Token, null));
+                        return;
+                    }
+                    
                     throw new ObjectIsNotAnArrayException(
                         $"Object {parentNodeType.Name} is not an array.");
                 }

@@ -919,13 +919,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
         var topNode = Nodes.Pop();
         
-        // Handle the case where we have a BlockSyntax instead of ExpressionSyntax
-        // This happens when we have direct column character access like Name[0]
         ExpressionSyntax exp;
-        if (topNode is BlockSyntax blockSyntax)
+        
+        // Handle the case where we have a BlockSyntax instead of ExpressionSyntax
+        // This happens when we have direct column character access like Name[0] 
+        // where the column access context generates a block rather than an expression
+        if (topNode is BlockSyntax)
         {
-            // Extract the expression from the block - this is a special case for direct column access
-            // For direct column access, we need to create the column access expression
+            // For direct column access, generate a simple identifier for the column name
             exp = SyntaxFactory.IdentifierName(node.ObjectName);
         }
         else
