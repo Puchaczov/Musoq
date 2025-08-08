@@ -23,6 +23,62 @@ public partial class LibraryBase : UserMethodsLibrary
     }
 
     /// <summary>
+    /// Gets the rank of the current row (same as RowNumber for now).
+    /// </summary>
+    /// <param name="info" injectedByRuntime="true">The queryStats object</param>
+    /// <returns>The rank</returns>
+    [BindableMethod]
+    public int Rank([InjectQueryStats] QueryStats info)
+    {
+        return info.RowNumber;
+    }
+
+    /// <summary>
+    /// Gets the dense rank of the current row (same as RowNumber for now).
+    /// </summary>
+    /// <param name="info" injectedByRuntime="true">The queryStats object</param>
+    /// <returns>The dense rank</returns>
+    [BindableMethod]
+    public int DenseRank([InjectQueryStats] QueryStats info)
+    {
+        return info.RowNumber;
+    }
+
+    /// <summary>
+    /// Placeholder for LAG function - returns null for now.
+    /// In a full implementation, this would access values from previous rows.
+    /// </summary>
+    /// <typeparam name="T">The type of value to lag</typeparam>
+    /// <param name="value">The value to lag</param>
+    /// <param name="offset">Number of rows to lag (default 1)</param>
+    /// <param name="defaultValue">Default value if no lagged value available</param>
+    /// <returns>The lagged value or default</returns>
+    [BindableMethod]
+    public T? Lag<T>(T value, int offset = 1, T? defaultValue = default)
+    {
+        // Basic implementation - just return default value
+        // A full implementation would need access to the complete result set
+        return defaultValue;
+    }
+
+    /// <summary>
+    /// Placeholder for LEAD function - returns null for now.
+    /// In a full implementation, this would access values from next rows.
+    /// </summary>
+    /// <typeparam name="T">The type of value to lead</typeparam>
+    /// <param name="value">The value to lead</param>
+    /// <param name="offset">Number of rows to lead (default 1)</param>
+    /// <param name="defaultValue">Default value if no lead value available</param>
+    /// <returns>The lead value or default</returns>
+    [BindableMethod]
+    public T? Lead<T>(T value, int offset = 1, T? defaultValue = default)
+    {
+        // Basic implementation - just return default value
+        // A full implementation would need access to the complete result set
+        return defaultValue;
+    }
+
+    /// <summary>
     /// Gets the typename of passed object.
     /// </summary>
     /// <param name="obj">Object of unknown type that the typename have to be retrieved</param>
