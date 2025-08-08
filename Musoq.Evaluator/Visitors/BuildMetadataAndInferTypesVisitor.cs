@@ -1633,28 +1633,21 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     public void Visit(WindowFunctionNode node)
     {
         // Treat window functions as regular function calls for metadata purposes
-        // Find the method for this function name
-        var libraryType = typeof(Musoq.Plugins.LibraryBase);
-        var method = libraryType.GetMethods()
-            .FirstOrDefault(m => m.Name.Equals(node.FunctionName, StringComparison.OrdinalIgnoreCase));
-            
-        if (method != null)
-        {
-            // Create an AccessMethodNode and delegate to its handling
-            var accessMethodNode = new AccessMethodNode(
-                new Musoq.Parser.Tokens.FunctionToken(node.FunctionName, Musoq.Parser.TextSpan.Empty),
-                node.Arguments,
-                null, // alias
-                false, // canSkipInjectNode
-                method
-            );
-            
-            Visit(accessMethodNode);
-        }
-        else
-        {
-            throw new NotSupportedException($"Window function '{node.FunctionName}' is not supported");
-        }
+        // Ensure arguments are properly handled
+        var args = node.Arguments ?? new ArgsListNode(new Node[0]);
+        
+        // Push the arguments onto the stack for the AccessMethodNode to process
+        Nodes.Push(args);
+        
+        // Create an AccessMethodNode without pre-resolved method and delegate to its handling
+        var accessMethodNode = new AccessMethodNode(
+            new Musoq.Parser.Tokens.FunctionToken(node.FunctionName, Musoq.Parser.TextSpan.Empty),
+            args,
+            null, // alias
+            false // canSkipInjectNode
+        );
+        
+        Visit(accessMethodNode);
     }public void Visit(FieldLinkNode node)
     {
         var index = node.Index - 1;

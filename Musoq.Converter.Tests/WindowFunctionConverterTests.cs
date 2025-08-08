@@ -43,7 +43,7 @@ public class WindowFunctionConverterTests
     [TestMethod]
     public void Convert_RankWithOrderByClause_ShouldCompile()
     {
-        var query = "select RANK() OVER (ORDER BY Value DESC) as Ranking from #system.dual()";
+        var query = "select RANK() OVER (ORDER BY Dummy DESC) as Ranking from #system.dual()";
         
         var (dllFile, pdbFile) = CreateForStore(query);
         
@@ -56,7 +56,7 @@ public class WindowFunctionConverterTests
     [TestMethod]
     public void Convert_RankWithPartitionByClause_ShouldCompile()
     {
-        var query = "select RANK() OVER (PARTITION BY Value) as Ranking from #system.dual()";
+        var query = "select RANK() OVER (PARTITION BY Dummy) as Ranking from #system.dual()";
         
         var (dllFile, pdbFile) = CreateForStore(query);
         
@@ -69,7 +69,7 @@ public class WindowFunctionConverterTests
     [TestMethod]
     public void Convert_RankWithPartitionAndOrderBy_ShouldCompile()
     {
-        var query = "select RANK() OVER (PARTITION BY Value ORDER BY Value DESC) as Ranking from #system.dual()";
+        var query = "select RANK() OVER (PARTITION BY Dummy ORDER BY Dummy DESC) as Ranking from #system.dual()";
         
         var (dllFile, pdbFile) = CreateForStore(query);
         
@@ -83,10 +83,10 @@ public class WindowFunctionConverterTests
     public void Convert_MultipleWindowFunctions_ShouldCompile()
     {
         var query = @"select 
-            RANK() OVER (ORDER BY Value) as Rank1,
-            DenseRank() OVER (PARTITION BY Value) as DenseRank1,
-            LAG(Value, 1, 0) OVER (ORDER BY Value) as PrevValue,
-            LEAD(Value, 2, 0) OVER (ORDER BY Value) as NextValue
+            RANK() OVER (ORDER BY Dummy) as Rank1,
+            DenseRank() OVER (PARTITION BY Dummy) as DenseRank1,
+            LAG(Dummy, 1, 'default') OVER (ORDER BY Dummy) as PrevValue,
+            LEAD(Dummy, 2, 'default') OVER (ORDER BY Dummy) as NextValue
             from #system.dual()";
         
         var (dllFile, pdbFile) = CreateForStore(query);
@@ -100,7 +100,7 @@ public class WindowFunctionConverterTests
     [TestMethod]
     public void Convert_WindowFunctionWithComplexExpressions_ShouldCompile()
     {
-        var query = "select RANK() OVER (PARTITION BY Value ORDER BY Value * 2 DESC) as ComplexRank from #system.dual()";
+        var query = "select RANK() OVER (PARTITION BY Dummy ORDER BY Length(Dummy) * 2 DESC) as ComplexRank from #system.dual()";
         
         var (dllFile, pdbFile) = CreateForStore(query);
         
@@ -114,10 +114,10 @@ public class WindowFunctionConverterTests
     public void Convert_MixedWindowAndRegularFunctions_ShouldCompile()
     {
         var query = @"select 
-            Value,
-            UPPER(ToString(Value)) as UpperValue,
-            RANK() OVER (ORDER BY Value) as WindowRank,
-            DenseRank() OVER (PARTITION BY Value) as RegionalDenseRank
+            Dummy,
+            UPPER(ToString(Dummy)) as UpperValue,
+            RANK() OVER (ORDER BY Dummy) as WindowRank,
+            DenseRank() OVER (PARTITION BY Dummy) as RegionalDenseRank
             from #system.dual()";
         
         var (dllFile, pdbFile) = CreateForStore(query);
@@ -132,11 +132,11 @@ public class WindowFunctionConverterTests
     public void Convert_AllWindowFunctionTypes_ShouldCompile()
     {
         var query = @"select 
-            Value,
-            RANK() OVER (ORDER BY Value) as RankCol,
-            DENSE_RANK() OVER (ORDER BY Value) as DenseRankCol,
-            LAG(Value, 1, 0) OVER (ORDER BY Value) as LagCol,
-            LEAD(Value, 2, 0) OVER (ORDER BY Value) as LeadCol
+            Dummy,
+            RANK() OVER (ORDER BY Dummy) as RankCol,
+            DENSE_RANK() OVER (ORDER BY Dummy) as DenseRankCol,
+            LAG(Dummy, 1, 'default') OVER (ORDER BY Dummy) as LagCol,
+            LEAD(Dummy, 2, 'default') OVER (ORDER BY Dummy) as LeadCol
             from #system.dual()";
         
         var (dllFile, pdbFile) = CreateForStore(query);
@@ -150,7 +150,7 @@ public class WindowFunctionConverterTests
     [TestMethod]
     public async Task Convert_WindowFunctionsAsync_ShouldCompile()
     {
-        var query = "select RANK() OVER (ORDER BY Value DESC) as Ranking from #system.dual()";
+        var query = "select RANK() OVER (ORDER BY Dummy DESC) as Ranking from #system.dual()";
         
         var (dllFile, pdbFile) = await CreateForStoreAsync(query);
         
@@ -165,9 +165,9 @@ public class WindowFunctionConverterTests
     {
         // Test that window functions participate correctly in type inference
         var query = @"select 
-            Value,
-            RANK() OVER (ORDER BY Value DESC) as PopRank,
-            CASE WHEN RANK() OVER (ORDER BY Value DESC) = 1 THEN 'Top' ELSE 'Other' END as Category
+            Dummy,
+            RANK() OVER (ORDER BY Dummy DESC) as PopRank,
+            CASE WHEN RANK() OVER (ORDER BY Dummy DESC) = 1 THEN 'Top' ELSE 'Other' END as Category
             from #system.dual()";
         
         var (dllFile, pdbFile) = CreateForStore(query);
@@ -183,11 +183,11 @@ public class WindowFunctionConverterTests
     {
         // Test window functions used in arithmetic expressions
         var query = @"select 
-            Value,
-            Value * 2 as DoublePop,
-            RANK() OVER (ORDER BY Value * 2 DESC) as DoublePopRank,
-            RANK() OVER (ORDER BY Value DESC) + 100 as AdjustedRank,
-            (Value / RANK() OVER (ORDER BY Value DESC)) as PopPerRank
+            Dummy,
+            Length(Dummy) as DoublePop,
+            RANK() OVER (ORDER BY Length(Dummy) DESC) as DoublePopRank,
+            RANK() OVER (ORDER BY Dummy DESC) + 100 as AdjustedRank,
+            (Length(Dummy) / RANK() OVER (ORDER BY Dummy DESC)) as PopPerRank
             from #system.dual()";
         
         var (dllFile, pdbFile) = CreateForStore(query);
@@ -202,10 +202,10 @@ public class WindowFunctionConverterTests
     public void Convert_WindowFunctionWithWhere_ShouldCompile()
     {
         var query = @"select 
-            Value,
-            RANK() OVER (ORDER BY Value DESC) as Ranking
+            Dummy,
+            RANK() OVER (ORDER BY Dummy DESC) as Ranking
             from #system.dual()
-            where Value > 0";
+            where Length(Dummy) > 0";
         
         var (dllFile, pdbFile) = CreateForStore(query);
         
@@ -219,10 +219,10 @@ public class WindowFunctionConverterTests
     public void Convert_WindowFunctionWithOrderBy_ShouldCompile()
     {
         var query = @"select 
-            Value,
-            RANK() OVER (ORDER BY Value DESC) as Ranking
+            Dummy,
+            RANK() OVER (ORDER BY Dummy DESC) as Ranking
             from #system.dual()
-            order by Value";
+            order by Dummy";
         
         var (dllFile, pdbFile) = CreateForStore(query);
         
@@ -236,11 +236,11 @@ public class WindowFunctionConverterTests
     public void Convert_ComplexWindowFunction_ShouldCompile()
     {
         var query = @"select 
-            Value,
-            RANK() OVER (PARTITION BY Value ORDER BY Value DESC) as ComplexRank
+            Dummy,
+            RANK() OVER (PARTITION BY Dummy ORDER BY Dummy DESC) as ComplexRank
             from #system.dual()
-            where Value IS NOT NULL
-            order by Value desc";
+            where Dummy IS NOT NULL
+            order by Dummy desc";
         
         var (dllFile, pdbFile) = CreateForStore(query);
         
