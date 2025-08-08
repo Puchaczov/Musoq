@@ -521,74 +521,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         if (Nodes.Count == 0)
         {
             // This is a direct column access with indexing, like Name[0]
-            // Use the same identifier resolution logic as AccessColumnNode
-            var hasProcessedQueryId = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
-            var identifier = (hasProcessedQueryId
-                ? _currentScope[MetaAttributes.ProcessedQueryId]
-                : _identifier) ?? string.Empty;
+            // Create an AccessColumnNode for the column name to provide the string context
+            var columnAccess = new AccessColumnNode(node.ObjectName, string.Empty, typeof(string), node.Token.Span);
+            Visit(columnAccess);
             
-            if (string.IsNullOrEmpty(identifier))
-            {
-                throw VisitorException.CreateForProcessingFailure(
-                    VisitorName,
-                    nameof(Visit) + nameof(AccessObjectArrayNode),
-                    "No valid identifier found for column access",
-                    "Ensure the query has proper FROM clause and table aliases are correctly specified."
-                );
-            }
-            
-            try
-            {
-                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
-                if (tableSymbol == null)
-                {
-                    throw VisitorException.CreateForProcessingFailure(
-                        VisitorName,
-                        nameof(Visit) + nameof(AccessObjectArrayNode),
-                        $"Table symbol not found for identifier '{identifier}'",
-                        "Verify that the table or alias is properly defined in the query."
-                    );
-                }
-
-                var tuple = tableSymbol.GetTableByColumnName(node.ObjectName);
-                var column = tuple.Table.GetColumnByName(node.ObjectName);
-                
-                if (column == null)
-                {
-                    PrepareAndThrowUnknownColumnExceptionMessage(node.ObjectName, tuple.Table.Columns);
-                    return;
-                }
-                
-                AddAssembly(column.ColumnType.Assembly);
-                
-                // Create and push the column access node
-                var columnNode = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Token.Span);
-                Nodes.Push(columnNode);
-                
-                // Update used columns
-                var usedColumns = _usedColumns
-                    .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == _schemaFromKey)
-                    .Select(f => f.Value)
-                    .FirstOrDefault();
-
-                if (usedColumns is not null && usedColumns.All(c => c.ColumnName != column.ColumnName))
-                {
-                    usedColumns.Add(column);
-                }
-                
-                // Now push the array access node for character access (PropertyInfo = null means string character access)
-                Nodes.Push(new AccessObjectArrayNode(node.Token, null));
-                return;
-            }
-            catch (Exception ex) when (!(ex is VisitorException))
-            {
-                throw VisitorException.CreateForProcessingFailure(
-                    VisitorName,
-                    nameof(Visit) + nameof(AccessObjectArrayNode),
-                    $"Failed to process direct column array access for '{node.ObjectName}': {ex.Message}",
-                    "Check that the column exists in the specified table and that table aliases are correct."
-                );
-            }
+            // Now push the array access node for character access (PropertyInfo = null means string character access)
+            Nodes.Push(new AccessObjectArrayNode(node.Token, null));
+            return;
         }
         
         var parentNode = Nodes.Peek();
@@ -636,12 +575,31 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
                 if (!isArray && !isIndexer)
                 {
+                    // Special case: if parent is RowSource and we can't find a property,
+                    // this might be direct column character access like Name[0]
+                    if (parentNodeType.Name == "RowSource")
+                    {
+                        // For direct column access, we assume it's string character access
+                        // PropertyInfo = null indicates string character access
+                        Nodes.Push(new AccessObjectArrayNode(node.Token, null));
+                        return;
+                    }
+                    
                     throw new ObjectIsNotAnArrayException(
                         $"Object {parentNodeType.Name} is not an array.");
                 }
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, propertyAccess));
 
+                return;
+            }
+
+            // Handle string character access
+            if (parentNodeType == typeof(string))
+            {
+                // For string character access, we don't need a property - we access the string directly
+                // PropertyInfo = null means string character access, ReturnType will be char
+                Nodes.Push(new AccessObjectArrayNode(node.Token, null));
                 return;
             }
 

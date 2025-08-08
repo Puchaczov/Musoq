@@ -917,11 +917,82 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectArrayNode node)
     {
-        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
+        // Check if stack is empty - this can happen with direct column character access like Name[0]
+        if (Nodes.Count == 0)
+        {
+            // For direct column character access, generate the column access directly
+            var variableName = _type switch
+            {
+                MethodAccessType.TransformingQuery => "score",
+                MethodAccessType.ResultQuery or MethodAccessType.CaseWhen => "score",
+                _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
+            };
+
+            var columnAccess = Generator.ElementAccessExpression(
+                Generator.IdentifierName(variableName),
+                SyntaxFactory.Argument(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal($"@\"{node.ObjectName}\"", node.ObjectName))));
+
+            var castExpression = (ExpressionSyntax)Generator.CastExpression(
+                SyntaxFactory.IdentifierName("string"),
+                columnAccess);
+
+            Nodes.Push(SyntaxFactory
+                .ElementAccessExpression(castExpression).WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(node.Token.Index)))))));
+            return;
+        }
+        
+        var topNode = Nodes.Pop();
+        
+        ExpressionSyntax exp;
+        
+        // Handle the case where we have a BlockSyntax instead of ExpressionSyntax
+        // This can happen with certain column access patterns
+        if (topNode is BlockSyntax)
+        {
+            // Convert BlockSyntax to proper expression by handling the column access manually
+            var getValueCall = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.IdentifierName("GetValue"))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal(node.ObjectName))))));
+            
+            exp = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.CastExpression(
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                    getValueCall));
+        }
+        else
+        {
+            exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) topNode);
+        }
+
+        ExpressionSyntax targetExpression;
+        
+        // For string character access (when PropertyInfo is null), access the expression directly
+        // For property array access, access the property first
+        if (node.PropertyInfo == null)
+        {
+            // Direct character access like stringColumn[0]
+            targetExpression = exp;
+        }
+        else
+        {
+            // Property array access like object.PropertyName[0]
+            targetExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                exp, SyntaxFactory.IdentifierName(node.Name));
+        }
 
         Nodes.Push(SyntaxFactory
-            .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
+            .ElementAccessExpression(targetExpression).WithArgumentList(
                 SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
                         SyntaxFactory.Literal(node.Token.Index)))))));

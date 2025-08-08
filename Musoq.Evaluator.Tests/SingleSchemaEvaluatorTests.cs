@@ -172,7 +172,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void FirstLetterOfColumnTest()
     {
-        var query = @"select Name from #A.Entities() f where Name[0] = 'd'";
+        var query = @"select Name from #A.Entities() where Name[0] = 'd'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
