@@ -926,8 +926,21 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // where the column access context generates a block rather than an expression
         if (topNode is BlockSyntax)
         {
-            // For direct column access, generate a simple identifier for the column name
-            exp = SyntaxFactory.IdentifierName(node.ObjectName);
+            // For direct column access, we need to generate the proper column access expression
+            // This should generate something like: ((string)GetValue("Name"))
+            var getValueCall = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.IdentifierName("GetValue"))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal(node.ObjectName))))));
+            
+            exp = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.CastExpression(
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                    getValueCall));
         }
         else
         {
