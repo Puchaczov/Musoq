@@ -169,7 +169,6 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("ma@hostname.comcom", table[0].Values[0]);
     }
 
-    [Ignore]
     [TestMethod]
     public void FirstLetterOfColumnTest()
     {
@@ -198,7 +197,6 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("david.jones@proseware.com", table[0].Values[0]);
     }
 
-    [Ignore]
     [TestMethod]
     public void FirstLetterOfColumnTest2()
     {
