@@ -758,17 +758,20 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (!hasProperty)
             {
                 // Special case: if root is a table alias and exp is AccessObjectArrayNode (character access),
-                // handle this as aliased column character access
+                // convert to the pattern expected by ToCSharpRewriteTreeVisitor
                 if (exp is AccessObjectArrayNode arrayNode && root is IdentifierNode rootIdentifier)
                 {
                     // This is aliased column character access: alias.columnName[index]
-                    // We need to convert this to AccessColumnNode + AccessObjectArrayNode pattern
-                    // But we do this by visiting the AccessColumnNode directly and then handling the array access
+                    // Create the AccessColumnNode for the column
                     var columnAccess = new AccessColumnNode(arrayNode.ObjectName, rootIdentifier.Name, typeof(string), arrayNode.Token.Span);
-                    Visit(columnAccess); // This will process the column access through proper visitor logic
                     
-                    // Now push the character access node (PropertyInfo = null means string character access)
-                    Nodes.Push(new AccessObjectArrayNode(arrayNode.Token, null));
+                    // Create AccessObjectArrayNode with PropertyInfo = null (string character access)
+                    var characterAccess = new AccessObjectArrayNode(arrayNode.Token, null);
+                    
+                    // Create a DotNode with the expected pattern: AccessColumnNode + AccessObjectArrayNode
+                    var dotNode = new DotNode(columnAccess, characterAccess, node.IsTheMostInner, string.Empty, typeof(string));
+                    
+                    Nodes.Push(dotNode);
                     return;
                 }
                 

@@ -1000,9 +1000,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             return;
         }
         
-        // Check if this is an AccessColumnNode (column access) - handle character access directly
+        // Check if this is column access (AccessColumnNode result) - handle character access directly
         if (topNode is ExpressionSyntax expr && 
-            expr.ToString().Contains("score[") && 
+            (expr.ToString().Contains("score[") || expr.ToString().Contains("Row[")) && 
             node.PropertyInfo == null)
         {
             // This is character access on a column - generate character indexing
@@ -1095,14 +1095,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(DotNode node)
     {
-        // Debug: Check what kind of DotNode we're dealing with
-        Console.WriteLine($"DotNode visitor: Root={node.Root?.GetType().Name}, Expression={node.Expression?.GetType().Name}");
-        
         // Special case: AccessColumnNode + AccessObjectArrayNode (aliased character access like f.Name[0])
         if (node.Root is AccessColumnNode columnNode && node.Expression is AccessObjectArrayNode arrayNode && arrayNode.PropertyInfo == null)
         {
-            Console.WriteLine("✅ Detected aliased character access in ToCSharpRewriteTreeVisitor");
-            
             // This represents aliased column character access like f.Name[0]
             // Generate the C# code for column access with character indexing
             
@@ -1133,7 +1128,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
         
         // For normal DotNode cases, let the default traversal handle it
-        Console.WriteLine("❌ DotNode not handled by special case, using default traversal");
+        // This happens when we don't have the expected pattern
     }
 
     public void Visit(AccessCallChainNode node)
