@@ -1127,7 +1127,7 @@ public class Parser
         }
 
         // Parse window frame (ROWS BETWEEN...) if present
-        if (Current.TokenType == TokenType.Rows)
+        if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "rows")
         {
             windowFrame = ComposeWindowFrame();
         }
@@ -1140,19 +1140,23 @@ public class Parser
     private WindowFrameNode ComposeWindowFrame()
     {
         // Consume ROWS token
-        Consume(TokenType.Rows);
+        Consume(Current.TokenType); // "rows"
         
-        if (Current.TokenType == TokenType.Between)
+        if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "between")
         {
             // Handle ROWS BETWEEN ... AND ... syntax
-            Consume(TokenType.Between);
+            Consume(Current.TokenType); // "between"
             
             string startBound = ComposeFrameBound();
             
             // Consume AND
-            if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "and")
+            if (Current.TokenType == TokenType.And)
             {
-                Consume(TokenType.Identifier);
+                Consume(TokenType.And);
+            }
+            else if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "and")
+            {
+                Consume(Current.TokenType);
             }
             
             string endBound = ComposeFrameBound();
@@ -1169,26 +1173,26 @@ public class Parser
 
     private string ComposeFrameBound()
     {
-        if (Current.TokenType == TokenType.Unbounded)
+        if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "unbounded")
         {
-            Consume(TokenType.Unbounded);
-            if (Current.TokenType == TokenType.Preceding)
+            Consume(Current.TokenType); // "unbounded"
+            if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "preceding")
             {
-                Consume(TokenType.Preceding);
+                Consume(Current.TokenType); // "preceding"
                 return "UNBOUNDED PRECEDING";
             }
-            else if (Current.TokenType == TokenType.Following)
+            else if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "following")
             {
-                Consume(TokenType.Following);
+                Consume(Current.TokenType); // "following"
                 return "UNBOUNDED FOLLOWING";
             }
         }
-        else if (Current.TokenType == TokenType.Current)
+        else if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "current")
         {
-            Consume(TokenType.Current);
-            if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "row")
+            Consume(Current.TokenType); // "current"
+            if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "row")
             {
-                Consume(TokenType.Identifier);
+                Consume(Current.TokenType); // "row"
                 return "CURRENT ROW";
             }
         }
@@ -1196,14 +1200,14 @@ public class Parser
         {
             var value = Current.Value;
             Consume(TokenType.Integer);
-            if (Current.TokenType == TokenType.Preceding)
+            if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "preceding")
             {
-                Consume(TokenType.Preceding);
+                Consume(Current.TokenType); // "preceding"
                 return $"{value} PRECEDING";
             }
-            else if (Current.TokenType == TokenType.Following)
+            else if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "following")
             {
-                Consume(TokenType.Following);
+                Consume(Current.TokenType); // "following"
                 return $"{value} FOLLOWING";
             }
         }

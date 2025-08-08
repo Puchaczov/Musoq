@@ -1,6 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
+using System;
+using System.Collections.Generic;
 
 namespace Musoq.Parser.Tests;
 

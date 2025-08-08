@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -12,16 +13,28 @@ public class AggregateWindowFunctionsTests : BasicEntityTestBase
     {
         var query = @"
             select 
-                Value,
-                SUM(Value) OVER (ORDER BY Value) as RunningSum
+                Population,
+                SUM(Population) OVER (ORDER BY Population) as RunningSum
             from #A.entities() 
-            order by Value";
+            order by Population";
 
-        var vm = CreateAndRunVirtualMachine(query);
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity { Population = 100, Country = "Poland" },
+                    new BasicEntity { Population = 200, Country = "Germany" },
+                    new BasicEntity { Population = 300, Country = "Poland" },
+                    new BasicEntity { Population = 400, Country = "Germany" }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Population", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("RunningSum", table.Columns.ElementAt(1).ColumnName);
         
         // Basic validation that the function is callable
@@ -33,16 +46,28 @@ public class AggregateWindowFunctionsTests : BasicEntityTestBase
     {
         var query = @"
             select 
-                Value,
-                COUNT(Value) OVER (PARTITION BY Country) as CountByCountry
+                Population,
+                COUNT(Population) OVER (PARTITION BY Country) as CountByCountry
             from #A.entities() 
-            order by Value";
+            order by Population";
 
-        var vm = CreateAndRunVirtualMachine(query);
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity { Population = 100, Country = "Poland" },
+                    new BasicEntity { Population = 200, Country = "Germany" },
+                    new BasicEntity { Population = 300, Country = "Poland" },
+                    new BasicEntity { Population = 400, Country = "Germany" }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Population", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("CountByCountry", table.Columns.ElementAt(1).ColumnName);
         
         // Basic validation that the function is callable
@@ -54,16 +79,28 @@ public class AggregateWindowFunctionsTests : BasicEntityTestBase
     {
         var query = @"
             select 
-                Value,
-                AVG(Value) OVER (PARTITION BY Country ORDER BY Value) as AvgByCountry
+                Population,
+                AVG(Population) OVER (PARTITION BY Country ORDER BY Population) as AvgByCountry
             from #A.entities() 
-            order by Value";
+            order by Population";
 
-        var vm = CreateAndRunVirtualMachine(query);
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity { Population = 100, Country = "Poland" },
+                    new BasicEntity { Population = 200, Country = "Germany" },
+                    new BasicEntity { Population = 300, Country = "Poland" },
+                    new BasicEntity { Population = 400, Country = "Germany" }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Population", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("AvgByCountry", table.Columns.ElementAt(1).ColumnName);
         
         // Basic validation that the function is callable
@@ -75,20 +112,33 @@ public class AggregateWindowFunctionsTests : BasicEntityTestBase
     {
         var query = @"
             select 
-                Value,
+                Population,
                 Country,
-                SUM(Value) OVER (ORDER BY Value) as RunningSum,
-                COUNT(Value) OVER (PARTITION BY Country) as CountByCountry,
-                AVG(Value) OVER (PARTITION BY Country ORDER BY Value) as AvgByCountry,
-                RANK() OVER (ORDER BY Value DESC) as Ranking
+                SUM(Population) OVER (ORDER BY Population) as RunningSum,
+                COUNT(Population) OVER (PARTITION BY Country) as CountByCountry,
+                AVG(Population) OVER (PARTITION BY Country ORDER BY Population) as AvgByCountry,
+                RANK() OVER (ORDER BY Population DESC) as Ranking
             from #A.entities() 
-            order by Value";
+            order by Population";
 
-        var vm = CreateAndRunVirtualMachine(query);
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity { Population = 100, Country = "Poland" },
+                    new BasicEntity { Population = 200, Country = "Germany" },
+                    new BasicEntity { Population = 300, Country = "Poland" },
+                    new BasicEntity { Population = 400, Country = "Germany" },
+                    new BasicEntity { Population = 500, Country = "Poland" }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
         Assert.AreEqual(6, table.Columns.Count());
-        Assert.AreEqual("Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Population", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual("RunningSum", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual("CountByCountry", table.Columns.ElementAt(3).ColumnName);
