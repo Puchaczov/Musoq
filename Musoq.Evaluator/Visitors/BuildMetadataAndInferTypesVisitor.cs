@@ -1632,17 +1632,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(WindowFunctionNode node)
     {
-        // Treat window functions as regular function calls for metadata purposes
-        // Ensure arguments are properly handled
-        var args = node.Arguments ?? new ArgsListNode(new Node[0]);
-        
-        // Push the arguments onto the stack for the AccessMethodNode to process
-        Nodes.Push(args);
-        
-        // Create an AccessMethodNode without pre-resolved method and delegate to its handling
+        // Arguments have already been processed by the traverser and are on the stack
+        // Treat window functions as regular function calls for metadata purposes  
+        // Create an AccessMethodNode and delegate to its handling
         var accessMethodNode = new AccessMethodNode(
             new Musoq.Parser.Tokens.FunctionToken(node.FunctionName, Musoq.Parser.TextSpan.Empty),
-            args,
+            node.Arguments ?? new ArgsListNode(new Node[0]),
             null, // alias
             false // canSkipInjectNode
         );
