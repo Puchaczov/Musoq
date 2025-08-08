@@ -939,41 +939,70 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 SyntaxFactory.IdentifierName("string"),
                 columnAccess);
 
-            Nodes.Push(SyntaxFactory
+            var characterAccess = SyntaxFactory
                 .ElementAccessExpression(castExpression).WithArgumentList(
                     SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                            SyntaxFactory.Literal(node.Token.Index)))))));
+                            SyntaxFactory.Literal(node.Token.Index))))));
+            
+            // Convert char to string for SQL compatibility
+            var toStringCall = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    characterAccess,
+                    SyntaxFactory.IdentifierName("ToString")));
+            
+            Nodes.Push(toStringCall);
             return;
         }
         
-        var topNode = Nodes.Pop();
+        var topNode = Nodes.Peek();
         
-        ExpressionSyntax exp;
-        
-        // Handle the case where we have a BlockSyntax instead of ExpressionSyntax
-        // This can happen with certain column access patterns
+        // If the top node is a BlockSyntax, this AccessObjectArrayNode is being processed
+        // in the wrong context. BlockSyntax nodes are meant for query structure (FROM/WHERE/etc.)
+        // and should not be consumed by expression-level nodes like AccessObjectArrayNode.
+        // This suggests the visitor is being called at the wrong level or time.
         if (topNode is BlockSyntax)
         {
-            // Convert BlockSyntax to proper expression by handling the column access manually
-            var getValueCall = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.IdentifierName("GetValue"))
-                .WithArgumentList(SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.StringLiteralExpression,
-                                SyntaxFactory.Literal(node.ObjectName))))));
+            // For direct column character access, generate the correct score["columnName"] pattern
+            var variableName = _type switch
+            {
+                MethodAccessType.TransformingQuery => "score",
+                MethodAccessType.ResultQuery or MethodAccessType.CaseWhen => "score",
+                _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
+            };
+
+            var columnAccess = Generator.ElementAccessExpression(
+                Generator.IdentifierName(variableName),
+                SyntaxFactory.Argument(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal($"@\"{node.ObjectName}\"", node.ObjectName))));
             
-            exp = SyntaxFactory.ParenthesizedExpression(
+            var castExpression = SyntaxFactory.ParenthesizedExpression(
                 SyntaxFactory.CastExpression(
                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                    getValueCall));
+                    (ExpressionSyntax)columnAccess));
+
+            // Don't consume the BlockSyntax - just push our expression
+            var characterAccess = SyntaxFactory
+                .ElementAccessExpression(castExpression).WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(node.Token.Index))))));
+            
+            // Convert char to string for SQL compatibility
+            var toStringCall = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    characterAccess,
+                    SyntaxFactory.IdentifierName("ToString")));
+            
+            Nodes.Push(toStringCall);
+            return;
         }
-        else
-        {
-            exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) topNode);
-        }
+        
+        // Normal case: pop the expression and process it
+        var poppedNode = Nodes.Pop();
+        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) poppedNode);
 
         ExpressionSyntax targetExpression;
         
@@ -991,11 +1020,22 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 exp, SyntaxFactory.IdentifierName(node.Name));
         }
 
-        Nodes.Push(SyntaxFactory
+        ExpressionSyntax finalExpression = SyntaxFactory
             .ElementAccessExpression(targetExpression).WithArgumentList(
                 SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                        SyntaxFactory.Literal(node.Token.Index)))))));
+                        SyntaxFactory.Literal(node.Token.Index))))));
+        
+        // For string character access (PropertyInfo is null), convert char to string for SQL compatibility
+        if (node.PropertyInfo == null)
+        {
+            finalExpression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    finalExpression,
+                    SyntaxFactory.IdentifierName("ToString")));
+        }
+
+        Nodes.Push(finalExpression);
     }
 
     public void Visit(AccessObjectKeyNode node)
