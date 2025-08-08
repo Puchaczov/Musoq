@@ -1633,7 +1633,19 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     public void Visit(WindowFunctionNode node)
     {
         // Handle window functions specifically - they need special treatment for injected parameters
-        // For metadata purposes, we just need to provide the correct return type
+        // The traverser has already visited the arguments and window specification and put them on the stack
+        
+        // Pop the arguments that were pushed by the traverser 
+        if (node.Arguments != null)
+        {
+            Nodes.Pop(); // Pop the ArgsListNode that was processed by traverser
+        }
+        
+        // Pop window specification if it was processed
+        if (node.WindowSpecification != null)
+        {
+            // WindowSpecificationNode processing doesn't push anything currently, so nothing to pop
+        }
         
         var libraryType = typeof(Musoq.Plugins.LibraryBase);
         var method = libraryType.GetMethods()
@@ -1645,9 +1657,30 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
 
         // Create a simple node that can represent the window function's return type
-        // For now, most window functions return int (like RANK, DenseRank)
-        // This is sufficient for metadata and type inference purposes
-        Node resultNode = new IntegerNode("0", "i"); // This will have ReturnType = typeof(int)
+        // Based on the function name, return appropriate type
+        Node resultNode;
+        switch (node.FunctionName.ToUpperInvariant())
+        {
+            case "SUM":
+                // Sum returns the same type as the input, but for simplicity use decimal for now
+                resultNode = new DecimalNode("0.0");
+                break;
+            case "COUNT":
+                // Count returns long
+                resultNode = new IntegerNode("0", "l");
+                break;
+            case "AVG":
+                // Average returns double - use decimal for now
+                resultNode = new DecimalNode("0.0");
+                break;
+            case "RANK":
+            case "DENSERANK":
+            case "ROWNUMBER":
+            default:
+                // Most ranking window functions return int
+                resultNode = new IntegerNode("0", "i");
+                break;
+        }
         
         Nodes.Push(resultNode);
     }
