@@ -1095,6 +1095,65 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(DotNode node)
     {
+        System.Console.WriteLine($"ToCSharpRewriteTreeVisitor: DotNode - Root: {node.Root?.GetType().Name}, Expression: {node.Expression?.GetType().Name}");
+        
+        // Handle DotNode patterns for aliased column access
+        var expression = Nodes.Pop(); // The right side (e.g., AccessObjectArrayNode result or IdentifierNode)
+        var root = Nodes.Pop();       // The left side (e.g., AccessColumnNode result)
+        
+        System.Console.WriteLine($"ToCSharpRewriteTreeVisitor: Stack - Expression: {expression?.GetType().Name}, Root: {root?.GetType().Name}");
+        
+        // Check if this is a special case for aliased character access
+        // This happens when BuildMetadataAndInferTypesVisitor creates DotNode(AccessColumnNode, AccessObjectArrayNode)
+        if (node.Root is AccessColumnNode columnNode && node.Expression is AccessObjectArrayNode arrayNode && arrayNode.PropertyInfo == null)
+        {
+            System.Console.WriteLine($"ToCSharpRewriteTreeVisitor: Processing aliased character access - {columnNode.Name}[{arrayNode.Token.Index}]");
+            
+            // This represents aliased column character access like f.Name[0]
+            // We need to create the proper C# code for accessing the column and then indexing it
+            
+            // First get the column access expression (already generated and on stack as root)
+            var columnExpression = (ExpressionSyntax)root;
+            
+            // Create character access: ((string)columnExpression)[index]
+            var castExpression = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.CastExpression(
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                    columnExpression));
+
+            var characterAccess = SyntaxFactory
+                .ElementAccessExpression(castExpression)
+                .WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(arrayNode.Token.Index))))));
+
+            System.Console.WriteLine($"ToCSharpRewriteTreeVisitor: Generated character access expression");
+            Nodes.Push(characterAccess);
+            return;
+        }
+        
+        // Normal property access case
+        if (expression is IdentifierNameSyntax identifierName)
+        {
+            var memberAccess = SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                (ExpressionSyntax)root,
+                identifierName);
+                
+            System.Console.WriteLine($"ToCSharpRewriteTreeVisitor: Generated member access");
+            Nodes.Push(memberAccess);
+        }
+        else
+        {
+            // If expression is already a complete ExpressionSyntax (like from AccessObjectArrayNode),
+            // we might need to combine it with the root differently
+            System.Console.WriteLine($"ToCSharpRewriteTreeVisitor: Using expression as-is");
+            Nodes.Push(expression);
+        }
     }
 
     public void Visit(AccessCallChainNode node)

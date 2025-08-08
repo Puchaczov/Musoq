@@ -188,6 +188,12 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
             IsComplex = false;
         }
         
+        public override void Visit(DotNode node)
+        {
+            System.Console.WriteLine($"IsComplexVisitor: DotNode - Root: {node.Root?.GetType().Name}, Expression: {node.Expression?.GetType().Name}");
+            base.Visit(node);
+        }
+        
         public override void Visit(AccessMethodNode node)
         {
             IsComplex = true;
@@ -204,6 +210,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         
         public override void Visit(AccessColumnNode node)
         {
+            System.Console.WriteLine($"IsComplexVisitor: AccessColumnNode - {node.Name}, Alias: {node.Alias}, _rootAlias: {_rootAlias}");
             if (node.Alias != _rootAlias)
                 IsComplex = true;
             
@@ -214,6 +221,8 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         {
             // AccessObjectArrayNode by itself shouldn't be marked as complex
             // unless it's part of a complex expression structure
+            // However, for debugging, let's log what we're seeing
+            System.Console.WriteLine($"IsComplexVisitor: AccessObjectArrayNode - {node.ObjectName}[{node.Token.Index}], PropertyInfo: {node.PropertyInfo?.Name ?? "null"}");
             base.Visit(node);
         }
     }
