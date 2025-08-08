@@ -220,19 +220,37 @@ public class MethodsMetadata
         {
             var method = methods[i];
             var parameters = method.GetParameters();
+            
+            // Count parameters that are NOT injected (same logic as TryGetAnnotatedMethod)
+            var notAnnotatedParametersCount = parameters.CountWithoutParametersAnnotatedBy<InjectTypeAttribute>();
 
-            if (parameters.Length != methodArgs.Length)
+            if (notAnnotatedParametersCount != methodArgs.Length)
                 continue;
 
             var hasMatchedArgTypes = true;
+            var methodArgIndex = 0;
 
             for (var j = 0; j < parameters.Length; ++j)
             {
-                if (parameters[j].ParameterType.GetUnderlyingNullable() == methodArgs[j])
+                var parameter = parameters[j];
+                
+                // Skip injected parameters - they don't count for matching
+                if (parameter.GetCustomAttribute<InjectTypeAttribute>() != null)
                     continue;
+                
+                if (methodArgIndex >= methodArgs.Length)
+                {
+                    hasMatchedArgTypes = false;
+                    break;
+                }
 
-                hasMatchedArgTypes = false;
-                break;
+                if (parameter.ParameterType.GetUnderlyingNullable() != methodArgs[methodArgIndex])
+                {
+                    hasMatchedArgTypes = false;
+                    break;
+                }
+                
+                methodArgIndex++;
             }
 
             if (!hasMatchedArgTypes)

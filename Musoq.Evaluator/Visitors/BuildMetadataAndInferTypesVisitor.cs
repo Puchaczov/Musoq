@@ -1650,7 +1650,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Node resultNode = new IntegerNode("0", "i"); // This will have ReturnType = typeof(int)
         
         Nodes.Push(resultNode);
-    }public void Visit(FieldLinkNode node)
+    }
+
+    public void Visit(FieldLinkNode node)
     {
         var index = node.Index - 1;
 
