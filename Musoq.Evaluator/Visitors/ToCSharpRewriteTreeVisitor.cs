@@ -1000,6 +1000,37 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             return;
         }
         
+        // Check if this is an AccessColumnNode (column access) - handle character access directly
+        if (topNode is ExpressionSyntax expr && 
+            expr.ToString().Contains("score[") && 
+            node.PropertyInfo == null)
+        {
+            // This is character access on a column - generate character indexing
+            var columnNode = Nodes.Pop();
+            var columnExpr = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax)columnNode);
+            
+            // Cast to string and apply character indexing
+            var castExpression = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.CastExpression(
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                    columnExpr));
+
+            var characterAccess = SyntaxFactory
+                .ElementAccessExpression(castExpression).WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(node.Token.Index))))));
+            
+            // Convert char to string for SQL compatibility
+            var toStringCall = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    characterAccess,
+                    SyntaxFactory.IdentifierName("ToString")));
+            
+            Nodes.Push(toStringCall);
+            return;
+        }
+        
         // Normal case: pop the expression and process it
         var poppedNode = Nodes.Pop();
         var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) poppedNode);

@@ -532,6 +532,23 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         var parentNode = Nodes.Peek();
         var parentNodeType = Nodes.Peek().ReturnType;
+        
+        // Special handling for aliased character access: check if parent is a table alias identifier
+        if (parentNode is IdentifierNode parentIdentifier && Nodes.Count == 1)
+        {
+            // This could be aliased character access like f.Name[0]
+            // The parent is likely a table alias, convert to column access pattern
+            var columnAccess = new AccessColumnNode(node.ObjectName, parentIdentifier.Name, typeof(string), node.Token.Span);
+            
+            // Replace the parent identifier with the column access
+            Nodes.Pop(); // Remove the identifier
+            Nodes.Push(columnAccess);
+            
+            // Push the character access node
+            Nodes.Push(new AccessObjectArrayNode(node.Token, null));
+            return;
+        }
+        
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
             var typeHintingAttributes =
