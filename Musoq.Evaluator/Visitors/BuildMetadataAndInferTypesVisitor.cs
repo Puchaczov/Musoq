@@ -543,22 +543,37 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
 
         // Check if this could be column access pattern (e.g., Name[0])
-        var currentTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-        if (currentTableSymbol != null)
+        // Only check if there's no valid property context
+        var parentNode = Nodes.Peek();
+        var parentNodeType = parentNode?.ReturnType;
+        
+        // For property access, continue with original logic
+        // But check if parent is actually a table context rather than a real object
+        if (parentNodeType != null && 
+            !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
+            parentNodeType.Name != "RowSource")  // RowSource indicates table context, not object property access
         {
-            var column = currentTableSymbol.GetColumnByAliasAndName(_identifier, node.ObjectName);
-            if (column != null)
+            // This is likely property access - continue with original logic below
+        }
+        else
+        {
+            // Check if this could be direct column access pattern (e.g., Name[0])
+            var currentTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+            if (currentTableSymbol != null)
             {
-                // Transform to column access
-                var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
-                Nodes.Push(columnAccessNode);
-                return;
+                var column = currentTableSymbol.GetColumnByAliasAndName(_identifier, node.ObjectName);
+                if (column != null && column.ColumnType == typeof(string))  // Only for string character access
+                {
+                    // Transform to column access
+                    var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
+                    Nodes.Push(columnAccessNode);
+                    return;
+                }
             }
         }
 
         // Handle property-based access (original functionality)
-        var parentNode = Nodes.Peek();
-        var parentNodeType = Nodes.Peek().ReturnType;
+        // Note: parentNode and parentNodeType are already set above
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
             var typeHintingAttributes =
@@ -741,16 +756,17 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var root = Nodes.Pop();
 
         // Handle aliased character access patterns (e.g., f.Name[0])
-        if (root is AccessColumnNode accessColumnNode && exp is AccessObjectArrayNode arrayNode && !arrayNode.IsColumnAccess)
+        // Only transform if this is likely string character access, not property access
+        if (root is AccessColumnNode accessColumnNode && exp is AccessObjectArrayNode arrayNode2 && !arrayNode2.IsColumnAccess)
         {
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(accessColumnNode.Alias);
             if (tableSymbol != null)
             {
-                var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode.ObjectName);
-                if (column != null)
+                var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
+                if (column != null && column.ColumnType == typeof(string))  // Only for string character access
                 {
                     // Transform to column access with alias
-                    var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode.Token, column.ColumnType, accessColumnNode.Alias);
+                    var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);
                     Nodes.Push(columnAccessArrayNode);
                     return;
                 }

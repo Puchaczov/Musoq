@@ -70,17 +70,30 @@ public class AccessObjectArrayNode : IdentifierNode
                 // Handle other indexable types
                 var indexProperty = ColumnType.GetProperties()
                     .FirstOrDefault(p => p.GetIndexParameters().Length == 1);
-                return indexProperty?.PropertyType;
+                return indexProperty?.PropertyType ?? typeof(object);
             }
 
             // Handle property-based access (original logic)
             if (PropertyInfo == null)
-                return null;
+            {
+                // If this is definitely column access, we should not have PropertyInfo
+                if (IsColumnAccess)
+                    return typeof(object); // Column access without proper type resolution
+                
+                // For property access, PropertyInfo should never be null - this indicates a pipeline issue
+                // Debug info: Add details about what we know
+                var debugInfo = $"PropertyInfo is null for property-based array access: {ObjectName}[{Token.Index}]";
+                debugInfo += $"\nIsColumnAccess: {IsColumnAccess}";
+                debugInfo += $"\nTableAlias: {TableAlias ?? "null"}";
+                debugInfo += $"\nColumnType: {ColumnType?.Name ?? "null"}";
+                
+                throw new InvalidOperationException(debugInfo);
+            }
                 
             if (PropertyInfo.PropertyType.IsArray)
                 return PropertyInfo.PropertyType.GetElementType();
 
-            return (from propertyInfo in PropertyInfo.PropertyType.GetProperties() where propertyInfo.GetIndexParameters().Length == 1 select propertyInfo.PropertyType).FirstOrDefault();
+            return (from propertyInfo in PropertyInfo.PropertyType.GetProperties() where propertyInfo.GetIndexParameters().Length == 1 select propertyInfo.PropertyType).FirstOrDefault() ?? typeof(object);
         }
     }
 
