@@ -242,6 +242,24 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void StringCharacterAccess_SingleNegativeIndex_ShouldReturnLastCharacter()
+    {
+        var query = @"select Name[-1] from #A.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {"#A", [new BasicEntity("david")]} // String is "david" with length 5
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(1, table.Count);
+        
+        // Negative indices should work for strings too
+        Assert.AreEqual('d', (char)table[0].Values[0]); // Name[-1] = last character = 'd'
+    }
+
+    [TestMethod]
     public void StringCharacterAccess_NegativeIndex_ShouldReturnLastCharacter()
     {
         var query = @"select Name[-1], Name[-2] from #A.Entities()";

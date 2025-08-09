@@ -542,22 +542,23 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             return;
         }
 
-        // Check if this could be column access pattern (e.g., Name[0])
-        // Only check if there's no valid property context
-        var parentNode = Nodes.Peek();
+        // Check for property access context first
+        var parentNode = Nodes.Count > 0 ? Nodes.Peek() : null;
         var parentNodeType = parentNode?.ReturnType;
         
         // For property access, continue with original logic
-        // But check if parent is actually a table context rather than a real object
-        if (parentNodeType != null && 
-            !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
-            parentNodeType.Name != "RowSource")  // RowSource indicates table context, not object property access
+        // But check if parent is actually a table context rather than a real object  
+        bool hasValidParentContext = parentNode != null && parentNodeType != null &&
+                                    !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
+                                    parentNodeType.Name != "RowSource"; // RowSource indicates table context, not object property access
+        
+        if (hasValidParentContext)
         {
-            // This is likely property access - continue with original logic below
+            // This is property access - continue with property access logic below
         }
         else
         {
-            // Check if this could be direct column access pattern (e.g., Name[0])
+            // Only check for column access when there's no valid parent context
             var currentTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
             if (currentTableSymbol != null)
             {
@@ -574,7 +575,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         // Handle property-based access (original functionality)
         // Note: parentNode and parentNodeType are already set above
-        if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+        if (parentNodeType != null && parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
             var typeHintingAttributes =
                 parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
@@ -608,7 +609,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             bool isArray;
             bool isIndexer;
 
-            if (isNotRoot)
+            if (isNotRoot && parentNodeType != null)
             {
                 var propertyAccess = parentNodeType.GetProperty(node.Name);
 
@@ -626,18 +627,27 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 return;
             }
 
-            var property = parentNodeType.GetProperty(node.Name);
-
-            isArray = property?.PropertyType.IsArray == true;
-            isIndexer = HasIndexer(property?.PropertyType);
-
-            if (!isArray && !isIndexer)
+            if (parentNodeType != null)
             {
-                throw new ObjectIsNotAnArrayException(
-                    $"Object {node.Name} is not an array.");
-            }
+                var property = parentNodeType.GetProperty(node.Name);
 
-            Nodes.Push(new AccessObjectArrayNode(node.Token, property));
+                isArray = property?.PropertyType.IsArray == true;
+                isIndexer = HasIndexer(property?.PropertyType);
+
+                if (!isArray && !isIndexer)
+                {
+                    throw new ObjectIsNotAnArrayException(
+                        $"Object {node.Name} is not an array.");
+                }
+
+                Nodes.Push(new AccessObjectArrayNode(node.Token, property));
+            }
+            else
+            {
+                // If parentNodeType is null, we might be in a root context
+                // Try to create a generic AccessObjectArrayNode
+                throw new UnknownPropertyException($"Could not resolve array access for {node.ObjectName}[{node.Token.Index}]");
+            }
         }
     }
 
