@@ -576,16 +576,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
                 if (!isArray && !isIndexer)
                 {
-                    // Special case: if parent is RowSource and we can't find a property,
-                    // this might be direct column character access like Name[0]
-                    if (parentNodeType.Name == "RowSource")
-                    {
-                        // For direct column access, we assume it's string character access
-                        // PropertyInfo = null indicates string character access
-                        Nodes.Push(new AccessObjectArrayNode(node.Token, null));
-                        return;
-                    }
-                    
                     throw new ObjectIsNotAnArrayException(
                         $"Object {parentNodeType.Name} is not an array.");
                 }
@@ -608,14 +598,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             isArray = property?.PropertyType.IsArray == true;
             isIndexer = HasIndexer(property?.PropertyType);
-            
-            // Additional check: if we're accessing an indexer on a string column type, 
-            // treat this as string character access even if a property was found
-            if (!isArray && !isIndexer && parentNodeType == typeof(string))
-            {
-                Nodes.Push(new AccessObjectArrayNode(node.Token, null));
-                return;
-            }
 
             if (!isArray && !isIndexer)
             {
