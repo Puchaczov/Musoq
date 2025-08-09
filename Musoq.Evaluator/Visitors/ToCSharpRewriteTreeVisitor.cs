@@ -270,9 +270,69 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var b = Nodes.Pop();
         var a = Nodes.Pop();
 
-        var rawSyntax = Generator.ValueEqualsExpression(a, b);
+        // Handle char vs string comparison
+        if (IsCharVsStringComparison(node.Left, node.Right, a, b))
+        {
+            // Convert string literal to char for comparison
+            var convertedComparison = HandleCharStringComparison(node.Left, node.Right, a, b);
+            Nodes.Push(convertedComparison);
+        }
+        else
+        {
+            var rawSyntax = Generator.ValueEqualsExpression(a, b);
+            Nodes.Push(rawSyntax);
+        }
+    }
 
-        Nodes.Push(rawSyntax);
+    private bool IsCharVsStringComparison(Node leftNode, Node rightNode, SyntaxNode leftSyntax, SyntaxNode rightSyntax)
+    {
+        // Check if we have a character access node compared with a string literal
+        var leftIsChar = IsCharacterAccess(leftNode);
+        var rightIsChar = IsCharacterAccess(rightNode);
+        var leftIsString = leftNode is WordNode;
+        var rightIsString = rightNode is WordNode;
+
+        return (leftIsChar && rightIsString) || (leftIsString && rightIsChar);
+    }
+
+    private bool IsCharacterAccess(Node node)
+    {
+        // Check if this is a character access from a string column
+        if (node is AccessObjectArrayNode arrayNode)
+        {
+            return arrayNode.IsColumnAccess && arrayNode.ColumnType == typeof(string);
+        }
+        return false;
+    }
+
+    private SyntaxNode HandleCharStringComparison(Node leftNode, Node rightNode, SyntaxNode leftSyntax, SyntaxNode rightSyntax)
+    {
+        // Determine which side is the character and which is the string
+        var leftIsChar = IsCharacterAccess(leftNode);
+        var leftIsString = leftNode is WordNode leftWord;
+        
+        if (leftIsChar && rightNode is WordNode rightWord)
+        {
+            // Left is char, right is string - convert string to char
+            var charValue = rightWord.Value.Length > 0 ? rightWord.Value[0] : '\0';
+            var charLiteral = SyntaxFactory.LiteralExpression(
+                SyntaxKind.CharacterLiteralExpression,
+                SyntaxFactory.Literal(charValue));
+            return Generator.ValueEqualsExpression(leftSyntax, charLiteral);
+        }
+        else if (leftIsString && IsCharacterAccess(rightNode))
+        {
+            // Left is string, right is char - convert string to char
+            var leftWordNode = (WordNode)leftNode;
+            var charValue = leftWordNode.Value.Length > 0 ? leftWordNode.Value[0] : '\0';
+            var charLiteral = SyntaxFactory.LiteralExpression(
+                SyntaxKind.CharacterLiteralExpression,
+                SyntaxFactory.Literal(charValue));
+            return Generator.ValueEqualsExpression(charLiteral, rightSyntax);
+        }
+
+        // Fallback to standard comparison
+        return Generator.ValueEqualsExpression(leftSyntax, rightSyntax);
     }
 
     public void Visit(GreaterOrEqualNode node)
@@ -931,7 +991,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                     SyntaxKind.StringLiteralExpression,
                                     SyntaxFactory.Literal(node.ObjectName))))))));
 
-            // For string character access, add character indexing and .ToString()
+            // For string character access, add character indexing
             if (node.ColumnType == typeof(string))
             {
                 var characterAccess = SyntaxFactory.ElementAccessExpression(
@@ -942,13 +1002,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                 SyntaxKind.NumericLiteralExpression,
                                 SyntaxFactory.Literal(node.Token.Index))))));
 
-                var toStringCall = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.ParenthesizedExpression(characterAccess),
-                        SyntaxFactory.IdentifierName("ToString")));
-
-                Nodes.Push(toStringCall);
+                Nodes.Push(characterAccess);
             }
             else
             {
@@ -998,7 +1052,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                                 SyntaxKind.StringLiteralExpression,
                                                 SyntaxFactory.Literal(node.ObjectName))))))));
 
-                        // Add character indexing and .ToString()
+                        // Add character indexing
                         var characterAccess = SyntaxFactory.ElementAccessExpression(
                             SyntaxFactory.ParenthesizedExpression(columnAccess))
                             .WithArgumentList(SyntaxFactory.BracketedArgumentList(
@@ -1007,13 +1061,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                         SyntaxKind.NumericLiteralExpression,
                                         SyntaxFactory.Literal(node.Token.Index))))));
 
-                        var toStringCall = SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.ParenthesizedExpression(characterAccess),
-                                SyntaxFactory.IdentifierName("ToString")));
-
-                        Nodes.Push(toStringCall);
+                        Nodes.Push(characterAccess);
                         return;
                     }
                     catch

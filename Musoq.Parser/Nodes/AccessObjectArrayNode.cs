@@ -58,8 +58,8 @@ public class AccessObjectArrayNode : IdentifierNode
             {
                 if (ColumnType == typeof(string))
                 {
-                    // String character access returns string for SQL compatibility
-                    return typeof(string);
+                    // String character access returns char
+                    return typeof(char);
                 }
                 
                 if (ColumnType.IsArray)

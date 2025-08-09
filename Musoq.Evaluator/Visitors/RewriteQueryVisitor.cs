@@ -280,7 +280,15 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(AccessObjectArrayNode node)
     {
-        Nodes.Push(new AccessObjectArrayNode(node.Token, node.PropertyInfo));
+        // Preserve column access information if present
+        if (node.IsColumnAccess)
+        {
+            Nodes.Push(new AccessObjectArrayNode(node.Token, node.ColumnType, node.TableAlias));
+        }
+        else
+        {
+            Nodes.Push(new AccessObjectArrayNode(node.Token, node.PropertyInfo));
+        }
     }
 
     public void Visit(AccessObjectKeyNode node)
