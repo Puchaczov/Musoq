@@ -562,7 +562,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (currentTableSymbol != null)
             {
                 var column = currentTableSymbol.GetColumnByAliasAndName(_identifier, node.ObjectName);
-                if (column != null && column.ColumnType == typeof(string))  // Only for string character access
+                if (column != null)  // Support any indexable column type
                 {
                     // Transform to column access
                     var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
@@ -763,7 +763,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (tableSymbol != null)
             {
                 var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
-                if (column != null && column.ColumnType == typeof(string))  // Only for string character access
+                if (column != null)  // Support any indexable column type
                 {
                     // Transform to column access with alias
                     var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);

@@ -104,17 +104,9 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(AccessObjectArrayNode node)
     {
-        // Check if this is a direct column access pattern that needs transformation
-        // But only for direct column access, not property access chains like Self.Name[0]
-        if (IsDirectColumnAccess(node) && !IsPartOfPropertyAccessChain())
-        {
-            var enhancedNode = TransformToColumnAccessNode(node);
-            enhancedNode.Accept(_visitor);
-        }
-        else
-        {
-            node.Accept(_visitor);
-        }
+        // Let the main visitor handle all AccessObjectArrayNode processing
+        // The BuildMetadataAndInferTypesVisitor will do the proper type inference
+        node.Accept(_visitor);
     }
 
 
@@ -922,24 +914,5 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         // For now, be conservative and return false since table context timing is problematic
         // The main BuildMetadataAndInferTypesVisitor should handle the transformation
         return false;
-    }
-
-    /// <summary>
-    /// Transforms an AccessObjectArrayNode to enhanced AccessObjectArrayNode with column type information
-    /// </summary>
-    private AccessObjectArrayNode TransformToColumnAccessNode(AccessObjectArrayNode node)
-    {
-        // Since table context is not available at this phase, fall back to string type
-        return new AccessObjectArrayNode(node.Token, typeof(string));
-    }
-    
-    /// <summary>
-    /// Checks if the current AccessObjectArrayNode is part of a property access chain (like Self.Name[0])
-    /// rather than a direct column access (like Name[0])
-    /// </summary>
-    private bool IsPartOfPropertyAccessChain()
-    {
-        // Check if we have an active "most inner identifier" which indicates we're in a DotNode traversal
-        return _theMostInnerIdentifier != null;
     }
 }

@@ -1035,59 +1035,44 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             }
             else
             {
-                // No parent expression available - this might be a column access that wasn't properly transformed
-                // Only try column access fallback for patterns that look like column names, not object properties
-                if (IsLikelyColumnAccess(node))
-                {
-                    try
-                    {
-                        // Assume string column access for character indexing
-                        var columnAccess = SyntaxFactory.CastExpression(
-                            SyntaxFactory.IdentifierName("string"),
-                            SyntaxFactory.ParenthesizedExpression(
-                                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("score"))
-                                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                                                SyntaxKind.StringLiteralExpression,
-                                                SyntaxFactory.Literal(node.ObjectName))))))));
+        // Handle column-based indexed access using proper type information
+        if (node.IsColumnAccess)
+        {
+            // Generate column access with proper type casting
+            var columnType = node.ColumnType;
+            var columnTypeName = GetTypeName(columnType);
+            
+            // Build score["ColumnName"] expression
+            var columnAccessExpression = SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("score"))
+                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                            SyntaxKind.StringLiteralExpression,
+                            SyntaxFactory.Literal(node.ObjectName))))));
 
-                        // Add character indexing
-                        var characterAccess = SyntaxFactory.ElementAccessExpression(
-                            SyntaxFactory.ParenthesizedExpression(columnAccess))
-                            .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                                        SyntaxKind.NumericLiteralExpression,
-                                        SyntaxFactory.Literal(node.Token.Index))))));
+            // Cast to the proper column type
+            var typedColumnAccess = SyntaxFactory.CastExpression(
+                SyntaxFactory.IdentifierName(columnTypeName),
+                SyntaxFactory.ParenthesizedExpression(columnAccessExpression));
 
-                        Nodes.Push(characterAccess);
-                        return;
-                    }
-                    catch
-                    {
-                        // If fallback fails, continue to throw the original error
-                    }
-                }
-                
-                // This should not happen for valid queries, but fallback to avoid crashes
-                throw new InvalidOperationException($"Cannot generate code for array access {node} - no parent expression available");
+            // Add indexing access
+            var indexedAccess = SyntaxFactory.ElementAccessExpression(
+                SyntaxFactory.ParenthesizedExpression(typedColumnAccess))
+                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(node.Token.Index))))));
+
+            Nodes.Push(indexedAccess);
+        }
+        else
+        {
+            // This should not happen for valid queries, but fallback to avoid crashes
+            throw new InvalidOperationException($"Cannot generate code for array access {node} - no parent expression available");
+        }
             }
         }
-    }
-
-    /// <summary>
-    /// Determines if an AccessObjectArrayNode likely represents column access rather than property access
-    /// </summary>
-    private static bool IsLikelyColumnAccess(AccessObjectArrayNode node)
-    {
-        var name = node.ObjectName;
-        
-        // Only apply fallback for specific patterns that we know are column names from failing tests
-        // Be very conservative to avoid breaking existing functionality
-        var knownColumnNames = new[] { "Name" };
-        
-        return knownColumnNames.Any(pattern => string.Equals(name, pattern, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -4319,6 +4304,24 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Gets the C# type name for code generation
+    /// </summary>
+    private static string GetTypeName(Type type)
+    {
+        return type.Name switch
+        {
+            "String" => "string",
+            "Int32" => "int", 
+            "Int64" => "long",
+            "Double" => "double",
+            "Boolean" => "bool",
+            "Char" => "char",
+            "Decimal" => "decimal",
+            _ => type.Name
+        };
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
