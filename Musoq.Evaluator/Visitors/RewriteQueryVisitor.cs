@@ -1176,8 +1176,24 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                         if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
                             continue;
 
-                        var nameArg = (WordNode) aggregateMethod.Arguments.Args[0];
-                        nestedFields.Add(new FieldNode(subNode, fieldOrder, nameArg.Value));
+                        // Handle both WordNode and AccessColumnNode for the first argument
+                        // WindowFunctions with OVER clauses may have AccessColumnNode as first argument
+                        string nameValue;
+                        var firstArg = aggregateMethod.Arguments.Args[0];
+                        switch (firstArg)
+                        {
+                            case WordNode wordNode:
+                                nameValue = wordNode.Value;
+                                break;
+                            case AccessColumnNode columnNode:
+                                nameValue = columnNode.Name;
+                                break;
+                            default:
+                                nameValue = firstArg.ToString();
+                                break;
+                        }
+                        
+                        nestedFields.Add(new FieldNode(subNode, fieldOrder, nameValue));
                         rawNestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
                         fieldOrder += 1;
                         break;
