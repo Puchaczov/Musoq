@@ -1722,16 +1722,17 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var canSkipInjectSource = false;
         MethodInfo method = null;
         
-        // For window functions, skip aggregation method resolution and go directly to regular methods
-        // Aggregation methods use Group parameters, but window functions need QueryStats parameters
+        // For window functions, use the standard method resolution that handles generics properly
+        // TryResolveMethod delegates to TryGetAnnotatedMethod which supports generic parameter matching
+        Console.WriteLine($"DEBUG: About to try resolving method {node.FunctionName} with entity type {entityType.Name}");
+        
         if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray(), entityType, out method))
         {
-            if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray(), out method))
-            {
-                throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.FunctionName, enhancedArgsListNode.Args);
-            }
-            canSkipInjectSource = true;
+            Console.WriteLine($"DEBUG: Method resolution failed for {node.FunctionName}");
+            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.FunctionName, enhancedArgsListNode.Args);
         }
+        
+        Console.WriteLine($"DEBUG: Method resolution succeeded for {node.FunctionName}: {method.Name}");
 
         var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 

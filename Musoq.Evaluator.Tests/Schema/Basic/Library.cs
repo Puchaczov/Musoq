@@ -28,6 +28,13 @@ public class Library : LibraryBase
         return entity.Name;
     }
     
+    // Add a specific Sum method for decimal to test window functions
+    [BindableMethod]
+    public decimal Sum(decimal value, [InjectQueryStats] QueryStats info)
+    {
+        return value; // Simple passthrough for testing window function infrastructure
+    }
+    
     [BindableMethod]
     public string[] MethodArrayOfStrings([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, string name1, string name2)
     {
