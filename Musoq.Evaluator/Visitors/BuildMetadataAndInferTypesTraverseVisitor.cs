@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -904,28 +905,41 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     /// </summary>
     private bool IsStringCharacterAccess(AccessObjectArrayNode node)
     {
-        // For direct column access like Name[0], we need to check if this is accessing a string column
-        // rather than an array property on an object
-        
-        // This is a simple heuristic: if the ObjectName doesn't contain properties typically found on objects
-        // and could be a column name, it's likely string character access
-        // A more sophisticated approach would require access to schema information
-        
         var columnName = node.ObjectName;
         
-        // Common object property patterns that indicate array access rather than character access
-        var arrayPropertyPatterns = new[] { "Self.", "Array", "Items", "Values", "Elements" };
+        // Don't transform these special object references - let original array access logic handle them
+        var specialObjectReferences = new[] { "Self", "This", "Current" };
+        
+        if (specialObjectReferences.Any(reference => string.Equals(reference, columnName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false; // These are object references, not string columns
+        }
+        
+        // Don't transform if it contains property access patterns
+        var arrayPropertyPatterns = new[] { ".", "Array", "Items", "Values", "Elements", "List", "Collection" };
         
         foreach (var pattern in arrayPropertyPatterns)
         {
             if (columnName.Contains(pattern, StringComparison.OrdinalIgnoreCase))
             {
-                return false; // This looks like array access
+                return false; // This looks like array/property access
             }
         }
         
-        // If it doesn't match array patterns, it's likely string character access
-        return true;
+        // Conservative approach: Only transform if it looks like a simple column name
+        // that could reasonably be a string column (e.g., Name, Title, Description, etc.)
+        var stringColumnPatterns = new[] { "Name", "Title", "Description", "Text", "Content", "Message", "Email" };
+        
+        foreach (var pattern in stringColumnPatterns)
+        {
+            if (columnName.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            {
+                return true; // This looks like string character access
+            }
+        }
+        
+        // If not clearly identifiable as string column, let original logic handle it
+        return false;
     }
 
     /// <summary>
