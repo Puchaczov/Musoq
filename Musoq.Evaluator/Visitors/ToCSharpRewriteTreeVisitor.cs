@@ -627,22 +627,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessMethodNode node)
     {
-        Console.WriteLine($"DEBUG: ToCSharpRewriteTreeVisitor.Visit(AccessMethodNode) for {node.Name}");
-        Console.WriteLine($"DEBUG: Method: {node.Method?.Name}, HasMethod: {node.Method != null}");
-        
         var args = new List<ArgumentSyntax>();
         var parameters = node.Method.GetParameters().GetParametersWithAttribute<InjectTypeAttribute>();
         var method = node.Method;
         var variableName = $"{node.Alias}{method.ReflectedType!.Name}Lib";
-        
-        Console.WriteLine($"DEBUG: Parameters with InjectTypeAttribute: {parameters?.Length ?? 0}");
-        if (parameters != null)
-        {
-            foreach (var p in parameters)
-            {
-                Console.WriteLine($"DEBUG: Parameter {p.Name}, Type: {p.ParameterType}, Attributes: {string.Join(", ", p.GetCustomAttributes(false).Select(a => a.GetType().Name))}");
-            }
-        }
 
         if (!_typesToInstantiate.ContainsKey(variableName))
         {
@@ -762,15 +750,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         var tmpArgs = (ArgumentListSyntax) Nodes.Pop();
         
-        Console.WriteLine($"DEBUG: tmpArgs count: {tmpArgs?.Arguments.Count ?? 0}");
-        if (tmpArgs != null)
-        {
-            foreach (var arg in tmpArgs.Arguments)
-            {
-                Console.WriteLine($"DEBUG: tmpArg: {arg}");
-            }
-        }
-
         foreach (var item in tmpArgs.Arguments)
         {
             args.Add(item);

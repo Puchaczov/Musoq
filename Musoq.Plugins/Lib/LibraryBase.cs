@@ -82,12 +82,12 @@ public partial class LibraryBase : UserMethodsLibrary
     /// <summary>
     /// Gets the sum of values over a window (aggregate window function).
     /// </summary>
-    /// <param name="value">The value to sum</param>
     /// <param name="info" injectedByRuntime="true">The queryStats object</param>
+    /// <param name="value">The value to sum</param>
     /// <typeparam name="T">Value type</typeparam>
     /// <returns>The sum over the window</returns>
     [BindableMethod]
-    public T Sum<T>(T value, [InjectQueryStats] QueryStats info) where T : struct
+    public T Sum<T>([InjectQueryStats] QueryStats info, T value) where T : struct
     {
         return value; // Basic implementation - will be enhanced with true windowing
     }
@@ -95,12 +95,12 @@ public partial class LibraryBase : UserMethodsLibrary
     /// <summary>
     /// Gets the count of values over a window (aggregate window function).
     /// </summary>
-    /// <param name="value">The value to count</param>
     /// <param name="info" injectedByRuntime="true">The queryStats object</param>
+    /// <param name="value">The value to count</param>
     /// <typeparam name="T">Value type</typeparam>
     /// <returns>The count over the window</returns>
     [BindableMethod]
-    public long Count<T>(T value, [InjectQueryStats] QueryStats info)
+    public long Count<T>([InjectQueryStats] QueryStats info, T value)
     {
         return info.RowNumber; // Basic implementation - will be enhanced with true windowing
     }
@@ -108,12 +108,12 @@ public partial class LibraryBase : UserMethodsLibrary
     /// <summary>
     /// Gets the average of values over a window (aggregate window function).
     /// </summary>
-    /// <param name="value">The value to average</param>
     /// <param name="info" injectedByRuntime="true">The queryStats object</param>
+    /// <param name="value">The value to average</param>
     /// <typeparam name="T">Value type</typeparam>
     /// <returns>The average over the window</returns>
     [BindableMethod]
-    public double Avg<T>(T value, [InjectQueryStats] QueryStats info) where T : struct
+    public double Avg<T>([InjectQueryStats] QueryStats info, T value) where T : struct
     {
         return Convert.ToDouble(value); // Basic implementation - will be enhanced with true windowing
     }

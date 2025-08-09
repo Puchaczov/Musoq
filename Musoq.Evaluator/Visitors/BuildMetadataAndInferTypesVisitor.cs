@@ -1646,12 +1646,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // Enhanced window function processing with PARTITION BY and ROWS BETWEEN support
         // Handle window functions by delegating to regular method resolution with advanced window specifications
         
-        Console.WriteLine($"DEBUG: WindowFunctionNode.Visit called for {node.FunctionName}");
-        
         if (Nodes.Pop() is not ArgsListNode args)
             throw CannotResolveMethodException.CreateForNullArguments(node.FunctionName);
 
-        // DEBUG: Validate that args don't contain null values
+        // Validate that args don't contain null values
         if (args.Args.Any(arg => arg == null))
         {
             // Use original node.Arguments if stack args are corrupted
@@ -1700,14 +1698,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // Window specification processing will be enhanced in future iterations
         var enhancedArgsListNode = new ArgsListNode(enhancedArgs.ToArray());
         
-        Console.WriteLine($"DEBUG: Trying to resolve method with args: {string.Join(", ", enhancedArgsListNode.Args.Select(a => a.ReturnType.Name))}");
-        Console.WriteLine($"DEBUG: Enhanced args length: {enhancedArgsListNode.Args.Length}");
-        
-        for (int i = 0; i < enhancedArgsListNode.Args.Length; i++)
-        {
-            var arg = enhancedArgsListNode.Args[i];
-            Console.WriteLine($"DEBUG: Enhanced arg[{i}] type: {arg.ReturnType.Name}");
-        }
         var groupArgs = new List<Type> {typeof(string)};
         groupArgs.AddRange(enhancedArgsListNode.Args.Skip(1).Select(f => f.ReturnType));
 
@@ -1724,15 +1714,29 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         // For window functions, use the standard method resolution that handles generics properly
         // TryResolveMethod delegates to TryGetAnnotatedMethod which supports generic parameter matching
-        Console.WriteLine($"DEBUG: About to try resolving method {node.FunctionName} with entity type {entityType.Name}");
+        var methodArgs = enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray();
         
-        if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray(), entityType, out method))
+        // Try different method resolution approaches for aggregate window functions
+        bool methodFound = false;
+        
+        // Try the standard method resolution first
+        if (schemaTablePair.Schema.TryResolveMethod(node.FunctionName, methodArgs, entityType, out method))
         {
-            Console.WriteLine($"DEBUG: Method resolution failed for {node.FunctionName}");
-            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.FunctionName, enhancedArgsListNode.Args);
+            methodFound = true;
+        }
+        else
+        {
+            // Try raw method resolution for generic methods
+            if (schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, methodArgs, out method))
+            {
+                methodFound = true;
+            }
         }
         
-        Console.WriteLine($"DEBUG: Method resolution succeeded for {node.FunctionName}: {method.Name}");
+        if (!methodFound)
+        {
+            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.FunctionName, enhancedArgsListNode.Args);
+        }
 
         var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
@@ -2248,14 +2252,18 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var i = 0;
             var shiftArgsWhenInjectSpecificSourcePresent = 0;
             
-            if (parameters[0].GetCustomAttribute<InjectSpecificSourceAttribute>() != null)
+            // Handle all injectable parameters, not just InjectSpecificSource
+            while (i < parameters.Length && parameters[i].GetCustomAttribute<InjectTypeAttribute>() != null)
             {
-                i = 1;
-                shiftArgsWhenInjectSpecificSourcePresent = 1;
-                if ((genericArgument.IsGenericParameter || genericArgument.IsGenericMethodParameter) && parameters[0].ParameterType.IsGenericParameter)
+                if (parameters[i].GetCustomAttribute<InjectSpecificSourceAttribute>() != null)
                 {
-                    genericArgumentsDistinct.Add(entity);
+                    if ((genericArgument.IsGenericParameter || genericArgument.IsGenericMethodParameter) && parameters[i].ParameterType.IsGenericParameter)
+                    {
+                        genericArgumentsDistinct.Add(entity);
+                    }
                 }
+                i++;
+                shiftArgsWhenInjectSpecificSourcePresent++;
             }
             
             for (; i < parameters.Length; i++)
@@ -2267,7 +2275,15 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     continue;
                 }
                 
-                var returnType = args.Args.Where((_, index) => index == i - shiftArgsWhenInjectSpecificSourcePresent).Single().ReturnType;
+                var argIndex = i - shiftArgsWhenInjectSpecificSourcePresent;
+                
+                if (argIndex < 0 || argIndex >= args.Args.Length)
+                {
+                    continue;
+                }
+                
+                var returnType = args.Args[argIndex].ReturnType;
+                
                 var elementType = returnType.GetElementType();
 
                 if (returnType.IsGenericType && parameter.ParameterType.IsGenericType && returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition())

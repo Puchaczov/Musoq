@@ -30,7 +30,7 @@ public class Library : LibraryBase
     
     // Add a specific Sum method for decimal to test window functions
     [BindableMethod]
-    public decimal Sum(decimal value, [InjectQueryStats] QueryStats info)
+    public decimal Sum([InjectQueryStats] QueryStats info, decimal value)
     {
         return value; // Simple passthrough for testing window function infrastructure
     }
