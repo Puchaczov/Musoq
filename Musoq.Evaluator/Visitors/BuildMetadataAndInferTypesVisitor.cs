@@ -1637,29 +1637,125 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(WindowFunctionNode node)
     {
-        // Handle window functions similar to AccessMethodNode but without relying on stack
+        // Handle window functions by ensuring arguments are properly processed first
+        
+        ArgsListNode args;
+        
+        if (node.Arguments?.Args != null && node.Arguments.Args.Any())
+        {
+            // Explicitly visit each argument to ensure their types are inferred
+            var processedArgs = new List<Node>();
+            foreach (var arg in node.Arguments.Args)
+            {
+                // Visit each argument to ensure its type is inferred
+                arg.Accept(this);
+                if (Nodes.Count > 0)
+                {
+                    processedArgs.Add(Nodes.Pop());
+                }
+                else
+                {
+                    // If nothing was pushed, use the original arg but with fallback type
+                    processedArgs.Add(arg);
+                }
+            }
+            args = new ArgsListNode(processedArgs.ToArray());
+        }
+        else
+        {
+            // No arguments for functions like RANK(), LAG(), etc.
+            args = new ArgsListNode(Array.Empty<Node>());
+        }
         
         // Get the schema table pair (similar to VisitAccessMethod)
-        var alias = _identifier; // Window functions don't have explicit alias in this context
+        var alias = _identifier; 
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
         var schemaTablePair = tableSymbol.GetTableByAlias(alias);
-        
-        // Create argument types array (empty for functions like RANK() with no explicit args)
-        var argTypes = node.Arguments?.Args?.Select(arg => arg.ReturnType).ToArray() ?? new Type[0];
-        
-        // Try to resolve the method using the case-insensitive system
-        if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, argTypes, out var method))
+        var entityType = schemaTablePair.Table.Metadata.TableEntityType;
+
+        AddAssembly(entityType.Assembly);
+        AddBaseTypeAssembly(entityType);
+
+        // Try different method resolution approaches like in VisitAccessMethod
+        var canSkipInjectSource = false;
+        MethodInfo method = null;
+
+        // For aggregate functions like SUM, COUNT, we need to try aggregation method first
+        if (IsAggregateFunction(node.FunctionName))
         {
-            var args = node.Arguments?.Args ?? Array.Empty<Node>();
-            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.FunctionName, args);
+            // For aggregation methods like SUM(Population), the signature is SUM(Group, string)
+            // where the string is the column name "Population"
+            var groupArgs = new List<Type> { typeof(string) };
+            
+            if (schemaTablePair.Schema.TryResolveAggregationMethod(node.FunctionName, groupArgs.ToArray(), entityType, out method))
+            {
+                // Found as aggregation method - modify the arguments to pass column names instead of values
+                var modifiedArgs = new List<Node>();
+                foreach (var arg in args.Args)
+                {
+                    // For aggregation, we need to pass the column name as a string literal
+                    if (arg is AccessColumnNode columnNode)
+                    {
+                        // Convert column access to string literal of column name
+                        modifiedArgs.Add(new StringNode(columnNode.Name));
+                    }
+                    else
+                    {
+                        // For other expressions, we might need different handling
+                        modifiedArgs.Add(arg);
+                    }
+                }
+                args = new ArgsListNode(modifiedArgs.ToArray());
+            }
+        }
+        
+        // If not found as aggregation method, try regular methods
+        if (method == null)
+        {
+            // Try regular method resolution
+            var argTypes = args.Args.Select(f => f.ReturnType ?? typeof(object)).ToArray();
+            if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, argTypes, entityType, out method))
+            {
+                // Finally try raw method resolution
+                if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, argTypes, out method))
+                {
+                    // Create detailed error message for debugging
+                    var argTypesStr = string.Join(", ", argTypes.Select(t => t?.Name ?? "null"));
+                    var errorMsg = $"Method {node.FunctionName} with argument types [{argTypesStr}] cannot be resolved. Available methods: {string.Join(", ", GetAvailableMethodNames(schemaTablePair.Schema))}";
+                    throw new CannotResolveMethodException(errorMsg);
+                }
+                canSkipInjectSource = true;
+            }
         }
         
         // Create a proper AccessMethodNode result and push it to the stack
         var functionToken = new FunctionToken(node.FunctionName, default);
-        var argsListNode = node.Arguments ?? new ArgsListNode(Array.Empty<Node>());
-        var resultNode = new AccessMethodNode(functionToken, argsListNode, null, false, method, "");
+        var resultNode = new AccessMethodNode(functionToken, args, null, canSkipInjectSource, method, "");
         
         Nodes.Push(resultNode);
+    }
+
+    private static bool IsAggregateFunction(string functionName)
+    {
+        var aggregateFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "SUM", "COUNT", "AVG", "MIN", "MAX", "STDEV", "VAR"
+        };
+        return aggregateFunctions.Contains(functionName);
+    }
+
+    private static string[] GetAvailableMethodNames(ISchema schema)
+    {
+        try
+        {
+            // This is a helper method to debug what methods are available
+            // Implementation may vary based on internal schema structure
+            return new[] { "Debug: method introspection not implemented" };
+        }
+        catch
+        {
+            return new[] { "Debug: could not retrieve method names" };
+        }
     }
 
     public void Visit(WindowFrameNode node)
