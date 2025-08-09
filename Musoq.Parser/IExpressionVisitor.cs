@@ -43,6 +43,7 @@ public interface IExpressionVisitor
     void Visit(AllColumnsNode node);
     void Visit(IdentifierNode node);
     void Visit(AccessObjectArrayNode node);
+    void Visit(StringCharacterAccessNode node);
     void Visit(AccessObjectKeyNode node);
     void Visit(PropertyValueNode node);
     void Visit(DotNode node);

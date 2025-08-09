@@ -103,6 +103,20 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(AccessObjectArrayNode node)
     {
+        // Check if this is a string character access pattern that needs transformation
+        if (IsStringCharacterAccess(node))
+        {
+            var stringCharNode = TransformToStringCharacterAccess(node);
+            stringCharNode.Accept(_visitor);
+        }
+        else
+        {
+            node.Accept(_visitor);
+        }
+    }
+
+    public void Visit(StringCharacterAccessNode node)
+    {
         node.Accept(_visitor);
     }
 
@@ -129,23 +143,17 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         var ident = (IdentifierNode) theMostOuter.Root;
         if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
         {
-            // Check if this is character access: table.column[index] pattern
-            if (theMostOuter.Expression is AccessObjectArrayNode arrayAccess)
+            // Check for aliased character access pattern: f.Name[0]
+            if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
             {
-                // Create AccessColumnNode for the column
-                var columnNode = new AccessColumnNode(arrayAccess.ObjectName, ident.Name, typeof(string), arrayAccess.Token?.Span ?? TextSpan.Empty);
-                
-                // Create AccessObjectArrayNode with PropertyInfo = null (string character access)
-                var characterAccess = new AccessObjectArrayNode(arrayAccess.Token, null);
-                
-                // Visit both parts to ensure they're processed correctly
-                columnNode.Accept(_visitor);
-                characterAccess.Accept(_visitor);
-                
-                // Create a DotNode with the expected pattern: AccessColumnNode + AccessObjectArrayNode
-                var characterDotNode = new DotNode(columnNode, characterAccess, node.IsTheMostInner, string.Empty, typeof(string));
-                characterDotNode.Accept(_visitor);
-                
+                // This is f.Name[0] pattern - transform to StringCharacterAccessNode  
+                var stringCharNode = new StringCharacterAccessNode(
+                    columnName: arrayNode.ObjectName,
+                    index: arrayNode.Token.Index,
+                    tableAlias: ident.Name,
+                    span: arrayNode.Token.Span
+                );
+                stringCharNode.Accept(_visitor);
                 return;
             }
             
@@ -888,5 +896,48 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public void QueryEnds()
     {
         _visitor.QueryEnds();
+    }
+
+    /// <summary>
+    /// Determines if an AccessObjectArrayNode represents string character access rather than array access
+    /// This handles direct column access like Name[0] (not aliased like f.Name[0])
+    /// </summary>
+    private bool IsStringCharacterAccess(AccessObjectArrayNode node)
+    {
+        // For direct column access like Name[0], we need to check if this is accessing a string column
+        // rather than an array property on an object
+        
+        // This is a simple heuristic: if the ObjectName doesn't contain properties typically found on objects
+        // and could be a column name, it's likely string character access
+        // A more sophisticated approach would require access to schema information
+        
+        var columnName = node.ObjectName;
+        
+        // Common object property patterns that indicate array access rather than character access
+        var arrayPropertyPatterns = new[] { "Self.", "Array", "Items", "Values", "Elements" };
+        
+        foreach (var pattern in arrayPropertyPatterns)
+        {
+            if (columnName.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            {
+                return false; // This looks like array access
+            }
+        }
+        
+        // If it doesn't match array patterns, it's likely string character access
+        return true;
+    }
+
+    /// <summary>
+    /// Transforms an AccessObjectArrayNode to StringCharacterAccessNode for string character access
+    /// </summary>
+    private StringCharacterAccessNode TransformToStringCharacterAccess(AccessObjectArrayNode node)
+    {
+        return new StringCharacterAccessNode(
+            columnName: node.ObjectName,
+            index: node.Token.Index,
+            tableAlias: null, // Direct access has no alias
+            span: node.Token.Span
+        );
     }
 }

@@ -283,6 +283,11 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new AccessObjectArrayNode(node.Token, node.PropertyInfo));
     }
 
+    public void Visit(StringCharacterAccessNode node)
+    {
+        Nodes.Push(new StringCharacterAccessNode(node.ColumnName, node.Index, node.TableAlias, node.Span));
+    }
+
     public void Visit(AccessObjectKeyNode node)
     {
         Nodes.Push(new AccessObjectKeyNode(node.Token, node.PropertyInfo));

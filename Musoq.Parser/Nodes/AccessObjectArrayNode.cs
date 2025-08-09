@@ -28,7 +28,7 @@ public class AccessObjectArrayNode : IdentifierNode
         get
         {
             if (PropertyInfo == null)
-                return typeof(string); // For string character access, return string (SQL compatible)
+                return null;
                 
             if (PropertyInfo.PropertyType.IsArray)
                 return PropertyInfo.PropertyType.GetElementType();

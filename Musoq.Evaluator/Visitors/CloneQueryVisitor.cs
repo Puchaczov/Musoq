@@ -268,6 +268,11 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new AccessObjectArrayNode(node.Token, node.PropertyInfo));
     }
 
+    public virtual void Visit(StringCharacterAccessNode node)
+    {
+        Nodes.Push(new StringCharacterAccessNode(node.ColumnName, node.Index, node.TableAlias, node.Span));
+    }
+
     public virtual void Visit(AccessObjectKeyNode node)
     {
         Nodes.Push(new AccessObjectKeyNode(node.Token, node.PropertyInfo));
