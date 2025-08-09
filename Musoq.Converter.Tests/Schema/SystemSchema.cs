@@ -5,6 +5,7 @@ using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
+using Musoq.Plugins;
 
 namespace Musoq.Converter.Tests.Schema;
 
@@ -44,7 +45,7 @@ public partial class SystemSchema : SchemaBase
     {
         var methodsManager = new MethodsManager();
 
-        var library = new EmptyLibrary();
+        var library = new TestLibrary(); // Use TestLibrary which inherits from LibraryBase
 
         methodsManager.RegisterLibraries(library);
 

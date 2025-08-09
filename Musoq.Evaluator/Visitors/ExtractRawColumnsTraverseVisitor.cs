@@ -703,8 +703,22 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(FieldLinkNode node)
+    
+    public void Visit(WindowSpecificationNode node)
+    {
+        _visitor.Visit(node);
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+        _visitor.Visit(node);
+    }public void Visit(FieldLinkNode node)
     {
         node.Accept(_visitor);
     }
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame node - basic implementation
+    }
+
 }

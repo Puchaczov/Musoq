@@ -186,6 +186,20 @@ public class Lexer : LexerBase<Token>
                 return TokenType.Else;
             case EndToken.TokenText:
                 return TokenType.End;
+            case OverToken.TokenText:
+                return TokenType.Over;
+            case "rows":
+                return TokenType.Rows;
+            case "between":
+                return TokenType.Between;
+            case "unbounded":
+                return TokenType.Unbounded;
+            case "preceding":
+                return TokenType.Preceding;
+            case "following":
+                return TokenType.Following;
+            case "current":
+                return TokenType.Current;
             case WordToken.EmptyTokenText:
                 return TokenType.Word;
         }
@@ -209,6 +223,8 @@ public class Lexer : LexerBase<Token>
             return TokenType.NumericAccess;
         if (regex == TokenRegexDefinition.KGroupBy)
             return TokenType.GroupBy;
+        if (regex == TokenRegexDefinition.KPartitionBy)
+            return TokenType.PartitionBy;
         if (regex == TokenRegexDefinition.KUnionAll)
             return TokenType.UnionAll;
         if (regex == TokenRegexDefinition.KOrderBy)
@@ -347,6 +363,8 @@ public class Lexer : LexerBase<Token>
         public static readonly string KThen = Format(Keyword, ThenToken.TokenText);
         public static readonly string KElse = Format(Keyword, ElseToken.TokenText);
         public static readonly string KEnd = Format(Keyword, EndToken.TokenText);
+        public static readonly string KOver = Format(Keyword, OverToken.TokenText);
+        public static readonly string KPartitionBy = @"(?<=[\s]{1,}|^)partition[\s]{1,}by(?=[\s]{1,}|$)";
         public static readonly string KAliasedStar = @"\b[a-zA-Z_]\w*\.\*";
 
         private static string Format(string keyword, string arg)
@@ -410,6 +428,7 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KExcept, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KIntersect, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KGroupBy, RegexOptions.IgnoreCase),
+            new(TokenRegexDefinition.KPartitionBy, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KHaving, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KSkip, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KTake, RegexOptions.IgnoreCase),
@@ -438,6 +457,7 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KThen),
             new(TokenRegexDefinition.KElse),
             new(TokenRegexDefinition.KEnd),
+            new(TokenRegexDefinition.KOver, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KFieldLink)
         ];
     }
@@ -654,6 +674,22 @@ public class Lexer : LexerBase<Token>
                 return new FieldLinkToken(tokenText, new TextSpan(Position, tokenText.Length));
             case TokenType.Comment:
                 return new CommentToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Over:
+                return new OverToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.PartitionBy:
+                return new PartitionByToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.Rows:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Between:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Unbounded:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Preceding:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Following:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.Current:
+                return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
         }
 
         if (regex != TokenRegexDefinition.KWordSingleQuoted)

@@ -767,7 +767,16 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         _visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(FieldLinkNode node)
+    
+    public void Visit(WindowSpecificationNode node)
+    {
+        _visitor.Visit(node);
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+        _visitor.Visit(node);
+    }public void Visit(FieldLinkNode node)
     {
         throw new NotSupportedException();
     }
@@ -832,4 +841,9 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             _visitor.SetScope(_walker.Scope);
         }
     }
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame node - basic implementation
+    }
+
 }

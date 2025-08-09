@@ -1321,7 +1321,23 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var reorderedList = new FieldNode[oldFields.Length];
         for (var i = reorderedList.Length - 1; i >= 0; i--)
         {
-            reorderedList[i] = Nodes.Pop() as FieldNode;
+            // Enhanced error handling for stack management
+            if (Nodes.Count == 0)
+            {
+                throw new InvalidOperationException($"Stack underflow when processing field {i}. Expected {oldFields.Length} fields but stack is empty.");
+            }
+            
+            var poppedNode = Nodes.Pop();
+            reorderedList[i] = poppedNode as FieldNode;
+            
+            // Enhanced workaround for window function processing: if we get an AccessMethodNode or other expression,
+            // wrap it in a FieldNode using the original field metadata
+            if (reorderedList[i] == null)
+            {
+                // Use the original field to get the proper field name and order
+                var originalField = oldFields[i];
+                reorderedList[i] = new FieldNode(poppedNode, originalField.FieldOrder, originalField.FieldName);
+            }
         }
 
         var fields = new List<FieldNode>(reorderedList.Length);
@@ -1621,6 +1637,131 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _nullSuspiciousTypes.Add(newNode.ReturnType);
 
         Nodes.Push(newNode);
+    }
+
+
+
+    public void Visit(WindowFunctionNode node)
+    {
+        // Handle window functions with custom method resolution to avoid aggregation method conflicts
+        // Window functions should only use regular method signatures, not aggregation methods
+        
+        // DON'T pop arguments here - let the normal stack processing handle it
+        if (Nodes.Pop() is not ArgsListNode args)
+            throw CannotResolveMethodException.CreateForNullArguments(node.FunctionName);
+
+        // Get the schema table pair for method resolution
+        var alias = _identifier; 
+        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
+        var schemaTablePair = tableSymbol.GetTableByAlias(alias);
+        var entityType = schemaTablePair.Table.Metadata.TableEntityType;
+
+        AddAssembly(entityType.Assembly);
+        AddBaseTypeAssembly(entityType);
+
+        // WINDOW FUNCTION SPECIFIC: Only try regular method resolution, NOT aggregation methods
+        // This prevents conflicts where SUM() OVER resolves to aggregation Sum() instead of window Sum()
+        var canSkipInjectSource = false;
+        MethodInfo method = null;
+        
+        // Try regular method resolution first (for methods like Rank, DenseRank, Lag, Lead)
+        var argTypes = args.Args.Select(f => f.ReturnType ?? typeof(object)).ToArray();
+        if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, argTypes, entityType, out method))
+        {
+            // If regular method resolution fails, try raw method resolution
+            if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, argTypes, out method))
+            {
+                // Create detailed error message for debugging
+                var argTypesStr = string.Join(", ", argTypes.Select(t => t?.Name ?? "null"));
+                var errorMsg = $"Window function {node.FunctionName} with argument types [{argTypesStr}] cannot be resolved. Available methods: {string.Join(", ", GetAvailableMethodNames(schemaTablePair.Schema))}";
+                throw new CannotResolveMethodException(errorMsg);
+            }
+            canSkipInjectSource = true;
+        }
+
+        // Handle generic method construction for window functions (e.g., Sum<T>, Count<T>)
+        if (method.IsGenericMethod && !method.IsConstructedGenericMethod)
+        {
+            if (TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
+            {
+                method = constructedMethod;
+            }
+        }
+
+        // Create the result AccessMethodNode
+        var functionToken = new FunctionToken(node.FunctionName, default);
+        var resultNode = new AccessMethodNode(functionToken, args, null, canSkipInjectSource, method, "");
+        
+        // TODO: For execution phase, we'll need to enhance the execution infrastructure
+        // to recognize that this AccessMethodNode was originally a WindowFunctionNode
+        // and apply the window specification (PARTITION BY, ORDER BY, window frame) logic
+        
+        Nodes.Push(resultNode);
+    }
+
+    private static bool IsAggregateFunction(string functionName)
+    {
+        var aggregateFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "SUM", "COUNT", "AVG", "MIN", "MAX", "STDEV", "VAR"
+        };
+        return aggregateFunctions.Contains(functionName);
+    }
+
+    private static string[] GetAvailableMethodNames(ISchema schema)
+    {
+        try
+        {
+            // This is a helper method to debug what methods are available
+            // Implementation may vary based on internal schema structure
+            return new[] { "Debug: method introspection not implemented" };
+        }
+        catch
+        {
+            return new[] { "Debug: could not retrieve method names" };
+        }
+    }
+
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame nodes don't need special metadata processing for now
+        // They are part of window specification structure and will be handled during execution
+    }
+
+    public void Visit(WindowSpecificationNode node)
+    {
+        // Process PARTITION BY and ORDER BY clauses for window functions
+        
+        // Handle PARTITION BY clause if present
+        if (node.PartitionBy != null)
+        {
+            // PARTITION BY expressions should be processed like regular expressions
+            // They will be used to group data during window function execution
+            
+            // For now, we don't need to do special processing as the traversal visitor
+            // will have already processed the PartitionBy node
+        }
+        
+        // Handle ORDER BY clause if present  
+        if (node.OrderBy != null)
+        {
+            // ORDER BY expressions should be processed like regular expressions
+            // They will be used to sort data within partitions during window function execution
+            
+            // For now, we don't need to do special processing as the traversal visitor
+            // will have already processed the OrderBy node
+        }
+        
+        // Handle window frame if present
+        if (node.WindowFrame != null)
+        {
+            // Window frames define the subset of rows to consider for window functions
+            // The WindowFrameNode will be processed by its own visitor
+        }
+        
+        // CRITICAL: Window specification nodes should NOT push anything to the stack
+        // They provide context for window function execution but don't represent actual data
+        // The ORDER BY and PARTITION BY expressions are used for execution context only
     }
 
     public void Visit(FieldLinkNode node)

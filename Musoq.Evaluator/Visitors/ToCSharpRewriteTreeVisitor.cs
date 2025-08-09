@@ -809,7 +809,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             accessMethodExpr = Generator.InvocationExpression(
                 Generator.MemberAccessExpression(
                     Generator.IdentifierName(variableName),
-                    Generator.IdentifierName(node.Name)),
+                    Generator.IdentifierName(method.Name)), // Use method.Name instead of node.Name for correct case
                 args);
         }
 
@@ -3805,6 +3805,51 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(ElseNode node)
     {
+    }
+
+    
+    public void Visit(WindowSpecificationNode node)
+    {
+        // For now, window specifications are not needed for basic functions
+        // The partitioning and ordering logic would be implemented here for advanced features
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+        // For now, convert window functions to regular function calls
+        // The OVER clause logic would be implemented here for advanced partitioning and ordering
+        // For basic functions like RANK(), DENSE_RANK(), LAG(), LEAD(), treat as regular functions
+        
+        // Find the method for this function name
+        var libraryType = typeof(Musoq.Plugins.LibraryBase);
+        var method = libraryType.GetMethods()
+            .FirstOrDefault(m => m.Name.Equals(node.FunctionName, StringComparison.OrdinalIgnoreCase));
+            
+        if (method != null)
+        {
+            // Create an AccessMethodNode and delegate to its handling
+            // Use the actual method name (proper case) instead of the parsed function name
+            var accessMethodNode = new AccessMethodNode(
+                new Musoq.Parser.Tokens.FunctionToken(method.Name, Musoq.Parser.TextSpan.Empty), // Use method.Name instead of node.FunctionName
+                node.Arguments,
+                null, // extraAggregateArguments
+                false, // canSkipInjectSource
+                method, // method
+                "" // alias
+            );
+            
+            Visit(accessMethodNode);
+        }
+        else
+        {
+            throw new NotSupportedException($"Window function '{node.FunctionName}' is not supported");
+        }
+    }
+
+    public void Visit(WindowFrameNode node)
+    {
+        // Window frame nodes don't need C# generation for now
+        // They are part of window specification structure and would be handled during execution
     }
 
     public void Visit(FieldLinkNode node)

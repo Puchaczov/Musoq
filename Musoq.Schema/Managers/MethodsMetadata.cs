@@ -169,7 +169,7 @@ public class MethodsMetadata
             return false;
         }
 
-        result = _methods[name][index];
+        result = _methods[name.ToUpperInvariant()][index];
         return true;
     }
 
@@ -188,7 +188,7 @@ public class MethodsMetadata
             return false;
         }
 
-        result = _methods[name][index];
+        result = _methods[name.ToUpperInvariant()][index];
         return true;
     }
 
@@ -210,7 +210,8 @@ public class MethodsMetadata
     /// <returns>True if some method fits, else false.</returns>
     private bool TryGetRawMethod(string name, Type[] methodArgs, out int index)
     {
-        if (!_methods.TryGetValue(name, out var methods))
+        // Make method lookup case-insensitive
+        if (!_methods.TryGetValue(name.ToUpperInvariant(), out var methods))
         {
             index = -1;
             return false;
@@ -220,19 +221,37 @@ public class MethodsMetadata
         {
             var method = methods[i];
             var parameters = method.GetParameters();
+            
+            // Count parameters that are NOT injected (same logic as TryGetAnnotatedMethod)
+            var notAnnotatedParametersCount = parameters.CountWithoutParametersAnnotatedBy<InjectTypeAttribute>();
 
-            if (parameters.Length != methodArgs.Length)
+            if (notAnnotatedParametersCount != methodArgs.Length)
                 continue;
 
             var hasMatchedArgTypes = true;
+            var methodArgIndex = 0;
 
             for (var j = 0; j < parameters.Length; ++j)
             {
-                if (parameters[j].ParameterType.GetUnderlyingNullable() == methodArgs[j])
+                var parameter = parameters[j];
+                
+                // Skip injected parameters - they don't count for matching
+                if (parameter.GetCustomAttribute<InjectTypeAttribute>() != null)
                     continue;
+                
+                if (methodArgIndex >= methodArgs.Length)
+                {
+                    hasMatchedArgTypes = false;
+                    break;
+                }
 
-                hasMatchedArgTypes = false;
-                break;
+                if (parameter.ParameterType.GetUnderlyingNullable() != methodArgs[methodArgIndex])
+                {
+                    hasMatchedArgTypes = false;
+                    break;
+                }
+                
+                methodArgIndex++;
             }
 
             if (!hasMatchedArgTypes)
@@ -256,7 +275,9 @@ public class MethodsMetadata
     /// <returns>True if some method fits, else false.</returns>
     private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index)
     {
-        if (!_methods.TryGetValue(name, out var methods))
+        // Make method lookup case-insensitive
+        var upperName = name.ToUpperInvariant();
+        if (!_methods.TryGetValue(upperName, out var methods))
         {
             index = -1;
             return false;
@@ -355,7 +376,7 @@ public class MethodsMetadata
 
             breakAll:
 
-            index = _methods[name].IndexOf(methodInfo);
+            index = _methods[upperName].IndexOf(methodInfo);
             matchingMethodsIndexes.Add((index, methodInfo));
         }
 
@@ -449,10 +470,12 @@ public class MethodsMetadata
 
     private void RegisterMethod(string name, MethodInfo methodInfo)
     {
-        if (_methods.TryGetValue(name, out var method))
+        // Store method names in uppercase for case-insensitive lookup
+        var upperName = name.ToUpperInvariant();
+        if (_methods.TryGetValue(upperName, out var method))
             method.Add(methodInfo);
         else
-            _methods.Add(name, [methodInfo]);
+            _methods.Add(upperName, [methodInfo]);
     }
 
     private static bool CanBeAssignedFromGeneric(Type paramType, Type arrayType)

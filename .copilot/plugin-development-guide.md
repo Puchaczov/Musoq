@@ -475,6 +475,138 @@ public class WebLibrary : LibraryBase
 }
 ```
 
+#### Window Functions
+
+Window functions operate across sets of rows and are useful for analytical queries. Here's how to implement and extend them:
+
+```csharp
+public class WindowFunctionsLibrary : LibraryBase
+{
+    // Basic ranking functions using QueryStats injection
+    [BindableMethod]
+    public int RowNumber([InjectQueryStats] QueryStats info)
+    {
+        return info.RowNumber; // Sequential numbering starting from 1
+    }
+
+    [BindableMethod]
+    public int Rank([InjectQueryStats] QueryStats info)
+    {
+        // Current implementation: basic version
+        return info.RowNumber;
+        
+        // Future enhancement could implement true ranking with tie handling:
+        // - Same values get same rank
+        // - Next rank skips positions (1, 2, 2, 4)
+    }
+
+    [BindableMethod]
+    public int DenseRank([InjectQueryStats] QueryStats info)
+    {
+        // Current implementation: basic version
+        return info.RowNumber;
+        
+        // Future enhancement: dense ranking without gaps:
+        // - Same values get same rank
+        // - Next rank is consecutive (1, 2, 2, 3)
+    }
+
+    // Value access functions with generic type support
+    [BindableMethod]
+    public T? Lag<T>(T value, int offset = 1, T? defaultValue = default)
+    {
+        // Current implementation: returns default value
+        // Future enhancement would access previous row values:
+        // - offset = 1: previous row
+        // - offset = 2: two rows back
+        // - return defaultValue if no row available
+        return defaultValue;
+    }
+
+    [BindableMethod]
+    public T? Lead<T>(T value, int offset = 1, T? defaultValue = default)
+    {
+        // Current implementation: returns default value
+        // Future enhancement would access next row values:
+        // - offset = 1: next row
+        // - offset = 2: two rows ahead
+        // - return defaultValue if no row available
+        return defaultValue;
+    }
+
+    // Advanced window functions (future enhancements)
+    [BindableMethod]
+    public T? FirstValue<T>(T value)
+    {
+        // Would return first value in window partition
+        throw new NotImplementedException("Requires OVER clause implementation");
+    }
+
+    [BindableMethod]
+    public T? LastValue<T>(T value)
+    {
+        // Would return last value in window partition
+        throw new NotImplementedException("Requires OVER clause implementation");
+    }
+
+    [BindableMethod]
+    public T? NthValue<T>(T value, int n)
+    {
+        // Would return nth value in window partition
+        throw new NotImplementedException("Requires OVER clause implementation");
+    }
+}
+```
+
+**Window Functions Usage Patterns:**
+
+```sql
+-- Basic window functions (currently supported)
+SELECT Country, Population,
+       RowNumber() as RowNum,
+       Rank() as PopulationRank,
+       DenseRank() as PopulationDenseRank
+FROM #data.countries()
+ORDER BY Population DESC
+
+-- Lag/Lead functions with defaults
+SELECT Quarter, Revenue,
+       Lag(Revenue, 1, 0) as PrevQuarter,
+       Lead(Revenue, 1, 0) as NextQuarter,
+       Lag(Quarter, 1, 'START') as PrevQtrName
+FROM #data.quarterly_results()
+ORDER BY Quarter
+
+-- Future enhancement with OVER clause:
+-- SELECT Name, Department, Salary,
+--        RANK() OVER (PARTITION BY Department ORDER BY Salary DESC) as DeptRank,
+--        LAG(Salary, 1) OVER (PARTITION BY Department ORDER BY Salary) as PrevSalary
+-- FROM #hr.employees()
+```
+
+**Architecture Integration:**
+
+- **QueryStats Injection**: `[InjectQueryStats]` provides row context access
+- **Generic Type Support**: Functions work with any data type using `<T>`
+- **Default Values**: Lag/Lead functions support fallback values
+- **Order Dependency**: Window functions work best with `ORDER BY` clauses
+- **Row Preservation**: Unlike `GROUP BY`, window functions keep all rows
+
+**Implementation Notes:**
+
+1. **Current State**: Basic implementations provide foundation
+2. **Extensibility**: Functions can be enhanced without breaking existing queries
+3. **Performance**: Uses existing query execution pipeline efficiently
+4. **Type Safety**: Generic functions maintain strong typing
+
+**Future Enhancement Opportunities:**
+
+- **OVER Clause Parsing**: Add `OVER (PARTITION BY ... ORDER BY ...)` syntax
+- **Window Frames**: Support `ROWS BETWEEN` and `RANGE` specifications
+- **Aggregate Windows**: Implement `SUM() OVER`, `COUNT() OVER`, etc.
+- **Advanced Ranking**: True tie handling for `RANK()` and `DENSE_RANK()`
+- **Value Access**: Real `LAG()`/`LEAD()` with row offset access
+
 ## Plugin Registration and Deployment
 
 ### Registration in Schema Provider

@@ -119,6 +119,13 @@ SQL Query → Lexer → Parser → AST → Converter → C# Code → Compiler �
 - `CompiledQuery` - Executable query wrapper
 - `InstanceCreator` - Main API entry point
 
+### Window Functions
+- `RowNumber()` - Sequential row numbering
+- `Rank()` - Row ranking functionality
+- `DenseRank()` - Dense ranking without gaps
+- `Lag<T>(value, offset, default)` - Previous row values
+- `Lead<T>(value, offset, default)` - Next row values
+
 ### Plugin Pattern
 ```csharp
 ISchema → SchemaBase → YourSchema

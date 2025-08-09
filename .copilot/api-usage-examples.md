@@ -687,4 +687,161 @@ public class ApiUsageTests
 }
 ```
 
+### 6. Window Functions Usage
+
+Musoq supports window functions for analytical queries that operate across sets of rows. Here are practical examples:
+
+```csharp
+public class WindowFunctionsExamples
+{
+    public void BasicWindowFunctions()
+    {
+        var data = new[]
+        {
+            new { Country = "USA", Population = 331000000, GDP = 21.43m },
+            new { Country = "China", Population = 1439000000, GDP = 14.34m },
+            new { Country = "Japan", Population = 125800000, GDP = 4.94m },
+            new { Country = "Germany", Population = 83240000, GDP = 3.86m }
+        };
+
+        var query = @"
+            SELECT Country, Population, GDP,
+                   RowNumber() as RowNum,
+                   Rank() as PopulationRank,
+                   DenseRank() as GDPRank
+            FROM #data.entities()
+            ORDER BY Population DESC";
+
+        var result = ExecuteQuery(query, data);
+        
+        // Results will show sequential numbering and ranking
+        // Row 1: China, 1439000000, 14.34, 1, 1, 1
+        // Row 2: USA, 331000000, 21.43, 2, 2, 2
+        // Row 3: Japan, 125800000, 4.94, 3, 3, 3
+        // Row 4: Germany, 83240000, 3.86, 4, 4, 4
+    }
+
+    public void LagLeadFunctions()
+    {
+        var data = new[]
+        {
+            new { Quarter = "Q1", Revenue = 1000000m },
+            new { Quarter = "Q2", Revenue = 1200000m },
+            new { Quarter = "Q3", Revenue = 1100000m },
+            new { Quarter = "Q4", Revenue = 1350000m }
+        };
+
+        var query = @"
+            SELECT Quarter, Revenue,
+                   Lag(Revenue, 1, 0) as PreviousRevenue,
+                   Lead(Revenue, 1, 0) as NextRevenue,
+                   Lag(Quarter, 1, 'START') as PrevQuarter,
+                   Lead(Quarter, 1, 'END') as NextQuarter
+            FROM #data.entities()
+            ORDER BY Quarter";
+
+        var result = ExecuteQuery(query, data);
+        
+        // Note: Current implementation returns default values
+        // Future enhancement will provide actual lag/lead functionality
+    }
+
+    public void CombinedAnalytics()
+    {
+        var query = @"
+            SELECT Region, Product, Sales,
+                   RowNumber() as Position,
+                   Rank() as SalesRank,
+                   Lag(Product, 1, 'N/A') as PreviousProduct
+            FROM #sales.data()
+            ORDER BY Sales DESC";
+
+        // Combines window functions with ordering for comprehensive analytics
+    }
+
+    private Table ExecuteQuery<T>(string query, IEnumerable<T> data)
+    {
+        var schemaProvider = new BasicSchemaProvider<T>(new Dictionary<string, IEnumerable<T>>
+        {
+            ["entities"] = data
+        });
+
+        var compiledQuery = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            new LoggerResolver());
+
+        return compiledQuery.Run();
+    }
+}
+
+public class WindowFunctionsAdvanced
+{
+    public void WindowVsGroupByComparison()
+    {
+        // Window functions preserve all rows, unlike GROUP BY
+        
+        var windowQuery = @"
+            SELECT Department, Employee, Salary,
+                   RowNumber() as EmployeeNumber,
+                   Rank() as SalaryRank
+            FROM #hr.employees()
+            ORDER BY Salary DESC";
+        
+        var groupByQuery = @"
+            SELECT Department, COUNT(*) as EmployeeCount, AVG(Salary) as AvgSalary
+            FROM #hr.employees()
+            GROUP BY Department";
+
+        // Window query: Returns all employee rows with rankings
+        // GROUP BY query: Returns summary rows per department
+    }
+
+    public void WindowFunctionPatterns()
+    {
+        // Pattern 1: Sequential numbering with gaps for ties
+        var rankingQuery = @"
+            SELECT Name, Score, Rank() as Position
+            FROM #competition.results()
+            ORDER BY Score DESC";
+
+        // Pattern 2: Dense ranking without gaps
+        var denseRankingQuery = @"
+            SELECT Name, Score, DenseRank() as Position
+            FROM #competition.results()
+            ORDER BY Score DESC";
+
+        // Pattern 3: Previous/next value access with defaults
+        var lagLeadQuery = @"
+            SELECT Date, Price,
+                   Lag(Price, 1, Price) as PrevPrice,
+                   Lead(Price, 1, Price) as NextPrice
+            FROM #stock.prices()
+            ORDER BY Date";
+    }
+}
+```
+
+### Window Functions Implementation Notes
+
+**Current State:**
+- `RowNumber()` - Fully functional sequential numbering
+- `Rank()` - Basic implementation (behaves like RowNumber)
+- `DenseRank()` - Basic implementation (behaves like RowNumber)
+- `Lag<T>()` - Returns default value (placeholder implementation)
+- `Lead<T>()` - Returns default value (placeholder implementation)
+
+**Architecture Integration:**
+- Uses `[InjectQueryStats]` for row context access
+- Compatible with ORDER BY clauses for meaningful results
+- Preserves all rows (unlike GROUP BY aggregation)
+- Foundation exists for advanced OVER clause syntax
+
+**Future Enhancements:**
+- OVER clause with PARTITION BY and ORDER BY
+- Window frame specifications (ROWS BETWEEN)
+- Aggregate window functions (SUM() OVER, COUNT() OVER)
+- True lag/lead implementation with offset access
+
 This comprehensive API guide covers the main usage patterns and provides practical examples for integrating Musoq into applications.

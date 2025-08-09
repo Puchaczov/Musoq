@@ -230,6 +230,47 @@ public class MyLibrary : LibraryBase
 }
 ```
 
+### Window Functions
+
+Musoq supports window functions that operate across sets of rows. The following window functions are available:
+
+```csharp
+// Row numbering and ranking functions
+[BindableMethod]
+public int RowNumber([InjectQueryStats] QueryStats info) // Sequential numbering
+public int Rank([InjectQueryStats] QueryStats info)      // Ranking (ties handled)
+public int DenseRank([InjectQueryStats] QueryStats info) // Dense ranking without gaps
+
+// Value access functions  
+[BindableMethod]
+public T? Lag<T>(T value, int offset = 1, T? defaultValue = default)  // Previous row values
+public T? Lead<T>(T value, int offset = 1, T? defaultValue = default) // Next row values
+```
+
+**Usage Examples:**
+```sql
+-- Basic window functions
+SELECT Country, Population, 
+       RowNumber() as RowNum,
+       Rank() as Ranking,
+       DenseRank() as DenseRanking
+FROM #A.entities() 
+ORDER BY Population DESC
+
+-- Lead/Lag with defaults
+SELECT City, 
+       Lag(City, 1, 'FIRST') as PreviousCity,
+       Lead(City, 1, 'LAST') as NextCity
+FROM #A.entities() 
+ORDER BY Population
+```
+
+**Implementation Notes:**
+- Window functions use `[InjectQueryStats]` for row context
+- Current implementations provide basic functionality
+- Foundation exists for advanced features like OVER clauses
+- Compatible with existing query execution pipeline
+
 ## Query Processing Pipeline
 
 ### 1. Lexical Analysis

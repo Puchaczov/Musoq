@@ -881,7 +881,14 @@ public class Parser
                 ReplaceCurrentToken(new FunctionToken(Current.Value, Current.Span));
                 return ComposeAccessMethod(string.Empty);
             case TokenType.Function:
-                return ComposeAccessMethod(string.Empty);
+                var accessMethod = ComposeAccessMethod(string.Empty);
+                // Check for OVER clause to detect window functions
+                if (Current.TokenType == TokenType.Over)
+                {
+                    var windowSpec = ComposeWindowSpecification();
+                    return new WindowFunctionNode(accessMethod.Name, accessMethod.Arguments, windowSpec);
+                }
+                return accessMethod;
             case TokenType.Identifier:
 
                 if (Current is not ColumnToken column)
@@ -1058,6 +1065,197 @@ public class Parser
     private static bool IsNumericToken(Token current)
     {
         return current.TokenType is TokenType.Decimal or TokenType.Integer;
+    }
+
+    private WindowSpecificationNode ComposeWindowSpecification()
+    {
+        Consume(TokenType.Over);
+        Consume(TokenType.LeftParenthesis);
+
+        Node partitionBy = null;
+        Node orderBy = null;
+        WindowFrameNode windowFrame = null;
+
+        // Parse PARTITION BY clause if present (handle both as single token or separate tokens)
+        if (Current.TokenType == TokenType.PartitionBy || 
+            (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "partition"))
+        {
+            if (Current.TokenType == TokenType.PartitionBy)
+            {
+                Consume(TokenType.PartitionBy); // consume "PARTITION BY" as single token
+                partitionBy = ComposeCommaSeperatedArithmeticExpressions();
+            }
+            else
+            {
+                Consume(TokenType.Identifier); // consume "PARTITION"
+                if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "by")
+                {
+                    Consume(TokenType.Identifier); // consume "BY"
+                    partitionBy = ComposeCommaSeperatedArithmeticExpressions();
+                }
+            }
+        }
+
+        // Parse ORDER BY clause if present (handle comma-separated expressions with ASC/DESC)
+        if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "order")
+        {
+            Consume(TokenType.Identifier); // consume "ORDER"
+            if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "by")
+            {
+                Consume(TokenType.Identifier); // consume "BY"
+                orderBy = ComposeCommaSeperatedArithmeticExpressions();
+                
+                // Handle DESC/ASC if present - simplified approach
+                while (Current.TokenType == TokenType.Desc || Current.TokenType == TokenType.Asc ||
+                       (Current.TokenType == TokenType.Identifier && 
+                        (Current.Value.ToLowerInvariant() == "asc" || Current.Value.ToLowerInvariant() == "desc")))
+                {
+                    Consume(Current.TokenType);
+                }
+            }
+        }
+        else if (Current.TokenType == TokenType.OrderBy)
+        {
+            // Handle if ORDER BY is parsed as a single token (fallback)
+            Consume(TokenType.OrderBy);
+            orderBy = ComposeCommaSeperatedArithmeticExpressions();
+            
+            if (Current.TokenType == TokenType.Desc || Current.TokenType == TokenType.Asc)
+            {
+                Consume(Current.TokenType);
+            }
+            else if (Current.TokenType == TokenType.Identifier && 
+                     (Current.Value.ToLowerInvariant() == "asc" || Current.Value.ToLowerInvariant() == "desc"))
+            {
+                Consume(TokenType.Identifier);
+            }
+        }
+
+        // Parse window frame (ROWS BETWEEN...) if present
+        if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "rows")
+        {
+            windowFrame = ComposeWindowFrame();
+        }
+
+        Consume(TokenType.RightParenthesis);
+
+        return new WindowSpecificationNode(partitionBy, orderBy, windowFrame);
+    }
+
+    private Node ComposeCommaSeperatedArithmeticExpressions()
+    {
+        var expressions = new List<Node>();
+        
+        do
+        {
+            expressions.Add(ComposeArithmeticExpression(0));
+            
+            // Skip DESC/ASC keywords if present
+            if (Current.TokenType == TokenType.Desc || Current.TokenType == TokenType.Asc ||
+                (Current.TokenType == TokenType.Identifier && 
+                 (Current.Value.ToLowerInvariant() == "asc" || Current.Value.ToLowerInvariant() == "desc")))
+            {
+                Consume(Current.TokenType);
+            }
+            
+            if (Current.TokenType == TokenType.Comma)
+            {
+                Consume(TokenType.Comma);
+            }
+            else
+            {
+                break;
+            }
+        } while (Current.TokenType != TokenType.RightParenthesis && 
+                 Current.TokenType != TokenType.EndOfFile &&
+                 !(Current.TokenType == TokenType.Identifier && 
+                   (Current.Value.ToLowerInvariant() == "order" || 
+                    Current.Value.ToLowerInvariant() == "rows")) &&
+                 !(Current.TokenType == TokenType.Word && 
+                   (Current.Value.ToLowerInvariant() == "order" || 
+                    Current.Value.ToLowerInvariant() == "rows")));
+        
+        // For simplicity, return just the first expression for now
+        // In a full implementation, this would return an ArgsListNode or similar
+        return expressions.Count > 0 ? expressions[0] : null;
+    }
+
+    private WindowFrameNode ComposeWindowFrame()
+    {
+        // Consume ROWS token
+        Consume(Current.TokenType); // "rows"
+        
+        if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "between")
+        {
+            // Handle ROWS BETWEEN ... AND ... syntax
+            Consume(Current.TokenType); // "between"
+            
+            string startBound = ComposeFrameBound();
+            
+            // Consume AND
+            if (Current.TokenType == TokenType.And)
+            {
+                Consume(TokenType.And);
+            }
+            else if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "and")
+            {
+                Consume(Current.TokenType);
+            }
+            
+            string endBound = ComposeFrameBound();
+            
+            return new WindowFrameNode("ROWS", startBound, endBound);
+        }
+        else
+        {
+            // Handle simple ROWS startBound syntax
+            string startBound = ComposeFrameBound();
+            return new WindowFrameNode("ROWS", startBound);
+        }
+    }
+
+    private string ComposeFrameBound()
+    {
+        if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "unbounded")
+        {
+            Consume(Current.TokenType); // "unbounded"
+            if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "preceding")
+            {
+                Consume(Current.TokenType); // "preceding"
+                return "UNBOUNDED PRECEDING";
+            }
+            else if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "following")
+            {
+                Consume(Current.TokenType); // "following"
+                return "UNBOUNDED FOLLOWING";
+            }
+        }
+        else if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "current")
+        {
+            Consume(Current.TokenType); // "current"
+            if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "row")
+            {
+                Consume(Current.TokenType); // "row"
+                return "CURRENT ROW";
+            }
+        }
+        else if (Current.TokenType == TokenType.Integer)
+        {
+            var value = Current.Value;
+            Consume(TokenType.Integer);
+            if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "preceding")
+            {
+                Consume(Current.TokenType); // "preceding"
+                return $"{value} PRECEDING";
+            }
+            else if ((Current.TokenType == TokenType.Word || Current.TokenType == TokenType.Identifier) && Current.Value.ToLowerInvariant() == "following")
+            {
+                Consume(Current.TokenType); // "following"
+                return $"{value} FOLLOWING";
+            }
+        }
+        
+        throw new InvalidOperationException($"Unexpected token in window frame bound: {Current.TokenType}");
     }
 
     private enum Associativity
