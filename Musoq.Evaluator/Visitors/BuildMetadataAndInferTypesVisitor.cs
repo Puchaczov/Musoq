@@ -1321,10 +1321,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var reorderedList = new FieldNode[oldFields.Length];
         for (var i = reorderedList.Length - 1; i >= 0; i--)
         {
+            // Enhanced error handling for stack management
+            if (Nodes.Count == 0)
+            {
+                throw new InvalidOperationException($"Stack underflow when processing field {i}. Expected {oldFields.Length} fields but stack is empty.");
+            }
+            
             var poppedNode = Nodes.Pop();
             reorderedList[i] = poppedNode as FieldNode;
             
-            // Workaround for window function processing: if we get an AccessColumnNode or other expression,
+            // Enhanced workaround for window function processing: if we get an AccessMethodNode or other expression,
             // wrap it in a FieldNode using the original field metadata
             if (reorderedList[i] == null)
             {
@@ -1633,23 +1639,33 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(newNode);
     }
 
-    
-    public void Visit(WindowSpecificationNode node)
-    {
-        // For now, window specifications don't need metadata processing
-        // In the future, this would handle partition and order by expressions
-    }
+
 
     public void Visit(WindowFunctionNode node)
     {
         // Handle window functions with full OVER clause support including PARTITION BY and ORDER BY
         
+        // Handle arguments - they might be individual nodes or wrapped in ArgsListNode
         ArgsListNode args;
-        
         if (node.Arguments?.Args != null && node.Arguments.Args.Any())
         {
-            // Use the arguments directly - they should have been processed by the traversal visitor
-            args = node.Arguments;
+            // Check if we have an ArgsListNode on the stack or individual arguments
+            var poppedNode = Nodes.Pop();
+            if (poppedNode is ArgsListNode poppedArgs)
+            {
+                args = poppedArgs;
+            }
+            else
+            {
+                // We got individual arguments instead of ArgsListNode, reconstruct it
+                var individualArgs = new List<Node> { poppedNode };
+                // Pop the remaining arguments (if any)
+                for (int i = 1; i < node.Arguments.Args.Length; i++)
+                {
+                    individualArgs.Insert(0, Nodes.Pop());
+                }
+                args = new ArgsListNode(individualArgs.ToArray());
+            }
         }
         else
         {
