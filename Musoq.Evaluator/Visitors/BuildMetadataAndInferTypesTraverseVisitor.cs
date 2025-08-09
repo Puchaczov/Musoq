@@ -129,6 +129,26 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         var ident = (IdentifierNode) theMostOuter.Root;
         if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
         {
+            // Check if this is character access: table.column[index] pattern
+            if (theMostOuter.Expression is AccessObjectArrayNode arrayAccess)
+            {
+                // Create AccessColumnNode for the column
+                var columnNode = new AccessColumnNode(arrayAccess.ObjectName, ident.Name, typeof(string), arrayAccess.Token?.Span ?? TextSpan.Empty);
+                
+                // Create AccessObjectArrayNode with PropertyInfo = null (string character access)
+                var characterAccess = new AccessObjectArrayNode(arrayAccess.Token, null);
+                
+                // Visit both parts to ensure they're processed correctly
+                columnNode.Accept(_visitor);
+                characterAccess.Accept(_visitor);
+                
+                // Create a DotNode with the expected pattern: AccessColumnNode + AccessObjectArrayNode
+                var characterDotNode = new DotNode(columnNode, characterAccess, node.IsTheMostInner, string.Empty, typeof(string));
+                characterDotNode.Accept(_visitor);
+                
+                return;
+            }
+            
             IdentifierNode column;
             if (theMostOuter.Expression is DotNode dotNode)
             {
