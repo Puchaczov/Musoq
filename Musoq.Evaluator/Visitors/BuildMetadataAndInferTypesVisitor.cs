@@ -1699,6 +1699,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // For aggregate window functions, start with basic method resolution
         // Window specification processing will be enhanced in future iterations
         var enhancedArgsListNode = new ArgsListNode(enhancedArgs.ToArray());
+        
+        Console.WriteLine($"DEBUG: Trying to resolve method with args: {string.Join(", ", enhancedArgsListNode.Args.Select(a => a.ReturnType.Name))}");
 
         // Use the regular method resolution infrastructure that works for Rank(), Sum<T>(), etc.
         var groupArgs = new List<Type> {typeof(string)};
@@ -1715,17 +1717,15 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var canSkipInjectSource = false;
         MethodInfo method = null;
         
-        // Follow the SAME resolution order as VisitAccessMethod that works for regular functions
-        if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.FunctionName, groupArgs.ToArray(), entityType, out method))
+        // For window functions, skip aggregation method resolution and go directly to regular methods
+        // This prevents finding the GROUP BY aggregate methods when we want window function methods
+        if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray(), entityType, out method))
         {
-            if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray(), entityType, out method))
+            if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray(), out method))
             {
-                if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray(), out method))
-                {
-                    throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.FunctionName, enhancedArgsListNode.Args);
-                }
-                canSkipInjectSource = true;
+                throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.FunctionName, enhancedArgsListNode.Args);
             }
+            canSkipInjectSource = true;
         }
 
         var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
