@@ -516,6 +516,37 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(AccessObjectArrayNode node)
     {
+        // Debug: Check if this is direct column character access
+        if (Nodes.Count == 0)
+        {
+            // This is direct column access like Name[0] - should be treated as column access with character indexing
+            // Try to resolve as a column in the current scope
+            if (_queryPart != QueryPart.From)
+            {
+                var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+
+                if (column != null && column.ColumnType == typeof(string))
+                {
+                    // This is string character access - create AccessObjectArrayNode with PropertyInfo = null
+                    Nodes.Push(new AccessObjectArrayNode(node.Token, null));
+                    return;
+                }
+                else if (column != null)
+                {
+                    throw new ObjectIsNotAnArrayException(
+                        $"Column {node.Name} of type {column.ColumnType.Name} does not support character access. Only string columns support [index] syntax.");
+                }
+                else
+                {
+                    PrepareAndThrowUnknownColumnExceptionMessage(node.Name, tableSymbol.GetColumns());
+                }
+            }
+            
+            throw new ObjectIsNotAnArrayException(
+                $"Unable to resolve {node.Name} as either column or property for character/array access.");
+        }
+
         var parentNode = Nodes.Peek();
         var parentNodeType = Nodes.Peek().ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
@@ -558,6 +589,30 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
                 isArray = propertyAccess?.PropertyType.IsArray == true;
                 isIndexer = HasIndexer(propertyAccess?.PropertyType);
+
+                // Special case: if parent is RowSource and we can't find the property, 
+                // this might be string character access on a column
+                if (propertyAccess == null && parentNodeType.Name == "RowSource")
+                {
+                    // Try to resolve as a column in the current scope
+                    if (_queryPart != QueryPart.From)
+                    {
+                        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+                        var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
+
+                        if (column != null && column.ColumnType == typeof(string))
+                        {
+                            // This is string character access on a column
+                            Nodes.Push(new AccessObjectArrayNode(node.Token, null));
+                            return;
+                        }
+                        else if (column != null)
+                        {
+                            throw new ObjectIsNotAnArrayException(
+                                $"Column {node.Name} of type {column.ColumnType.Name} does not support character access. Only string columns support [index] syntax.");
+                        }
+                    }
+                }
 
                 if (!isArray && !isIndexer)
                 {
@@ -717,13 +772,19 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             if (exp is not IdentifierNode identifierNode)
             {
+                // Debug: Log what type of exp we have
+                System.Console.WriteLine($"DEBUG: DotNode - exp type: {exp.GetType().Name}, root type: {root.GetType().Name}");
+                
                 // Special case: if this is AccessObjectArrayNode, check if it's aliased column character access
                 if (exp is AccessObjectArrayNode arrayNode)
                 {
+                    System.Console.WriteLine($"DEBUG: AccessObjectArrayNode - ObjectName: {arrayNode.ObjectName}, root.ReturnType: {root.ReturnType}");
+                    
                     // Check if this is the pattern: AccessColumnNode (string) + AccessObjectArrayNode
                     // This indicates character access: columnName[index]
                     if (root is AccessColumnNode && root.ReturnType == typeof(string))
                     {
+                        System.Console.WriteLine($"DEBUG: Pattern 1 - AccessColumnNode + AccessObjectArrayNode for string");
                         // Create AccessObjectArrayNode with PropertyInfo = null (string character access)
                         var characterAccess = new AccessObjectArrayNode(arrayNode.Token, null);
                         
@@ -736,9 +797,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     
                     // Original logic for checking if the root has a property (for other cases)
                     var property = root.ReturnType.GetProperty(arrayNode.ObjectName);
+                    System.Console.WriteLine($"DEBUG: Checking property {arrayNode.ObjectName} on {root.ReturnType.Name}: {property?.PropertyType}");
                     
                     if (property != null && property.PropertyType == typeof(string))
                     {
+                        System.Console.WriteLine($"DEBUG: Pattern 2 - Creating column access for string property");
                         // This is string character access - create the AccessColumnNode for the column
                         var columnAccess = new AccessColumnNode(arrayNode.ObjectName, string.Empty, typeof(string), arrayNode.Token.Span);
                         
@@ -753,6 +816,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     }
                 }
                 
+                System.Console.WriteLine($"DEBUG: No special handling, throwing NotSupportedException");
                 throw new NotSupportedException();
             }
 
