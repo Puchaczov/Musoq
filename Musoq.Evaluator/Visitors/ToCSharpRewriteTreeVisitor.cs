@@ -917,24 +917,23 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectArrayNode node)
     {
-        // Special case: Check if this is string character access (PropertyInfo = null)
+        // Special handling for string character access (PropertyInfo = null)
         if (node.PropertyInfo == null)
         {
             var topNode = Nodes.Peek();
-            Console.WriteLine($"DEBUG: AccessObjectArrayNode character access - topNode type: {topNode.GetType().Name}, stack count: {Nodes.Count}");
+            Console.WriteLine($"DEBUG: AccessObjectArrayNode - Character access, topNode: {topNode.GetType().Name}");
             
-            // If the top node is BlockSyntax, this is likely direct column character access
+            // If top node is BlockSyntax, this is direct column character access from query context
             if (topNode is BlockSyntax)
             {
-                Console.WriteLine($"DEBUG: AccessObjectArrayNode - Handling BlockSyntax case for column {node.ObjectName}");
+                Console.WriteLine($"DEBUG: AccessObjectArrayNode - Direct column character access: {node.ObjectName}[{node.Token.Index}]");
                 
-                // For direct column character access, generate score["columnName"][index].ToString()
-                Nodes.Pop(); // Remove the BlockSyntax
-                
+                // Don't pop the BlockSyntax - instead, create the character access expression
+                // and push it as an additional result that can be used by the query processing
                 var variableName = _type switch
                 {
-                    MethodAccessType.ResultQuery => "score",
-                    MethodAccessType.TransformingQuery => "row", 
+                    MethodAccessType.TransformingQuery => "row",
+                    MethodAccessType.ResultQuery or MethodAccessType.CaseWhen => "score",
                     _ => "score"
                 };
                 
@@ -969,17 +968,18 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                         characterAccess,
                         SyntaxFactory.IdentifierName("ToString")));
                 
-                Console.WriteLine($"DEBUG: AccessObjectArrayNode - Generated character access: {toStringCall}");
+                Console.WriteLine($"DEBUG: AccessObjectArrayNode - Generated: {toStringCall}");
+                
+                // Push the character access result - this will be used instead of the BlockSyntax for expressions
                 Nodes.Push(toStringCall);
                 return;
             }
-            else
-            {
-                Console.WriteLine($"DEBUG: AccessObjectArrayNode - PropertyInfo is null but topNode is not BlockSyntax: {topNode.GetType().Name}");
-            }
+            
+            // For other PropertyInfo = null cases, fall through to normal handling
+            Console.WriteLine($"DEBUG: AccessObjectArrayNode - PropertyInfo=null but not BlockSyntax case");
         }
         
-        // Normal array/property access - original logic unchanged
+        // Normal array/property access - original logic
         var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
 
         Nodes.Push(SyntaxFactory
@@ -1015,6 +1015,49 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(DotNode node)
     {
+        // Check if this is a character access pattern: AccessColumnNode + AccessObjectArrayNode
+        if (node.Root is AccessColumnNode columnNode && node.Expression is AccessObjectArrayNode arrayNode && arrayNode.PropertyInfo == null)
+        {
+            Console.WriteLine($"DEBUG: DotNode - Handling character access pattern: {columnNode.Name}[{arrayNode.Token.Index}]");
+            
+            // This is character access - handle the AccessColumnNode + AccessObjectArrayNode pattern
+            // The AccessColumnNode should already be processed and on the stack
+            // The AccessObjectArrayNode with PropertyInfo=null indicates string character access
+            
+            // First, ensure the AccessColumnNode was processed (it should be on stack)
+            var columnExpression = Nodes.Peek();
+            Console.WriteLine($"DEBUG: DotNode - Column expression on stack: {columnExpression}");
+            
+            // Pop the column expression
+            var columnExpr = (ExpressionSyntax)Nodes.Pop();
+            
+            // Generate character access: ((string)columnExpr)[index].ToString()
+            var stringCast = SyntaxFactory.CastExpression(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                SyntaxFactory.ParenthesizedExpression(columnExpr));
+            
+            var characterAccess = SyntaxFactory.ElementAccessExpression(
+                SyntaxFactory.ParenthesizedExpression(stringCast))
+                .WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(arrayNode.Token.Index))))));
+            
+            var toStringCall = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    characterAccess,
+                    SyntaxFactory.IdentifierName("ToString")));
+            
+            Console.WriteLine($"DEBUG: DotNode - Generated character access: {toStringCall}");
+            Nodes.Push(toStringCall);
+            return;
+        }
+        
+        // Normal DotNode handling (empty for now)
     }
 
     public void Visit(AccessCallChainNode node)

@@ -81,14 +81,38 @@ My changes to AccessObjectArrayNode.Visit in ToCSharpRewriteTreeVisitor are caus
 3. Focus on adding character access without breaking existing functionality
 4. Test each small change incrementally
 
-### Strategy: Surgical Fixes Only
-- Keep all existing array access logic intact
-- Add character access logic only for PropertyInfo = null cases
-- Ensure stack management is preserved for normal cases
-- Test incrementally: array access, direct character access, then aliased access
+## Current Architecture Analysis
 
-### Key Principles
-- Make minimal changes to avoid further regressions
-- Preserve all existing functionality 
-- Focus on surgical fixes rather than large modifications
-- Test each change individually
+### 🔍 Critical Discovery: Multiple Visitor Paths
+The issue is more complex than initially thought. There are multiple places where AccessObjectArrayNode instances are created and processed:
+
+1. **DotNode Pattern** (AccessColumnNode + AccessObjectArrayNode) - Created by BuildMetadataAndInferTypesVisitor for character access
+2. **Direct AccessObjectArrayNode** - Created for direct column character access like `Name[0]`
+3. **Regular Array Access** - Normal property-based array access like `Self.Array[2]`
+
+### 🔧 Stack Management Issue Analysis
+The fundamental problem is that direct character access (`Name[0]`) creates an AccessObjectArrayNode with PropertyInfo=null, but there's no proper expression on the stack for it to work with - instead there's a BlockSyntax representing query structure.
+
+**Error Pattern:**
+```
+Unable to cast object of type 'Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax' to type 'Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax'
+```
+
+This happens at line 920 in AccessObjectArrayNode.Visit when it tries to cast the stack top to ExpressionSyntax but finds BlockSyntax.
+
+### 🎯 Key Insight from Comments
+The comment mentioned that **RewriteWhereExpressionToPassItToDataSourceVisitor** may mark complex expressions like `f.Name[0]` as "complex" and replace them with `1 = 1`. This suggests the issue might be in WHERE clause processing rather than core visitor pipeline.
+
+### 📊 Current Working Status
+- ✅ **SimpleAccessArrayTest** (`Self.Array[2]`) - **PASSED** (regression fixed)
+- ❌ **FirstLetterOfColumnTest** (`Name[0]`) - BlockSyntax casting error
+- ❌ **FirstLetterOfColumnTest2** (`f.Name[0]`) - Likely WHERE clause rewriter issue
+
+### 🔄 Next Approach: Surgical AccessObjectArrayNode Fix
+Instead of complex DotNode handling, focus on minimal fix in AccessObjectArrayNode to handle PropertyInfo=null cases without disrupting stack management.
+
+Key Requirements:
+1. Detect PropertyInfo=null (character access)
+2. Handle BlockSyntax on stack properly  
+3. Generate correct character access code
+4. Preserve stack state for other visitor operations
