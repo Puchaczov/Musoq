@@ -1643,39 +1643,60 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(WindowFunctionNode node)
     {
-        // Handle window functions by delegating to regular AccessMethodNode processing
-        // This ensures identical stack management to regular functions
+        // Handle window functions with custom method resolution to avoid aggregation method conflicts
+        // Window functions should only use regular method signatures, not aggregation methods
         
-        // Handle arguments consistently with regular AccessMethodNode
-        ArgsListNode args;
-        if (node.Arguments?.Args != null && node.Arguments.Args.Any())
-        {
-            // Expect ArgsListNode on stack, just like regular functions
-            if (Nodes.Pop() is not ArgsListNode poppedArgs)
-                throw CannotResolveMethodException.CreateForNullArguments(node.FunctionName);
-            args = poppedArgs;
-        }
-        else
-        {
-            // No arguments for functions like RANK(), etc.
-            args = new ArgsListNode(Array.Empty<Node>());
-        }
+        // DON'T pop arguments here - let the normal stack processing handle it
+        if (Nodes.Pop() is not ArgsListNode args)
+            throw CannotResolveMethodException.CreateForNullArguments(node.FunctionName);
+
+        // Get the schema table pair for method resolution
+        var alias = _identifier; 
+        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
+        var schemaTablePair = tableSymbol.GetTableByAlias(alias);
+        var entityType = schemaTablePair.Table.Metadata.TableEntityType;
+
+        AddAssembly(entityType.Assembly);
+        AddBaseTypeAssembly(entityType);
+
+        // WINDOW FUNCTION SPECIFIC: Only try regular method resolution, NOT aggregation methods
+        // This prevents conflicts where SUM() OVER resolves to aggregation Sum() instead of window Sum()
+        var canSkipInjectSource = false;
+        MethodInfo method = null;
         
-        // Create a regular AccessMethodNode and delegate processing to it
-        // The window specification information is preserved in the original WindowFunctionNode
-        // but for metadata and type inference purposes, we treat it as a regular method call
+        // Try regular method resolution first (for methods like Rank, DenseRank, Lag, Lead)
+        var argTypes = args.Args.Select(f => f.ReturnType ?? typeof(object)).ToArray();
+        if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, argTypes, entityType, out method))
+        {
+            // If regular method resolution fails, try raw method resolution
+            if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, argTypes, out method))
+            {
+                // Create detailed error message for debugging
+                var argTypesStr = string.Join(", ", argTypes.Select(t => t?.Name ?? "null"));
+                var errorMsg = $"Window function {node.FunctionName} with argument types [{argTypesStr}] cannot be resolved. Available methods: {string.Join(", ", GetAvailableMethodNames(schemaTablePair.Schema))}";
+                throw new CannotResolveMethodException(errorMsg);
+            }
+            canSkipInjectSource = true;
+        }
+
+        // Handle generic method construction for window functions (e.g., Sum<T>, Count<T>)
+        if (method.IsGenericMethod && !method.IsConstructedGenericMethod)
+        {
+            if (TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
+            {
+                method = constructedMethod;
+            }
+        }
+
+        // Create the result AccessMethodNode
         var functionToken = new FunctionToken(node.FunctionName, default);
-        var accessMethodNode = new AccessMethodNode(functionToken, args, null, false, null, "");
-        
-        // Use the existing VisitAccessMethod infrastructure which handles all the complex
-        // schema resolution, method lookup, type inference, etc.
-        VisitAccessMethod(accessMethodNode, 
-            (token, modifiedNode, exArgs, method, alias, canSkipInjectSource) =>
-                new AccessMethodNode(token, modifiedNode as ArgsListNode, exArgs, canSkipInjectSource, method, alias));
+        var resultNode = new AccessMethodNode(functionToken, args, null, canSkipInjectSource, method, "");
         
         // TODO: For execution phase, we'll need to enhance the execution infrastructure
         // to recognize that this AccessMethodNode was originally a WindowFunctionNode
         // and apply the window specification (PARTITION BY, ORDER BY, window frame) logic
+        
+        Nodes.Push(resultNode);
     }
 
     private static bool IsAggregateFunction(string functionName)

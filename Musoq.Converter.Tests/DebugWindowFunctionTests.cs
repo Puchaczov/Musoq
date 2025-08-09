@@ -34,10 +34,10 @@ namespace Musoq.Converter.Tests
         }
         
         [TestMethod]  
-        public void Debug_RankFunctionWithOrderBy_ShouldWork()
+        public void Debug_SumOverFunction_ShouldWork()
         {
-            // Test with OVER clause containing ORDER BY
-            var query = @"select Dummy, RANK() OVER (ORDER BY Dummy) from #system.dual()";
+            // Test aggregate window function SUM() OVER
+            var query = @"select Dummy, SUM(1) OVER (PARTITION BY Dummy) from #system.dual()";
             
             var (dllFile, pdbFile) = CreateForStore(query);
             
