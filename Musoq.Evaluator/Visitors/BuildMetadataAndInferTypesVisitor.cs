@@ -1686,52 +1686,23 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var canSkipInjectSource = false;
         MethodInfo method = null;
 
-        // For aggregate functions like SUM, COUNT, we need to try aggregation method first
-        if (IsAggregateFunction(node.FunctionName))
-        {
-            // For aggregation methods like SUM(Population), the signature is SUM(Group, string)
-            // where the string is the column name "Population"
-            var groupArgs = new List<Type> { typeof(string) };
-            
-            if (schemaTablePair.Schema.TryResolveAggregationMethod(node.FunctionName, groupArgs.ToArray(), entityType, out method))
-            {
-                // Found as aggregation method - modify the arguments to pass column names instead of values
-                var modifiedArgs = new List<Node>();
-                foreach (var arg in args.Args)
-                {
-                    // For aggregation, we need to pass the column name as a word token
-                    if (arg is AccessColumnNode columnNode)
-                    {
-                        // Convert column access to word node of column name (expected by RewriteQueryVisitor)
-                        modifiedArgs.Add(new WordNode(columnNode.Name));
-                    }
-                    else
-                    {
-                        // For other expressions, we might need different handling
-                        modifiedArgs.Add(arg);
-                    }
-                }
-                args = new ArgsListNode(modifiedArgs.ToArray());
-            }
-        }
+        // For window functions, always try regular method resolution first
+        // Window functions should use the regular method signatures (e.g., Avg<T>(T value, QueryStats info))
+        // rather than aggregation method signatures (e.g., Avg(Group group, string name))
         
-        // If not found as aggregation method, try regular methods
-        if (method == null)
+        // Try regular method resolution first
+        var argTypes = args.Args.Select(f => f.ReturnType ?? typeof(object)).ToArray();
+        if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, argTypes, entityType, out method))
         {
-            // Try regular method resolution
-            var argTypes = args.Args.Select(f => f.ReturnType ?? typeof(object)).ToArray();
-            if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, argTypes, entityType, out method))
+            // If regular method resolution fails, try raw method resolution
+            if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, argTypes, out method))
             {
-                // Finally try raw method resolution
-                if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, argTypes, out method))
-                {
-                    // Create detailed error message for debugging
-                    var argTypesStr = string.Join(", ", argTypes.Select(t => t?.Name ?? "null"));
-                    var errorMsg = $"Method {node.FunctionName} with argument types [{argTypesStr}] cannot be resolved. Available methods: {string.Join(", ", GetAvailableMethodNames(schemaTablePair.Schema))}";
-                    throw new CannotResolveMethodException(errorMsg);
-                }
-                canSkipInjectSource = true;
+                // Create detailed error message for debugging
+                var argTypesStr = string.Join(", ", argTypes.Select(t => t?.Name ?? "null"));
+                var errorMsg = $"Window function {node.FunctionName} with argument types [{argTypesStr}] cannot be resolved. Available methods: {string.Join(", ", GetAvailableMethodNames(schemaTablePair.Schema))}";
+                throw new CannotResolveMethodException(errorMsg);
             }
+            canSkipInjectSource = true;
         }
         
         // Create a window-aware AccessMethodNode that captures OVER clause information

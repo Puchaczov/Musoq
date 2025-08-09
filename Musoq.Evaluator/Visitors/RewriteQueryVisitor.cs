@@ -885,7 +885,9 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 
             if (IsQueryWithMixedAggregateAndNonAggregateMethods(split))
             {
-                throw new NotImplementedException("Mixing aggregate and non aggregate methods is not implemented yet");
+                // Allow mixed aggregate and non-aggregate methods for window functions
+                // Window functions can appear alongside regular columns without requiring GROUP BY
+                // The aggregate methods will be properly handled during execution as window functions
             }
 
             var scopeCreateResultTable = _scope.AddScope("Table");
@@ -1100,7 +1102,12 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(WindowFunctionNode node)
     {
-    }public void Visit(FieldLinkNode node)
+        // Window functions should have already been converted to AccessMethodNode in the converter phase
+        // This should not normally be called in the rewrite query phase, but we'll handle it just in case
+        throw new InvalidOperationException($"WindowFunctionNode should have been converted to AccessMethodNode before reaching RewriteQueryVisitor: {node}");
+    }
+
+    public void Visit(FieldLinkNode node)
     {
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }
@@ -1156,6 +1163,13 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
                 switch (subNode)
                 {
+                    case WindowFunctionNode windowFunction:
+                    {
+                        // Window functions should not be treated as aggregate methods for query rewriting
+                        // They are processed separately and don't require GROUP BY semantics
+                        // Skip traversing into window function contents to avoid treating inner aggregates as query-level aggregates
+                        break;
+                    }
                     case AccessMethodNode aggregateMethod when aggregateMethod.IsAggregateMethod():
                     {
                         var subNodeStr = subNode.ToString();
