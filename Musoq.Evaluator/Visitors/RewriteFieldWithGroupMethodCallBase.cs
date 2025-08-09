@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
@@ -39,7 +40,18 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
 
     public override void Visit(AccessMethodNode node)
     {
+        // Check if this is a window function (marked with special ExtraAggregateArguments)
+        var isWindowFunction = node.ExtraAggregateArguments?.Args.Length > 0 && 
+                               node.ExtraAggregateArguments.Args[0] is WordNode markerNode && 
+                               markerNode.Value == "__WINDOW_FUNCTION__";
+        
+        // DEBUG: Add some debugging information
         if (node.IsAggregateMethod())
+        {
+            Console.WriteLine($"DEBUG: Processing aggregate method {node.Name}, isWindowFunction: {isWindowFunction}");
+        }
+        
+        if (node.IsAggregateMethod() && !isWindowFunction)
         {
             Nodes.Pop();
 

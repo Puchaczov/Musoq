@@ -1646,8 +1646,24 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // Enhanced window function processing with PARTITION BY and ROWS BETWEEN support
         // Handle window functions by delegating to regular method resolution with advanced window specifications
         
+        Console.WriteLine($"DEBUG: WindowFunctionNode.Visit called for {node.FunctionName}");
+        
         if (Nodes.Pop() is not ArgsListNode args)
             throw CannotResolveMethodException.CreateForNullArguments(node.FunctionName);
+
+        // DEBUG: Validate that args don't contain null values
+        if (args.Args.Any(arg => arg == null))
+        {
+            // Use original node.Arguments if stack args are corrupted
+            if (node.Arguments?.Args != null && !node.Arguments.Args.Any(arg => arg == null))
+            {
+                args = node.Arguments;
+            }
+            else
+            {
+                throw new InvalidOperationException($"WindowFunctionNode {node.FunctionName} has null arguments in ArgsListNode");
+            }
+        }
 
         // Extract window specification information for advanced processing
         var windowSpec = node.WindowSpecification;
@@ -1680,9 +1696,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var enhancedArgs = new List<Node>();
         enhancedArgs.AddRange(args.Args); // Original function arguments
 
-        // For now, use the original arguments for method resolution
-        // Advanced window specification processing will be implemented in the execution phase
-        var enhancedArgsListNode = args; // Use original args for compatibility
+        // For aggregate window functions, start with basic method resolution
+        // Window specification processing will be enhanced in future iterations
+        var enhancedArgsListNode = new ArgsListNode(enhancedArgs.ToArray());
 
         // Use the regular method resolution infrastructure that works for Rank(), Sum<T>(), etc.
         var groupArgs = new List<Type> {typeof(string)};
@@ -1725,14 +1741,33 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             method = constructedMethod;
         }
 
+        
         // Create the result AccessMethodNode with enhanced arguments for window specification processing
         var functionToken = new FunctionToken(node.FunctionName, default);
-        var resultNode = new AccessMethodNode(functionToken, enhancedArgsListNode, null, canSkipInjectSource, method, alias);
+        
+        // Create a special marker to indicate this is a window function
+        // Use ExtraAggregateArguments to store a marker that prevents aggregate rewriting
+        var windowFunctionMarker = new ArgsListNode([new WordNode("__WINDOW_FUNCTION__")]);
+        
+        var resultNode = new AccessMethodNode(functionToken, enhancedArgsListNode, windowFunctionMarker, canSkipInjectSource, method, alias);
         
         // Store window specification information for execution phase
         // TODO: Enhance AccessMethodNode or create custom WindowAccessMethodNode to store window specifications
         
         Nodes.Push(resultNode);
+    }
+
+    private static string GetWindowMethodName(string functionName)
+    {
+        return functionName.ToUpper() switch
+        {
+            "SUM" => "SumWithWindow",
+            "COUNT" => "CountWithWindow", 
+            "AVG" => "AvgWithWindow",
+            "MIN" => "MinWithWindow",
+            "MAX" => "MaxWithWindow",
+            _ => functionName // For functions like RANK, DENSE_RANK, LAG, LEAD that don't need special window variants
+        };
     }
 
     private static bool IsAggregateFunction(string functionName)

@@ -231,7 +231,8 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 
     public virtual void Visit(AccessMethodNode node)
     {
-        Nodes.Push(new AccessMethodNode(node.FunctionToken, (ArgsListNode) Nodes.Pop(), null, node.CanSkipInjectSource, node.Method, node.Alias));
+        // Preserve ExtraAggregateArguments to maintain window function markers
+        Nodes.Push(new AccessMethodNode(node.FunctionToken, (ArgsListNode) Nodes.Pop(), node.ExtraAggregateArguments, node.CanSkipInjectSource, node.Method, node.Alias));
     }
 
     public virtual void Visit(AccessRawIdentifierNode node)

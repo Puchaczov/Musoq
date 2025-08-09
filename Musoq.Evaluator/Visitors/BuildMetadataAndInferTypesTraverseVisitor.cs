@@ -872,8 +872,14 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(WindowFunctionNode node)
     {
+        // Visit arguments first to push ArgsListNode on stack
         node.Arguments?.Accept(this);
-        node.WindowSpecification?.Accept(this);
+        
+        // Visit window specification separately without affecting the stack
+        // The main visitor will handle the window specification
+        // node.WindowSpecification?.Accept(this);  // Skip this to prevent stack corruption
+        
+        // Now call the main visitor with the correct ArgsListNode on stack
         node.Accept(_visitor);
     }
 

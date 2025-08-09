@@ -1140,7 +1140,8 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         var args = Nodes.Pop() as ArgsListNode;
 
-        Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource, node.Method, node.Alias));
+        // Preserve ExtraAggregateArguments to maintain window function markers
+        Nodes.Push(new AccessMethodNode(node.FunctionToken, args, node.ExtraAggregateArguments, node.CanSkipInjectSource, node.Method, node.Alias));
     }
 
     private FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields, bool useOuterFields)
