@@ -910,46 +910,18 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     private bool IsDirectColumnAccess(AccessObjectArrayNode node)
     {
         var columnName = node.ObjectName;
-        Console.WriteLine($"DEBUG: IsDirectColumnAccess checking column: {columnName}");
         
         // Don't transform these special object references - let original array access logic handle them
         var specialObjectReferences = new[] { "Self", "This", "Current" };
         
         if (specialObjectReferences.Any(reference => string.Equals(reference, columnName, StringComparison.OrdinalIgnoreCase)))
         {
-            Console.WriteLine($"DEBUG: {columnName} is a special object reference");
             return false; // These are object references, not columns
         }
         
-        // Try to get the current table context
-        Console.WriteLine($"DEBUG: Checking scope attributes...");
-        if (Scope.ContainsAttribute(MetaAttributes.ProcessedQueryId))
-        {
-            var currentTableId = Scope[MetaAttributes.ProcessedQueryId];
-            Console.WriteLine($"DEBUG: Found ProcessedQueryId: {currentTableId}");
-        }
-        else
-        {
-            Console.WriteLine($"DEBUG: No ProcessedQueryId found in scope");
-            // Try to check what attributes are available
-            Console.WriteLine($"DEBUG: Scope name: {Scope.Name}, ID: {Scope.Id}");
-            
-            // Look for any table symbols at all
-            Console.WriteLine($"DEBUG: Checking for any table symbols in scope...");
-            try 
-            {
-                // Check if there are any direct table names we can use
-                // This is a fallback approach
-                return TryFindColumnInAnyAvailableTable(columnName);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"DEBUG: Error checking for table symbols: {ex.Message}");
-            }
-        }
-        
-        Console.WriteLine($"DEBUG: {columnName} is not a direct column access");
-        return false; // Not a recognized column
+        // For now, be conservative and return false since table context timing is problematic
+        // The main BuildMetadataAndInferTypesVisitor should handle the transformation
+        return false;
     }
 
     /// <summary>
@@ -957,65 +929,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     /// </summary>
     private AccessObjectArrayNode TransformToColumnAccessNode(AccessObjectArrayNode node)
     {
-        Console.WriteLine($"DEBUG: TransformToColumnAccessNode for {node.ObjectName}");
-        
-        // Try to get the current table context
-        if (Scope.ContainsAttribute(MetaAttributes.ProcessedQueryId))
-        {
-            var currentTableId = Scope[MetaAttributes.ProcessedQueryId];
-            if (Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(currentTableId))
-            {
-                var tableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(currentTableId);
-                try
-                {
-                    var (schema, table, tableName) = tableSymbol.GetTableByColumnName(node.ObjectName);
-                    if (table != null)
-                    {
-                        var columns = table.GetColumnsByName(node.ObjectName);
-                        if (columns != null && columns.Length > 0)
-                        {
-                            Console.WriteLine($"DEBUG: Creating column access node with type {columns[0].ColumnType}");
-                            return new AccessObjectArrayNode(node.Token, columns[0].ColumnType);
-                        }
-                    }
-                }
-                catch
-                {
-                    // Column not found or ambiguous - fall back to fallback approach
-                }
-            }
-        }
-        
-        // Fallback approach - try to find the column in any available table
-        var possibleTableKeys = new[] { "#A", "A", "source", "table", "entities" };
-        
-        foreach (var key in possibleTableKeys)
-        {
-            try
-            {
-                if (Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(key))
-                {
-                    var tableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(key);
-                    var (schema, table, tableName) = tableSymbol.GetTableByColumnName(node.ObjectName);
-                    if (table != null)
-                    {
-                        var columns = table.GetColumnsByName(node.ObjectName);
-                        if (columns != null && columns.Length > 0)
-                        {
-                            Console.WriteLine($"DEBUG: Creating column access node with type {columns[0].ColumnType} from fallback table {key}");
-                            return new AccessObjectArrayNode(node.Token, columns[0].ColumnType);
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                continue;
-            }
-        }
-        
-        // Final fallback to string type for backward compatibility
-        Console.WriteLine($"DEBUG: Using fallback string type for {node.ObjectName}");
+        // Since table context is not available at this phase, fall back to string type
         return new AccessObjectArrayNode(node.Token, typeof(string));
     }
     
@@ -1027,47 +941,5 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     {
         // Check if we have an active "most inner identifier" which indicates we're in a DotNode traversal
         return _theMostInnerIdentifier != null;
-    }
-    
-    /// <summary>
-    /// Fallback method to try finding a column in any available table when ProcessedQueryId is not set
-    /// </summary>
-    private bool TryFindColumnInAnyAvailableTable(string columnName)
-    {
-        Console.WriteLine($"DEBUG: TryFindColumnInAnyAvailableTable for {columnName}");
-        
-        // This is a more aggressive approach - look through all symbols and see if we can find any TableSymbol
-        // that has this column. This should only be used as a fallback when normal scope lookup fails.
-        
-        // Since we can't iterate over all symbols easily, let's try a different approach:
-        // Look for common table identifier patterns
-        var possibleTableKeys = new[] { "#A", "A", "source", "table", "entities" };
-        
-        foreach (var key in possibleTableKeys)
-        {
-            try
-            {
-                Console.WriteLine($"DEBUG: Trying table key: {key}");
-                if (Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(key))
-                {
-                    Console.WriteLine($"DEBUG: Found TableSymbol with key: {key}");
-                    var tableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(key);
-                    var (schema, table, tableName) = tableSymbol.GetTableByColumnName(columnName);
-                    if (table != null)
-                    {
-                        Console.WriteLine($"DEBUG: Found column {columnName} in table {tableName} (key: {key})");
-                        return true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"DEBUG: Error checking key {key}: {ex.Message}");
-                continue;
-            }
-        }
-        
-        Console.WriteLine($"DEBUG: Column {columnName} not found in any table");
-        return false;
     }
 }
