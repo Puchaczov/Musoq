@@ -717,6 +717,42 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             if (exp is not IdentifierNode identifierNode)
             {
+                // Special case: if this is AccessObjectArrayNode, check if it's aliased column character access
+                if (exp is AccessObjectArrayNode arrayNode)
+                {
+                    // Check if this is the pattern: AccessColumnNode (string) + AccessObjectArrayNode
+                    // This indicates character access: columnName[index]
+                    if (root is AccessColumnNode && root.ReturnType == typeof(string))
+                    {
+                        // Create AccessObjectArrayNode with PropertyInfo = null (string character access)
+                        var characterAccess = new AccessObjectArrayNode(arrayNode.Token, null);
+                        
+                        // Create a DotNode with the expected pattern: AccessColumnNode + AccessObjectArrayNode
+                        var dotNode = new DotNode(root, characterAccess, node.IsTheMostInner, string.Empty, typeof(string));
+
+                        Nodes.Push(dotNode);
+                        return;
+                    }
+                    
+                    // Original logic for checking if the root has a property (for other cases)
+                    var property = root.ReturnType.GetProperty(arrayNode.ObjectName);
+                    
+                    if (property != null && property.PropertyType == typeof(string))
+                    {
+                        // This is string character access - create the AccessColumnNode for the column
+                        var columnAccess = new AccessColumnNode(arrayNode.ObjectName, string.Empty, typeof(string), arrayNode.Token.Span);
+                        
+                        // Create AccessObjectArrayNode with PropertyInfo = null (string character access)
+                        var characterAccess = new AccessObjectArrayNode(arrayNode.Token, null);
+                        
+                        // Create a DotNode with the expected pattern: AccessColumnNode + AccessObjectArrayNode
+                        var dotNode = new DotNode(columnAccess, characterAccess, node.IsTheMostInner, string.Empty, typeof(string));
+
+                        Nodes.Push(dotNode);
+                        return;
+                    }
+                }
+                
                 throw new NotSupportedException();
             }
 
