@@ -546,11 +546,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var parentNode = Nodes.Count > 0 ? Nodes.Peek() : null;
         var parentNodeType = parentNode?.ReturnType;
         
-        // For property access, continue with original logic
-        // But check if parent is actually a table context rather than a real object  
+        // For property access, we need to ensure the parent context is actually meaningful
+        // and not just a result from previous SELECT field processing
         bool hasValidParentContext = parentNode != null && parentNodeType != null &&
                                     !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
-                                    parentNodeType.Name != "RowSource"; // RowSource indicates table context, not object property access
+                                    parentNodeType.Name != "RowSource" && // RowSource indicates table context, not object property access
+                                    !IsPrimitiveType(parentNodeType); // Primitive types (char, int, etc.) are not valid for property access
         
         if (hasValidParentContext)
         {
@@ -2380,5 +2381,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         // Check for indexer properties
         return type.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
+    }
+    
+    /// <summary>
+    /// Checks if a type is a primitive type that cannot have property access
+    /// </summary>
+    private static bool IsPrimitiveType(Type type)
+    {
+        return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime);
     }
 }
