@@ -105,7 +105,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public void Visit(AccessObjectArrayNode node)
     {
         // Check if this is a string character access pattern that needs transformation
-        if (IsStringCharacterAccess(node))
+        // But only for direct column access, not property access chains like Self.Name[0]
+        if (IsStringCharacterAccess(node) && !IsPartOfPropertyAccessChain())
         {
             var stringCharNode = TransformToStringCharacterAccess(node);
             stringCharNode.Accept(_visitor);
@@ -953,5 +954,15 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             tableAlias: null, // Direct access has no alias
             span: node.Token.Span
         );
+    }
+    
+    /// <summary>
+    /// Checks if the current AccessObjectArrayNode is part of a property access chain (like Self.Name[0])
+    /// rather than a direct column access (like Name[0])
+    /// </summary>
+    private bool IsPartOfPropertyAccessChain()
+    {
+        // Check if we have an active "most inner identifier" which indicates we're in a DotNode traversal
+        return _theMostInnerIdentifier != null;
     }
 }
