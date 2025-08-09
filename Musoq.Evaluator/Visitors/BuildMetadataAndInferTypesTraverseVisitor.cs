@@ -134,25 +134,6 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             {
                 column = (IdentifierNode) dotNode.Root;
             }
-            else if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
-            {
-                // Handle aliased column character access: f.Name[0]
-                // Instead of creating a DotNode, create the AccessObjectArrayNode directly
-                // with the column access already resolved
-                Console.WriteLine($"DEBUG: BuildMetadataAndInferTypesTraverseVisitor - Handling aliased character access: {ident.Name}.{arrayNode.ObjectName}[{arrayNode.Token.Index}]");
-                
-                // Create AccessColumnNode for the column 
-                var columnAccess = new AccessColumnNode(arrayNode.ObjectName, ident.Name, typeof(string), TextSpan.Empty);
-                
-                // Visit the column access first
-                Visit(columnAccess);
-                
-                // Then visit the array access with PropertyInfo = null for string character access
-                var characterAccess = new AccessObjectArrayNode(arrayNode.Token, null);
-                Visit(characterAccess);
-                
-                return;
-            }
             else
             {
                 column = (IdentifierNode) theMostOuter.Expression;
