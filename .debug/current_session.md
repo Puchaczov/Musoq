@@ -1,51 +1,33 @@
-# Debug Session - Window Functions Implementation Progress
+# Debug Session - Window Functions OVER Clause Investigation
 
-## Compilation Status
-✅ **FIXED**: Duplicate `Visit(WindowSpecificationNode node)` method error
-- Removed duplicate method at line 1637 in BuildMetadataAndInferTypesVisitor.cs
-- Kept more comprehensive implementation at line 1762
-- All builds now succeed
+## Critical Discovery
+- **BASIC functions work**: `RANK()` works in both evaluator and converter ✅
+- **OVER clause functions fail**: `RANK() OVER()` fails in both evaluator and converter with "From node is null" ❌
 
-## Test Status Summary
-
-### Parser Tests (Window Functions)
-- **Total**: 25 tests
-- **Passing**: 23 tests (92% success rate)
-- **Failing**: 2 tests
-  - Parse_WindowFunctionWithQuotedIdentifiers_ShouldWork (quote handling issue)
-  - Parse_WindowFunctionWithExcessiveWhitespace_ShouldWork (FROM clause parsing)
-
-### Evaluator Tests (Window Functions)  
-- **Total**: 10 tests
-- **Passing**: 6 tests (60% success rate)
-- **Failing**: 4 tests (all aggregate window functions)
-  - SumOver_WithWindow_ShouldWork
-  - CountOver_WithWindow_ShouldWork (inferred from error pattern)
-  - AvgOver_WithWindow_ShouldWork
-  - MixedAggregateWindowFunctions_ShouldWork
-
-## Critical Issue Identified
-**"From node is null" Error**: All aggregate window function tests failing with same error
-- Error occurs in BuildMetadataAndInferTypesVisitor.Visit(QueryNode node) at line 1154
-- Stack trace shows issue in QueryNode FROM clause processing
-- This is blocking aggregate window functions: SUM() OVER, COUNT() OVER, AVG() OVER
+## Error Pattern
+The error occurs consistently in `BuildMetadataAndInferTypesVisitor.Visit(QueryNode node)` at line 1154 when trying to pop FromNode from the stack.
 
 ## Root Cause Analysis
-The issue appears to be in the QueryNode processing where the FROM clause is null when processing window functions. This suggests the parser or AST construction might not be properly setting up the query structure for window function queries.
+The issue is in the visitor pattern stack management during metadata building. When window functions with OVER clauses are processed, they interfere with the normal stack state expected by the QueryNode visitor.
 
-## Next Actions Planned
-1. Investigate QueryNode FROM clause handling for window functions
-2. Debug the specific test case that's failing
-3. Implement proper window function execution logic
-4. Continue with advanced features: true PARTITION BY, ROWS BETWEEN, aggregate functions
+### Key Investigation Points:
 
-## Advanced Features Status
-- **PARTITION BY**: Infrastructure complete, execution logic needed
-- **ROWS BETWEEN**: Parsing complete (100%), execution logic needed  
-- **Aggregate Window Functions**: Method resolution complete, execution integration needed
+1. **WindowFunctionNode Creation**: Parser creates WindowFunctionNode instead of AccessMethodNode when OVER clause is detected
+2. **Traverse Visitor Processing**: WindowFunctionNode.Arguments gets processed twice:
+   - Once in `Visit(ArgsListNode)` (line 602) 
+   - Once in WindowFunctionNode visitor logic
+3. **Stack State Corruption**: The double processing or WindowSpecification processing corrupts the stack
 
-## Parser Infrastructure Status
-- OVER clause parsing: ✅ Working (92% success rate)
-- Window frame syntax: ✅ Complete (100% success rate)
-- AST nodes: ✅ Complete (WindowFunctionNode, WindowSpecificationNode, WindowFrameNode)
-- Visitor pattern: ✅ Complete (all 22+ visitor classes support window functions)
+### WindowSpecification Notes:
+The traverse visitor has commented out PARTITION BY and ORDER BY processing:
+```
+// node.PartitionBy?.Accept(this);  // COMMENTED OUT: This would push extra nodes to stack
+// node.OrderBy?.Accept(this);      // COMMENTED OUT: This would push extra OrderByNode to stack
+```
+
+This indicates previous attempts to fix stack management issues.
+
+## Next Steps:
+1. Fix the stack management in WindowFunctionNode visitor
+2. Ensure WindowSpecification processing doesn't interfere with main query stack
+3. Test the fix against all window function variants
