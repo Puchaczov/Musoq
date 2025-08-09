@@ -1323,9 +1323,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             var poppedNode = Nodes.Pop();
             reorderedList[i] = poppedNode as FieldNode;
+            
+            // Workaround for window function processing: if we get an AccessColumnNode or other expression,
+            // wrap it in a FieldNode using the original field metadata
             if (reorderedList[i] == null)
             {
-                throw new InvalidOperationException($"Expected FieldNode but got {poppedNode?.GetType().Name ?? "null"} at position {i}. Total fields: {oldFields.Length}");
+                // Use the original field to get the proper field name and order
+                var originalField = oldFields[i];
+                reorderedList[i] = new FieldNode(poppedNode, originalField.FieldOrder, originalField.FieldName);
             }
         }
 
