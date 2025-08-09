@@ -562,7 +562,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (currentTableSymbol != null)
             {
                 var column = currentTableSymbol.GetColumnByAliasAndName(_identifier, node.ObjectName);
-                if (column != null)  // Support any indexable column type
+                if (column != null && IsIndexableType(column.ColumnType))  // Only indexable column types
                 {
                     // Transform to column access
                     var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
@@ -763,7 +763,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (tableSymbol != null)
             {
                 var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
-                if (column != null)  // Support any indexable column type
+                if (column != null && IsIndexableType(column.ColumnType))  // Only indexable column types
                 {
                     // Transform to column access with alias
                     var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);
@@ -2353,5 +2353,22 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         // If not found in any scope, fall back to current scope behavior for error consistency
         return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
+    }
+
+    /// <summary>
+    /// Checks if a type supports indexing (has an indexer property or is an array)
+    /// </summary>
+    private static bool IsIndexableType(Type type)
+    {
+        // Arrays are indexable
+        if (type.IsArray)
+            return true;
+
+        // Strings are indexable
+        if (type == typeof(string))
+            return true;
+
+        // Check for indexer properties
+        return type.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
     }
 }

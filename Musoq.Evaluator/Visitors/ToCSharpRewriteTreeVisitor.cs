@@ -4311,17 +4311,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     /// </summary>
     private static string GetTypeName(Type type)
     {
-        return type.Name switch
-        {
-            "String" => "string",
-            "Int32" => "int", 
-            "Int64" => "long",
-            "Double" => "double",
-            "Boolean" => "bool",
-            "Char" => "char",
-            "Decimal" => "decimal",
-            _ => type.Name
-        };
+        return EvaluationHelper.GetCastableType(type);
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
