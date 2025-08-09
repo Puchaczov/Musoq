@@ -761,6 +761,15 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
 
         var tmpArgs = (ArgumentListSyntax) Nodes.Pop();
+        
+        Console.WriteLine($"DEBUG: tmpArgs count: {tmpArgs?.Arguments.Count ?? 0}");
+        if (tmpArgs != null)
+        {
+            foreach (var arg in tmpArgs.Arguments)
+            {
+                Console.WriteLine($"DEBUG: tmpArg: {arg}");
+            }
+        }
 
         foreach (var item in tmpArgs.Arguments)
         {

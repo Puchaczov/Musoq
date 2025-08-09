@@ -1701,8 +1701,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var enhancedArgsListNode = new ArgsListNode(enhancedArgs.ToArray());
         
         Console.WriteLine($"DEBUG: Trying to resolve method with args: {string.Join(", ", enhancedArgsListNode.Args.Select(a => a.ReturnType.Name))}");
-
-        // Use the regular method resolution infrastructure that works for Rank(), Sum<T>(), etc.
+        Console.WriteLine($"DEBUG: Enhanced args length: {enhancedArgsListNode.Args.Length}");
+        
+        for (int i = 0; i < enhancedArgsListNode.Args.Length; i++)
+        {
+            var arg = enhancedArgsListNode.Args[i];
+            Console.WriteLine($"DEBUG: Enhanced arg[{i}] type: {arg.ReturnType.Name}");
+        }
         var groupArgs = new List<Type> {typeof(string)};
         groupArgs.AddRange(enhancedArgsListNode.Args.Skip(1).Select(f => f.ReturnType));
 
@@ -1718,7 +1723,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         MethodInfo method = null;
         
         // For window functions, skip aggregation method resolution and go directly to regular methods
-        // This prevents finding the GROUP BY aggregate methods when we want window function methods
+        // Aggregation methods use Group parameters, but window functions need QueryStats parameters
         if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray(), entityType, out method))
         {
             if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, enhancedArgsListNode.Args.Select(f => f.ReturnType).ToArray(), out method))
