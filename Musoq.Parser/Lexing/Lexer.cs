@@ -300,7 +300,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KHaving = Format(Keyword, HavingToken.TokenText);
         public static readonly string KContains = Format(Keyword, ContainsToken.TokenText);
         public static readonly string KFieldLink = "::[1-9]{1,}";
-        public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
+        public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([-]?[0-9]{1,})\\]";
         public static readonly string KKeyObjectAccessVariable = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
         public static readonly string KKeyObjectAccessConst = "([\\w*?_]{1,})\\[('[a-zA-Z0-9]{1,}')\\]";
         public static readonly string KDecimalWithSuffix = @"[\-]?([0-9]+)[dD]{1}";

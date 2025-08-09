@@ -1123,12 +1123,28 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
         var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
 
-        Nodes.Push(SyntaxFactory
-            .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                        SyntaxFactory.Literal(node.Token.Key)))))));
+        // Generate safe dictionary/key access using SafeArrayAccess.GetIndexedElement
+        var memberAccess = SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            exp, 
+            SyntaxFactory.IdentifierName(node.Name));
+
+        var safeAccessCall = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
+            .WithArgumentList(SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList(new[]
+                {
+                    SyntaxFactory.Argument(memberAccess),
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal(node.Token.Key))),
+                    SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(GetCSharpType(node.ReturnType ?? typeof(object))))
+                })));
+
+        Nodes.Push(safeAccessCall);
     }
 
     public void Visit(PropertyValueNode node)

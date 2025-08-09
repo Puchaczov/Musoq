@@ -43,7 +43,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void ArrayAccess_NegativeIndex_ShouldReturnDefault()
+    public void ArrayAccess_NegativeIndex_ShouldReturnLastElement()
     {
         var query = @"select Self.Array[-1] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -55,8 +55,8 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
-        // For negative index, should return default(int) = 0
-        Assert.AreEqual(0, (int)table[0].Values[0]);
+        // For negative index -1, should return last element of array [0, 1, 2] = 2
+        Assert.AreEqual(2, (int)table[0].Values[0]);
     }
 
     [TestMethod]
@@ -216,5 +216,47 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         
         // Out of bounds index should return default
         Assert.AreEqual(0, (int)table[0].Values[3]); // Array[10] = default(int) = 0
+    }
+
+    [TestMethod]
+    public void ArrayAccess_NegativeIndexWrapping_ShouldHandleCorrectly()
+    {
+        var query = @"select Self.Array[-1], Self.Array[-2], Self.Array[-3], Self.Array[-100] from #A.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {"#A", [new BasicEntity("001")]} // Array is [0, 1, 2] with length 3
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(1, table.Count);
+        
+        // Negative indices should wrap around correctly
+        Assert.AreEqual(2, (int)table[0].Values[0]); // Array[-1] = last element = 2
+        Assert.AreEqual(1, (int)table[0].Values[1]); // Array[-2] = second to last = 1
+        Assert.AreEqual(0, (int)table[0].Values[2]); // Array[-3] = third to last = 0
+        
+        // Large negative index should wrap around: -100 % 3 = -1, (-1 + 3) % 3 = 2, so index 2
+        Assert.AreEqual(2, (int)table[0].Values[3]); // Array[-100] wraps to index 2 = 2
+    }
+
+    [TestMethod]
+    public void StringCharacterAccess_NegativeIndex_ShouldReturnLastCharacter()
+    {
+        var query = @"select Name[-1], Name[-2] from #A.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {"#A", [new BasicEntity("david")]} // String is "david" with length 5
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(1, table.Count);
+        
+        // Negative indices should work for strings too
+        Assert.AreEqual('d', (char)table[0].Values[0]); // Name[-1] = last character = 'd'
+        Assert.AreEqual('i', (char)table[0].Values[1]); // Name[-2] = second to last = 'i'
     }
 }

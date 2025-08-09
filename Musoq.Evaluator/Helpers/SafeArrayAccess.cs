@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Musoq.Evaluator.Helpers
 {
@@ -11,14 +12,28 @@ namespace Musoq.Evaluator.Helpers
     {
         /// <summary>
         /// Safely access an array element, returning default(T) for out-of-bounds indices
+        /// Supports negative indexing where -1 means last element, -2 second to last, etc.
         /// </summary>
         /// <typeparam name="T">Array element type</typeparam>
         /// <param name="array">The array to access</param>
-        /// <param name="index">The index to access</param>
+        /// <param name="index">The index to access (negative indices supported)</param>
         /// <returns>Array element if valid index, default(T) if out-of-bounds or array is null</returns>
         public static T GetArrayElement<T>(T[] array, int index)
         {
-            if (array == null || index < 0 || index >= array.Length)
+            if (array == null || array.Length == 0)
+                return default(T);
+            
+            // Handle negative indexing: -1 = last element, -2 = second to last, etc.
+            if (index < 0)
+            {
+                // Convert negative index to positive equivalent
+                // If index goes beyond the array bounds when wrapping, use modulo to wrap around
+                var positiveIndex = ((index % array.Length) + array.Length) % array.Length;
+                return array[positiveIndex];
+            }
+            
+            // Handle positive indexing with bounds check
+            if (index >= array.Length)
                 return default(T);
             
             return array[index];
@@ -26,13 +41,27 @@ namespace Musoq.Evaluator.Helpers
 
         /// <summary>
         /// Safely access a string character, returning '\0' for out-of-bounds indices
+        /// Supports negative indexing where -1 means last character, -2 second to last, etc.
         /// </summary>
         /// <param name="str">The string to access</param>
-        /// <param name="index">The character index to access</param>
+        /// <param name="index">The character index to access (negative indices supported)</param>
         /// <returns>Character if valid index, '\0' if out-of-bounds or string is null</returns>
         public static char GetStringCharacter(string str, int index)
         {
-            if (str == null || index < 0 || index >= str.Length)
+            if (str == null || str.Length == 0)
+                return '\0';
+            
+            // Handle negative indexing: -1 = last character, -2 = second to last, etc.
+            if (index < 0)
+            {
+                // Convert negative index to positive equivalent
+                // If index goes beyond the string bounds when wrapping, use modulo to wrap around
+                var positiveIndex = ((index % str.Length) + str.Length) % str.Length;
+                return str[positiveIndex];
+            }
+            
+            // Handle positive indexing with bounds check
+            if (index >= str.Length)
                 return '\0';
             
             return str[index];
@@ -56,14 +85,28 @@ namespace Musoq.Evaluator.Helpers
 
         /// <summary>
         /// Safely access a list element, returning default(T) for out-of-bounds indices
+        /// Supports negative indexing where -1 means last element, -2 second to last, etc.
         /// </summary>
         /// <typeparam name="T">List element type</typeparam>
         /// <param name="list">The list to access</param>
-        /// <param name="index">The index to access</param>
+        /// <param name="index">The index to access (negative indices supported)</param>
         /// <returns>List element if valid index, default(T) if out-of-bounds or list is null</returns>
         public static T GetListElement<T>(IList<T> list, int index)
         {
-            if (list == null || index < 0 || index >= list.Count)
+            if (list == null || list.Count == 0)
+                return default(T);
+            
+            // Handle negative indexing: -1 = last element, -2 = second to last, etc.
+            if (index < 0)
+            {
+                // Convert negative index to positive equivalent
+                // If index goes beyond the list bounds when wrapping, use modulo to wrap around
+                var positiveIndex = ((index % list.Count) + list.Count) % list.Count;
+                return list[positiveIndex];
+            }
+            
+            // Handle positive indexing with bounds check
+            if (index >= list.Count)
                 return default(T);
             
             return list[index];
@@ -73,7 +116,7 @@ namespace Musoq.Evaluator.Helpers
         /// Generic safe access for any indexable type using reflection
         /// </summary>
         /// <param name="indexable">The indexable object</param>
-        /// <param name="index">The index to access</param>
+        /// <param name="index">The index to access (int for arrays, string for dictionaries, etc.)</param>
         /// <param name="elementType">The expected element type</param>
         /// <returns>Element if valid, default value if out-of-bounds or error</returns>
         public static object GetIndexedElement(object indexable, object index, Type elementType)
@@ -89,14 +132,50 @@ namespace Musoq.Evaluator.Helpers
                     return GetStringCharacter(str, intIndex);
                 }
 
-                // Handle arrays
+                // Handle arrays with integer indices
                 if (indexable.GetType().IsArray && index is int arrayIndex)
                 {
                     var array = (Array)indexable;
-                    if (arrayIndex < 0 || arrayIndex >= array.Length)
+                    if (array.Length == 0)
+                        return GetDefaultValue(elementType);
+                    
+                    // Handle negative indexing for arrays
+                    if (arrayIndex < 0)
+                    {
+                        var positiveIndex = ((arrayIndex % array.Length) + array.Length) % array.Length;
+                        return array.GetValue(positiveIndex);
+                    }
+                    
+                    if (arrayIndex >= array.Length)
                         return GetDefaultValue(elementType);
                     
                     return array.GetValue(arrayIndex);
+                }
+
+                // Handle dictionaries with string keys
+                if (index is string stringKey)
+                {
+                    var dictType = indexable.GetType();
+                    
+                    // Check if it's a generic dictionary
+                    if (dictType.IsGenericType)
+                    {
+                        var genericDef = dictType.GetGenericTypeDefinition();
+                        if (genericDef == typeof(Dictionary<,>) || 
+                            genericDef == typeof(IDictionary<,>) ||
+                            dictType.GetInterfaces().Any(i => i.IsGenericType && 
+                                i.GetGenericTypeDefinition() == typeof(IDictionary<,>)))
+                        {
+                            // Use TryGetValue to safely access dictionary
+                            var tryGetValueMethod = dictType.GetMethod("TryGetValue");
+                            if (tryGetValueMethod != null)
+                            {
+                                var parameters = new object[] { stringKey, null };
+                                var found = (bool)tryGetValueMethod.Invoke(indexable, parameters);
+                                return found ? parameters[1] : GetDefaultValue(elementType);
+                            }
+                        }
+                    }
                 }
 
                 // Handle generic collections with indexers
