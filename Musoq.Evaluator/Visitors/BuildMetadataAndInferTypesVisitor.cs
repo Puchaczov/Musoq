@@ -1643,15 +1643,17 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(WindowFunctionNode node)
     {
-        // Handle window functions with custom method resolution to avoid aggregation method conflicts
-        // Window functions should only use regular method signatures, not aggregation methods
+        // Handle window functions by delegating to regular method resolution
+        // This follows the same pattern as regular AccessMethodNode but with window function awareness
         
-        // DON'T pop arguments here - let the normal stack processing handle it
         if (Nodes.Pop() is not ArgsListNode args)
             throw CannotResolveMethodException.CreateForNullArguments(node.FunctionName);
 
-        // Get the schema table pair for method resolution
-        var alias = _identifier; 
+        // Use the regular method resolution infrastructure that works for Rank(), Sum<T>(), etc.
+        var groupArgs = new List<Type> {typeof(string)};
+        groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
+
+        var alias = _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
         var schemaTablePair = tableSymbol.GetTableByAlias(alias);
         var entityType = schemaTablePair.Table.Metadata.TableEntityType;
@@ -1659,42 +1661,38 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         AddAssembly(entityType.Assembly);
         AddBaseTypeAssembly(entityType);
 
-        // WINDOW FUNCTION SPECIFIC: Only try regular method resolution, NOT aggregation methods
-        // This prevents conflicts where SUM() OVER resolves to aggregation Sum() instead of window Sum()
         var canSkipInjectSource = false;
         MethodInfo method = null;
         
-        // Try regular method resolution first (for methods like Rank, DenseRank, Lag, Lead)
-        var argTypes = args.Args.Select(f => f.ReturnType ?? typeof(object)).ToArray();
-        if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, argTypes, entityType, out method))
+        // Follow the SAME resolution order as VisitAccessMethod that works for regular functions
+        if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.FunctionName, groupArgs.ToArray(), entityType, out method))
         {
-            // If regular method resolution fails, try raw method resolution
-            if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, argTypes, out method))
+            if (!schemaTablePair.Schema.TryResolveMethod(node.FunctionName, args.Args.Select(f => f.ReturnType).ToArray(), entityType, out method))
             {
-                // Create detailed error message for debugging
-                var argTypesStr = string.Join(", ", argTypes.Select(t => t?.Name ?? "null"));
-                var errorMsg = $"Window function {node.FunctionName} with argument types [{argTypesStr}] cannot be resolved. Available methods: {string.Join(", ", GetAvailableMethodNames(schemaTablePair.Schema))}";
-                throw new CannotResolveMethodException(errorMsg);
-            }
-            canSkipInjectSource = true;
-        }
-
-        // Handle generic method construction for window functions (e.g., Sum<T>, Count<T>)
-        if (method.IsGenericMethod && !method.IsConstructedGenericMethod)
-        {
-            if (TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
-            {
-                method = constructedMethod;
+                if (!schemaTablePair.Schema.TryResolveRawMethod(node.FunctionName, args.Args.Select(f => f.ReturnType).ToArray(), out method))
+                {
+                    throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.FunctionName, args.Args);
+                }
+                canSkipInjectSource = true;
             }
         }
 
-        // Create the result AccessMethodNode
+        var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
+
+        if (!isAggregateMethod && method.IsGenericMethod && TryReduceDimensions(method, args, out var reducedMethod))
+        {
+            method = reducedMethod;
+        }
+
+        if (!isAggregateMethod && method.IsGenericMethod && !method.IsConstructedGenericMethod &&
+            TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
+        {
+            method = constructedMethod;
+        }
+
+        // Create the result AccessMethodNode (same as VisitAccessMethod does)
         var functionToken = new FunctionToken(node.FunctionName, default);
-        var resultNode = new AccessMethodNode(functionToken, args, null, canSkipInjectSource, method, "");
-        
-        // TODO: For execution phase, we'll need to enhance the execution infrastructure
-        // to recognize that this AccessMethodNode was originally a WindowFunctionNode
-        // and apply the window specification (PARTITION BY, ORDER BY, window frame) logic
+        var resultNode = new AccessMethodNode(functionToken, args, null, canSkipInjectSource, method, alias);
         
         Nodes.Push(resultNode);
     }
@@ -1712,9 +1710,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
         try
         {
-            // This is a helper method to debug what methods are available
-            // Implementation may vary based on internal schema structure
-            return new[] { "Debug: method introspection not implemented" };
+            // Try to get some basic method information for debugging
+            var methods = new List<string>();
+            
+            // Check if it's a basic schema that has LibraryBase methods
+            if (schema.GetType().Name.Contains("Basic"))
+            {
+                methods.Add("Basic schema detected - should have Sum<T>, Count<T>, Avg<T>, Rank, DenseRank, Lag, Lead");
+            }
+            
+            return methods.Any() ? methods.ToArray() : new[] { "Debug: no methods found" };
         }
         catch
         {
