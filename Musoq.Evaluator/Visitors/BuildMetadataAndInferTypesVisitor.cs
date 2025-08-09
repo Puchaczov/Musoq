@@ -1637,29 +1637,15 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(WindowFunctionNode node)
     {
-        // Handle window functions by ensuring arguments are properly processed first
+        // Handle window functions - arguments have already been processed by the traversal visitor
+        // so we can use them directly without re-processing
         
         ArgsListNode args;
         
         if (node.Arguments?.Args != null && node.Arguments.Args.Any())
         {
-            // Explicitly visit each argument to ensure their types are inferred
-            var processedArgs = new List<Node>();
-            foreach (var arg in node.Arguments.Args)
-            {
-                // Visit each argument to ensure its type is inferred
-                arg.Accept(this);
-                if (Nodes.Count > 0)
-                {
-                    processedArgs.Add(Nodes.Pop());
-                }
-                else
-                {
-                    // If nothing was pushed, use the original arg but with fallback type
-                    processedArgs.Add(arg);
-                }
-            }
-            args = new ArgsListNode(processedArgs.ToArray());
+            // Use the arguments directly - they should have been processed by the traversal visitor
+            args = node.Arguments;
         }
         else
         {
