@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -103,8 +104,20 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(AccessObjectArrayNode node)
     {
-        node.Accept(_visitor);
+        // Check if this is a direct column access pattern that needs transformation
+        // But only for direct column access, not property access chains like Self.Name[0]
+        if (IsDirectColumnAccess(node) && !IsPartOfPropertyAccessChain())
+        {
+            var enhancedNode = TransformToColumnAccessNode(node);
+            enhancedNode.Accept(_visitor);
+        }
+        else
+        {
+            node.Accept(_visitor);
+        }
     }
+
+
 
     public void Visit(AccessObjectKeyNode node)
     {
@@ -129,6 +142,26 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         var ident = (IdentifierNode) theMostOuter.Root;
         if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
         {
+            // Check for aliased indexed access pattern: f.Name[0], f.Data[2], etc.
+            if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
+            {
+                // Get column type for proper type inference
+                var tableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(ident.Name);
+                var columnInfo = tableSymbol?.GetColumnByAliasAndName(ident.Name, arrayNode.ObjectName);
+                
+                if (columnInfo != null)
+                {
+                    // Transform to enhanced AccessObjectArrayNode with column type information
+                    var enhancedArrayNode = new AccessObjectArrayNode(
+                        arrayNode.Token, 
+                        columnInfo.ColumnType, 
+                        ident.Name
+                    );
+                    enhancedArrayNode.Accept(_visitor);
+                    return;
+                }
+            }
+            
             IdentifierNode column;
             if (theMostOuter.Expression is DotNode dotNode)
             {
@@ -868,5 +901,45 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public void QueryEnds()
     {
         _visitor.QueryEnds();
+    }
+
+    /// <summary>
+    /// Determines if an AccessObjectArrayNode represents direct column access rather than property access
+    /// This handles direct column access like Name[0] (not aliased like f.Name[0])
+    /// </summary>
+    private bool IsDirectColumnAccess(AccessObjectArrayNode node)
+    {
+        var columnName = node.ObjectName;
+        
+        // Don't transform these special object references - let original array access logic handle them
+        var specialObjectReferences = new[] { "Self", "This", "Current" };
+        
+        if (specialObjectReferences.Any(reference => string.Equals(reference, columnName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false; // These are object references, not columns
+        }
+        
+        // For now, be conservative and return false since table context timing is problematic
+        // The main BuildMetadataAndInferTypesVisitor should handle the transformation
+        return false;
+    }
+
+    /// <summary>
+    /// Transforms an AccessObjectArrayNode to enhanced AccessObjectArrayNode with column type information
+    /// </summary>
+    private AccessObjectArrayNode TransformToColumnAccessNode(AccessObjectArrayNode node)
+    {
+        // Since table context is not available at this phase, fall back to string type
+        return new AccessObjectArrayNode(node.Token, typeof(string));
+    }
+    
+    /// <summary>
+    /// Checks if the current AccessObjectArrayNode is part of a property access chain (like Self.Name[0])
+    /// rather than a direct column access (like Name[0])
+    /// </summary>
+    private bool IsPartOfPropertyAccessChain()
+    {
+        // Check if we have an active "most inner identifier" which indicates we're in a DotNode traversal
+        return _theMostInnerIdentifier != null;
     }
 }

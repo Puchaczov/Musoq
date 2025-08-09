@@ -23,7 +23,7 @@ public class StringifyTests : BasicEntityTestBase
     [DataRow("table Example {};")]
     [DataRow("table Example { Id 'System.Int32' };")]
     [DataRow("table Example { Id 'System.Int32', Name 'System.String' };")]
-    [DataRow("table Example { Id 'System.Int32', Name 'System.String' };\r\ncouple #a.b with table Example as SourceOfExamples;\r\nselect 1 from SourceOfExamples('a', 'b')")]
+    [DataRow("table Example { Id 'System.Int32', Name 'System.String' };\ncouple #a.b with table Example as SourceOfExamples;\nselect 1 from SourceOfExamples('a', 'b')")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column1 = 4")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s group by s.Column2")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s order by s.Column1 desc")]
@@ -84,6 +84,10 @@ public class StringifyTests : BasicEntityTestBase
 
         var stringifiedQuery = cloneQueryVisitor.Root.ToString();
         
-        Assert.AreEqual(query, stringifiedQuery);
+        // Normalize line endings for cross-platform compatibility
+        var normalizedQuery = query.Replace("\r\n", "\n").Replace("\r", "\n");
+        var normalizedStringifiedQuery = stringifiedQuery.Replace("\r\n", "\n").Replace("\r", "\n");
+        
+        Assert.AreEqual(normalizedQuery, normalizedStringifiedQuery);
     }
 }

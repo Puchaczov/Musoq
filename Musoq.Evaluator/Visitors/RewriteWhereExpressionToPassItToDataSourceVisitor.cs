@@ -1,3 +1,4 @@
+using System;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -187,6 +188,11 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
             IsComplex = false;
         }
         
+        public override void Visit(DotNode node)
+        {
+            base.Visit(node);
+        }
+        
         public override void Visit(AccessMethodNode node)
         {
             IsComplex = true;
@@ -206,6 +212,13 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
             if (node.Alias != _rootAlias)
                 IsComplex = true;
             
+            base.Visit(node);
+        }
+        
+        public override void Visit(AccessObjectArrayNode node)
+        {
+            // AccessObjectArrayNode by itself shouldn't be marked as complex
+            // unless it's part of a complex expression structure
             base.Visit(node);
         }
     }

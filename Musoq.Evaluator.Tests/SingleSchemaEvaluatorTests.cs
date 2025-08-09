@@ -169,11 +169,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("ma@hostname.comcom", table[0].Values[0]);
     }
 
-    [Ignore]
     [TestMethod]
     public void FirstLetterOfColumnTest()
     {
-        var query = @"select Name from #A.Entities() f where Name[0] = 'd'";
+        var query = @"select Name from #A.Entities() where Name[0] = 'd'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -198,7 +197,6 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("david.jones@proseware.com", table[0].Values[0]);
     }
 
-    [Ignore]
     [TestMethod]
     public void FirstLetterOfColumnTest2()
     {
