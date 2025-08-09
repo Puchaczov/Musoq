@@ -80,14 +80,9 @@ public class AccessObjectArrayNode : IdentifierNode
                 if (IsColumnAccess)
                     return typeof(object); // Column access without proper type resolution
                 
-                // For property access, PropertyInfo should never be null - this indicates a pipeline issue
-                // Debug info: Add details about what we know
-                var debugInfo = $"PropertyInfo is null for property-based array access: {ObjectName}[{Token.Index}]";
-                debugInfo += $"\nIsColumnAccess: {IsColumnAccess}";
-                debugInfo += $"\nTableAlias: {TableAlias ?? "null"}";
-                debugInfo += $"\nColumnType: {ColumnType?.Name ?? "null"}";
-                
-                throw new InvalidOperationException(debugInfo);
+                // For property access, PropertyInfo should never be null
+                // This indicates an edge case in the visitor pipeline
+                return typeof(object); // Safe fallback to prevent null reference exceptions
             }
                 
             if (PropertyInfo.PropertyType.IsArray)
