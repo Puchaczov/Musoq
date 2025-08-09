@@ -542,6 +542,20 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             return;
         }
 
+        // Check if this could be column access pattern (e.g., Name[0])
+        var currentTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+        if (currentTableSymbol != null)
+        {
+            var column = currentTableSymbol.GetColumnByAliasAndName(_identifier, node.ObjectName);
+            if (column != null)
+            {
+                // Transform to column access
+                var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
+                Nodes.Push(columnAccessNode);
+                return;
+            }
+        }
+
         // Handle property-based access (original functionality)
         var parentNode = Nodes.Peek();
         var parentNodeType = Nodes.Peek().ReturnType;
@@ -725,6 +739,23 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
+
+        // Handle aliased character access patterns (e.g., f.Name[0])
+        if (root is AccessColumnNode accessColumnNode && exp is AccessObjectArrayNode arrayNode && !arrayNode.IsColumnAccess)
+        {
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(accessColumnNode.Alias);
+            if (tableSymbol != null)
+            {
+                var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode.ObjectName);
+                if (column != null)
+                {
+                    // Transform to column access with alias
+                    var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode.Token, column.ColumnType, accessColumnNode.Alias);
+                    Nodes.Push(columnAccessArrayNode);
+                    return;
+                }
+            }
+        }
 
         DotNode newNode;
         if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
