@@ -32,6 +32,6 @@ public class StatementsArrayNode : Node
             return Statements[0].ToString();
             
         return Statements.Select(f => f.ToString())
-            .Aggregate((a, b) => $"{a}\n{b}");
+            .Aggregate((a, b) => $"{a}{Environment.NewLine}{b}");
     }
 }
