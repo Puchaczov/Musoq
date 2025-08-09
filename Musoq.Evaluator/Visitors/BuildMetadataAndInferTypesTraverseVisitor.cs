@@ -858,8 +858,14 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     
     public void Visit(WindowSpecificationNode node)
     {
-        node.PartitionBy?.Accept(this);
-        node.OrderBy?.Accept(this);
+        // DO NOT process PARTITION BY and ORDER BY here as they interfere with main query stack management
+        // Window specification expressions should be captured in the AST for execution context
+        // but not processed through the normal visitor pattern that pushes nodes to the stack
+        
+        // node.PartitionBy?.Accept(this);  // COMMENTED OUT: This would push extra nodes to stack
+        // node.OrderBy?.Accept(this);      // COMMENTED OUT: This would push extra OrderByNode to stack
+        
+        // Only process window frame which doesn't interfere with query processing
         node.WindowFrame?.Accept(this);
         _visitor.Visit(node);
     }

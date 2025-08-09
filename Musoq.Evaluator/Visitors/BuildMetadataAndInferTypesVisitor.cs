@@ -1699,11 +1699,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 var modifiedArgs = new List<Node>();
                 foreach (var arg in args.Args)
                 {
-                    // For aggregation, we need to pass the column name as a string literal
+                    // For aggregation, we need to pass the column name as a word token
                     if (arg is AccessColumnNode columnNode)
                     {
-                        // Convert column access to string literal of column name
-                        modifiedArgs.Add(new StringNode(columnNode.Name));
+                        // Convert column access to word node of column name (expected by RewriteQueryVisitor)
+                        modifiedArgs.Add(new WordNode(columnNode.Name));
                     }
                     else
                     {
@@ -1806,8 +1806,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // The WindowFrameNode will be processed by its own visitor
         }
         
-        // Window specification nodes don't need to push anything to the stack
-        // They are structural nodes that provide context for window function execution
+        // CRITICAL: Window specification nodes should NOT push anything to the stack
+        // They provide context for window function execution but don't represent actual data
+        // The ORDER BY and PARTITION BY expressions are used for execution context only
     }
 
     public void Visit(FieldLinkNode node)
