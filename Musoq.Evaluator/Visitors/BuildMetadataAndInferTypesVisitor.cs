@@ -516,23 +516,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(AccessObjectArrayNode node)
     {
-        // Handle the case where this is direct column character access like Name[0]
-        // without a parent object on the stack
-        if (Nodes.Count == 0)
-        {
-            // This is a direct column access with indexing, like Name[0]
-            // Create an AccessColumnNode for the column name to provide the string context
-            var columnAccess = new AccessColumnNode(node.ObjectName, string.Empty, typeof(string), node.Token.Span);
-            Visit(columnAccess);
-            
-            // Now push the array access node for character access (PropertyInfo = null means string character access)
-            Nodes.Push(new AccessObjectArrayNode(node.Token, null));
-            return;
-        }
-        
         var parentNode = Nodes.Peek();
         var parentNodeType = Nodes.Peek().ReturnType;
-        
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
             var typeHintingAttributes =
@@ -585,11 +570,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 return;
             }
 
-            // Handle string character access  
+            // Handle string character access - if parent is string, this is character access not array access
             if (parentNodeType == typeof(string))
             {
-                // For string character access, we don't need a property - we access the string directly
-                // PropertyInfo = null means string character access, ReturnType will be string
+                // This is string character access like "someString"[0]
+                // Create AccessObjectArrayNode with PropertyInfo = null to indicate character access
                 Nodes.Push(new AccessObjectArrayNode(node.Token, null));
                 return;
             }
@@ -723,17 +708,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
 
-        // Special case: AccessColumnNode + AccessObjectArrayNode (aliased character access)
-        if (root is AccessColumnNode columnNode && exp is AccessObjectArrayNode arrayAccess)
-        {
-            // This is the pattern created by BuildMetadataAndInferTypesTraverseVisitor for aliased character access
-            // Just create the DotNode with proper return type for character access
-            var dotNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, typeof(string));
-            
-            Nodes.Push(dotNode);
-            return;
-        }
-
         DotNode newNode;
         if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
@@ -743,24 +717,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             if (exp is not IdentifierNode identifierNode)
             {
-                // Special case: if this is AccessObjectArrayNode and we can't handle it as IdentifierNode,
-                // check if it's aliased column character access
-                if (exp is AccessObjectArrayNode arrayNode && root is IdentifierNode rootIdentifier)
-                {
-                    // This is likely aliased column character access: alias.columnName[index]
-                    // Create the AccessColumnNode for the column
-                    var columnAccess = new AccessColumnNode(arrayNode.ObjectName, rootIdentifier.Name, typeof(string), arrayNode.Token.Span);
-                    
-                    // Create AccessObjectArrayNode with PropertyInfo = null (string character access)
-                    var characterAccess = new AccessObjectArrayNode(arrayNode.Token, null);
-                    
-                    // Create a DotNode with the expected pattern: AccessColumnNode + AccessObjectArrayNode
-                    var dotNode = new DotNode(columnAccess, characterAccess, node.IsTheMostInner, string.Empty, typeof(string));
-                    
-                    Nodes.Push(dotNode);
-                    return;
-                }
-                
                 throw new NotSupportedException();
             }
 

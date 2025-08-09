@@ -137,60 +137,42 @@ Need to investigate WHERE clause processing specifically for aliased character a
 ### 🎯 **Implementation Status**
 The core string character index access implementation is complete and thoroughly tested. Working on final refinements to ensure no regressions in existing array access functionality.
 
-## Current Session Test Status (2025-08-09 - Final)
+## Current Session Test Status (2025-01-28 - Working on Regression Fix)
 
-### ✅ **Character Access Tests - ALL PASSING** 
-- **FirstLetterOfColumnTest** (`Name[0] = 'd'`) - ✅ **PASSED** - Direct character access
-- **FirstLetterOfColumnTest2** (`f.Name[0] = 'd'`) - ✅ **PASSED** - Aliased character access 
-- **SimpleAccessArrayTest** (`Self.Array[2]`) - ✅ **PASSED** - Array access preserved
-- **All DebugCharacterAccess tests** - ✅ **PASSED** (5/5 tests)
+### ✅ **Fixed Regression** 
+- **SimpleAccessObjectIncrementTest** (`Inc(Self.Array[2])`) - ✅ **PASSED** 
+  - Successfully reverted BuildMetadataAndInferTypesVisitor to original state
+  - Array access functionality fully restored
 
-### ❌ **Regression Identified**
-- **SimpleAccessObjectIncrementTest** (`Inc(Self.Array[2])`) - ❌ **FAILED**
-  - Error: "Method Inc with argument types System.String cannot be resolved"
-  - Expected: `Self.Array[2]` should return `int` (value 2) 
-  - Actual: System thinks it's returning `System.String`
-  - **Root Cause**: My character access changes are incorrectly affecting regular array access type inference
+### ✅ **Array Access Preserved**  
+- **SimpleAccessArrayTest** (`Self.Array[2]`) - ✅ **PASSED**
+  - Basic array access continues to work correctly
 
-### 🔍 **Issue Analysis**
-The problem is that my changes to handle string character access (`Name[0]`) are interfering with regular array access (`Self.Array[2]`). The system should:
-- `Self.Array[2]` → `int` (2) → `Inc(int)` → works with `Inc(long)` or `Inc(decimal)`
-- But it's returning `System.String` instead of `int`
+### ❌ **Character Access Tests Still Need Implementation**
+- **FirstLetterOfColumnTest** (`Name[0] = 'd'`) - ❌ **FAILED** 
+  - Error: "Stack empty" - needs implementation
+- **FirstLetterOfColumnTest2** (`f.Name[0] = 'd'`) - ❌ **FAILED**  
+  - Error: "Object Name is not an array" - needs implementation
 
-This suggests my modifications to `AccessObjectArrayNode` or related visitors are over-broadly applied.
+### 🔍 **Root Cause Analysis - Regression Issue**
+The regression was caused by overly broad changes to `BuildMetadataAndInferTypesVisitor.Visit(AccessObjectArrayNode)` that incorrectly applied string character access logic to regular array access patterns.
 
-## Current Architecture Analysis
+**Problem Pattern:** 
+- Original logic: `Self.Array[2]` → finds `int[] Array` property → element type `int` → works with `Inc(int)`
+- Broken logic: `Self.Array[2]` → incorrectly treated as string character access → returns `string` → fails with `Inc(string)`
 
-### 🔍 Critical Discovery: Multiple Visitor Paths
-The issue is more complex than initially thought. There are multiple places where AccessObjectArrayNode instances are created and processed:
+**Solution:**
+- Reverted `BuildMetadataAndInferTypesVisitor` to original state to restore array access
+- Need to re-implement character access with surgical precision to avoid affecting array access
 
-1. **DotNode Pattern** (AccessColumnNode + AccessObjectArrayNode) - Created by BuildMetadataAndInferTypesVisitor for character access
-2. **Direct AccessObjectArrayNode** - Created for direct column character access like `Name[0]`
-3. **Regular Array Access** - Normal property-based array access like `Self.Array[2]`
+### 🎯 **Next Steps - Surgical Character Access Implementation**
 
-### 🔧 Stack Management Issue Analysis
-The fundamental problem is that direct character access (`Name[0]`) creates an AccessObjectArrayNode with PropertyInfo=null, but there's no proper expression on the stack for it to work with - instead there's a BlockSyntax representing query structure.
+**Approach:**
+1. **Minimal Changes**: Only add character access support without touching existing array logic
+2. **Targeted Implementation**: Focus on specific string character access patterns
+3. **Preserve Backward Compatibility**: Ensure all existing tests continue to pass
 
-**Error Pattern:**
-```
-Unable to cast object of type 'Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax' to type 'Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax'
-```
-
-This happens at line 920 in AccessObjectArrayNode.Visit when it tries to cast the stack top to ExpressionSyntax but finds BlockSyntax.
-
-### 🎯 Key Insight from Comments
-The comment mentioned that **RewriteWhereExpressionToPassItToDataSourceVisitor** may mark complex expressions like `f.Name[0]` as "complex" and replace them with `1 = 1`. This suggests the issue might be in WHERE clause processing rather than core visitor pipeline.
-
-### 📊 Current Working Status
-- ✅ **SimpleAccessArrayTest** (`Self.Array[2]`) - **PASSED** (regression fixed)
-- ❌ **FirstLetterOfColumnTest** (`Name[0]`) - BlockSyntax casting error
-- ❌ **FirstLetterOfColumnTest2** (`f.Name[0]`) - Likely WHERE clause rewriter issue
-
-### 🔄 Next Approach: Surgical AccessObjectArrayNode Fix
-Instead of complex DotNode handling, focus on minimal fix in AccessObjectArrayNode to handle PropertyInfo=null cases without disrupting stack management.
-
-Key Requirements:
-1. Detect PropertyInfo=null (character access)
-2. Handle BlockSyntax on stack properly  
-3. Generate correct character access code
-4. Preserve stack state for other visitor operations
+**Implementation Strategy:**
+- Add string character access detection only when we're certain it's not array access
+- Use existing visitor pipeline without disrupting stack management 
+- Handle direct (`Name[0]`) and aliased (`f.Name[0]`) patterns separately
