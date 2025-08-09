@@ -977,10 +977,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectArrayNode node)
     {
+        // Add namespace for SafeArrayAccess helper
+        AddNamespace(typeof(SafeArrayAccess).Namespace);
+        
         // Handle column-based indexed access (e.g., Name[0], f.Name[0])
         if (node.IsColumnAccess)
         {
-            // Generate code for column access
+            // Generate safe column access using SafeArrayAccess helper
             var columnAccess = SyntaxFactory.CastExpression(
                 GetCSharpType(node.ColumnType),
                 SyntaxFactory.ParenthesizedExpression(
@@ -991,32 +994,68 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                     SyntaxKind.StringLiteralExpression,
                                     SyntaxFactory.Literal(node.ObjectName))))))));
 
-            // For string character access, add character indexing
+            // Generate safe access based on column type
+            ExpressionSyntax safeAccessCall;
+            
             if (node.ColumnType == typeof(string))
             {
-                var characterAccess = SyntaxFactory.ElementAccessExpression(
-                    SyntaxFactory.ParenthesizedExpression(columnAccess))
-                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
+                // Use SafeArrayAccess.GetStringCharacter for string character access
+                safeAccessCall = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetStringCharacter))))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(new[]
+                        {
+                            SyntaxFactory.Argument(columnAccess),
                             SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(node.Token.Index))))));
-
-                Nodes.Push(characterAccess);
+                                SyntaxFactory.Literal(node.Token.Index)))
+                        })));
+            }
+            else if (node.ColumnType.IsArray)
+            {
+                // Use SafeArrayAccess.GetArrayElement<T> for array access
+                var elementType = node.ColumnType.GetElementType();
+                safeAccessCall = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                        SyntaxFactory.GenericName(nameof(SafeArrayAccess.GetArrayElement))
+                            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    GetCSharpType(elementType))))))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(new[]
+                        {
+                            SyntaxFactory.Argument(columnAccess),
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(node.Token.Index)))
+                        })));
             }
             else
             {
-                // For array/indexable column access, add element access
-                var elementAccess = SyntaxFactory.ElementAccessExpression(
-                    SyntaxFactory.ParenthesizedExpression(columnAccess))
-                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
+                // Use generic SafeArrayAccess.GetIndexedElement for other indexable types
+                var elementType = node.ReturnType;
+                safeAccessCall = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(new[]
+                        {
+                            SyntaxFactory.Argument(columnAccess),
                             SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
                                 SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(node.Token.Index))))));
-
-                Nodes.Push(elementAccess);
+                                SyntaxFactory.Literal(node.Token.Index))),
+                            SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(GetCSharpType(elementType)))
+                        })));
             }
+
+            Nodes.Push(safeAccessCall);
         }
         else
         {
@@ -1026,51 +1065,32 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             {
                 var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
 
-                Nodes.Push(SyntaxFactory
-                    .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
-                        SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(node.Token.Index)))))));
+                // Use safe access for property-based access too
+                var safePropertyAccess = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(new[]
+                        {
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    exp, 
+                                    SyntaxFactory.IdentifierName(node.Name))),
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(node.Token.Index))),
+                            SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(GetCSharpType(node.ReturnType)))
+                        })));
+
+                Nodes.Push(safePropertyAccess);
             }
             else
             {
-        // Handle column-based indexed access using proper type information
-        if (node.IsColumnAccess)
-        {
-            // Generate column access with proper type casting
-            var columnType = node.ColumnType;
-            var columnTypeName = GetTypeName(columnType);
-            
-            // Build score["ColumnName"] expression
-            var columnAccessExpression = SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("score"))
-                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                            SyntaxKind.StringLiteralExpression,
-                            SyntaxFactory.Literal(node.ObjectName))))));
-
-            // Cast to the proper column type
-            var typedColumnAccess = SyntaxFactory.CastExpression(
-                SyntaxFactory.IdentifierName(columnTypeName),
-                SyntaxFactory.ParenthesizedExpression(columnAccessExpression));
-
-            // Add indexing access
-            var indexedAccess = SyntaxFactory.ElementAccessExpression(
-                SyntaxFactory.ParenthesizedExpression(typedColumnAccess))
-                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                            SyntaxKind.NumericLiteralExpression,
-                            SyntaxFactory.Literal(node.Token.Index))))));
-
-            Nodes.Push(indexedAccess);
-        }
-        else
-        {
-            // This should not happen for valid queries, but fallback to avoid crashes
-            throw new InvalidOperationException($"Cannot generate code for array access {node} - no parent expression available");
-        }
+                // This should not happen for valid queries, but fallback to avoid crashes
+                throw new InvalidOperationException($"Cannot generate code for array access {node} - no parent expression available");
             }
         }
     }
