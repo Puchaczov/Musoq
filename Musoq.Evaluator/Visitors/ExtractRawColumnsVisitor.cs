@@ -171,10 +171,6 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
-    public void Visit(StringCharacterAccessNode node)
-    {
-    }
-
     public void Visit(AccessObjectKeyNode node)
     {
     }

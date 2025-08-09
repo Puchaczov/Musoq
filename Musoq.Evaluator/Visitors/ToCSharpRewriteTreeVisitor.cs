@@ -917,46 +917,98 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectArrayNode node)
     {
-        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
+        // Handle column-based indexed access (e.g., Name[0], f.Name[0])
+        if (node.IsColumnAccess)
+        {
+            // Generate code for column access
+            var columnAccess = SyntaxFactory.CastExpression(
+                GetCSharpType(node.ColumnType),
+                SyntaxFactory.ParenthesizedExpression(
+                    SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("score"))
+                        .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    SyntaxFactory.Literal(node.ObjectName))))))));
 
-        Nodes.Push(SyntaxFactory
-            .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                        SyntaxFactory.Literal(node.Token.Index)))))));
-    }
-
-    public void Visit(StringCharacterAccessNode node)
-    {
-        // Generate: ((string)(score["ColumnName"]))[index].ToString()
-        // This creates the proper C# code for string character access
-        
-        var columnAccess = SyntaxFactory.CastExpression(
-            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-            SyntaxFactory.ParenthesizedExpression(
-                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("score"))
+            // For string character access, add character indexing and .ToString()
+            if (node.ColumnType == typeof(string))
+            {
+                var characterAccess = SyntaxFactory.ElementAccessExpression(
+                    SyntaxFactory.ParenthesizedExpression(columnAccess))
                     .WithArgumentList(SyntaxFactory.BracketedArgumentList(
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                                SyntaxKind.StringLiteralExpression,
-                                SyntaxFactory.Literal(node.ColumnName))))))));
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(node.Token.Index))))));
 
-        var characterAccess = SyntaxFactory.ElementAccessExpression(
-            SyntaxFactory.ParenthesizedExpression(columnAccess))
-            .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                        SyntaxKind.NumericLiteralExpression,
-                        SyntaxFactory.Literal(node.Index))))));
+                var toStringCall = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.ParenthesizedExpression(characterAccess),
+                        SyntaxFactory.IdentifierName("ToString")));
 
-        var toStringCall = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.ParenthesizedExpression(characterAccess),
-                SyntaxFactory.IdentifierName("ToString")));
+                Nodes.Push(toStringCall);
+            }
+            else
+            {
+                // For array/indexable column access, add element access
+                var elementAccess = SyntaxFactory.ElementAccessExpression(
+                    SyntaxFactory.ParenthesizedExpression(columnAccess))
+                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(node.Token.Index))))));
 
-        Nodes.Push(toStringCall);
+                Nodes.Push(elementAccess);
+            }
+        }
+        else
+        {
+            // Handle property-based access (original logic)
+            // Only pop if we have an expression on the stack
+            if (Nodes.Count > 0 && Nodes.Peek() is ExpressionSyntax)
+            {
+                var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
+
+                Nodes.Push(SyntaxFactory
+                    .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
+                        SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(node.Token.Index)))))));
+            }
+            else
+            {
+                // This should not happen, but fallback to avoid crashes
+                throw new InvalidOperationException($"Cannot generate code for array access {node} - no parent expression available");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Helper method to convert .NET types to C# syntax
+    /// </summary>
+    private TypeSyntax GetCSharpType(Type type)
+    {
+        if (type == typeof(string))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword));
+        if (type == typeof(int))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword));
+        if (type == typeof(double))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword));
+        if (type == typeof(bool))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword));
+        if (type == typeof(decimal))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword));
+        if (type == typeof(long))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword));
+        if (type == typeof(object))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+        
+        // For complex types, use the type name
+        return SyntaxFactory.IdentifierName(type.Name);
     }
 
     public void Visit(AccessObjectKeyNode node)

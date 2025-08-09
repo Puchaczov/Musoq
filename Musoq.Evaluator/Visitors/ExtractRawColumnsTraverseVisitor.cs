@@ -98,11 +98,6 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(StringCharacterAccessNode node)
-    {
-        node.Accept(_visitor);
-    }
-
     public void Visit(AccessObjectKeyNode node)
     {
         node.Accept(_visitor);

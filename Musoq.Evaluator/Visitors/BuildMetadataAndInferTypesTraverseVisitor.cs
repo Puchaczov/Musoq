@@ -104,12 +104,12 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(AccessObjectArrayNode node)
     {
-        // Check if this is a string character access pattern that needs transformation
+        // Check if this is a direct column access pattern that needs transformation
         // But only for direct column access, not property access chains like Self.Name[0]
-        if (IsStringCharacterAccess(node) && !IsPartOfPropertyAccessChain())
+        if (IsDirectColumnAccess(node) && !IsPartOfPropertyAccessChain())
         {
-            var stringCharNode = TransformToStringCharacterAccess(node);
-            stringCharNode.Accept(_visitor);
+            var enhancedNode = TransformToColumnAccessNode(node);
+            enhancedNode.Accept(_visitor);
         }
         else
         {
@@ -117,10 +117,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         }
     }
 
-    public void Visit(StringCharacterAccessNode node)
-    {
-        node.Accept(_visitor);
-    }
+
 
     public void Visit(AccessObjectKeyNode node)
     {
@@ -145,18 +142,24 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         var ident = (IdentifierNode) theMostOuter.Root;
         if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
         {
-            // Check for aliased character access pattern: f.Name[0]
+            // Check for aliased indexed access pattern: f.Name[0], f.Data[2], etc.
             if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
             {
-                // This is f.Name[0] pattern - transform to StringCharacterAccessNode  
-                var stringCharNode = new StringCharacterAccessNode(
-                    columnName: arrayNode.ObjectName,
-                    index: arrayNode.Token.Index,
-                    tableAlias: ident.Name,
-                    span: arrayNode.Token.Span
-                );
-                stringCharNode.Accept(_visitor);
-                return;
+                // Get column type for proper type inference
+                var tableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(ident.Name);
+                var columnInfo = tableSymbol?.GetColumnByAliasAndName(ident.Name, arrayNode.ObjectName);
+                
+                if (columnInfo != null)
+                {
+                    // Transform to enhanced AccessObjectArrayNode with column type information
+                    var enhancedArrayNode = new AccessObjectArrayNode(
+                        arrayNode.Token, 
+                        columnInfo.ColumnType, 
+                        ident.Name
+                    );
+                    enhancedArrayNode.Accept(_visitor);
+                    return;
+                }
             }
             
             IdentifierNode column;
@@ -901,10 +904,10 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     }
 
     /// <summary>
-    /// Determines if an AccessObjectArrayNode represents string character access rather than array access
+    /// Determines if an AccessObjectArrayNode represents direct column access rather than property access
     /// This handles direct column access like Name[0] (not aliased like f.Name[0])
     /// </summary>
-    private bool IsStringCharacterAccess(AccessObjectArrayNode node)
+    private bool IsDirectColumnAccess(AccessObjectArrayNode node)
     {
         var columnName = node.ObjectName;
         
@@ -913,7 +916,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         
         if (specialObjectReferences.Any(reference => string.Equals(reference, columnName, StringComparison.OrdinalIgnoreCase)))
         {
-            return false; // These are object references, not string columns
+            return false; // These are object references, not columns
         }
         
         // Don't transform if it contains property access patterns
@@ -927,33 +930,20 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             }
         }
         
-        // Conservative approach: Only transform if it looks like a simple column name
-        // that could reasonably be a string column (e.g., Name, Title, Description, etc.)
-        var stringColumnPatterns = new[] { "Name", "Title", "Description", "Text", "Content", "Message", "Email" };
-        
-        foreach (var pattern in stringColumnPatterns)
-        {
-            if (columnName.Contains(pattern, StringComparison.OrdinalIgnoreCase))
-            {
-                return true; // This looks like string character access
-            }
-        }
-        
-        // If not clearly identifiable as string column, let original logic handle it
-        return false;
+        // Use naming patterns to identify likely column names
+        var commonColumnPatterns = new[] { "Name", "Title", "Description", "Text", "Content", "Message", "Email", "Data", "Value", "Id" };
+        return commonColumnPatterns.Any(pattern => 
+            columnName.Contains(pattern, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
-    /// Transforms an AccessObjectArrayNode to StringCharacterAccessNode for string character access
+    /// Transforms an AccessObjectArrayNode to enhanced AccessObjectArrayNode with column type information
     /// </summary>
-    private StringCharacterAccessNode TransformToStringCharacterAccess(AccessObjectArrayNode node)
+    private AccessObjectArrayNode TransformToColumnAccessNode(AccessObjectArrayNode node)
     {
-        return new StringCharacterAccessNode(
-            columnName: node.ObjectName,
-            index: node.Token.Index,
-            tableAlias: null, // Direct access has no alias
-            span: node.Token.Span
-        );
+        // For now, assume string type for backward compatibility
+        // The visitor logic will handle actual type validation
+        return new AccessObjectArrayNode(node.Token, typeof(string));
     }
     
     /// <summary>

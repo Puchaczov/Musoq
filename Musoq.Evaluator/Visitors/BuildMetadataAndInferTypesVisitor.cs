@@ -516,6 +516,33 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(AccessObjectArrayNode node)
     {
+        // Handle column-based indexed access (new functionality)
+        if (node.IsColumnAccess)
+        {
+            // Validate that the column exists
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(
+                string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias);
+            
+            if (tableSymbol == null)
+            {
+                throw new UnknownPropertyException($"Table {node.TableAlias ?? _identifier} could not be found.");
+            }
+
+            var column = tableSymbol.GetColumnByAliasAndName(
+                string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias, 
+                node.ObjectName);
+
+            if (column == null)
+            {
+                throw new UnknownPropertyException($"Column {node.ObjectName} could not be found.");
+            }
+
+            // Column indexed access - push the node as-is with proper return type
+            Nodes.Push(node);
+            return;
+        }
+
+        // Handle property-based access (original functionality)
         var parentNode = Nodes.Peek();
         var parentNodeType = Nodes.Peek().ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
@@ -583,35 +610,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             Nodes.Push(new AccessObjectArrayNode(node.Token, property));
         }
-    }
-
-    public void Visit(StringCharacterAccessNode node)
-    {
-        // Validate that the column exists and is of string type
-        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(
-            string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias);
-        
-        if (tableSymbol == null)
-        {
-            throw new UnknownPropertyException($"Table {node.TableAlias ?? _identifier} could not be found.");
-        }
-
-        var column = tableSymbol.GetColumnByAliasAndName(
-            string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias, 
-            node.ColumnName);
-
-        if (column == null)
-        {
-            throw new UnknownPropertyException($"Column {node.ColumnName} could not be found.");
-        }
-
-        if (column.ColumnType != typeof(string))
-        {
-            throw new InvalidOperationException($"Column {node.ColumnName} is not a string and does not support character indexing.");
-        }
-
-        // String character access returns string (SQL compatible)
-        Nodes.Push(node);
     }
 
     public void Visit(AccessObjectKeyNode node)
