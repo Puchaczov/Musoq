@@ -25,7 +25,13 @@ public class StatementsArrayNode : Node
 
     public override string ToString()
     {
+        if (Statements.Length == 0)
+            return string.Empty;
+            
+        if (Statements.Length == 1)
+            return Statements[0].ToString();
+            
         return Statements.Select(f => f.ToString())
-            .Aggregate((a, b) => $"{a.ToString()}{Environment.NewLine}{b.ToString()}");
+            .Aggregate((a, b) => $"{a}{Environment.NewLine}{b}");
     }
 }
