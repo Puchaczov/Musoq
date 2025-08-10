@@ -270,9 +270,69 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var b = Nodes.Pop();
         var a = Nodes.Pop();
 
-        var rawSyntax = Generator.ValueEqualsExpression(a, b);
+        // Handle char vs string comparison
+        if (IsCharVsStringComparison(node.Left, node.Right, a, b))
+        {
+            // Convert string literal to char for comparison
+            var convertedComparison = HandleCharStringComparison(node.Left, node.Right, a, b);
+            Nodes.Push(convertedComparison);
+        }
+        else
+        {
+            var rawSyntax = Generator.ValueEqualsExpression(a, b);
+            Nodes.Push(rawSyntax);
+        }
+    }
 
-        Nodes.Push(rawSyntax);
+    private bool IsCharVsStringComparison(Node leftNode, Node rightNode, SyntaxNode leftSyntax, SyntaxNode rightSyntax)
+    {
+        // Check if we have a character access node compared with a string literal
+        var leftIsChar = IsCharacterAccess(leftNode);
+        var rightIsChar = IsCharacterAccess(rightNode);
+        var leftIsString = leftNode is WordNode;
+        var rightIsString = rightNode is WordNode;
+
+        return (leftIsChar && rightIsString) || (leftIsString && rightIsChar);
+    }
+
+    private bool IsCharacterAccess(Node node)
+    {
+        // Check if this is a character access from a string column
+        if (node is AccessObjectArrayNode arrayNode)
+        {
+            return arrayNode.IsColumnAccess && arrayNode.ColumnType == typeof(string);
+        }
+        return false;
+    }
+
+    private SyntaxNode HandleCharStringComparison(Node leftNode, Node rightNode, SyntaxNode leftSyntax, SyntaxNode rightSyntax)
+    {
+        // Determine which side is the character and which is the string
+        var leftIsChar = IsCharacterAccess(leftNode);
+        var leftIsString = leftNode is WordNode leftWord;
+        
+        if (leftIsChar && rightNode is WordNode rightWord)
+        {
+            // Left is char, right is string - convert string to char
+            var charValue = rightWord.Value.Length > 0 ? rightWord.Value[0] : '\0';
+            var charLiteral = SyntaxFactory.LiteralExpression(
+                SyntaxKind.CharacterLiteralExpression,
+                SyntaxFactory.Literal(charValue));
+            return Generator.ValueEqualsExpression(leftSyntax, charLiteral);
+        }
+        else if (leftIsString && IsCharacterAccess(rightNode))
+        {
+            // Left is string, right is char - convert string to char
+            var leftWordNode = (WordNode)leftNode;
+            var charValue = leftWordNode.Value.Length > 0 ? leftWordNode.Value[0] : '\0';
+            var charLiteral = SyntaxFactory.LiteralExpression(
+                SyntaxKind.CharacterLiteralExpression,
+                SyntaxFactory.Literal(charValue));
+            return Generator.ValueEqualsExpression(charLiteral, rightSyntax);
+        }
+
+        // Fallback to standard comparison
+        return Generator.ValueEqualsExpression(leftSyntax, rightSyntax);
     }
 
     public void Visit(GreaterOrEqualNode node)
@@ -917,26 +977,163 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectArrayNode node)
     {
-        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
+        // Add namespace for SafeArrayAccess helper
+        AddNamespace(typeof(SafeArrayAccess).Namespace);
+        
+        // Handle column-based indexed access (e.g., Name[0], f.Name[0])
+        if (node.IsColumnAccess)
+        {
+            // Generate safe column access using SafeArrayAccess helper
+            var columnAccess = SyntaxFactory.CastExpression(
+                GetCSharpType(node.ColumnType),
+                SyntaxFactory.ParenthesizedExpression(
+                    SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("score"))
+                        .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    SyntaxFactory.Literal(node.ObjectName))))))));
 
-        Nodes.Push(SyntaxFactory
-            .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                        SyntaxFactory.Literal(node.Token.Index)))))));
+            // Generate safe access based on column type
+            ExpressionSyntax safeAccessCall;
+            
+            if (node.ColumnType == typeof(string))
+            {
+                // Use SafeArrayAccess.GetStringCharacter for string character access
+                safeAccessCall = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetStringCharacter))))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(new[]
+                        {
+                            SyntaxFactory.Argument(columnAccess),
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(node.Token.Index)))
+                        })));
+            }
+            else if (node.ColumnType.IsArray)
+            {
+                // Use SafeArrayAccess.GetArrayElement<T> for array access
+                var elementType = node.ColumnType.GetElementType();
+                safeAccessCall = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                        SyntaxFactory.GenericName(nameof(SafeArrayAccess.GetArrayElement))
+                            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    GetCSharpType(elementType))))))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(new[]
+                        {
+                            SyntaxFactory.Argument(columnAccess),
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(node.Token.Index)))
+                        })));
+            }
+            else
+            {
+                // For other indexable types, use direct element access with bounds checking
+                // This avoids the need for explicit type parameters that may not be available in generated assembly
+                safeAccessCall = SyntaxFactory.ElementAccessExpression(
+                    SyntaxFactory.ParenthesizedExpression(columnAccess))
+                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(node.Token.Index))))));
+            }
+
+            Nodes.Push(safeAccessCall);
+        }
+        else
+        {
+            // Handle property-based access (original logic)
+            // Only pop if we have an expression on the stack
+            if (Nodes.Count > 0 && Nodes.Peek() is ExpressionSyntax)
+            {
+                var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
+
+                // For property-based access, use direct element access to avoid type parameter issues
+                var elementAccess = SyntaxFactory.ElementAccessExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        exp, 
+                        SyntaxFactory.IdentifierName(node.Name)))
+                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(node.Token.Index))))));
+
+                Nodes.Push(elementAccess);
+            }
+            else
+            {
+                // This should not happen for valid queries, but fallback to avoid crashes
+                throw new InvalidOperationException($"Cannot generate code for array access {node} - no parent expression available");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Helper method to convert .NET types to C# syntax
+    /// </summary>
+    private TypeSyntax GetCSharpType(Type type)
+    {
+        if (type == typeof(string))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword));
+        if (type == typeof(int))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword));
+        if (type == typeof(double))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword));
+        if (type == typeof(bool))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword));
+        if (type == typeof(decimal))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword));
+        if (type == typeof(long))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword));
+        if (type == typeof(object))
+            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+        
+        // For complex types, use the type name
+        return SyntaxFactory.IdentifierName(type.Name);
     }
 
     public void Visit(AccessObjectKeyNode node)
     {
         var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
 
-        Nodes.Push(SyntaxFactory
-            .ElementAccessExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                exp, SyntaxFactory.IdentifierName(node.Name))).WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                        SyntaxFactory.Literal(node.Token.Key)))))));
+        // Add namespace for SafeArrayAccess helper
+        AddNamespace(typeof(SafeArrayAccess).Namespace);
+
+        // Generate safe dictionary/key access using SafeArrayAccess.GetIndexedElement
+        var memberAccess = SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            exp, 
+            SyntaxFactory.IdentifierName(node.Name));
+
+        var safeAccessCall = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
+            .WithArgumentList(SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList(new[]
+                {
+                    SyntaxFactory.Argument(memberAccess),
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal(node.Token.Key))),
+                    SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))
+                })));
+
+        Nodes.Push(safeAccessCall);
     }
 
     public void Visit(PropertyValueNode node)
@@ -4132,6 +4329,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Gets the C# type name for code generation
+    /// </summary>
+    private static string GetTypeName(Type type)
+    {
+        return EvaluationHelper.GetCastableType(type);
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)

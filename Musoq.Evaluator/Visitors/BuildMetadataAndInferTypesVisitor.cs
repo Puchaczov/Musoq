@@ -516,9 +516,67 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(AccessObjectArrayNode node)
     {
-        var parentNode = Nodes.Peek();
-        var parentNodeType = Nodes.Peek().ReturnType;
-        if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
+        // Handle column-based indexed access (new functionality)
+        if (node.IsColumnAccess)
+        {
+            // Validate that the column exists
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(
+                string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias);
+            
+            if (tableSymbol == null)
+            {
+                throw new UnknownPropertyException($"Table {node.TableAlias ?? _identifier} could not be found.");
+            }
+
+            var column = tableSymbol.GetColumnByAliasAndName(
+                string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias, 
+                node.ObjectName);
+
+            if (column == null)
+            {
+                throw new UnknownPropertyException($"Column {node.ObjectName} could not be found.");
+            }
+
+            // Column indexed access - push the node as-is with proper return type
+            Nodes.Push(node);
+            return;
+        }
+
+        // Check for property access context first
+        var parentNode = Nodes.Count > 0 ? Nodes.Peek() : null;
+        var parentNodeType = parentNode?.ReturnType;
+        
+        // For property access, we need to ensure the parent context is actually meaningful
+        // and not just a result from previous SELECT field processing
+        bool hasValidParentContext = parentNode != null && parentNodeType != null &&
+                                    !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
+                                    parentNodeType.Name != "RowSource" && // RowSource indicates table context, not object property access
+                                    !IsPrimitiveType(parentNodeType); // Primitive types (char, int, etc.) are not valid for property access
+        
+        if (hasValidParentContext)
+        {
+            // This is property access - continue with property access logic below
+        }
+        else
+        {
+            // Only check for column access when there's no valid parent context
+            var currentTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+            if (currentTableSymbol != null)
+            {
+                var column = currentTableSymbol.GetColumnByAliasAndName(_identifier, node.ObjectName);
+                if (column != null && IsIndexableType(column.ColumnType))  // Only indexable column types
+                {
+                    // Transform to column access
+                    var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
+                    Nodes.Push(columnAccessNode);
+                    return;
+                }
+            }
+        }
+
+        // Handle property-based access (original functionality)
+        // Note: parentNode and parentNodeType are already set above
+        if (parentNodeType != null && parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
             var typeHintingAttributes =
                 parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
@@ -552,7 +610,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             bool isArray;
             bool isIndexer;
 
-            if (isNotRoot)
+            if (isNotRoot && parentNodeType != null)
             {
                 var propertyAccess = parentNodeType.GetProperty(node.Name);
 
@@ -570,18 +628,27 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 return;
             }
 
-            var property = parentNodeType.GetProperty(node.Name);
-
-            isArray = property?.PropertyType.IsArray == true;
-            isIndexer = HasIndexer(property?.PropertyType);
-
-            if (!isArray && !isIndexer)
+            if (parentNodeType != null)
             {
-                throw new ObjectIsNotAnArrayException(
-                    $"Object {node.Name} is not an array.");
-            }
+                var property = parentNodeType.GetProperty(node.Name);
 
-            Nodes.Push(new AccessObjectArrayNode(node.Token, property));
+                isArray = property?.PropertyType.IsArray == true;
+                isIndexer = HasIndexer(property?.PropertyType);
+
+                if (!isArray && !isIndexer)
+                {
+                    throw new ObjectIsNotAnArrayException(
+                        $"Object {node.Name} is not an array.");
+                }
+
+                Nodes.Push(new AccessObjectArrayNode(node.Token, property));
+            }
+            else
+            {
+                // If parentNodeType is null, we might be in a root context
+                // Try to create a generic AccessObjectArrayNode
+                throw new UnknownPropertyException($"Could not resolve array access for {node.ObjectName}[{node.Token.Index}]");
+            }
         }
     }
 
@@ -698,6 +765,24 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
+
+        // Handle aliased character access patterns (e.g., f.Name[0])
+        // Only transform if this is likely string character access, not property access
+        if (root is AccessColumnNode accessColumnNode && exp is AccessObjectArrayNode arrayNode2 && !arrayNode2.IsColumnAccess)
+        {
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(accessColumnNode.Alias);
+            if (tableSymbol != null)
+            {
+                var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
+                if (column != null && IsIndexableType(column.ColumnType))  // Only indexable column types
+                {
+                    // Transform to column access with alias
+                    var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);
+                    Nodes.Push(columnAccessArrayNode);
+                    return;
+                }
+            }
+        }
 
         DotNode newNode;
         if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
@@ -2279,5 +2364,30 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         // If not found in any scope, fall back to current scope behavior for error consistency
         return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
+    }
+
+    /// <summary>
+    /// Checks if a type supports indexing (has an indexer property or is an array)
+    /// </summary>
+    private static bool IsIndexableType(Type type)
+    {
+        // Arrays are indexable
+        if (type.IsArray)
+            return true;
+
+        // Strings are indexable
+        if (type == typeof(string))
+            return true;
+
+        // Check for indexer properties
+        return type.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
+    }
+    
+    /// <summary>
+    /// Checks if a type is a primitive type that cannot have property access
+    /// </summary>
+    private static bool IsPrimitiveType(Type type)
+    {
+        return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime);
     }
 }
