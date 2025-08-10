@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Helpers;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -27,9 +28,20 @@ public class Lexer : LexerBase<Token>
     /// <param name="input">The query.</param>
     /// <param name="skipWhiteSpaces">Should skip whitespaces?</param>
     public Lexer(string input, bool skipWhiteSpaces) :
-        base(input, new NoneToken(), DefinitionSets.General)
+        base(ValidateInput(input), new NoneToken(), DefinitionSets.General)
     {
         _skipWhiteSpaces = skipWhiteSpaces;
+    }
+
+    private static string ValidateInput(string input)
+    {
+        if (input == null)
+            throw ParserValidationException.ForNullInput();
+        
+        if (string.IsNullOrWhiteSpace(input))
+            throw ParserValidationException.ForEmptyInput();
+        
+        return input;
     }
 
     /// <summary>
@@ -288,7 +300,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KHaving = Format(Keyword, HavingToken.TokenText);
         public static readonly string KContains = Format(Keyword, ContainsToken.TokenText);
         public static readonly string KFieldLink = "::[1-9]{1,}";
-        public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([0-9]{1,})\\]";
+        public static readonly string KNumericArrayAccess = "([\\w*?_]{1,})\\[([-]?[0-9]{1,})\\]";
         public static readonly string KKeyObjectAccessVariable = "([\\w*?_]{1,})\\[([a-zA-Z0-9]{1,})\\]";
         public static readonly string KKeyObjectAccessConst = "([\\w*?_]{1,})\\[('[a-zA-Z0-9]{1,}')\\]";
         public static readonly string KDecimalWithSuffix = @"[\-]?([0-9]+)[dD]{1}";

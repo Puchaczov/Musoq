@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -129,6 +130,26 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         var ident = (IdentifierNode) theMostOuter.Root;
         if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
         {
+            // Check for aliased indexed access pattern: f.Name[0], f.Data[2], etc.
+            if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
+            {
+                // Get column type for proper type inference
+                var tableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(ident.Name);
+                var columnInfo = tableSymbol?.GetColumnByAliasAndName(ident.Name, arrayNode.ObjectName);
+                
+                if (columnInfo != null)
+                {
+                    // Transform to enhanced AccessObjectArrayNode with column type information
+                    var enhancedArrayNode = new AccessObjectArrayNode(
+                        arrayNode.Token, 
+                        columnInfo.ColumnType, 
+                        ident.Name
+                    );
+                    enhancedArrayNode.Accept(_visitor);
+                    return;
+                }
+            }
+            
             IdentifierNode column;
             if (theMostOuter.Expression is DotNode dotNode)
             {

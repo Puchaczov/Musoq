@@ -19,21 +19,76 @@ public class AccessObjectArrayNode : IdentifierNode
         PropertyInfo = propertyInfo;
     }
 
+    /// <summary>
+    /// Constructor for column-based indexed access (e.g., Name[0], f.Name[0])
+    /// </summary>
+    public AccessObjectArrayNode(NumericAccessToken token, Type columnType, string tableAlias = null)
+        : this(token)
+    {
+        ColumnType = columnType;
+        TableAlias = tableAlias;
+        IsColumnAccess = true;
+    }
+
     public NumericAccessToken Token { get; }
 
     public string ObjectName => Token.Name;
+
+    /// <summary>
+    /// True if this represents column access (Name[0]), false if property access (Self.Array[2])
+    /// </summary>
+    public bool IsColumnAccess { get; private set; }
+
+    /// <summary>
+    /// Table alias for column access (null for direct access)
+    /// </summary>
+    public string TableAlias { get; private set; }
+
+    /// <summary>
+    /// Column type for column access
+    /// </summary>
+    public Type ColumnType { get; private set; }
 
     public override Type ReturnType
     {
         get
         {
+            // Handle column-based indexed access
+            if (IsColumnAccess)
+            {
+                if (ColumnType == typeof(string))
+                {
+                    // String character access returns char
+                    return typeof(char);
+                }
+                
+                if (ColumnType.IsArray)
+                {
+                    return ColumnType.GetElementType();
+                }
+                
+                // Handle other indexable types
+                var indexProperty = ColumnType.GetProperties()
+                    .FirstOrDefault(p => p.GetIndexParameters().Length == 1);
+                return indexProperty?.PropertyType ?? typeof(object);
+            }
+
+            // Handle property-based access (original logic)
             if (PropertyInfo == null)
-                return null;
+            {
+                // If this is definitely column access, we should not have PropertyInfo
+                if (IsColumnAccess)
+                    return typeof(object); // Column access without proper type resolution
+                
+                // For property access, PropertyInfo should never be null
+                // This indicates an edge case in the visitor pipeline
+                return typeof(object); // Safe fallback to prevent null reference exceptions
+            }
                 
             if (PropertyInfo.PropertyType.IsArray)
                 return PropertyInfo.PropertyType.GetElementType();
 
-            return (from propertyInfo in PropertyInfo.PropertyType.GetProperties() where propertyInfo.GetIndexParameters().Length == 1 select propertyInfo.PropertyType).FirstOrDefault();
+            return (from propertyInfo in PropertyInfo.PropertyType.GetProperties() where propertyInfo.GetIndexParameters().Length == 1 select propertyInfo.PropertyType).FirstOrDefault() ?? typeof(object);
         }
     }
 
@@ -47,6 +102,7 @@ public class AccessObjectArrayNode : IdentifierNode
 
     public override string ToString()
     {
-        return $"{ObjectName}[{Token.Index}]";
+        var prefix = IsColumnAccess && !string.IsNullOrEmpty(TableAlias) ? $"{TableAlias}." : "";
+        return $"{prefix}{ObjectName}[{Token.Index}]";
     }
 }

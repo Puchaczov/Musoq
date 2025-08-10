@@ -161,6 +161,9 @@ public static class EvaluationHelper
 
     public static Type[] GetNestedTypes(Type type)
     {
+        if (type == null)
+            throw new ArgumentNullException(nameof(type), "Type cannot be null");
+            
         if (!type.IsGenericType)
             return [type];
 
