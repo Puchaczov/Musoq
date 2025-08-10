@@ -2161,23 +2161,37 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // Check if this is a CTE reference
         if (_inMemoryTableIndexes.ContainsKey(node.Name))
         {
-            // This is a CTE reference - get the result from _tableResults array
-            var cteIndex = _inMemoryTableIndexes[node.Name];
+            // This is a CTE reference - get the result from _tableResults array and convert to row source
+            var tableArgument = SyntaxFactory.Argument(
+                SyntaxFactory
+                    .ElementAccessExpression(
+                        SyntaxFactory.IdentifierName("_tableResults")).WithArgumentList(
+                        SyntaxFactory.BracketedArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
+
+            var literalTrueArgument = SyntaxFactory.Argument(
+                SyntaxFactory.LiteralExpression(
+                    SyntaxKind.TrueLiteralExpression));
             
-            var elementAccess = SyntaxFactory.ElementAccessExpression(
-                SyntaxFactory.IdentifierName("_tableResults"),
-                SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(cteIndex))))));
-            
-            _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(
-                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource()))
-                            .WithInitializer(SyntaxFactory.EqualsValueClause(elementAccess))))));
+            _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
+                .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory
+                        .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
+                            SyntaxFactory.EqualsValueClause(SyntaxFactory
+                                .InvocationExpression(SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertTableToSource))))
+                                .WithArgumentList(
+                                    SyntaxFactory.ArgumentList(
+                                        SyntaxFactory.SeparatedList([
+                                            tableArgument,
+                                            literalTrueArgument
+                                        ])))))))));
         }
         else
         {
