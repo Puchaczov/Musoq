@@ -101,6 +101,18 @@ public partial class LibraryBase : UserMethodsLibrary
     }
 
     /// <summary>
+    /// Gets the sum of values (regular aggregate function).
+    /// </summary>
+    /// <param name="value">The value to sum</param>
+    /// <typeparam name="T">Value type</typeparam>
+    /// <returns>The sum of values</returns>
+    [BindableMethod]
+    public T Sum<T>(T value) where T : struct
+    {
+        return value; // Basic implementation for aggregation
+    }
+
+    /// <summary>
     /// Gets the sum of values over a window (aggregate window function).
     /// </summary>
     /// <param name="info" injectedByRuntime="true">The queryStats object</param>
@@ -108,9 +120,21 @@ public partial class LibraryBase : UserMethodsLibrary
     /// <typeparam name="T">Value type</typeparam>
     /// <returns>The sum over the window</returns>
     [BindableMethod]
-    public T Sum<T>([InjectQueryStats] QueryStats info, T value) where T : struct
+    public T SumWindow<T>([InjectQueryStats] QueryStats info, T value) where T : struct
     {
         return value; // Basic implementation - will be enhanced with true windowing
+    }
+
+    /// <summary>
+    /// Gets the count of values (regular aggregate function).
+    /// </summary>
+    /// <param name="value">The value to count</param>
+    /// <typeparam name="T">Value type</typeparam>
+    /// <returns>The count of values</returns>
+    [BindableMethod]
+    public long Count<T>(T value)
+    {
+        return 1; // Basic implementation for aggregation
     }
 
     /// <summary>
@@ -121,9 +145,21 @@ public partial class LibraryBase : UserMethodsLibrary
     /// <typeparam name="T">Value type</typeparam>
     /// <returns>The count over the window</returns>
     [BindableMethod]
-    public long Count<T>([InjectQueryStats] QueryStats info, T value)
+    public long CountWindow<T>([InjectQueryStats] QueryStats info, T value)
     {
         return info.RowNumber; // Basic implementation - will be enhanced with true windowing
+    }
+
+    /// <summary>
+    /// Gets the average of values (regular aggregate function).
+    /// </summary>
+    /// <param name="value">The value to average</param>
+    /// <typeparam name="T">Value type</typeparam>
+    /// <returns>The average of values</returns>
+    [BindableMethod]
+    public double Avg<T>(T value) where T : struct
+    {
+        return Convert.ToDouble(value); // Basic implementation for aggregation
     }
 
     /// <summary>
@@ -134,7 +170,7 @@ public partial class LibraryBase : UserMethodsLibrary
     /// <typeparam name="T">Value type</typeparam>
     /// <returns>The average over the window</returns>
     [BindableMethod]
-    public double Avg<T>([InjectQueryStats] QueryStats info, T value) where T : struct
+    public double AvgWindow<T>([InjectQueryStats] QueryStats info, T value) where T : struct
     {
         return Convert.ToDouble(value); // Basic implementation - will be enhanced with true windowing
     }
