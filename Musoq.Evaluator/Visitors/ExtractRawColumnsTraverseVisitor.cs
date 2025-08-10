@@ -301,6 +301,11 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
+    public void Visit(ReferentialFromNode node)
+    {
+        node.Accept(_visitor);
+    }
+
     public void Visit(SchemaMethodFromNode node)
     {
         node.Accept(_visitor);

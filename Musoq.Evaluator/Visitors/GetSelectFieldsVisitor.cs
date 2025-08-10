@@ -270,6 +270,10 @@ public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
     {
     }
 
+    public void Visit(ReferentialFromNode node)
+    {
+    }
+
     public void Visit(SchemaMethodFromNode node)
     {
     }

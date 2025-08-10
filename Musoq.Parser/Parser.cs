@@ -176,24 +176,48 @@ public class Parser
 
         var expressions = new List<CteInnerExpressionNode>();
 
-        if (ComposeBaseTypes() is not IdentifierNode col)
+        var baseTypesResult = ComposeBaseTypes();
+        string colName = null;
+        
+        // Handle both IdentifierNode and WordNode for CTE names
+        if (baseTypesResult is IdentifierNode identifierNode)
         {
-            throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}", _lexer.AlreadyResolvedQueryPart);
+            colName = identifierNode.Name;
+        }
+        else if (baseTypesResult is WordNode wordNode)
+        {
+            colName = wordNode.Value;
+        }
+        
+        if (colName is null)
+        {
+            throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}. Current token value: '{Current.Value}'. BaseTypes result type: {baseTypesResult?.GetType().Name ?? "null"}", _lexer.AlreadyResolvedQueryPart);
         }
             
         Consume(TokenType.As);
         Consume(TokenType.LeftParenthesis);
         var innerSets = ComposeSetOperators(0);
-        expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
+        expressions.Add(new CteInnerExpressionNode(innerSets, colName));
         Consume(TokenType.RightParenthesis);
 
         while (Current.TokenType == TokenType.Comma)
         {
             Consume(TokenType.Comma);
 
-            col = ComposeBaseTypes() as IdentifierNode;
+            baseTypesResult = ComposeBaseTypes();
+            colName = null;
+            
+            // Handle both IdentifierNode and WordNode for CTE names
+            if (baseTypesResult is IdentifierNode identifier)
+            {
+                colName = identifier.Name;
+            }
+            else if (baseTypesResult is WordNode word)
+            {
+                colName = word.Value;
+            }
 
-            if (col is null)
+            if (colName is null)
             {
                 throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}", _lexer.AlreadyResolvedQueryPart);
             }
@@ -203,7 +227,7 @@ public class Parser
             Consume(TokenType.LeftParenthesis);
             innerSets = ComposeSetOperators(0);
             Consume(TokenType.RightParenthesis);
-            expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
+            expressions.Add(new CteInnerExpressionNode(innerSets, colName));
         }
 
         var outerSets = ComposeSetOperators(0);
@@ -915,6 +939,10 @@ public class Parser
                     // Regular identifier
                     return new IdentifierNode(identifierValue);
                 }
+            case TokenType.Rows:
+                // Handle "rows" as an identifier when used in contexts like CTE names
+                token = ConsumeAndGetToken(TokenType.Rows);
+                return new IdentifierNode(token.Value);
             case TokenType.KeyAccess:
                 var keyAccess = (KeyAccessToken) Current;
                 Consume(TokenType.KeyAccess);

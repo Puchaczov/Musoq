@@ -400,6 +400,11 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new AccessMethodFromNode(node.Alias, node.SourceAlias, node.AccessMethod, node.ReturnType));
     }
 
+    public void Visit(ReferentialFromNode node)
+    {
+        Nodes.Push(new ReferentialFromNode(node.Name, node.Alias, node.ReturnType));
+    }
+
     public void Visit(SchemaMethodFromNode node)
     {
     }

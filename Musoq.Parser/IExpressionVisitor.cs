@@ -68,6 +68,7 @@ public interface IExpressionVisitor
     void Visit(SchemaMethodFromNode node);
     void Visit(PropertyFromNode node);
     void Visit(AccessMethodFromNode node);
+    void Visit(ReferentialFromNode node);
     void Visit(CreateTransformationTableNode node);
     void Visit(RenameTableNode node);
     void Visit(TranslatedSetTreeNode node);

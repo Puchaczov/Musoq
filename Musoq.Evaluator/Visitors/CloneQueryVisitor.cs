@@ -394,6 +394,11 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, (AccessMethodNode)Nodes.Pop(), node.ReturnType));
     }
 
+    public virtual void Visit(ReferentialFromNode node)
+    {
+        Nodes.Push(new ReferentialFromNode(node.Name, node.Alias, node.ReturnType));
+    }
+
     public virtual void Visit(PropertyFromNode node)
     {
         Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));

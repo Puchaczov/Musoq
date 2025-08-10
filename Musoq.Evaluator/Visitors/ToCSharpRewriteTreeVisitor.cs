@@ -2147,6 +2147,18 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
     }
 
+    public void Visit(ReferentialFromNode node)
+    {
+        // ReferentialFromNode represents a reference to a CTE or existing table
+        // In this case, we just reference the already created row source
+        _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource()))
+                        .WithInitializer(SyntaxFactory.EqualsValueClause(
+                            SyntaxFactory.IdentifierName(node.Name.ToRowsSource())))))));
+    }
+
     public void Visit(PropertyFromNode node)
     {
         AddNamespace(node.ReturnType);

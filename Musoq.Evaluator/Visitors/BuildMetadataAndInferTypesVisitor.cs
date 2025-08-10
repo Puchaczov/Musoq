@@ -880,6 +880,23 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
     }
 
+    public void Visit(ReferentialFromNode node)
+    {
+        // ReferentialFromNode represents a reference to a CTE or table name
+        // Look up the CTE by name in the symbol table
+        var cteTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Name);
+        
+        // Get the schema and table from the CTE
+        var tableSchemaPair = cteTableSymbol.GetTableByAlias(node.Name);
+        
+        // Register the alias to point to the CTE's table
+        _currentScope.ScopeSymbolTable.AddSymbol(node.Alias,
+            new TableSymbol(node.Alias, tableSchemaPair.Schema, tableSchemaPair.Table, false));
+        _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
+        
+        Nodes.Push(new Evaluator.Parser.ReferentialFromNode(node.Name, node.Alias));
+    }
+
     public void Visit(PropertyFromNode node)
     {
         ISchemaTable table;

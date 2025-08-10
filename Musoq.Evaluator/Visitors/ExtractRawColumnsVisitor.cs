@@ -281,6 +281,10 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(ReferentialFromNode node)
+    {
+    }
+
     public void Visit(CreateTransformationTableNode node)
     {
     }
