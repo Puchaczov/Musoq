@@ -3737,6 +3737,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         AddNamespace(node.ReturnType.Namespace);
         AddNamespace(typeof(IObjectResolver).Namespace);
+        AddNamespace(typeof(QueryStats).Namespace);
 
         var methodName = $"CaseWhen_{_caseWhenMethodIndex++}";
 
@@ -3760,6 +3761,22 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         callParameters.Add(
             SyntaxFactory.Argument(
                 SyntaxFactory.IdentifierName(rowVariableName)));
+
+        // Add currentRowStats parameter for case methods in SELECT contexts where it's available
+        // Only add if we're in a context where currentRowStats would be in scope
+        if (_oldType == MethodAccessType.ResultQuery)
+        {
+            parameters.Add(
+                SyntaxFactory.Parameter(
+                    SyntaxFactory.Identifier("currentRowStats")
+                ).WithType(
+                    SyntaxFactory.IdentifierName("QueryStats")
+                ));
+
+            callParameters.Add(
+                SyntaxFactory.Argument(
+                    SyntaxFactory.IdentifierName("currentRowStats")));
+        }
 
         foreach (var variableNameTypePair in _typesToInstantiate)
         {
@@ -3816,31 +3833,32 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(WindowFunctionNode node)
     {
-        // For now, convert window functions to regular function calls
+        // Convert window functions to regular function calls with proper QueryStats injection
         // The OVER clause logic would be implemented here for advanced partitioning and ordering
         // For basic functions like RANK(), DENSE_RANK(), LAG(), LEAD(), treat as regular functions
         
-        // For functions used in complex expressions, use simple versions without injection
-        // to avoid currentRowStats scope issues
         string methodName = node.FunctionName;
         
-        // Use simple versions for functions that commonly appear in complex expressions
-        if (node.FunctionName.Equals("RANK", StringComparison.OrdinalIgnoreCase))
-        {
-            methodName = "RankSimple";
-        }
-        
-        // Find the method for this function name
         var libraryType = typeof(Musoq.Plugins.LibraryBase);
-        var method = libraryType.GetMethods()
-            .FirstOrDefault(m => m.Name.Equals(methodName, StringComparison.OrdinalIgnoreCase));
+        MethodInfo method = null;
+        
+        // First try to find a method with QueryStats parameter for proper execution
+        method = libraryType.GetMethods()
+            .FirstOrDefault(m => m.Name.Equals(methodName, StringComparison.OrdinalIgnoreCase) && 
+                                m.GetParameters().Any(p => p.GetCustomAttributes(typeof(InjectQueryStatsAttribute), false).Length > 0));
+        
+        // If not found, try regular version without injection requirements
+        if (method == null)
+        {
+            method = libraryType.GetMethods()
+                .FirstOrDefault(m => m.Name.Equals(methodName, StringComparison.OrdinalIgnoreCase));
+        }
             
         if (method != null)
         {
             // Create an AccessMethodNode and delegate to its handling
-            // Use the actual method name (proper case) instead of the parsed function name
             var accessMethodNode = new AccessMethodNode(
-                new Musoq.Parser.Tokens.FunctionToken(method.Name, Musoq.Parser.TextSpan.Empty), // Use method.Name instead of node.FunctionName
+                new Musoq.Parser.Tokens.FunctionToken(method.Name, Musoq.Parser.TextSpan.Empty),
                 node.Arguments,
                 null, // extraAggregateArguments
                 false, // canSkipInjectSource
