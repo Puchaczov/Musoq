@@ -296,6 +296,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KWhere = Format(Keyword, WhereToken.TokenText);
         public static readonly string KWhiteSpace = @"[\s]{1,}";
         public static readonly string KWordSingleQuoted = @"'([^'\\]|\\.)*'";
+        public static readonly string KWordDoubleQuoted = @"""([^""\\]|\\.)*""";
         public static readonly string KEmptyString = "''";
         public static readonly string KEqual = Format(Keyword, EqualityToken.TokenText);
         public static readonly string KSelect = Format(Keyword, SelectToken.TokenText);
@@ -422,6 +423,7 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KUnionAll, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KEmptyString),
             new(TokenRegexDefinition.KWordSingleQuoted, RegexOptions.IgnoreCase),
+            new(TokenRegexDefinition.KWordDoubleQuoted, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KSelect, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KFrom, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KUnion, RegexOptions.IgnoreCase),
@@ -692,7 +694,7 @@ public class Lexer : LexerBase<Token>
                 return new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
         }
 
-        if (regex != TokenRegexDefinition.KWordSingleQuoted)
+        if (regex != TokenRegexDefinition.KWordSingleQuoted && regex != TokenRegexDefinition.KWordDoubleQuoted)
             return regex == TokenRegexDefinition.KEmptyString
                 ? new WordToken(string.Empty, new TextSpan(Position + 1, 0))
                 : new WordToken(tokenText, new TextSpan(Position, tokenText.Length));

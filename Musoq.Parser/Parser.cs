@@ -894,9 +894,27 @@ public class Parser
                 if (Current is not ColumnToken column)
                     throw new ArgumentNullException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}");
 
+                // Check if this identifier is followed by a left parenthesis (function call with whitespace)
+                var identifierValue = column.Value;
                 Consume(TokenType.Identifier);
-
-                return new IdentifierNode(column.Value);
+                
+                if (Current.TokenType == TokenType.LeftParenthesis)
+                {
+                    // This is a function call with whitespace, treat it as such
+                    var functionAccessMethod = ComposeAccessMethodWithName(identifierValue);
+                    // Check for OVER clause to detect window functions
+                    if (Current.TokenType == TokenType.Over)
+                    {
+                        var windowSpec = ComposeWindowSpecification();
+                        return new WindowFunctionNode(functionAccessMethod.Name, functionAccessMethod.Arguments, windowSpec);
+                    }
+                    return functionAccessMethod;
+                }
+                else
+                {
+                    // Regular identifier
+                    return new IdentifierNode(identifierValue);
+                }
             case TokenType.KeyAccess:
                 var keyAccess = (KeyAccessToken) Current;
                 Consume(TokenType.KeyAccess);
@@ -1002,6 +1020,14 @@ public class Parser
         }
             
         throw new NotSupportedException($"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
+    }
+
+    private AccessMethodNode ComposeAccessMethodWithName(string functionName)
+    {
+        // Create a function token from the provided name
+        var functionToken = new FunctionToken(functionName, new TextSpan(0, functionName.Length));
+        var args = ComposeArgs();
+        return new AccessMethodNode(functionToken, args, null, false, null, string.Empty);
     }
 
     private Token ConsumeAndGetToken(TokenType expected)
