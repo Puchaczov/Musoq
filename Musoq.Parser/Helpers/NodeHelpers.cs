@@ -130,6 +130,18 @@ public static class NodeHelpers
             {(typeof(decimal), typeof(decimal)), typeof(decimal)},
                 
             {(typeof(object), typeof(object)), typeof(object)},
+            {(typeof(object), typeof(int)), typeof(object)},
+            {(typeof(int), typeof(object)), typeof(object)},
+            {(typeof(object), typeof(long)), typeof(object)},
+            {(typeof(long), typeof(object)), typeof(object)},
+            {(typeof(object), typeof(double)), typeof(object)},
+            {(typeof(double), typeof(object)), typeof(object)},
+            {(typeof(object), typeof(float)), typeof(object)},
+            {(typeof(float), typeof(object)), typeof(object)},
+            {(typeof(object), typeof(decimal)), typeof(object)},
+            {(typeof(decimal), typeof(object)), typeof(object)},
+            {(typeof(object), typeof(string)), typeof(object)},
+            {(typeof(string), typeof(object)), typeof(object)},
             {(typeof(string), typeof(string)), typeof(string)},
             {(typeof(bool), typeof(bool)), typeof(bool)},
                 

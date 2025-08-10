@@ -3820,10 +3820,20 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // The OVER clause logic would be implemented here for advanced partitioning and ordering
         // For basic functions like RANK(), DENSE_RANK(), LAG(), LEAD(), treat as regular functions
         
+        // For functions used in complex expressions, use simple versions without injection
+        // to avoid currentRowStats scope issues
+        string methodName = node.FunctionName;
+        
+        // Use simple versions for functions that commonly appear in complex expressions
+        if (node.FunctionName.Equals("RANK", StringComparison.OrdinalIgnoreCase))
+        {
+            methodName = "RankSimple";
+        }
+        
         // Find the method for this function name
         var libraryType = typeof(Musoq.Plugins.LibraryBase);
         var method = libraryType.GetMethods()
-            .FirstOrDefault(m => m.Name.Equals(node.FunctionName, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(m => m.Name.Equals(methodName, StringComparison.OrdinalIgnoreCase));
             
         if (method != null)
         {

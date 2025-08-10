@@ -460,6 +460,15 @@ public abstract partial class LibraryBase
         => ToUpper(value, CultureInfo.InvariantCulture);
 
     /// <summary>
+    /// Makes the string uppercase (alias for ToUpper)
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <returns>Uppercased string</returns>
+    [BindableMethod]
+    public string? Upper(string value)
+        => ToUpper(value);
+
+    /// <summary>
     /// Makes the string uppercase within specified culture
     /// </summary>
     /// <param name="value">The value</param>

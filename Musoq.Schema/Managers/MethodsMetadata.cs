@@ -390,7 +390,7 @@ public class MethodsMetadata
                 var orderedMatchingMethods = matchingMethodsIndexes
                     .Select(f => f.Method)
                     .OrderBy(MeasureHowCloseTheMethodIsAgainstTheArguments);
-                index = _methods[name].IndexOf(orderedMatchingMethods.First());
+                index = _methods[upperName].IndexOf(orderedMatchingMethods.First());
                 return true;
             }
         }
