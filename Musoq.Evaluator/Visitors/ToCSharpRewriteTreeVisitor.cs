@@ -741,9 +741,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 case InjectGroupAccessName _:
                     break;
                 case InjectQueryStatsAttribute _:
-                    args.Add(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.IdentifierName("currentRowStats")));
+                    // Only inject currentRowStats if we're in a context where it's available (SELECT contexts)
+                    if (_oldType == MethodAccessType.ResultQuery)
+                    {
+                        args.Add(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName("currentRowStats")));
+                    }
                     break;
             }
         }
