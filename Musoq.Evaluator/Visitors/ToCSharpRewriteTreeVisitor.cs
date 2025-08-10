@@ -741,8 +741,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 case InjectGroupAccessName _:
                     break;
                 case InjectQueryStatsAttribute _:
-                    // Only inject currentRowStats if we're in a context where it's available (SELECT contexts)
-                    if (_oldType == MethodAccessType.ResultQuery)
+                    // Inject currentRowStats in contexts where it's available:
+                    // - ResultQuery: SELECT clause processing 
+                    // - TransformingQuery: GROUP BY, aggregations (needed for RowNumber)
+                    if (_oldType == MethodAccessType.ResultQuery || _oldType == MethodAccessType.TransformingQuery)
                     {
                         args.Add(
                             SyntaxFactory.Argument(
@@ -2154,13 +2156,37 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     public void Visit(ReferentialFromNode node)
     {
         // ReferentialFromNode represents a reference to a CTE or existing table
-        // In this case, we just reference the already created row source
-        _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource()))
-                        .WithInitializer(SyntaxFactory.EqualsValueClause(
-                            SyntaxFactory.IdentifierName(node.Name.ToRowsSource())))))));
+        // Check if this is a CTE reference
+        if (_inMemoryTableIndexes.ContainsKey(node.Name))
+        {
+            // This is a CTE reference - get the result from _tableResults array
+            var cteIndex = _inMemoryTableIndexes[node.Name];
+            
+            var elementAccess = SyntaxFactory.ElementAccessExpression(
+                SyntaxFactory.IdentifierName("_tableResults"),
+                SyntaxFactory.BracketedArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(cteIndex))))));
+            
+            _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource()))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(elementAccess))))));
+        }
+        else
+        {
+            // This is a regular table reference - reference the already created row source
+            _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource()))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.IdentifierName(node.Name.ToRowsSource())))))));
+        }
     }
 
     public void Visit(PropertyFromNode node)
@@ -3778,8 +3804,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             SyntaxFactory.Argument(
                 SyntaxFactory.IdentifierName(rowVariableName)));
 
-        // Add currentRowStats parameter for case methods in SELECT contexts where it's available
-        // Only add if we're in a context where currentRowStats would be in scope
+        // Add currentRowStats parameter for case methods only in SELECT contexts
+        // ORDER BY case methods should not have this parameter since currentRowStats is not in scope there
         if (_oldType == MethodAccessType.ResultQuery)
         {
             parameters.Add(

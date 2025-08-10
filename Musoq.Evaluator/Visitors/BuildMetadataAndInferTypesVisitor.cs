@@ -883,8 +883,17 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     public void Visit(ReferentialFromNode node)
     {
         // ReferentialFromNode represents a reference to a CTE or table name
-        // Look up the CTE by name in the symbol table
-        var cteTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Name);
+        // Look up the CTE by name in the symbol table (check current scope and parent scope for CTEs)
+        TableSymbol cteTableSymbol;
+        try
+        {
+            cteTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Name);
+        }
+        catch (KeyNotFoundException)
+        {
+            // Try parent scope for CTEs registered at higher level
+            cteTableSymbol = _currentScope.Parent.ScopeSymbolTable.GetSymbol<TableSymbol>(node.Name);
+        }
         
         // Get the schema and table from the CTE
         var tableSchemaPair = cteTableSymbol.GetTableByAlias(node.Name);
