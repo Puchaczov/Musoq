@@ -84,6 +84,10 @@ public class StringifyTests : BasicEntityTestBase
 
         var stringifiedQuery = cloneQueryVisitor.Root.ToString();
         
-        Assert.AreEqual(query, stringifiedQuery);
+        // Normalize line endings for cross-platform compatibility
+        var normalizedQuery = query.Replace("\r\n", "\n").Replace("\r", "\n");
+        var normalizedStringified = stringifiedQuery.Replace("\r\n", "\n").Replace("\r", "\n");
+        
+        Assert.AreEqual(normalizedQuery, normalizedStringified);
     }
 }

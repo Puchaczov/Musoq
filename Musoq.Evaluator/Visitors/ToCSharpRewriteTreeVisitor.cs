@@ -744,6 +744,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     // Inject currentRowStats in contexts where it's available:
                     // - ResultQuery: SELECT clause processing 
                     // - TransformingQuery: GROUP BY, aggregations (needed for RowNumber)
+                    // DO NOT inject in OrderBy context as currentRowStats is not available there
                     if (_oldType == MethodAccessType.ResultQuery || _oldType == MethodAccessType.TransformingQuery)
                     {
                         args.Add(
@@ -867,7 +868,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var variableName = _type switch
         {
             MethodAccessType.TransformingQuery => $"{node.Alias}Row",
-            MethodAccessType.ResultQuery or MethodAccessType.CaseWhen => "score",
+            MethodAccessType.ResultQuery or MethodAccessType.CaseWhen or MethodAccessType.OrderBy => "score",
             _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
         };
 
@@ -1024,6 +1025,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     break;
                 case MethodAccessType.ResultQuery:
                 case MethodAccessType.CaseWhen:
+                case MethodAccessType.OrderBy:
                     rowVariableName = "score";
                     break;
                 default:
@@ -3797,6 +3799,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         {
             MethodAccessType.TransformingQuery => $"{_queryAlias}Row",
             MethodAccessType.ResultQuery => "score",
+            MethodAccessType.OrderBy => "score",
             _ => string.Empty
         };
 

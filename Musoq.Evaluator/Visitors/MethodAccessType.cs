@@ -4,5 +4,6 @@ public enum MethodAccessType
 {
     ResultQuery,
     TransformingQuery,
-    CaseWhen
+    CaseWhen,
+    OrderBy
 }

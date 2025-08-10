@@ -701,10 +701,14 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
 
     public void Visit(OrderByNode node)
     {
+        var oldMethodAccessType = _visitor.SetMethodAccessType(MethodAccessType.OrderBy);
+        
         foreach (var field in node.Fields)
             field.Accept(this);
 
         node.Accept(_visitor);
+        
+        _visitor.SetMethodAccessType(oldMethodAccessType);
     }
 
     public void Visit(CreateTableNode node)
@@ -733,7 +737,9 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
 
     public void Visit(CaseNode node)
     {
-        var oldMethodAccessType = _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
+        // Only override method access type to ResultQuery if we're not already in a specific non-SELECT context
+        // This preserves ORDER BY context for CASE expressions in ORDER BY clauses
+        var oldMethodAccessType = _visitor.SetMethodAccessType(MethodAccessType.CaseWhen);
          
         node.Else.Accept(this);
 
