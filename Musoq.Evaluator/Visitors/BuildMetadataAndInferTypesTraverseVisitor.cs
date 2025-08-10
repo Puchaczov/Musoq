@@ -104,12 +104,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(AccessObjectArrayNode node)
     {
-        // Let the main visitor handle all AccessObjectArrayNode processing
-        // The BuildMetadataAndInferTypesVisitor will do the proper type inference
         node.Accept(_visitor);
     }
-
-
 
     public void Visit(AccessObjectKeyNode node)
     {
@@ -893,26 +889,5 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public void QueryEnds()
     {
         _visitor.QueryEnds();
-    }
-
-    /// <summary>
-    /// Determines if an AccessObjectArrayNode represents direct column access rather than property access
-    /// This handles direct column access like Name[0] (not aliased like f.Name[0])
-    /// </summary>
-    private bool IsDirectColumnAccess(AccessObjectArrayNode node)
-    {
-        var columnName = node.ObjectName;
-        
-        // Don't transform these special object references - let original array access logic handle them
-        var specialObjectReferences = new[] { "Self", "This", "Current" };
-        
-        if (specialObjectReferences.Any(reference => string.Equals(reference, columnName, StringComparison.OrdinalIgnoreCase)))
-        {
-            return false; // These are object references, not columns
-        }
-        
-        // For now, be conservative and return false since table context timing is problematic
-        // The main BuildMetadataAndInferTypesVisitor should handle the transformation
-        return false;
     }
 }
