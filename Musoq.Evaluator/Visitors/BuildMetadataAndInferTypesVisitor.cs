@@ -171,8 +171,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     /// </summary>
     private void VisitBinaryOperatorWithDirectPop<T>(Func<Node, Node, T> nodeFactory) where T : Node
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var right = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (right)");
+        var left = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (left)");
         Nodes.Push(nodeFactory(left, right));
     }
 
@@ -261,7 +261,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(NotNode node)
     {
-        Nodes.Push(new NotNode(Nodes.Pop()));
+        var operand = SafePop(Nodes, nameof(Visit) + nameof(NotNode));
+        Nodes.Push(new NotNode(operand));
     }
 
     public void Visit(LikeNode node)
@@ -276,8 +277,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(InNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var right = SafePop(Nodes, nameof(Visit) + nameof(InNode) + " (right)");
+        var left = SafePop(Nodes, nameof(Visit) + nameof(InNode) + " (left)");
         Nodes.Push(new InNode(left, (ArgsListNode) right));
     }
 
@@ -349,8 +350,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(ContainsNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var right = SafePop(Nodes, nameof(Visit) + nameof(ContainsNode) + " (right)");
+        var left = SafePop(Nodes, nameof(Visit) + nameof(ContainsNode) + " (left)");
         Nodes.Push(new ContainsNode(left, right as ArgsListNode));
     }
 
@@ -368,7 +369,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(IsNullNode node)
     {
-        Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
+        var operand = SafePop(Nodes, nameof(Visit) + nameof(IsNullNode));
+        Nodes.Push(new IsNullNode(operand, node.IsNegated));
     }
 
     public void Visit(AccessRefreshAggregationScoreNode node)
@@ -596,7 +598,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (isNotRoot && parentNodeType != null)
             {
-                var propertyAccess = parentNodeType.GetProperty(node.Name);
+                PropertyInfo propertyAccess = null;
+                try
+                {
+                    propertyAccess = parentNodeType.GetProperty(node.Name);
+                }
+                catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+                {
+                    throw new ObjectIsNotAnArrayException(
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                }
 
                 isArray = propertyAccess?.PropertyType.IsArray == true;
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
@@ -604,7 +615,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 if (!isArray && !isIndexer)
                 {
                     throw new ObjectIsNotAnArrayException(
-                        $"Object {parentNodeType.Name} is not an array.");
+                        $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.");
+                }
+
+                if (propertyAccess == null)
+                {
+                    throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
                 }
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, propertyAccess));
@@ -614,7 +630,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (parentNodeType != null)
             {
-                var property = parentNodeType.GetProperty(node.Name);
+                PropertyInfo property = null;
+                try
+                {
+                    property = parentNodeType.GetProperty(node.Name);
+                }
+                catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+                {
+                    throw new ObjectIsNotAnArrayException(
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                }
 
                 isArray = property?.PropertyType.IsArray == true;
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
@@ -622,7 +647,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 if (!isArray && !isIndexer)
                 {
                     throw new ObjectIsNotAnArrayException(
-                        $"Object {node.Name} is not an array.");
+                        $"Object {node.Name} is not an array or indexable type.");
+                }
+
+                if (property == null)
+                {
+                    throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
                 }
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, property));
@@ -643,7 +673,15 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             throw new ConstructionNotYetSupported($"Construction ${node.ToString()} is not yet supported.");
         }
 
-        var parentNode = Nodes.Peek();
+        var parentNode = SafePeek(Nodes, nameof(Visit) + nameof(AccessObjectKeyNode));
+        if (parentNode?.ReturnType == null)
+        {
+            throw VisitorException.CreateForProcessingFailure(
+                VisitorName,
+                nameof(Visit) + nameof(AccessObjectKeyNode),
+                $"Parent node has no return type for key access '{node.Name}'"
+            );
+        }
         var parentNodeType = parentNode.ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
@@ -680,13 +718,28 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (!isRoot)
             {
-                var propertyAccess = parentNodeType.GetProperty(node.Name);
+                PropertyInfo propertyAccess = null;
+                try
+                {
+                    propertyAccess = parentNodeType.GetProperty(node.Name);
+                }
+                catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+                {
+                    throw new ObjectDoesNotImplementIndexerException(
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                }
+
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
 
                 if (!isIndexer)
                 {
                     throw new ObjectDoesNotImplementIndexerException(
-                        $"Object {parentNodeType.Name} does not implement indexer.");
+                        $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.");
+                }
+
+                if (propertyAccess == null)
+                {
+                    throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
                 }
 
                 Nodes.Push(new AccessObjectKeyNode(node.Token, propertyAccess));
@@ -694,7 +747,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 return;
             }
 
-            var property = parentNodeType.GetProperty(node.Name);
+            PropertyInfo property = null;
+            try
+            {
+                property = parentNodeType.GetProperty(node.Name);
+            }
+            catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+            {
+                throw new ObjectDoesNotImplementIndexerException(
+                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+            }
 
             isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
 
@@ -704,13 +766,26 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     $"Object {node.Name} does not implement indexer.");
             }
 
+            if (property == null)
+            {
+                throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
+            }
+
             Nodes.Push(new AccessObjectKeyNode(node.Token, property));
         }
     }
 
     public void Visit(PropertyValueNode node)
     {
-        var parentNode = Nodes.Peek();
+        var parentNode = SafePeek(Nodes, nameof(Visit) + nameof(PropertyValueNode));
+        if (parentNode?.ReturnType == null)
+        {
+            throw VisitorException.CreateForProcessingFailure(
+                VisitorName,
+                nameof(Visit) + nameof(PropertyValueNode),
+                $"Parent node has no return type for property access '{node.Name}'"
+            );
+        }
         var parentNodeType = parentNode.ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
@@ -735,20 +810,57 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 return;
             }
 
-            var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ??
-                       (_theMostInnerIdentifier.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
+            Type type;
+            try
+            {
+                var propertyInfo = parentNode.ReturnType.GetProperty(node.Name);
+                type = propertyInfo?.PropertyType ?? 
+                       (_theMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
+            }
+            catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+            {
+                // Fallback to default type if property access fails
+                type = _theMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject);
+            }
             Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, type)));
         }
         else
         {
-            Nodes.Push(new PropertyValueNode(node.Name, parentNodeType.GetProperty(node.Name)));
+            PropertyInfo propertyInfo = null;
+            try
+            {
+                propertyInfo = parentNodeType.GetProperty(node.Name);
+            }
+            catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+            {
+                throw VisitorException.CreateForProcessingFailure(
+                    VisitorName,
+                    nameof(Visit) + nameof(PropertyValueNode),
+                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+            }
+
+            if (propertyInfo == null)
+            {
+                throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}");
+            }
+
+            Nodes.Push(new PropertyValueNode(node.Name, propertyInfo));
         }
     }
 
     public void Visit(DotNode node)
     {
-        var exp = Nodes.Pop();
-        var root = Nodes.Pop();
+        var exp = SafePop(Nodes, nameof(Visit) + nameof(DotNode) + " (expression)");
+        var root = SafePop(Nodes, nameof(Visit) + nameof(DotNode) + " (root)");
+
+        // Validate that both nodes have proper return types
+        if (root?.ReturnType == null)
+        {
+            throw VisitorException.CreateForProcessingFailure(
+                VisitorName,
+                nameof(Visit) + nameof(DotNode),
+                "Root node has no return type for dot access");
+        }
 
         // Handle aliased character access patterns (e.g., f.Name[0])
         // Only transform if this is likely string character access, not property access
@@ -796,7 +908,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(AccessCallChainNode node)
     {
-        var chainPretend = Nodes.Pop();
+        var chainPretend = SafePop(Nodes, nameof(Visit) + nameof(AccessCallChainNode));
 
         Nodes.Push(chainPretend is AccessColumnNode
             ? chainPretend
@@ -808,7 +920,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var args = new Node[node.Args.Length];
 
         for (var i = node.Args.Length - 1; i >= 0; --i)
-            args[i] = Nodes.Pop();
+            args[i] = SafePop(Nodes, nameof(Visit) + nameof(ArgsListNode) + $" (arg {i})");
 
         Nodes.Push(new ArgsListNode(args));
     }
@@ -1458,7 +1570,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     /// </summary>
     private ArgsListNode GetAndValidateArgs(AccessMethodNode node)
     {
-        if (Nodes.Pop() is not ArgsListNode args)
+        var nodeFromStack = SafePop(Nodes, nameof(GetAndValidateArgs));
+        if (nodeFromStack is not ArgsListNode args)
             throw CannotResolveMethodException.CreateForNullArguments(node.Name);
         return args;
     }

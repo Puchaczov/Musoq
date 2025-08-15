@@ -88,16 +88,26 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
     /// </summary>
     public static bool IsIndexableType(Type type)
     {
-        // Arrays are indexable
-        if (type.IsArray)
-            return true;
+        if (type == null) return false;
+        
+        try
+        {
+            // Arrays are indexable
+            if (type.IsArray)
+                return true;
 
-        // Strings are indexable
-        if (type == typeof(string))
-            return true;
+            // Strings are indexable
+            if (type == typeof(string))
+                return true;
 
-        // Check for indexer properties
-        return type.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
+            // Check for indexer properties
+            return type.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
+        }
+        catch (Exception ex) when (ex is NotSupportedException || ex is TypeLoadException)
+        {
+            // If we can't access type properties due to type loading issues, assume not indexable
+            return false;
+        }
     }
     
     /// <summary>
@@ -105,6 +115,8 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
     /// </summary>
     public static bool IsPrimitiveType(Type type)
     {
+        if (type == null) return false;
+        
         return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime);
     }
 
