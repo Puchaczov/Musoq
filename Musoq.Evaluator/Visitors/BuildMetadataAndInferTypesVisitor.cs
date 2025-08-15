@@ -155,6 +155,27 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
     }
 
+    /// <summary>
+    /// Helper method to handle binary operators that use SafePopMultiple for error handling.
+    /// </summary>
+    private void VisitBinaryOperatorWithSafePop<T>(Func<Node, Node, T> nodeFactory, string operationName) where T : Node
+    {
+        var nodes = SafePopMultiple(Nodes, 2, operationName);
+        var right = nodes[1];
+        var left = nodes[0];
+        Nodes.Push(nodeFactory(left, right));
+    }
+
+    /// <summary>
+    /// Helper method to handle binary operators that use direct Pop operations.
+    /// </summary>
+    private void VisitBinaryOperatorWithDirectPop<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    {
+        var right = Nodes.Pop();
+        var left = Nodes.Pop();
+        Nodes.Push(nodeFactory(left, right));
+    }
+
     public void Visit(DescNode node)
     {
         var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
@@ -163,58 +184,37 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(StarNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(StarNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new StarNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new StarNode(left, right), nameof(Visit) + nameof(StarNode));
     }
 
     public void Visit(FSlashNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(FSlashNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new FSlashNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new FSlashNode(left, right), nameof(Visit) + nameof(FSlashNode));
     }
 
     public void Visit(ModuloNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(ModuloNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new ModuloNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new ModuloNode(left, right), nameof(Visit) + nameof(ModuloNode));
     }
 
     public void Visit(AddNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AddNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new AddNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new AddNode(left, right), nameof(Visit) + nameof(AddNode));
     }
 
     public void Visit(HyphenNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(HyphenNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new HyphenNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new HyphenNode(left, right), nameof(Visit) + nameof(HyphenNode));
     }
 
     public void Visit(AndNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AndNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new AndNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new AndNode(left, right), nameof(Visit) + nameof(AndNode));
     }
 
     public void Visit(OrNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(OrNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new OrNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new OrNode(left, right), nameof(Visit) + nameof(OrNode));
     }
 
     public void Visit(ShortCircuitingNodeLeft node)
@@ -231,44 +231,32 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(EqualityNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new EqualityNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new EqualityNode(left, right));
     }
 
     public void Visit(GreaterOrEqualNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new GreaterOrEqualNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new GreaterOrEqualNode(left, right));
     }
 
     public void Visit(LessOrEqualNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LessOrEqualNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new LessOrEqualNode(left, right));
     }
 
     public void Visit(GreaterNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new GreaterNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new GreaterNode(left, right));
     }
 
     public void Visit(LessNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LessNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new LessNode(left, right));
     }
 
     public void Visit(DiffNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new DiffNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new DiffNode(left, right));
     }
 
     public void Visit(NotNode node)
@@ -278,16 +266,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(LikeNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LikeNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new LikeNode(left, right));
     }
 
     public void Visit(RLikeNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new RLikeNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new RLikeNode(left, right));
     }
 
     public void Visit(InNode node)
@@ -551,7 +535,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         bool hasValidParentContext = parentNode != null && parentNodeType != null &&
                                     !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
                                     parentNodeType.Name != "RowSource" && // RowSource indicates table context, not object property access
-                                    !IsPrimitiveType(parentNodeType); // Primitive types (char, int, etc.) are not valid for property access
+                                    !BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(parentNodeType); // Primitive types (char, int, etc.) are not valid for property access
         
         if (hasValidParentContext)
         {
@@ -564,7 +548,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (currentTableSymbol != null)
             {
                 var column = currentTableSymbol.GetColumnByAliasAndName(_identifier, node.ObjectName);
-                if (column != null && IsIndexableType(column.ColumnType))  // Only indexable column types
+                if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))  // Only indexable column types
                 {
                     // Transform to column access
                     var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
@@ -615,7 +599,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 var propertyAccess = parentNodeType.GetProperty(node.Name);
 
                 isArray = propertyAccess?.PropertyType.IsArray == true;
-                isIndexer = HasIndexer(propertyAccess?.PropertyType);
+                isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
 
                 if (!isArray && !isIndexer)
                 {
@@ -633,7 +617,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 var property = parentNodeType.GetProperty(node.Name);
 
                 isArray = property?.PropertyType.IsArray == true;
-                isIndexer = HasIndexer(property?.PropertyType);
+                isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
 
                 if (!isArray && !isIndexer)
                 {
@@ -697,7 +681,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (!isRoot)
             {
                 var propertyAccess = parentNodeType.GetProperty(node.Name);
-                isIndexer = HasIndexer(propertyAccess?.PropertyType);
+                isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
 
                 if (!isIndexer)
                 {
@@ -712,7 +696,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             var property = parentNodeType.GetProperty(node.Name);
 
-            isIndexer = HasIndexer(property?.PropertyType);
+            isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
 
             if (!isIndexer)
             {
@@ -774,7 +758,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (tableSymbol != null)
             {
                 var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
-                if (column != null && IsIndexableType(column.ColumnType))  // Only indexable column types
+                if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))  // Only indexable column types
                 {
                     // Transform to column access with alias
                     var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);
@@ -1660,14 +1644,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var greatestCommonSubtype = FindGreatestCommonSubtype();
             var caseNode = anyWasNullable
                 ? new CaseNode(whenThenPairs.ToArray(), elseNode, greatestCommonSubtype)
-                : new CaseNode(whenThenPairs.ToArray(), elseNode, MakeTypeNullable(greatestCommonSubtype));
+                : new CaseNode(whenThenPairs.ToArray(), elseNode, BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype));
 
             Nodes.Push(caseNode);
         }
         else
         {
             var greatestCommonSubtype = FindGreatestCommonSubtype();
-            var nullableGreatestCommonSubtype = MakeTypeNullable(greatestCommonSubtype);
+            var nullableGreatestCommonSubtype = BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype);
             var caseNode = new CaseNode(whenThenPairs.ToArray(), elseNode, nullableGreatestCommonSubtype);
 
             var rewritePartsWithProperNullHandling =
@@ -1748,7 +1732,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     private Type FindGreatestCommonSubtype()
     {
-        var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance).Select(StripNullable)
+        var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance).Select(BuildMetadataAndInferTypesVisitorUtilities.StripNullable)
             .Distinct().ToArray();
 
         if (types.Length == 0)
@@ -1768,7 +1752,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             greatestCommonSubtype =
                 currentType.IsAssignableTo(greatestCommonSubtype)
                     ? currentType
-                    : FindClosestCommonParent(greatestCommonSubtype, currentType);
+                    : BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(greatestCommonSubtype, currentType);
         }
 
         return greatestCommonSubtype;
@@ -1930,24 +1914,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _cachedSetFields.TryAdd(currentSetOperatorKey, leftFields);
     }
 
-    private static int[] CreateSetOperatorPositionIndexes(QueryNode node, string[] keys)
-    {
-        var indexes = new int[keys.Length];
-
-        var fieldIndex = 0;
-        var index = 0;
-
-        foreach (var field in node.Select.Fields)
-        {
-            if (keys.Contains(field.FieldName))
-                indexes[index++] = fieldIndex;
-
-            fieldIndex += 1;
-        }
-
-        return indexes;
-    }
-
     private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns)
     {
         var library = new TransitionLibrary();
@@ -2002,65 +1968,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
 
         throw new UnknownPropertyException($"Column {identifier} could not be found.");
-    }
-
-    private static Type FindClosestCommonParent(Type type1, Type type2)
-    {
-        var type1Ancestors = new HashSet<Type>();
-
-        while (type1 != null)
-        {
-            type1Ancestors.Add(type1);
-            type1 = type1.BaseType;
-        }
-
-        while (type2 != null)
-        {
-            if (type1Ancestors.Contains(type2))
-            {
-                return type2;
-            }
-
-            type2 = type2.BaseType;
-        }
-
-        return typeof(object);
-    }
-
-    private static Type MakeTypeNullable(Type type)
-    {
-        if (type == null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>)
-            || !type.IsValueType)
-        {
-            return type;
-        }
-
-        return typeof(Nullable<>).MakeGenericType(type);
-    }
-
-    private static Type StripNullable(Type type)
-    {
-        if (type == null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-        {
-            return Nullable.GetUnderlyingType(type);
-        }
-
-        return type;
-    }
-
-    private static bool HasIndexer(Type type)
-    {
-        return type is not null && type.GetProperties().Any(f => f.GetIndexParameters().Length > 0);
     }
 
     private static bool TryReduceDimensions(MethodInfo method, ArgsListNode args, out MethodInfo reducedMethod)
@@ -2313,7 +2220,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         var key = CreateSetOperatorPositionKey();
         _currentScope[MetaAttributes.SetOperatorName] = key;
-        SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
+        SetOperatorFieldPositions.Add(key, BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
 
         var right = Nodes.Pop();
         var left = Nodes.Pop();
@@ -2364,30 +2271,5 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         // If not found in any scope, fall back to current scope behavior for error consistency
         return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
-    }
-
-    /// <summary>
-    /// Checks if a type supports indexing (has an indexer property or is an array)
-    /// </summary>
-    private static bool IsIndexableType(Type type)
-    {
-        // Arrays are indexable
-        if (type.IsArray)
-            return true;
-
-        // Strings are indexable
-        if (type == typeof(string))
-            return true;
-
-        // Check for indexer properties
-        return type.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
-    }
-    
-    /// <summary>
-    /// Checks if a type is a primitive type that cannot have property access
-    /// </summary>
-    private static bool IsPrimitiveType(Type type)
-    {
-        return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime);
     }
 }
