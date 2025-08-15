@@ -1441,17 +1441,46 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     private void VisitAccessMethod(AccessMethodNode node, Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
     {
+        var args = GetAndValidateArgs(node);
+        var methodContext = ResolveMethodContext(node, args);
+        var (method, canSkipInjectSource) = ResolveMethod(node, args, methodContext);
+        
+        method = ProcessGenericMethodIfNeeded(method, args, methodContext.EntityType);
+        
+        var accessMethod = CreateAccessMethod(node, args, method, methodContext, canSkipInjectSource, func);
+        
+        node.ChangeMethod(method); // Update the original node with resolved method
+        FinalizeMethodVisit(method, accessMethod);
+    }
+
+    /// <summary>
+    /// Extracts and validates arguments from the node stack.
+    /// </summary>
+    private ArgsListNode GetAndValidateArgs(AccessMethodNode node)
+    {
         if (Nodes.Pop() is not ArgsListNode args)
             throw CannotResolveMethodException.CreateForNullArguments(node.Name);
+        return args;
+    }
 
-        var groupArgs = new List<Type> {typeof(string)};
-        groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
+    /// <summary>
+    /// Contains context information needed for method resolution.
+    /// </summary>
+    private record struct MethodResolutionContext(
+        string Alias,
+        TableSymbol TableSymbol,
+        (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
+        Type EntityType);
 
+    /// <summary>
+    /// Resolves the method context including schema, table, and entity information.
+    /// </summary>
+    private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
+    {
         if (_usedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
             throw new AliasMissingException(node);
         
         var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
-
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
         var schemaTablePair = tableSymbol.GetTableByAlias(alias);
         var entityType = schemaTablePair.Table.Metadata.TableEntityType;
@@ -1459,23 +1488,43 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         AddAssembly(entityType.Assembly);
         AddBaseTypeAssembly(entityType);
 
-        var canSkipInjectSource = false;
-        if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), entityType,
-                out var method))
-        {
-            if (!schemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(),
-                    entityType, out method))
-            {
-                if (!schemaTablePair.Schema.TryResolveRawMethod(node.Name,
-                        args.Args.Select(f => f.ReturnType).ToArray(), out method))
-                {
-                    throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.Name, args.Args);
-                }
+        return new MethodResolutionContext(alias, tableSymbol, schemaTablePair, entityType);
+    }
 
-                canSkipInjectSource = true;
-            }
+    /// <summary>
+    /// Attempts to resolve the method from the schema using different resolution strategies.
+    /// </summary>
+    private (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(AccessMethodNode node, ArgsListNode args, MethodResolutionContext context)
+    {
+        var groupArgs = new List<Type> { typeof(string) };
+        groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
+
+        // Try aggregation method first
+        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), context.EntityType, out var method))
+        {
+            return (method, false);
         }
 
+        // Try regular method
+        if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), context.EntityType, out method))
+        {
+            return (method, false);
+        }
+
+        // Try raw method
+        if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
+        {
+            return (method, true);
+        }
+
+        throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.Name, args.Args);
+    }
+
+    /// <summary>
+    /// Processes generic methods by reducing dimensions or constructing generic types if needed.
+    /// </summary>
+    private MethodInfo ProcessGenericMethodIfNeeded(MethodInfo method, ArgsListNode args, Type entityType)
+    {
         var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
         if (!isAggregateMethod && method.IsGenericMethod && TryReduceDimensions(method, args, out var reducedMethod))
@@ -1483,8 +1532,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             method = reducedMethod;
         }
 
-        if (
-            !isAggregateMethod && 
+        if (!isAggregateMethod && 
             method.IsGenericMethod && 
             !method.IsConstructedGenericMethod &&
             TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
@@ -1492,79 +1540,114 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             method = constructedMethod;
         }
 
-        AccessMethodNode accessMethod;
+        return method;
+    }
+
+    /// <summary>
+    /// Creates the appropriate access method based on whether it's an aggregation method or not.
+    /// </summary>
+    private AccessMethodNode CreateAccessMethod(
+        AccessMethodNode node, 
+        ArgsListNode args, 
+        MethodInfo method, 
+        MethodResolutionContext context, 
+        bool canSkipInjectSource,
+        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
+    {
+        var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
+
         if (isAggregateMethod)
         {
-            accessMethod = func(node.FunctionToken, args, node.ExtraAggregateArguments, method, alias, false);
-            var identifier = accessMethod.ToString();
-
-            var newArgs = new List<Node> {new WordNode(identifier)};
-            newArgs.AddRange(args.Args.Skip(1));
-
-            var newSetArgs = new List<Node> {new WordNode(identifier)};
-            newSetArgs.AddRange(args.Args);
-
-            var setMethodName = $"Set{method.Name}";
-            var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
-
-            if (!schemaTablePair.Schema.TryResolveAggregationMethod(
-                    setMethodName,
-                    argTypes,
-                    entityType,
-                    out var setMethod))
-            {
-                throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(setMethodName, newSetArgs.ToArray());
-            }
-
-            if (setMethod.IsGenericMethodDefinition)
-            {
-                var setParams = setMethod.GetParameters();
-                var genericArguments = setMethod.GetGenericArguments();
-                var genericArgumentsDistinct = new List<Type>();
-
-                foreach (var genericArgument in genericArguments)
-                {
-                    for (int i = 0; i < setParams.Length; i++)
-                    {
-                        var setParam = setParams[i];
-
-                        if (setParam.ParameterType == genericArgument)
-                        {
-                            genericArgumentsDistinct.Add(newSetArgs.Where((arg, index) => index == i - 1).Single()
-                                .ReturnType);
-                        }
-                    }
-                }
-
-                var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
-
-                method = method.MakeGenericMethod(genericArgumentsConcreteTypes);
-                setMethod = setMethod.MakeGenericMethod(genericArgumentsConcreteTypes);
-            }
-
-            var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty),
-                new ArgsListNode(newSetArgs.ToArray()), null, setMethod,
-                alias, false);
-
-            _refreshMethods.Add(setMethodNode);
-
-            accessMethod = func(node.FunctionToken, new ArgsListNode(newArgs.ToArray()), null, method, alias,
-                canSkipInjectSource);
+            return ProcessAggregateMethod(node, args, method, context, func);
         }
-        else
+        
+        return func(node.FunctionToken, args, new ArgsListNode([]), method, context.Alias, canSkipInjectSource);
+    }
+
+    /// <summary>
+    /// Processes aggregate methods by creating both the method and its corresponding "Set" method.
+    /// </summary>
+    private AccessMethodNode ProcessAggregateMethod(
+        AccessMethodNode node, 
+        ArgsListNode args, 
+        MethodInfo method, 
+        MethodResolutionContext context,
+        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
+    {
+        var accessMethod = func(node.FunctionToken, args, node.ExtraAggregateArguments, method, context.Alias, false);
+        var identifier = accessMethod.ToString();
+
+        var newArgs = new List<Node> { new WordNode(identifier) };
+        newArgs.AddRange(args.Args.Skip(1));
+
+        var newSetArgs = new List<Node> { new WordNode(identifier) };
+        newSetArgs.AddRange(args.Args);
+
+        var setMethodName = $"Set{method.Name}";
+        var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
+
+        if (!context.SchemaTablePair.Schema.TryResolveAggregationMethod(setMethodName, argTypes, context.EntityType, out var setMethod))
         {
-            accessMethod = func(node.FunctionToken, args, new ArgsListNode([]), method, alias,
-                canSkipInjectSource);
+            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(setMethodName, newSetArgs.ToArray());
         }
 
+        if (setMethod.IsGenericMethodDefinition)
+        {
+            (method, setMethod) = MakeGenericAggregationMethods(method, setMethod, newSetArgs);
+        }
+
+        var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty),
+            new ArgsListNode(newSetArgs.ToArray()), null, setMethod, context.Alias, false);
+
+        _refreshMethods.Add(setMethodNode);
+
+        return func(node.FunctionToken, new ArgsListNode(newArgs.ToArray()), null, method, context.Alias, false);
+    }
+
+    /// <summary>
+    /// Creates generic versions of aggregation methods when needed.
+    /// </summary>
+    private (MethodInfo Method, MethodInfo SetMethod) MakeGenericAggregationMethods(
+        MethodInfo method, 
+        MethodInfo setMethod, 
+        List<Node> newSetArgs)
+    {
+        var setParams = setMethod.GetParameters();
+        var genericArguments = setMethod.GetGenericArguments();
+        var genericArgumentsDistinct = new List<Type>();
+
+        foreach (var genericArgument in genericArguments)
+        {
+            for (int i = 0; i < setParams.Length; i++)
+            {
+                var setParam = setParams[i];
+
+                if (setParam.ParameterType == genericArgument)
+                {
+                    genericArgumentsDistinct.Add(newSetArgs.Where((arg, index) => index == i - 1).Single().ReturnType);
+                }
+            }
+        }
+
+        var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
+
+        return (method.MakeGenericMethod(genericArgumentsConcreteTypes), 
+                setMethod.MakeGenericMethod(genericArgumentsConcreteTypes));
+    }
+
+    /// <summary>
+    /// Finalizes the method visit by adding required assemblies and pushing the result.
+    /// </summary>
+    private void FinalizeMethodVisit(MethodInfo method, AccessMethodNode accessMethod)
+    {
         if (method.DeclaringType == null)
             throw new InvalidOperationException("Method must have a declaring type.");
 
         AddAssembly(method.DeclaringType.Assembly);
         AddAssembly(method.ReturnType.Assembly);
 
-        node.ChangeMethod(method);
-
+        // Note: The original node's method is updated through the accessMethod parameter
+        // which should contain the resolved method information
         Nodes.Push(accessMethod);
     }
 
