@@ -1106,34 +1106,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectKeyNode node)
     {
-        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
-
-        // Add namespace for SafeArrayAccess helper
-        AddNamespace(typeof(SafeArrayAccess).Namespace);
-
-        // Generate safe dictionary/key access using SafeArrayAccess.GetIndexedElement
-        var memberAccess = SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            exp, 
-            SyntaxFactory.IdentifierName(node.Name));
-
-        var safeAccessCall = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
-                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
-            .WithArgumentList(SyntaxFactory.ArgumentList(
-                SyntaxFactory.SeparatedList(new[]
-                {
-                    SyntaxFactory.Argument(memberAccess),
-                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                        SyntaxKind.StringLiteralExpression,
-                        SyntaxFactory.Literal(node.Token.Key))),
-                    SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(
-                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))
-                })));
-
-        Nodes.Push(safeAccessCall);
+        var result = Helpers.AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(node, Nodes);
+        AddNamespace(result.RequiredNamespace);
+        Nodes.Push(result.Expression);
     }
 
     public void Visit(PropertyValueNode node)
