@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 
@@ -43,9 +44,28 @@ public class JoinProcessingHelperTests
     [TestMethod]
     public void ProcessInnerJoin_ValidParameters_ReturnsBlockSyntax()
     {
-        // This test is commented out as it requires complex setup
-        // The validation logic is tested through the null parameter tests
-        Assert.Inconclusive("Test requires complex node setup - validation tested through null parameter tests");
+        // Arrange
+        var mockJoinNode = CreateTestJoinNode();
+        StatementSyntax GetRowsSourceOrEmpty(string alias) => SyntaxFactory.EmptyStatement();
+        StatementSyntax GenerateCancellationExpression() => SyntaxFactory.EmptyStatement();
+
+        // Act
+        var result = JoinProcessingHelper.ProcessInnerJoin(
+            mockJoinNode,
+            _ifStatement,
+            _emptyBlock,
+            _generator,
+            GetRowsSourceOrEmpty,
+            GenerateCancellationExpression);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(BlockSyntax));
+        Assert.IsTrue(result.Statements.Count > 0, "Block should contain statements");
+        
+        // Verify the structure contains a foreach statement (the outer join loop)
+        var firstStatement = result.Statements[0];
+        Assert.IsInstanceOfType(firstStatement, typeof(ForEachStatementSyntax), "First statement should be a foreach loop");
     }
 
     [TestMethod]
@@ -153,6 +173,45 @@ public class JoinProcessingHelperTests
         // Create a mock object with minimal properties to avoid constructor complexity
         // This is sufficient for testing the validation logic
         return null; // The helper method validates null inputs first
+    }
+
+    private JoinInMemoryWithSourceTableFromNode CreateTestJoinNode()
+    {
+        // Create minimal test objects
+        var sourceAlias = "source";
+        var inMemoryAlias = "memory";
+        var expression = new IntegerNode("1"); // Simple expression for testing
+        
+        // Create a minimal source table node
+        var sourceTable = new TestFromNode(sourceAlias);
+        
+        // Create the join node with minimal required parameters
+        return new JoinInMemoryWithSourceTableFromNode(
+            inMemoryAlias, 
+            sourceTable, 
+            expression, 
+            JoinType.Inner,
+            typeof(object)); // Provide a return type
+    }
+
+    // Helper class to create a minimal FromNode for testing
+    private class TestFromNode : FromNode
+    {
+        public TestFromNode(string alias) : base(alias)
+        {
+        }
+
+        public override string Id => $"Test_{Alias}";
+
+        public override void Accept(IExpressionVisitor visitor)
+        {
+            // Empty implementation for testing
+        }
+
+        public override string ToString()
+        {
+            return $"TestFromNode({Alias})";
+        }
     }
 
     // Note: ProcessOuterLeftJoin and ProcessOuterRightJoin tests are omitted 
