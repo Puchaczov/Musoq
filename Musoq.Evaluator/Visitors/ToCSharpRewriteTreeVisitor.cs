@@ -997,150 +997,16 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
-        _emptyBlock = SyntaxFactory.Block();
-
-        var computingBlock = SyntaxFactory.Block();
-        switch (node.ApplyType)
-        {
-            case ApplyType.Cross:
-                computingBlock = computingBlock.AddStatements(
-                    SyntaxFactory.ForEachStatement(
-                        SyntaxFactory.IdentifierName("var"),
-                        SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
-                        SyntaxFactory.IdentifierName(
-                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
-                        Block(
-                            GetRowsSourceOrEmpty(node.SourceTable.Alias),
-                            SyntaxFactory.ForEachStatement(
-                                SyntaxFactory.IdentifierName("var"),
-                                SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
-                                SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
-                                SyntaxFactory.Block(
-                                    GenerateCancellationExpression(),
-                                    _emptyBlock)))));
-                break;
-            case ApplyType.Outer:
-
-                var fullTransitionTable = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(_queryAlias);
-                var fieldNames =
-                    _scope.ScopeSymbolTable.GetSymbol<FieldsNamesSymbol>(MetaAttributes.OuterJoinSelect);
-                var expressions = new List<ExpressionSyntax>();
-
-                var j = 0;
-                for (var i = 0; i < fullTransitionTable.CompoundTables.Length - 1; i++)
-                {
-                    foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[i]))
-                    {
-                        expressions.Add(
-                            SyntaxFactory.ElementAccessExpression(
-                                SyntaxFactory.IdentifierName($"{node.InMemoryTableAlias}Row"),
-                                SyntaxFactory.BracketedArgumentList(
-                                    SyntaxFactory.SingletonSeparatedList(
-                                        SyntaxFactory.Argument(
-                                            (LiteralExpressionSyntax) Generator.LiteralExpression(
-                                                fieldNames.Names[j]))))));
-
-                        j += 1;
-                    }
-                }
-
-                foreach (var column in fullTransitionTable.GetColumns(
-                             fullTransitionTable.CompoundTables[^1]))
-                {
-                    expressions.Add(
-                        SyntaxFactory.CastExpression(
-                            SyntaxFactory.IdentifierName(
-                                EvaluationHelper.GetCastableType(column.ColumnType)),
-                            (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
-                }
-
-                var arrayType = SyntaxFactory.ArrayType(
-                    SyntaxFactory.IdentifierName("object"),
-                    new SyntaxList<ArrayRankSpecifierSyntax>(
-                        SyntaxFactory.ArrayRankSpecifier(
-                            SyntaxFactory.SingletonSeparatedList(
-                                (ExpressionSyntax) SyntaxFactory.OmittedArraySizeExpression()))));
-
-                var rewriteSelect =
-                    SyntaxFactory.VariableDeclaration(
-                        SyntaxFactory.IdentifierName("var"),
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier("select"),
-                                null,
-                                SyntaxFactory.EqualsValueClause(
-                                    SyntaxFactory.ArrayCreationExpression(
-                                        arrayType,
-                                        SyntaxFactory.InitializerExpression(
-                                            SyntaxKind.ArrayInitializerExpression,
-                                            SyntaxFactory.SeparatedList(expressions)))))));
-
-
-                var invocation = SyntaxHelper.CreateMethodInvocation(
-                    _scope[MetaAttributes.SelectIntoVariableName],
-                    nameof(Table.Add),
-                    [
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.ObjectCreationExpression(
-                                SyntaxFactory.Token(SyntaxKind.NewKeyword)
-                                    .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                                SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
-                                SyntaxFactory.ArgumentList(
-                                    SyntaxFactory.SeparatedList(
-                                    [
-                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
-                                        SyntaxFactory.Argument(
-                                            SyntaxFactory.MemberAccessExpression(
-                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                SyntaxFactory.IdentifierName($"{node.InMemoryTableAlias}Row"),
-                                                SyntaxFactory.IdentifierName(
-                                                    $"{nameof(IObjectResolver.Contexts)}"))),
-                                        SyntaxFactory.Argument(
-                                            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
-                                    ])
-                                ),
-                                SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
-                        )
-                    ]);
-
-                computingBlock = computingBlock.AddStatements(
-                    SyntaxFactory.ForEachStatement(
-                        SyntaxFactory.IdentifierName("var"),
-                        SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
-                        SyntaxFactory.IdentifierName(
-                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
-                        Block(
-                            SyntaxFactory.LocalDeclarationStatement(
-                                SyntaxHelper.CreateAssignment("hasAnyRowMatched",
-                                    SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
-                            GetRowsSourceOrEmpty(node.SourceTable.Alias),
-                            SyntaxFactory.ForEachStatement(
-                                SyntaxFactory.IdentifierName("var"),
-                                SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
-                                SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
-                                SyntaxFactory.Block(
-                                    GenerateCancellationExpression(),
-                                    _emptyBlock,
-                                    SyntaxFactory.IfStatement(
-                                        (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
-                                            SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                        SyntaxFactory.Block(
-                                            SyntaxFactory.ExpressionStatement(
-                                                SyntaxFactory.AssignmentExpression(
-                                                    SyntaxKind.SimpleAssignmentExpression,
-                                                    SyntaxFactory.IdentifierName("hasAnyRowMatched"),
-                                                    (LiteralExpressionSyntax) Generator
-                                                        .TrueLiteralExpression())))))),
-                            SyntaxFactory.IfStatement(
-                                (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
-                                    SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                SyntaxFactory.Block(
-                                    SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
-                                    SyntaxFactory.ExpressionStatement(invocation))))));
-                break;
-        }
-
-        _joinOrApplyBlock = computingBlock;
+        // Create wrappers for the method signatures expected by the helper
+        Func<string, StatementSyntax> getRowsSourceWrapper = alias => GetRowsSourceOrEmpty(alias);
+        Func<StatementSyntax[], BlockSyntax> blockWrapper = statements => Block(statements);
+        Func<StatementSyntax> cancellationWrapper = () => GenerateCancellationExpression();
+        
+        var result = ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
+            node, Generator, _scope, _queryAlias, getRowsSourceWrapper, blockWrapper, cancellationWrapper);
+        
+        _emptyBlock = result.EmptyBlock;
+        _joinOrApplyBlock = result.ComputingBlock;
     }
 
     public void Visit(SchemaFromNode node)
