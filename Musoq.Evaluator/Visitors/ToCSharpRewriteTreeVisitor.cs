@@ -1773,163 +1773,16 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(RootNode node)
     {
-        var method = SyntaxFactory.MethodDeclaration(
-            [],
-            SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-            SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            null,
-            SyntaxFactory.Identifier(nameof(IRunnable.Run)),
-            null,
-            SyntaxFactory.ParameterList(
-                SyntaxFactory.SeparatedList([
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(new SyntaxToken()),
-                        SyntaxFactory.IdentifierName(nameof(CancellationToken))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("token"), null)
-                ])),
-            [],
-            SyntaxFactory.Block(SyntaxFactory.ParseStatement(
-                $"return {_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, QueriesInformation, Logger, token);")),
-            null);
+        var methodCallExpression = $"{_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, QueriesInformation, Logger, token)";
+        var method = MethodDeclarationHelper.CreateRunMethod(methodCallExpression);
 
-        var providerParam = SyntaxFactory.PropertyDeclaration(
-            [],
-            SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-            SyntaxFactory.IdentifierName(nameof(ISchemaProvider)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            null,
-            SyntaxFactory.Identifier(nameof(IRunnable.Provider)),
-            SyntaxFactory.AccessorList(
-                SyntaxFactory.List<AccessorDeclarationSyntax>()
-                    .Add(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))
-                    .Add(SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))),
-            null,
-            null);
+        var providerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ISchemaProvider), nameof(IRunnable.Provider));
 
-        var positionalEnvironmentVariablesParam = SyntaxFactory.PropertyDeclaration(
-            [],
-            SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-            SyntaxFactory.GenericName(
-                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                .WithTypeArgumentList(
-                    SyntaxFactory.TypeArgumentList(
-                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                            new SyntaxNodeOrToken[]
-                            {
-                                SyntaxFactory.PredefinedType(
-                                    SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
-                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                SyntaxFactory.GenericName(
-                                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                    .WithTypeArgumentList(
-                                        SyntaxFactory.TypeArgumentList(
-                                            SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                new SyntaxNodeOrToken[]
-                                                {
-                                                    SyntaxFactory.PredefinedType(
-                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                    SyntaxFactory.PredefinedType(
-                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                                                })))
-                            })))
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            null,
-            SyntaxFactory.Identifier(nameof(IRunnable.PositionalEnvironmentVariables)),
-            SyntaxFactory.AccessorList(
-                SyntaxFactory.List<AccessorDeclarationSyntax>()
-                    .Add(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))
-                    .Add(SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))),
-            null,
-            null);
+        var positionalEnvironmentVariablesParam = MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
 
-        var queriesInformationParam = SyntaxFactory.PropertyDeclaration(
-                SyntaxFactory.GenericName(
-                        SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                    .WithTypeArgumentList(
-                        SyntaxFactory.TypeArgumentList(
-                            SyntaxFactory.SeparatedList<TypeSyntax>(
-                                new SyntaxNodeOrToken[]
-                                {
-                                    SyntaxFactory.PredefinedType(
-                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                    SyntaxFactory.TupleType(
-                                        SyntaxFactory.SeparatedList<TupleElementSyntax>(
-                                            new SyntaxNodeOrToken[]
-                                            {
-                                                SyntaxFactory.TupleElement(
-                                                        SyntaxFactory.IdentifierName("SchemaFromNode"))
-                                                    .WithIdentifier(
-                                                        SyntaxFactory.Identifier("FromNode")),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.TupleElement(
-                                                        SyntaxFactory.GenericName(
-                                                                SyntaxFactory.Identifier("IReadOnlyCollection"))
-                                                            .WithTypeArgumentList(
-                                                                SyntaxFactory.TypeArgumentList(
-                                                                    SyntaxFactory
-                                                                        .SingletonSeparatedList<TypeSyntax>(
-                                                                            SyntaxFactory.IdentifierName(
-                                                                                "ISchemaColumn")))))
-                                                    .WithIdentifier(
-                                                        SyntaxFactory.Identifier("UsedColumns")),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.TupleElement(
-                                                        SyntaxFactory.IdentifierName("WhereNode"))
-                                                    .WithIdentifier(
-                                                        SyntaxFactory.Identifier("WhereNode")),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.TupleElement(
-                                                        SyntaxFactory.IdentifierName("bool"))
-                                                    .WithIdentifier(
-                                                        SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
-                                            }))
-                                }))),
-                SyntaxFactory.Identifier("QueriesInformation"))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-            .WithAccessorList(
-                SyntaxFactory.AccessorList(
-                    SyntaxFactory.List(
-                    [
-                        SyntaxFactory.AccessorDeclaration(
-                                SyntaxKind.GetAccessorDeclaration)
-                            .WithSemicolonToken(
-                                SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                        SyntaxFactory.AccessorDeclaration(
-                                SyntaxKind.SetAccessorDeclaration)
-                            .WithSemicolonToken(
-                                SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                    ])))
-            .NormalizeWhitespace();
+        var queriesInformationParam = MethodDeclarationHelper.CreateQueriesInformationProperty();
 
-        var loggerParam = SyntaxFactory.PropertyDeclaration(
-            [],
-            SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-            SyntaxFactory.IdentifierName(nameof(ILogger)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            null,
-            SyntaxFactory.Identifier(nameof(IRunnable.Logger)),
-            SyntaxFactory.AccessorList(
-                SyntaxFactory.List([
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                ])),
-            null,
-            null);
-            
+        var loggerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ILogger), nameof(IRunnable.Logger));
 
         _members.Add(method);
         _members.Add(providerParam);
@@ -2222,124 +2075,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         _methodNames.Push(methodName);
 
-        var method = SyntaxFactory.MethodDeclaration(
-            [],
-            SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-            SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            null,
-            SyntaxFactory.Identifier(methodName),
-            null,
-            SyntaxFactory.ParameterList(
-                SyntaxFactory.SeparatedList([
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(
-                            new SyntaxToken()),
-                        SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("provider"), null),
-
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(
-                            new SyntaxToken()),
-                        SyntaxFactory.GenericName(
-                                SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                            .WithTypeArgumentList(
-                                SyntaxFactory.TypeArgumentList(
-                                    SyntaxFactory.SeparatedList<TypeSyntax>(
-                                        new SyntaxNodeOrToken[]
-                                        {
-                                            SyntaxFactory.PredefinedType(
-                                                SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
-                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                            SyntaxFactory.GenericName(
-                                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                                .WithTypeArgumentList(
-                                                    SyntaxFactory.TypeArgumentList(
-                                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                            new SyntaxNodeOrToken[]
-                                                            {
-                                                                SyntaxFactory.PredefinedType(
-                                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                SyntaxFactory.PredefinedType(
-                                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                                                            })))
-                                        })))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
-
-                    SyntaxFactory.Parameter(
-                            SyntaxFactory.Identifier("queriesInformation"))
-                        .WithType(
-                            SyntaxFactory.GenericName(
-                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                .WithTypeArgumentList(
-                                    SyntaxFactory.TypeArgumentList(
-                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]
-                                            {
-                                                SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.TupleType(
-                                                    SyntaxFactory.SeparatedList<TupleElementSyntax>(
-                                                        new SyntaxNodeOrToken[]
-                                                        {
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.IdentifierName("SchemaFromNode"))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("FromNode")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.GenericName(
-                                                                            SyntaxFactory.Identifier(
-                                                                                "IReadOnlyCollection"))
-                                                                        .WithTypeArgumentList(
-                                                                            SyntaxFactory.TypeArgumentList(
-                                                                                SyntaxFactory
-                                                                                    .SingletonSeparatedList<
-                                                                                        TypeSyntax>(
-                                                                                        SyntaxFactory
-                                                                                            .IdentifierName(
-                                                                                                "ISchemaColumn")))))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("UsedColumns")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.IdentifierName("WhereNode"))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("WhereNode")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.IdentifierName("bool"))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier(
-                                                                        "HasExternallyProvidedTypes"))
-                                                        }))
-                                            })))),
-                    
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(
-                            new SyntaxToken()),
-                        SyntaxFactory.IdentifierName(nameof(ILogger))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("logger"), null),
-
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(
-                            new SyntaxToken()),
-                        SyntaxFactory.IdentifierName(nameof(CancellationToken))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("token"), null)
-                ])),
-            [],
-            SyntaxFactory.Block(Statements),
-            null);
+        var method = MethodDeclarationHelper.CreateStandardPrivateMethod(methodName, SyntaxFactory.Block(Statements));
 
         _members.Add(method);
         _typesToInstantiate.Clear();
@@ -2795,127 +2531,34 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private MethodDeclarationSyntax GenerateMethod(string methodName, string setOperator, string key,
         ExpressionSyntax firstTableExpression, ExpressionSyntax secondTableExpression)
     {
-        return SyntaxFactory
-            .MethodDeclaration(SyntaxFactory.IdentifierName(nameof(Table)), SyntaxFactory.Identifier(methodName))
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(SyntaxFactory.ParameterList(
-                SyntaxFactory.SeparatedList(
-                [
-                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("provider"))
-                        .WithType(SyntaxFactory.IdentifierName(nameof(ISchemaProvider))),
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(
-                            new SyntaxToken()),
-                        SyntaxFactory.GenericName(
-                                SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                            .WithTypeArgumentList(
-                                SyntaxFactory.TypeArgumentList(
-                                    SyntaxFactory.SeparatedList<TypeSyntax>(
-                                        new SyntaxNodeOrToken[]
-                                        {
-                                            SyntaxFactory.PredefinedType(
-                                                SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
-                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                            SyntaxFactory.GenericName(
-                                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                                .WithTypeArgumentList(
-                                                    SyntaxFactory.TypeArgumentList(
-                                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                            new SyntaxNodeOrToken[]
-                                                            {
-                                                                SyntaxFactory.PredefinedType(
-                                                                    SyntaxFactory.Token(SyntaxKind
-                                                                        .StringKeyword)),
-                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                SyntaxFactory.PredefinedType(
-                                                                    SyntaxFactory.Token(SyntaxKind
-                                                                        .StringKeyword))
-                                                            })))
-                                        })))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
-                    SyntaxFactory.Parameter(
-                            SyntaxFactory.Identifier("queriesInformation"))
-                        .WithType(
-                            SyntaxFactory.GenericName(
-                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                .WithTypeArgumentList(
-                                    SyntaxFactory.TypeArgumentList(
-                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]
-                                            {
-                                                SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.TupleType(
-                                                    SyntaxFactory.SeparatedList<TupleElementSyntax>(
-                                                        new SyntaxNodeOrToken[]
-                                                        {
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.IdentifierName(
-                                                                        "SchemaFromNode"))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("FromNode")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.GenericName(
-                                                                            SyntaxFactory.Identifier(
-                                                                                "IReadOnlyCollection"))
-                                                                        .WithTypeArgumentList(
-                                                                            SyntaxFactory.TypeArgumentList(
-                                                                                SyntaxFactory
-                                                                                    .SingletonSeparatedList<
-                                                                                        TypeSyntax>(
-                                                                                        SyntaxFactory
-                                                                                            .IdentifierName(
-                                                                                                "ISchemaColumn")))))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("UsedColumns")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.IdentifierName("WhereNode"))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("WhereNode")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.IdentifierName("bool"))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier(
-                                                                        "HasExternallyProvidedTypes"))
-                                                        }))
-                                            })))),
-                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("logger"))
-                        .WithType(SyntaxFactory.IdentifierName(nameof(ILogger))),
-                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
-                        .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken)))
-                ]))).WithBody(
-                SyntaxFactory.Block(
-                    SyntaxFactory.SingletonList<StatementSyntax>(
-                        SyntaxFactory.ReturnStatement(
-                            SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(setOperator))
-                                .WithArgumentList(
-                                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                        new SyntaxNodeOrToken[]
-                                        {
-                                            SyntaxFactory.Argument(firstTableExpression),
-                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                            SyntaxFactory.Argument(secondTableExpression),
-                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                            SyntaxFactory.Argument(SyntaxFactory
-                                                .ParenthesizedLambdaExpression(
-                                                    GenerateLambdaBody("first", "second", key))
-                                                .WithParameterList(SyntaxFactory.ParameterList(
-                                                    SyntaxFactory.SeparatedList<ParameterSyntax>(
-                                                        new SyntaxNodeOrToken[]
-                                                        {
-                                                            SyntaxFactory.Parameter(
-                                                                SyntaxFactory.Identifier("first")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.Parameter(
-                                                                SyntaxFactory.Identifier("second"))
-                                                        }))))
-                                        })))))));
+        var body = SyntaxFactory.Block(
+            SyntaxFactory.SingletonList<StatementSyntax>(
+                SyntaxFactory.ReturnStatement(
+                    SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(setOperator))
+                        .WithArgumentList(
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                new SyntaxNodeOrToken[]
+                                {
+                                    SyntaxFactory.Argument(firstTableExpression),
+                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                    SyntaxFactory.Argument(secondTableExpression),
+                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                    SyntaxFactory.Argument(SyntaxFactory
+                                        .ParenthesizedLambdaExpression(
+                                            GenerateLambdaBody("first", "second", key))
+                                        .WithParameterList(SyntaxFactory.ParameterList(
+                                            SyntaxFactory.SeparatedList<ParameterSyntax>(
+                                                new SyntaxNodeOrToken[]
+                                                {
+                                                    SyntaxFactory.Parameter(
+                                                        SyntaxFactory.Identifier("first")),
+                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                                    SyntaxFactory.Parameter(
+                                                        SyntaxFactory.Identifier("second"))
+                                                }))))
+                                }))))));
+
+        return MethodDeclarationHelper.CreateStandardPrivateMethod(methodName, body);
     }
 
     private CSharpSyntaxNode GenerateLambdaBody(string first, string second, string key)
