@@ -149,6 +149,7 @@ dotnet test --filter TestCategory=Performance
 - **API usage examples**: Reference `.copilot/api-usage-examples.md`
 - **Practical examples**: See project README.md for real-world query examples
 - **Plugin development**: Examine existing plugins in `Musoq.Plugins` directory
+- **Comprehensive documentation**: See [.copilot Documentation](#copilot-documentation-reference) section below for complete reference
 
 ## Critical Timing Expectations
 
@@ -196,3 +197,96 @@ dotnet test --filter TestCategory=Performance
 - **Schema provider performance matters**: Data source access is often the bottleneck
 
 Always validate changes with the comprehensive test suite before considering the work complete.
+
+## .copilot Documentation Reference
+
+The `.copilot/` directory contains comprehensive documentation specifically designed for AI agents and developers working with the Musoq codebase. This documentation provides deep technical insights and practical guidance beyond the quick reference above.
+
+### Documentation Structure
+
+#### 📖 [.copilot/INDEX.md](.copilot/INDEX.md)
+**Navigation hub** - Start here to understand all available documentation and choose the right guide for your needs.
+
+#### 📖 [.copilot/README.md](.copilot/README.md) 
+**Main technical documentation** - Comprehensive overview covering architecture, components, development workflow, and testing strategies. Essential for understanding the complete Musoq system.
+
+**Key sections:**
+- Quick start and architecture overview
+- Core component deep dive (Parser, Schema, Converter, Evaluator, Plugins)
+- Plugin development basics
+- Query processing pipeline
+- API usage patterns
+- Testing strategies with practical examples
+- Build and deployment guidelines
+- Troubleshooting guide with debugging techniques
+
+#### 🏗️ [.copilot/architecture-deep-dive.md](.copilot/architecture-deep-dive.md)
+**Detailed technical architecture** - In-depth analysis of internal architecture, design patterns, and component integration.
+
+**Essential for:**
+- Understanding AST node hierarchy and parser internals
+- Schema module abstractions and data flow
+- Converter build pipeline and code generation
+- Evaluator compilation and execution details
+- Plugin system architecture and integration patterns
+- Performance considerations and memory management
+
+#### 🔌 [.copilot/plugin-development-guide.md](.copilot/plugin-development-guide.md)
+**Complete plugin development reference** - Step-by-step guide for creating data sources and function libraries.
+
+**Covers:**
+- Data source plugin creation (schema, row source, entities)
+- Advanced row source patterns (chunking, parameterization)
+- Dynamic schema support and runtime column discovery
+- Function library development (basic, generic, aggregation)
+- Complex function examples (JSON, HTTP/Web APIs)
+- Plugin registration and deployment strategies
+- Testing plugin development and best practices
+
+#### 🛠️ [.copilot/development-debugging-guide.md](.copilot/development-debugging-guide.md)
+**Development environment and debugging** - Comprehensive guide for setup and debugging techniques.
+
+**Includes:**
+- Development environment setup for different IDEs
+- Component-specific development cycles and workflows
+- Debugging techniques (AST inspection, code generation, execution tracing)
+- Testing strategies (unit, integration, performance)
+- Build and CI/CD configuration details
+- Troubleshooting common issues (parse errors, schema failures, compilation errors)
+- Performance optimization and profiling techniques
+
+#### 💻 [.copilot/api-usage-examples.md](.copilot/api-usage-examples.md)
+**Practical API usage and examples** - Real-world examples and integration patterns.
+
+**Features:**
+- Core API overview and entry points
+- Schema provider implementation patterns
+- Data source examples (in-memory, REST API, database)
+- Advanced usage patterns (parameterization, dynamic registration, streaming)
+- Query analysis and optimization techniques
+- Error handling and logging strategies
+- Testing API usage with practical examples
+
+### When to Use Each Document
+
+**For New Contributors:**
+1. Start with [.copilot/README.md](.copilot/README.md) - Quick Start section
+2. Review [.copilot/architecture-deep-dive.md](.copilot/architecture-deep-dive.md) - Component Architecture
+3. Follow [.copilot/development-debugging-guide.md](.copilot/development-debugging-guide.md) - Development Setup
+
+**For Plugin Development:**
+1. Read [.copilot/README.md](.copilot/README.md) - Plugin Development section
+2. Follow [.copilot/plugin-development-guide.md](.copilot/plugin-development-guide.md) - Complete guide
+3. Reference [.copilot/api-usage-examples.md](.copilot/api-usage-examples.md) - Data source examples
+
+**For API Integration:**
+1. Study [.copilot/api-usage-examples.md](.copilot/api-usage-examples.md) - Core API and practical examples
+2. Reference [.copilot/README.md](.copilot/README.md) - API Usage Patterns
+3. Use [.copilot/development-debugging-guide.md](.copilot/development-debugging-guide.md) - Testing strategies
+
+**For Debugging Issues:**
+1. Check [.copilot/development-debugging-guide.md](.copilot/development-debugging-guide.md) - Troubleshooting section
+2. Review [.copilot/README.md](.copilot/README.md) - Troubleshooting Guide
+3. Use [.copilot/architecture-deep-dive.md](.copilot/architecture-deep-dive.md) - Component internals
+
+The .copilot documentation is designed to provide comprehensive technical depth while the GitHub Copilot instructions above offer quick reference and essential workflows.
