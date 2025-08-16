@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 
@@ -14,8 +15,16 @@ public static class BinaryOperationVisitorHelper
     /// Processes a Star operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
+    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessStarOperation(Stack<Node> nodes)
     {
+        if (nodes == null)
+            throw new ArgumentNullException(nameof(nodes));
+            
+        if (nodes.Count < 2)
+            throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
+            
         var right = nodes.Pop();
         var left = nodes.Pop();
         nodes.Push(new StarNode(left, right));

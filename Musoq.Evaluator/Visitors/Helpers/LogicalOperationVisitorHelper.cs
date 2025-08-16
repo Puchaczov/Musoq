@@ -73,6 +73,12 @@ public static class LogicalOperationVisitorHelper
         var right = (ArgsListNode)nodes.Pop();
         var left = nodes.Pop();
 
+        if (right.Args.Length == 0)
+        {
+            nodes.Push(new BooleanNode(false));
+            return;
+        }
+
         Node exp = new EqualityNode(left, right.Args[0]);
 
         for (var i = 1; i < right.Args.Length; i++)
