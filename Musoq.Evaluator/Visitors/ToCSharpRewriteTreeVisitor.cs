@@ -2382,55 +2382,19 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(QueryNode node)
     {
-        var detailedQuery = (DetailedQueryNode) node;
-
-        var orderByFields = detailedQuery.OrderBy is not null
-            ? new (FieldOrderedNode Field, ExpressionSyntax Syntax)[detailedQuery.OrderBy.Fields.Length]
-            : [];
-
-        for (var i = orderByFields.Length - 1; i >= 0; i--)
-        {
-            var orderBy = detailedQuery.OrderBy!;
-            var field = orderBy.Fields[i];
-            var syntax = (ExpressionSyntax) Nodes.Pop();
-            orderByFields[i] = (field, syntax);
-        }
-
-        var skip = node.Skip != null ? Nodes.Pop() as StatementSyntax : null;
-        var take = node.Take != null ? Nodes.Pop() as BlockSyntax : null;
-
-        var select = _selectBlock;
-        var where = node.Where != null ? Nodes.Pop() as StatementSyntax : null;
-
-        var block = (BlockSyntax) Nodes.Pop();
-
-        block = block.AddStatements(GenerateCancellationExpression());
-
-        if (where != null)
-            block = block.AddStatements(where);
-
-        block = block.AddStatements(GenerateStatsUpdateStatements());
-
-        if (skip != null)
-            block = block.AddStatements(skip);
-
-        if (take != null)
-            block = block.AddStatements(take.Statements.ToArray());
-        block = block.AddStatements(select.Statements.ToArray());
-        var fullBlock = SyntaxFactory.Block();
-
-        fullBlock = fullBlock.AddStatements(
-            GetRowsSourceOrEmpty(node.From.Alias),
-            _isResultParallelizationImpossible
-                ? SyntaxHelper.Foreach("score", _scope[MetaAttributes.SourceName], block, orderByFields)
-                : SyntaxHelper.ParallelForeach("score", _scope[MetaAttributes.SourceName], block));
-
-        fullBlock = fullBlock.AddStatements(
-            (StatementSyntax) Generator.ReturnStatement(
-                SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName)));
-
-        Statements.AddRange(fullBlock.Statements);
-
+        var result = Helpers.QueryNodeProcessor.ProcessQueryNode(
+            node, 
+            Nodes, 
+            _selectBlock, 
+            _scope, 
+            Generator, 
+            _isResultParallelizationImpossible,
+            _getRowsSourceStatement,
+            GenerateCancellationExpression,
+            GenerateStatsUpdateStatements,
+            GetRowsSourceOrEmpty);
+        
+        Statements.AddRange(result.Statements);
         _getRowsSourceStatement.Clear();
         _isResultParallelizationImpossible = false;
     }
