@@ -352,11 +352,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var b = Nodes.Pop();
         var a = Nodes.Pop();
 
-        var arg = SyntaxFactory.ArgumentList(
-            SyntaxFactory.SeparatedList([
-                SyntaxFactory.Argument((ExpressionSyntax) a),
-                SyntaxFactory.Argument((ExpressionSyntax) b)
-            ]));
+        var arg = SyntaxGenerationHelper.CreateArgumentList(
+            (ExpressionSyntax) a,
+            (ExpressionSyntax) b);
 
         Nodes.Push(arg);
 
@@ -371,11 +369,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var b = Nodes.Pop();
         var a = Nodes.Pop();
 
-        var arg = SyntaxFactory.ArgumentList(
-            SyntaxFactory.SeparatedList([
-                SyntaxFactory.Argument((ExpressionSyntax) a),
-                SyntaxFactory.Argument((ExpressionSyntax) b)
-            ]));
+        var arg = SyntaxGenerationHelper.CreateArgumentList(
+            (ExpressionSyntax) a,
+            (ExpressionSyntax) b);
 
         Nodes.Push(arg);
 
@@ -486,11 +482,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         var objExpression = SyntaxHelper.CreateArrayOfObjects(node.ReturnType.Name, expressions);
 
-        var arg = SyntaxFactory.ArgumentList(
-            SyntaxFactory.SeparatedList([
-                SyntaxFactory.Argument((ExpressionSyntax) a),
-                SyntaxFactory.Argument(objExpression)
-            ]));
+        var arg = SyntaxGenerationHelper.CreateArgumentList(
+            (ExpressionSyntax) a,
+            objExpression);
 
         Nodes.Push(arg);
 
