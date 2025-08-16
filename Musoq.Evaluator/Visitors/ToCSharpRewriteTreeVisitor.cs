@@ -2312,145 +2312,16 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(CaseNode node)
     {
-        var then = Nodes.Pop();
-        var when = Nodes.Pop();
-
-        var ifStatement =
-            SyntaxFactory.IfStatement(
-                (ExpressionSyntax) when,
-                SyntaxFactory.Block(
-                    SyntaxFactory.SingletonList<StatementSyntax>(
-                        SyntaxFactory.ReturnStatement(
-                            (ExpressionSyntax) then))));
-
-        var ifStatements = new List<IfStatementSyntax>
+        var result = CaseNodeProcessor.ProcessCaseNode(
+            node, Nodes, _typesToInstantiate, _oldType, _queryAlias, ref _caseWhenMethodIndex);
+        
+        foreach (var ns in result.RequiredNamespaces)
         {
-            ifStatement
-        };
-
-        for (int i = 1; i < node.WhenThenPairs.Length; i++)
-        {
-            then = Nodes.Pop();
-            when = Nodes.Pop();
-
-            ifStatements.Add(
-                SyntaxFactory.IfStatement(
-                    (ExpressionSyntax) when,
-                    SyntaxFactory.Block(
-                        SyntaxFactory.SingletonList<StatementSyntax>(
-                            SyntaxFactory.ReturnStatement(
-                                (ExpressionSyntax) then)))));
+            AddNamespace(ns);
         }
-
-        var elseNode = Nodes.Pop();
-
-        ifStatements[^1] =
-            ifStatements[^1].WithElse(
-                SyntaxFactory.ElseClause(
-                    SyntaxFactory.Block(
-                        SyntaxFactory.SingletonList<StatementSyntax>(
-                            SyntaxFactory.ReturnStatement(
-                                (ExpressionSyntax) elseNode)))));
-
-        IfStatementSyntax first;
-        IfStatementSyntax second;
-
-        IfStatementSyntax newIfStatement = null;
-
-        for (var i = ifStatements.Count - 2; i >= 1; i -= 1)
-        {
-            first = ifStatements[i];
-            second = ifStatements[i + 1];
-
-            ifStatements.RemoveAt(i + 1);
-            ifStatements.RemoveAt(i);
-
-            newIfStatement =
-                first.WithElse(
-                    SyntaxFactory.ElseClause(second));
-
-            ifStatements.Add(newIfStatement);
-        }
-
-        if (ifStatements.Count == 2)
-        {
-            first = ifStatements[0];
-            second = ifStatements[1];
-
-            ifStatements.RemoveAt(1);
-            ifStatements.RemoveAt(0);
-
-            newIfStatement =
-                first.WithElse(
-                    SyntaxFactory.ElseClause(second));
-        }
-        else
-        {
-            newIfStatement = ifStatements[0];
-
-            ifStatements.RemoveAt(0);
-        }
-
-        ifStatement = newIfStatement ?? throw new NullReferenceException(nameof(newIfStatement));
-
-        AddNamespace(node.ReturnType.Namespace);
-        AddNamespace(typeof(IObjectResolver).Namespace);
-
-        var methodName = $"CaseWhen_{_caseWhenMethodIndex++}";
-
-        var parameters = new List<ParameterSyntax>();
-        var callParameters = new List<ArgumentSyntax>();
-
-        parameters.Add(
-            SyntaxFactory.Parameter(
-                SyntaxFactory.Identifier("score")
-            ).WithType(
-                SyntaxFactory.IdentifierName(nameof(IObjectResolver))
-            ));
-
-        var rowVariableName = _oldType switch
-        {
-            MethodAccessType.TransformingQuery => $"{_queryAlias}Row",
-            MethodAccessType.ResultQuery => "score",
-            _ => string.Empty
-        };
-
-        callParameters.Add(
-            SyntaxFactory.Argument(
-                SyntaxFactory.IdentifierName(rowVariableName)));
-
-        foreach (var variableNameTypePair in _typesToInstantiate)
-        {
-            parameters.Add(
-                SyntaxFactory.Parameter(
-                    SyntaxFactory.Identifier(variableNameTypePair.Key)
-                ).WithType(
-                    SyntaxFactory.IdentifierName(variableNameTypePair.Value.Name)
-                ));
-
-            callParameters.Add(
-                SyntaxFactory.Argument(
-                    SyntaxFactory.IdentifierName(variableNameTypePair.Key)));
-        }
-
-        var method = SyntaxFactory
-            .MethodDeclaration(
-                SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(node.ReturnType)),
-                SyntaxFactory.Identifier(methodName))
-            .WithModifiers(
-                SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(
-                SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(parameters.ToArray()))
-            )
-            .WithBody(
-                SyntaxFactory.Block(
-                    SyntaxFactory.SingletonList<StatementSyntax>(ifStatement)));
-
-        _members.Add(method);
-
-        Nodes.Push(
-            SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray()));
+        
+        _members.Add(result.Method);
+        Nodes.Push(result.MethodInvocation);
     }
 
     public void Visit(WhenNode node)
