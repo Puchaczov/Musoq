@@ -57,7 +57,7 @@ public static class FieldProcessingHelper
             }
 
             if (field.Expression == null)
-                throw new ArgumentException($"Field expression at index {i} cannot be null");
+                throw new ArgumentException($"Field expression at index {i} cannot be null", nameof(oldFields));
             if (string.IsNullOrEmpty(field.FieldName))
             if (string.IsNullOrWhiteSpace(field.FieldName))
                 throw new ArgumentException($"Field name at index {i} cannot be null, empty, or whitespace");
