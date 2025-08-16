@@ -139,7 +139,7 @@ public static class LogicalOperationVisitorHelper
 
         if (right.Args.Length == 0)
         {
-            nodes.Push(new BooleanNode(InOperationEmptyResult));
+            nodes.Push(new BooleanNode(false));
             return;
         }
 
