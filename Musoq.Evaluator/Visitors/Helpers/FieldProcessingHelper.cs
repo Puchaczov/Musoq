@@ -21,22 +21,45 @@ public static class FieldProcessingHelper
     /// <param name="oldFields">The original fields.</param>
     /// <param name="nodes">The node stack to pop from.</param>
     /// <returns>The created fields.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when oldFields or nodes is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
     public static FieldNode[] CreateFields(FieldNode[] oldFields, Stack<Node> nodes)
     {
+        if (oldFields == null)
+            throw new ArgumentNullException(nameof(oldFields));
+        if (nodes == null)
+            throw new ArgumentNullException(nameof(nodes));
+            
+        if (nodes.Count < oldFields.Length)
+            throw new InvalidOperationException($"Stack must contain at least {oldFields.Length} nodes for field creation");
+
         var reorderedList = new FieldNode[oldFields.Length];
         var fields = new List<FieldNode>(reorderedList.Length);
 
         for (var i = reorderedList.Length - 1; i >= 0; i--) 
-            reorderedList[i] = nodes.Pop() as FieldNode;
+        {
+            var poppedNode = nodes.Pop();
+            if (!(poppedNode is FieldNode fieldNode))
+                throw new ArgumentException($"Node at stack position {i} must be a FieldNode, but was {poppedNode?.GetType().Name ?? "null"}");
+            reorderedList[i] = fieldNode;
+        }
 
         for (int i = 0, j = reorderedList.Length, p = 0; i < j; ++i)
         {
             var field = reorderedList[i];
+            
+            if (field == null)
+                throw new ArgumentException($"Field at index {i} cannot be null");
 
             if (field.Expression is AllColumnsNode)
             {
                 continue;
             }
+
+            if (field.Expression == null)
+                throw new ArgumentException($"Field expression at index {i} cannot be null");
+            if (string.IsNullOrEmpty(field.FieldName))
+                throw new ArgumentException($"Field name at index {i} cannot be null or empty");
 
             fields.Add(new FieldNode(field.Expression, p++, field.FieldName));
         }
@@ -55,6 +78,7 @@ public static class FieldProcessingHelper
     /// <param name="includeKnownColumn">Function to determine if a column should be included.</param>
     /// <param name="startAt">Starting index for field order.</param>
     /// <returns>The created and concatenated fields.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
     public static FieldNode[] CreateAndConcatFields(
         TableSymbol left, 
         string lAlias, 
@@ -64,6 +88,13 @@ public static class FieldProcessingHelper
         Func<AccessColumnNode, bool> includeKnownColumn = null, 
         int startAt = 0)
     {
+        if (left == null)
+            throw new ArgumentNullException(nameof(left));
+        if (right == null)
+            throw new ArgumentNullException(nameof(right));
+        if (createLeftAndRightFieldName == null)
+            throw new ArgumentNullException(nameof(createLeftAndRightFieldName));
+
         return CreateAndConcatFields(
             left, 
             lAlias, 
