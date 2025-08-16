@@ -149,12 +149,25 @@ public static class LiteralNodeSyntaxConverter
     /// <returns>A cast expression.</returns>
     private static CastExpressionSyntax CreateIntegerCast(SyntaxKind keyword, object value)
     {
+        var literal = keyword switch
+        {
+            SyntaxKind.SByteKeyword => SyntaxFactory.Literal((sbyte)value),
+            SyntaxKind.ByteKeyword => SyntaxFactory.Literal((byte)value),
+            SyntaxKind.ShortKeyword => SyntaxFactory.Literal((short)value),
+            SyntaxKind.UShortKeyword => SyntaxFactory.Literal((ushort)value),
+            SyntaxKind.IntKeyword => SyntaxFactory.Literal((int)value),
+            SyntaxKind.UIntKeyword => SyntaxFactory.Literal((uint)value),
+            SyntaxKind.LongKeyword => SyntaxFactory.Literal((long)value),
+            SyntaxKind.ULongKeyword => SyntaxFactory.Literal((ulong)value),
+            _ => throw new ArgumentException($"Unsupported integer type keyword: {keyword}")
+        };
+
         return SyntaxFactory.CastExpression(
                 SyntaxFactory.PredefinedType(
                     SyntaxFactory.Token(keyword)),
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(Convert.ToInt32(value))))
+                    literal))
             .WithOpenParenToken(
                 SyntaxFactory.Token(SyntaxKind.OpenParenToken))
             .WithCloseParenToken(

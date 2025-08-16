@@ -96,21 +96,21 @@ public static class JoinProcessingHelper
         var invocation = CreateTableAddInvocation(node, scope);
 
         return computingBlock.AddStatements(
-            getRowsSourceOrEmpty(node.SourceTable.Alias),
+            getRowsSourceOrEmpty(node.InMemoryTableAlias),
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
-                SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
-                SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
+                SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
+                SyntaxFactory.IdentifierName(
+                    $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
                 Block(
                     SyntaxFactory.LocalDeclarationStatement(
                         SyntaxHelper.CreateAssignment("hasAnyRowMatched",
                             SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))),
-                    getRowsSourceOrEmpty(node.InMemoryTableAlias),
+                    getRowsSourceOrEmpty(node.SourceTable.Alias),
                     SyntaxFactory.ForEachStatement(
                         SyntaxFactory.IdentifierName("var"),
-                        SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
-                        SyntaxFactory.IdentifierName(
-                            $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
+                        SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
+                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
                         SyntaxFactory.Block(
                             generateCancellationExpression(),
                             ifStatement,
