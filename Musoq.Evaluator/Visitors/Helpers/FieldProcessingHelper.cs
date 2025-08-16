@@ -62,6 +62,18 @@ public static class FieldProcessingHelper
             if (string.IsNullOrWhiteSpace(field.FieldName))
                 throw new ArgumentException($"Field name at index {i} cannot be null, empty, or whitespace");
 
+            // Consolidated validation logic
+            if (field == null)
+                throw new ArgumentException($"Field at index {i} cannot be null");
+            if (field.Expression == null)
+                throw new ArgumentException($"Field expression at index {i} cannot be null");
+            if (string.IsNullOrEmpty(field.FieldName))
+                throw new ArgumentException($"Field name at index {i} cannot be null or empty");
+
+            if (field.Expression is AllColumnsNode)
+            {
+                continue;
+            }
             fields.Add(new FieldNode(field.Expression, p++, field.FieldName));
         }
 
