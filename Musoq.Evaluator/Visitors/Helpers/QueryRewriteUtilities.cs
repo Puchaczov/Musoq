@@ -137,7 +137,10 @@ public static class QueryRewriteUtilities
 
         if (selectFields.Length > 0)
         if (selectFields.Any(f => f == null))
-            throw new ArgumentException("selectFields contains null elements.", nameof(selectFields));
+        {
+            if (selectFields.Any(f => f == null))
+                throw new ArgumentException("selectFields contains null elements.", nameof(selectFields));
+        }
 
         if (selectFields.Length > 0)
             nextOrder = selectFields.Max(f => f.FieldOrder);
