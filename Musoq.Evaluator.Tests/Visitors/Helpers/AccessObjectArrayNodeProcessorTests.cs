@@ -1,0 +1,279 @@
+using System;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Parser.Nodes;
+
+namespace Musoq.Evaluator.Tests.Visitors.Helpers;
+
+[TestClass]
+public class AccessObjectArrayNodeProcessorTests
+{
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithNullNode_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var nodes = new Stack<SyntaxNode>();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentNullException>(() => 
+            AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(null, nodes));
+    }
+
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithNullNodes_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var node = CreateAccessObjectArrayNode("test", 0, typeof(string), isColumnAccess: true);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentNullException>(() => 
+            AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, null));
+    }
+
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithColumnAccess_StringType_GeneratesStringCharacterAccess()
+    {
+        // Arrange
+        var node = CreateAccessObjectArrayNode("testColumn", 2, typeof(string), isColumnAccess: true);
+        var nodes = new Stack<SyntaxNode>();
+
+        // Act
+        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsNotNull(result.Expression);
+        Assert.AreEqual("Musoq.Evaluator.Helpers", result.RequiredNamespace);
+        
+        var expressionString = result.Expression.ToString();
+        Console.WriteLine($"Expression: {expressionString}");
+        Assert.IsTrue(expressionString.Contains("SafeArrayAccess.GetStringCharacter"));
+        Assert.IsTrue(expressionString.Contains("2"));
+    }
+
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithColumnAccess_IntArrayType_GeneratesArrayElementAccess()
+    {
+        // Arrange
+        var node = CreateAccessObjectArrayNode("intArray", 1, typeof(int[]), isColumnAccess: true);
+        var nodes = new Stack<SyntaxNode>();
+
+        // Act
+        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsNotNull(result.Expression);
+        
+        var expressionString = result.Expression.ToString();
+        Console.WriteLine($"Expression: {expressionString}");
+        // Update assertions based on actual output
+        Assert.IsTrue(expressionString.Contains("SafeArrayAccess.GetArrayElement"));
+        Assert.IsTrue(expressionString.Contains("1"));
+    }
+
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithColumnAccess_DoubleArrayType_GeneratesArrayElementAccess()
+    {
+        // Arrange
+        var node = CreateAccessObjectArrayNode("doubleArray", 3, typeof(double[]), isColumnAccess: true);
+        var nodes = new Stack<SyntaxNode>();
+
+        // Act
+        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes);
+
+        // Assert
+        Assert.IsNotNull(result);
+        var expressionString = result.Expression.ToString();
+        Console.WriteLine($"Expression: {expressionString}");
+        Assert.IsTrue(expressionString.Contains("SafeArrayAccess.GetArrayElement"));
+        Assert.IsTrue(expressionString.Contains("3"));
+    }
+
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithColumnAccess_ObjectArrayType_GeneratesArrayElementAccess()
+    {
+        // Arrange
+        var node = CreateAccessObjectArrayNode("objectArray", 0, typeof(object[]), isColumnAccess: true);
+        var nodes = new Stack<SyntaxNode>();
+
+        // Act
+        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes);
+
+        // Assert
+        Assert.IsNotNull(result);
+        var expressionString = result.Expression.ToString();
+        Console.WriteLine($"Expression: {expressionString}");
+        Assert.IsTrue(expressionString.Contains("SafeArrayAccess.GetArrayElement"));
+        Assert.IsTrue(expressionString.Contains("0"));
+    }
+
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithColumnAccess_OtherIndexableType_GeneratesDirectElementAccess()
+    {
+        // Arrange
+        var node = CreateAccessObjectArrayNode("listColumn", 5, typeof(List<int>), isColumnAccess: true);
+        var nodes = new Stack<SyntaxNode>();
+
+        // Act
+        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes);
+
+        // Assert
+        Assert.IsNotNull(result);
+        var expressionString = result.Expression.ToString();
+        Console.WriteLine($"Expression: {expressionString}");
+        // For non-array types, we expect direct element access
+        Assert.IsTrue(expressionString.Contains("[5]"));
+    }
+
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithPropertyAccess_ValidExpression_GeneratesElementAccess()
+    {
+        // Arrange
+        var node = CreateAccessObjectArrayNode("Property", 1, typeof(string), isColumnAccess: false);
+        var nodes = new Stack<SyntaxNode>();
+        nodes.Push(SyntaxFactory.IdentifierName("parentObject"));
+
+        // Act
+        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes);
+
+        // Assert
+        Assert.IsNotNull(result);
+        var expressionString = result.Expression.ToString();
+        Assert.IsTrue(expressionString.Contains("(parentObject).Property[1]"));
+        Assert.AreEqual(0, nodes.Count); // Should have popped the expression
+    }
+
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithPropertyAccess_NoParentExpression_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var node = CreateAccessObjectArrayNode("Property", 1, typeof(string), isColumnAccess: false);
+        var nodes = new Stack<SyntaxNode>();
+
+        // Act & Assert
+        var exception = Assert.ThrowsException<InvalidOperationException>(() => 
+            AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
+        
+        Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
+        Assert.IsTrue(exception.Message.Contains("no parent expression available"));
+    }
+
+    [TestMethod]
+    public void ProcessAccessObjectArrayNode_WithPropertyAccess_NonExpressionOnStack_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var node = CreateAccessObjectArrayNode("Property", 1, typeof(string), isColumnAccess: false);
+        var nodes = new Stack<SyntaxNode>();
+        nodes.Push(SyntaxFactory.Block()); // Non-expression syntax node
+
+        // Act & Assert
+        var exception = Assert.ThrowsException<InvalidOperationException>(() => 
+            AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
+        
+        Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
+    }
+
+    [TestMethod]
+    [DataRow(typeof(string), "string")]
+    [DataRow(typeof(int), "int")]
+    [DataRow(typeof(double), "double")]
+    [DataRow(typeof(bool), "bool")]
+    [DataRow(typeof(decimal), "decimal")]
+    [DataRow(typeof(long), "long")]
+    [DataRow(typeof(object), "object")]
+    public void GetCSharpType_WithPrimitiveTypes_ReturnsCorrectSyntax(Type inputType, string expectedKeyword)
+    {
+        // Act
+        var result = AccessObjectArrayNodeProcessor.GetCSharpType(inputType);
+
+        // Assert
+        Assert.IsNotNull(result);
+        if (result is PredefinedTypeSyntax predefinedType)
+        {
+            Assert.AreEqual(expectedKeyword, predefinedType.Keyword.ValueText);
+        }
+        else
+        {
+            Assert.Fail($"Expected PredefinedTypeSyntax for {inputType.Name}, got {result.GetType().Name}");
+        }
+    }
+
+    [TestMethod]
+    public void GetCSharpType_WithComplexType_ReturnsIdentifierName()
+    {
+        // Arrange
+        var complexType = typeof(DateTime);
+
+        // Act
+        var result = AccessObjectArrayNodeProcessor.GetCSharpType(complexType);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(IdentifierNameSyntax));
+        var identifierName = (IdentifierNameSyntax)result;
+        Assert.AreEqual("DateTime", identifierName.Identifier.ValueText);
+    }
+
+    [TestMethod]
+    public void GetCSharpType_WithNullType_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.ThrowsException<ArgumentNullException>(() => 
+            AccessObjectArrayNodeProcessor.GetCSharpType(null));
+    }
+
+    [TestMethod]
+    public void AccessObjectArrayProcessingResult_Constructor_WithValidArguments_SetsProperties()
+    {
+        // Arrange
+        var expression = SyntaxFactory.IdentifierName("test");
+        var namespaceName = "TestNamespace";
+
+        // Act
+        var result = new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(expression, namespaceName);
+
+        // Assert
+        Assert.AreEqual(expression, result.Expression);
+        Assert.AreEqual(namespaceName, result.RequiredNamespace);
+    }
+
+    [TestMethod]
+    public void AccessObjectArrayProcessingResult_Constructor_WithNullExpression_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.ThrowsException<ArgumentNullException>(() => 
+            new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(null, "namespace"));
+    }
+
+    [TestMethod]
+    public void AccessObjectArrayProcessingResult_Constructor_WithNullNamespace_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var expression = SyntaxFactory.IdentifierName("test");
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentNullException>(() => 
+            new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(expression, null));
+    }
+
+    /// <summary>
+    /// Helper method to create AccessObjectArrayNode for testing.
+    /// </summary>
+    private static AccessObjectArrayNode CreateAccessObjectArrayNode(string objectName, int index, Type columnType, bool isColumnAccess)
+    {
+        var token = new NumericAccessToken(objectName, index.ToString(), new Musoq.Parser.TextSpan(0, index.ToString().Length));
+        if (isColumnAccess)
+        {
+            return new AccessObjectArrayNode(token, columnType);
+        }
+        else
+        {
+            return new AccessObjectArrayNode(token);
+        }
+    }
+}
