@@ -1147,85 +1147,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(SelectNode node)
     {
-        var scoreTable = _scope[MetaAttributes.SelectIntoVariableName];
-
-        var variableNameKeyword = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, "select",
-            SyntaxTriviaList.Create(SyntaxHelper.WhiteSpace));
-        var syntaxList = new ExpressionSyntax[node.Fields.Length];
-
-        for (var i = 0; i < node.Fields.Length; i++)
-            syntaxList[node.Fields.Length - 1 - i] = (ExpressionSyntax) Nodes.Pop();
-
-        var array = SyntaxHelper.CreateArrayOfObjects(syntaxList.ToArray());
-        var equalsClause = SyntaxFactory.EqualsValueClause(
-            SyntaxFactory.Token(SyntaxKind.EqualsToken).WithTrailingTrivia(SyntaxHelper.WhiteSpace), array);
-
-        var variableDecl = SyntaxFactory.VariableDeclarator(variableNameKeyword, null, equalsClause);
-        var list = SyntaxFactory.SeparatedList(new List<VariableDeclaratorSyntax>
-        {
-            variableDecl
-        });
-
-        var variableDeclaration =
-            SyntaxFactory.VariableDeclaration(
-                SyntaxFactory.IdentifierName("var").WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                list);
-
-        var contexts = _scope[MetaAttributes.Contexts].Split(',');
-
-        var contextsExpressions = new List<ArgumentSyntax>
-        {
-            SyntaxFactory.Argument(
-                SyntaxFactory.IdentifierName(variableNameKeyword.Text))
-        };
-
-        foreach (var context in contexts)
-        {
-            string rowVariableName;
-
-            switch (_type)
-            {
-                case MethodAccessType.TransformingQuery:
-                    rowVariableName = $"{context}Row";
-                    break;
-                case MethodAccessType.ResultQuery:
-                case MethodAccessType.CaseWhen:
-                    rowVariableName = "score";
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            contextsExpressions.Add(
-                SyntaxFactory.Argument(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(rowVariableName),
-                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}"))));
-        }
-
-        var invocation = SyntaxHelper.CreateMethodInvocation(
-            scoreTable,
-            nameof(Table.Add),
-            [
-                SyntaxFactory.Argument(
-                    SyntaxFactory.ObjectCreationExpression(
-                        SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList(
-                                contextsExpressions.ToArray())
-                        ),
-                        SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
-                )
-            ]);
-
-        var a1 = SyntaxFactory.LocalDeclarationStatement(variableDeclaration)
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-        var a2 = SyntaxFactory.ExpressionStatement(invocation)
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-
-        _selectBlock = SyntaxFactory.Block(a1, a2);
+        var result = Helpers.SelectNodeProcessor.ProcessSelectNode(node, Nodes, _scope, _type);
+        _selectBlock = result.SelectBlock;
     }
 
     public void Visit(GroupSelectNode node)
