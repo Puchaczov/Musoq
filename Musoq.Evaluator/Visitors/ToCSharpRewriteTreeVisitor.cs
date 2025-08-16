@@ -905,60 +905,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(GroupByNode node)
     {
-        var args = new SyntaxNode[node.Fields.Length];
-
-        SyntaxNode having = null;
-        if (node.Having != null)
-            having = Nodes.Pop();
-
-        var syntaxList = new ExpressionSyntax[node.Fields.Length];
-
-        for (int i = 0, j = node.Fields.Length - 1; i < node.Fields.Length; i++, j--) args[j] = Nodes.Pop();
-
-        var keysElements = new List<ObjectCreationExpressionSyntax>();
-
-        for (var i = 0; i < args.Length; i++)
-        {
-            syntaxList[i] =
-                SyntaxHelper.CreateArrayOfObjects(args.Take(i + 1).Cast<ExpressionSyntax>().ToArray());
-
-            var currentKey = new ArgumentSyntax[i + 1];
-            for (var j = i; j >= 0; j--) currentKey[j] = SyntaxFactory.Argument((ExpressionSyntax) args[j]);
-
-            keysElements.Add(
-                SyntaxHelper.CreateObjectOf(
-                    nameof(GroupKey),
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList(currentKey))));
-        }
-
-        _groupValues =
-            SyntaxHelper.CreateAssignment("values", SyntaxHelper.CreateArrayOf(nameof(Object), syntaxList, 2));
-        _groupKeys = SyntaxHelper.CreateAssignment("keys",
-            SyntaxHelper.CreateArrayOfObjects(nameof(GroupKey), keysElements.Cast<ExpressionSyntax>().ToArray()));
-        _groupHaving = having;
-
-
-        var groupFields = _scope.ScopeSymbolTable.GetSymbol<FieldsNamesSymbol>("groupFields");
-
-        var fieldNames = new StringBuilder();
-        string fieldName;
-        fieldNames.Append("var groupFieldsNames = new string[][]{");
-        for (var i = 0; i < groupFields.Names.Length - 1; i++)
-        {
-            fieldName =
-                $"new string[]{{{groupFields.Names.Where((f, idx) => idx <= i).Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
-            fieldNames.Append(fieldName);
-            fieldNames.Append(',');
-        }
-
-        fieldName =
-            $"new string[]{{{groupFields.Names.Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
-        fieldNames.Append(fieldName);
-        fieldNames.Append("};");
-
-        Statements.Add(SyntaxFactory.ParseStatement(fieldNames.ToString()));
-
+        var result = GroupByNodeProcessor.ProcessGroupByNode(node, Nodes, _scope);
+        
+        _groupValues = result.GroupValues;
+        _groupKeys = result.GroupKeys;
+        _groupHaving = result.GroupHaving;
+        
+        Statements.Add(result.GroupFieldsStatement);
         AddNamespace(typeof(GroupKey).Namespace);
     }
 
