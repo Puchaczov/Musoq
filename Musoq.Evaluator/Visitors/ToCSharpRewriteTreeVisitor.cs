@@ -19,6 +19,7 @@ using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
+using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
@@ -42,8 +43,6 @@ namespace Musoq.Evaluator.Visitors;
 
 public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTranslationExpressionVisitor
 {
-    private const char EscapeQuoteStringCharacter = '"';
-    private const char EscapeQuoteStringCharacterReplacement = '\'';
 
     /// <summary>
     /// Gets the name of this visitor for error reporting.
@@ -204,57 +203,37 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(StarNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-        Nodes.Push(Generator.MultiplyExpression(a, b));
+        SyntaxBinaryOperationHelper.ProcessMultiplyOperation(Nodes, Generator);
     }
 
     public void Visit(FSlashNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-        Nodes.Push(Generator.DivideExpression(a, b));
+        SyntaxBinaryOperationHelper.ProcessDivideOperation(Nodes, Generator);
     }
 
     public void Visit(ModuloNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-        Nodes.Push(Generator.ModuloExpression(a, b));
+        SyntaxBinaryOperationHelper.ProcessModuloOperation(Nodes, Generator);
     }
 
     public void Visit(AddNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-        Nodes.Push(Generator.AddExpression(a, b));
+        SyntaxBinaryOperationHelper.ProcessAddOperation(Nodes, Generator);
     }
 
     public void Visit(HyphenNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-        Nodes.Push(Generator.SubtractExpression(a, b));
+        SyntaxBinaryOperationHelper.ProcessSubtractOperation(Nodes, Generator);
     }
 
     public void Visit(AndNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        var rawSyntax = Generator.LogicalAndExpression(a, b);
-
-        Nodes.Push(rawSyntax);
+        SyntaxBinaryOperationHelper.ProcessLogicalAndOperation(Nodes, Generator);
     }
 
     public void Visit(OrNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        var rawSyntax = Generator.LogicalOrExpression(a, b);
-
-        Nodes.Push(rawSyntax);
+        SyntaxBinaryOperationHelper.ProcessLogicalOrOperation(Nodes, Generator);
     }
 
     public void Visit(ShortCircuitingNodeLeft node)
@@ -279,8 +258,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
         else
         {
-            var rawSyntax = Generator.ValueEqualsExpression(a, b);
-            Nodes.Push(rawSyntax);
+            // Use the helper for normal equality operations
+            Nodes.Push(a);
+            Nodes.Push(b);
+            SyntaxBinaryOperationHelper.ProcessValueEqualsOperation(Nodes, Generator);
         }
     }
 
@@ -337,52 +318,27 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(GreaterOrEqualNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        var rawSyntax = Generator.GreaterThanOrEqualExpression(a, b);
-
-        Nodes.Push(rawSyntax);
+        SyntaxBinaryOperationHelper.ProcessGreaterThanOrEqualOperation(Nodes, Generator);
     }
 
     public void Visit(LessOrEqualNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        var rawSyntax = Generator.LessThanOrEqualExpression(a, b);
-
-        Nodes.Push(rawSyntax);
+        SyntaxBinaryOperationHelper.ProcessLessThanOrEqualOperation(Nodes, Generator);
     }
 
     public void Visit(GreaterNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        var rawSyntax = Generator.GreaterThanExpression(a, b);
-
-        Nodes.Push(rawSyntax);
+        SyntaxBinaryOperationHelper.ProcessGreaterThanOperation(Nodes, Generator);
     }
 
     public void Visit(LessNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        var rawSyntax = Generator.LessThanExpression(a, b);
-
-        Nodes.Push(rawSyntax);
+        SyntaxBinaryOperationHelper.ProcessLessThanOperation(Nodes, Generator);
     }
 
     public void Visit(DiffNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        var rawSyntax = Generator.ValueNotEqualsExpression(a, b);
-
-        Nodes.Push(rawSyntax);
+        SyntaxBinaryOperationHelper.ProcessValueNotEqualsOperation(Nodes, Generator);
     }
 
     public void Visit(NotNode node)
@@ -488,173 +444,32 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(StringNode node)
     {
-        Nodes.Push(
-            SyntaxFactory.LiteralExpression(
-                SyntaxKind.StringLiteralExpression,
-                SyntaxFactory.Literal(
-                    $"@\"{EscapeQuoteString(node.Value, EscapeQuoteStringCharacterReplacement)}\"", node.Value)));
+        Nodes.Push(LiteralNodeSyntaxConverter.ConvertStringNode(node));
     }
 
     public void Visit(DecimalNode node)
     {
-        Nodes.Push(
-            SyntaxFactory.CastExpression(
-                    SyntaxFactory.PredefinedType(
-                        SyntaxFactory.Token(SyntaxKind.DecimalKeyword)),
-                    SyntaxFactory.LiteralExpression(
-                        SyntaxKind.NumericLiteralExpression,
-                        SyntaxFactory.Literal(node.Value)))
-                .WithOpenParenToken(
-                    SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                .WithCloseParenToken(
-                    SyntaxFactory.Token(SyntaxKind.CloseParenToken))
-                .NormalizeWhitespace());
+        Nodes.Push(LiteralNodeSyntaxConverter.ConvertDecimalNode(node));
     }
 
     public void Visit(IntegerNode node)
     {
-        switch (node.ReturnType)
-        {
-            case { } t when t == typeof(sbyte):
-            {
-                Nodes.Push(
-                    SyntaxFactory.CastExpression(
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.SByteKeyword)),
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((sbyte) node.ObjValue)))
-                        .WithOpenParenToken(
-                            SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                        .WithCloseParenToken(
-                            SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
-                break;
-            }
-            case { } t when t == typeof(byte):
-            {
-                Nodes.Push(
-                    SyntaxFactory.CastExpression(
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.ByteKeyword)),
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((byte) node.ObjValue)))
-                        .WithOpenParenToken(
-                            SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                        .WithCloseParenToken(
-                            SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
-                break;
-            }
-            case { } t when t == typeof(short):
-            {
-                Nodes.Push(
-                    SyntaxFactory.CastExpression(
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.ShortKeyword)),
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((short) node.ObjValue)))
-                        .WithOpenParenToken(
-                            SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                        .WithCloseParenToken(
-                            SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
-                break;
-            }
-            case { } t when t == typeof(ushort):
-            {
-                Nodes.Push(
-                    SyntaxFactory.CastExpression(
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.UShortKeyword)),
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((ushort) node.ObjValue)))
-                        .WithOpenParenToken(
-                            SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                        .WithCloseParenToken(
-                            SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
-                break;
-            }
-            case { } t when t == typeof(int):
-            {
-                Nodes.Push(
-                    SyntaxFactory.CastExpression(
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.IntKeyword)),
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((int) node.ObjValue)))
-                        .WithOpenParenToken(
-                            SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                        .WithCloseParenToken(
-                            SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
-                break;
-            }
-            case { } t when t == typeof(uint):
-            {
-                Nodes.Push(
-                    SyntaxFactory.CastExpression(
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((uint) node.ObjValue)))
-                        .WithOpenParenToken(
-                            SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                        .WithCloseParenToken(
-                            SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
-                break;
-            }
-            case { } t when t == typeof(long):
-            {
-                Nodes.Push(
-                    SyntaxFactory.CastExpression(
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.LongKeyword)),
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((long) node.ObjValue)))
-                        .WithOpenParenToken(
-                            SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                        .WithCloseParenToken(
-                            SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
-                break;
-            }
-            case { } t when t == typeof(ulong):
-            {
-                Nodes.Push(
-                    SyntaxFactory.CastExpression(
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.ULongKeyword)),
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal((ulong) node.ObjValue)))
-                        .WithOpenParenToken(
-                            SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                        .WithCloseParenToken(
-                            SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
-                break;
-            }
-            default:
-            {
-                throw new NotSupportedException($"Type {node.ReturnType} is not supported.");
-            }
-        }
+        Nodes.Push(LiteralNodeSyntaxConverter.ConvertIntegerNode(node));
     }
 
     public void Visit(BooleanNode node)
     {
-        Nodes.Push(Generator.LiteralExpression(node.Value));
+        Nodes.Push(LiteralNodeSyntaxConverter.ConvertBooleanNode(node, Generator));
     }
 
     public void Visit(WordNode node)
     {
-        Nodes.Push(Generator.LiteralExpression(node.Value));
+        Nodes.Push(LiteralNodeSyntaxConverter.ConvertWordNode(node, Generator));
     }
 
     public void Visit(NullNode node)
     {
-        Nodes.Push(GenerateNullableNull(node.ReturnType));
+        Nodes.Push(LiteralNodeSyntaxConverter.ConvertNullNode(node, Generator));
     }
 
     public void Visit(ContainsNode node)
@@ -2423,7 +2238,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                     SyntaxFactory.LiteralExpression(
                                         SyntaxKind.StringLiteralExpression,
                                         SyntaxFactory.Literal(
-                                            $"@\"{EscapeQuoteString(field.FieldName, EscapeQuoteStringCharacter)}\"",
+                                            $"@\"{field.FieldName.Replace("\"", "'")}\"",
                                             field.FieldName))),
                                 SyntaxHelper.TypeLiteralArgument(
                                     EvaluationHelper.GetCastableType(type)),
@@ -2586,7 +2401,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                         SyntaxFactory.SeparatedList<ExpressionSyntax>()
                             .Add((LiteralExpressionSyntax) Generator.LiteralExpression(j))
                             .Add((LiteralExpressionSyntax) Generator.LiteralExpression(
-                                EscapeQuoteString(node.Select.Fields[i].FieldName, EscapeQuoteStringCharacter))));
+                                node.Select.Fields[i].FieldName.Replace("\"", "'"))));
 
             const string indexToValueDictVariableName = "indexToValueDict";
 
@@ -4285,34 +4100,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _methodNames.Push(methodName);
     }
 
-    private SyntaxNode GenerateNullableNull(Type nodeReturnType)
-    {
-        if (CheckIfNullable(nodeReturnType))
-        {
-            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-        }
 
-        var typeIdentifier = SyntaxFactory.IdentifierName(
-            EvaluationHelper.GetCastableType(nodeReturnType));
-
-        return Generator.CastExpression(Generator.NullableTypeExpression(typeIdentifier),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
-    }
-
-    private string EscapeQuoteString(string text, char escapingCharacter)
-    {
-        var builder = new StringBuilder(text.Length);
-
-        foreach (var c in text)
-        {
-            if (c == '"')
-                builder.Append(escapingCharacter);
-
-            builder.Append(c);
-        }
-
-        return builder.ToString();
-    }
 
     private StatementSyntax GetRowsSourceOrEmpty(string alias)
     {
@@ -4321,15 +4109,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             : SyntaxFactory.EmptyStatement();
     }
 
-    private static bool CheckIfNullable(Type type)
-    {
-        if (type.IsValueType)
-        {
-            return Nullable.GetUnderlyingType(type) != null;
-        }
 
-        return true;
-    }
 
     /// <summary>
     /// Gets the C# type name for code generation
