@@ -84,7 +84,6 @@ public static class FieldProcessingHelper
             if (field.Expression is AllColumnsNode)
             {
                 continue;
-            }
             fields.Add(new FieldNode(field.Expression, p++, field.FieldName));
         }
 
