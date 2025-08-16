@@ -48,6 +48,7 @@ public static class FieldProcessingHelper
         {
             var field = reorderedList[i];
             
+            // Basic null safety while preserving original behavior
             if (field == null)
                 throw new ArgumentException($"Field at index {i} cannot be null");
 
@@ -56,34 +57,10 @@ public static class FieldProcessingHelper
                 continue;
             }
 
+            // Only validate expression is not null, but allow empty field names to preserve original behavior
             if (field.Expression == null)
                 throw new ArgumentException($"Field expression at index {i} cannot be null", nameof(oldFields));
-            if (string.IsNullOrEmpty(field.FieldName))
-            if (string.IsNullOrWhiteSpace(field.FieldName))
-                throw new ArgumentException($"Field name at index {i} cannot be null, empty, or whitespace");
 
-            // Consolidated validation logic
-            if (field == null)
-                throw new ArgumentException($"Field at index {i} cannot be null");
-            if (field.Expression == null)
-                throw new ArgumentException($"Field expression at index {i} cannot be null");
-            if (string.IsNullOrEmpty(field.FieldName))
-                throw new ArgumentException($"Field name at index {i} cannot be null or empty");
-
-            if (field.Expression is AllColumnsNode)
-            {
-                continue;
-            // Consolidated validation logic
-            if (field == null)
-                throw new ArgumentException($"Field at index {i} cannot be null");
-            if (field.Expression == null)
-                throw new ArgumentException($"Field expression at index {i} cannot be null", nameof(oldFields));
-            if (string.IsNullOrWhiteSpace(field.FieldName))
-                throw new ArgumentException($"Field name at index {i} cannot be null, empty, or whitespace");
-
-            if (field.Expression is AllColumnsNode)
-            {
-                continue;
             fields.Add(new FieldNode(field.Expression, p++, field.FieldName));
         }
 
@@ -145,6 +122,7 @@ public static class FieldProcessingHelper
     /// <param name="isKnownColumn">Function to determine if a column is known.</param>
     /// <param name="startAt">Starting index for field order.</param>
     /// <returns>The created and concatenated fields.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
     public static FieldNode[] CreateAndConcatFields(
         TableSymbol left, 
         string leftAlias, 
@@ -206,6 +184,7 @@ public static class FieldProcessingHelper
     /// <param name="groupByFields">The group by fields.</param>
     /// <param name="useOuterFields">Whether to create outer fields.</param>
     /// <returns>Array of split fields: [aggregate, outer, raw aggregate].</returns>
+    /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
     public static FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields, bool useOuterFields)
     {
         var nestedFields = new List<FieldNode>();
@@ -277,6 +256,7 @@ public static class FieldProcessingHelper
     /// <param name="fieldsToSplit">The fields to split.</param>
     /// <param name="groupByFields">The group by fields.</param>
     /// <returns>The processed ordered fields.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
     public static FieldOrderedNode[] CreateAfterGroupByOrderByAccessFields(FieldOrderedNode[] fieldsToSplit, FieldNode[] groupByFields)
     {
         var outerFields = new List<FieldOrderedNode>();
