@@ -136,7 +136,11 @@ public static class QueryRewriteUtilities
         var nextOrder = -1;
 
         if (selectFields.Length > 0)
-            nextOrder = selectFields.Max(f => f?.FieldOrder ?? -1);
+        if (selectFields.Any(f => f == null))
+            throw new ArgumentException("selectFields contains null elements.", nameof(selectFields));
+
+        if (selectFields.Length > 0)
+            nextOrder = selectFields.Max(f => f.FieldOrder);
 
         foreach (var groupField in groupByFields)
         {
