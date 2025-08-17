@@ -635,4 +635,21 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     {
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }
+
+    public virtual void Visit(PivotNode node)
+    {
+        var aggregationExpressions = SafePopMultiple(Nodes, node.AggregationExpressions.Length, nameof(Visit) + nameof(PivotNode) + "AggregationExpressions");
+        var forColumn = SafePop(Nodes, nameof(Visit) + nameof(PivotNode) + "ForColumn");
+        var inValues = SafePopMultiple(Nodes, node.InValues.Length, nameof(Visit) + nameof(PivotNode) + "InValues");
+        
+        Nodes.Push(new PivotNode(aggregationExpressions, forColumn, inValues));
+    }
+
+    public virtual void Visit(PivotFromNode node)
+    {
+        var pivot = SafeCast<PivotNode>(SafePop(Nodes, nameof(Visit) + nameof(PivotFromNode) + "Pivot"), nameof(Visit) + nameof(PivotFromNode) + "Pivot");
+        var source = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(PivotFromNode) + "Source"), nameof(Visit) + nameof(PivotFromNode) + "Source");
+        
+        Nodes.Push(new PivotFromNode(source, pivot, node.Alias));
+    }
 }

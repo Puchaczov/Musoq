@@ -1898,6 +1898,25 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(_groupByFields[index].Expression);
     }
 
+    public void Visit(PivotNode node)
+    {
+        // TODO: Implement PIVOT node type inference
+        // For now, just process child nodes to avoid compilation errors
+        foreach (var aggregation in node.AggregationExpressions)
+            aggregation.Accept(this);
+        node.ForColumn.Accept(this);
+        foreach (var inValue in node.InValues)
+            inValue.Accept(this);
+    }
+
+    public void Visit(PivotFromNode node)
+    {
+        // TODO: Implement PIVOT FROM node type inference
+        // For now, just process child nodes to avoid compilation errors
+        node.Source.Accept(this);
+        node.Pivot.Accept(this);
+    }
+
     public void SetQueryPart(QueryPart part)
     {
         _queryPart = part;

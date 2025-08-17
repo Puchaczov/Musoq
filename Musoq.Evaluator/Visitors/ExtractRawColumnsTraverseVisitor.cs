@@ -707,4 +707,21 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
     {
         node.Accept(_visitor);
     }
+
+    public void Visit(PivotNode node)
+    {
+        foreach (var aggregation in node.AggregationExpressions)
+            aggregation.Accept(this);
+        node.ForColumn.Accept(this);
+        foreach (var inValue in node.InValues)
+            inValue.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(PivotFromNode node)
+    {
+        node.Source.Accept(this);
+        node.Pivot.Accept(this);
+        node.Accept(_visitor);
+    }
 }

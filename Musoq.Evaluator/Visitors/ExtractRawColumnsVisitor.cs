@@ -409,6 +409,14 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(PivotNode node)
+    {
+    }
+
+    public void Visit(PivotFromNode node)
+    {
+    }
+
     public void SetScope(Scope scope)
     {
     }

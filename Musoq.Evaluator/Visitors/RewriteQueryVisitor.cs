@@ -1065,6 +1065,29 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }
 
+    public void Visit(PivotNode node)
+    {
+        var inValues = new Node[node.InValues.Length];
+        for (int i = node.InValues.Length - 1; i >= 0; i--)
+            inValues[i] = Nodes.Pop();
+
+        var forColumn = Nodes.Pop();
+
+        var aggregationExpressions = new Node[node.AggregationExpressions.Length];
+        for (int i = node.AggregationExpressions.Length - 1; i >= 0; i--)
+            aggregationExpressions[i] = Nodes.Pop();
+
+        Nodes.Push(new PivotNode(aggregationExpressions, forColumn, inValues));
+    }
+
+    public void Visit(PivotFromNode node)
+    {
+        var pivot = Nodes.Pop() as PivotNode;
+        var source = Nodes.Pop() as FromNode;
+        
+        Nodes.Push(new PivotFromNode(source, pivot, node.Alias));
+    }
+
     private void VisitAccessMethod(AccessMethodNode node)
     {
         var args = Nodes.Pop() as ArgsListNode;
