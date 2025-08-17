@@ -186,6 +186,10 @@ public class Lexer : LexerBase<Token>
                 return TokenType.Else;
             case EndToken.TokenText:
                 return TokenType.End;
+            case "pivot":
+                return TokenType.Pivot;
+            case "for":
+                return TokenType.For;
             case WordToken.EmptyTokenText:
                 return TokenType.Word;
         }
@@ -650,6 +654,10 @@ public class Lexer : LexerBase<Token>
                 return new ElseToken(new TextSpan(Position, tokenText.Length));
             case TokenType.End:
                 return new EndToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.Pivot:
+                return new PivotToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.For:
+                return new ForToken(new TextSpan(Position, tokenText.Length));
             case TokenType.FieldLink:
                 return new FieldLinkToken(tokenText, new TextSpan(Position, tokenText.Length));
             case TokenType.Comment:

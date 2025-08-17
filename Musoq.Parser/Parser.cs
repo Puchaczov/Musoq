@@ -364,6 +364,10 @@ public class Parser
                     Consume(TokenType.OuterApply);
                     from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Outer);
                     break;
+                case TokenType.Pivot:
+                    Consume(TokenType.Pivot);
+                    from = new PivotFromNode(from, ComposePivot());
+                    break;
             }
         }
 
@@ -382,7 +386,7 @@ public class Parser
 
     private static bool IsJoinOrApplyToken(TokenType currentTokenType)
     {
-        return currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply;
+        return currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply or TokenType.Pivot;
     }
 
     private OrderByNode ComposeOrderBy()
@@ -1038,6 +1042,57 @@ public class Parser
 
         var node = parserAction(this);
         return node;
+    }
+
+    private PivotNode ComposePivot()
+    {
+        // PIVOT (aggregation_expressions FOR column IN (values))
+        Consume(TokenType.LeftParenthesis);
+        
+        // Parse aggregation expressions (comma-separated)
+        var aggregations = new List<Node>();
+        aggregations.Add(ComposeOperations());
+        
+        while (Current.TokenType == TokenType.Comma)
+        {
+            Consume(TokenType.Comma);
+            aggregations.Add(ComposeOperations());
+        }
+        
+        // Parse FOR column
+        Consume(TokenType.For);
+        var forColumn = ConsumeField(0);
+        
+        // Parse IN (values)
+        Consume(TokenType.In);
+        Consume(TokenType.LeftParenthesis);
+        
+        var inValues = new List<Node>();
+        
+        // Handle different IN clause formats:
+        // 1. Static values: ('Books', 'Electronics')
+        // 2. Dynamic query: (SELECT Category FROM Categories)
+        if (Current.TokenType == TokenType.Select)
+        {
+            // Dynamic pivot - parse subquery
+            inValues.Add(ComposeQuery());
+        }
+        else
+        {
+            // Static pivot - parse value list
+            inValues.Add(ComposeOperations());
+            
+            while (Current.TokenType == TokenType.Comma)
+            {
+                Consume(TokenType.Comma);
+                inValues.Add(ComposeOperations());
+            }
+        }
+        
+        Consume(TokenType.RightParenthesis);
+        Consume(TokenType.RightParenthesis);
+        
+        return new PivotNode(aggregations.ToArray(), forColumn, inValues.ToArray());
     }
 
     private static bool IsArithmeticBinaryOperator(Token currentToken)

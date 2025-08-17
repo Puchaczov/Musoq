@@ -427,6 +427,7 @@ public class SalesSchemaProvider<T>(IDictionary<string, IEnumerable<T>> sources)
         if (sources.TryGetValue(schema, out var value) == false)
             throw new Musoq.Evaluator.Tests.Exceptions.SchemaNotFoundException();
         
-        return new GenericSchema<T, SalesEntityTable>(value, SalesEntity.TestNameToIndexMap, SalesEntity.TestIndexToObjectAccessMap);
+        return new GenericSchema<T, SalesEntityTable>(value, SalesEntity.TestNameToIndexMap, 
+            SalesEntity.TestIndexToObjectAccessMap.ToDictionary(kvp => kvp.Key, kvp => (Func<T, object>)(obj => kvp.Value((SalesEntity)(object)obj))));
     }
 }
