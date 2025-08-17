@@ -1915,8 +1915,40 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
+        // Debug: check if this visitor is now being called
+        if (node.AggregationExpressions.Any())
+        {
+            throw new InvalidOperationException($"DEBUG: BuildMetadataAndInferTypesVisitor.Visit(PivotNode) called with {node.AggregationExpressions.Count()} aggregations.");
+        }
+        
+        // CRITICAL: For PIVOT aggregation method resolution to work, we need to ensure
+        // the table context is available. The source should be on the stack from traverse visitor.
+        var stackSnapshot = Nodes.ToArray(); // Peek at stack without modifying it
+        FromNode sourceNode = null;
+        
+        // Find the source node to establish identifier context for method resolution
+        foreach (var stackItem in stackSnapshot)
+        {
+            if (stackItem is FromNode fromNode)
+            {
+                sourceNode = fromNode;
+                break;
+            }
+        }
+        
+        // Set identifier context for aggregation method resolution
+        string previousIdentifier = _identifier;
+        if (sourceNode != null && !string.IsNullOrEmpty(sourceNode.Alias))
+        {
+            _identifier = sourceNode.Alias;
+        }
+        else if (sourceNode != null && string.IsNullOrEmpty(_identifier))
+        {
+            _identifier = _queryAlias;
+        }
+        
         // PIVOT aggregation expressions need to be processed in metadata building to resolve methods
-        // Process aggregation expressions first to ensure method resolution
+        // Process aggregation expressions with proper context to ensure method resolution
         foreach (var aggregation in node.AggregationExpressions)
             aggregation.Accept(this);
         
@@ -1924,6 +1956,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
+            
+        // Restore previous identifier context if needed
+        _identifier = previousIdentifier;
     }
 
     public void Visit(PivotFromNode node)
@@ -1931,7 +1966,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // Pop the source from the stack (should have been processed by traverse visitor)
         var source = (FromNode) Nodes.Pop();
         
-        // Ensure the identifier is properly set FIRST for aggregation context resolution
+        // CRITICAL: Set identifier context BEFORE any aggregation processing
+        // This ensures Sum/Count/Avg methods can be resolved in PIVOT context
         if (!string.IsNullOrEmpty(source.Alias))
         {
             _identifier = source.Alias;

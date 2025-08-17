@@ -883,9 +883,10 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(PivotNode node)
     {
-        // Process child nodes in the source table context FIRST
+        // CRITICAL FIX: PIVOT aggregation expressions must be processed by the main visitor
+        // for method resolution to work properly. Using 'this' skips metadata building!
         foreach (var aggregation in node.AggregationExpressions)
-            aggregation.Accept(this);
+            aggregation.Accept(_visitor);  // Changed from 'this' to '_visitor'
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
