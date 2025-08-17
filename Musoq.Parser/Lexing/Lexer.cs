@@ -186,9 +186,9 @@ public class Lexer : LexerBase<Token>
                 return TokenType.Else;
             case EndToken.TokenText:
                 return TokenType.End;
-            case "pivot":
+            case PivotToken.TokenText:
                 return TokenType.Pivot;
-            case "for":
+            case ForToken.TokenText:
                 return TokenType.For;
             case WordToken.EmptyTokenText:
                 return TokenType.Word;

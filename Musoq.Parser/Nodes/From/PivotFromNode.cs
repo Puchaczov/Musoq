@@ -4,8 +4,8 @@ namespace Musoq.Parser.Nodes.From;
 
 public class PivotFromNode : FromNode
 {
-    public PivotFromNode(FromNode source, PivotNode pivot)
-        : base(source.Alias)
+    public PivotFromNode(FromNode source, PivotNode pivot, string alias)
+        : base(alias)
     {
         Source = source;
         Pivot = pivot;
@@ -27,6 +27,6 @@ public class PivotFromNode : FromNode
 
     public override string ToString()
     {
-        return $"{Source} {Pivot}";
+        return $"{Source} {Pivot} AS {Alias}";
     }
 }

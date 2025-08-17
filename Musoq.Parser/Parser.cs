@@ -366,7 +366,9 @@ public class Parser
                     break;
                 case TokenType.Pivot:
                     Consume(TokenType.Pivot);
-                    from = new PivotFromNode(from, ComposePivot());
+                    var pivotNode = ComposePivot();
+                    var pivotAlias = ComposeAlias();
+                    from = new PivotFromNode(from, pivotNode, pivotAlias);
                     break;
             }
         }
@@ -1061,7 +1063,7 @@ public class Parser
         
         // Parse FOR column
         Consume(TokenType.For);
-        var forColumn = ConsumeField(0);
+        var forColumn = ComposeBaseTypes(); // Use ComposeBaseTypes for identifier
         
         // Parse IN (values)
         Consume(TokenType.In);

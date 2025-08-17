@@ -1,12 +1,48 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Tests;
 
 [TestClass]
 public class PivotParserTests
 {
+    [TestMethod]
+    public void PivotToken_ShouldBeRecognized()
+    {
+        var query = "pivot";  // Try lowercase
+        var lexer = new Lexer(query, true);
+        
+        var token = lexer.Next(); // Get the first token
+        // Let's see what we actually get
+        Console.WriteLine($"Token type: {token.TokenType}, Token value: '{token.Value}'");
+        Assert.AreEqual(TokenType.Pivot, token.TokenType);
+    }
+    
+    [TestMethod]
+    public void ForToken_ShouldBeRecognized() 
+    {
+        var query = "for";
+        var lexer = new Lexer(query, true);
+        
+        var token = lexer.Next();
+        Console.WriteLine($"Token type: {token.TokenType}, Token value: '{token.Value}'");
+        Assert.AreEqual(TokenType.For, token.TokenType);
+    }
+    
+    [TestMethod]  
+    public void SelectToken_ShouldBeRecognized_AsBaseline()
+    {
+        var query = "select";
+        var lexer = new Lexer(query, true);
+        
+        var token = lexer.Next();
+        Console.WriteLine($"Token type: {token.TokenType}, Token value: '{token.Value}'");
+        Assert.AreEqual(TokenType.Select, token.TokenType);
+    }
+
     [TestMethod]
     public void BasicPivotSyntax_ShouldParse()
     {

@@ -5,7 +5,7 @@ namespace Musoq.Parser.Nodes;
 
 public class PivotNode : Node
 {
-    public PivotNode(Node[] aggregationExpressions, FieldNode forColumn, Node[] inValues)
+    public PivotNode(Node[] aggregationExpressions, Node forColumn, Node[] inValues)
     {
         AggregationExpressions = aggregationExpressions;
         ForColumn = forColumn;
@@ -21,7 +21,7 @@ public class PivotNode : Node
 
     public Node[] AggregationExpressions { get; }
 
-    public FieldNode ForColumn { get; }
+    public Node ForColumn { get; }
 
     public Node[] InValues { get; }
 
