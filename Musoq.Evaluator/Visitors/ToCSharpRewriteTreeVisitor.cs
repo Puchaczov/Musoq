@@ -2411,6 +2411,20 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         return EvaluationHelper.GetCastableType(type);
     }
 
+    public void Visit(PivotNode node)
+    {
+        // TODO: Implement PIVOT node processing
+        // This should handle the PIVOT transformation logic
+        throw new NotImplementedException("PIVOT node processing not yet implemented");
+    }
+
+    public void Visit(PivotFromNode node)
+    {
+        // TODO: Implement PIVOT FROM node processing  
+        // This should visit the source and apply PIVOT transformation
+        throw new NotImplementedException("PIVOT FROM node processing not yet implemented");
+    }
+
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {
         return SyntaxFactory.Block(statements.Where(f => f is not EmptyStatementSyntax));
