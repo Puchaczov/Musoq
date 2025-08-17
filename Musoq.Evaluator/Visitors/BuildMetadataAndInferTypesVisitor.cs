@@ -1915,12 +1915,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
-        // Debug: check if this visitor is now being called
-        if (node.AggregationExpressions.Any())
-        {
-            throw new InvalidOperationException($"DEBUG: BuildMetadataAndInferTypesVisitor.Visit(PivotNode) called with {node.AggregationExpressions.Count()} aggregations.");
-        }
-        
         // CRITICAL: For PIVOT aggregation method resolution to work, we need to ensure
         // the table context is available. The source should be on the stack from traverse visitor.
         var stackSnapshot = Nodes.ToArray(); // Peek at stack without modifying it
