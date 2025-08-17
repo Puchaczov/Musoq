@@ -24,6 +24,29 @@ public class PivotEvaluatorTests : BasicEntityTestBase
             new SalesSchemaProvider<T>(sources),
             LoggerResolver);
     }
+
+    [TestMethod]
+    public void TestGroupByWithSalesEntity_ShouldWork()
+    {
+        var query = @"SELECT Category, Sum(Quantity) FROM #A.entities() GROUP BY Category";
+        var sources = new Dictionary<string, IEnumerable<SalesEntity>>
+        {
+            {
+                "#A", [
+                    new SalesEntity("Books", "Book1", 10, 100m),
+                    new SalesEntity("Books", "Book2", 5, 50m),
+                    new SalesEntity("Electronics", "Phone", 3, 300m)
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual(2, table.Count); // 2 categories
+    }
+
     [TestMethod]
     public void BasicPivotWithSum_ShouldReturnCorrectResults()
     {
