@@ -16,7 +16,7 @@ public class PivotAdvancedTests : BasicEntityTestBase
     {
         var query = @"
             SELECT p.Category, p.Books, p.Electronics, d.Discount
-            FROM #A.Entities() s
+            FROM #A.data() s
             INNER JOIN #B.Discounts() d ON s.Category = d.Category
             PIVOT (
                 Sum(s.Quantity)
@@ -54,7 +54,7 @@ public class PivotAdvancedTests : BasicEntityTestBase
     {
         var query = @"
             SELECT Region, Books, Electronics, Fashion
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics', 'Fashion')
@@ -90,7 +90,7 @@ public class PivotAdvancedTests : BasicEntityTestBase
     {
         var query = @"
             SELECT Region, Books, Electronics
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics')
@@ -124,7 +124,7 @@ public class PivotAdvancedTests : BasicEntityTestBase
             SELECT *
             FROM (
                 SELECT Category, Product, Quantity
-                FROM #A.Entities()
+                FROM #A.data()
                 WHERE Quantity > 3
             ) AS filtered
             PIVOT (
@@ -163,7 +163,7 @@ public class PivotAdvancedTests : BasicEntityTestBase
         var query = @"
             WITH RegionSales AS (
                 SELECT Category, Region, Sum(Quantity) as TotalQuantity
-                FROM #A.Entities()
+                FROM #A.data()
                 GROUP BY Category, Region
             ),
             FilteredSales AS (
@@ -210,7 +210,7 @@ public class PivotAdvancedTests : BasicEntityTestBase
     {
         var query = @"
             SELECT Category, [2023-01-01], [2023-02-01], [2023-03-01]
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR SalesDate IN ('2023-01-01', '2023-02-01', '2023-03-01')
@@ -263,7 +263,7 @@ public class PivotAdvancedTests : BasicEntityTestBase
 
         var query = @"
             SELECT Region, Books, Electronics, Fashion, Sports, Home
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics', 'Fashion', 'Sports', 'Home')
@@ -292,7 +292,7 @@ public class PivotAdvancedTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *, [Category-1], [Category.2], [Category 3]
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Category-1', 'Category.2', 'Category 3')

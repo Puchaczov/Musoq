@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -15,14 +16,9 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void BasicPivotWithSum_ShouldReturnCorrectResults()
     {
-        var query = @"
-            SELECT *
-            FROM #A.Entities()
-            PIVOT (
-                Sum(Quantity)
-                FOR Category IN ('Books', 'Electronics', 'Fashion')
-            ) AS p";
-
+        // First test: Simple SELECT to verify schema works
+        var simpleQuery = @"SELECT Category, Quantity FROM #A.data()";
+        
         var sources = new Dictionary<string, IEnumerable<SalesEntity>>
         {
             {
@@ -35,6 +31,28 @@ public class PivotEvaluatorTests : BasicEntityTestBase
                 ]
             }
         };
+
+        // Test simple query first
+        try
+        {
+            var simpleVm = CreateAndRunVirtualMachine(simpleQuery, sources);
+            var simpleTable = simpleVm.Run();
+            Assert.AreEqual(5, simpleTable.Count, "Simple query should return 5 rows");
+        }
+        catch (Exception ex)
+        {
+            Assert.Fail($"Simple query failed: {ex.Message}");
+            return;
+        }
+
+        // Now test PIVOT
+        var query = @"
+            SELECT *
+            FROM #A.data()
+            PIVOT (
+                Sum(Quantity)
+                FOR Category IN ('Books', 'Electronics', 'Fashion')
+            ) AS p";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
@@ -62,7 +80,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity), Avg(Revenue), Count(Product)
                 FOR Category IN ('Books', 'Electronics')
@@ -108,7 +126,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT Category, Jan, Feb, Mar
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Month IN ('Jan', 'Feb', 'Mar')
@@ -158,7 +176,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT Category, [2020], [2021], [2022]
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Year IN (2020, 2021, 2022)
@@ -194,7 +212,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             WHERE Quantity > 5
             PIVOT (
                 Sum(Quantity)
@@ -234,11 +252,11 @@ public class PivotEvaluatorTests : BasicEntityTestBase
         var query = @"
             WITH Categories AS (
                 SELECT DISTINCT Category 
-                FROM #A.Entities()
+                FROM #A.data()
                 WHERE Quantity > 0
             )
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN (SELECT Category FROM Categories)
@@ -272,7 +290,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity * Revenue)
                 FOR Category IN ('Books', 'Electronics')
@@ -307,7 +325,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics')
@@ -330,7 +348,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics', 'Fashion')
@@ -368,7 +386,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT Region, Books, Electronics
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics')
@@ -427,7 +445,69 @@ public class SalesSchemaProvider<T>(IDictionary<string, IEnumerable<T>> sources)
         if (sources.TryGetValue(schema, out var value) == false)
             throw new Musoq.Evaluator.Tests.Exceptions.SchemaNotFoundException();
         
-        return new GenericSchema<T, SalesEntityTable>(value, SalesEntity.TestNameToIndexMap, 
+        return new SalesSchema<T>(value, SalesEntity.TestNameToIndexMap, 
             SalesEntity.TestIndexToObjectAccessMap.ToDictionary(kvp => kvp.Key, kvp => (Func<T, object>)(obj => kvp.Value((SalesEntity)(object)obj))));
+    }
+}
+
+// Sales schema that includes aggregation functions
+public class SalesSchema<T> : Musoq.Schema.DataSources.SchemaBase
+{
+    public SalesSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap, IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
+        : base("sales", CreateLibrary())
+    {
+        AddSource<EntitySource<T>>("data", sources, testNameToIndexMap, testIndexToObjectAccessMap);
+        AddTable<SalesEntityTable>("data");
+    }
+
+    private static Musoq.Schema.Managers.MethodsAggregator CreateLibrary()
+    {
+        var methodManager = new Musoq.Schema.Managers.MethodsManager();
+
+        var lib = new SalesLibrary();
+
+        methodManager.RegisterLibraries(lib);
+
+        return new Musoq.Schema.Managers.MethodsAggregator(methodManager);
+    }
+}
+
+// Sales library that extends LibraryBase to include aggregation functions
+public class SalesLibrary : Musoq.Plugins.LibraryBase
+{
+    [Musoq.Plugins.Attributes.BindableMethod]
+    public string Category([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
+    {
+        return entity.Category;
+    }
+
+    [Musoq.Plugins.Attributes.BindableMethod]
+    public string Product([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
+    {
+        return entity.Product;
+    }
+
+    [Musoq.Plugins.Attributes.BindableMethod]
+    public int Quantity([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
+    {
+        return entity.Quantity;
+    }
+
+    [Musoq.Plugins.Attributes.BindableMethod]
+    public decimal Revenue([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
+    {
+        return entity.Revenue;
+    }
+
+    [Musoq.Plugins.Attributes.BindableMethod]
+    public string Region([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
+    {
+        return entity.Region;
+    }
+
+    [Musoq.Plugins.Attributes.BindableMethod]
+    public DateTime SalesDate([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
+    {
+        return entity.SalesDate;
     }
 }

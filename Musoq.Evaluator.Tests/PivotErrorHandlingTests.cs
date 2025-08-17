@@ -19,7 +19,7 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 InvalidFunction(Quantity)
                 FOR Category IN ('Books', 'Electronics')
@@ -40,7 +40,7 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(NonExistentColumn)
                 FOR Category IN ('Books', 'Electronics')
@@ -61,7 +61,7 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR NonExistentColumn IN ('Value1', 'Value2')
@@ -82,7 +82,7 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Category) -- Trying to sum a string column
                 FOR Product IN ('Book1', 'Book2')
@@ -103,10 +103,10 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
-                FOR Category IN (SELECT NonExistentColumn FROM #A.Entities())
+                FOR Category IN (SELECT NonExistentColumn FROM #A.data())
             ) AS p";
 
         var sources = new Dictionary<string, IEnumerable<SalesEntity>>
@@ -123,7 +123,7 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('NonExistentCategory1', 'NonExistentCategory2')
@@ -151,7 +151,7 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Count(Product)
                 FOR Year IN (2020, 2021) -- Numeric pivot values
@@ -186,7 +186,7 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
         
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN (@longCategory, 'Books')
@@ -214,12 +214,12 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
         // and handled appropriately when used with dynamic PIVOT
         var query = @"
             WITH RecursiveCTE AS (
-                SELECT Category FROM #A.Entities()
+                SELECT Category FROM #A.data()
                 UNION ALL
                 SELECT Category FROM RecursiveCTE
             )
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN (SELECT Category FROM RecursiveCTE)
@@ -252,7 +252,7 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('📚 Books', '💻 Electronics', '👕 Fashion')
@@ -283,7 +283,7 @@ public class PivotErrorHandlingTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.Entities()
+            FROM #A.data()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics')
