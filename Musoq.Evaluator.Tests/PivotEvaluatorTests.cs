@@ -445,15 +445,16 @@ public class SalesSchemaProvider<T>(IDictionary<string, IEnumerable<T>> sources)
         if (sources.TryGetValue(schema, out var value) == false)
             throw new Musoq.Evaluator.Tests.Exceptions.SchemaNotFoundException();
         
-        return new SalesSchema<T>(value, SalesEntity.TestNameToIndexMap, 
+        // Use the working GenericSchema pattern but with SalesEntity-specific library
+        return new SalesGenericSchema<T>(value, SalesEntity.TestNameToIndexMap, 
             SalesEntity.TestIndexToObjectAccessMap.ToDictionary(kvp => kvp.Key, kvp => (Func<T, object>)(obj => kvp.Value((SalesEntity)(object)obj))));
     }
 }
 
-// Sales schema that includes aggregation functions
-public class SalesSchema<T> : Musoq.Schema.DataSources.SchemaBase
+// Working GenericSchema pattern adapted for SalesEntity
+public class SalesGenericSchema<T> : Musoq.Schema.DataSources.SchemaBase
 {
-    public SalesSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap, IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
+    public SalesGenericSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap, IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
         : base("sales", CreateLibrary())
     {
         AddSource<EntitySource<T>>("data", sources, testNameToIndexMap, testIndexToObjectAccessMap);
@@ -463,11 +464,8 @@ public class SalesSchema<T> : Musoq.Schema.DataSources.SchemaBase
     private static Musoq.Schema.Managers.MethodsAggregator CreateLibrary()
     {
         var methodManager = new Musoq.Schema.Managers.MethodsManager();
-
         var lib = new SalesLibrary();
-
         methodManager.RegisterLibraries(lib);
-
         return new Musoq.Schema.Managers.MethodsAggregator(methodManager);
     }
 }
