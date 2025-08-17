@@ -902,8 +902,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         // Process the main visitor to set up basic handling
         node.Accept(_visitor);
         
-        // Process aggregation expressions AFTER the main visitor has set up context
-        // This ensures proper method resolution for aggregation functions
+        // Process aggregation expressions - they should now be able to resolve properly
         foreach (var aggregation in node.Pivot.AggregationExpressions)
         {
             aggregation.Accept(this);

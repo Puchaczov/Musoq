@@ -485,7 +485,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(IdentifierNode node)
     {
-        if (node.Name != _identifier && _queryPart != QueryPart.From)
+        // Allow identifier resolution in PIVOT context even when in FROM part
+        // PIVOT aggregations need column resolution to work properly
+        var isPivotContext = _queryPart == QueryPart.From && _identifier != null;
+        
+        if (node.Name != _identifier && (_queryPart != QueryPart.From || isPivotContext))
         {
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
             var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
@@ -1698,6 +1702,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         newSetArgs.AddRange(args.Args);
 
         var setMethodName = $"Set{method.Name}";
+        
+        // Ensure all arguments have valid return types
+        for (int i = 0; i < newSetArgs.Count; i++)
+        {
+            if (newSetArgs[i].ReturnType == null)
+            {
+                throw new InvalidOperationException($"Argument {i} of aggregation method {setMethodName} has null return type. Node: {newSetArgs[i]}");
+            }
+        }
+        
         var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
 
         if (!context.SchemaTablePair.Schema.TryResolveAggregationMethod(setMethodName, argTypes, context.EntityType, out var setMethod))
@@ -1941,6 +1955,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
         _queryPart = part;
     }
+
+    public QueryPart QueryPart => _queryPart;
 
     public void QueryBegins()
     {
