@@ -13,11 +13,22 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class PivotEvaluatorTests : BasicEntityTestBase
 {
+    protected CompiledQuery CreateAndRunVirtualMachine<T>(
+        string script,
+        IDictionary<string, IEnumerable<T>> sources)
+        where T : SalesEntity
+    {
+        return InstanceCreator.CompileForExecution(
+            script, 
+            Guid.NewGuid().ToString(), 
+            new SalesSchemaProvider<T>(sources),
+            LoggerResolver);
+    }
     [TestMethod]
     public void BasicPivotWithSum_ShouldReturnCorrectResults()
     {
         // First test: Simple SELECT to verify schema works
-        var simpleQuery = @"SELECT Category, Quantity FROM #A.data()";
+        var simpleQuery = @"SELECT Category, Quantity FROM #A.entities()";
         
         var sources = new Dictionary<string, IEnumerable<SalesEntity>>
         {
@@ -48,7 +59,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
         // Now test PIVOT
         var query = @"
             SELECT *
-            FROM #A.data()
+            FROM #A.entities()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics', 'Fashion')
@@ -80,7 +91,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.data()
+            FROM #A.entities()
             PIVOT (
                 Sum(Quantity), Avg(Revenue), Count(Product)
                 FOR Category IN ('Books', 'Electronics')
@@ -126,7 +137,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT Category, Jan, Feb, Mar
-            FROM #A.data()
+            FROM #A.entities()
             PIVOT (
                 Sum(Quantity)
                 FOR Month IN ('Jan', 'Feb', 'Mar')
@@ -176,7 +187,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT Category, [2020], [2021], [2022]
-            FROM #A.data()
+            FROM #A.entities()
             PIVOT (
                 Sum(Quantity)
                 FOR Year IN (2020, 2021, 2022)
@@ -212,7 +223,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.data()
+            FROM #A.entities()
             WHERE Quantity > 5
             PIVOT (
                 Sum(Quantity)
@@ -252,11 +263,11 @@ public class PivotEvaluatorTests : BasicEntityTestBase
         var query = @"
             WITH Categories AS (
                 SELECT DISTINCT Category 
-                FROM #A.data()
+                FROM #A.entities()
                 WHERE Quantity > 0
             )
             SELECT *
-            FROM #A.data()
+            FROM #A.entities()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN (SELECT Category FROM Categories)
@@ -290,7 +301,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.data()
+            FROM #A.entities()
             PIVOT (
                 Sum(Quantity * Revenue)
                 FOR Category IN ('Books', 'Electronics')
@@ -325,7 +336,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.data()
+            FROM #A.entities()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics')
@@ -348,7 +359,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT *
-            FROM #A.data()
+            FROM #A.entities()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics', 'Fashion')
@@ -386,7 +397,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
     {
         var query = @"
             SELECT Region, Books, Electronics
-            FROM #A.data()
+            FROM #A.entities()
             PIVOT (
                 Sum(Quantity)
                 FOR Category IN ('Books', 'Electronics')
@@ -423,20 +434,9 @@ public class PivotEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual(6, southRow[table.Columns.Single(c => c.ColumnName == "Electronics").ColumnIndex]);
     }
 
-    protected new CompiledQuery CreateAndRunVirtualMachine<T>(
-        string script,
-        IDictionary<string, IEnumerable<T>> sources)
-        where T : SalesEntity
-    {
-        return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
-            new SalesSchemaProvider<T>(sources),
-            LoggerResolver);
-    }
 }
 
-// Schema provider for SalesEntity
+// Schema provider for SalesEntity following the working BasicSchemaProvider pattern
 public class SalesSchemaProvider<T>(IDictionary<string, IEnumerable<T>> sources) : ISchemaProvider
     where T : SalesEntity
 {
@@ -445,67 +445,7 @@ public class SalesSchemaProvider<T>(IDictionary<string, IEnumerable<T>> sources)
         if (sources.TryGetValue(schema, out var value) == false)
             throw new Musoq.Evaluator.Tests.Exceptions.SchemaNotFoundException();
         
-        // Use the working GenericSchema pattern but with SalesEntity-specific library
-        return new SalesGenericSchema<T>(value, SalesEntity.TestNameToIndexMap, 
-            SalesEntity.TestIndexToObjectAccessMap.ToDictionary(kvp => kvp.Key, kvp => (Func<T, object>)(obj => kvp.Value((SalesEntity)(object)obj))));
-    }
-}
-
-// Working GenericSchema pattern adapted for SalesEntity
-public class SalesGenericSchema<T> : Musoq.Schema.DataSources.SchemaBase
-{
-    public SalesGenericSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap, IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
-        : base("sales", CreateLibrary())
-    {
-        AddSource<EntitySource<T>>("data", sources, testNameToIndexMap, testIndexToObjectAccessMap);
-        AddTable<SalesEntityTable>("data");
-    }
-
-    private static Musoq.Schema.Managers.MethodsAggregator CreateLibrary()
-    {
-        var methodManager = new Musoq.Schema.Managers.MethodsManager();
-        var lib = new SalesLibrary();
-        methodManager.RegisterLibraries(lib);
-        return new Musoq.Schema.Managers.MethodsAggregator(methodManager);
-    }
-}
-
-// Sales library that extends LibraryBase to include aggregation functions
-public class SalesLibrary : Musoq.Plugins.LibraryBase
-{
-    [Musoq.Plugins.Attributes.BindableMethod]
-    public string Category([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
-    {
-        return entity.Category;
-    }
-
-    [Musoq.Plugins.Attributes.BindableMethod]
-    public string Product([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
-    {
-        return entity.Product;
-    }
-
-    [Musoq.Plugins.Attributes.BindableMethod]
-    public int Quantity([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
-    {
-        return entity.Quantity;
-    }
-
-    [Musoq.Plugins.Attributes.BindableMethod]
-    public decimal Revenue([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
-    {
-        return entity.Revenue;
-    }
-
-    [Musoq.Plugins.Attributes.BindableMethod]
-    public string Region([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
-    {
-        return entity.Region;
-    }
-
-    [Musoq.Plugins.Attributes.BindableMethod]
-    public DateTime SalesDate([Musoq.Plugins.Attributes.InjectSpecificSource(typeof(SalesEntity))] SalesEntity entity)
-    {
-        return entity.SalesDate;
+        // Use the same simple pattern as BasicSchemaProvider
+        return new GenericSchema<SalesEntity, SalesEntityTable>(value, SalesEntity.TestNameToIndexMap, SalesEntity.TestIndexToObjectAccessMap);
     }
 }
