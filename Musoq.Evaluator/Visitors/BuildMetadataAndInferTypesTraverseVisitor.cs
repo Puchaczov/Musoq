@@ -883,15 +883,29 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(PivotNode node)
     {
-        // CRITICAL FIX: PIVOT aggregation expressions must be processed by the main visitor
-        // for method resolution to work properly. Process ONLY aggregations, not the whole node.
+        // Process PIVOT aggregation expressions for method resolution
+        // Each aggregation (like Sum(Quantity)) needs to be resolved during metadata building
         foreach (var aggregation in node.AggregationExpressions)
-            aggregation.Accept(_visitor);  // Process with main visitor for method resolution
+        {
+            // For AccessMethodNode, process arguments first, then the method
+            if (aggregation is AccessMethodNode accessMethod)
+            {
+                // Process arguments with traverse visitor to build them on the stack
+                accessMethod.Arguments.Accept(this);
+                // Then process the method with main visitor for method resolution  
+                accessMethod.Accept(_visitor);
+            }
+            else
+            {
+                // For other aggregation types, process normally
+                aggregation.Accept(_visitor);
+            }
+        }
+        
+        // Process other PIVOT elements
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
-            
-        // DO NOT call node.Accept(_visitor) - let the PivotFromNode handle the main visitor call
     }
 
     public void Visit(PivotFromNode node)
@@ -899,9 +913,11 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         // Process the source first to establish context
         node.Source.Accept(this);
         
-        // IMPORTANT: Call main visitor AFTER source processing to ensure proper context
-        // This ensures aggregation expressions are processed with the source table context
+        // Call main visitor to establish context (_identifier)
         node.Accept(_visitor);
+        
+        // Then process the PIVOT node with established context
+        node.Pivot.Accept(this);
     }
 
     public void QueryBegins()
