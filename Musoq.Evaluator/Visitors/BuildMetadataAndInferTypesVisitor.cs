@@ -1900,8 +1900,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
-        // TODO: Implement PIVOT node type inference
-        // For now, just process child nodes to avoid compilation errors
+        // Process child nodes to validate syntax, but don't change metadata
+        // The aggregation expressions should be processed in the source table context
         foreach (var aggregation in node.AggregationExpressions)
             aggregation.Accept(this);
         node.ForColumn.Accept(this);
@@ -1911,9 +1911,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotFromNode node)
     {
-        // TODO: Implement PIVOT FROM node type inference
-        // For now, just process child nodes to avoid compilation errors
+        // Process the source to get its metadata
         node.Source.Accept(this);
+        
+        // Don't change the table context - aggregations need to reference source columns
+        // The PIVOT transformation will be handled in the converter phase
+        // For now, just pass through the source table metadata
+        
+        // Process the PIVOT node for basic validation
         node.Pivot.Accept(this);
     }
 
