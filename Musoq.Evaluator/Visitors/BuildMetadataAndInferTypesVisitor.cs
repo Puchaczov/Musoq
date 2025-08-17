@@ -1930,11 +1930,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // Pop the source from the stack (should have been processed by traverse visitor)
         var source = (FromNode) Nodes.Pop();
         
-        // Create a new PivotFromNode with the processed source and push it to maintain stack consistency  
-        var pivotFromNode = new Musoq.Parser.Nodes.From.PivotFromNode(source, node.Pivot, node.Alias);
-        
-        // Ensure the identifier is properly set for aggregation context resolution
-        // Use the source alias if available, otherwise keep the current identifier
+        // Ensure the identifier is properly set FIRST for aggregation context resolution
         if (!string.IsNullOrEmpty(source.Alias))
         {
             _identifier = source.Alias;
@@ -1945,10 +1941,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             _identifier = _queryAlias;
         }
         
+        // Create a new PivotFromNode with the processed source and push it to maintain stack consistency  
+        var pivotFromNode = new Musoq.Parser.Nodes.From.PivotFromNode(source, node.Pivot, node.Alias);
+        
         Nodes.Push(pivotFromNode);
         
-        // Don't process the PIVOT node separately as it will be handled during code generation
-        // The metadata context remains the same as the source table
+        // Don't process aggregations here - they'll be handled by the traverse visitor
+        // after this method sets up the identifier context
     }
 
     public void SetQueryPart(QueryPart part)
