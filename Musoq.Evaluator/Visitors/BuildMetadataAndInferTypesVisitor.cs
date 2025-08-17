@@ -1900,10 +1900,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
-        // Process child nodes to validate syntax, but don't change metadata
-        // The aggregation expressions should be processed in the source table context
-        foreach (var aggregation in node.AggregationExpressions)
-            aggregation.Accept(this);
+        // PIVOT aggregation expressions should be processed with the same context as the source table
+        // Don't process aggregation expressions here - they'll be processed by the traverse visitor
+        // in the correct table context. This method just validates the PIVOT structure.
+        
+        // Process FOR column and IN values for validation
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
