@@ -883,22 +883,15 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(PivotNode node)
     {
-        // DEBUG: Verify this traverse visitor method is called
-        if (node.AggregationExpressions.Any())
-        {
-            throw new InvalidOperationException($"DEBUG: BuildMetadataAndInferTypesTraverseVisitor.Visit(PivotNode) called with {node.AggregationExpressions.Count()} aggregations. About to call main visitor.");
-        }
-        
         // CRITICAL FIX: PIVOT aggregation expressions must be processed by the main visitor
-        // for method resolution to work properly. Using 'this' skips metadata building!
+        // for method resolution to work properly. Process ONLY aggregations, not the whole node.
         foreach (var aggregation in node.AggregationExpressions)
-            aggregation.Accept(_visitor);  // Changed from 'this' to '_visitor'
+            aggregation.Accept(_visitor);  // Process with main visitor for method resolution
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
             
-        // Then process this node with the main visitor
-        node.Accept(_visitor);
+        // DO NOT call node.Accept(_visitor) - let the PivotFromNode handle the main visitor call
     }
 
     public void Visit(PivotFromNode node)

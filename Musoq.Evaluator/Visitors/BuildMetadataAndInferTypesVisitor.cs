@@ -11,6 +11,7 @@ using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TemporarySchemas;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
@@ -1915,44 +1916,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
-        // CRITICAL: For PIVOT aggregation method resolution to work, we need to ensure
-        // the table context is available. The source should be on the stack from traverse visitor.
-        var stackSnapshot = Nodes.ToArray(); // Peek at stack without modifying it
-        FromNode sourceNode = null;
-        
-        // Find the source node to establish identifier context for method resolution
-        foreach (var stackItem in stackSnapshot)
-        {
-            if (stackItem is FromNode fromNode)
-            {
-                sourceNode = fromNode;
-                break;
-            }
-        }
-        
-        // Set identifier context for aggregation method resolution
-        string previousIdentifier = _identifier;
-        if (sourceNode != null && !string.IsNullOrEmpty(sourceNode.Alias))
-        {
-            _identifier = sourceNode.Alias;
-        }
-        else if (sourceNode != null && string.IsNullOrEmpty(_identifier))
-        {
-            _identifier = _queryAlias;
-        }
-        
-        // PIVOT aggregation expressions need to be processed in metadata building to resolve methods
-        // Process aggregation expressions with proper context to ensure method resolution
-        foreach (var aggregation in node.AggregationExpressions)
-            aggregation.Accept(this);
+        // NOTE: PIVOT aggregation expressions are processed by the traverse visitor
+        // for proper method resolution context. Only process non-aggregation elements here.
         
         // Process FOR column and IN values for validation
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
-            
-        // Restore previous identifier context if needed
-        _identifier = previousIdentifier;
     }
 
     public void Visit(PivotFromNode node)
@@ -1976,15 +1946,48 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var pivotFromNode = new Musoq.Parser.Nodes.From.PivotFromNode(source, node.Pivot, node.Alias);
         
         // Register the PIVOT alias in the symbol table
-        // For now, use the same schema as the source - the transformation will be handled in code generation
+        // CRITICAL FIX: Create a new schema with PIVOT columns instead of using source schema
         if (!string.IsNullOrEmpty(node.Alias))
         {
             // Get the source table symbol to copy its schema information
             var sourceTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
             var (schema, table, _) = sourceTableSymbol.GetTableByAlias(_identifier);
             
-            // Create a new table symbol for the PIVOT with the new alias
-            var pivotTableSymbol = new TableSymbol(node.Alias, schema, table, true);
+            // Create PIVOT columns from the IN values
+            var pivotColumns = new List<ISchemaColumn>();
+            
+            // Add non-aggregated, non-FOR columns from the source (these pass through PIVOT)
+            var forColumnName = GetColumnNameFromNode(node.Pivot.ForColumn);
+            var aggregateColumnNames = node.Pivot.AggregationExpressions
+                .Select(GetColumnNameFromAggregationExpression)
+                .ToHashSet();
+            
+            foreach (var sourceColumn in table.Columns)
+            {
+                // Skip the FOR column and aggregated columns as they are transformed
+                if (sourceColumn.ColumnName != forColumnName && 
+                    !aggregateColumnNames.Contains(sourceColumn.ColumnName))
+                {
+                    pivotColumns.Add(sourceColumn);
+                }
+            }
+            
+            // Add the PIVOT columns (one for each IN value)
+            var columnIndex = pivotColumns.Count;
+            foreach (var inValue in node.Pivot.InValues)
+            {
+                var columnName = GetColumnNameFromNode(inValue);
+                // Create PIVOT column with appropriate type based on aggregation
+                var columnType = GetAggregationResultType(node.Pivot.AggregationExpressions.First());
+                var pivotColumn = new SchemaColumn(columnName, columnIndex++, columnType);
+                pivotColumns.Add(pivotColumn);
+            }
+            
+            // Create new table with PIVOT columns using DynamicTable
+            var pivotTable = new DynamicTable(pivotColumns.ToArray());
+            
+            // Create a new table symbol for the PIVOT with the new schema
+            var pivotTableSymbol = new TableSymbol(node.Alias, schema, pivotTable, true);
             _currentScope.ScopeSymbolTable.AddSymbol(node.Alias, pivotTableSymbol);
             _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
         }
@@ -2567,5 +2570,52 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         // If not found in any scope, fall back to current scope behavior for error consistency
         return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
+    }
+    
+    /// <summary>
+    /// Extracts column name from a node (typically an IdentifierNode or WordNode)
+    /// </summary>
+    private string GetColumnNameFromNode(Node node)
+    {
+        return node switch
+        {
+            IdentifierNode identifierNode => identifierNode.Name,
+            WordNode wordNode => wordNode.Value,
+            StringNode stringNode => stringNode.ObjValue.ToString(),
+            _ => throw new InvalidOperationException($"Cannot extract column name from node type {node.GetType().Name}")
+        };
+    }
+    
+    /// <summary>
+    /// Extracts column name from an aggregation expression (e.g., Sum(Quantity) -> Quantity)
+    /// </summary>
+    private string GetColumnNameFromAggregationExpression(Node aggregationNode)
+    {
+        if (aggregationNode is AccessMethodNode methodNode && methodNode.Arguments.Args.Length > 0)
+        {
+            return GetColumnNameFromNode(methodNode.Arguments.Args[0]);
+        }
+        throw new InvalidOperationException($"Cannot extract column name from aggregation expression {aggregationNode.GetType().Name}");
+    }
+    
+    /// <summary>
+    /// Determines the result type of an aggregation function
+    /// </summary>
+    private Type GetAggregationResultType(Node aggregationNode)
+    {
+        if (aggregationNode is AccessMethodNode methodNode)
+        {
+            var methodName = methodNode.Name.ToLowerInvariant();
+            return methodName switch
+            {
+                "sum" => typeof(decimal), // Most numeric aggregations return decimal for precision
+                "count" => typeof(int),
+                "avg" => typeof(decimal),
+                "min" => typeof(object), // Could be any comparable type
+                "max" => typeof(object), // Could be any comparable type
+                _ => typeof(object) // Default fallback
+            };
+        }
+        return typeof(object);
     }
 }
