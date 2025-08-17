@@ -595,14 +595,25 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(IdentifierNode node)
     {
-        Nodes.Push(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults"))
-            .WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
+        // Check if this identifier is in the in-memory table indexes
+        if (_inMemoryTableIndexes.TryGetValue(node.Name, out var tableIndex))
+        {
+            Nodes.Push(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults"))
+                .WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(tableIndex)))))));
+        }
+        else
+        {
+            // If not found in _inMemoryTableIndexes, treat as raw identifier
+            // This handles cases like PIVOT aggregation where identifiers refer to 
+            // source table columns that aren't in the in-memory table indexes yet
+            Nodes.Push(SyntaxFactory.IdentifierName(node.Name));
+        }
     }
 
     public void Visit(AccessObjectArrayNode node)

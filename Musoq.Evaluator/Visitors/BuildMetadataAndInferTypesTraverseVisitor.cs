@@ -883,15 +883,15 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(PivotNode node)
     {
-        // Process this node with the main visitor first
-        node.Accept(_visitor);
-        
-        // Then process child nodes in the source table context
+        // Process child nodes in the source table context FIRST
         foreach (var aggregation in node.AggregationExpressions)
             aggregation.Accept(this);
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
+            
+        // Then process this node with the main visitor
+        node.Accept(_visitor);
     }
 
     public void Visit(PivotFromNode node)
@@ -899,7 +899,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         // Process the source first to establish context
         node.Source.Accept(this);
         
-        // Call main visitor to set up identifier context and handle aggregations
+        // IMPORTANT: Call main visitor AFTER source processing to ensure proper context
+        // This ensures aggregation expressions are processed with the source table context
         node.Accept(_visitor);
     }
 
