@@ -1911,15 +1911,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotFromNode node)
     {
-        // Process the source to get its metadata
-        node.Source.Accept(this);
+        // Pop the source from the stack (should have been processed by traverse visitor)
+        var source = (FromNode) Nodes.Pop();
         
-        // Don't change the table context - aggregations need to reference source columns
-        // The PIVOT transformation will be handled in the converter phase
-        // For now, just pass through the source table metadata
+        // Create a new PivotFromNode with the processed source and push it to maintain stack consistency  
+        var pivotFromNode = new Musoq.Parser.Nodes.From.PivotFromNode(source, node.Pivot, node.Alias);
+        _identifier = source.Alias; // Preserve the source alias for metadata handling
+        Nodes.Push(pivotFromNode);
         
-        // Process the PIVOT node for basic validation
-        node.Pivot.Accept(this);
+        // Don't process the PIVOT node separately as it will be handled during code generation
+        // The metadata context remains the same as the source table
     }
 
     public void SetQueryPart(QueryPart part)

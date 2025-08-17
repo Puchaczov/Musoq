@@ -2413,16 +2413,25 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(PivotNode node)
     {
-        // TODO: Implement PIVOT node processing
-        // This should handle the PIVOT transformation logic
-        throw new NotImplementedException("PIVOT node processing not yet implemented");
+        // PIVOT node is typically handled within PivotFromNode context
+        // This method should not be called directly in normal processing
+        throw new InvalidOperationException("PIVOT node should be processed within PivotFromNode context");
     }
 
     public void Visit(PivotFromNode node)
     {
-        // TODO: Implement PIVOT FROM node processing  
-        // This should visit the source and apply PIVOT transformation
-        throw new NotImplementedException("PIVOT FROM node processing not yet implemented");
+        // Visit the source first
+        node.Source.Accept(this);
+        
+        // Process the PIVOT transformation
+        var result = PivotNodeProcessor.ProcessPivotFromNode(node, Nodes, _scope);
+        
+        // Add the transformation statement
+        Statements.Add(result.PivotTransformStatement);
+        
+        // Create a reference to the pivot table for further processing
+        var pivotTableRef = SyntaxFactory.IdentifierName(result.PivotTableVariable);
+        Nodes.Push(pivotTableRef);
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)

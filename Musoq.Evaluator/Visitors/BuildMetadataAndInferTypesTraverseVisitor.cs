@@ -896,14 +896,24 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(PivotFromNode node)
     {
-        // Process the source first to establish context
+        // Process the source first to establish context - handle it the same way as other composite nodes
         node.Source.Accept(this);
         
         // Process the main visitor to set up basic handling
         node.Accept(_visitor);
         
-        // Process the PIVOT node - aggregations should work in source context
-        node.Pivot.Accept(this);
+        // Process the PIVOT node components for aggregation expression validation
+        foreach (var aggregation in node.Pivot.AggregationExpressions)
+        {
+            aggregation.Accept(this);
+        }
+        
+        // Process FOR column and IN values for validation
+        node.Pivot.ForColumn.Accept(this);
+        foreach (var value in node.Pivot.InValues)
+        {
+            value.Accept(this);
+        }
     }
 
     public void QueryBegins()
