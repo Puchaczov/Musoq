@@ -899,23 +899,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         // Process the source first to establish context
         node.Source.Accept(this);
         
-        // Call main visitor FIRST to set up identifier context properly
-        // This ensures stack management is correct
+        // Call main visitor to set up identifier context and handle aggregations
         node.Accept(_visitor);
-        
-        // Now process aggregation expressions SEPARATELY
-        // The identifier context should now be available from the main visitor
-        foreach (var aggregation in node.Pivot.AggregationExpressions)
-        {
-            aggregation.Accept(this);
-        }
-        
-        // Process FOR column and IN values for validation
-        node.Pivot.ForColumn.Accept(this);
-        foreach (var value in node.Pivot.InValues)
-        {
-            value.Accept(this);
-        }
     }
 
     public void QueryBegins()

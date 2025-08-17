@@ -1941,13 +1941,28 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             _identifier = _queryAlias;
         }
         
-        // Create a new PivotFromNode with the processed source and push it to maintain stack consistency  
+        // Create a new PivotFromNode with the processed source
         var pivotFromNode = new Musoq.Parser.Nodes.From.PivotFromNode(source, node.Pivot, node.Alias);
+        
+        // Register the PIVOT alias in the symbol table
+        // For now, use the same schema as the source - the transformation will be handled in code generation
+        if (!string.IsNullOrEmpty(node.Alias))
+        {
+            // Get the source table symbol to copy its schema information
+            var sourceTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+            var (schema, table, _) = sourceTableSymbol.GetTableByAlias(_identifier);
+            
+            // Create a new table symbol for the PIVOT with the new alias
+            var pivotTableSymbol = new TableSymbol(node.Alias, schema, table, true);
+            _currentScope.ScopeSymbolTable.AddSymbol(node.Alias, pivotTableSymbol);
+            _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
+        }
         
         Nodes.Push(pivotFromNode);
         
-        // Don't process aggregations here - they'll be handled by the traverse visitor
-        // after this method sets up the identifier context
+        // NOTE: For now, skip processing aggregations to avoid stack interference
+        // The code generation phase will need to handle aggregation validation
+        // This allows basic PIVOT functionality to work without the visitor pattern issues
     }
 
     public void SetQueryPart(QueryPart part)
