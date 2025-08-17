@@ -1122,6 +1122,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
+        _identifier = _queryAlias; // Set the identifier for context resolution
 
         var accessMethodNode = (AccessMethodNode) Nodes.Pop();
         table = TurnTypeIntoTable(accessMethodNode.ReturnType);
@@ -1917,7 +1918,19 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         // Create a new PivotFromNode with the processed source and push it to maintain stack consistency  
         var pivotFromNode = new Musoq.Parser.Nodes.From.PivotFromNode(source, node.Pivot, node.Alias);
-        _identifier = source.Alias; // Preserve the source alias for metadata handling
+        
+        // Ensure the identifier is properly set for aggregation context resolution
+        // Use the source alias if available, otherwise keep the current identifier
+        if (!string.IsNullOrEmpty(source.Alias))
+        {
+            _identifier = source.Alias;
+        }
+        else if (string.IsNullOrEmpty(_identifier))
+        {
+            // Fallback: use the query alias that was generated during source processing
+            _identifier = _queryAlias;
+        }
+        
         Nodes.Push(pivotFromNode);
         
         // Don't process the PIVOT node separately as it will be handled during code generation
