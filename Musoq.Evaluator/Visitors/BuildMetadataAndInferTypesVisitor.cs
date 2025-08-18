@@ -1915,10 +1915,18 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
+        // CRITICAL FIX: Ensure aggregation expressions get proper method resolution
+        // The issue is that aggregations need to go through the AccessMethodNode visitor pipeline
+        // but with the correct context (_identifier) set for the PIVOT table
+        
         // Process PIVOT aggregation expressions for method resolution
-        // This must be done during metadata building to resolve Sum/Count/Avg methods
+        // Each aggregation must go through the full visitor pattern to get Method property set
         foreach (var aggregation in node.AggregationExpressions)
+        {
+            // Push the aggregation arguments onto the stack first (if any)
+            // Then process the aggregation which should trigger AccessMethodNode processing
             aggregation.Accept(this);
+        }
         
         // Process FOR column and IN values for validation
         node.ForColumn.Accept(this);
@@ -1993,11 +2001,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
         }
         
-        Nodes.Push(pivotFromNode);
+        // CRITICAL FIX: Process the PIVOT node AFTER setting up the correct identifier context
+        // This ensures aggregation methods like Sum/Count/Avg can be resolved properly
+        node.Pivot.Accept(this);
         
-        // NOTE: For now, skip processing aggregations to avoid stack interference
-        // The code generation phase will need to handle aggregation validation
-        // This allows basic PIVOT functionality to work without the visitor pattern issues
+        Nodes.Push(pivotFromNode);
     }
 
     public void SetQueryPart(QueryPart part)
