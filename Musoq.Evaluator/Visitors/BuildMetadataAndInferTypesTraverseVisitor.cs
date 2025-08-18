@@ -884,7 +884,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public void Visit(PivotNode node)
     {
         // Process aggregation expressions through traverse visitor
-        // This follows the same pattern as GROUP BY fields
+        // This ensures arguments are properly handled on the stack
         foreach (var aggregation in node.AggregationExpressions)
             aggregation.Accept(this);
         
@@ -893,18 +893,22 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
             
-        // Call main visitor to handle the PIVOT node
+        // Call main visitor to handle method resolution
         node.Accept(_visitor);
     }
 
     public void Visit(PivotFromNode node)
     {
-        // Process source first
+        // Process source first to establish base context
         node.Source.Accept(this);
         
-        // Call main visitor to set up the identifier context first
-        // The main visitor will then handle the aggregations in the correct context
+        // Call main visitor to set up the identifier context FIRST
+        // This is critical - the identifier must be set before PIVOT processing
         node.Accept(_visitor);
+        
+        // Now process PIVOT node through traverse visitor 
+        // The identifier context is now established for method resolution
+        node.Pivot.Accept(this);
     }
 
     public void QueryBegins()

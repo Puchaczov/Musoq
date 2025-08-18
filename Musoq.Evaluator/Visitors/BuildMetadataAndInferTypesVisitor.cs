@@ -1915,12 +1915,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
-        // CRITICAL FIX: Ensure aggregation expressions get proper method resolution
-        // The issue is that aggregations need to go through the AccessMethodNode visitor pipeline
-        // but with the correct context (_identifier) set for the PIVOT table
+        // CRITICAL: Process aggregation expressions to ensure proper method resolution
+        // The traverse visitor processed their arguments, now we need method resolution
+        // This follows the same pattern as other aggregation contexts (GROUP BY, HAVING)
         
-        // Process PIVOT aggregation expressions for method resolution
-        // The traverse visitor has already processed their arguments onto the stack
         foreach (var aggregation in node.AggregationExpressions)
         {
             aggregation.Accept(this);
@@ -1937,7 +1935,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // Pop the source from the stack (should have been processed by traverse visitor)
         var source = (FromNode) Nodes.Pop();
         
-        // CRITICAL: Set identifier context BEFORE any aggregation processing
+        // CRITICAL: Set identifier context for subsequent PIVOT processing
         // This ensures Sum/Count/Avg methods can be resolved in PIVOT context
         if (!string.IsNullOrEmpty(source.Alias))
         {
@@ -1948,6 +1946,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // Fallback: use the query alias that was generated during source processing
             _identifier = _queryAlias;
         }
+        
+        // Don't process the PIVOT node here - it will be processed by traverse visitor
+        // after this method sets the context
         
         // Create a new PivotFromNode with the processed source
         var pivotFromNode = new Musoq.Parser.Nodes.From.PivotFromNode(source, node.Pivot, node.Alias);
@@ -1998,9 +1999,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             _currentScope.ScopeSymbolTable.AddSymbol(node.Alias, pivotTableSymbol);
             _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
         }
-        
-        // The PIVOT node will be processed by the traverse visitor
-        // which ensures proper argument handling before method resolution
         
         Nodes.Push(pivotFromNode);
     }
