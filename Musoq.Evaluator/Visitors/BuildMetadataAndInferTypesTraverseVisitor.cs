@@ -917,12 +917,14 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         // Process source first to establish base context
         node.Source.Accept(this);
         
-        // Call main visitor to set up the identifier context 
+        // CRITICAL: Call main visitor FIRST to set up the identifier context 
+        // This ensures _identifier is available when processing aggregations
         node.Accept(_visitor);
         
-        // Don't process PIVOT aggregations here - they will be processed 
-        // when PivotNode is visited directly by the parsing visitor
-        // This avoids double processing
+        // CRITICAL FIX: Process the embedded PivotNode with traverse visitor
+        // This ensures aggregations get processed with proper visitor pattern
+        // Do this AFTER identifier context is set up
+        node.Pivot.Accept(this);
     }
 
     public void QueryBegins()
