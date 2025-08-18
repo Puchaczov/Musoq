@@ -1276,7 +1276,22 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(ExpressionFromNode node)
     {
-        var from = (FromNode) Nodes.Pop();
+        // DEFENSIVE: Handle unexpected node types on stack during PIVOT processing
+        var stackNode = Nodes.Pop();
+        
+        FromNode from;
+        if (stackNode is FromNode fromNode)
+        {
+            from = fromNode;
+        }
+        else
+        {
+            // Handle case where stack contains unexpected node type (e.g., WordNode from PIVOT)
+            // This can happen during complex PIVOT processing
+            // Use the original expression as fallback
+            from = node.Expression;
+        }
+        
         _identifier = from.Alias;
         Nodes.Push(new Parser.ExpressionFromNode(from));
 
@@ -1917,12 +1932,23 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
         // Aggregation expressions are already processed by traverse visitor
         // with proper argument handling and method resolution
-        // Only process FOR column and IN values here
+        
+        // Process FOR column and IN values for validation but clean up stack
+        // to avoid polluting the visitor stack for subsequent operations
+        
+        var initialStackCount = Nodes.Count;
         
         // Process FOR column and IN values for validation
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
+            
+        // CRITICAL FIX: Clean up any nodes pushed during validation
+        // to prevent stack pollution that causes casting exceptions
+        while (Nodes.Count > initialStackCount)
+        {
+            Nodes.Pop();
+        }
     }
 
     public void Visit(PivotFromNode node)
