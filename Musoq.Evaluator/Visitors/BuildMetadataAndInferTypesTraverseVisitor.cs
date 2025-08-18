@@ -883,18 +883,33 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(PivotNode node)
     {
-        // Process aggregation expressions through traverse visitor
-        // This ensures arguments are properly handled on the stack
+        // Process each aggregation with proper visitor pattern:
+        // 1. Process arguments in traverse visitor
+        // 2. Immediately call main visitor for method resolution
+        // This matches the AccessMethodNode pattern exactly
         foreach (var aggregation in node.AggregationExpressions)
-            aggregation.Accept(this);
+        {
+            if (aggregation is AccessMethodNode methodNode)
+            {
+                // Process arguments first (traverse visitor responsibility)
+                methodNode.Arguments.Accept(this);
+                // Then immediately process the method for resolution (main visitor)
+                methodNode.Accept(_visitor);
+            }
+            else
+            {
+                // For non-method aggregations, process normally
+                aggregation.Accept(this);
+            }
+        }
         
         // Process FOR column and IN values 
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
-            
-        // Call main visitor to handle method resolution
-        node.Accept(_visitor);
+        
+        // Now process the PIVOT node itself (but aggregations already handled)
+        // Remove aggregation processing from main visitor to avoid double processing
     }
 
     public void Visit(PivotFromNode node)
@@ -905,9 +920,9 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         // Call main visitor to set up the identifier context 
         node.Accept(_visitor);
         
-        // Now that identifier context is set, process PIVOT aggregations
-        // This ensures arguments are processed by traverse visitor, then method resolution by main visitor
-        node.Pivot.Accept(this);
+        // Don't process PIVOT aggregations here - they will be processed 
+        // when PivotNode is visited directly by the parsing visitor
+        // This avoids double processing
     }
 
     public void QueryBegins()

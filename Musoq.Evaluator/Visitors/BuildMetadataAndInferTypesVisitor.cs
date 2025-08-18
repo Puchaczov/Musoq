@@ -1915,32 +1915,32 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
-        // Process aggregation expressions for method resolution but don't leave them on stack
-        // Store the initial stack count to manage stack properly
-        var initialStackCount = Nodes.Count;
-        
-        foreach (var aggregation in node.AggregationExpressions)
-        {
-            aggregation.Accept(this);
-        }
+        // Aggregation expressions are already processed by traverse visitor
+        // with proper argument handling and method resolution
+        // Only process FOR column and IN values here
         
         // Process FOR column and IN values for validation
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
-            
-        // Clean up stack to initial state - the processed nodes are not needed on stack
-        // The method resolution happened, but we don't want the result nodes on the stack
-        while (Nodes.Count > initialStackCount)
-        {
-            Nodes.Pop();
-        }
     }
 
     public void Visit(PivotFromNode node)
     {
         // Pop the source from the stack (should have been processed by traverse visitor)
-        var source = (FromNode) Nodes.Pop();
+        var stackNode = Nodes.Pop();
+        
+        FromNode source;
+        if (stackNode is FromNode fromNode)
+        {
+            source = fromNode;
+        }
+        else
+        {
+            // Handle unexpected node type gracefully
+            // Use the original source as fallback
+            source = node.Source;
+        }
         
         // CRITICAL: Set identifier context for subsequent PIVOT processing
         // This ensures Sum/Count/Avg methods can be resolved in PIVOT context
