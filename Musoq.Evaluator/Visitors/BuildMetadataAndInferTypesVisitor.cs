@@ -1930,24 +1930,32 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
-        // Aggregation expressions are already processed by traverse visitor
-        // with proper argument handling and method resolution
+        // PIVOT node processing depends on the visitor context:
+        // - During metadata building: Process aggregations for method resolution
+        // - During code generation: Should only be called within PivotFromNode context
         
-        // Process FOR column and IN values for validation but clean up stack
-        // to avoid polluting the visitor stack for subsequent operations
-        
-        var initialStackCount = Nodes.Count;
-        
-        // Process FOR column and IN values for validation
-        node.ForColumn.Accept(this);
-        foreach (var inValue in node.InValues)
-            inValue.Accept(this);
-            
-        // CRITICAL FIX: Clean up any nodes pushed during validation
-        // to prevent stack pollution that causes casting exceptions
-        while (Nodes.Count > initialStackCount)
+        // Check if we're in a metadata building context by looking for identifier context
+        if (!string.IsNullOrEmpty(_identifier))
         {
-            Nodes.Pop();
+            // Metadata building context: Process aggregations for method resolution
+            // but don't push anything onto the stack to avoid pollution
+            var initialStackCount = Nodes.Count;
+            
+            // Process FOR column and IN values for validation but clean up stack
+            node.ForColumn.Accept(this);
+            foreach (var inValue in node.InValues)
+                inValue.Accept(this);
+                
+            // Clean up any nodes pushed during validation
+            while (Nodes.Count > initialStackCount)
+            {
+                Nodes.Pop();
+            }
+        }
+        else
+        {
+            // Code generation context: This should not happen
+            throw new InvalidOperationException("PIVOT node should be processed within PivotFromNode context");
         }
     }
 
