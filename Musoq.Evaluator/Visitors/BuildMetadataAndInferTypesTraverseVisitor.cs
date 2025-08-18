@@ -883,32 +883,28 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(PivotNode node)
     {
-        // CRITICAL: Maintain the stack isolation approach that was working
-        // Do NOT process aggregation expressions during traverse visitor phase
-        // This interferes with the visitor stack management for ExpressionFromNode processing.
+        // Process aggregation expressions through traverse visitor
+        // This follows the same pattern as GROUP BY fields
+        foreach (var aggregation in node.AggregationExpressions)
+            aggregation.Accept(this);
         
-        // Only process FOR column and IN values (these don't interfere with stack)
+        // Process FOR column and IN values 
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
             
-        // IMPORTANT: Call the main visitor to complete metadata building for the PIVOT node itself
-        // This will handle schema creation and symbol table registration
+        // Call main visitor to handle the PIVOT node
         node.Accept(_visitor);
     }
 
     public void Visit(PivotFromNode node)
     {
-        // CRITICAL FIX: Use the exact same pattern as ExpressionFromNode
-        // to avoid any stack corruption issues.
-        // 
-        // Only process the source and then call the main visitor
-        // Do NOT process PIVOT-specific elements during traverse phase
-        
+        // Process source first
         node.Source.Accept(this);
-        node.Accept(_visitor);
         
-        // Do NOT call any PIVOT-specific processing here as it interferes with stack
+        // Call main visitor to set up the identifier context first
+        // The main visitor will then handle the aggregations in the correct context
+        node.Accept(_visitor);
     }
 
     public void QueryBegins()

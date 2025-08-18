@@ -1920,11 +1920,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // but with the correct context (_identifier) set for the PIVOT table
         
         // Process PIVOT aggregation expressions for method resolution
-        // Each aggregation must go through the full visitor pattern to get Method property set
+        // The traverse visitor has already processed their arguments onto the stack
         foreach (var aggregation in node.AggregationExpressions)
         {
-            // Push the aggregation arguments onto the stack first (if any)
-            // Then process the aggregation which should trigger AccessMethodNode processing
             aggregation.Accept(this);
         }
         
@@ -2001,9 +1999,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
         }
         
-        // CRITICAL FIX: Process the PIVOT node AFTER setting up the correct identifier context
-        // This ensures aggregation methods like Sum/Count/Avg can be resolved properly
-        node.Pivot.Accept(this);
+        // The PIVOT node will be processed by the traverse visitor
+        // which ensures proper argument handling before method resolution
         
         Nodes.Push(pivotFromNode);
     }
