@@ -1915,9 +1915,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
-        // CRITICAL: Process aggregation expressions to ensure proper method resolution
-        // The traverse visitor processed their arguments, now we need method resolution
-        // This follows the same pattern as other aggregation contexts (GROUP BY, HAVING)
+        // Process aggregation expressions for method resolution but don't leave them on stack
+        // Store the initial stack count to manage stack properly
+        var initialStackCount = Nodes.Count;
         
         foreach (var aggregation in node.AggregationExpressions)
         {
@@ -1928,6 +1928,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
+            
+        // Clean up stack to initial state - the processed nodes are not needed on stack
+        // The method resolution happened, but we don't want the result nodes on the stack
+        while (Nodes.Count > initialStackCount)
+        {
+            Nodes.Pop();
+        }
     }
 
     public void Visit(PivotFromNode node)
@@ -1947,8 +1954,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             _identifier = _queryAlias;
         }
         
-        // Don't process the PIVOT node here - it will be processed by traverse visitor
-        // after this method sets the context
+        // Don't process PIVOT aggregations here to avoid stack pollution
+        // Let the traverse visitor handle the aggregation processing
+        // The identifier context is now set correctly for when they are processed
         
         // Create a new PivotFromNode with the processed source
         var pivotFromNode = new Musoq.Parser.Nodes.From.PivotFromNode(source, node.Pivot, node.Alias);

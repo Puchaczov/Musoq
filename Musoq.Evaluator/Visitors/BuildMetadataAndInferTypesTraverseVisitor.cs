@@ -902,12 +902,11 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         // Process source first to establish base context
         node.Source.Accept(this);
         
-        // Call main visitor to set up the identifier context FIRST
-        // This is critical - the identifier must be set before PIVOT processing
+        // Call main visitor to set up the identifier context 
         node.Accept(_visitor);
         
-        // Now process PIVOT node through traverse visitor 
-        // The identifier context is now established for method resolution
+        // Now that identifier context is set, process PIVOT aggregations
+        // This ensures arguments are processed by traverse visitor, then method resolution by main visitor
         node.Pivot.Accept(this);
     }
 
