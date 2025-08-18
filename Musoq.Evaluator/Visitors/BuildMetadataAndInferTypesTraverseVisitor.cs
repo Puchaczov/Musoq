@@ -883,41 +883,34 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(PivotNode node)
     {
-        // Process PIVOT aggregation expressions for method resolution
-        // Each aggregation (like Sum(Quantity)) needs to be resolved during metadata building
-        foreach (var aggregation in node.AggregationExpressions)
-        {
-            // For AccessMethodNode, process arguments first, then the method
-            if (aggregation is AccessMethodNode accessMethod)
-            {
-                // Process arguments with traverse visitor to build them on the stack
-                accessMethod.Arguments.Accept(this);
-                // Then process the method with main visitor for method resolution  
-                accessMethod.Accept(_visitor);
-            }
-            else
-            {
-                // For other aggregation types, process normally
-                aggregation.Accept(_visitor);
-            }
-        }
+        // CRITICAL FIX: Do NOT process aggregation expressions during traverse visitor phase
+        // This interferes with the visitor stack management for ExpressionFromNode processing.
+        // The aggregations must be processed differently to avoid stack corruption.
         
-        // Process other PIVOT elements
+        // WORKAROUND: For now, skip aggregation processing during traverse phase
+        // TODO: Implement proper aggregation handling that doesn't interfere with stack
+        
+        // Only process FOR column and IN values (these don't interfere with stack)
         node.ForColumn.Accept(this);
         foreach (var inValue in node.InValues)
             inValue.Accept(this);
+            
+        // NOTE: The aggregation method resolution will need to be handled in a different
+        // phase of the compilation process to avoid this visitor stack issue
     }
 
     public void Visit(PivotFromNode node)
     {
-        // Process the source first to establish context
-        node.Source.Accept(this);
+        // CRITICAL FIX: Use the exact same pattern as ExpressionFromNode
+        // to avoid any stack corruption issues.
+        // 
+        // Only process the source and then call the main visitor
+        // Do NOT process PIVOT-specific elements during traverse phase
         
-        // Call main visitor to establish context (_identifier)
+        node.Source.Accept(this);
         node.Accept(_visitor);
         
-        // Then process the PIVOT node with established context
-        node.Pivot.Accept(this);
+        // Do NOT call any PIVOT-specific processing here as it interferes with stack
     }
 
     public void QueryBegins()

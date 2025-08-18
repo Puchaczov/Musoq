@@ -1915,8 +1915,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PivotNode node)
     {
-        // NOTE: PIVOT aggregation expressions are processed by the traverse visitor
-        // for proper method resolution context. Only process non-aggregation elements here.
+        // Process PIVOT aggregation expressions for method resolution
+        // This must be done during metadata building to resolve Sum/Count/Avg methods
+        foreach (var aggregation in node.AggregationExpressions)
+            aggregation.Accept(this);
         
         // Process FOR column and IN values for validation
         node.ForColumn.Accept(this);
