@@ -738,5 +738,187 @@ public class StringsTests : LibraryBaseBaseTests
         Assert.AreEqual("", result);
     }
 
+    #region RegexMatches Tests
+    
+    [TestMethod]
+    public void RegexMatches_WithSimplePattern_ShouldReturnMatches()
+    {
+        // Arrange
+        string regex = @"\d+";
+        string content = "There are 123 apples and 456 oranges.";
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2, result.Length);
+        Assert.AreEqual("123", result[0]);
+        Assert.AreEqual("456", result[1]);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithNoMatches_ShouldReturnEmptyArray()
+    {
+        // Arrange
+        string regex = @"\d+";
+        string content = "No numbers here!";
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0, result.Length);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithNullRegex_ShouldReturnNull()
+    {
+        // Arrange
+        string? regex = null;
+        string content = "Some content";
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithNullContent_ShouldReturnNull()
+    {
+        // Arrange
+        string regex = @"\d+";
+        string? content = null;
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithBothNullInputs_ShouldReturnNull()
+    {
+        // Arrange
+        string? regex = null;
+        string? content = null;
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithEmptyContent_ShouldReturnEmptyArray()
+    {
+        // Arrange
+        string regex = @"\d+";
+        string content = "";
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0, result.Length);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithWordPattern_ShouldReturnWordMatches()
+    {
+        // Arrange
+        string regex = @"\b[A-Z][a-z]+\b";
+        string content = "Hello World, This Is A Test.";
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(5, result.Length);
+        Assert.AreEqual("Hello", result[0]);
+        Assert.AreEqual("World", result[1]);
+        Assert.AreEqual("This", result[2]);
+        Assert.AreEqual("Is", result[3]);
+        Assert.AreEqual("Test", result[4]);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithEmailPattern_ShouldReturnEmailAddresses()
+    {
+        // Arrange
+        string regex = @"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b";
+        string content = "Contact us at john@example.com or support@test.org for help.";
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2, result.Length);
+        Assert.AreEqual("john@example.com", result[0]);
+        Assert.AreEqual("support@test.org", result[1]);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithOverlappingPattern_ShouldReturnNonOverlappingMatches()
+    {
+        // Arrange
+        string regex = @"aa";
+        string content = "aaaa";
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2, result.Length); // Should find "aa" at positions 0 and 2, not overlapping
+        Assert.AreEqual("aa", result[0]);
+        Assert.AreEqual("aa", result[1]);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithGroupCapture_ShouldReturnFullMatch()
+    {
+        // Arrange
+        string regex = @"(\d{3})-(\d{3})-(\d{4})";
+        string content = "Call 123-456-7890 or 987-654-3210";
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2, result.Length);
+        Assert.AreEqual("123-456-7890", result[0]);
+        Assert.AreEqual("987-654-3210", result[1]);
+    }
+
+    [TestMethod]
+    public void RegexMatches_WithSpecialCharacters_ShouldHandleCorrectly()
+    {
+        // Arrange
+        string regex = @"\$\d+\.\d{2}";
+        string content = "Price: $19.99, Sale: $5.50, Tax: $1.25";
+
+        // Act
+        var result = Library.RegexMatches(regex, content);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(3, result.Length);
+        Assert.AreEqual("$19.99", result[0]);
+        Assert.AreEqual("$5.50", result[1]);
+        Assert.AreEqual("$1.25", result[2]);
+    }
+
+    #endregion
+
     #endregion
 }
