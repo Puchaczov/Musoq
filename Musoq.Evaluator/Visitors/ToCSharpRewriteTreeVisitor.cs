@@ -2469,12 +2469,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // Visit the source first to get the data source
         node.Source.Accept(this);
         
-        // Use the actual alias from the node (e.g., "p" in "PIVOT (...) AS p")
-        var pivotAlias = node.Alias;
-        
-        // Create a row source statement following the pattern of other FROM visitors
-        // Use the same pattern as AccessMethodFromNode with EvaluationHelper.ConvertEnumerableToSource
-        var pivotRowsVariable = pivotAlias.ToRowsSource(); // This will be "{alias}Rows"
+        // Follow the exact pattern of AccessMethodFromNode - only use _getRowsSourceStatement.Add()
+        // Do NOT add to Statements to avoid variable redefinition errors
         
         // Create a simple List<dynamic> for the pivot data
         var pivotListCreation = SyntaxFactory.ObjectCreationExpression(
@@ -2494,21 +2490,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         .WithArgumentList(SyntaxFactory.ArgumentList(
             SyntaxFactory.SingletonSeparatedList(
                 SyntaxFactory.Argument(pivotListCreation))));
-        
-        var pivotRowsDeclaration = SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-            .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotRowsVariable))
-                .WithInitializer(SyntaxFactory.EqualsValueClause(convertToSourceCall)))));
-        
-        // Register the row source statement for this alias (essential for proper query processing)
-        _getRowsSourceStatement[pivotAlias] = pivotRowsDeclaration;
-        
-        // Add the declaration to statements
-        Statements.Add(pivotRowsDeclaration);
-        
-        // Push the pivot table identifier for further processing
-        Nodes.Push(SyntaxFactory.IdentifierName(pivotRowsVariable));
+
+        // Use the exact same pattern as AccessMethodFromNode
+        _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
+            .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
+                SyntaxFactory.SingletonSeparatedList(SyntaxFactory
+                    .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
+                        SyntaxFactory.EqualsValueClause(convertToSourceCall))))));
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
