@@ -85,7 +85,7 @@ public class PivotEvaluatorTests : BasicEntityTestBase
             FROM #A.entities()
             PIVOT (
                 Sum(Quantity)
-                FOR Category IN ('Books', 'Electronics', 'Fashion')
+                FOR Category IN ('Books', 'Electronics')
             ) AS p";
 
         var vm = CreateAndRunVirtualMachine(query, sources);

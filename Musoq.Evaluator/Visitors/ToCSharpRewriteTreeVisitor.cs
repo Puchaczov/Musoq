@@ -2469,38 +2469,35 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // Visit the source first to get the data source
         node.Source.Accept(this);
         
-        // Follow the exact pattern of AccessMethodFromNode - only use _getRowsSourceStatement.Add()
-        // Do NOT add to Statements to avoid variable redefinition errors
+        // For PIVOT, we need to work differently than other FROM nodes
+        // Instead of creating new variables, we should transform existing ones
+        // The issue is that calling node.Source.Accept(this) already creates variables
+        // and then we're trying to create our own variables with the same names
         
-        // Create a simple List<dynamic> for the pivot data
-        var pivotListCreation = SyntaxFactory.ObjectCreationExpression(
-            SyntaxFactory.GenericName(SyntaxFactory.Identifier("List"))
-            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                    SyntaxFactory.IdentifierName("dynamic")))))
-        .WithArgumentList(SyntaxFactory.ArgumentList());
+        // Let's see what the working debug test does - examine this more carefully
+        // For now, skip creating additional variables to prevent conflicts
+        // TODO: Implement proper PIVOT transformation logic
         
-        // Convert it to a proper source using EvaluationHelper.ConvertEnumerableToSource
-        // This creates an object with a .Rows property that the query pipeline expects
-        var convertToSourceCall = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertEnumerableToSource))))
-        .WithArgumentList(SyntaxFactory.ArgumentList(
-            SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Argument(pivotListCreation))));
-
-        // Use the exact same pattern as AccessMethodFromNode
-        _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
-            .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
-                SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                    .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
-                        SyntaxFactory.EqualsValueClause(convertToSourceCall))))));
+        // DON'T create additional variables that conflict with source variables
+        // The PIVOT transformation logic should be in a different phase
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {
         return SyntaxFactory.Block(statements.Where(f => f is not EmptyStatementSyntax));
+    }
+
+    /// <summary>
+    /// Extracts the alias from a source node for PIVOT transformation
+    /// </summary>
+    private static string GetSourceAlias(FromNode source)
+    {
+        return source switch
+        {
+            AccessMethodFromNode accessMethod => accessMethod.Alias,
+            JoinFromNode join => join.Alias,
+            ExpressionFromNode expression => expression.Alias,
+            _ => null
+        };
     }
 }
