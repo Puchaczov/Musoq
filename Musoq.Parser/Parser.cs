@@ -856,7 +856,16 @@ public class Parser
                 if (Current.TokenType == TokenType.Comma)
                     Consume(Current.TokenType);
 
-                args.Add(ComposeEqualityOperators());
+                // Check if this is a subquery (starts with SELECT)
+                if (Current.TokenType == TokenType.Select)
+                {
+                    // Compose a subquery
+                    args.Add(ComposeSetOperators(0));
+                }
+                else
+                {
+                    args.Add(ComposeEqualityOperators());
+                }
             } while (Current.TokenType == TokenType.Comma);
         }
 
@@ -919,8 +928,29 @@ public class Parser
                 Consume(TokenType.False);
                 return new BooleanNode(false);
             case TokenType.LeftParenthesis:
-                return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeOperations(),
-                    TokenType.RightParenthesis);
+                // Check if this is a subquery by looking ahead without consuming tokens
+                var currentPosition = _lexer.Position;
+                var originalToken = Current;
+                
+                // Consume the left parenthesis and check the next token
+                Consume(TokenType.LeftParenthesis);
+                
+                if (Current.TokenType == TokenType.Select)
+                {
+                    // This is a subquery
+                    var subquery = ComposeSetOperators(0);
+                    Consume(TokenType.RightParenthesis);
+                    return subquery;
+                }
+                else
+                {
+                    // This is a regular parenthesized expression
+                    // We need to rewind since we already consumed the left parenthesis
+                    // Let's just proceed with the normal expression parsing
+                    var expr = ComposeOperations();
+                    Consume(TokenType.RightParenthesis);
+                    return expr;
+                }
             case TokenType.Hyphen:
                 Consume(TokenType.Hyphen);
                 return new StarNode(new IntegerNode("-1", "s"), Compose(f => f.ComposeArithmeticExpression(minPrecedence)));
