@@ -992,11 +992,32 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var schema = provider.GetSchema(node.Schema);
         const bool hasExternallyProvidedTypes = false;
 
-        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
-        
-        if (HasAlreadyUsedAlias(_queryAlias))
+        // For PIVOT queries, preserve the alias set by RewriteQueryVisitor to avoid DefaultSchema:1 key mismatches
+        // Only generate a new alias if the node alias is truly empty
+        if (!string.IsNullOrEmpty(node.Alias))
         {
-            throw new AliasAlreadyUsedException(node, _queryAlias);
+            _queryAlias = node.Alias;
+            
+            if (HasAlreadyUsedAlias(_queryAlias))
+            {
+                // If there's a collision, append a suffix to make it unique
+                var baseName = _queryAlias;
+                var counter = 1;
+                do
+                {
+                    _queryAlias = $"{baseName}_{counter}";
+                    counter++;
+                } while (HasAlreadyUsedAlias(_queryAlias));
+            }
+        }
+        else
+        {
+            _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+            
+            if (HasAlreadyUsedAlias(_queryAlias))
+            {
+                throw new AliasAlreadyUsedException(node, _queryAlias);
+            }
         }
 
         _generatedAliases.Add(_queryAlias);
