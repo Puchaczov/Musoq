@@ -1346,7 +1346,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             block = block.AddStatements(GroupForStatement());
 
             if (node.Refresh.Nodes.Length > 0)
-                block = block.AddStatements(((BlockSyntax) Nodes.Pop()).Statements.ToArray());
+            {
+                var refreshBlock = Nodes.Pop() as BlockSyntax;
+                if (refreshBlock != null)
+                    block = block.AddStatements(refreshBlock.Statements.ToArray());
+            }
 
             if (node.GroupBy.Having != null)
                 block = block.AddStatements((StatementSyntax) _groupHaving);

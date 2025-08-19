@@ -80,7 +80,7 @@ public static class PivotNodeProcessor
         var sourceVariable = $"source_{Guid.NewGuid():N}";
         var pivotResult = ProcessPivotNode(pivotFromNode.Pivot, sourceVariable, scope);
 
-        // Create a statement that declares the source variable and applies the PIVOT
+        // Create a statement that declares the source variable
         var sourceDeclaration = SyntaxFactory.VariableDeclaration(
             SyntaxFactory.IdentifierName("var"))
             .WithVariables(SyntaxFactory.SingletonSeparatedList(
@@ -89,10 +89,8 @@ public static class PivotNodeProcessor
 
         var sourceStatement = SyntaxFactory.LocalDeclarationStatement(sourceDeclaration);
 
-        // Combine source declaration with PIVOT transformation
-        var blockStatements = new List<StatementSyntax> { sourceStatement, pivotResult.PivotTransformStatement };
-        
-        var combinedStatement = SyntaxFactory.Block(blockStatements);
+        // The PIVOT transformation statement is already a LocalDeclarationStatement
+        var combinedStatement = SyntaxFactory.Block(sourceStatement, pivotResult.PivotTransformStatement);
 
         return new PivotProcessingResult
         {
@@ -146,24 +144,101 @@ public static class PivotNodeProcessor
         string pivotTableVariable,
         List<string> pivotColumns)
     {
-        // For now, implement a basic PIVOT transformation using GroupBy and aggregation
-        // This is a simplified implementation that can be enhanced later
+        // Generate PIVOT transformation using proper C# syntax tree construction
+        // instead of parsing string templates
 
-        var csharpCode = $@"
-var {pivotTableVariable} = {sourceVariable}
-    .GroupBy(row => new {{ 
-        // Group by all non-pivot, non-aggregation columns
-        Key = ""placeholder""
-    }})
-    .Select(group => new {{
-        {string.Join(",\n        ", pivotColumns.Select(col => 
-            $"{SanitizeColumnName(col)} = group.Where(row => row.{GetForColumnName(pivotNode)} == \"{col}\").{GetAggregationMethod(pivotNode)}()"))}
-    }})
-    .ToList();";
+        var forColumnName = GetForColumnName(pivotNode);
+        var aggregationColumn = GetAggregationColumn(pivotNode);
+        var aggregationMethod = GetAggregationMethodName(pivotNode);
 
-        // Parse the generated C# code into syntax tree
-        var statement = SyntaxFactory.ParseStatement(csharpCode);
-        return statement;
+        // Create the PIVOT transformation as a variable declaration statement
+        // var pivotTable = source.GroupBy(row => "All").Select(group => new { ... }).ToList();
+        
+        var groupByExpression = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(sourceVariable),
+                SyntaxFactory.IdentifierName("GroupBy")))
+            .WithArgumentList(SyntaxFactory.ArgumentList(
+                SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.SimpleLambdaExpression(
+                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("row")),
+                            SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, 
+                                SyntaxFactory.Literal("All")))))));
+
+        // Create anonymous object with pivot columns
+        var pivotProperties = pivotColumns.Select(col =>
+        {
+            var sanitizedName = SanitizeColumnName(col);
+            
+            // Create: group.Where(row => row.Category == "Books").Sum(row => row.Quantity)
+            var whereExpression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("group"),
+                    SyntaxFactory.IdentifierName("Where")))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.SimpleLambdaExpression(
+                                SyntaxFactory.Parameter(SyntaxFactory.Identifier("row")),
+                                SyntaxFactory.BinaryExpression(
+                                    SyntaxKind.EqualsExpression,
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.IdentifierName("row"),
+                                        SyntaxFactory.IdentifierName(forColumnName)),
+                                    SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, 
+                                        SyntaxFactory.Literal(col))))))));
+
+            var aggregationExpression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    whereExpression,
+                    SyntaxFactory.IdentifierName(aggregationMethod)))
+                .WithArgumentList(SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.SimpleLambdaExpression(
+                                SyntaxFactory.Parameter(SyntaxFactory.Identifier("row")),
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName("row"),
+                                    SyntaxFactory.IdentifierName(aggregationColumn)))))));
+
+            return SyntaxFactory.AnonymousObjectMemberDeclarator(
+                SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(sanitizedName)),
+                aggregationExpression);
+        }).ToArray();
+
+        var selectExpression = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                groupByExpression,
+                SyntaxFactory.IdentifierName("Select")))
+            .WithArgumentList(SyntaxFactory.ArgumentList(
+                SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.SimpleLambdaExpression(
+                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("group")),
+                            SyntaxFactory.AnonymousObjectCreationExpression(
+                                SyntaxFactory.SeparatedList(pivotProperties)))))));
+
+        var toListExpression = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                selectExpression,
+                SyntaxFactory.IdentifierName("ToList")));
+
+        // Create variable declaration: var pivotTable = ...
+        var variableDeclaration = SyntaxFactory.VariableDeclaration(
+            SyntaxFactory.IdentifierName("var"))
+            .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotTableVariable))
+                    .WithInitializer(SyntaxFactory.EqualsValueClause(toListExpression))));
+
+        return SyntaxFactory.LocalDeclarationStatement(variableDeclaration);
     }
 
     /// <summary>
@@ -191,6 +266,62 @@ var {pivotTableVariable} = {sourceVariable}
     /// </summary>
     /// <param name="pivotNode">The PIVOT node</param>
     /// <returns>Aggregation method name</returns>
+    /// <summary>
+    /// Gets the aggregation method name from the PIVOT node.
+    /// </summary>
+    /// <param name="pivotNode">The PIVOT node</param>
+    /// <returns>Aggregation method name</returns>
+    private static string GetAggregationMethodName(PivotNode pivotNode)
+    {
+        // For now, assume the first aggregation function
+        if (pivotNode.AggregationExpressions.Length > 0)
+        {
+            var firstAggregation = pivotNode.AggregationExpressions[0];
+            if (firstAggregation is AccessMethodNode accessMethodNode)
+            {
+                return accessMethodNode.Name.ToUpper() switch
+                {
+                    "SUM" => "Sum",
+                    "COUNT" => "Count",
+                    "AVG" => "Average",
+                    "MIN" => "Min",
+                    "MAX" => "Max",
+                    _ => "Count"
+                };
+            }
+        }
+        
+        return "Count";
+    }
+
+    /// <summary>
+    /// Gets the column to aggregate from the PIVOT node.
+    /// </summary>
+    /// <param name="pivotNode">The PIVOT node</param>
+    /// <returns>Column name to aggregate</returns>
+    private static string GetAggregationColumn(PivotNode pivotNode)
+    {
+        // Extract the aggregation column
+        if (pivotNode.AggregationExpressions.Length > 0)
+        {
+            var firstAggregation = pivotNode.AggregationExpressions[0];
+            if (firstAggregation is AccessMethodNode accessMethodNode && 
+                accessMethodNode.Arguments.Args.Length > 0)
+            {
+                if (accessMethodNode.Arguments.Args[0] is IdentifierNode identifierNode)
+                {
+                    return identifierNode.Name;
+                }
+                else if (accessMethodNode.Arguments.Args[0] is WordNode wordNode)
+                {
+                    return wordNode.Value;
+                }
+            }
+        }
+        
+        return "Quantity"; // Fallback
+    }
+
     private static string GetAggregationMethod(PivotNode pivotNode)
     {
         // For now, assume the first aggregation function
