@@ -63,6 +63,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private SyntaxNode _groupHaving;
 
     private readonly Dictionary<string, LocalDeclarationStatementSyntax> _getRowsSourceStatement = new();
+    private readonly HashSet<string> _processedSchemaAliases = new();
 
     private VariableDeclarationSyntax _groupKeys;
     private VariableDeclarationSyntax _groupValues;
@@ -797,6 +798,18 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(SchemaFromNode node)
     {
+        // DEFENSIVE: Handle case where node.Alias is null or empty (can happen in PIVOT scenarios)
+        var nodeAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
+
+        // DEFENSIVE: Prevent duplicate schema variable creation during PIVOT processing
+        if (_processedSchemaAliases.Contains(nodeAlias))
+        {
+            // Schema already processed, skip to avoid variable redefinition
+            return;
+        }
+        
+        _processedSchemaAliases.Add(nodeAlias);
+
         // DEFENSIVE: Handle case where node might not be in InferredColumns
         // This can happen during PIVOT processing with fallback nodes
         ISchemaColumn[] originColumns;
@@ -805,9 +818,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             // Fallback: try to get columns from any similar node or create empty array
             originColumns = InferredColumns.Values.FirstOrDefault() ?? new ISchemaColumn[0];
         }
-
-        // DEFENSIVE: Handle case where node.Alias is null or empty (can happen in PIVOT scenarios)
-        var nodeAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
 
         var tableInfoVariableName = nodeAlias.ToInfoTable();
         var tableInfoObject = SyntaxHelper.CreateAssignment(
@@ -2477,12 +2487,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         
         if (string.IsNullOrEmpty(sourceAlias))
         {
-            // If the source doesn't have an alias, we need to handle this case
-            // The source will be processed normally, but we create an alias that references it
-            
-            // Visit the source first - this will create the necessary variables
-            node.Source.Accept(this);
-            
             // For sources without explicit aliases, the visitor will have used default aliases
             string defaultSourceAlias = node.Source switch
             {
@@ -2490,6 +2494,16 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 SchemaFromNode => "DefaultSchema", 
                 _ => $"{node.Alias}Source"
             };
+            
+            // Check if the source has already been processed to avoid duplicate variable creation
+            bool sourceAlreadyProcessed = _getRowsSourceStatement.ContainsKey(defaultSourceAlias) || 
+                                         _processedSchemaAliases.Contains(defaultSourceAlias);
+            
+            if (!sourceAlreadyProcessed)
+            {
+                // Visit the source first - this will create the necessary variables
+                node.Source.Accept(this);
+            }
             
             // Create an alias to the PIVOT data referencing the default source
             var pivotRowsVariable = node.Alias.ToRowsSource();
