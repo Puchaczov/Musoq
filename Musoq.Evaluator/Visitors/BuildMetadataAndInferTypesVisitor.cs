@@ -1001,8 +1001,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         _generatedAliases.Add(_queryAlias);
 
+        // CRITICAL FIX: Ensure alias is never empty to prevent ":1" key errors
+        var finalAlias = string.IsNullOrEmpty(_queryAlias) ? 
+            AliasGenerator.CreateAliasIfEmpty("", _generatedAliases, _schemaFromKey.ToString()) : 
+            _queryAlias;
+        
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
-            _queryAlias, node.QueryId, hasExternallyProvidedTypes);
+            finalAlias, node.QueryId, hasExternallyProvidedTypes);
 
         var environmentVariables =
             RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode);

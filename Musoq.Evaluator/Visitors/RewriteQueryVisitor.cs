@@ -321,10 +321,15 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(SchemaFromNode node)
     {
+        // CRITICAL FIX: Ensure alias is never empty to prevent ":1" key errors
+        // This happens before metadata visitor, so we need to ensure aliases here too
+        // Use consistent alias with PIVOT expectations
+        var effectiveAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
+        
         Nodes.Push(
             node is Parser.SchemaFromNode schemaFromNode ?
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, schemaFromNode.HasExternallyProvidedTypes) :
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, false));
+                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, node.QueryId, schemaFromNode.HasExternallyProvidedTypes) :
+                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, node.QueryId, false));
     }
 
     public void Visit(JoinSourcesTableFromNode node)
