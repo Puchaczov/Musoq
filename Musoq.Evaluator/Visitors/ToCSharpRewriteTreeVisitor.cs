@@ -2466,20 +2466,33 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(PivotFromNode node)
     {
-        // Visit the source first to get the data source
+        // Visit the source first to get the data source variables
         node.Source.Accept(this);
         
-        // For PIVOT, we need to work differently than other FROM nodes
-        // Instead of creating new variables, we should transform existing ones
-        // The issue is that calling node.Source.Accept(this) already creates variables
-        // and then we're trying to create our own variables with the same names
+        // PIVOT should alias the source data, not create duplicate variables
+        // Get the source alias to create a reference
+        var sourceAlias = GetSourceAlias(node.Source);
         
-        // Let's see what the working debug test does - examine this more carefully
-        // For now, skip creating additional variables to prevent conflicts
-        // TODO: Implement proper PIVOT transformation logic
-        
-        // DON'T create additional variables that conflict with source variables
-        // The PIVOT transformation logic should be in a different phase
+        if (!string.IsNullOrEmpty(sourceAlias))
+        {
+            // Create an alias that points to the source data
+            // This avoids variable redefinition by reusing existing variables
+            var sourceRowsVariable = sourceAlias.ToRowsSource();
+            var pivotRowsVariable = node.Alias.ToRowsSource();
+            
+            // Only add the alias if it's different from the source to avoid self-reference
+            if (pivotRowsVariable != sourceRowsVariable)
+            {
+                var aliasStatement = SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotRowsVariable))
+                                .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.IdentifierName(sourceRowsVariable))))));
+                
+                _getRowsSourceStatement.Add(node.Alias, aliasStatement);
+            }
+        }
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
