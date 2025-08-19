@@ -1005,7 +1005,8 @@ public abstract partial class LibraryBase
         if (regex == null || content == null)
             return null;
             
-        var matches = System.Text.RegularExpressions.Regex.Matches(content, regex);
+        var compiledRegex = GetOrAddCompiledRegex(regex);
+        var matches = compiledRegex.Matches(content);
         return matches.Cast<System.Text.RegularExpressions.Match>().Select(m => m.Value).ToArray();
     }
     
