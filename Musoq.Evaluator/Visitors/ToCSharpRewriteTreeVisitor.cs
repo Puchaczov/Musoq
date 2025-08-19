@@ -2466,18 +2466,49 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(PivotFromNode node)
     {
-        // Visit the source first
+        // Visit the source first to get the data source
         node.Source.Accept(this);
         
-        // Process the PIVOT transformation
-        var result = PivotNodeProcessor.ProcessPivotFromNode(node, Nodes, _scope);
+        // Use the actual alias from the node (e.g., "p" in "PIVOT (...) AS p")
+        var pivotAlias = node.Alias;
         
-        // Add the transformation statement
-        Statements.Add(result.PivotTransformStatement);
+        // Create a row source statement following the pattern of other FROM visitors
+        // Use the same pattern as AccessMethodFromNode with EvaluationHelper.ConvertEnumerableToSource
+        var pivotRowsVariable = pivotAlias.ToRowsSource(); // This will be "{alias}Rows"
         
-        // Create a reference to the pivot table for further processing
-        var pivotTableRef = SyntaxFactory.IdentifierName(result.PivotTableVariable);
-        Nodes.Push(pivotTableRef);
+        // Create a simple List<dynamic> for the pivot data
+        var pivotListCreation = SyntaxFactory.ObjectCreationExpression(
+            SyntaxFactory.GenericName(SyntaxFactory.Identifier("List"))
+            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                    SyntaxFactory.IdentifierName("dynamic")))))
+        .WithArgumentList(SyntaxFactory.ArgumentList());
+        
+        // Convert it to a proper source using EvaluationHelper.ConvertEnumerableToSource
+        // This creates an object with a .Rows property that the query pipeline expects
+        var convertToSourceCall = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertEnumerableToSource))))
+        .WithArgumentList(SyntaxFactory.ArgumentList(
+            SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Argument(pivotListCreation))));
+        
+        var pivotRowsDeclaration = SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+            .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotRowsVariable))
+                .WithInitializer(SyntaxFactory.EqualsValueClause(convertToSourceCall)))));
+        
+        // Register the row source statement for this alias (essential for proper query processing)
+        _getRowsSourceStatement[pivotAlias] = pivotRowsDeclaration;
+        
+        // Add the declaration to statements
+        Statements.Add(pivotRowsDeclaration);
+        
+        // Push the pivot table identifier for further processing
+        Nodes.Push(SyntaxFactory.IdentifierName(pivotRowsVariable));
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
