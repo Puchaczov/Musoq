@@ -806,7 +806,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             originColumns = InferredColumns.Values.FirstOrDefault() ?? new ISchemaColumn[0];
         }
 
-        var tableInfoVariableName = node.Alias.ToInfoTable();
+        // DEFENSIVE: Handle case where node.Alias is null or empty (can happen in PIVOT scenarios)
+        var nodeAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
+
+        var tableInfoVariableName = nodeAlias.ToInfoTable();
         var tableInfoObject = SyntaxHelper.CreateAssignment(
             tableInfoVariableName,
             SyntaxHelper.CreateArrayOf(
@@ -820,7 +823,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     ])))).Cast<ExpressionSyntax>().ToArray()));
 
         var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
-            node.Alias,
+            nodeAlias,
             "provider",
             nameof(ISchemaProvider.GetSchema),
             SyntaxFactory.ArgumentList(
@@ -857,8 +860,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
 
         var createdSchemaRows = SyntaxHelper.CreateAssignmentByMethodCall(
-            $"{node.Alias}Rows",
-            node.Alias,
+            $"{nodeAlias}Rows",
+            nodeAlias,
             nameof(ISchema.GetRowSource),
             SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList([
@@ -1096,10 +1099,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
         AddNamespace(node.ReturnType);
 
-        _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
+        // DEFENSIVE: Handle case where node.Alias is null or empty (can happen in PIVOT scenarios)
+        var nodeAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultRowSource" : node.Alias;
+
+        _getRowsSourceStatement.Add(nodeAlias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
             .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                    .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
+                    .VariableDeclarator(SyntaxFactory.Identifier(nodeAlias.ToRowsSource())).WithInitializer(
                         SyntaxFactory.EqualsValueClause(SyntaxFactory
                             .InvocationExpression(SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
@@ -2466,17 +2472,45 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(PivotFromNode node)
     {
-        // Visit the source first to get the data source variables
-        node.Source.Accept(this);
-        
-        // PIVOT should alias the source data, not create duplicate variables
-        // Get the source alias to create a reference
+        // For PIVOT, we need to ensure proper handling when sources don't have explicit aliases
         var sourceAlias = GetSourceAlias(node.Source);
         
-        if (!string.IsNullOrEmpty(sourceAlias))
+        if (string.IsNullOrEmpty(sourceAlias))
         {
+            // If the source doesn't have an alias, we need to handle this case
+            // The source will be processed normally, but we create an alias that references it
+            
+            // Visit the source first - this will create the necessary variables
+            node.Source.Accept(this);
+            
+            // For sources without explicit aliases, the visitor will have used default aliases
+            string defaultSourceAlias = node.Source switch
+            {
+                AccessMethodFromNode => "DefaultRowSource",
+                SchemaFromNode => "DefaultSchema", 
+                _ => $"{node.Alias}Source"
+            };
+            
+            // Create an alias to the PIVOT data referencing the default source
+            var pivotRowsVariable = node.Alias.ToRowsSource();
+            var sourceRowsVariable = $"{defaultSourceAlias}Rows";
+            
+            // Create a simple identity alias - this means the PIVOT data is the same as the source data
+            var aliasStatement = SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotRowsVariable))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.IdentifierName(sourceRowsVariable))))));
+            
+            _getRowsSourceStatement.Add(node.Alias, aliasStatement);
+        }
+        else
+        {
+            // Visit the source normally
+            node.Source.Accept(this);
+            
             // Create an alias that points to the source data
-            // This avoids variable redefinition by reusing existing variables
             var sourceRowsVariable = sourceAlias.ToRowsSource();
             var pivotRowsVariable = node.Alias.ToRowsSource();
             

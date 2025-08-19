@@ -138,9 +138,10 @@ public static class InstanceCreator
             items.Compilation?.SyntaxTrees.ElementAt(0).GetRoot().WriteTo(writer);
         }
 
+        var generatedCode = builder.ToString();
         using (var file = new StreamWriter(File.Open(csPath, FileMode.Create)))
         {
-            file.Write(builder.ToString());
+            file.Write(generatedCode);
         }
 
         if (items.DllFile is {Length: > 0})
@@ -158,7 +159,11 @@ public static class InstanceCreator
         }
 
         if (!compiled && compilationError != null)
-            throw compilationError;
+        {
+            // Add generated code to compilation error for debugging PIVOT issues
+            var enhancedMessage = compilationError.Message + "\n\nGenerated C# Code:\n" + generatedCode;
+            throw new Exceptions.CompilationException(enhancedMessage);
+        }
 
         var assemblyLoadContext = new DebugAssemblyLoadContext();
         runnable = new RunnableDebugDecorator(
