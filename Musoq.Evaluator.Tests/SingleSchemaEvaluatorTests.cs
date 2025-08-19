@@ -1555,4 +1555,31 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(new TimeSpan(0, 24, 30), table[0][0]);
     }
+
+    [TestMethod]
+    public void RegexMatchesIntegrationTest()
+    {
+        var query = @"select RegexMatches('\d+', Name) from #A.entities()";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("Test 123 and 456")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(typeof(string[]), table.Columns.ElementAt(0).ColumnType);
+
+        Assert.AreEqual(1, table.Count);
+        var result = (string[])table[0].Values[0];
+        Assert.AreEqual(2, result.Length);
+        Assert.AreEqual("123", result[0]);
+        Assert.AreEqual("456", result[1]);
+    }
 }
