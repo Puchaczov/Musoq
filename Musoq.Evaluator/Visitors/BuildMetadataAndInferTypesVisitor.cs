@@ -1022,10 +1022,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         _generatedAliases.Add(_queryAlias);
 
-        // CRITICAL FIX: Ensure alias is never empty to prevent ":1" key errors
-        var finalAlias = string.IsNullOrEmpty(_queryAlias) ? 
-            AliasGenerator.CreateAliasIfEmpty("", _generatedAliases, _schemaFromKey.ToString()) : 
-            _queryAlias;
+        // CRITICAL FIX: Ensure alias is never empty to prevent ":1" key errors  
+        // Use "DefaultSchema" as fallback to ensure consistent "alias:position" format
+        var finalAlias = string.IsNullOrEmpty(_queryAlias) ? "DefaultSchema" : _queryAlias;
         
         // CRITICAL FIX: Create Evaluator SchemaFromNode with position-based ID to match runtime expectations
         // The runtime code will look up queriesInformation using "alias:position" format
@@ -1187,12 +1186,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
 
+        // CRITICAL FIX: Ensure alias is never empty to prevent ":1" key errors  
+        // Use "DefaultSchema" as fallback to ensure consistent "alias:position" format
+        var finalAlias = string.IsNullOrEmpty(_queryAlias) ? "DefaultSchema" : _queryAlias;
+
         // CRITICAL FIX: Create Evaluator SchemaFromNode with position-based ID to match runtime expectations
         var aliasedSchemaFromNode = new Evaluator.Parser.SchemaFromNode(
             schemaInfo.Schema,
             schemaInfo.Method,
             (ArgsListNode) Nodes.Pop(),
-            _queryAlias,
+            finalAlias,
             _schemaFromKey,  // Use current schema position as runtime expects
             hasExternallyProvidedTypes
         );
