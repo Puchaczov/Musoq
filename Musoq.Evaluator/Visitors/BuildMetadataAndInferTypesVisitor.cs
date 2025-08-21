@@ -2040,6 +2040,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var pivotTableSymbol = new TableSymbol(node.Alias, schema, pivotTable, true);
             _currentScope.ScopeSymbolTable.AddSymbol(node.Alias, pivotTableSymbol);
             _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
+            
+            // CRITICAL FIX: Register the PIVOT node ID in the current scope
+            // This ensures runtime lookup can find the correct query information
+            _currentScope[pivotFromNode.Id] = node.Alias;
         }
         
         Nodes.Push(pivotFromNode);
