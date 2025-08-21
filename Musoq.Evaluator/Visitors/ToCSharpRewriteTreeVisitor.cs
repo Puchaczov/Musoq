@@ -98,6 +98,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         InferredColumns = inferredColumns;
         Workspace = new AdhocWorkspace();
         Nodes = new Stack<SyntaxNode>();
+        
+        // CRITICAL FIX: Initialize _schemaFromIndex to 1 to match metadata building phase
+        // Both ExtractRawColumnsVisitor and BuildMetadataAndInferTypesVisitor start at 1 after QueryBegins()
+        _schemaFromIndex = 1;
 
         Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
