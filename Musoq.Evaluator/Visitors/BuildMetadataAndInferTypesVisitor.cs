@@ -1012,7 +1012,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
         else
         {
-            _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+            // CRITICAL FIX: Use "DefaultSchema" as fallback to match RewriteQueryVisitor behavior
+            // This ensures consistent alias between metadata building and runtime code generation
+            var generatedAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+            _queryAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : generatedAlias;
             
             if (HasAlreadyUsedAlias(_queryAlias))
             {
@@ -1156,7 +1159,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             schema = new TransitionSchema(name, table);
         }
 
-        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+        _queryAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
         _identifier = _queryAlias; // Set the identifier for context resolution
 
@@ -1183,12 +1186,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         AddAssembly(schema.GetType().Assembly);
 
-        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+        _queryAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
 
-        // CRITICAL FIX: Ensure alias is never empty to prevent ":1" key errors  
-        // Use "DefaultSchema" as fallback to ensure consistent "alias:position" format
-        var finalAlias = string.IsNullOrEmpty(_queryAlias) ? "DefaultSchema" : _queryAlias;
+        // CRITICAL FIX: Use the consistent alias directly  
+        var finalAlias = _queryAlias;
 
         // CRITICAL FIX: Create Evaluator SchemaFromNode with position-based ID to match runtime expectations
         var aliasedSchemaFromNode = new Evaluator.Parser.SchemaFromNode(
@@ -2226,9 +2228,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     private ISchemaTable GetTableFromSchema(ISchema schema, SchemaFromNode schemaFrom)
     {
+        // CRITICAL FIX: Use consistent key format with ExtractRawColumnsVisitor
+        // ExtractRawColumnsVisitor uses "effectiveAlias + position" format
+        var effectiveAlias = string.IsNullOrEmpty(schemaFrom.Alias) ? "DefaultSchema" : schemaFrom.Alias;
+        var columnsKey = effectiveAlias + schemaFrom.QueryId;
+        
         var runtimeContext = new RuntimeContext(
             CancellationToken.None,
-            columns[schemaFrom.Alias + schemaFrom.QueryId].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
+            columns[columnsKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
             RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, schemaFrom),
             (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false),
             logger
@@ -2239,7 +2246,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     private void UpdateQueryAliasAndSymbolTable(PropertyFromNode node, ISchema schema, ISchemaTable table)
     {
-        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+        _queryAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
         
         _schemaFromArgs.Clear();

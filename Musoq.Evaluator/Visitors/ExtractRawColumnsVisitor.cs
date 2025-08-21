@@ -229,9 +229,8 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
 
     public void Visit(SchemaFromNode node)
     {   
-        // CRITICAL FIX: Ensure consistent alias generation to prevent empty aliases
-        var generatedAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
-        var effectiveAlias = string.IsNullOrEmpty(generatedAlias) ? "DefaultSchema" : generatedAlias;
+        // CRITICAL FIX: Ensure consistent alias generation to match BuildMetadataAndInferTypesVisitor
+        var effectiveAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
         _queryAlias = effectiveAlias + _schemaFromKey;
         
         if (_columns.ContainsKey(_queryAlias))
@@ -243,9 +242,8 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
 
     public void Visit(AliasedFromNode node)
     {
-        // CRITICAL FIX: Ensure consistent alias generation to prevent empty aliases
-        var generatedAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
-        var effectiveAlias = string.IsNullOrEmpty(generatedAlias) ? "DefaultSchema" : generatedAlias;
+        // CRITICAL FIX: Ensure consistent alias generation to match BuildMetadataAndInferTypesVisitor
+        var effectiveAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
         _queryAlias = effectiveAlias + _schemaFromKey;
         
         _generatedAliases.Add(_queryAlias);
