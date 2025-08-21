@@ -63,7 +63,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private SyntaxNode _groupHaving;
 
     private readonly Dictionary<string, LocalDeclarationStatementSyntax> _getRowsSourceStatement = new();
-    private readonly HashSet<string> _processedSchemaAliases = new();
 
     private VariableDeclarationSyntax _groupKeys;
     private VariableDeclarationSyntax _groupValues;
@@ -98,10 +97,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         InferredColumns = inferredColumns;
         Workspace = new AdhocWorkspace();
         Nodes = new Stack<SyntaxNode>();
-        
-        // CRITICAL FIX: Initialize _schemaFromIndex to 1 to match metadata building phase
-        // Both ExtractRawColumnsVisitor and BuildMetadataAndInferTypesVisitor start at 1 after QueryBegins()
-        _schemaFromIndex = 1;
 
         Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
@@ -802,18 +797,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(SchemaFromNode node)
     {
-        // DEFENSIVE: Handle case where node.Alias is null or empty (can happen in PIVOT scenarios)
-        var nodeAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
-
-        // DEFENSIVE: Prevent duplicate schema variable creation during PIVOT processing
-        if (_processedSchemaAliases.Contains(nodeAlias))
-        {
-            // Schema already processed, skip to avoid variable redefinition
-            return;
-        }
-        
-        _processedSchemaAliases.Add(nodeAlias);
-
         // DEFENSIVE: Handle case where node might not be in InferredColumns
         // This can happen during PIVOT processing with fallback nodes
         ISchemaColumn[] originColumns;
@@ -823,7 +806,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             originColumns = InferredColumns.Values.FirstOrDefault() ?? new ISchemaColumn[0];
         }
 
-        var tableInfoVariableName = nodeAlias.ToInfoTable();
+        var tableInfoVariableName = node.Alias.ToInfoTable();
         var tableInfoObject = SyntaxHelper.CreateAssignment(
             tableInfoVariableName,
             SyntaxHelper.CreateArrayOf(
@@ -837,7 +820,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     ])))).Cast<ExpressionSyntax>().ToArray()));
 
         var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
-            nodeAlias,
+            node.Alias,
             "provider",
             nameof(ISchemaProvider.GetSchema),
             SyntaxFactory.ArgumentList(
@@ -874,8 +857,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
 
         var createdSchemaRows = SyntaxHelper.CreateAssignmentByMethodCall(
-            $"{nodeAlias}Rows",
-            nodeAlias,
+            $"{node.Alias}Rows",
+            node.Alias,
             nameof(ISchema.GetRowSource),
             SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList([
@@ -1113,13 +1096,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
         AddNamespace(node.ReturnType);
 
-        // DEFENSIVE: Handle case where node.Alias is null or empty (can happen in PIVOT scenarios)
-        var nodeAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultRowSource" : node.Alias;
-
-        _getRowsSourceStatement.Add(nodeAlias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
+        _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
             .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                    .VariableDeclarator(SyntaxFactory.Identifier(nodeAlias.ToRowsSource())).WithInitializer(
+                    .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
                         SyntaxFactory.EqualsValueClause(SyntaxFactory
                             .InvocationExpression(SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
@@ -2181,12 +2161,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node,
         ExpressionSyntax originallyInferredColumns)
     {
-        // CRITICAL FIX: Ensure consistent key format between metadata building and runtime lookup
-        // Use alias:position format to match Evaluator SchemaFromNode ID format
-        var effectiveAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
-        var currentPosition = _schemaFromIndex++;  // Increment once and use the value consistently
-        var lookupKey = $"{effectiveAlias}:{currentPosition}";
-        
         return SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
             .WithArgumentList(
@@ -2206,7 +2180,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                             SyntaxFactory.Argument(
                                                 SyntaxFactory.LiteralExpression(
                                                     SyntaxKind.NumericLiteralExpression,
-                                                    SyntaxFactory.Literal(currentPosition))))))
+                                                    SyntaxFactory.Literal(
+                                                        _schemaFromIndex++))))))
                         ),
                         SyntaxFactory.Argument(
                             SyntaxFactory.ElementAccessExpression(
@@ -2217,7 +2192,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                             SyntaxFactory.Argument(
                                                 SyntaxFactory.LiteralExpression(
                                                     SyntaxKind.StringLiteralExpression,
-                                                    SyntaxFactory.Literal(lookupKey))))))),
+                                                    SyntaxFactory.Literal(node.Id))))))),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger"))
                     ])));
     }
@@ -2491,34 +2466,34 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(PivotFromNode node)
     {
-        // For PIVOT, we need to ensure proper handling when sources don't have explicit aliases
+        // The source has already been processed by the traverse visitor
+        // We just need to create an alias from the PIVOT to the source data
         var sourceAlias = GetSourceAlias(node.Source);
         
-        if (string.IsNullOrEmpty(sourceAlias))
+        // Determine the actual alias used for the source variables
+        string actualSourceAlias;
+        if (!string.IsNullOrEmpty(sourceAlias))
         {
-            // For sources without explicit aliases, the visitor will have used default aliases
-            string defaultSourceAlias = node.Source switch
+            actualSourceAlias = sourceAlias;
+        }
+        else
+        {
+            // For sources without explicit aliases, determine the default alias used by the visitor
+            actualSourceAlias = node.Source switch
             {
-                AccessMethodFromNode => "DefaultRowSource",
-                SchemaFromNode => "DefaultSchema", 
-                _ => $"{node.Alias}Source"
+                SchemaFromNode => "DefaultSchema",
+                AccessMethodFromNode => "DefaultRowSource", 
+                _ => "UnknownSource"
             };
-            
-            // Check if the source has already been processed to avoid duplicate variable creation
-            bool sourceAlreadyProcessed = _getRowsSourceStatement.ContainsKey(defaultSourceAlias) || 
-                                         _processedSchemaAliases.Contains(defaultSourceAlias);
-            
-            if (!sourceAlreadyProcessed)
-            {
-                // Visit the source first - this will create the necessary variables
-                node.Source.Accept(this);
-            }
-            
-            // Create an alias to the PIVOT data referencing the default source
-            var pivotRowsVariable = node.Alias.ToRowsSource();
-            var sourceRowsVariable = $"{defaultSourceAlias}Rows";
-            
-            // Create a simple identity alias - this means the PIVOT data is the same as the source data
+        }
+        
+        // Create an alias from the PIVOT to the source data
+        var sourceRowsVariable = $"{actualSourceAlias}Rows";
+        var pivotRowsVariable = node.Alias.ToRowsSource();
+        
+        // Only create the alias if it's different from the source to avoid self-reference
+        if (pivotRowsVariable != sourceRowsVariable)
+        {
             var aliasStatement = SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                     .WithVariables(SyntaxFactory.SingletonSeparatedList(
@@ -2527,28 +2502,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                 SyntaxFactory.IdentifierName(sourceRowsVariable))))));
             
             _getRowsSourceStatement.Add(node.Alias, aliasStatement);
-        }
-        else
-        {
-            // Visit the source normally
-            node.Source.Accept(this);
-            
-            // Create an alias that points to the source data
-            var sourceRowsVariable = sourceAlias.ToRowsSource();
-            var pivotRowsVariable = node.Alias.ToRowsSource();
-            
-            // Only add the alias if it's different from the source to avoid self-reference
-            if (pivotRowsVariable != sourceRowsVariable)
-            {
-                var aliasStatement = SyntaxFactory.LocalDeclarationStatement(
-                    SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotRowsVariable))
-                                .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                    SyntaxFactory.IdentifierName(sourceRowsVariable))))));
-                
-                _getRowsSourceStatement.Add(node.Alias, aliasStatement);
-            }
         }
     }
 
@@ -2567,6 +2520,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             AccessMethodFromNode accessMethod => accessMethod.Alias,
             JoinFromNode join => join.Alias,
             ExpressionFromNode expression => expression.Alias,
+            SchemaFromNode schema => schema.Alias,
             _ => null
         };
     }
