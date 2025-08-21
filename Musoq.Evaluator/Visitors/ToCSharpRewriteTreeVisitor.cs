@@ -2177,6 +2177,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node,
         ExpressionSyntax originallyInferredColumns)
     {
+        // CRITICAL FIX: Ensure consistent key format between metadata building and runtime lookup
+        // Use alias:position format to match Evaluator SchemaFromNode ID format
+        var effectiveAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
+        var currentPosition = _schemaFromIndex++;  // Increment once and use the value consistently
+        var lookupKey = $"{effectiveAlias}:{currentPosition}";
+        
         return SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
             .WithArgumentList(
@@ -2196,8 +2202,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                             SyntaxFactory.Argument(
                                                 SyntaxFactory.LiteralExpression(
                                                     SyntaxKind.NumericLiteralExpression,
-                                                    SyntaxFactory.Literal(
-                                                        _schemaFromIndex++))))))
+                                                    SyntaxFactory.Literal(currentPosition))))))
                         ),
                         SyntaxFactory.Argument(
                             SyntaxFactory.ElementAccessExpression(
@@ -2208,7 +2213,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                             SyntaxFactory.Argument(
                                                 SyntaxFactory.LiteralExpression(
                                                     SyntaxKind.StringLiteralExpression,
-                                                    SyntaxFactory.Literal(node.Id))))))),
+                                                    SyntaxFactory.Literal(lookupKey))))))),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger"))
                     ])));
     }

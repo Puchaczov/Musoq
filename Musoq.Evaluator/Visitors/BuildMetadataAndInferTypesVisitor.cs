@@ -1027,8 +1027,15 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             AliasGenerator.CreateAliasIfEmpty("", _generatedAliases, _schemaFromKey.ToString()) : 
             _queryAlias;
         
-        var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
-            finalAlias, node.QueryId, hasExternallyProvidedTypes);
+        // CRITICAL FIX: Create Evaluator SchemaFromNode with position-based ID to match runtime expectations
+        // The runtime code will look up queriesInformation using "alias:position" format
+        var aliasedSchemaFromNode = new Evaluator.Parser.SchemaFromNode(
+            node.Schema, 
+            node.Method, 
+            (ArgsListNode) Nodes.Pop(),
+            finalAlias, 
+            _schemaFromKey,  // Use current schema position as runtime expects
+            hasExternallyProvidedTypes);
 
         var environmentVariables =
             RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode);
@@ -1180,12 +1187,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
 
-        var aliasedSchemaFromNode = new Parser.SchemaFromNode(
+        // CRITICAL FIX: Create Evaluator SchemaFromNode with position-based ID to match runtime expectations
+        var aliasedSchemaFromNode = new Evaluator.Parser.SchemaFromNode(
             schemaInfo.Schema,
             schemaInfo.Method,
             (ArgsListNode) Nodes.Pop(),
             _queryAlias,
-            node.InSourcePosition,
+            _schemaFromKey,  // Use current schema position as runtime expects
             hasExternallyProvidedTypes
         );
 
