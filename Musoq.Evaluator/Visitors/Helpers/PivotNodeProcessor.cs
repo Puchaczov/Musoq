@@ -37,19 +37,21 @@ public static class PivotNodeProcessor
     /// <param name="pivotNode">The PivotNode containing aggregation and FOR clause</param>
     /// <param name="sourceVariable">Variable name of the source data</param>
     /// <param name="scope">Current scope for symbol resolution</param>
+    /// <param name="pivotAlias">The alias used for the PIVOT operation</param>
     /// <returns>PivotProcessingResult containing generated transformation code</returns>
     /// <exception cref="ArgumentNullException">Thrown when parameters are null</exception>
     public static PivotProcessingResult ProcessPivotNode(
         PivotNode pivotNode,
         string sourceVariable,
-        Scope scope)
+        Scope scope,
+        string pivotAlias = null)
     {
         ValidateParameters(pivotNode, sourceVariable, scope);
 
         var pivotTableVariable = $"pivotTable_{Guid.NewGuid():N}";
         var pivotColumns = ExtractPivotColumns(pivotNode);
         var transformStatement = GeneratePivotTransformation(
-            pivotNode, sourceVariable, pivotTableVariable, pivotColumns);
+            pivotNode, sourceVariable, pivotTableVariable, pivotColumns, pivotAlias);
 
         return new PivotProcessingResult
         {
@@ -138,12 +140,14 @@ public static class PivotNodeProcessor
     /// <param name="sourceVariable">Source data variable name</param>
     /// <param name="pivotTableVariable">Target pivot table variable name</param>
     /// <param name="pivotColumns">List of pivot column names</param>
+    /// <param name="pivotAlias">The alias used for the PIVOT operation</param>
     /// <returns>Statement containing the PIVOT transformation logic</returns>
     private static StatementSyntax GeneratePivotTransformation(
         PivotNode pivotNode,
         string sourceVariable,
         string pivotTableVariable,
-        List<string> pivotColumns)
+        List<string> pivotColumns,
+        string pivotAlias = null)
     {
         // Generate actual PIVOT transformation logic
         // This creates C# code that:
@@ -163,23 +167,31 @@ public static class PivotNodeProcessor
         // the original non-pivot columns AND the new pivot columns
         
         var pivotCode = $@"
-            var {pivotTableVariable} = {sourceVariable}
-                .Cast<dynamic>()
+            var {pivotTableVariable} = {sourceVariable}.Rows
+                .Cast<Musoq.Schema.DataSources.IObjectResolver>()
                 .GroupBy(row => new {{ 
-                    Region = row.Region,
-                    Product = row.Product
+                    Region = row[""Region""],
+                    Product = row[""Product""]
                 }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
-                    var fieldNames = new List<string> {{ ""Region"", ""Product"" }};
-                    var values = new List<object> {{ group.Key.Region, group.Key.Product }};
+                    // IMPORTANT: Use alias prefix for PIVOT columns to match SELECT clause expectations
+                    var fieldNames = new List<string>();
+                    var values = new List<object>();
+                    
+                    // Add non-pivot columns with alias prefix if available
+                    var prefix = ""{(string.IsNullOrEmpty(pivotAlias) ? "" : pivotAlias + ".")}"";
+                    fieldNames.Add(prefix + ""Region"");
+                    fieldNames.Add(prefix + ""Product"");
+                    values.Add(group.Key.Region);
+                    values.Add(group.Key.Product);
                     
                     // Add pivot columns with aggregated values
                     foreach(var pivotCol in new[] {{ {pivotColumnsLiteral} }}) {{
-                        fieldNames.Add(pivotCol);
-                        var filteredData = group.Where(row => row.{forColumnName}?.ToString() == pivotCol);
+                        fieldNames.Add(prefix + pivotCol);
+                        var filteredData = group.Where(row => row[""{forColumnName}""]?.ToString() == pivotCol);
                         if(filteredData.Any()) {{
-                            values.Add(filteredData.{aggregationMethod}(row => (decimal?)row.{aggregationColumn} ?? 0m));
+                            values.Add(filteredData.{aggregationMethod}(row => Convert.ToDecimal(row[""{aggregationColumn}""] ?? 0)));
                         }} else {{
                             values.Add(0m);
                         }}

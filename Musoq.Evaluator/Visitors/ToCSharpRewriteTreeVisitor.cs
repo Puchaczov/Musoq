@@ -2478,17 +2478,19 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         else
         {
             // For PIVOT scenarios, we need to use the same alias that was registered
-            // in the metadata building phase
+            // in the metadata building phase, but it should NOT be the same as the PIVOT alias
             if (node.Source is SchemaFromNode schemaFromNode)
             {
                 try
                 {
                     var registeredAlias = _scope[schemaFromNode.Id];
-                    actualSourceAlias = registeredAlias;
+                    // Ensure source alias is different from PIVOT alias to avoid conflicts
+                    actualSourceAlias = registeredAlias != node.Alias ? registeredAlias : "DefaultSchema";
                 }
                 catch
                 {
-                    actualSourceAlias = !string.IsNullOrEmpty(schemaFromNode.Alias) ? schemaFromNode.Alias : "DefaultSchema";
+                    actualSourceAlias = !string.IsNullOrEmpty(schemaFromNode.Alias) && schemaFromNode.Alias != node.Alias 
+                        ? schemaFromNode.Alias : "DefaultSchema";
                 }
             }
             else
@@ -2509,7 +2511,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         try
         {
             var pivotResult = PivotNodeProcessor.ProcessPivotNode(
-                node.Pivot, sourceRowsVariable, _scope);
+                node.Pivot, sourceRowsVariable, _scope, node.Alias);
             
             // Ensure the PIVOT transform statement is a LocalDeclarationStatementSyntax
             LocalDeclarationStatementSyntax pivotStatement;
@@ -2528,16 +2530,24 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                                     SyntaxFactory.IdentifierName("new List<dynamic>()"))))));
             }
             
-            // Create the PIVOT rows variable that references the transformed data
-            var pivotRowsStatement = SyntaxFactory.LocalDeclarationStatement(
+            // Add the PIVOT transformation statement first (creates the pivotTable_xxx variable)
+            Statements.Add(pivotStatement);
+            
+            // Since the PIVOT transformation already creates Group objects, we don't need 
+            // to create a separate alias variable. The system should use the PIVOT result directly.
+            // However, the current infrastructure expects a RowSource-like variable.
+            // For now, create a simple alias that avoids the variable name conflict.
+            
+            var uniqueAliasVariable = $"pivot_{node.Alias}_{Guid.NewGuid():N}";
+            var pivotAliasStatement = SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                     .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotRowsVariable))
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(uniqueAliasVariable))
                             .WithInitializer(SyntaxFactory.EqualsValueClause(
                                 SyntaxFactory.IdentifierName(pivotResult.PivotTableVariable))))));
             
-            // Add the PIVOT transformation and the alias
-            _getRowsSourceStatement.Add(node.Alias, pivotRowsStatement);
+            // Add the unique alias statement to avoid conflicts
+            _getRowsSourceStatement.Add(node.Alias, pivotAliasStatement);
         }
         catch (Exception ex)
         {
