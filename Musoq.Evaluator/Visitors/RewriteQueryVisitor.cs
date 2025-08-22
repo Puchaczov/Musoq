@@ -37,6 +37,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     // Use static tracking to persist across visitor instances
     private static readonly Dictionary<string, string> _globalUsedAliases = new();
     private int _queryIndex = 0;
+    private int _inSourcePosition = 1; // Position index for Evaluator.Parser.SchemaFromNode - UNUSED, keeping for future use
     private Scope _scope;
     
     private static string GetSchemaMethodKey(SchemaFromNode node) => $"{node.Schema}:{node.Method}";
@@ -1123,10 +1124,15 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             var schemaMethodKey = GetSchemaMethodKey(schemaFromNode);
             _globalUsedAliases[schemaMethodKey] = node.Alias;
             
-            // Create new SchemaFromNode with PIVOT alias to ensure consistent IDs
-            var pivotAliasedSchemaNode = schemaFromNode is Parser.SchemaFromNode originalSchemaFromNode ?
-                new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, originalSchemaFromNode.HasExternallyProvidedTypes) :
-                new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, false);
+            // CRITICAL: Create Evaluator.Parser.SchemaFromNode instead of Parser.SchemaFromNode
+            // to ensure the ID format matches what InstanceCreator expects for QueriesInformation
+            var pivotAliasedSchemaNode = new Musoq.Evaluator.Parser.SchemaFromNode(
+                schemaFromNode.Schema, 
+                schemaFromNode.Method, 
+                schemaFromNode.Parameters, 
+                node.Alias, 
+                1, // Use position 1 for PIVOT - matches generated C# code expectation
+                schemaFromNode is Parser.SchemaFromNode originalSchemaFromNode && originalSchemaFromNode.HasExternallyProvidedTypes);
             
             source = pivotAliasedSchemaNode;
         }

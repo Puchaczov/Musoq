@@ -1986,28 +1986,34 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // This prevents the key mismatch between metadata building and code generation
         if (source is SchemaFromNode schemaFromNode && !string.IsNullOrEmpty(node.Alias))
         {
-            // Create new SchemaFromNode with PIVOT alias to ensure consistent IDs
-            var pivotAliasedSchemaNode = schemaFromNode is Parser.SchemaFromNode originalSchemaFromNode ?
-                new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, originalSchemaFromNode.HasExternallyProvidedTypes) :
-                new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, false);
+            // CRITICAL: Create Evaluator.Parser.SchemaFromNode instead of Parser.SchemaFromNode
+            // to ensure the ID format matches what InstanceCreator expects for QueriesInformation
+            var pivotAliasedSchemaNode = new Musoq.Evaluator.Parser.SchemaFromNode(
+                schemaFromNode.Schema, 
+                schemaFromNode.Method, 
+                schemaFromNode.Parameters, 
+                node.Alias, 
+                1, // Use position 1 for PIVOT - matches generated C# code expectation
+                schemaFromNode is Parser.SchemaFromNode originalSchemaFromNode && originalSchemaFromNode.HasExternallyProvidedTypes);
             
             // CRITICAL: Register the new node in metadata collections so QueriesInformation gets the correct key
-            // Get the original node's metadata and copy it to the new node with PIVOT alias
+            // Remove the old node and add the new one to ensure the correct key format is used
             if (_inferredColumns.TryGetValue(schemaFromNode, out var originalColumns))
             {
-                if (!_inferredColumns.ContainsKey(pivotAliasedSchemaNode))
-                    _inferredColumns.Add(pivotAliasedSchemaNode, originalColumns);
+                _inferredColumns.Remove(schemaFromNode);  // Remove old node
+                _inferredColumns.Add(pivotAliasedSchemaNode, originalColumns);  // Add new node
             }
             
             if (_usedColumns.TryGetValue(schemaFromNode, out var originalUsedColumns))
             {
-                if (!_usedColumns.ContainsKey(pivotAliasedSchemaNode))
-                    _usedColumns.Add(pivotAliasedSchemaNode, originalUsedColumns);
+                _usedColumns.Remove(schemaFromNode);  // Remove old node
+                _usedColumns.Add(pivotAliasedSchemaNode, originalUsedColumns);  // Add new node
             }
             
             if (_usedWhereNodes.TryGetValue(schemaFromNode, out var originalWhereNode))
             {
-                _usedWhereNodes.TryAdd(pivotAliasedSchemaNode, originalWhereNode);
+                _usedWhereNodes.Remove(schemaFromNode);  // Remove old node
+                _usedWhereNodes.Add(pivotAliasedSchemaNode, originalWhereNode);  // Add new node
             }
             
             source = pivotAliasedSchemaNode;
