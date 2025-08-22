@@ -2466,8 +2466,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(PivotFromNode node)
     {
-        // The source has already been processed by the traverse visitor
-        // We just need to create an alias from the PIVOT to the source data
+        // For now, create a simple alias approach that doesn't redefine variables
+        // The PIVOT transformation logic will be handled at the SELECT/GROUP BY level
         var sourceAlias = GetSourceAlias(node.Source);
         
         // Determine the actual alias used for the source variables
@@ -2478,12 +2478,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
         else
         {
-            // CRITICAL FIX: For PIVOT scenarios, we need to use the same alias that was registered
-            // in the metadata building phase. The metadata building determines the actual alias.
-            // Don't default to "DefaultSchema" - find the actual alias from the _currentScope
+            // For PIVOT scenarios, we need to use the same alias that was registered
+            // in the metadata building phase
             if (node.Source is SchemaFromNode schemaFromNode)
             {
-                // Try to get the actual alias that was registered for this SchemaFromNode
                 try
                 {
                     var registeredAlias = _scope[schemaFromNode.Id];
@@ -2491,13 +2489,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 }
                 catch
                 {
-                    // If not found in scope, use the SchemaFromNode's alias directly
                     actualSourceAlias = !string.IsNullOrEmpty(schemaFromNode.Alias) ? schemaFromNode.Alias : "DefaultSchema";
                 }
             }
             else
             {
-                // For non-SchemaFromNode sources, use the original fallback logic
                 actualSourceAlias = node.Source switch
                 {
                     AccessMethodFromNode => "DefaultRowSource", 
@@ -2506,13 +2502,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             }
         }
         
-        // Create an alias from the PIVOT to the source data
+        // Get the source rows variable and PIVOT rows variable
         var sourceRowsVariable = $"{actualSourceAlias}Rows";
         var pivotRowsVariable = node.Alias.ToRowsSource();
         
-        // Only create the alias if it's different from the source to avoid self-reference
+        // Only create an alias if the names are different to avoid self-reference
         if (pivotRowsVariable != sourceRowsVariable)
         {
+            // Create a simple alias statement that references the source data
             var aliasStatement = SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                     .WithVariables(SyntaxFactory.SingletonSeparatedList(
@@ -2522,6 +2519,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             
             _getRowsSourceStatement.Add(node.Alias, aliasStatement);
         }
+        
+        // Note: The actual PIVOT transformation (grouping, aggregation, column creation) 
+        // is handled by the metadata building and SELECT processing phases
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)

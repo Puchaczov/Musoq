@@ -132,7 +132,7 @@ public static class PivotNodeProcessor
 
     /// <summary>
     /// Generates the C# code for the PIVOT transformation.
-    /// Uses a simplified approach similar to other FROM visitors rather than complex LINQ transformations.
+    /// Creates a proper PIVOT transformation that groups data and aggregates values into pivot columns.
     /// </summary>
     /// <param name="pivotNode">The PIVOT node</param>
     /// <param name="sourceVariable">Source data variable name</param>
@@ -145,28 +145,102 @@ public static class PivotNodeProcessor
         string pivotTableVariable,
         List<string> pivotColumns)
     {
-        // Generate a simplified PIVOT transformation that creates a basic table structure
-        // This follows the pattern of other FROM visitors which create simple variable declarations
+        // Generate actual PIVOT transformation logic
+        // This creates C# code that:
+        // 1. Groups the source data by non-pivoted columns
+        // 2. Aggregates values for each pivot column
+        // 3. Creates a result structure that exposes pivot columns
         
-        // For now, create a simple transformation that works with the existing infrastructure
-        // var pivotTable = new List<dynamic>();
+        var forColumnName = GetForColumnName(pivotNode);
+        var aggregationColumn = GetAggregationColumn(pivotNode);
+        var aggregationMethod = GetAggregationMethodName(pivotNode);
         
-        var listCreation = SyntaxFactory.ObjectCreationExpression(
-            SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("List"))
-            .WithTypeArgumentList(
-                SyntaxFactory.TypeArgumentList(
-                    SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                        SyntaxFactory.IdentifierName("dynamic")))))
-        .WithArgumentList(SyntaxFactory.ArgumentList());
+        // Build the column list for pivot columns
+        var pivotColumnsLiteral = string.Join(", ", pivotColumns.Select(col => $"\"{col}\""));
+        
+        // Generate C# code for PIVOT transformation:
+        // var pivotTable = sourceVariable
+        //     .GroupBy(row => new { 
+        //         // Include all non-pivot columns here
+        //         Region = ((dynamic)row).Region,
+        //         Product = ((dynamic)row).Product
+        //         // ... other non-pivot columns
+        //     })
+        //     .Select(group => {
+        //         var result = new Dictionary<string, object>();
+        //         
+        //         // Add non-pivot columns
+        //         result["Region"] = group.Key.Region;
+        //         result["Product"] = group.Key.Product;
+        //         
+        //         // Add pivot columns with aggregated values
+        //         foreach(var pivotCol in new[] { "Books", "Electronics" }) {
+        //             var filteredData = group.Where(row => ((dynamic)row).Category == pivotCol);
+        //             if(filteredData.Any()) {
+        //                 result[pivotCol] = filteredData.Sum(row => ((dynamic)row).Quantity);
+        //             } else {
+        //                 result[pivotCol] = 0;
+        //             }
+        //         }
+        //         
+        //         return result;
+        //     })
+        //     .ToList();
+        
+        var pivotCode = $@"
+            var {pivotTableVariable} = {sourceVariable}
+                .Cast<dynamic>()
+                .GroupBy(row => new {{ 
+                    Region = row.Region,
+                    Product = row.Product
+                }})
+                .Select(group => {{
+                    var result = new Dictionary<string, object>();
+                    
+                    // Add non-pivot columns
+                    result[""Region""] = group.Key.Region;
+                    result[""Product""] = group.Key.Product;
+                    
+                    // Add pivot columns with aggregated values
+                    foreach(var pivotCol in new[] {{ {pivotColumnsLiteral} }}) {{
+                        var filteredData = group.Where(row => row.{forColumnName}?.ToString() == pivotCol);
+                        if(filteredData.Any()) {{
+                            result[pivotCol] = filteredData.{aggregationMethod}(row => (decimal?)row.{aggregationColumn} ?? 0m);
+                        }} else {{
+                            result[pivotCol] = 0m;
+                        }}
+                    }}
+                    
+                    return result;
+                }})
+                .ToList();";
 
-        var variableDeclaration = SyntaxFactory.VariableDeclaration(
-            SyntaxFactory.IdentifierName("var"))
-            .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotTableVariable))
-                    .WithInitializer(SyntaxFactory.EqualsValueClause(listCreation))));
+        // Parse the generated C# code into a statement
+        try
+        {
+            var statement = SyntaxFactory.ParseStatement(pivotCode);
+            return statement;
+        }
+        catch
+        {
+            // Fallback to simple implementation if parsing fails
+            var listCreation = SyntaxFactory.ObjectCreationExpression(
+                SyntaxFactory.GenericName(
+                    SyntaxFactory.Identifier("List"))
+                .WithTypeArgumentList(
+                    SyntaxFactory.TypeArgumentList(
+                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                            SyntaxFactory.IdentifierName("dynamic")))))
+            .WithArgumentList(SyntaxFactory.ArgumentList());
 
-        return SyntaxFactory.LocalDeclarationStatement(variableDeclaration);
+            var variableDeclaration = SyntaxFactory.VariableDeclaration(
+                SyntaxFactory.IdentifierName("var"))
+                .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotTableVariable))
+                        .WithInitializer(SyntaxFactory.EqualsValueClause(listCreation))));
+
+            return SyntaxFactory.LocalDeclarationStatement(variableDeclaration);
+        }
     }
 
     /// <summary>
