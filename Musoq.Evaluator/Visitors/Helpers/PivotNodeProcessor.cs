@@ -165,6 +165,9 @@ public static class PivotNodeProcessor
         // Generate C# code for PIVOT transformation that creates Group objects:
         // The key insight is that PIVOT should return Group objects that expose both
         // the original non-pivot columns AND the new pivot columns
+        // IMPORTANT: Field names MUST include alias prefix to match SELECT clause expectations
+        
+        var prefix = string.IsNullOrEmpty(pivotAlias) ? "" : pivotAlias + ".";
         
         var pivotCode = $@"
             var {pivotTableVariable} = {sourceVariable}.Rows
@@ -175,20 +178,19 @@ public static class PivotNodeProcessor
                 }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
-                    // IMPORTANT: Use alias prefix for PIVOT columns to match SELECT clause expectations
+                    // CRITICAL: Include alias prefix in field names to match field access expectations
                     var fieldNames = new List<string>();
                     var values = new List<object>();
                     
-                    // Add non-pivot columns with alias prefix if available
-                    var prefix = ""{(string.IsNullOrEmpty(pivotAlias) ? "" : pivotAlias + ".")}"";
-                    fieldNames.Add(prefix + ""Region"");
-                    fieldNames.Add(prefix + ""Product"");
+                    // Add non-pivot columns WITH alias prefix (this matches AddColumnToGeneratedColumns logic)
+                    fieldNames.Add(""{prefix}Region"");
+                    fieldNames.Add(""{prefix}Product"");
                     values.Add(group.Key.Region);
                     values.Add(group.Key.Product);
                     
-                    // Add pivot columns with aggregated values
+                    // Add pivot columns with aggregated values WITH alias prefix
                     foreach(var pivotCol in new[] {{ {pivotColumnsLiteral} }}) {{
-                        fieldNames.Add(prefix + pivotCol);
+                        fieldNames.Add(""{prefix}"" + pivotCol);
                         var filteredData = group.Where(row => row[""{forColumnName}""]?.ToString() == pivotCol);
                         if(filteredData.Any()) {{
                             values.Add(filteredData.{aggregationMethod}(row => Convert.ToDecimal(row[""{aggregationColumn}""] ?? 0)));
