@@ -914,19 +914,12 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(PivotFromNode node)
     {
-        // Set PIVOT alias override BEFORE processing source
-        // This ensures the source SchemaFromNode registers with the PIVOT alias
-        _visitor.SetPivotAliasOverride(node.Alias);
-        
         // Process source first to establish base context
         node.Source.Accept(this);
         
         // CRITICAL: Call main visitor to set up the identifier context 
         // This ensures _identifier is available when processing aggregations
         node.Accept(_visitor);
-        
-        // Clear PIVOT alias override after processing
-        _visitor.ClearPivotAliasOverride();
         
         // CRITICAL: Process PIVOT aggregations for method resolution during metadata building
         // but avoid processing the full PIVOT node which should only happen in code generation

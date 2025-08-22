@@ -1115,6 +1115,22 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         var pivot = Nodes.Pop() as PivotNode;
         var source = Nodes.Pop() as FromNode;
         
+        // CRITICAL FIX: Ensure the embedded SchemaFromNode uses the PIVOT alias
+        // This prevents the key mismatch between metadata building and code generation
+        if (source is SchemaFromNode schemaFromNode && !string.IsNullOrEmpty(node.Alias))
+        {
+            // Update global alias tracking to use PIVOT alias for this schema/method combination
+            var schemaMethodKey = GetSchemaMethodKey(schemaFromNode);
+            _globalUsedAliases[schemaMethodKey] = node.Alias;
+            
+            // Create new SchemaFromNode with PIVOT alias to ensure consistent IDs
+            var pivotAliasedSchemaNode = schemaFromNode is Parser.SchemaFromNode originalSchemaFromNode ?
+                new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, originalSchemaFromNode.HasExternallyProvidedTypes) :
+                new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, false);
+            
+            source = pivotAliasedSchemaNode;
+        }
+        
         Nodes.Push(new PivotFromNode(source, pivot, node.Alias));
     }
 

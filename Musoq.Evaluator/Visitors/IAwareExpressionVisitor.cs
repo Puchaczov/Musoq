@@ -10,8 +10,4 @@ public interface IAwareExpressionVisitor : IScopeAwareExpressionVisitor, IQueryP
     void InnerCteBegins();
     
     void InnerCteEnds();
-    
-    void SetPivotAliasOverride(string pivotAlias);
-    
-    void ClearPivotAliasOverride();
 }
