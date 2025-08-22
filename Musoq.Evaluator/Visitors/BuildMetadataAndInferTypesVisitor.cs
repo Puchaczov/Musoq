@@ -1991,6 +1991,25 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, originalSchemaFromNode.HasExternallyProvidedTypes) :
                 new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, false);
             
+            // CRITICAL: Register the new node in metadata collections so QueriesInformation gets the correct key
+            // Get the original node's metadata and copy it to the new node with PIVOT alias
+            if (_inferredColumns.TryGetValue(schemaFromNode, out var originalColumns))
+            {
+                if (!_inferredColumns.ContainsKey(pivotAliasedSchemaNode))
+                    _inferredColumns.Add(pivotAliasedSchemaNode, originalColumns);
+            }
+            
+            if (_usedColumns.TryGetValue(schemaFromNode, out var originalUsedColumns))
+            {
+                if (!_usedColumns.ContainsKey(pivotAliasedSchemaNode))
+                    _usedColumns.Add(pivotAliasedSchemaNode, originalUsedColumns);
+            }
+            
+            if (_usedWhereNodes.TryGetValue(schemaFromNode, out var originalWhereNode))
+            {
+                _usedWhereNodes.TryAdd(pivotAliasedSchemaNode, originalWhereNode);
+            }
+            
             source = pivotAliasedSchemaNode;
         }
         
