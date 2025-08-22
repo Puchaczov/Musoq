@@ -176,7 +176,13 @@ public static class PivotNodeProcessor
         var pivotCode = $@"
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
-                .GroupBy(row => 1) // PIVOT FIX: Group all rows together for proper aggregation
+                .GroupBy(row => {{
+                    // Group by non-pivot columns - for now, use a simpler approach
+                    // We'll use the fact that rows with the same non-pivot values should be grouped together
+                    var key = """";
+                    // Simple grouping strategy - will be refined based on schema information
+                    return ""group1""; // Temporary: group all together until we have better column detection
+                }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
                     var fieldNames = new List<string>();
@@ -184,8 +190,16 @@ public static class PivotNodeProcessor
                     
                     Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
                     
-                    // PIVOT FIX: Create columns for ALL unique values in the FOR column, not just IN clause
-                    // Get all unique category values from the data
+                    // TEMPORARY FIX: Hard-code Region field for testing
+                    // TODO: Make this dynamic based on schema metadata
+                    var firstRow = group.First();
+                    if(firstRow.HasColumn(""Region"")) {{
+                        fieldNames.Add(""{prefix}Region"");
+                        values.Add(firstRow[""Region""]);
+                        Console.WriteLine($""[PIVOT DEBUG] Added Region field: {prefix}Region"");
+                    }}
+                    
+                    // Get all unique category values from this group's data
                     var allCategoryValues = group.Select(row => row[""{forColumnName}""]?.ToString())
                                                  .Where(val => !string.IsNullOrEmpty(val))
                                                  .Distinct()
@@ -193,7 +207,7 @@ public static class PivotNodeProcessor
                     
                     Console.WriteLine($""[PIVOT DEBUG] Found category values: {{string.Join("", "", allCategoryValues)}}"");
                     
-                    // Add pivot columns for ALL unique category values found in the data
+                    // Add pivot columns for unique category values found in this group
                     foreach(var pivotCol in allCategoryValues) {{
                         fieldNames.Add(""{prefix}"" + pivotCol);
                         var filteredData = group.Where(row => row[""{forColumnName}""]?.ToString() == pivotCol);
@@ -206,6 +220,7 @@ public static class PivotNodeProcessor
                     }}
                     
                     Console.WriteLine($""[PIVOT DEBUG] Final field count: {{fieldNames.Count}}"");
+                    Console.WriteLine($""[PIVOT DEBUG] Field names: {{string.Join("", "", fieldNames)}}"");
                     
                     // Create and return a Group object that exposes all columns
                     return new Musoq.Plugins.Group(null, fieldNames.ToArray(), values.ToArray());

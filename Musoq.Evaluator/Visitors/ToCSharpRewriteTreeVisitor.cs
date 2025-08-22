@@ -555,14 +555,20 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
         };
 
-        // Check if we're in a PIVOT context (SourceName starts with "pivot_")
-        var isPivotContext = _scope.ContainsAttribute(MetaAttributes.SourceName) && 
-                           _scope[MetaAttributes.SourceName].StartsWith("pivot_");
+        // Check if we're in a PIVOT context (SourceName starts with "pivot_" OR field has pivot alias prefix)
+        var isPivotContext = (_scope.ContainsAttribute(MetaAttributes.SourceName) && 
+                           _scope[MetaAttributes.SourceName].StartsWith("pivot_")) ||
+                           (node.Name.Contains(".") && node.Name.Split('.').Length == 2);
+        
+        // DEBUG: Log the context information to understand why PIVOT detection might fail
+        Console.WriteLine($"[PIVOT DEBUG] AccessColumnNode - Field: {node.Name}, SourceName: {(_scope.ContainsAttribute(MetaAttributes.SourceName) ? _scope[MetaAttributes.SourceName] : "NONE")}, IsPivotContext: {isPivotContext}, MethodType: {_type}");
 
         ExpressionSyntax sNode;
         
         if (isPivotContext && (_type == MethodAccessType.ResultQuery || _type == MethodAccessType.CaseWhen))
         {
+            Console.WriteLine($"[PIVOT DEBUG] Generating GetValue<T>() call for field: {node.Name}");
+            
             // For PIVOT context, generate GetValue<T>() method call instead of array access
             var typeIdentifier = SyntaxFactory.IdentifierName(
                 EvaluationHelper.GetCastableType(node.ReturnType));
@@ -596,6 +602,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
         else
         {
+            Console.WriteLine($"[PIVOT DEBUG] Generating array access for field: {node.Name} (isPivotContext: {isPivotContext}, type: {_type})");
+            
             // Default behavior: generate array access expression
             sNode = (ExpressionSyntax)Generator.ElementAccessExpression(
                 Generator.IdentifierName(variableName),
