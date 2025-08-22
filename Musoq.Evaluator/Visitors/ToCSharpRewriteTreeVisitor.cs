@@ -2470,12 +2470,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // We just need to create an alias from the PIVOT to the source data
         var sourceAlias = GetSourceAlias(node.Source);
         
-        Console.WriteLine($"PIVOT CODEGEN DEBUG: PivotFromNode processing - node.Alias='{node.Alias}', sourceAlias='{sourceAlias}', node.Source type={node.Source.GetType().Name}");
-        if (node.Source is SchemaFromNode schemaSource)
-        {
-            Console.WriteLine($"PIVOT CODEGEN DEBUG: SchemaFromNode - Alias='{schemaSource.Alias}', Id='{schemaSource.Id}'");
-        }
-        
         // Determine the actual alias used for the source variables
         string actualSourceAlias;
         if (!string.IsNullOrEmpty(sourceAlias))
@@ -2494,13 +2488,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 {
                     var registeredAlias = _scope[schemaFromNode.Id];
                     actualSourceAlias = registeredAlias;
-                    Console.WriteLine($"PIVOT CODEGEN DEBUG: Found registered alias '{registeredAlias}' for SchemaFromNode.Id '{schemaFromNode.Id}'");
                 }
                 catch
                 {
                     // If not found in scope, use the SchemaFromNode's alias directly
                     actualSourceAlias = !string.IsNullOrEmpty(schemaFromNode.Alias) ? schemaFromNode.Alias : "DefaultSchema";
-                    Console.WriteLine($"PIVOT CODEGEN DEBUG: No registered alias found, using SchemaFromNode.Alias '{actualSourceAlias}'");
                 }
             }
             else
@@ -2513,8 +2505,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 };
             }
         }
-        
-        Console.WriteLine($"PIVOT CODEGEN DEBUG: Using actualSourceAlias='{actualSourceAlias}'");
         
         // Create an alias from the PIVOT to the source data
         var sourceRowsVariable = $"{actualSourceAlias}Rows";

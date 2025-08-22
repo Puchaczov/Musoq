@@ -34,8 +34,12 @@ namespace Musoq.Evaluator.Visitors;
 public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 {
     private readonly List<BinaryFromNode> _joinedTables = [];
+    // Use static tracking to persist across visitor instances
+    private static readonly Dictionary<string, string> _globalUsedAliases = new();
     private int _queryIndex = 0;
     private Scope _scope;
+    
+    private static string GetSchemaMethodKey(SchemaFromNode node) => $"{node.Schema}:{node.Method}";
 
     private Stack<Node> Nodes { get; } = new();
 
@@ -321,15 +325,36 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(SchemaFromNode node)
     {
-        // CRITICAL FIX: Ensure alias is never empty to prevent ":1" key errors
-        // This happens before metadata visitor, so we need to ensure aliases here too
-        // Use consistent alias with PIVOT expectations
-        var effectiveAlias = string.IsNullOrEmpty(node.Alias) ? "DefaultSchema" : node.Alias;
+        // CRITICAL FIX: Ensure alias consistency across multiple SchemaFromNode instances
+        // Use global tracking to ensure all SchemaFromNode objects with the same schema/method 
+        // combination use the same alias, preventing PIVOT key mismatch issues
+        var schemaMethodKey = GetSchemaMethodKey(node);
+        string effectiveAlias;
         
-        Nodes.Push(
-            node is Parser.SchemaFromNode schemaFromNode ?
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, node.QueryId, schemaFromNode.HasExternallyProvidedTypes) :
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, node.QueryId, false));
+        if (!string.IsNullOrEmpty(node.Alias))
+        {
+            // If node has an alias, use it and remember it for this schema/method combination
+            effectiveAlias = node.Alias;
+            _globalUsedAliases[schemaMethodKey] = effectiveAlias;
+        }
+        else if (_globalUsedAliases.TryGetValue(schemaMethodKey, out var existingAlias))
+        {
+            // If we've seen this schema/method combination before, reuse the same alias
+            // This ensures PIVOT scenarios maintain alias consistency
+            effectiveAlias = existingAlias;
+        }
+        else
+        {
+            // First time seeing this schema/method combination with empty alias
+            effectiveAlias = "DefaultSchema";
+            _globalUsedAliases[schemaMethodKey] = effectiveAlias;
+        }
+        
+        var newNode = node is Parser.SchemaFromNode schemaFromNode ?
+            new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, node.QueryId, schemaFromNode.HasExternallyProvidedTypes) :
+            new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, node.QueryId, false);
+        
+        Nodes.Push(newNode);
     }
 
     public void Visit(JoinSourcesTableFromNode node)
