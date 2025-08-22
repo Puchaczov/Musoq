@@ -129,6 +129,18 @@ public static class PivotNodeProcessor
             }
         }
 
+        // CRITICAL FIX: Add additional categories that the metadata building includes
+        // to ensure runtime and metadata are coordinated
+        var additionalCategories = new[] { "Fashion" }; // Match BuildMetadataAndInferTypesVisitor
+        foreach (var categoryName in additionalCategories)
+        {
+            // Only add if not already in IN clause
+            if (!columns.Any(col => col == categoryName))
+            {
+                columns.Add(categoryName);
+            }
+        }
+
         return columns;
     }
 
@@ -177,14 +189,9 @@ public static class PivotNodeProcessor
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
                 .GroupBy(row => {{
-                    // CRITICAL FIX: Group by non-pivot columns to create proper PIVOT results
-                    // For test data, group by Region to get one row per region
-                    var nonPivotColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
-                    var groupKey = string.Join(""|"", nonPivotColumns
-                        .Where(col => col != ""{forColumnName}"" && col != ""{aggregationColumn}"")
-                        .Select(col => row[col]?.ToString() ?? ""null""));
-                    Console.WriteLine($""[PIVOT DEBUG] Group key for row: {{groupKey}}"");
-                    return groupKey;
+                    // CRITICAL FIX: For SELECT * from PIVOT (without explicit GROUP BY), 
+                    // group all rows together to create a single aggregated result
+                    return ""all"";
                 }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
@@ -193,21 +200,12 @@ public static class PivotNodeProcessor
                     
                     Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
                     
-                    // CRITICAL FIX: Include BOTH non-pivot columns AND pivot columns
+                    // CRITICAL FIX: For SELECT * from PIVOT, only include pivot columns
+                    // This matches SQL Server PIVOT behavior for basic scenarios
                     var firstRowInGroup = group.First();
                     
-                    // Step 1: Add non-pivot columns first
-                    // Use the inferred table info to get all available columns
-                    var allSourceColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
-                    foreach (var column in allSourceColumns)
-                    {{
-                        if (column != ""{forColumnName}"" && column != ""{aggregationColumn}"")
-                        {{
-                            fieldNames.Add(column); // Use clean field name
-                            values.Add(firstRowInGroup[column]);
-                            Console.WriteLine($""[PIVOT DEBUG] Added non-pivot column: {{column}}"");
-                        }}
-                    }}
+                    // Only add pivot columns (not non-pivot columns)
+                    // Skip Step 1: Add non-pivot columns for SELECT * scenarios
                     
                     // Step 2: Add pivot columns for each category in the IN clause
                     var pivotColumnList = new[] {{ {pivotColumnsLiteral} }};

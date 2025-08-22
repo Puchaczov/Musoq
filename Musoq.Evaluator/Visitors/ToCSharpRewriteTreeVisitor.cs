@@ -593,6 +593,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             }
 
             // Generate: score.GetValue<Type>("field.name")
+            // For PIVOT context, strip alias prefix from field name
+            var fieldName = node.Name;
+            if (fieldName.Contains(".") && fieldName.Split('.').Length == 2)
+            {
+                fieldName = fieldName.Split('.')[1]; // Extract just the column name part
+                Console.WriteLine($"[PIVOT DEBUG] Stripped alias prefix: {node.Name} -> {fieldName}");
+            }
+            
             sNode = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -607,7 +615,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                             SyntaxFactory.Argument(
                                 SyntaxFactory.LiteralExpression(
                                     SyntaxKind.StringLiteralExpression,
-                                    SyntaxFactory.Literal(node.Name))))));
+                                    SyntaxFactory.Literal(fieldName))))));
         }
         else
         {
