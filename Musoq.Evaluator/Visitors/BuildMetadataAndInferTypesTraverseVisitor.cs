@@ -915,11 +915,28 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public void Visit(PivotFromNode node)
     {
         // Process source first to establish base context
-        // This will call both traverse and main visitors for the source
         node.Source.Accept(this);
         
-        // CRITICAL: After source processing, the scope contains the generated alias
-        // Use the same pattern as JoinFromNode to get the alias from scope
+        // CRITICAL: After source processing, set up global alias tracking for PIVOT
+        // This ensures BuildMetadataAndInferTypesVisitor and RewriteQueryVisitor use consistent aliases
+        if (node.Source is SchemaFromNode schemaFromNode && !string.IsNullOrEmpty(node.Alias))
+        {
+            // Set up global alias tracking like RewriteQueryVisitor does
+            var schemaMethodKey = $"{schemaFromNode.Schema}:{schemaFromNode.Method}";
+            
+            // Use reflection to access the static _globalUsedAliases dictionary in RewriteQueryVisitor
+            var rewriteVisitorType = typeof(Musoq.Evaluator.Visitors.RewriteQueryVisitor);
+            var globalAliasesField = rewriteVisitorType.GetField("_globalUsedAliases", 
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            
+            if (globalAliasesField != null)
+            {
+                var globalAliases = (Dictionary<string, string>)globalAliasesField.GetValue(null);
+                globalAliases[schemaMethodKey] = node.Alias;
+            }
+        }
+        
+        // Get the alias that was registered
         var sourceAlias = Scope[node.Source.Id];
         
         if (!string.IsNullOrEmpty(sourceAlias))
@@ -928,8 +945,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             ((BuildMetadataAndInferTypesVisitor)_visitor)._identifier = sourceAlias;
         }
         
-        // CRITICAL: Process PIVOT aggregations BEFORE calling main visitor
-        // This ensures aggregations are resolved against the source table, not PIVOT table
+        // Process PIVOT aggregations with the correct context
         foreach (var aggregation in node.Pivot.AggregationExpressions)
         {
             if (aggregation is AccessMethodNode methodNode)
@@ -946,13 +962,13 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             }
         }
         
-        // Process FOR column and IN values for validation (before main visitor)
+        // Process FOR column and IN values BEFORE calling main visitor
+        // This ensures they are resolved against the source table context
         node.Pivot.ForColumn.Accept(this);
         foreach (var inValue in node.Pivot.InValues)
             inValue.Accept(this);
         
-        // CRITICAL: Only NOW call main visitor to set up the PIVOT identifier context 
-        // At this point, all aggregations, FOR column, and IN values have been resolved against the source table
+        // Call main visitor for PIVOT processing
         node.Accept(_visitor);
     }
 
