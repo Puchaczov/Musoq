@@ -176,29 +176,7 @@ public static class PivotNodeProcessor
         var pivotCode = $@"
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
-                .GroupBy(row => {{
-                    // Dynamically determine available columns by testing common column names
-                    var groupValues = new List<object>();
-                    var availableColumns = new List<string>();
-                    
-                    // Test for common columns in order of priority
-                    var testColumns = new[] {{ ""Region"", ""Product"", ""Year"", ""Month"", ""Quarter"", ""Salesperson"", ""Revenue"", ""SalesDate"" }};
-                    
-                    foreach (var testCol in testColumns) {{
-                        try {{
-                            var value = row[testCol];
-                            // Only include if it's not the FOR column or aggregation column
-                            if (testCol != ""{forColumnName}"" && testCol != ""{aggregationColumnName}"") {{
-                                availableColumns.Add(testCol);
-                                groupValues.Add(value ?? """");
-                            }}
-                        }} catch {{ /* Column doesn't exist, skip */ }}
-                    }}
-                    
-                    // Create anonymous object with found columns
-                    // For simplicity, we'll create a tuple or use string concatenation for grouping
-                    return string.Join(""|"", groupValues);
-                }})
+                .GroupBy(row => 1) // PIVOT FIX: Group all rows together for proper aggregation
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
                     var fieldNames = new List<string>();
@@ -206,27 +184,17 @@ public static class PivotNodeProcessor
                     
                     Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
                     
-                    // Get the first row to determine which columns are available
-                    var firstRow = group.FirstOrDefault();
-                    if (firstRow != null) {{
-                        // Test and add available non-pivot columns
-                        var testColumns = new[] {{ ""Region"", ""Product"", ""Year"", ""Month"", ""Quarter"", ""Salesperson"", ""Revenue"", ""SalesDate"" }};
-                        
-                        foreach (var testCol in testColumns) {{
-                            try {{
-                                var value = firstRow[testCol];
-                                // Only include if it's not the FOR column or aggregation column
-                                if (testCol != ""{forColumnName}"" && testCol != ""{aggregationColumnName}"") {{
-                                    fieldNames.Add(""{prefix}"" + testCol);
-                                    values.Add(value ?? """");
-                                    Console.WriteLine($""[PIVOT DEBUG] Added field: {prefix}{{testCol}}"");
-                                }}
-                            }} catch {{ /* Column doesn't exist, skip */ }}
-                        }}
-                    }}
+                    // PIVOT FIX: Create columns for ALL unique values in the FOR column, not just IN clause
+                    // Get all unique category values from the data
+                    var allCategoryValues = group.Select(row => row[""{forColumnName}""]?.ToString())
+                                                 .Where(val => !string.IsNullOrEmpty(val))
+                                                 .Distinct()
+                                                 .OrderBy(val => val);
                     
-                    // Add pivot columns with aggregated values WITH alias prefix
-                    foreach(var pivotCol in new[] {{ {pivotColumnsLiteral} }}) {{
+                    Console.WriteLine($""[PIVOT DEBUG] Found category values: {{string.Join("", "", allCategoryValues)}}"");
+                    
+                    // Add pivot columns for ALL unique category values found in the data
+                    foreach(var pivotCol in allCategoryValues) {{
                         fieldNames.Add(""{prefix}"" + pivotCol);
                         var filteredData = group.Where(row => row[""{forColumnName}""]?.ToString() == pivotCol);
                         if(filteredData.Any()) {{

@@ -2052,10 +2052,37 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     _usedColumns.Remove(existingSchemaNode);
                     _usedWhereNodes.Remove(existingSchemaNode);
                     
-                    // Add to all dictionaries with PIVOT node
+                    // PIVOT FIX: Create PIVOT-specific columns instead of copying original columns
+                    var pivotColumns = new List<ISchemaColumn>();
+                    
+                    // Extract pivot column names from the IN clause
+                    int columnIndex = 0;
+                    foreach (var inValue in node.Pivot.InValues)
+                    {
+                        string columnName = null;
+                        if (inValue is StringNode stringNode)
+                        {
+                            columnName = stringNode.Value;
+                        }
+                        else if (inValue is WordNode wordNode)
+                        {
+                            columnName = wordNode.Value;
+                        }
+                        
+                        if (!string.IsNullOrEmpty(columnName))
+                        {
+                            // Create a schema column for each pivot value
+                            // Use decimal type since we're doing Sum aggregation
+                            var pivotColumn = new SchemaColumn(columnName, columnIndex++, typeof(decimal));
+                            pivotColumns.Add(pivotColumn);
+                            Console.WriteLine($"[PIVOT METADATA] Added pivot column: {columnName}");
+                        }
+                    }
+                    
+                    // Add to all dictionaries with PIVOT node using PIVOT columns
                     if (hasOriginalColumns)
                         _inferredColumns.Add(pivotAliasedSchemaNode, originalColumns);
-                    _usedColumns.Add(pivotAliasedSchemaNode, originalUsedColumns);
+                    _usedColumns.Add(pivotAliasedSchemaNode, pivotColumns); // Use PIVOT columns, not original
                     _usedWhereNodes.Add(pivotAliasedSchemaNode, originalWhereNode);
                     
                     System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Dictionary replacement complete");
