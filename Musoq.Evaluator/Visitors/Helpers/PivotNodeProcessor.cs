@@ -158,34 +158,9 @@ public static class PivotNodeProcessor
         // Build the column list for pivot columns
         var pivotColumnsLiteral = string.Join(", ", pivotColumns.Select(col => $"\"{col}\""));
         
-        // Generate C# code for PIVOT transformation:
-        // var pivotTable = sourceVariable
-        //     .GroupBy(row => new { 
-        //         // Include all non-pivot columns here
-        //         Region = ((dynamic)row).Region,
-        //         Product = ((dynamic)row).Product
-        //         // ... other non-pivot columns
-        //     })
-        //     .Select(group => {
-        //         var result = new Dictionary<string, object>();
-        //         
-        //         // Add non-pivot columns
-        //         result["Region"] = group.Key.Region;
-        //         result["Product"] = group.Key.Product;
-        //         
-        //         // Add pivot columns with aggregated values
-        //         foreach(var pivotCol in new[] { "Books", "Electronics" }) {
-        //             var filteredData = group.Where(row => ((dynamic)row).Category == pivotCol);
-        //             if(filteredData.Any()) {
-        //                 result[pivotCol] = filteredData.Sum(row => ((dynamic)row).Quantity);
-        //             } else {
-        //                 result[pivotCol] = 0;
-        //             }
-        //         }
-        //         
-        //         return result;
-        //     })
-        //     .ToList();
+        // Generate C# code for PIVOT transformation that creates Group objects:
+        // The key insight is that PIVOT should return Group objects that expose both
+        // the original non-pivot columns AND the new pivot columns
         
         var pivotCode = $@"
             var {pivotTableVariable} = {sourceVariable}
@@ -195,23 +170,23 @@ public static class PivotNodeProcessor
                     Product = row.Product
                 }})
                 .Select(group => {{
-                    var result = new Dictionary<string, object>();
-                    
-                    // Add non-pivot columns
-                    result[""Region""] = group.Key.Region;
-                    result[""Product""] = group.Key.Product;
+                    // Create field names and values arrays for Group constructor
+                    var fieldNames = new List<string> {{ ""Region"", ""Product"" }};
+                    var values = new List<object> {{ group.Key.Region, group.Key.Product }};
                     
                     // Add pivot columns with aggregated values
                     foreach(var pivotCol in new[] {{ {pivotColumnsLiteral} }}) {{
+                        fieldNames.Add(pivotCol);
                         var filteredData = group.Where(row => row.{forColumnName}?.ToString() == pivotCol);
                         if(filteredData.Any()) {{
-                            result[pivotCol] = filteredData.{aggregationMethod}(row => (decimal?)row.{aggregationColumn} ?? 0m);
+                            values.Add(filteredData.{aggregationMethod}(row => (decimal?)row.{aggregationColumn} ?? 0m));
                         }} else {{
-                            result[pivotCol] = 0m;
+                            values.Add(0m);
                         }}
                     }}
                     
-                    return result;
+                    // Create and return a Group object that exposes all columns
+                    return new Musoq.Plugins.Group(null, fieldNames.ToArray(), values.ToArray());
                 }})
                 .ToList();";
 

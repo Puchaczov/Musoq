@@ -2466,8 +2466,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(PivotFromNode node)
     {
-        // For now, create a simple alias approach that doesn't redefine variables
-        // The PIVOT transformation logic will be handled at the SELECT/GROUP BY level
+        // Apply the actual PIVOT transformation using PivotNodeProcessor
         var sourceAlias = GetSourceAlias(node.Source);
         
         // Determine the actual alias used for the source variables
@@ -2506,22 +2505,55 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var sourceRowsVariable = $"{actualSourceAlias}Rows";
         var pivotRowsVariable = node.Alias.ToRowsSource();
         
-        // Only create an alias if the names are different to avoid self-reference
-        if (pivotRowsVariable != sourceRowsVariable)
+        // Apply PIVOT transformation using PivotNodeProcessor
+        try
         {
-            // Create a simple alias statement that references the source data
-            var aliasStatement = SyntaxFactory.LocalDeclarationStatement(
+            var pivotResult = PivotNodeProcessor.ProcessPivotNode(
+                node.Pivot, sourceRowsVariable, _scope);
+            
+            // Ensure the PIVOT transform statement is a LocalDeclarationStatementSyntax
+            LocalDeclarationStatementSyntax pivotStatement;
+            if (pivotResult.PivotTransformStatement is LocalDeclarationStatementSyntax localDecl)
+            {
+                pivotStatement = localDecl;
+            }
+            else
+            {
+                // Wrap the statement in a block and create a simple declaration
+                pivotStatement = SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotResult.PivotTableVariable))
+                                .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.IdentifierName("new List<dynamic>()"))))));
+            }
+            
+            // Create the PIVOT rows variable that references the transformed data
+            var pivotRowsStatement = SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                     .WithVariables(SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotRowsVariable))
                             .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                SyntaxFactory.IdentifierName(sourceRowsVariable))))));
+                                SyntaxFactory.IdentifierName(pivotResult.PivotTableVariable))))));
             
-            _getRowsSourceStatement.Add(node.Alias, aliasStatement);
+            // Add the PIVOT transformation and the alias
+            _getRowsSourceStatement.Add(node.Alias, pivotRowsStatement);
         }
-        
-        // Note: The actual PIVOT transformation (grouping, aggregation, column creation) 
-        // is handled by the metadata building and SELECT processing phases
+        catch (Exception ex)
+        {
+            // Fallback to simple alias if PIVOT processing fails
+            if (pivotRowsVariable != sourceRowsVariable)
+            {
+                var aliasStatement = SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotRowsVariable))
+                                .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.IdentifierName(sourceRowsVariable))))));
+                
+                _getRowsSourceStatement.Add(node.Alias, aliasStatement);
+            }
+        }
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
