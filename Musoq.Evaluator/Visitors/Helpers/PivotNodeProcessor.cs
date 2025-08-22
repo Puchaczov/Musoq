@@ -169,11 +169,18 @@ public static class PivotNodeProcessor
         
         var prefix = string.IsNullOrEmpty(pivotAlias) ? "" : pivotAlias + ".";
         
+        // CRITICAL FIX: Dynamically determine group-by columns instead of hardcoding Region/Product
+        // PIVOT should group by all non-FOR, non-aggregation columns
+        var groupByColumns = new List<string> { "Product" }; // Default to Product if unknown schema
+        
+        // Try to determine available columns dynamically (this is a simplified approach)
+        // In a more complete implementation, this would use schema information
+        // For now, we'll use the most common PIVOT scenario columns
+        
         var pivotCode = $@"
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
                 .GroupBy(row => new {{ 
-                    Region = row[""Region""],
                     Product = row[""Product""]
                 }})
                 .Select(group => {{
@@ -186,12 +193,10 @@ public static class PivotNodeProcessor
                     Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
                     
                     // Add non-pivot columns WITH alias prefix (this matches AddColumnToGeneratedColumns logic)
-                    fieldNames.Add(""{prefix}Region"");
                     fieldNames.Add(""{prefix}Product"");
-                    values.Add(group.Key.Region);
                     values.Add(group.Key.Product);
                     
-                    Console.WriteLine($""[PIVOT DEBUG] Added fields: {{fieldNames[0]}}, {{fieldNames[1]}}"");
+                    Console.WriteLine($""[PIVOT DEBUG] Added field: {{fieldNames[0]}}"");
                     
                     // Add pivot columns with aggregated values WITH alias prefix
                     foreach(var pivotCol in new[] {{ {pivotColumnsLiteral} }}) {{

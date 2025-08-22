@@ -2123,6 +2123,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // with consistent aliases from RewriteQueryVisitor
         }
         
+        // CRITICAL FIX: Clear refresh methods to prevent default GROUP BY creation
+        // PIVOT operations have their own grouping logic and should not use default GROUP BY
+        // This prevents the creation of Groups with field "1" that conflicts with PIVOT Groups
+        Console.WriteLine($"[PIVOT DEBUG] Clearing {_refreshMethods.Count} refresh methods to prevent default GROUP BY");
+        _refreshMethods.Clear();
+        
         Nodes.Push(pivotFromNode);
     }
 
@@ -2247,7 +2253,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
         AddAssembly(column.ColumnType.Assembly);
 
-        var accessColumn = new AccessColumnNode(column.ColumnName, identifier, column.ColumnType, TextSpan.Empty);
         string fieldName;
         if (isCompoundTable)
         {
@@ -2257,6 +2262,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             fieldName = tableSymbol.HasAlias ? $"{identifier}.{column.ColumnName}" : column.ColumnName;
         }
+        
+        // CRITICAL FIX: Use the computed fieldName in AccessColumnNode instead of just column.ColumnName
+        // This ensures PIVOT field access uses the correct alias prefix (e.g., "p.Product" not "Product")
+        var accessColumn = new AccessColumnNode(fieldName, identifier, column.ColumnType, TextSpan.Empty);
         
         // DEBUG: Print field generation for PIVOT debugging
         Console.WriteLine($"[SELECT DEBUG] AddColumnToGeneratedColumns: identifier='{identifier}', column='{column.ColumnName}', fieldName='{fieldName}', hasAlias={tableSymbol.HasAlias}");
