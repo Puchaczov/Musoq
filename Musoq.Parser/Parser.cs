@@ -1062,10 +1062,16 @@ public class Parser
             partitionBy = ComposeBaseTypes();
         }
 
-        // Check for ORDER BY clause
+        // Check for ORDER BY clause - handle both compound token and separate tokens
         if (Current.TokenType == TokenType.OrderBy)
         {
             Consume(TokenType.OrderBy);
+            orderBy = ComposeBaseTypes();
+        }
+        else if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "order")
+        {
+            Consume(TokenType.Identifier); // consume "ORDER"
+            Consume(TokenType.By);         // consume "BY"
             orderBy = ComposeBaseTypes();
         }
 

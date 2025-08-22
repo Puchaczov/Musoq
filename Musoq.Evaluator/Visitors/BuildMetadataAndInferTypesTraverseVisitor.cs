@@ -881,6 +881,20 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
+    public void Visit(WindowFunctionNode node)
+    {
+        // Placeholder implementation for window functions
+        // TODO: Implement proper type inference when window function execution is added
+        node.Accept(_visitor);
+    }
+
+    public void Visit(OverClauseNode node)
+    {
+        // Placeholder implementation for OVER clauses
+        // TODO: Implement proper type inference when window function execution is added
+        node.Accept(_visitor);
+    }
+
     public void QueryBegins()
     {
         _visitor.QueryBegins();

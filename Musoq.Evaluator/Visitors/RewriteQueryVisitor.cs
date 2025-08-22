@@ -1065,6 +1065,18 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }
 
+    public void Visit(WindowFunctionNode node)
+    {
+        // Placeholder implementation for window functions
+        throw new NotImplementedException("Window function rewriting not yet implemented");
+    }
+
+    public void Visit(OverClauseNode node)
+    {
+        // Placeholder implementation for OVER clauses
+        throw new NotImplementedException("OVER clause rewriting not yet implemented");
+    }
+
     private void VisitAccessMethod(AccessMethodNode node)
     {
         var args = Nodes.Pop() as ArgsListNode;

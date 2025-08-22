@@ -15,7 +15,7 @@ public class TokenDebugTests
     public void Lexer_DebugExistingToken_WITH()
     {
         var lexer = new Lexer(" WITH ", true);  // Add spaces
-        var token = lexer.Current();
+        var token = lexer.Next();  // Use Next() instead of Current()
         
         Console.WriteLine($"WITH token test: {token.TokenType} = '{token.Value}'");
         Assert.AreEqual(TokenType.With, token.TokenType);
@@ -25,7 +25,7 @@ public class TokenDebugTests
     public void Lexer_DebugNewToken_OVER()
     {
         var lexer = new Lexer(" OVER ", true);  // Add spaces
-        var token = lexer.Current();
+        var token = lexer.Next();  // Use Next() instead of Current()
         
         Console.WriteLine($"OVER token test: {token.TokenType} = '{token.Value}'");
         Assert.AreEqual(TokenType.Over, token.TokenType);

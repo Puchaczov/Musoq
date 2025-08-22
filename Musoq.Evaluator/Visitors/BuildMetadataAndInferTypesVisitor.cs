@@ -1898,6 +1898,18 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(_groupByFields[index].Expression);
     }
 
+    public void Visit(WindowFunctionNode node)
+    {
+        // Placeholder implementation for window functions
+        throw new NotImplementedException("Window function type inference not yet implemented");
+    }
+
+    public void Visit(OverClauseNode node)
+    {
+        // Placeholder implementation for OVER clauses
+        throw new NotImplementedException("OVER clause type inference not yet implemented");
+    }
+
     public void SetQueryPart(QueryPart part)
     {
         _queryPart = part;
