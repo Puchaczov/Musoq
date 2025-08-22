@@ -915,7 +915,18 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public void Visit(PivotFromNode node)
     {
         // Process source first to establish base context
+        // This will call both traverse and main visitors for the source
         node.Source.Accept(this);
+        
+        // CRITICAL: After source processing, the scope contains the generated alias
+        // Use the same pattern as JoinFromNode to get the alias from scope
+        var sourceAlias = Scope[node.Source.Id];
+        
+        if (!string.IsNullOrEmpty(sourceAlias))
+        {
+            // Set up identifier context for aggregation method resolution
+            ((BuildMetadataAndInferTypesVisitor)_visitor)._identifier = sourceAlias;
+        }
         
         // CRITICAL: Process PIVOT aggregations BEFORE calling main visitor
         // This ensures aggregations are resolved against the source table, not PIVOT table
@@ -941,13 +952,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             inValue.Accept(this);
         
         // CRITICAL: Only NOW call main visitor to set up the PIVOT identifier context 
-        // At this point, all aggregations have been resolved against the source table
+        // At this point, all aggregations, FOR column, and IN values have been resolved against the source table
         node.Accept(_visitor);
-        
-        // Process FOR column and IN values for validation
-        node.Pivot.ForColumn.Accept(this);
-        foreach (var inValue in node.Pivot.InValues)
-            inValue.Accept(this);
     }
 
     public void QueryBegins()

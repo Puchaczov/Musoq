@@ -1978,7 +1978,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
         
         // Keep track of original source alias for symbol table lookup
-        var originalSourceAlias = source.Alias;
+        // IMPORTANT: Use the generated alias from the ID mapping, not the original alias
+        // because the symbol table was populated with the generated alias
+        var originalSourceAlias = _currentScope[source.Id];
         
         // CRITICAL FIX: Ensure the embedded SchemaFromNode uses the PIVOT alias
         // This prevents the key mismatch between metadata building and code generation
