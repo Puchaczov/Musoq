@@ -555,10 +555,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
         };
 
-        // Check if we're in a PIVOT context (SourceName starts with "pivot_" OR field has pivot alias prefix)
+        // Check if we're in a PIVOT context
+        // We only use GetValue() for direct Group access with prefixed field names (like "p.Region")
+        // When PIVOT Groups are converted to IObjectResolver (via OrderBy), use regular array access
         var isPivotContext = (_scope.ContainsAttribute(MetaAttributes.SourceName) && 
-                           _scope[MetaAttributes.SourceName].StartsWith("pivot_")) ||
-                           (node.Name.Contains(".") && node.Name.Split('.').Length == 2);
+                           _scope[MetaAttributes.SourceName].StartsWith("pivot_")) &&
+                           (node.Name.Contains(".") && node.Name.Split('.').Length == 2) &&
+                           (_type == MethodAccessType.ResultQuery || _type == MethodAccessType.TransformingQuery);
         
         // DEBUG: Log the context information to understand why PIVOT detection might fail
         if (node.Name.Contains("p."))

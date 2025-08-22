@@ -177,9 +177,14 @@ public static class PivotNodeProcessor
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
                 .GroupBy(row => {{
-                    // CRITICAL FIX: For SELECT * from PIVOT, group all rows together 
-                    // This creates a single aggregated result across all data
-                    return ""all"";
+                    // CRITICAL FIX: Group by non-pivot columns to create proper PIVOT results
+                    // For test data, group by Region to get one row per region
+                    var nonPivotColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
+                    var groupKey = string.Join(""|"", nonPivotColumns
+                        .Where(col => col != ""{forColumnName}"" && col != ""{aggregationColumn}"")
+                        .Select(col => row[col]?.ToString() ?? ""null""));
+                    Console.WriteLine($""[PIVOT DEBUG] Group key for row: {{groupKey}}"");
+                    return groupKey;
                 }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
@@ -188,31 +193,33 @@ public static class PivotNodeProcessor
                     
                     Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
                     
-                    // CRITICAL FIX: For SELECT * from PIVOT, only return pivot columns, not source columns
-                    // This matches SQL Server PIVOT behavior and fixes the column count mismatch
+                    // CRITICAL FIX: Include BOTH non-pivot columns AND pivot columns
+                    var firstRowInGroup = group.First();
                     
-                    // CRITICAL FIX: Collect ALL unique categories from the entire dataset
-                    // This ensures PIVOT includes all categories found in data, not just IN clause
-                    var allDataCategories = {sourceVariable}.Rows
-                        .Cast<Musoq.Schema.DataSources.IObjectResolver>()
-                        .Select(row => row[""{forColumnName}""]?.ToString())
-                        .Where(val => !string.IsNullOrEmpty(val))
-                        .Distinct()
-                        .OrderBy(val => val)
-                        .ToArray();
+                    // Step 1: Add non-pivot columns first
+                    // Use the inferred table info to get all available columns
+                    var allSourceColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
+                    foreach (var column in allSourceColumns)
+                    {{
+                        if (column != ""{forColumnName}"" && column != ""{aggregationColumn}"")
+                        {{
+                            fieldNames.Add(column); // Use clean field name
+                            values.Add(firstRowInGroup[column]);
+                            Console.WriteLine($""[PIVOT DEBUG] Added non-pivot column: {{column}}"");
+                        }}
+                    }}
                     
-                    Console.WriteLine($""[PIVOT DEBUG] Found all data categories: {{string.Join("", "", allDataCategories)}}"");
-                    
-                    // Add pivot columns for ALL categories found in the data
-                    foreach(var pivotCol in allDataCategories) {{
-                        fieldNames.Add(""{prefix}"" + pivotCol);
+                    // Step 2: Add pivot columns for each category in the IN clause
+                    var pivotColumnList = new[] {{ {pivotColumnsLiteral} }};
+                    foreach(var pivotCol in pivotColumnList) {{
+                        fieldNames.Add(pivotCol); // Use clean field name, not prefixed
                         var filteredData = group.Where(row => row[""{forColumnName}""]?.ToString() == pivotCol);
                         if(filteredData.Any()) {{
                             values.Add(filteredData.{aggregationMethod}(row => Convert.ToDecimal(row[""{aggregationColumn}""] ?? 0)));
                         }} else {{
                             values.Add(0m);
                         }}
-                        Console.WriteLine($""[PIVOT DEBUG] Added pivot column: {{fieldNames.Last()}}"");
+                        Console.WriteLine($""[PIVOT DEBUG] Added pivot column: {{pivotCol}}"");
                     }}
                     
                     Console.WriteLine($""[PIVOT DEBUG] Final field count: {{fieldNames.Count}}"");

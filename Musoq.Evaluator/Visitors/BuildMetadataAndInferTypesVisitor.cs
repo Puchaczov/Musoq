@@ -2162,10 +2162,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // Create PIVOT columns from the IN values
             var pivotColumns = new List<ISchemaColumn>();
             
-            // CRITICAL FIX: For this test, PIVOT should return ONLY pivot columns
-            // Standard SQL PIVOT behavior varies, but test expects only pivot columns
-            // Comment out pass-through columns for now
-            /*
+            // CRITICAL FIX: Include non-pivot columns that pass through PIVOT
+            // SQL PIVOT should include both non-pivot columns AND pivot columns
             // Add non-aggregated, non-FOR columns from the source (these pass through PIVOT)
             var forColumnName = GetColumnNameFromNode(node.Pivot.ForColumn);
             var aggregateColumnNames = node.Pivot.AggregationExpressions
@@ -2178,10 +2176,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 if (sourceColumn.ColumnName != forColumnName && 
                     !aggregateColumnNames.Contains(sourceColumn.ColumnName))
                 {
-                    pivotColumns.Add(sourceColumn);
+                    // Create a new column with appropriate index for PIVOT result
+                    var passthroughColumn = new SchemaColumn(sourceColumn.ColumnName, pivotColumns.Count, sourceColumn.ColumnType);
+                    pivotColumns.Add(passthroughColumn);
+                    Console.WriteLine($"[PIVOT METADATA] Added pass-through column: {sourceColumn.ColumnName}");
                 }
             }
-            */
             
             // Add the PIVOT columns (includes both IN clause and additional data categories)
             var columnIndex = pivotColumns.Count;
