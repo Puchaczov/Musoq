@@ -155,6 +155,27 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
     }
 
+    /// <summary>
+    /// Helper method to handle binary operators that use SafePopMultiple for error handling.
+    /// </summary>
+    private void VisitBinaryOperatorWithSafePop<T>(Func<Node, Node, T> nodeFactory, string operationName) where T : Node
+    {
+        var nodes = SafePopMultiple(Nodes, 2, operationName);
+        var right = nodes[1];
+        var left = nodes[0];
+        Nodes.Push(nodeFactory(left, right));
+    }
+
+    /// <summary>
+    /// Helper method to handle binary operators that use direct Pop operations.
+    /// </summary>
+    private void VisitBinaryOperatorWithDirectPop<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    {
+        var right = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (right)");
+        var left = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (left)");
+        Nodes.Push(nodeFactory(left, right));
+    }
+
     public void Visit(DescNode node)
     {
         var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
@@ -163,58 +184,37 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(StarNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(StarNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new StarNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new StarNode(left, right), nameof(Visit) + nameof(StarNode));
     }
 
     public void Visit(FSlashNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(FSlashNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new FSlashNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new FSlashNode(left, right), nameof(Visit) + nameof(FSlashNode));
     }
 
     public void Visit(ModuloNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(ModuloNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new ModuloNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new ModuloNode(left, right), nameof(Visit) + nameof(ModuloNode));
     }
 
     public void Visit(AddNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AddNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new AddNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new AddNode(left, right), nameof(Visit) + nameof(AddNode));
     }
 
     public void Visit(HyphenNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(HyphenNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new HyphenNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new HyphenNode(left, right), nameof(Visit) + nameof(HyphenNode));
     }
 
     public void Visit(AndNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AndNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new AndNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new AndNode(left, right), nameof(Visit) + nameof(AndNode));
     }
 
     public void Visit(OrNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(OrNode));
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new OrNode(left, right));
+        VisitBinaryOperatorWithSafePop((left, right) => new OrNode(left, right), nameof(Visit) + nameof(OrNode));
     }
 
     public void Visit(ShortCircuitingNodeLeft node)
@@ -231,69 +231,54 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(EqualityNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new EqualityNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new EqualityNode(left, right));
     }
 
     public void Visit(GreaterOrEqualNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new GreaterOrEqualNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new GreaterOrEqualNode(left, right));
     }
 
     public void Visit(LessOrEqualNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LessOrEqualNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new LessOrEqualNode(left, right));
     }
 
     public void Visit(GreaterNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new GreaterNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new GreaterNode(left, right));
     }
 
     public void Visit(LessNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LessNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new LessNode(left, right));
     }
 
     public void Visit(DiffNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new DiffNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new DiffNode(left, right));
     }
 
     public void Visit(NotNode node)
     {
-        Nodes.Push(new NotNode(Nodes.Pop()));
+        var operand = SafePop(Nodes, nameof(Visit) + nameof(NotNode));
+        Nodes.Push(new NotNode(operand));
     }
 
     public void Visit(LikeNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LikeNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new LikeNode(left, right));
     }
 
     public void Visit(RLikeNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new RLikeNode(left, right));
+        VisitBinaryOperatorWithDirectPop((left, right) => new RLikeNode(left, right));
     }
 
     public void Visit(InNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var right = SafePop(Nodes, nameof(Visit) + nameof(InNode) + " (right)");
+        var left = SafePop(Nodes, nameof(Visit) + nameof(InNode) + " (left)");
         Nodes.Push(new InNode(left, (ArgsListNode) right));
     }
 
@@ -365,8 +350,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(ContainsNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var right = SafePop(Nodes, nameof(Visit) + nameof(ContainsNode) + " (right)");
+        var left = SafePop(Nodes, nameof(Visit) + nameof(ContainsNode) + " (left)");
         Nodes.Push(new ContainsNode(left, right as ArgsListNode));
     }
 
@@ -384,7 +369,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(IsNullNode node)
     {
-        Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
+        var operand = SafePop(Nodes, nameof(Visit) + nameof(IsNullNode));
+        Nodes.Push(new IsNullNode(operand, node.IsNegated));
     }
 
     public void Visit(AccessRefreshAggregationScoreNode node)
@@ -551,7 +537,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         bool hasValidParentContext = parentNode != null && parentNodeType != null &&
                                     !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
                                     parentNodeType.Name != "RowSource" && // RowSource indicates table context, not object property access
-                                    !IsPrimitiveType(parentNodeType); // Primitive types (char, int, etc.) are not valid for property access
+                                    !BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(parentNodeType); // Primitive types (char, int, etc.) are not valid for property access
         
         if (hasValidParentContext)
         {
@@ -564,7 +550,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (currentTableSymbol != null)
             {
                 var column = currentTableSymbol.GetColumnByAliasAndName(_identifier, node.ObjectName);
-                if (column != null && IsIndexableType(column.ColumnType))  // Only indexable column types
+                if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))  // Only indexable column types
                 {
                     // Transform to column access
                     var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
@@ -612,15 +598,29 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (isNotRoot && parentNodeType != null)
             {
-                var propertyAccess = parentNodeType.GetProperty(node.Name);
+                PropertyInfo propertyAccess = null;
+                try
+                {
+                    propertyAccess = parentNodeType.GetProperty(node.Name);
+                }
+                catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+                {
+                    throw new ObjectIsNotAnArrayException(
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                }
 
                 isArray = propertyAccess?.PropertyType.IsArray == true;
-                isIndexer = HasIndexer(propertyAccess?.PropertyType);
+                isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
 
                 if (!isArray && !isIndexer)
                 {
                     throw new ObjectIsNotAnArrayException(
-                        $"Object {parentNodeType.Name} is not an array.");
+                        $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.");
+                }
+
+                if (propertyAccess == null)
+                {
+                    throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
                 }
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, propertyAccess));
@@ -630,15 +630,29 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (parentNodeType != null)
             {
-                var property = parentNodeType.GetProperty(node.Name);
+                PropertyInfo property = null;
+                try
+                {
+                    property = parentNodeType.GetProperty(node.Name);
+                }
+                catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+                {
+                    throw new ObjectIsNotAnArrayException(
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                }
 
                 isArray = property?.PropertyType.IsArray == true;
-                isIndexer = HasIndexer(property?.PropertyType);
+                isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
 
                 if (!isArray && !isIndexer)
                 {
                     throw new ObjectIsNotAnArrayException(
-                        $"Object {node.Name} is not an array.");
+                        $"Object {node.Name} is not an array or indexable type.");
+                }
+
+                if (property == null)
+                {
+                    throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
                 }
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, property));
@@ -659,7 +673,15 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             throw new ConstructionNotYetSupported($"Construction ${node.ToString()} is not yet supported.");
         }
 
-        var parentNode = Nodes.Peek();
+        var parentNode = SafePeek(Nodes, nameof(Visit) + nameof(AccessObjectKeyNode));
+        if (parentNode?.ReturnType == null)
+        {
+            throw VisitorException.CreateForProcessingFailure(
+                VisitorName,
+                nameof(Visit) + nameof(AccessObjectKeyNode),
+                $"Parent node has no return type for key access '{node.Name}'"
+            );
+        }
         var parentNodeType = parentNode.ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
@@ -696,13 +718,28 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (!isRoot)
             {
-                var propertyAccess = parentNodeType.GetProperty(node.Name);
-                isIndexer = HasIndexer(propertyAccess?.PropertyType);
+                PropertyInfo propertyAccess = null;
+                try
+                {
+                    propertyAccess = parentNodeType.GetProperty(node.Name);
+                }
+                catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+                {
+                    throw new ObjectDoesNotImplementIndexerException(
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                }
+
+                isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
 
                 if (!isIndexer)
                 {
                     throw new ObjectDoesNotImplementIndexerException(
-                        $"Object {parentNodeType.Name} does not implement indexer.");
+                        $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.");
+                }
+
+                if (propertyAccess == null)
+                {
+                    throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
                 }
 
                 Nodes.Push(new AccessObjectKeyNode(node.Token, propertyAccess));
@@ -710,14 +747,28 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 return;
             }
 
-            var property = parentNodeType.GetProperty(node.Name);
+            PropertyInfo property = null;
+            try
+            {
+                property = parentNodeType.GetProperty(node.Name);
+            }
+            catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+            {
+                throw new ObjectDoesNotImplementIndexerException(
+                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+            }
 
-            isIndexer = HasIndexer(property?.PropertyType);
+            isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
 
             if (!isIndexer)
             {
                 throw new ObjectDoesNotImplementIndexerException(
                     $"Object {node.Name} does not implement indexer.");
+            }
+
+            if (property == null)
+            {
+                throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
             }
 
             Nodes.Push(new AccessObjectKeyNode(node.Token, property));
@@ -726,7 +777,15 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(PropertyValueNode node)
     {
-        var parentNode = Nodes.Peek();
+        var parentNode = SafePeek(Nodes, nameof(Visit) + nameof(PropertyValueNode));
+        if (parentNode?.ReturnType == null)
+        {
+            throw VisitorException.CreateForProcessingFailure(
+                VisitorName,
+                nameof(Visit) + nameof(PropertyValueNode),
+                $"Parent node has no return type for property access '{node.Name}'"
+            );
+        }
         var parentNodeType = parentNode.ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
@@ -751,20 +810,57 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 return;
             }
 
-            var type = parentNode.ReturnType.GetProperty(node.Name)?.PropertyType ??
-                       (_theMostInnerIdentifier.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
+            Type type;
+            try
+            {
+                var propertyInfo = parentNode.ReturnType.GetProperty(node.Name);
+                type = propertyInfo?.PropertyType ?? 
+                       (_theMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
+            }
+            catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+            {
+                // Fallback to default type if property access fails
+                type = _theMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject);
+            }
             Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, type)));
         }
         else
         {
-            Nodes.Push(new PropertyValueNode(node.Name, parentNodeType.GetProperty(node.Name)));
+            PropertyInfo propertyInfo = null;
+            try
+            {
+                propertyInfo = parentNodeType.GetProperty(node.Name);
+            }
+            catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+            {
+                throw VisitorException.CreateForProcessingFailure(
+                    VisitorName,
+                    nameof(Visit) + nameof(PropertyValueNode),
+                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+            }
+
+            if (propertyInfo == null)
+            {
+                throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}");
+            }
+
+            Nodes.Push(new PropertyValueNode(node.Name, propertyInfo));
         }
     }
 
     public void Visit(DotNode node)
     {
-        var exp = Nodes.Pop();
-        var root = Nodes.Pop();
+        var exp = SafePop(Nodes, nameof(Visit) + nameof(DotNode) + " (expression)");
+        var root = SafePop(Nodes, nameof(Visit) + nameof(DotNode) + " (root)");
+
+        // Validate that both nodes have proper return types
+        if (root?.ReturnType == null)
+        {
+            throw VisitorException.CreateForProcessingFailure(
+                VisitorName,
+                nameof(Visit) + nameof(DotNode),
+                "Root node has no return type for dot access");
+        }
 
         // Handle aliased character access patterns (e.g., f.Name[0])
         // Only transform if this is likely string character access, not property access
@@ -774,7 +870,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (tableSymbol != null)
             {
                 var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
-                if (column != null && IsIndexableType(column.ColumnType))  // Only indexable column types
+                if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))  // Only indexable column types
                 {
                     // Transform to column access with alias
                     var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);
@@ -812,7 +908,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(AccessCallChainNode node)
     {
-        var chainPretend = Nodes.Pop();
+        var chainPretend = SafePop(Nodes, nameof(Visit) + nameof(AccessCallChainNode));
 
         Nodes.Push(chainPretend is AccessColumnNode
             ? chainPretend
@@ -824,7 +920,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var args = new Node[node.Args.Length];
 
         for (var i = node.Args.Length - 1; i >= 0; --i)
-            args[i] = Nodes.Pop();
+            args[i] = SafePop(Nodes, nameof(Visit) + nameof(ArgsListNode) + $" (arg {i})");
 
         Nodes.Push(new ArgsListNode(args));
     }
@@ -1457,17 +1553,47 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     private void VisitAccessMethod(AccessMethodNode node, Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
     {
-        if (Nodes.Pop() is not ArgsListNode args)
+        var args = GetAndValidateArgs(node);
+        var methodContext = ResolveMethodContext(node, args);
+        var (method, canSkipInjectSource) = ResolveMethod(node, args, methodContext);
+        
+        method = ProcessGenericMethodIfNeeded(method, args, methodContext.EntityType);
+        
+        var accessMethod = CreateAccessMethod(node, args, method, methodContext, canSkipInjectSource, func);
+        
+        node.ChangeMethod(method); // Update the original node with resolved method
+        FinalizeMethodVisit(method, accessMethod);
+    }
+
+    /// <summary>
+    /// Extracts and validates arguments from the node stack.
+    /// </summary>
+    private ArgsListNode GetAndValidateArgs(AccessMethodNode node)
+    {
+        var nodeFromStack = SafePop(Nodes, nameof(GetAndValidateArgs));
+        if (nodeFromStack is not ArgsListNode args)
             throw CannotResolveMethodException.CreateForNullArguments(node.Name);
+        return args;
+    }
 
-        var groupArgs = new List<Type> {typeof(string)};
-        groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
+    /// <summary>
+    /// Contains context information needed for method resolution.
+    /// </summary>
+    private record struct MethodResolutionContext(
+        string Alias,
+        TableSymbol TableSymbol,
+        (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
+        Type EntityType);
 
+    /// <summary>
+    /// Resolves the method context including schema, table, and entity information.
+    /// </summary>
+    private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
+    {
         if (_usedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
             throw new AliasMissingException(node);
         
         var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
-
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
         var schemaTablePair = tableSymbol.GetTableByAlias(alias);
         var entityType = schemaTablePair.Table.Metadata.TableEntityType;
@@ -1475,23 +1601,43 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         AddAssembly(entityType.Assembly);
         AddBaseTypeAssembly(entityType);
 
-        var canSkipInjectSource = false;
-        if (!schemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), entityType,
-                out var method))
-        {
-            if (!schemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(),
-                    entityType, out method))
-            {
-                if (!schemaTablePair.Schema.TryResolveRawMethod(node.Name,
-                        args.Args.Select(f => f.ReturnType).ToArray(), out method))
-                {
-                    throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.Name, args.Args);
-                }
+        return new MethodResolutionContext(alias, tableSymbol, schemaTablePair, entityType);
+    }
 
-                canSkipInjectSource = true;
-            }
+    /// <summary>
+    /// Attempts to resolve the method from the schema using different resolution strategies.
+    /// </summary>
+    private (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(AccessMethodNode node, ArgsListNode args, MethodResolutionContext context)
+    {
+        var groupArgs = new List<Type> { typeof(string) };
+        groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
+
+        // Try aggregation method first
+        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), context.EntityType, out var method))
+        {
+            return (method, false);
         }
 
+        // Try regular method
+        if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), context.EntityType, out method))
+        {
+            return (method, false);
+        }
+
+        // Try raw method
+        if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
+        {
+            return (method, true);
+        }
+
+        throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.Name, args.Args);
+    }
+
+    /// <summary>
+    /// Processes generic methods by reducing dimensions or constructing generic types if needed.
+    /// </summary>
+    private MethodInfo ProcessGenericMethodIfNeeded(MethodInfo method, ArgsListNode args, Type entityType)
+    {
         var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
 
         if (!isAggregateMethod && method.IsGenericMethod && TryReduceDimensions(method, args, out var reducedMethod))
@@ -1499,8 +1645,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             method = reducedMethod;
         }
 
-        if (
-            !isAggregateMethod && 
+        if (!isAggregateMethod && 
             method.IsGenericMethod && 
             !method.IsConstructedGenericMethod &&
             TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
@@ -1508,79 +1653,114 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             method = constructedMethod;
         }
 
-        AccessMethodNode accessMethod;
+        return method;
+    }
+
+    /// <summary>
+    /// Creates the appropriate access method based on whether it's an aggregation method or not.
+    /// </summary>
+    private AccessMethodNode CreateAccessMethod(
+        AccessMethodNode node, 
+        ArgsListNode args, 
+        MethodInfo method, 
+        MethodResolutionContext context, 
+        bool canSkipInjectSource,
+        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
+    {
+        var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
+
         if (isAggregateMethod)
         {
-            accessMethod = func(node.FunctionToken, args, node.ExtraAggregateArguments, method, alias, false);
-            var identifier = accessMethod.ToString();
-
-            var newArgs = new List<Node> {new WordNode(identifier)};
-            newArgs.AddRange(args.Args.Skip(1));
-
-            var newSetArgs = new List<Node> {new WordNode(identifier)};
-            newSetArgs.AddRange(args.Args);
-
-            var setMethodName = $"Set{method.Name}";
-            var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
-
-            if (!schemaTablePair.Schema.TryResolveAggregationMethod(
-                    setMethodName,
-                    argTypes,
-                    entityType,
-                    out var setMethod))
-            {
-                throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(setMethodName, newSetArgs.ToArray());
-            }
-
-            if (setMethod.IsGenericMethodDefinition)
-            {
-                var setParams = setMethod.GetParameters();
-                var genericArguments = setMethod.GetGenericArguments();
-                var genericArgumentsDistinct = new List<Type>();
-
-                foreach (var genericArgument in genericArguments)
-                {
-                    for (int i = 0; i < setParams.Length; i++)
-                    {
-                        var setParam = setParams[i];
-
-                        if (setParam.ParameterType == genericArgument)
-                        {
-                            genericArgumentsDistinct.Add(newSetArgs.Where((arg, index) => index == i - 1).Single()
-                                .ReturnType);
-                        }
-                    }
-                }
-
-                var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
-
-                method = method.MakeGenericMethod(genericArgumentsConcreteTypes);
-                setMethod = setMethod.MakeGenericMethod(genericArgumentsConcreteTypes);
-            }
-
-            var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty),
-                new ArgsListNode(newSetArgs.ToArray()), null, setMethod,
-                alias, false);
-
-            _refreshMethods.Add(setMethodNode);
-
-            accessMethod = func(node.FunctionToken, new ArgsListNode(newArgs.ToArray()), null, method, alias,
-                canSkipInjectSource);
+            return ProcessAggregateMethod(node, args, method, context, func);
         }
-        else
+        
+        return func(node.FunctionToken, args, new ArgsListNode([]), method, context.Alias, canSkipInjectSource);
+    }
+
+    /// <summary>
+    /// Processes aggregate methods by creating both the method and its corresponding "Set" method.
+    /// </summary>
+    private AccessMethodNode ProcessAggregateMethod(
+        AccessMethodNode node, 
+        ArgsListNode args, 
+        MethodInfo method, 
+        MethodResolutionContext context,
+        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
+    {
+        var accessMethod = func(node.FunctionToken, args, node.ExtraAggregateArguments, method, context.Alias, false);
+        var identifier = accessMethod.ToString();
+
+        var newArgs = new List<Node> { new WordNode(identifier) };
+        newArgs.AddRange(args.Args.Skip(1));
+
+        var newSetArgs = new List<Node> { new WordNode(identifier) };
+        newSetArgs.AddRange(args.Args);
+
+        var setMethodName = $"Set{method.Name}";
+        var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
+
+        if (!context.SchemaTablePair.Schema.TryResolveAggregationMethod(setMethodName, argTypes, context.EntityType, out var setMethod))
         {
-            accessMethod = func(node.FunctionToken, args, new ArgsListNode([]), method, alias,
-                canSkipInjectSource);
+            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(setMethodName, newSetArgs.ToArray());
         }
 
+        if (setMethod.IsGenericMethodDefinition)
+        {
+            (method, setMethod) = MakeGenericAggregationMethods(method, setMethod, newSetArgs);
+        }
+
+        var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty),
+            new ArgsListNode(newSetArgs.ToArray()), null, setMethod, context.Alias, false);
+
+        _refreshMethods.Add(setMethodNode);
+
+        return func(node.FunctionToken, new ArgsListNode(newArgs.ToArray()), null, method, context.Alias, false);
+    }
+
+    /// <summary>
+    /// Creates generic versions of aggregation methods when needed.
+    /// </summary>
+    private (MethodInfo Method, MethodInfo SetMethod) MakeGenericAggregationMethods(
+        MethodInfo method, 
+        MethodInfo setMethod, 
+        List<Node> newSetArgs)
+    {
+        var setParams = setMethod.GetParameters();
+        var genericArguments = setMethod.GetGenericArguments();
+        var genericArgumentsDistinct = new List<Type>();
+
+        foreach (var genericArgument in genericArguments)
+        {
+            for (int i = 0; i < setParams.Length; i++)
+            {
+                var setParam = setParams[i];
+
+                if (setParam.ParameterType == genericArgument)
+                {
+                    genericArgumentsDistinct.Add(newSetArgs.Where((arg, index) => index == i - 1).Single().ReturnType);
+                }
+            }
+        }
+
+        var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
+
+        return (method.MakeGenericMethod(genericArgumentsConcreteTypes), 
+                setMethod.MakeGenericMethod(genericArgumentsConcreteTypes));
+    }
+
+    /// <summary>
+    /// Finalizes the method visit by adding required assemblies and pushing the result.
+    /// </summary>
+    private void FinalizeMethodVisit(MethodInfo method, AccessMethodNode accessMethod)
+    {
         if (method.DeclaringType == null)
             throw new InvalidOperationException("Method must have a declaring type.");
 
         AddAssembly(method.DeclaringType.Assembly);
         AddAssembly(method.ReturnType.Assembly);
 
-        node.ChangeMethod(method);
-
+        // Note: The original node's method is updated through the accessMethod parameter
+        // which should contain the resolved method information
         Nodes.Push(accessMethod);
     }
 
@@ -1660,14 +1840,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var greatestCommonSubtype = FindGreatestCommonSubtype();
             var caseNode = anyWasNullable
                 ? new CaseNode(whenThenPairs.ToArray(), elseNode, greatestCommonSubtype)
-                : new CaseNode(whenThenPairs.ToArray(), elseNode, MakeTypeNullable(greatestCommonSubtype));
+                : new CaseNode(whenThenPairs.ToArray(), elseNode, BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype));
 
             Nodes.Push(caseNode);
         }
         else
         {
             var greatestCommonSubtype = FindGreatestCommonSubtype();
-            var nullableGreatestCommonSubtype = MakeTypeNullable(greatestCommonSubtype);
+            var nullableGreatestCommonSubtype = BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype);
             var caseNode = new CaseNode(whenThenPairs.ToArray(), elseNode, nullableGreatestCommonSubtype);
 
             var rewritePartsWithProperNullHandling =
@@ -1748,7 +1928,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     private Type FindGreatestCommonSubtype()
     {
-        var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance).Select(StripNullable)
+        var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance).Select(BuildMetadataAndInferTypesVisitorUtilities.StripNullable)
             .Distinct().ToArray();
 
         if (types.Length == 0)
@@ -1768,7 +1948,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             greatestCommonSubtype =
                 currentType.IsAssignableTo(greatestCommonSubtype)
                     ? currentType
-                    : FindClosestCommonParent(greatestCommonSubtype, currentType);
+                    : BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(greatestCommonSubtype, currentType);
         }
 
         return greatestCommonSubtype;
@@ -1930,24 +2110,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _cachedSetFields.TryAdd(currentSetOperatorKey, leftFields);
     }
 
-    private static int[] CreateSetOperatorPositionIndexes(QueryNode node, string[] keys)
-    {
-        var indexes = new int[keys.Length];
-
-        var fieldIndex = 0;
-        var index = 0;
-
-        foreach (var field in node.Select.Fields)
-        {
-            if (keys.Contains(field.FieldName))
-                indexes[index++] = fieldIndex;
-
-            fieldIndex += 1;
-        }
-
-        return indexes;
-    }
-
     private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns)
     {
         var library = new TransitionLibrary();
@@ -2002,65 +2164,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
 
         throw new UnknownPropertyException($"Column {identifier} could not be found.");
-    }
-
-    private static Type FindClosestCommonParent(Type type1, Type type2)
-    {
-        var type1Ancestors = new HashSet<Type>();
-
-        while (type1 != null)
-        {
-            type1Ancestors.Add(type1);
-            type1 = type1.BaseType;
-        }
-
-        while (type2 != null)
-        {
-            if (type1Ancestors.Contains(type2))
-            {
-                return type2;
-            }
-
-            type2 = type2.BaseType;
-        }
-
-        return typeof(object);
-    }
-
-    private static Type MakeTypeNullable(Type type)
-    {
-        if (type == null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>)
-            || !type.IsValueType)
-        {
-            return type;
-        }
-
-        return typeof(Nullable<>).MakeGenericType(type);
-    }
-
-    private static Type StripNullable(Type type)
-    {
-        if (type == null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-        {
-            return Nullable.GetUnderlyingType(type);
-        }
-
-        return type;
-    }
-
-    private static bool HasIndexer(Type type)
-    {
-        return type is not null && type.GetProperties().Any(f => f.GetIndexParameters().Length > 0);
     }
 
     private static bool TryReduceDimensions(MethodInfo method, ArgsListNode args, out MethodInfo reducedMethod)
@@ -2313,7 +2416,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         var key = CreateSetOperatorPositionKey();
         _currentScope[MetaAttributes.SetOperatorName] = key;
-        SetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
+        SetOperatorFieldPositions.Add(key, BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
 
         var right = Nodes.Pop();
         var left = Nodes.Pop();
@@ -2364,30 +2467,5 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         // If not found in any scope, fall back to current scope behavior for error consistency
         return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
-    }
-
-    /// <summary>
-    /// Checks if a type supports indexing (has an indexer property or is an array)
-    /// </summary>
-    private static bool IsIndexableType(Type type)
-    {
-        // Arrays are indexable
-        if (type.IsArray)
-            return true;
-
-        // Strings are indexable
-        if (type == typeof(string))
-            return true;
-
-        // Check for indexer properties
-        return type.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
-    }
-    
-    /// <summary>
-    /// Checks if a type is a primitive type that cannot have property access
-    /// </summary>
-    private static bool IsPrimitiveType(Type type)
-    {
-        return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime);
     }
 }

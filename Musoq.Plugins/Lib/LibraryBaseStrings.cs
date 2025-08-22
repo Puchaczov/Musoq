@@ -994,6 +994,22 @@ public abstract partial class LibraryBase
     }    
     
     /// <summary>
+    /// Returns all matching strings based on regular expression pattern
+    /// </summary>
+    /// <param name="regex">The regular expression pattern</param>
+    /// <param name="content">The content to search in</param>
+    /// <returns>Array of matching strings, or null if either parameter is null</returns>
+    [BindableMethod]
+    public string[]? RegexMatches(string? regex, string? content)
+    {
+        if (regex == null || content == null)
+            return null;
+            
+        var matches = System.Text.RegularExpressions.Regex.Matches(content, regex);
+        return matches.Cast<System.Text.RegularExpressions.Match>().Select(m => m.Value).ToArray();
+    }
+    
+    /// <summary>
     /// Split string by Linux-style newlines (\n)
     /// </summary>
     /// <param name="input">The input</param>

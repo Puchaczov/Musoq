@@ -7,6 +7,7 @@ using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
+using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -52,58 +53,42 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(StarNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new StarNode(left, right));
+        BinaryOperationVisitorHelper.ProcessStarOperation(Nodes);
     }
 
     public void Visit(FSlashNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new FSlashNode(left, right));
+        BinaryOperationVisitorHelper.ProcessFSlashOperation(Nodes);
     }
 
     public void Visit(ModuloNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new ModuloNode(left, right));
+        BinaryOperationVisitorHelper.ProcessModuloOperation(Nodes);
     }
 
     public void Visit(AddNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new AddNode(left, right));
+        BinaryOperationVisitorHelper.ProcessAddOperation(Nodes);
     }
 
     public void Visit(HyphenNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new HyphenNode(left, right));
+        BinaryOperationVisitorHelper.ProcessHyphenOperation(Nodes);
     }
 
     public void Visit(AndNode node)
     {
-        var right = RewriteNullableBoolExpressions(Nodes.Pop());
-        var left = RewriteNullableBoolExpressions(Nodes.Pop());
-        Nodes.Push(new AndNode(left, right));
+        LogicalOperationVisitorHelper.ProcessAndOperation(Nodes, QueryRewriteUtilities.RewriteNullableBoolExpressions);
     }
 
     public void Visit(OrNode node)
     {
-        var right = RewriteNullableBoolExpressions(Nodes.Pop());
-        var left = RewriteNullableBoolExpressions(Nodes.Pop());
-        Nodes.Push(new OrNode(left, right));
+        LogicalOperationVisitorHelper.ProcessOrOperation(Nodes, QueryRewriteUtilities.RewriteNullableBoolExpressions);
     }
 
     public void Visit(EqualityNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new EqualityNode(left, right));
+        ComparisonOperationVisitorHelper.ProcessEqualityOperation(Nodes);
     }
 
     public void Visit(ShortCircuitingNodeLeft node)
@@ -118,86 +103,62 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(GreaterOrEqualNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new GreaterOrEqualNode(left, right));
+        ComparisonOperationVisitorHelper.ProcessGreaterOrEqualOperation(Nodes);
     }
 
     public void Visit(LessOrEqualNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LessOrEqualNode(left, right));
+        ComparisonOperationVisitorHelper.ProcessLessOrEqualOperation(Nodes);
     }
 
     public void Visit(GreaterNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new GreaterNode(left, right));
+        ComparisonOperationVisitorHelper.ProcessGreaterOperation(Nodes);
     }
 
     public void Visit(LessNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LessNode(left, right));
+        ComparisonOperationVisitorHelper.ProcessLessOperation(Nodes);
     }
 
     public void Visit(DiffNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new DiffNode(left, right));
+        ComparisonOperationVisitorHelper.ProcessDiffOperation(Nodes);
     }
 
     public void Visit(NotNode node)
     {
-        Nodes.Push(new NotNode(Nodes.Pop()));
+        LogicalOperationVisitorHelper.ProcessNotOperation(Nodes);
     }
 
     public void Visit(LikeNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LikeNode(left, right));
+        ComparisonOperationVisitorHelper.ProcessLikeOperation(Nodes);
     }
 
     public void Visit(RLikeNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new RLikeNode(left, right));
+        ComparisonOperationVisitorHelper.ProcessRLikeOperation(Nodes);
     }
 
     public void Visit(InNode node)
     {
-        var right = (ArgsListNode)Nodes.Pop();
-        var left = Nodes.Pop();
-
-        Node exp = new EqualityNode(left, right.Args[0]);
-
-        for (var i = 1; i < right.Args.Length; i++)
-        {
-            exp = new OrNode(exp, new EqualityNode(left, right.Args[i]));
-        }
-
-        Nodes.Push(exp);
+        LogicalOperationVisitorHelper.ProcessInOperation(Nodes);
     }
 
     public void Visit(FieldNode node)
     {
-        Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName)));
+        Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName)));
     }
 
     public void Visit(FieldOrderedNode node)
     {
-        Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName), node.Order));
+        Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName), node.Order));
     }
 
     public void Visit(SelectNode node)
     {
-        var fields = CreateFields(node.Fields);
+        var fields = FieldProcessingHelper.CreateFields(node.Fields, Nodes);
 
         Nodes.Push(new SelectNode(fields.ToArray()));
     }
@@ -238,9 +199,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(ContainsNode node)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new ContainsNode(left, right as ArgsListNode));
+        LogicalOperationVisitorHelper.ProcessContainsOperation(Nodes);
     }
 
     public void Visit(AccessMethodNode node)
@@ -255,7 +214,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(IsNullNode node)
     {
-        Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
+        LogicalOperationVisitorHelper.ProcessIsNullOperation(Nodes, node.IsNegated);
     }
 
     public void Visit(AccessRefreshAggregationScoreNode node)
@@ -325,7 +284,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(WhereNode node)
     {
-        var rewrittenNode = RewriteNullableBoolExpressions(Nodes.Pop());
+        var rewrittenNode = QueryRewriteUtilities.RewriteNullableBoolExpressions(Nodes.Pop());
             
         Nodes.Push(new WhereNode(rewrittenNode));
     }
@@ -423,7 +382,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(CreateTransformationTableNode node)
     {
-        var fields = CreateFields(node.Fields);
+        var fields = FieldProcessingHelper.CreateFields(node.Fields, Nodes);
 
         Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, fields, node.ForGrouping));
     }
@@ -525,10 +484,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                         .ToArray()
                 }
             });
-            var bothForCreateTable = CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
-                (name, alias) => NamingHelper.ToColumnName(alias, name), IncludeKnownColumns(accessColumns, current));
-            var bothForSelect = CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
-                (name, alias) => name, IncludeKnownColumns(accessColumns, current));
+            var bothForCreateTable = FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
+                (name, alias) => NamingHelper.ToColumnName(alias, name), QueryRewriteUtilities.IncludeKnownColumns(accessColumns, current));
+            var bothForSelect = FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
+                (name, alias) => name, QueryRewriteUtilities.IncludeKnownColumns(accessColumns, current));
 
             scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, trimmedLeft);
             scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, trimmedRight);
@@ -648,13 +607,13 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                     }
                 });
                 bothForCreateTable = 
-                    CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
+                    FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
                         (name, alias) => NamingHelper.ToColumnName(alias, name), 
-                        IncludeKnownColumnsForWithOnly(extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
+                        QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
                         startAt: 0);
 
                 bothForSelect = 
-                    CreateAndConcatFields(
+                    FieldProcessingHelper.CreateAndConcatFields(
                         trimmedLeft,
                         current.Source.Alias,
                         trimmedRight
@@ -664,7 +623,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                         (name, alias) => name,
                         (name, alias) => NamingHelper.ToColumnName(alias, name),
                         (name, alias) => name,
-                        IncludeKnownColumnsForWithOnly(extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
+                        QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
                         startAt: 0);
 
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, trimmedLeft);
@@ -787,9 +746,9 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 ? new Parser.ExpressionFromNode(new InMemoryGroupedFromNode(lastJoinQuery.From.Alias))
                 : from;
 
-            var refreshMethods = CreateRefreshMethods(usedRefreshMethods);
-            var splitSelectFields = SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
-            var aggSelect = new SelectNode(ConcatAggregateFieldsWithGroupByFields(splitSelectFields[0], groupBy.Fields)
+            var refreshMethods = QueryRewriteUtilities.CreateRefreshMethods(usedRefreshMethods);
+            var splitSelectFields = FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
+            var aggSelect = new SelectNode(QueryRewriteUtilities.ConcatAggregateFieldsWithGroupByFields(splitSelectFields[0], groupBy.Fields)
                 .Reverse().ToArray());
             var outSelect = new SelectNode(splitSelectFields[1]);
 
@@ -862,7 +821,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 
             if (orderBy != null)
             {
-                var splitOrderBy = CreateAfterGroupByOrderByAccessFields(orderBy.Fields, groupBy.Fields);
+                var splitOrderBy = FieldProcessingHelper.CreateAfterGroupByOrderByAccessFields(orderBy.Fields, groupBy.Fields);
                 modifiedOrderBy = new OrderByNode(splitOrderBy);
             }
 
@@ -889,9 +848,9 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         }
         else
         {
-            var split = SplitBetweenAggregateAndNonAggregate(select.Fields, [], true);
+            var split = FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(select.Fields, [], true);
                 
-            if (IsQueryWithMixedAggregateAndNonAggregateMethods(split))
+            if (QueryRewriteUtilities.IsQueryWithMixedAggregateAndNonAggregateMethods(split))
             {
                 throw new NotImplementedException("Mixing aggregate and non aggregate methods is not implemented yet");
             }
@@ -1106,285 +1065,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }
 
-    private bool IsQueryWithMixedAggregateAndNonAggregateMethods(FieldNode[][] split)
-    {
-        return split[0].Length > 0 && split[0].Length != split[1].Length;
-    }
-
-    private FieldNode[] ConcatAggregateFieldsWithGroupByFields(FieldNode[] selectFields, FieldNode[] groupByFields)
-    {
-        var fields = new List<FieldNode>(selectFields);
-        var nextOrder = -1;
-
-        if (selectFields.Length > 0)
-            nextOrder = selectFields.Max(f => f.FieldOrder);
-
-        foreach (var groupField in groupByFields)
-        {
-            var hasField =
-                selectFields.Any(field => field.Expression.ToString() == groupField.Expression.ToString());
-
-            if (!hasField) fields.Add(new FieldNode(groupField.Expression, ++nextOrder, string.Empty));
-        }
-
-        return fields.ToArray();
-    }
-
     private void VisitAccessMethod(AccessMethodNode node)
     {
         var args = Nodes.Pop() as ArgsListNode;
 
         Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource, node.Method, node.Alias));
-    }
-
-    private FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields, bool useOuterFields)
-    {
-        var nestedFields = new List<FieldNode>();
-        var outerFields = new List<FieldNode>();
-        var rawNestedFields = new List<FieldNode>();
-
-        var fieldOrder = 0;
-
-        foreach (var root in fieldsToSplit)
-        {
-            var subNodes = new Stack<Node>();
-
-            subNodes.Push(root.Expression);
-
-            while (subNodes.Count > 0)
-            {
-                var subNode = subNodes.Pop();
-
-                switch (subNode)
-                {
-                    case AccessMethodNode aggregateMethod when aggregateMethod.IsAggregateMethod():
-                    {
-                        var subNodeStr = subNode.ToString();
-                        if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
-                            continue;
-
-                        var nameArg = (WordNode) aggregateMethod.Arguments.Args[0];
-                        nestedFields.Add(new FieldNode(subNode, fieldOrder, nameArg.Value));
-                        rawNestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
-                        fieldOrder += 1;
-                        break;
-                    }
-                    case AccessMethodNode method:
-                    {
-                        foreach (var arg in method.Arguments.Args)
-                            subNodes.Push(arg);
-                        break;
-                    }
-                    case BinaryNode binary:
-                        subNodes.Push(binary.Left);
-                        subNodes.Push(binary.Right);
-                        break;
-                }
-            }
-
-            if (!useOuterFields)
-                continue;
-
-            var rewriter = new RewriteFieldWithGroupMethodCall(groupByFields);
-            var traverser = new CloneTraverseVisitor(rewriter);
-
-            root.Accept(traverser);
-
-            outerFields.Add(rewriter.Expression);
-        }
-
-        var retFields = new FieldNode[3][];
-
-        retFields[0] = nestedFields.ToArray();
-        retFields[1] = outerFields.ToArray();
-        retFields[2] = rawNestedFields.ToArray();
-
-        return retFields;
-    }
-
-    private FieldOrderedNode[] CreateAfterGroupByOrderByAccessFields(FieldOrderedNode[] fieldsToSplit, FieldNode[] groupByFields)
-    {
-        var outerFields = new List<FieldOrderedNode>();
-
-        foreach (var root in fieldsToSplit)
-        {
-            var rewriter = new RewriteFieldOrderedWithGroupMethodCall(groupByFields);
-            var traverser = new CloneTraverseVisitor(rewriter);
-
-            root.Accept(traverser);
-
-            outerFields.Add(rewriter.Expression);
-        }
-
-        return outerFields.ToArray();
-    }
-
-    private FieldNode[] CreateFields(FieldNode[] oldFields)
-    {
-        var reorderedList = new FieldNode[oldFields.Length];
-        var fields = new List<FieldNode>(reorderedList.Length);
-
-        for (var i = reorderedList.Length - 1; i >= 0; i--) reorderedList[i] = Nodes.Pop() as FieldNode;
-
-        for (int i = 0, j = reorderedList.Length, p = 0; i < j; ++i)
-        {
-            var field = reorderedList[i];
-
-            if (field.Expression is AllColumnsNode)
-            {
-                continue;
-            }
-
-            fields.Add(new FieldNode(field.Expression, p++, field.FieldName));
-        }
-
-        return fields.ToArray();
-    }
-
-    private FieldNode[] CreateAndConcatFields(TableSymbol left, string lAlias, TableSymbol right, string rAlias, Func<string, string, string> createLeftAndRightFieldName, Func<AccessColumnNode, bool> includeKnownColumn = null, int startAt = 0)
-    {
-        return CreateAndConcatFields(
-            left, 
-            lAlias, 
-            right, 
-            rAlias, 
-            createLeftAndRightFieldName, 
-            createLeftAndRightFieldName, 
-            (name, alias) => name,
-            (name, alias) => name,
-            includeKnownColumn, 
-            startAt);
-    }
-
-    private FieldNode[] CreateAndConcatFields(
-        TableSymbol left, 
-        string leftAlias, 
-        TableSymbol right, 
-        string rightAlias,
-        Func<string, string, string> createLeftFieldName, 
-        Func<string, string, string> createRightFieldName, 
-        Func<string, string, string> createLeftColumnName,
-        Func<string, string, string> createRightColumnName,
-        Func<AccessColumnNode, bool> isKnownColumn = null,
-        int startAt = 0)
-    {
-        var fields = new List<FieldNode>();
-
-        var i = startAt;
-
-        foreach (var compoundTable in left.CompoundTables)
-        {
-            foreach (var column in left.GetColumns(compoundTable))
-            {
-                var accessColumnNode = new AccessColumnNode(
-                    createLeftColumnName(column.ColumnName, compoundTable),
-                    leftAlias,
-                    column.ColumnType,
-                    TextSpan.Empty);
-                    
-                if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
-                    continue;
-                    
-                fields.Add(new FieldNode(accessColumnNode, i++, createLeftFieldName(column.ColumnName, compoundTable)));
-            }
-        }
-
-        foreach (var compoundTable in right.CompoundTables)
-        {
-            foreach (var column in right.GetColumns(compoundTable))
-            {
-                var accessColumnNode = new AccessColumnNode(
-                    createRightColumnName(column.ColumnName, compoundTable),
-                    rightAlias,
-                    column.ColumnType,
-                    TextSpan.Empty);
-                    
-                if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
-                    continue;
-                    
-                fields.Add(
-                    new FieldNode(accessColumnNode, i++, createRightFieldName(column.ColumnName, compoundTable)));
-            }
-        }
-            
-        return fields.ToArray();
-    }
-
-    private RefreshNode CreateRefreshMethods(IReadOnlyList<AccessMethodNode> refreshMethods)
-    {
-        var methods = new List<AccessMethodNode>();
-
-        foreach (var method in refreshMethods)
-        {
-            if (method.Method.GetCustomAttribute<AggregateSetDoNotResolveAttribute>() != null)
-                continue;
-
-            if (!HasMethod(methods, method))
-                methods.Add(method);
-        }
-
-        return new RefreshNode(methods.ToArray());
-    }
-
-    private Node RewriteNullableBoolExpressions(Node node)
-    {
-        var nullableBoolType = typeof(bool?);
-        if (node.ReturnType != nullableBoolType || node is BinaryNode)
-            return node;
-            
-        return new AndNode(new IsNullNode(node, true), new EqualityNode(node, new BooleanNode(true)));
-    }
-
-    private bool HasMethod(IEnumerable<AccessMethodNode> methods, AccessMethodNode node)
-    {
-        return methods.Any(f => f.ToString() == node.ToString());
-    }
-
-    private string RewriteFieldNameWithoutStringPrefixAndSuffix(string fieldName)
-    {
-        var pattern = @"(?<!\\)'";
-        var result = Regex.Replace(fieldName, pattern, string.Empty);
-        result = result.Replace("\\'", "'");
-
-        return result;
-    }
-
-    private static Func<AccessColumnNode, bool> IncludeKnownColumnsForWithOnly(AccessColumnNode[] accessColumnNodes, BinaryFromNode binaryFromNode)
-    {
-        return accessColumnNode =>
-        {
-            if (accessColumnNode.Alias == binaryFromNode.Source.Alias)
-            {
-                return true;
-            }
-
-            if (accessColumnNode.Alias == binaryFromNode.With.Alias)
-            {
-                return accessColumnNodes.Any(f =>
-                    f.Name == accessColumnNode.Name && f.Alias == binaryFromNode.With.Alias);
-            }
-
-            return false;
-        };
-    }
-
-    private static Func<AccessColumnNode, bool> IncludeKnownColumns(AccessColumnNode[] accessColumnNodes, BinaryFromNode joinFromNode)
-    {
-        return accessColumnNode =>
-        {
-            if (accessColumnNode.Alias == joinFromNode.Source.Alias)
-            {
-                return accessColumnNodes.Any(f =>
-                    f.Name == accessColumnNode.Name && f.Alias == joinFromNode.Source.Alias);
-            }
-                        
-            if (accessColumnNode.Alias == joinFromNode.With.Alias)
-            {
-                return accessColumnNodes.Any(f =>
-                    f.Name == accessColumnNode.Name && f.Alias == joinFromNode.With.Alias);
-            }
-                        
-            return false;
-        };
     }
 }
