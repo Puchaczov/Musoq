@@ -154,6 +154,14 @@ public class Lexer : LexerBase<Token>
                 return TokenType.Skip;
             case WithToken.TokenText:
                 return TokenType.With;
+            case OverToken.TokenText:
+                return TokenType.Over;
+            case RecursiveToken.TokenText:
+                return TokenType.Recursive;
+            case PartitionToken.TokenText:
+                return TokenType.Partition;
+            case ByToken.TokenText:
+                return TokenType.By;
             case OnToken.TokenText:
                 return TokenType.On;
             case IsToken.TokenText:
@@ -317,6 +325,10 @@ public class Lexer : LexerBase<Token>
         public static readonly string KSkip = Format(Keyword, SkipToken.TokenText);
         public static readonly string KTake = Format(Keyword, TakeToken.TokenText);
         public static readonly string KWith = Format(Keyword, WithToken.TokenText);
+        public static readonly string KOver = Format(Keyword, OverToken.TokenText);
+        public static readonly string KRecursive = Format(Keyword, RecursiveToken.TokenText);
+        public static readonly string KPartition = Format(Keyword, PartitionToken.TokenText);
+        public static readonly string KBy = Format(Keyword, ByToken.TokenText);
         public static readonly string KInnerJoin = @"(?<=[\s]{1,}|^)inner[\s]{1,}join(?=[\s]{1,}|$)";
 
         public static readonly string KOuterJoin =
@@ -398,6 +410,10 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KIn), 
             new(TokenRegexDefinition.KNull),
             new(TokenRegexDefinition.KWith, RegexOptions.IgnoreCase),
+            new(TokenRegexDefinition.KOver, RegexOptions.IgnoreCase),
+            new(TokenRegexDefinition.KRecursive, RegexOptions.IgnoreCase),
+            new(TokenRegexDefinition.KPartition, RegexOptions.IgnoreCase),
+            new(TokenRegexDefinition.KBy, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KContains, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KWhiteSpace),
@@ -599,6 +615,14 @@ public class Lexer : LexerBase<Token>
                 return new TakeToken(tokenText, new TextSpan(Position, tokenText.Length));
             case TokenType.With:
                 return new WithToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.Over:
+                return new OverToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.Recursive:
+                return new RecursiveToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.Partition:
+                return new PartitionToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.By:
+                return new ByToken(new TextSpan(Position, tokenText.Length));
             case TokenType.On:
                 return new OnToken(new TextSpan(Position, tokenText.Length));
             case TokenType.InnerJoin:

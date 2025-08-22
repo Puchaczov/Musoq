@@ -888,9 +888,9 @@ public class Parser
             case TokenType.Skip:
             case TokenType.Take:
                 ReplaceCurrentToken(new FunctionToken(Current.Value, Current.Span));
-                return ComposeAccessMethod(string.Empty);
+                return ComposeAccessMethodOrWindowFunction(string.Empty);
             case TokenType.Function:
-                return ComposeAccessMethod(string.Empty);
+                return ComposeAccessMethodOrWindowFunction(string.Empty);
             case TokenType.Identifier:
 
                 if (Current is not ColumnToken column)
@@ -911,7 +911,7 @@ public class Parser
                 var methodAccess = (MethodAccessToken) Current;
                 Consume(TokenType.MethodAccess);
                 Consume(TokenType.Dot);
-                return ComposeAccessMethod(methodAccess.Alias);
+                return ComposeAccessMethodOrWindowFunction(methodAccess.Alias);
             case TokenType.Property:
                 token = ConsumeAndGetToken(TokenType.Property);
                 return new PropertyValueNode(token.Value);
@@ -1006,25 +1006,72 @@ public class Parser
     private AccessMethodNode ComposeAccessMethod(string alias)
     {
         ArgsListNode args;
+        AccessMethodNode method;
+        
         if (Current is FunctionToken func)
         {
             Consume(TokenType.Function);
             args = ComposeArgs();
-            return new AccessMethodNode(func, args, null, false, null, alias);
+            method = new AccessMethodNode(func, args, null, false, null, alias);
         }
-            
-        if (Current is MethodAccessToken)
+        else if (Current is MethodAccessToken)
         {
             Consume(TokenType.MethodAccess);
             Consume(TokenType.Dot);
             var token = (FunctionToken)ConsumeAndGetToken(TokenType.Function);
             args = ComposeArgs();
 
-            return new AccessMethodNode(token, args, null, false,
+            method = new AccessMethodNode(token, args, null, false,
                 null, alias);
         }
-            
-        throw new NotSupportedException($"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
+        else
+        {
+            throw new NotSupportedException($"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
+        }
+
+        return method;
+    }
+
+    private Node ComposeAccessMethodOrWindowFunction(string alias)
+    {
+        var method = ComposeAccessMethod(alias);
+        
+        // Check if this is a window function (has OVER clause)
+        if (Current.TokenType == TokenType.Over)
+        {
+            var overClause = ComposeOverClause();
+            return new WindowFunctionNode(method, overClause);
+        }
+
+        return method;
+    }
+
+    private OverClauseNode ComposeOverClause()
+    {
+        Consume(TokenType.Over);
+        Consume(TokenType.LeftParenthesis);
+
+        Node partitionBy = null;
+        Node orderBy = null;
+
+        // Check for PARTITION BY clause
+        if (Current.TokenType == TokenType.Partition)
+        {
+            Consume(TokenType.Partition);
+            Consume(TokenType.By);
+            partitionBy = ComposeBaseTypes();
+        }
+
+        // Check for ORDER BY clause
+        if (Current.TokenType == TokenType.OrderBy)
+        {
+            Consume(TokenType.OrderBy);
+            orderBy = ComposeBaseTypes();
+        }
+
+        Consume(TokenType.RightParenthesis);
+
+        return new OverClauseNode(partitionBy, orderBy);
     }
 
     private Token ConsumeAndGetToken(TokenType expected)
