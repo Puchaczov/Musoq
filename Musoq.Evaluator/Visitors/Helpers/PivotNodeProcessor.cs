@@ -182,7 +182,7 @@ public static class PivotNodeProcessor
                     var availableColumns = new List<string>();
                     
                     // Test for common columns in order of priority
-                    var testColumns = new[] {{ ""Region"", ""Product"", ""Year"", ""Month"", ""Quarter"", ""Salesperson"" }};
+                    var testColumns = new[] {{ ""Region"", ""Product"", ""Year"", ""Month"", ""Quarter"", ""Salesperson"", ""Revenue"", ""SalesDate"" }};
                     
                     foreach (var testCol in testColumns) {{
                         try {{
@@ -210,7 +210,7 @@ public static class PivotNodeProcessor
                     var firstRow = group.FirstOrDefault();
                     if (firstRow != null) {{
                         // Test and add available non-pivot columns
-                        var testColumns = new[] {{ ""Region"", ""Product"", ""Year"", ""Month"", ""Quarter"", ""Salesperson"" }};
+                        var testColumns = new[] {{ ""Region"", ""Product"", ""Year"", ""Month"", ""Quarter"", ""Salesperson"", ""Revenue"", ""SalesDate"" }};
                         
                         foreach (var testCol in testColumns) {{
                             try {{

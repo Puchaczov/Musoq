@@ -555,33 +555,76 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
         };
 
-        var sNode = Generator.ElementAccessExpression(
-            Generator.IdentifierName(variableName),
-            SyntaxFactory.Argument(
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression,
-                    SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
+        // Check if we're in a PIVOT context (SourceName starts with "pivot_")
+        var isPivotContext = _scope.ContainsAttribute(MetaAttributes.SourceName) && 
+                           _scope[MetaAttributes.SourceName].StartsWith("pivot_");
 
-        var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
-
-        AddNamespace(types);
-        AddReference(types);
-
-        var typeIdentifier =
-            SyntaxFactory.IdentifierName(
+        ExpressionSyntax sNode;
+        
+        if (isPivotContext && (_type == MethodAccessType.ResultQuery || _type == MethodAccessType.CaseWhen))
+        {
+            // For PIVOT context, generate GetValue<T>() method call instead of array access
+            var typeIdentifier = SyntaxFactory.IdentifierName(
                 EvaluationHelper.GetCastableType(node.ReturnType));
 
-        if (node.ReturnType is NullNode.NullType)
-        {
-            typeIdentifier = SyntaxFactory.IdentifierName("object");
-        }
+            if (node.ReturnType is NullNode.NullType)
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("object");
+            }
 
-        if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
-        {
-            typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
-        }
+            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
+            }
 
-        sNode = Generator.CastExpression(typeIdentifier, sNode);
+            // Generate: score.GetValue<Type>("field.name")
+            sNode = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(variableName),
+                    SyntaxFactory.GenericName("GetValue")
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(typeIdentifier)))))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    SyntaxFactory.Literal(node.Name))))));
+        }
+        else
+        {
+            // Default behavior: generate array access expression
+            sNode = (ExpressionSyntax)Generator.ElementAccessExpression(
+                Generator.IdentifierName(variableName),
+                SyntaxFactory.Argument(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
+
+            var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
+
+            AddNamespace(types);
+            AddReference(types);
+
+            var typeIdentifier =
+                SyntaxFactory.IdentifierName(
+                    EvaluationHelper.GetCastableType(node.ReturnType));
+
+            if (node.ReturnType is NullNode.NullType)
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("object");
+            }
+
+            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
+            }
+
+            sNode = (ExpressionSyntax)Generator.CastExpression(typeIdentifier, sNode);
+        }
 
         if (!node.ReturnType.IsTrueValueType() && NullSuspiciousNodes.Count > 0)
             NullSuspiciousNodes[^1].Push(sNode);

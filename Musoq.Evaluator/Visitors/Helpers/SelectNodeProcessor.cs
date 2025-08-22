@@ -72,6 +72,10 @@ public static class SelectNodeProcessor
 
         var contexts = scope[MetaAttributes.Contexts].Split(',');
 
+        // Check if we're in a PIVOT context (SourceName starts with "pivot_")
+        var isPivotContext = scope.ContainsAttribute(MetaAttributes.SourceName) && 
+                           scope[MetaAttributes.SourceName].StartsWith("pivot_");
+
         var contextsExpressions = new List<ArgumentSyntax>
         {
             SyntaxFactory.Argument(
@@ -82,12 +86,31 @@ public static class SelectNodeProcessor
         {
             string rowVariableName = GetRowVariableName(type, context);
 
-            contextsExpressions.Add(
-                SyntaxFactory.Argument(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(rowVariableName),
-                        SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}"))));
+            if (isPivotContext)
+            {
+                // For PIVOT context, Groups don't have Contexts property, use empty array
+                contextsExpressions.Add(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName("System.Array"),
+                                SyntaxFactory.GenericName("Empty")
+                                    .WithTypeArgumentList(
+                                        SyntaxFactory.TypeArgumentList(
+                                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                                SyntaxFactory.IdentifierName("object"))))))));
+            }
+            else
+            {
+                // Default behavior: use IObjectResolver.Contexts
+                contextsExpressions.Add(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(rowVariableName),
+                            SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}"))));
+            }
         }
 
         var invocation = SyntaxHelper.CreateMethodInvocation(
