@@ -1990,6 +1990,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // This prevents the key mismatch between metadata building and code generation
         if (source is SchemaFromNode schemaFromNode && !string.IsNullOrEmpty(node.Alias))
         {
+            // DEBUG: Show what we're looking for
+            System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Looking for SchemaFromNode with Schema='{schemaFromNode.Schema}' Method='{schemaFromNode.Method}'");
+            System.Diagnostics.Debug.WriteLine($"[METADATA FIX] _usedColumns has {_usedColumns.Count} entries");
+            
             // Find the actual SchemaFromNode that's in the metadata collections
             // The one from the stack might be the original Parser.SchemaFromNode
             // but we need the Evaluator.Parser.SchemaFromNode that was created in Visit(SchemaFromNode)
@@ -1998,17 +2002,26 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // Search through the metadata collections to find the node with matching schema/method
             foreach (var kvp in _usedColumns)
             {
-                if (kvp.Key is Musoq.Evaluator.Parser.SchemaFromNode evalNode && 
-                    evalNode.Schema == schemaFromNode.Schema && 
-                    evalNode.Method == schemaFromNode.Method)
+                System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Checking node: Type={kvp.Key.GetType().Name}, Id='{kvp.Key.Id}', Alias='{kvp.Key.Alias}'");
+                if (kvp.Key is Musoq.Evaluator.Parser.SchemaFromNode evalNode)
                 {
-                    existingSchemaNode = evalNode;
+                    System.Diagnostics.Debug.WriteLine($"[METADATA FIX] EvalNode Schema='{evalNode.Schema}' Method='{evalNode.Method}'");
+                }
+                
+                if (kvp.Key is Musoq.Evaluator.Parser.SchemaFromNode evalNode2 && 
+                    evalNode2.Schema == schemaFromNode.Schema && 
+                    evalNode2.Method == schemaFromNode.Method)
+                {
+                    existingSchemaNode = evalNode2;
+                    System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Found matching node: {existingSchemaNode.Id}");
                     break;
                 }
             }
             
             if (existingSchemaNode != null)
             {
+                System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Found existing node, proceeding with replacement");
+                
                 // CRITICAL: Create PIVOT aliased node for the correct metadata entry
                 var pivotAliasedSchemaNode = new Musoq.Evaluator.Parser.SchemaFromNode(
                     existingSchemaNode.Schema, 
@@ -2018,15 +2031,21 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     1, // Use position 1 for PIVOT - matches generated C# code expectation
                     existingSchemaNode is Musoq.Evaluator.Parser.SchemaFromNode evalSchemaNode && evalSchemaNode.HasExternallyProvidedTypes);
                 
+                System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Created PIVOT node: {pivotAliasedSchemaNode.Id}");
+                
                 // CRITICAL: Replace existing node metadata with PIVOT node metadata
                 // This ensures QueriesInformation uses the PIVOT alias instead of generated alias
                 var hasOriginalColumns = _inferredColumns.TryGetValue(existingSchemaNode, out var originalColumns);
                 var hasOriginalUsedColumns = _usedColumns.TryGetValue(existingSchemaNode, out var originalUsedColumns);
                 var hasOriginalWhereNode = _usedWhereNodes.TryGetValue(existingSchemaNode, out var originalWhereNode);
                 
+                System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Dictionary states: hasColumns={hasOriginalColumns}, hasUsedColumns={hasOriginalUsedColumns}, hasWhereNode={hasOriginalWhereNode}");
+                
                 // Only proceed if both required dictionaries have entries for the existing node
                 if (hasOriginalUsedColumns && hasOriginalWhereNode)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Replacing dictionary entries");
+                    
                     // Remove from all dictionaries
                     if (hasOriginalColumns)
                         _inferredColumns.Remove(existingSchemaNode);
@@ -2038,6 +2057,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                         _inferredColumns.Add(pivotAliasedSchemaNode, originalColumns);
                     _usedColumns.Add(pivotAliasedSchemaNode, originalUsedColumns);
                     _usedWhereNodes.Add(pivotAliasedSchemaNode, originalWhereNode);
+                    
+                    System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Dictionary replacement complete");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[METADATA FIX] Skipping replacement - missing required dictionary entries");
                 }
                 
                 // Update the source to use the PIVOT aliased node
@@ -2050,6 +2075,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     _aliasToSchemaFromNodeMap.Remove(originalAlias);
                 }
                 _aliasToSchemaFromNodeMap[node.Alias] = pivotAliasedSchemaNode;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[METADATA FIX] No existing node found for replacement");
             }
         }
         
