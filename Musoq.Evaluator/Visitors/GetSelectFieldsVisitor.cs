@@ -409,4 +409,14 @@ public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
     public void Visit(FieldLinkNode node)
     {
     }
+
+    public void Visit(WindowFunctionNode node)
+    {
+        // Placeholder implementation for window functions
+    }
+
+    public void Visit(OverClauseNode node)
+    {
+        // Placeholder implementation for OVER clauses
+    }
 }

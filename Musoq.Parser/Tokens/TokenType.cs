@@ -79,5 +79,9 @@ public enum TokenType : short
     Else,
     End,
     FieldLink,
-    Comment
+    Comment,
+    Over,
+    Recursive,
+    Partition,
+    By
 }

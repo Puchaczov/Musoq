@@ -615,6 +615,20 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
+    public virtual void Visit(WindowFunctionNode node)
+    {
+        // Placeholder implementation for window functions
+        // TODO: Implement proper traversal when window function execution is added
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(OverClauseNode node)
+    {
+        // Placeholder implementation for OVER clauses
+        // TODO: Implement proper traversal when window function execution is added  
+        node.Accept(Visitor);
+    }
+
     private void TraverseSetOperator(SetOperatorNode node)
     {
         node.Left.Accept(this);

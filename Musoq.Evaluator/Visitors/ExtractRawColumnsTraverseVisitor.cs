@@ -707,4 +707,16 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
     {
         node.Accept(_visitor);
     }
+
+    public void Visit(WindowFunctionNode node)
+    {
+        // Placeholder implementation for window functions
+        node.Accept(_visitor);
+    }
+
+    public void Visit(OverClauseNode node)
+    {
+        // Placeholder implementation for OVER clauses
+        node.Accept(_visitor);
+    }
 }

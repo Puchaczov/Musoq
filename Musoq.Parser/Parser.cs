@@ -856,7 +856,16 @@ public class Parser
                 if (Current.TokenType == TokenType.Comma)
                     Consume(Current.TokenType);
 
-                args.Add(ComposeEqualityOperators());
+                // Check if this is a subquery (starts with SELECT)
+                if (Current.TokenType == TokenType.Select)
+                {
+                    // Compose a subquery
+                    args.Add(ComposeSetOperators(0));
+                }
+                else
+                {
+                    args.Add(ComposeEqualityOperators());
+                }
             } while (Current.TokenType == TokenType.Comma);
         }
 
@@ -879,9 +888,9 @@ public class Parser
             case TokenType.Skip:
             case TokenType.Take:
                 ReplaceCurrentToken(new FunctionToken(Current.Value, Current.Span));
-                return ComposeAccessMethod(string.Empty);
+                return ComposeAccessMethodOrWindowFunction(string.Empty);
             case TokenType.Function:
-                return ComposeAccessMethod(string.Empty);
+                return ComposeAccessMethodOrWindowFunction(string.Empty);
             case TokenType.Identifier:
 
                 if (Current is not ColumnToken column)
@@ -902,7 +911,7 @@ public class Parser
                 var methodAccess = (MethodAccessToken) Current;
                 Consume(TokenType.MethodAccess);
                 Consume(TokenType.Dot);
-                return ComposeAccessMethod(methodAccess.Alias);
+                return ComposeAccessMethodOrWindowFunction(methodAccess.Alias);
             case TokenType.Property:
                 token = ConsumeAndGetToken(TokenType.Property);
                 return new PropertyValueNode(token.Value);
@@ -919,8 +928,29 @@ public class Parser
                 Consume(TokenType.False);
                 return new BooleanNode(false);
             case TokenType.LeftParenthesis:
-                return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeOperations(),
-                    TokenType.RightParenthesis);
+                // Check if this is a subquery by looking ahead without consuming tokens
+                var currentPosition = _lexer.Position;
+                var originalToken = Current;
+                
+                // Consume the left parenthesis and check the next token
+                Consume(TokenType.LeftParenthesis);
+                
+                if (Current.TokenType == TokenType.Select)
+                {
+                    // This is a subquery
+                    var subquery = ComposeSetOperators(0);
+                    Consume(TokenType.RightParenthesis);
+                    return subquery;
+                }
+                else
+                {
+                    // This is a regular parenthesized expression
+                    // We need to rewind since we already consumed the left parenthesis
+                    // Let's just proceed with the normal expression parsing
+                    var expr = ComposeOperations();
+                    Consume(TokenType.RightParenthesis);
+                    return expr;
+                }
             case TokenType.Hyphen:
                 Consume(TokenType.Hyphen);
                 return new StarNode(new IntegerNode("-1", "s"), Compose(f => f.ComposeArithmeticExpression(minPrecedence)));
@@ -976,25 +1006,78 @@ public class Parser
     private AccessMethodNode ComposeAccessMethod(string alias)
     {
         ArgsListNode args;
+        AccessMethodNode method;
+        
         if (Current is FunctionToken func)
         {
             Consume(TokenType.Function);
             args = ComposeArgs();
-            return new AccessMethodNode(func, args, null, false, null, alias);
+            method = new AccessMethodNode(func, args, null, false, null, alias);
         }
-            
-        if (Current is MethodAccessToken)
+        else if (Current is MethodAccessToken)
         {
             Consume(TokenType.MethodAccess);
             Consume(TokenType.Dot);
             var token = (FunctionToken)ConsumeAndGetToken(TokenType.Function);
             args = ComposeArgs();
 
-            return new AccessMethodNode(token, args, null, false,
+            method = new AccessMethodNode(token, args, null, false,
                 null, alias);
         }
-            
-        throw new NotSupportedException($"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
+        else
+        {
+            throw new NotSupportedException($"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
+        }
+
+        return method;
+    }
+
+    private Node ComposeAccessMethodOrWindowFunction(string alias)
+    {
+        var method = ComposeAccessMethod(alias);
+        
+        // Check if this is a window function (has OVER clause)
+        if (Current.TokenType == TokenType.Over)
+        {
+            var overClause = ComposeOverClause();
+            return new WindowFunctionNode(method, overClause);
+        }
+
+        return method;
+    }
+
+    private OverClauseNode ComposeOverClause()
+    {
+        Consume(TokenType.Over);
+        Consume(TokenType.LeftParenthesis);
+
+        Node partitionBy = null;
+        Node orderBy = null;
+
+        // Check for PARTITION BY clause
+        if (Current.TokenType == TokenType.Partition)
+        {
+            Consume(TokenType.Partition);
+            Consume(TokenType.By);
+            partitionBy = ComposeBaseTypes();
+        }
+
+        // Check for ORDER BY clause - handle both compound token and separate tokens
+        if (Current.TokenType == TokenType.OrderBy)
+        {
+            Consume(TokenType.OrderBy);
+            orderBy = ComposeBaseTypes();
+        }
+        else if (Current.TokenType == TokenType.Identifier && Current.Value.ToLowerInvariant() == "order")
+        {
+            Consume(TokenType.Identifier); // consume "ORDER"
+            Consume(TokenType.By);         // consume "BY"
+            orderBy = ComposeBaseTypes();
+        }
+
+        Consume(TokenType.RightParenthesis);
+
+        return new OverClauseNode(partitionBy, orderBy);
     }
 
     private Token ConsumeAndGetToken(TokenType expected)

@@ -2116,6 +2116,18 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         throw new NotSupportedException();
     }
 
+    public void Visit(WindowFunctionNode node)
+    {
+        // Placeholder implementation for window functions
+        throw new NotSupportedException("Window functions not yet supported in C# code generation");
+    }
+
+    public void Visit(OverClauseNode node)
+    {
+        // Placeholder implementation for OVER clauses
+        throw new NotSupportedException("OVER clauses not yet supported in C# code generation");
+    }
+
     private ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node,
         ExpressionSyntax originallyInferredColumns)
     {

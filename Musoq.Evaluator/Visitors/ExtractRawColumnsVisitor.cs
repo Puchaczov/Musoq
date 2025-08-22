@@ -409,6 +409,16 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(WindowFunctionNode node)
+    {
+        // Placeholder implementation for window functions
+    }
+
+    public void Visit(OverClauseNode node)
+    {
+        // Placeholder implementation for OVER clauses
+    }
+
     public void SetScope(Scope scope)
     {
     }

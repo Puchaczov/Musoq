@@ -635,4 +635,18 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     {
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }
+
+    public virtual void Visit(WindowFunctionNode node)
+    {
+        // Placeholder implementation for window functions
+        // TODO: Implement proper cloning when window function execution is added
+        throw new NotImplementedException("Window function cloning not yet implemented");
+    }
+
+    public virtual void Visit(OverClauseNode node)
+    {
+        // Placeholder implementation for OVER clauses
+        // TODO: Implement proper cloning when window function execution is added
+        throw new NotImplementedException("OVER clause cloning not yet implemented");
+    }
 }
