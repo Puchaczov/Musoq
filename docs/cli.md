@@ -32,10 +32,10 @@ Once your server is up and running, run queries directly:
 
 ```bash
 # Windows
-Musoq.exe run query "select 1 from #system.dual()"
+Musoq.exe run query "select 1 from @system.dual()"
 
 # Linux
-Musoq run query "select 1 from #system.dual()"
+Musoq run query "select 1 from @system.dual()"
 ```
 
 ### Help and Options
@@ -69,13 +69,13 @@ Musoq quit
 
 ```bash
 # Specify output format
-Musoq run query "select 1 from #system.dual()" --format [raw|csv|json|interpreted_json]
+Musoq run query "select 1 from @system.dual()" --format [raw|csv|json|interpreted_json]
 ```
 
 #### Raw
 
 ```bash
-Musoq run query "select Value from #system.range(1, 3)" --format raw
+Musoq run query "select Value from @system.range(1, 3)" --format raw
 ```
 Output:
 ```
@@ -87,7 +87,7 @@ Rows:
 
 #### CSV
 ```bash
-Musoq run query "select Value from #system.range(1, 3)" --format csv
+Musoq run query "select Value from @system.range(1, 3)" --format csv
 ```
 Output:
 ```csv
@@ -99,7 +99,7 @@ Value
 
 #### JSON
 ```bash
-Musoq run query "select Value from #system.range(1, 3)" --format json
+Musoq run query "select Value from @system.range(1, 3)" --format json
 ```
 Output:
 ```json
@@ -108,7 +108,7 @@ Output:
 
 #### Interpreted JSON
 ```bash
-Musoq run query "select Value as 'obj.Number', NewId() as 'obj.Id' from #system.range(0, 10)" --format interpreted-json
+Musoq run query "select Value as 'obj.Number', NewId() as 'obj.Id' from @system.range(0, 10)" --format interpreted-json
 ```
 Output:
 ```json
@@ -132,13 +132,13 @@ Musoq csharp solution load --solution "path/to/solution.sln" --bucket mybucket
 Do the first query
 
 ```bash
-Musoq run query "select p.Name from #csharp.solution('path/to/solution.sln') s cross apply s.Projects p" --bucket mybucket
+Musoq run query "select p.Name from @csharp.solution('path/to/solution.sln') s cross apply s.Projects p" --bucket mybucket
 ```
 
 Then do another
 
 ```bash
-Musoq run query "select p.Name from #csharp.solution('path/to/solution.sln') s cross apply s.Projects p where p.Name like '%Tests'" --bucket mybucket
+Musoq run query "select p.Name from @csharp.solution('path/to/solution.sln') s cross apply s.Projects p where p.Name like '%Tests'" --bucket mybucket
 ```
 
 This way, you load the solution once and then reuse it in multiple queries. After you're done, you can clean up:
@@ -158,7 +158,7 @@ Musoq bucket delete mybucket
 Musoq can process tables resulted from other commands. This allows for easy integration with other tools. You can treat table as a data source and process it with Musoq.
 
 ```powershell
-wmic process get name,processid,workingsetsize | Musoq.exe run query "select t.Name, Count(t.Name) from #stdin.table(true) t group by t.Name having Count(t.Name) > 1"
+wmic process get name,processid,workingsetsize | Musoq.exe run query "select t.Name, Count(t.Name) from @stdin.table(true) t group by t.Name having Count(t.Name) > 1"
 ```
 
 Or join them with other data sources:
@@ -168,7 +168,7 @@ Or join them with other data sources:
     docker image ls; 
     .\Musoq.exe separator; 
     docker container ls 
-} | ./Musoq.exe run query "select t.IMAGE_ID, t.REPOSITORY, t.SIZE, t.TAG, t2.CONTAINER_ID, t2.CREATED, t2.STATUS from #stdin.table(true) t inner join #stdin.table(true) t2 on t.IMAGE_ID = t2.IMAGE"
+} | ./Musoq.exe run query "select t.IMAGE_ID, t.REPOSITORY, t.SIZE, t.TAG, t2.CONTAINER_ID, t2.CREATED, t2.STATUS from @stdin.table(true) t inner join @stdin.table(true) t2 on t.IMAGE_ID = t2.IMAGE"
 ```
 
 Or use AI models to extract data from text:
@@ -206,11 +206,11 @@ Customer is a premium subscriber and requests urgent assistance due to lost data
 ```
 
 ```bash
-Get-Content "C:\Tickets\ticket.txt" | ./Musoq.exe run query "select t.TicketNumber, t.TicketDate, t.CustomerName, t.CustomerEmail, t.Product, t.OperatingSystem, t.Subject, t.ImpactLevel, t.ErrorCode, t.DataLossAmount, t.DeviceCount, case when ToLowerInvariant(t.SubscriptionType) like '%premium%' then 'PREMIUM' else 'STANDARD' end from #stdin.text('Ollama', 'llama3.1') t"
+Get-Content "C:\Tickets\ticket.txt" | ./Musoq.exe run query "select t.TicketNumber, t.TicketDate, t.CustomerName, t.CustomerEmail, t.Product, t.OperatingSystem, t.Subject, t.ImpactLevel, t.ErrorCode, t.DataLossAmount, t.DeviceCount, case when ToLowerInvariant(t.SubscriptionType) like '%premium%' then 'PREMIUM' else 'STANDARD' end from @stdin.text('Ollama', 'llama3.1') t"
 ```
 
 Or use it to extract informations from receipt:
 
 ```bash
-Musoq image encode "/some/image/receipt.jpg" | ./Musoq.exe run query "select s.Shop, s.ProductName, s.Price from #stdin.image('OpenAi', 'gpt-4o') s"
+Musoq image encode "/some/image/receipt.jpg" | ./Musoq.exe run query "select s.Shop, s.ProductName, s.Price from @stdin.image('OpenAi', 'gpt-4o') s"
 ```

@@ -25,8 +25,8 @@ Here's an example SQL query using the `llama3.2-vision:latest` model to generate
 select 
     f.Name, 
     l.AskImage('Describe this photo of my child in one sentence.', f.Base64File()) as description 
-from #os.files('/some/folder/with/photos', false) f 
-cross apply #ollama.llm('llama3.2-vision:latest') l
+from @os.files('/some/folder/with/photos', false) f 
+cross apply @ollama.llm('llama3.2-vision:latest') l
 ```
 
 ```
@@ -48,8 +48,8 @@ For comparison, the following query uses the `gpt-4o` model to generate image de
 select 
     f.Name, 
     l.AskImage('this is the photo of my little child I want you to describe. Be conscise, use only single statement.', f.Base64File()) as description 
-from #os.files('/some/folder/with/photos', false) f 
-cross apply #openai.gpt('gpt-4o') l
+from @os.files('/some/folder/with/photos', false) f 
+cross apply @openai.gpt('gpt-4o') l
 ```
 
 ```
@@ -70,14 +70,14 @@ with PhotosDescription as (
     select 
         f.Name as Name, 
         l.AskImage('this is the photo of my little child I want you to describe. Be conscise, use only single statement.', f.Base64File()) as Description 
-    from #os.files('/some/folder/with/photos', false) f 
-    cross apply #ollama.llm('llama3.2-vision:11b-instruct-q4_K_M') l
+    from @os.files('/some/folder/with/photos', false) f 
+    cross apply @ollama.llm('llama3.2-vision:11b-instruct-q4_K_M') l
 )
 select
     p.Name,
     p.Description,
     l.LlmPerform('this is the description of the photo I want you generate hashtags for. It comes from my child photo album. Return only hashtags separated with comma (#something, #somethingElse). Comma is very important to separate hashtags. Dont forget about it. No description or explanation.', p.Description) as HashTags
-from PhotosDescription p cross apply #openai.gpt('gpt-4o', 4096, 0.0) l
+from PhotosDescription p cross apply @openai.gpt('gpt-4o', 4096, 0.0) l
 ```
 
 ```

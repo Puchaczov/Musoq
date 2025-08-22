@@ -1097,7 +1097,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void DescMethodTest()
     {
-        var query = "desc #A.entities";
+        var query = "desc @A.entities";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1119,7 +1119,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void DescSchemaTest()
     {
-        var query = "desc #A";
+        var query = "desc @A";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {

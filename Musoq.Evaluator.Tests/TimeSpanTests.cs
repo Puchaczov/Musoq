@@ -16,7 +16,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
         const string query = "table Periods {" +
                              "  Period 'System.TimeSpan'" +
                              "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
+                             "couple @test.whatever with table Periods as Periods; " +
                              "select SumTimeSpan(Period) from Periods()";
         
         dynamic first = new ExpandoObject();
@@ -48,7 +48,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
         const string query = "table Periods {" +
                              "  Period 'System.TimeSpan'" +
                              "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
+                             "couple @test.whatever with table Periods as Periods; " +
                              "select MinTimeSpan(Period) from Periods()";
         
         dynamic first = new ExpandoObject();
@@ -80,7 +80,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
         const string query = "table Periods {" +
                              "  Period 'System.TimeSpan'" +
                              "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
+                             "couple @test.whatever with table Periods as Periods; " +
                              "select MaxTimeSpan(Period) from Periods()";
         
         dynamic first = new ExpandoObject();
@@ -113,7 +113,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
                              "  Period1 'System.TimeSpan'" +
                              "  Period2 'System.TimeSpan'" +
                              "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
+                             "couple @test.whatever with table Periods as Periods; " +
                              "select AddTimeSpans(Period1, Period2) from Periods()";
         
         dynamic first = new ExpandoObject();
@@ -144,7 +144,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
                              "  Period1 'System.TimeSpan'" +
                              "  Period2 'System.TimeSpan'" +
                              "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
+                             "couple @test.whatever with table Periods as Periods; " +
                              "select SubtractTimeSpans(Period1, Period2) from Periods()";
         
         dynamic first = new ExpandoObject();

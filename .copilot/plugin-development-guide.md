@@ -558,7 +558,7 @@ public class FileSystemSchemaIntegrationTests : BasicEntityTestBase
     {
         // Arrange
         var schemaProvider = new CustomSchemaProvider();
-        var query = "SELECT Name, Size FROM #fs.files('.', false) WHERE Extension = '.txt'";
+        var query = "SELECT Name, Size FROM @fs.files('.', false) WHERE Extension = '.txt'";
 
         // Act
         var compiledQuery = CreateAndRunVirtualMachine(query, schemaProvider: schemaProvider);

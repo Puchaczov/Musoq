@@ -13,7 +13,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_DescDynamicObjectWithSimpleColumns_ShouldPass()
     {
-        const string query = "desc #dynamic.all()";
+        const string query = "desc @dynamic.all()";
         var sources =
             new List<dynamic>()
             {
@@ -65,7 +65,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_DescDynamicObjectWithComplexColumns_ShouldPass()
     {
-        const string query = "desc #dynamic.all()";
+        const string query = "desc @dynamic.all()";
         var sources = new List<dynamic>()
         {
             CreateExpandoObject(CreateExpandoObject(1, "Test1"))
@@ -251,8 +251,8 @@ inner join @location.all() location on weather.Location = location.Name
         };
         
         var vm = CreateAndRunVirtualMachine(query, [
-            ("#weather", (IReadOnlyCollection<dynamic>)weatherSource, (IReadOnlyDictionary<string, Type>)weatherSchema),
-            ("#location", locationSource, locationSchema)
+            ("@weather", (IReadOnlyCollection<dynamic>)weatherSource, (IReadOnlyDictionary<string, Type>)weatherSchema),
+            ("@location", locationSource, locationSchema)
         ]);
         
         var table = vm.Run();

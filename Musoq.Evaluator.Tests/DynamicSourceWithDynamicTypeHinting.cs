@@ -14,7 +14,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_DescDynamicObjectWithSimpleColumns_ShouldPass()
     {
-        const string query = "desc #dynamic.all()";
+        const string query = "desc @dynamic.all()";
         var sources =
             new List<dynamic>
             {
@@ -77,7 +77,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_DescDynamicObjectWithComplexColumns_ShouldPass()
     {
-        const string query = "desc #dynamic.all()";
+        const string query = "desc @dynamic.all()";
         var sources = new List<dynamic>
         {
             new ComplexExpandoType(new ComplexType(1, "Test1"))

@@ -61,7 +61,7 @@ View the [practilcal examples and applications](https://puchaczov.github.io/Muso
 select
     c.AuthorEmail,
     Count(c.Sha) as CommitCount
-from #git.repository('/path/to/repo') r
+from @git.repository('/path/to/repo') r
 cross apply r.Commits c
 group by c.AuthorEmail
 having Count(c.Sha) > 10
@@ -77,7 +77,7 @@ select
     c.Name as ClassName,
     m.Name as MethodName,
     Max(m.CyclomaticComplexity) as HighestComplexity
-from #csharp.solution('/some/path/Musoq.sln') s
+from @csharp.solution('/some/path/Musoq.sln') s
 cross apply s.Projects p 
 cross apply p.Documents d 
 cross apply d.Classes c 
@@ -95,7 +95,7 @@ SELECT
     Extension,
     Round(Sum(Length) / 1024 / 1024 / 1024, 1) as SpaceOccupiedInGB,
     Count(Extension) as FileCount
-FROM #os.files('/some/directory', true)
+FROM @os.files('/some/directory', true)
 GROUP BY Extension
 HAVING Round(Sum(Length) / 1024 / 1024 / 1024, 1) > 0
 ORDER BY SpaceOccupiedInGB DESC
@@ -105,12 +105,12 @@ ORDER BY SpaceOccupiedInGB DESC
 
 ```sql
 -- Extract structured data from unstructured text
-select s.Who, s.Age from #stdin.text('from-text-extraction-model') s 
+select s.Who, s.Age from @stdin.text('from-text-extraction-model') s 
 where ToInt32(s.Age) > 26 and ToInt32(s.Age) < 75
 
 -- Extract product info from receipt images
 select s.Shop, s.ProductName, s.Price 
-from #stdin.image('from-image-extraction-model') s
+from @stdin.image('from-image-extraction-model') s
 ```
 
 ## 🤔 When to Use Musoq
@@ -213,7 +213,7 @@ Musoq is licensed under the MIT License - see the [LICENSE](LICENSE) file for de
 -- How many commits does the repository have
 select
     Count(1) as CommitsCount
-from #git.repository('D:\repos\efcore') r
+from @git.repository('D:\repos\efcore') r
 cross apply r.Commits c
 group by 'fake'
 ```
@@ -225,7 +225,7 @@ group by 'fake'
 select 
     Sum(c.LinesOfCode) as TotalLinesOfCode,
     Sum(c.MethodsCount) as TotalMethodsCount
-from #csharp.solution('/some/path/Musoq.sln') s 
+from @csharp.solution('/some/path/Musoq.sln') s 
 cross apply s.Projects p 
 cross apply p.Documents d 
 cross apply d.Classes c 
@@ -238,8 +238,8 @@ select
     c.Name, 
     m.Name, 
     g.ToBase64(g.GetBytes(g.LlmPerform('You are C# developer. Your task is to extract SQL query without any markdown characters. If no sql, then return empty string', m.Body))) as QueryBase64
-from #csharp.solution('/some/path/Musoq.sln') s 
-inner join #openai.gpt('gpt-4o') g on 1 = 1 
+from @csharp.solution('/some/path/Musoq.sln') s 
+inner join @openai.gpt('gpt-4o') g on 1 = 1 
 cross apply s.Projects p 
 cross apply p.Documents d 
 cross apply d.Classes c 
@@ -254,7 +254,7 @@ where a.Name = 'TestClassAttribute'
 -- Find large files
 SELECT 
 	FullName 
-FROM #os.files('/some/path', true) 
+FROM @os.files('/some/path', true) 
 WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
 
 -- Query image EXIF metadata
@@ -263,7 +263,7 @@ SELECT
     m.DirectoryName,
     m.TagName,
     m.Description
-FROM #os.files('./Images', false) f CROSS APPLY #os.metadata(f.FullName) m
+FROM @os.files('./Images', false) f CROSS APPLY @os.metadata(f.FullName) m
 WHERE f.Extension = '.jpg'
 
 -- Compare directories
@@ -276,7 +276,7 @@ SELECT
      THEN 'The Same' 
      ELSE State 
      END) AS Status 
-FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
+FROM @os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
 ```
 
 ### Archive Exploration
@@ -288,11 +288,11 @@ table PeopleDetails {
 	Surname 'System.String',
 	Age 'System.Int32'
 };
-couple #separatedvalues.comma with table PeopleDetails as SourceOfPeopleDetails;
+couple @separatedvalues.comma with table PeopleDetails as SourceOfPeopleDetails;
 with Files as (
 	select 
 		a.Key as InZipPath
-	from #archives.file('./Files/Example2/archive.zip') a
+	from @archives.file('./Files/Example2/archive.zip') a
 	where 
 		a.IsDirectory = false and
 		a.Contains(a.Key, '/') = false and 
@@ -303,7 +303,7 @@ select
 	b.Name, 
 	b.Surname, 
 	b.Age 
-from #archives.file('./Files/Example2/archive.zip') a
+from @archives.file('./Files/Example2/archive.zip') a
 inner join Files f on f.InZipPath = a.Key
 cross apply SourceOfPeopleDetails(a.GetStreamContent(), true, 0) as b;
 ```
@@ -315,7 +315,7 @@ cross apply SourceOfPeopleDetails(a.GetStreamContent(), true, 0) as b;
 with p as (
     select 
         Replace(Replace(ToLowerInvariant(w.Value), '.', ''), ',', '') as Word
-    from #flat.file('/some/path/to/text/file.txt') f cross apply f.Split(f.Line, ' ') w
+    from @flat.file('/some/path/to/text/file.txt') f cross apply f.Split(f.Line, ' ') w
 )
 select
     Count(p.Word, 1) as AllWordsCount, 
@@ -336,7 +336,7 @@ with Events as (
             '.proto";',
             ''
         ) as Namespace
-    from #flat.file('/path/to/file.proto') f
+    from @flat.file('/path/to/file.proto') f
     where
         Length(Line) > 6 and
         Head(Line, 6) = 'import' and
@@ -368,14 +368,14 @@ from Events e
 SELECT
     llava.DescribeImage(photo.Base64File()),
     photo.FullName
-FROM #os.files('/path/to/directory', false) photo 
-INNER JOIN #ollama.models('llava:13b', 0.0) llava ON 1 = 1
+FROM @os.files('/path/to/directory', false) photo 
+INNER JOIN @ollama.models('llava:13b', 0.0) llava ON 1 = 1
 
 -- Count tokens in files
 SELECT 
    SUM(gpt.CountTokens(f.GetFileContent())) AS TokensCount 
-FROM #os.files('/path/to/directory', true) f 
-INNER JOIN #openai.gpt('gpt-4') gpt ON 1 = 1 
+FROM @os.files('/path/to/directory', true) f 
+INNER JOIN @openai.gpt('gpt-4') gpt ON 1 = 1 
 WHERE f.Extension IN ('.md', '.c')
 
 -- Sentiment analysis on comments
@@ -384,8 +384,8 @@ SELECT
     csv.Comment,
     gpt.Sentiment(csv.Comment) as Sentiment,
     csv.Date
-FROM #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
-INNER JOIN #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
+FROM @separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
+INNER JOIN @openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
 ```
 
 ### Domain Specific Analysis
@@ -411,7 +411,7 @@ select
     s.Maximum, 
     s.Unit,
     s.Comment as SignalsComment
-from #can.messages('@qfs/Model3CAN.dbc') m cross apply m.Signals s
+from @can.messages('@qfs/Model3CAN.dbc') m cross apply m.Signals s
 ```
 
 ## 🏗 Architecture

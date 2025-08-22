@@ -120,7 +120,7 @@ public class GenericEntityTestBase
             Guid.NewGuid().ToString(), 
             new GenericSchemaProvider(new Dictionary<string, ISchema>()
             {
-                {"#schema", schema}
+                {"@schema", schema}
             }),
             LoggerResolver);
     }

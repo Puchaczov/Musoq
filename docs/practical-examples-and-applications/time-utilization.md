@@ -13,7 +13,7 @@ Sometimes it's necessary to perform some action periodically. To specify when ou
 SELECT 
     DateTime,
     DayOfWeek
-FROM #time.interval('01/01/2024', '01/01/2025', 'days')
+FROM @time.interval('01/01/2024', '01/01/2025', 'days')
 WHERE 
     Day >= 1 AND 
     Day <= 7 AND 

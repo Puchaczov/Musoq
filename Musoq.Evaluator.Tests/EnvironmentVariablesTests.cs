@@ -13,7 +13,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     [TestMethod]
     public void WhenDescEnvironmentVariables_ShouldListAllColumns()
     {
-        var query = "desc #EnvironmentVariables.All()";
+        var query = "desc @EnvironmentVariables.All()";
         var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
@@ -170,7 +170,7 @@ select Key, Value from @EnvironmentVariables.All()";
         var environmentVariablesEntitiesSource = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                "#EnvironmentVariables",
+                "@EnvironmentVariables",
                 [
                     new("KEY_1", "VALUE_1"),
                     new("KEY_2", "VALUE_2")

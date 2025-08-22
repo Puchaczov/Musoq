@@ -120,7 +120,7 @@ First, we will enrich our calculations by determining the total price `UnitPrice
 select 
 	*, 
 	ToInt32(Quantity) * ToDecimal(UnitPrice) as TotalPrice 
-from #separatedvalues.csv('@qfs/category_product_data.csv', true, 0)
+from @separatedvalues.csv('@qfs/category_product_data.csv', true, 0)
 ```
 
 We begin by reading the file from the query space named `category_product_data.csv` which has a header `true` and we are supposed to start reading from row zero `0`. Because our data source reads all columns as string types, we have to convert them to numbers. With each row read, a transformation will be performed on the relevant columns followed by multiplication.
@@ -143,7 +143,7 @@ If our file doesn’t have a header or the names are very irregular, we can simp
 select 
 	*, 
 	ToInt32(Column3) * ToDecimal(Column4) as Column5 
-from #separatedvalues.csv('@qfs/category_product_data.csv', false, 1)
+from @separatedvalues.csv('@qfs/category_product_data.csv', false, 1)
 ```
 
 Table after our transformations:
@@ -166,7 +166,7 @@ select
     Product, 
     Sum(ToInt32(Quantity) * ToDecimal(UnitPrice), 1) as TotalPriceForCategory, 
     Sum(ToInt32(Quantity) * ToDecimal(UnitPrice)) as TotalPriceForProduct 
-from #separatedvalues.csv('@qfs/category_product_data.csv', true, 0) 
+from @separatedvalues.csv('@qfs/category_product_data.csv', true, 0) 
 group by Category, Product
 ```
 
@@ -210,7 +210,7 @@ select
     csv.Comment,
     gpt.Sentiment(csv.Comment) as Sentiment,
     csv.Date
-from #separatedvalues.csv('@qfs/comments_sample.csv', true, 0) csv inner join #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
+from @separatedvalues.csv('@qfs/comments_sample.csv', true, 0) csv inner join @openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
 ```
 
-In this query, we use an `inner join` because we want to use a method that belongs to the calculated **gpt** table. This table always returns a single row; we are not specifically interested in the row value but want it to be available for each message. When initializing, we use the exact model name which is supposed to respond to our sentiment query. The data source `#openai.gpt` has more interesting methods with which I encourage you to become familiar in the source documentation.
+In this query, we use an `inner join` because we want to use a method that belongs to the calculated **gpt** table. This table always returns a single row; we are not specifically interested in the row value but want it to be available for each message. When initializing, we use the exact model name which is supposed to respond to our sentiment query. The data source `@openai.gpt` has more interesting methods with which I encourage you to become familiar in the source documentation.

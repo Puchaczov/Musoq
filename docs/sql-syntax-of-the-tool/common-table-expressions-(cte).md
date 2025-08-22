@@ -11,9 +11,9 @@ nav_order: 9
 
 ```sql
 with FirstTable as (
-	select 1 as x from #system.dual()
+	select 1 as x from @system.dual()
 ), SecondTable as (
-	select 2 as y from #system.dual()
+	select 2 as y from @system.dual()
 )
 select x, y from FirstTable f inner join SecondTable s on f.x <> s.y
 ```

@@ -139,7 +139,7 @@ dotnet run --project Musoq.Benchmarks --configuration Release
 // Debug parser output
 public void DebugParseTree()
 {
-    var lexer = new Lexer("SELECT Name FROM #test.data()");
+    var lexer = new Lexer("SELECT Name FROM @test.data()");
     var parser = new Parser(lexer);
     var rootNode = parser.ComposeAll();
     
@@ -165,7 +165,7 @@ private void PrintAST(Node node, int depth)
 // Inspect generated C# code
 public void DebugCodeGeneration()
 {
-    var query = "SELECT Name, Count(*) FROM #test.data() GROUP BY Name";
+    var query = "SELECT Name, Count(*) FROM @test.data() GROUP BY Name";
     var buildItems = InstanceCreator.CreateForAnalyze(
         query, 
         Guid.NewGuid().ToString(), 
@@ -248,7 +248,7 @@ public class CustomParserTests
     public void Should_Parse_New_Syntax()
     {
         // Arrange
-        var query = "SELECT * FROM #new.syntax('param') WITH OPTIONS";
+        var query = "SELECT * FROM @new.syntax('param') WITH OPTIONS";
         var lexer = new Lexer(query);
         var parser = new Parser(lexer);
         
@@ -300,7 +300,7 @@ public class FullQueryIntegrationTests : BasicEntityTestBase
         var query = @"
             WITH processed AS (
                 SELECT Name, ProcessText(Description) as CleanText
-                FROM #test.data()
+                FROM @test.data()
             )
             SELECT Name, Count(*) as WordCount
             FROM processed
