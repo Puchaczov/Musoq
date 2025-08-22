@@ -227,6 +227,16 @@ public static class InstanceCreator
                 HasExternallyProvidedTypes: true
             }));
 
+        // DEBUG: Add debugging for PIVOT key mismatch issues
+        if (runnable.QueriesInformation.Any())
+        {
+            System.Diagnostics.Debug.WriteLine("[QUERIES DEBUG] QueriesInformation keys:");
+            foreach (var key in runnable.QueriesInformation.Keys)
+            {
+                System.Diagnostics.Debug.WriteLine($"[QUERIES DEBUG] Key: '{key}'");
+            }
+        }
+
         return runnable;
     }
         
