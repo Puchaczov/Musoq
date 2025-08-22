@@ -63,6 +63,10 @@ public sealed class Group
     /// <exception cref="KeyNotFoundException"></exception>
     public T? GetValue<T>(string name)
     {
+        // DEBUG: Print available fields and requested field
+        Console.WriteLine($"[GROUP DEBUG] GetValue called for: '{name}'");
+        Console.WriteLine($"[GROUP DEBUG] Available fields: {string.Join(", ", Values.Keys.Select(k => $"'{k}'"))}");
+        
         if (!Values.TryGetValue(name, out var value))
             throw new KeyNotFoundException($"Group does not have value {name}.");
 

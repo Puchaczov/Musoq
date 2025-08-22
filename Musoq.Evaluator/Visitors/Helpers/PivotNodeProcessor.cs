@@ -182,11 +182,16 @@ public static class PivotNodeProcessor
                     var fieldNames = new List<string>();
                     var values = new List<object>();
                     
+                    // DEBUG: Print field names to understand what's being created
+                    Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
+                    
                     // Add non-pivot columns WITH alias prefix (this matches AddColumnToGeneratedColumns logic)
                     fieldNames.Add(""{prefix}Region"");
                     fieldNames.Add(""{prefix}Product"");
                     values.Add(group.Key.Region);
                     values.Add(group.Key.Product);
+                    
+                    Console.WriteLine($""[PIVOT DEBUG] Added fields: {{fieldNames[0]}}, {{fieldNames[1]}}"");
                     
                     // Add pivot columns with aggregated values WITH alias prefix
                     foreach(var pivotCol in new[] {{ {pivotColumnsLiteral} }}) {{
@@ -197,7 +202,10 @@ public static class PivotNodeProcessor
                         }} else {{
                             values.Add(0m);
                         }}
+                        Console.WriteLine($""[PIVOT DEBUG] Added pivot column: {{fieldNames.Last()}}"");
                     }}
+                    
+                    Console.WriteLine($""[PIVOT DEBUG] Final field count: {{fieldNames.Count}}"");
                     
                     // Create and return a Group object that exposes all columns
                     return new Musoq.Plugins.Group(null, fieldNames.ToArray(), values.ToArray());
@@ -208,10 +216,21 @@ public static class PivotNodeProcessor
         try
         {
             var statement = SyntaxFactory.ParseStatement(pivotCode);
+            // DEBUG: Print any diagnostics to help debug C# syntax issues
+            var diagnostics = statement.GetDiagnostics();
+            if (diagnostics.Any())
+            {
+                Console.WriteLine("[PIVOT DEBUG] C# Parse Diagnostics:");
+                foreach (var diagnostic in diagnostics)
+                {
+                    Console.WriteLine($"  {diagnostic.Severity}: {diagnostic.GetMessage()}");
+                }
+            }
             return statement;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[PIVOT DEBUG] Parse Exception: {ex.Message}");
             // Fallback to simple implementation if parsing fails
             var listCreation = SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.GenericName(

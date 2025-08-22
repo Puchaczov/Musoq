@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -57,11 +58,21 @@ namespace Musoq.Evaluator.Tests
                     LoggerResolver);
                 
                 Console.WriteLine("✓ Compilation successful!");
+                
+                Console.WriteLine("Attempting execution...");
+                var table = compiledQuery.Run();
+                Console.WriteLine($"✓ Execution successful! Table has {table.Count} rows and {table.Columns.Count()} columns");
+                
+                foreach (var column in table.Columns)
+                {
+                    Console.WriteLine($"  Column: {column.ColumnName} ({column.ColumnType})");
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"✗ Compilation failed: {ex.Message}");
+                Console.WriteLine($"✗ Execution failed: {ex.Message}");
                 Console.WriteLine($"Exception Type: {ex.GetType().Name}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
                 
                 // Look for generated code in the exception
                 if (ex.Message.Contains("error CS"))
@@ -78,7 +89,7 @@ namespace Musoq.Evaluator.Tests
                 }
                 
                 // Don't fail the test - we want to see the output
-                // Assert.Fail($"Compilation failed: {ex.Message}");
+                // Assert.Fail($"Execution failed: {ex.Message}");
             }
         }
     }
