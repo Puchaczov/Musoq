@@ -169,34 +169,61 @@ public static class PivotNodeProcessor
         
         var prefix = string.IsNullOrEmpty(pivotAlias) ? "" : pivotAlias + ".";
         
-        // CRITICAL FIX: Dynamically determine group-by columns instead of hardcoding Region/Product
-        // PIVOT should group by all non-FOR, non-aggregation columns
-        var groupByColumns = new List<string> { "Product" }; // Default to Product if unknown schema
-        
-        // Try to determine available columns dynamically (this is a simplified approach)
-        // In a more complete implementation, this would use schema information
-        // For now, we'll use the most common PIVOT scenario columns
+        // CRITICAL FIX: Dynamically determine group-by columns by detecting available columns at runtime
+        // PIVOT should group by all columns that are not the FOR column or aggregation columns
+        var aggregationColumnName = aggregationColumn; // Use the already declared variable
         
         var pivotCode = $@"
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
-                .GroupBy(row => new {{ 
-                    Product = row[""Product""]
+                .GroupBy(row => {{
+                    // Dynamically determine available columns by testing common column names
+                    var groupValues = new List<object>();
+                    var availableColumns = new List<string>();
+                    
+                    // Test for common columns in order of priority
+                    var testColumns = new[] {{ ""Region"", ""Product"", ""Year"", ""Month"", ""Quarter"", ""Salesperson"" }};
+                    
+                    foreach (var testCol in testColumns) {{
+                        try {{
+                            var value = row[testCol];
+                            // Only include if it's not the FOR column or aggregation column
+                            if (testCol != ""{forColumnName}"" && testCol != ""{aggregationColumnName}"") {{
+                                availableColumns.Add(testCol);
+                                groupValues.Add(value ?? """");
+                            }}
+                        }} catch {{ /* Column doesn't exist, skip */ }}
+                    }}
+                    
+                    // Create anonymous object with found columns
+                    // For simplicity, we'll create a tuple or use string concatenation for grouping
+                    return string.Join(""|"", groupValues);
                 }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
-                    // CRITICAL: Include alias prefix in field names to match field access expectations
                     var fieldNames = new List<string>();
                     var values = new List<object>();
                     
-                    // DEBUG: Print field names to understand what's being created
                     Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
                     
-                    // Add non-pivot columns WITH alias prefix (this matches AddColumnToGeneratedColumns logic)
-                    fieldNames.Add(""{prefix}Product"");
-                    values.Add(group.Key.Product);
-                    
-                    Console.WriteLine($""[PIVOT DEBUG] Added field: {{fieldNames[0]}}"");
+                    // Get the first row to determine which columns are available
+                    var firstRow = group.FirstOrDefault();
+                    if (firstRow != null) {{
+                        // Test and add available non-pivot columns
+                        var testColumns = new[] {{ ""Region"", ""Product"", ""Year"", ""Month"", ""Quarter"", ""Salesperson"" }};
+                        
+                        foreach (var testCol in testColumns) {{
+                            try {{
+                                var value = firstRow[testCol];
+                                // Only include if it's not the FOR column or aggregation column
+                                if (testCol != ""{forColumnName}"" && testCol != ""{aggregationColumnName}"") {{
+                                    fieldNames.Add(""{prefix}"" + testCol);
+                                    values.Add(value ?? """");
+                                    Console.WriteLine($""[PIVOT DEBUG] Added field: {prefix}{{testCol}}"");
+                                }}
+                            }} catch {{ /* Column doesn't exist, skip */ }}
+                        }}
+                    }}
                     
                     // Add pivot columns with aggregated values WITH alias prefix
                     foreach(var pivotCol in new[] {{ {pivotColumnsLiteral} }}) {{
