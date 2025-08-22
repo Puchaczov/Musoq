@@ -2466,6 +2466,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(PivotFromNode node)
     {
+        Console.WriteLine($"[PIVOT DEBUG] ToCSharpRewriteTreeVisitor.Visit(PivotFromNode) called for alias: {node.Alias}");
+        
         // Apply the actual PIVOT transformation using PivotNodeProcessor
         var sourceAlias = GetSourceAlias(node.Source);
         
@@ -2548,6 +2550,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             
             // Add the unique alias statement to avoid conflicts
             _getRowsSourceStatement.Add(node.Alias, pivotAliasStatement);
+            
+            // CRITICAL FIX: Update SourceName to use PIVOT table variable for foreach loop
+            // This ensures the query execution iterates over PIVOT Groups instead of original source
+            Console.WriteLine($"[PIVOT DEBUG] Setting SourceName from '{_scope[MetaAttributes.SourceName]}' to '{uniqueAliasVariable}'");
+            _scope[MetaAttributes.SourceName] = uniqueAliasVariable;
         }
         catch (Exception ex)
         {
