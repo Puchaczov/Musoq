@@ -23,7 +23,7 @@ namespace Musoq.Evaluator.Tests
         }
 
         [TestMethod]
-        public void DebugPivotMethodResolution()
+        public void DebugPivotColumns()
         {
             var sources = new Dictionary<string, IEnumerable<SalesEntity>>
             {
@@ -32,21 +32,56 @@ namespace Musoq.Evaluator.Tests
                     {
                         new SalesEntity("Books", "Book1", 10, 100m),
                         new SalesEntity("Books", "Book2", 5, 50m),
-                        new SalesEntity("Electronics", "Phone", 3, 300m)
+                        new SalesEntity("Electronics", "Phone", 3, 300m),
+                        new SalesEntity("Fashion", "Shirt", 8, 80m),
+                        new SalesEntity("Electronics", "Laptop", 2, 200m)
                     }
                 }
             };
 
-            Console.WriteLine("=== Debugging PIVOT Method Resolution ===");
+            Console.WriteLine("=== Debugging PIVOT Column Structure ===");
             
-            // Test 1: Working GROUP BY for comparison
-            Console.WriteLine("\n--- GROUP BY Test (Should Work) ---");
+            var query = @"
+                SELECT *
+                FROM #A.entities()
+                PIVOT (
+                    Sum(Quantity)
+                    FOR Category IN ('Books', 'Electronics')
+                ) AS p";
+
             try
             {
-                var groupByQuery = @"SELECT Category, Sum(Quantity) FROM #A.entities() GROUP BY Category";
-                var groupByVm = CreateAndRunVirtualMachine(groupByQuery, sources);
-                var groupByTable = groupByVm.Run();
-                Console.WriteLine($"✓ GROUP BY SUCCESS: {groupByTable.Count} rows returned");
+                var vm = CreateAndRunVirtualMachine(query, sources);
+                var table = vm.Run();
+
+                Console.WriteLine($"\n=== FINAL TABLE STRUCTURE ===");
+                Console.WriteLine($"Table has {table.Columns.Count()} columns:");
+                foreach (var column in table.Columns)
+                {
+                    Console.WriteLine($"  Column: '{column.ColumnName}' (Index: {column.ColumnIndex}, Type: {column.ColumnType})");
+                }
+                
+                Console.WriteLine($"\nTable has {table.Count} rows:");
+                for (int i = 0; i < table.Count; i++)
+                {
+                    Console.WriteLine($"Row {i}:");
+                    for (int j = 0; j < table.Columns.Count(); j++)
+                    {
+                        var value = table[i][j];
+                        Console.WriteLine($"  [{j}] = {value} ({value?.GetType()?.Name ?? "null"})");
+                    }
+                }
+                
+                // Debug: Check what column names we actually have
+                Console.WriteLine($"\n=== COLUMN NAME CHECK ===");
+                Console.WriteLine($"Looking for 'Books': {table.Columns.Any(c => c.ColumnName == "Books")}");
+                Console.WriteLine($"Looking for 'p.Books': {table.Columns.Any(c => c.ColumnName == "p.Books")}");
+                Console.WriteLine($"Looking for 'Electronics': {table.Columns.Any(c => c.ColumnName == "Electronics")}");
+                Console.WriteLine($"Looking for 'p.Electronics': {table.Columns.Any(c => c.ColumnName == "p.Electronics")}");
+                
+                // Expected: 3 columns (Books, Electronics, Fashion)
+                // Let's verify what we actually got
+                Assert.AreEqual(3, table.Columns.Count(), $"Expected 3 columns, but got {table.Columns.Count()}");
             }
             catch (Exception ex)
             {

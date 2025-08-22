@@ -104,9 +104,9 @@ public class PivotEvaluatorTests : BasicEntityTestBase
         var electronicsColumn = table.Columns.Single(c => c.ColumnName == "Electronics");
         var fashionColumn = table.Columns.Single(c => c.ColumnName == "Fashion");
         
-        Assert.AreEqual(15, row[booksColumn.ColumnIndex]); // 10 + 5
-        Assert.AreEqual(5, row[electronicsColumn.ColumnIndex]); // 3 + 2
-        Assert.AreEqual(8, row[fashionColumn.ColumnIndex]); // 8
+        Assert.AreEqual(15m, row[booksColumn.ColumnIndex]); // 10 + 5
+        Assert.AreEqual(5m, row[electronicsColumn.ColumnIndex]); // 3 + 2
+        Assert.AreEqual(8m, row[fashionColumn.ColumnIndex]); // 8
     }
 
     [TestMethod]

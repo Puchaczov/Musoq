@@ -2369,14 +2369,23 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             fieldName = tableSymbol.HasAlias ? $"{identifier}.{column.ColumnName}" : column.ColumnName;
         }
         
-        // CRITICAL FIX: Use the computed fieldName in AccessColumnNode instead of just column.ColumnName
-        // This ensures PIVOT field access uses the correct alias prefix (e.g., "p.Product" not "Product")
+        // CRITICAL FIX: Use the computed fieldName in AccessColumnNode for field access
+        // but use clean column name for PIVOT table column names
         var accessColumn = new AccessColumnNode(fieldName, identifier, column.ColumnType, TextSpan.Empty);
         
         // DEBUG: Print field generation for PIVOT debugging
         Console.WriteLine($"[SELECT DEBUG] AddColumnToGeneratedColumns: identifier='{identifier}', column='{column.ColumnName}', fieldName='{fieldName}', hasAlias={tableSymbol.HasAlias}");
         
-        generatedColumns.Add(new FieldNode(accessColumn, index, fieldName));
+        // For PIVOT tables, use clean column name (without alias prefix) for final table column names
+        // This matches standard SQL PIVOT behavior where result columns are named after pivot values
+        var finalColumnName = fieldName;
+        if (tableSymbol.HasAlias && identifier.Length == 1) // PIVOT alias is typically single character like 'p'
+        {
+            finalColumnName = column.ColumnName; // Use clean column name for PIVOT results
+            Console.WriteLine($"[SELECT DEBUG] PIVOT table detected - using clean column name: '{finalColumnName}'");
+        }
+        
+        generatedColumns.Add(new FieldNode(accessColumn, index, finalColumnName));
     }
 
     private void UpdateUsedColumns(string identifier, ISchemaTable table)

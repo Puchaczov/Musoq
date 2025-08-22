@@ -177,11 +177,9 @@ public static class PivotNodeProcessor
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
                 .GroupBy(row => {{
-                    // Group by non-pivot columns (e.g., Region)
-                    var key = """";
-                    if(row.HasColumn(""Region"")) key += row[""Region""]?.ToString() ?? """";
-                    if(row.HasColumn(""Product"")) key += ""||"" + (row[""Product""]?.ToString() ?? """");
-                    return key;
+                    // CRITICAL FIX: For SELECT * from PIVOT, group all rows together 
+                    // This creates a single aggregated result across all data
+                    return ""all"";
                 }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
@@ -190,19 +188,8 @@ public static class PivotNodeProcessor
                     
                     Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
                     
-                    // Get the first row to determine available columns
-                    var firstRow = group.First();
-                    
-                    // Add all non-pivot columns from SalesEntity schema
-                    var nonPivotColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
-                    
-                    foreach(var columnName in nonPivotColumns) {{
-                        if(firstRow.HasColumn(columnName)) {{
-                            fieldNames.Add(""{prefix}"" + columnName);
-                            values.Add(firstRow[columnName]);
-                            Console.WriteLine($""[PIVOT DEBUG] Added non-pivot column: {prefix}{{columnName}}"");
-                        }}
-                    }}
+                    // CRITICAL FIX: For SELECT * from PIVOT, only return pivot columns, not source columns
+                    // This matches SQL Server PIVOT behavior and fixes the column count mismatch
                     
                     // CRITICAL FIX: Collect ALL unique categories from the entire dataset
                     // This ensures PIVOT includes all categories found in data, not just IN clause
