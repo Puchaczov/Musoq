@@ -1990,36 +1990,67 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // This prevents the key mismatch between metadata building and code generation
         if (source is SchemaFromNode schemaFromNode && !string.IsNullOrEmpty(node.Alias))
         {
-            // CRITICAL: Create Evaluator.Parser.SchemaFromNode for PIVOT alias
-            // to ensure the ID format matches what InstanceCreator expects for QueriesInformation
-            var pivotAliasedSchemaNode = new Musoq.Evaluator.Parser.SchemaFromNode(
-                schemaFromNode.Schema, 
-                schemaFromNode.Method, 
-                schemaFromNode.Parameters, 
-                node.Alias, 
-                1, // Use position 1 for PIVOT - matches generated C# code expectation
-                schemaFromNode is Parser.SchemaFromNode originalSchemaFromNode && originalSchemaFromNode.HasExternallyProvidedTypes);
+            // Find the actual SchemaFromNode that's in the metadata collections
+            // The one from the stack might be the original Parser.SchemaFromNode
+            // but we need the Evaluator.Parser.SchemaFromNode that was created in Visit(SchemaFromNode)
+            SchemaFromNode existingSchemaNode = null;
             
-            // CRITICAL: Add PIVOT node to metadata collections (don't remove original)
-            // This ensures QueriesInformation gets both the original and PIVOT entries
-            if (_inferredColumns.TryGetValue(schemaFromNode, out var originalColumns))
+            // Search through the metadata collections to find the node with matching schema/method
+            foreach (var kvp in _usedColumns)
             {
-                if (!_inferredColumns.ContainsKey(pivotAliasedSchemaNode))
-                    _inferredColumns.Add(pivotAliasedSchemaNode, originalColumns);
+                if (kvp.Key is Musoq.Evaluator.Parser.SchemaFromNode evalNode && 
+                    evalNode.Schema == schemaFromNode.Schema && 
+                    evalNode.Method == schemaFromNode.Method)
+                {
+                    existingSchemaNode = evalNode;
+                    break;
+                }
             }
             
-            if (_usedColumns.TryGetValue(schemaFromNode, out var originalUsedColumns))
+            if (existingSchemaNode != null)
             {
-                if (!_usedColumns.ContainsKey(pivotAliasedSchemaNode))
+                // CRITICAL: Create PIVOT aliased node for the correct metadata entry
+                var pivotAliasedSchemaNode = new Musoq.Evaluator.Parser.SchemaFromNode(
+                    existingSchemaNode.Schema, 
+                    existingSchemaNode.Method, 
+                    existingSchemaNode.Parameters, 
+                    node.Alias, 
+                    1, // Use position 1 for PIVOT - matches generated C# code expectation
+                    existingSchemaNode is Musoq.Evaluator.Parser.SchemaFromNode evalSchemaNode && evalSchemaNode.HasExternallyProvidedTypes);
+                
+                // CRITICAL: Replace existing node metadata with PIVOT node metadata
+                // This ensures QueriesInformation uses the PIVOT alias instead of generated alias
+                var hasOriginalColumns = _inferredColumns.TryGetValue(existingSchemaNode, out var originalColumns);
+                var hasOriginalUsedColumns = _usedColumns.TryGetValue(existingSchemaNode, out var originalUsedColumns);
+                var hasOriginalWhereNode = _usedWhereNodes.TryGetValue(existingSchemaNode, out var originalWhereNode);
+                
+                // Only proceed if both required dictionaries have entries for the existing node
+                if (hasOriginalUsedColumns && hasOriginalWhereNode)
+                {
+                    // Remove from all dictionaries
+                    if (hasOriginalColumns)
+                        _inferredColumns.Remove(existingSchemaNode);
+                    _usedColumns.Remove(existingSchemaNode);
+                    _usedWhereNodes.Remove(existingSchemaNode);
+                    
+                    // Add to all dictionaries with PIVOT node
+                    if (hasOriginalColumns)
+                        _inferredColumns.Add(pivotAliasedSchemaNode, originalColumns);
                     _usedColumns.Add(pivotAliasedSchemaNode, originalUsedColumns);
+                    _usedWhereNodes.Add(pivotAliasedSchemaNode, originalWhereNode);
+                }
+                
+                // Update the source to use the PIVOT aliased node
+                source = pivotAliasedSchemaNode;
+                
+                // CRITICAL: Update alias tracking to use PIVOT node instead of original
+                var originalAlias = existingSchemaNode.Alias;
+                if (_aliasToSchemaFromNodeMap.ContainsKey(originalAlias))
+                {
+                    _aliasToSchemaFromNodeMap.Remove(originalAlias);
+                }
+                _aliasToSchemaFromNodeMap[node.Alias] = pivotAliasedSchemaNode;
             }
-            
-            if (_usedWhereNodes.TryGetValue(schemaFromNode, out var originalWhereNode))
-            {
-                _usedWhereNodes.TryAdd(pivotAliasedSchemaNode, originalWhereNode);
-            }
-            
-            source = pivotAliasedSchemaNode;
         }
         
         // CRITICAL: Set identifier context for subsequent PIVOT processing
