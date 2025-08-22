@@ -204,16 +204,20 @@ public static class PivotNodeProcessor
                         }}
                     }}
                     
-                    // Get all unique category values from this group's data
-                    var allCategoryValues = group.Select(row => row[""{forColumnName}""]?.ToString())
-                                                 .Where(val => !string.IsNullOrEmpty(val))
-                                                 .Distinct()
-                                                 .OrderBy(val => val);
+                    // CRITICAL FIX: Collect ALL unique categories from the entire dataset
+                    // This ensures PIVOT includes all categories found in data, not just IN clause
+                    var allDataCategories = {sourceVariable}.Rows
+                        .Cast<Musoq.Schema.DataSources.IObjectResolver>()
+                        .Select(row => row[""{forColumnName}""]?.ToString())
+                        .Where(val => !string.IsNullOrEmpty(val))
+                        .Distinct()
+                        .OrderBy(val => val)
+                        .ToArray();
                     
-                    Console.WriteLine($""[PIVOT DEBUG] Found category values: {{string.Join("", "", allCategoryValues)}}"");
+                    Console.WriteLine($""[PIVOT DEBUG] Found all data categories: {{string.Join("", "", allDataCategories)}}"");
                     
-                    // Add pivot columns for unique category values found in this group
-                    foreach(var pivotCol in allCategoryValues) {{
+                    // Add pivot columns for ALL categories found in the data
+                    foreach(var pivotCol in allDataCategories) {{
                         fieldNames.Add(""{prefix}"" + pivotCol);
                         var filteredData = group.Where(row => row[""{forColumnName}""]?.ToString() == pivotCol);
                         if(filteredData.Any()) {{
