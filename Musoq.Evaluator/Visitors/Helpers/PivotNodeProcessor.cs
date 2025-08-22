@@ -177,11 +177,11 @@ public static class PivotNodeProcessor
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
                 .GroupBy(row => {{
-                    // Group by non-pivot columns - for now, use a simpler approach
-                    // We'll use the fact that rows with the same non-pivot values should be grouped together
+                    // Group by non-pivot columns (e.g., Region)
                     var key = """";
-                    // Simple grouping strategy - will be refined based on schema information
-                    return ""group1""; // Temporary: group all together until we have better column detection
+                    if(row.HasColumn(""Region"")) key += row[""Region""]?.ToString() ?? """";
+                    if(row.HasColumn(""Product"")) key += ""||"" + (row[""Product""]?.ToString() ?? """");
+                    return key;
                 }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
@@ -190,13 +190,18 @@ public static class PivotNodeProcessor
                     
                     Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
                     
-                    // TEMPORARY FIX: Hard-code Region field for testing
-                    // TODO: Make this dynamic based on schema metadata
+                    // Get the first row to determine available columns
                     var firstRow = group.First();
-                    if(firstRow.HasColumn(""Region"")) {{
-                        fieldNames.Add(""{prefix}Region"");
-                        values.Add(firstRow[""Region""]);
-                        Console.WriteLine($""[PIVOT DEBUG] Added Region field: {prefix}Region"");
+                    
+                    // Add all non-pivot columns from SalesEntity schema
+                    var nonPivotColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
+                    
+                    foreach(var columnName in nonPivotColumns) {{
+                        if(firstRow.HasColumn(columnName)) {{
+                            fieldNames.Add(""{prefix}"" + columnName);
+                            values.Add(firstRow[columnName]);
+                            Console.WriteLine($""[PIVOT DEBUG] Added non-pivot column: {prefix}{{columnName}}"");
+                        }}
                     }}
                     
                     // Get all unique category values from this group's data

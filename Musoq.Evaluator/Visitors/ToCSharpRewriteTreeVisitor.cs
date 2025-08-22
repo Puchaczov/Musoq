@@ -561,13 +561,19 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                            (node.Name.Contains(".") && node.Name.Split('.').Length == 2);
         
         // DEBUG: Log the context information to understand why PIVOT detection might fail
-        Console.WriteLine($"[PIVOT DEBUG] AccessColumnNode - Field: {node.Name}, SourceName: {(_scope.ContainsAttribute(MetaAttributes.SourceName) ? _scope[MetaAttributes.SourceName] : "NONE")}, IsPivotContext: {isPivotContext}, MethodType: {_type}");
+        if (node.Name.Contains("p."))
+        {
+            Console.WriteLine($"[PIVOT DEBUG] AccessColumnNode - Field: {node.Name}, SourceName: {(_scope.ContainsAttribute(MetaAttributes.SourceName) ? _scope[MetaAttributes.SourceName] : "NONE")}, IsPivotContext: {isPivotContext}, MethodType: {_type}");
+        }
 
         ExpressionSyntax sNode;
         
         if (isPivotContext && (_type == MethodAccessType.ResultQuery || _type == MethodAccessType.CaseWhen))
         {
-            Console.WriteLine($"[PIVOT DEBUG] Generating GetValue<T>() call for field: {node.Name}");
+            if (node.Name.Contains("p."))
+            {
+                Console.WriteLine($"[PIVOT DEBUG] Generating GetValue<T>() call for field: {node.Name}");
+            }
             
             // For PIVOT context, generate GetValue<T>() method call instead of array access
             var typeIdentifier = SyntaxFactory.IdentifierName(
@@ -602,7 +608,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
         else
         {
-            Console.WriteLine($"[PIVOT DEBUG] Generating array access for field: {node.Name} (isPivotContext: {isPivotContext}, type: {_type})");
+            if (node.Name.Contains("p."))
+            {
+                Console.WriteLine($"[PIVOT DEBUG] Generating array access for field: {node.Name} (isPivotContext: {isPivotContext}, type: {_type})");
+            }
             
             // Default behavior: generate array access expression
             sNode = (ExpressionSyntax)Generator.ElementAccessExpression(
