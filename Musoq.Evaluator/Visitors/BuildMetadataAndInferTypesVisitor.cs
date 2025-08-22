@@ -2257,6 +2257,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             fieldName = tableSymbol.HasAlias ? $"{identifier}.{column.ColumnName}" : column.ColumnName;
         }
+        
+        // DEBUG: Print field generation for PIVOT debugging
+        Console.WriteLine($"[SELECT DEBUG] AddColumnToGeneratedColumns: identifier='{identifier}', column='{column.ColumnName}', fieldName='{fieldName}', hasAlias={tableSymbol.HasAlias}");
+        
         generatedColumns.Add(new FieldNode(accessColumn, index, fieldName));
     }
 

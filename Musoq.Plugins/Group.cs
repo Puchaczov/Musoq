@@ -33,6 +33,14 @@ public sealed class Group
 #if DEBUG
         Name = fieldNames.Length == 0 ? "root" : fieldNames.Aggregate((a, b) => a + ',' + b);
 #endif
+        
+        // DEBUG: Print Group constructor details
+        Console.WriteLine($"[GROUP CONSTRUCTOR] Creating Group with {fieldNames.Length} fields and {values.Length} values");
+        for (var i = 0; i < fieldNames.Length && i < values.Length; i++)
+        {
+            Console.WriteLine($"[GROUP CONSTRUCTOR] Field[{i}]: name='{fieldNames[i]}', value='{values[i]}'");
+        }
+        
         for (var i = 0; i < fieldNames.Length; i++) Values.Add(fieldNames[i], values[i]);
     }
 
