@@ -41,7 +41,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_SimpleQuery_ShouldPass()
     {
-        const string query = "select Id, Name from #dynamic.all()";
+        const string query = "select Id, Name from @dynamic.all()";
         var sources =
             new List<dynamic>
             {
@@ -99,7 +99,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_AccessComplexObjectProperties_ShouldPass()
     {
-        const string query = "select Complex.Id, Complex.Name from #dynamic.all()";
+        const string query = "select Complex.Id, Complex.Name from @dynamic.all()";
         var sources = new List<dynamic>
         {
             CreateExpandoObject(new ComplexType(1, "Test1"))
@@ -125,7 +125,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_AccessArray_ShouldPass()
     {
-        const string query = "select Complex.Array[0], Complex.Array[1] from #dynamic.all()";
+        const string query = "select Complex.Array[0], Complex.Array[1] from @dynamic.all()";
         var sources = new List<dynamic>
         {
             CreateExpandoObject(new ComplexArrayOfShortsType([1, 2]))
@@ -151,7 +151,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_AccessExpandoObjectArray_ShouldPass()
     {
-        const string query = "select Complex.Array[0].Id, Complex.Array[0].Name from #dynamic.all()";
+        const string query = "select Complex.Array[0].Id, Complex.Array[0].Name from @dynamic.all()";
         var sources = new List<dynamic>()
         {
             CreateExpandoObject(new ComplexArrayOfComplexTypeType([
@@ -180,7 +180,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_IncrementAccessedProperty_ShouldPass()
     {
-        const string query = "select Increment(Complex.Array[0].Id) from #dynamic.all()";
+        const string query = "select Increment(Complex.Array[0].Id) from @dynamic.all()";
         var sources = new List<dynamic>()
         {
             CreateExpandoObject(new ComplexArrayOfComplexTypeType([
@@ -206,7 +206,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_IncrementAccessedProperty_ShouldPass2()
     {
-        const string query = "select TrueWhenCalled() from #dynamic.all()";
+        const string query = "select TrueWhenCalled() from @dynamic.all()";
         var sources = new List<dynamic>()
         {
             new ComplexType(1, "test1")

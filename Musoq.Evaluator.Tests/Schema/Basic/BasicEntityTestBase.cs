@@ -79,10 +79,10 @@ public class BasicEntityTestBase
 
     protected Table TestResultMethodTemplate(string operation)
     {
-        var query = $"select {operation} from #A.Entities()";
+        var query = $"select {operation} from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("ABCAACBA")]}
+            {"@A", [new BasicEntity("ABCAACBA")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

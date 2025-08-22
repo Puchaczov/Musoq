@@ -11,12 +11,12 @@ public class CaseWhenTests : BasicEntityTestBase
     [TestMethod]
     public void WhenWhenTrueCaseWhenTest()
     {
-        var query = "select (case when 1 = 1 then 1 else 0 end) as Value from #A.entities()";
+        var query = "select (case when 1 = 1 then 1 else 0 end) as Value from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -32,12 +32,12 @@ public class CaseWhenTests : BasicEntityTestBase
     [TestMethod]
     public void WhenWhenFalseCaseWhenTest()
     {
-        var query = "select (case when 1 = 2 then 1 else 0 end) as Value from #A.entities()";
+        var query = "select (case when 1 = 2 then 1 else 0 end) as Value from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -53,12 +53,12 @@ public class CaseWhenTests : BasicEntityTestBase
     [TestMethod]
     public void WhenWhenTrueOnEntityFieldCaseWhenWithElseTest()
     {
-        var query = "select (case when e.City = 'WARSAW' then 1 else 0 end) as Value from #A.entities() e";
+        var query = "select (case when e.City = 'WARSAW' then 1 else 0 end) as Value from @A.entities() e";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -74,12 +74,12 @@ public class CaseWhenTests : BasicEntityTestBase
     [TestMethod]
     public void WhenWhenTrueOnEntityField_ShouldNotThrowException()
     {
-        var query = "select (case when e.City <> 'WROCLAW' then 'TEST' else e.ThrowException() end) as Value from #A.entities() e";
+        var query = "select (case when e.City <> 'WROCLAW' then 'TEST' else e.ThrowException() end) as Value from @A.entities() e";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -95,12 +95,12 @@ public class CaseWhenTests : BasicEntityTestBase
     [TestMethod]
     public void WhenWhenTrueOnEntityFieldWithAndCondition_ShouldNotThrowException()
     {
-        var query = "select (case when e.City <> 'WROCLAW' AND e.City <> 'KRAKOW' then 'TEST' else e.ThrowException() end) as Value from #A.entities() e";
+        var query = "select (case when e.City <> 'WROCLAW' AND e.City <> 'KRAKOW' then 'TEST' else e.ThrowException() end) as Value from @A.entities() e";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -116,12 +116,12 @@ public class CaseWhenTests : BasicEntityTestBase
     [TestMethod]
     public void WhenWhenTrueOnEntityFieldWithOrCondition_ShouldNotThrowException()
     {
-        var query = "select (case when e.City = 'WROCLAW' OR e.City = 'KRAKOW' then 'TEST' else e.ThrowException() end) as Value from #A.entities() e";
+        var query = "select (case when e.City = 'WROCLAW' OR e.City = 'KRAKOW' then 'TEST' else e.ThrowException() end) as Value from @A.entities() e";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("KRAKOW", "POLAND", 500)
                 ]
             }
@@ -137,12 +137,12 @@ public class CaseWhenTests : BasicEntityTestBase
     [TestMethod]
     public void WhenWhenFalseOnEntityField_ShouldThrowException()
     {
-        var query = "select (case when e.City = 'WROCLAW' then 'TEST' else e.ThrowException() end) as Value from #A.entities() e";
+        var query = "select (case when e.City = 'WROCLAW' then 'TEST' else e.ThrowException() end) as Value from @A.entities() e";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }

@@ -39,7 +39,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_SimpleQuery_ShouldPass()
     {
-        const string query = "select Id, Name from #dynamic.all()";
+        const string query = "select Id, Name from @dynamic.all()";
         var sources =
             new List<dynamic>
             {
@@ -84,7 +84,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_AccessComplexObjectProperties_ShouldPass()
     {
-        const string query = "select Complex.Id, Complex.Name from #dynamic.all()";
+        const string query = "select Complex.Id, Complex.Name from @dynamic.all()";
         var sources = new List<dynamic>()
         {
             CreateExpandoObject(CreateExpandoObject(1, "Test1"))
@@ -110,7 +110,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_AccessComplexChainedObjectProperties_ShouldPass()
     {
-        const string query = "select Complex.Complex.Id, Complex.Complex.Name from #dynamic.all()";
+        const string query = "select Complex.Complex.Id, Complex.Complex.Name from @dynamic.all()";
         var sources = new List<dynamic>()
         {
             CreateExpandoObject(CreateExpandoObject(CreateExpandoObject(1, "Test1")))
@@ -136,7 +136,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_AccessArray_ShouldPass()
     {
-        const string query = "select Complex.Array[0], Complex.Array[1] from #dynamic.all()";
+        const string query = "select Complex.Array[0], Complex.Array[1] from @dynamic.all()";
         var sources = new List<dynamic>()
         {
             CreateExpandoObject(CreateExpandoObject([1, 2]))
@@ -162,7 +162,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_AccessExpandoObjectArray_ShouldPass()
     {
-        const string query = "select Complex.Array[0].Id, Complex.Array[0].Name from #dynamic.all()";
+        const string query = "select Complex.Array[0].Id, Complex.Array[0].Name from @dynamic.all()";
         var sources = new List<dynamic>()
         {
             CreateExpandoObject(CreateExpandoObject([
@@ -191,7 +191,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     [TestMethod]
     public void WithDynamicSource_IncrementAccessedProperty_ShouldPass()
     {
-        const string query = "select Increment(Complex.Array[0].Id) from #dynamic.all()";
+        const string query = "select Increment(Complex.Array[0].Id) from @dynamic.all()";
         var sources = new List<dynamic>()
         {
             CreateExpandoObject(CreateExpandoObject([
@@ -222,8 +222,8 @@ select
     weather.Location as 'City', 
     weather.TemperatureInCelsiusDegree as 'TemperatureInCelsiusDegree', 
     location.Name as 'Location' 
-from #weather.all() weather 
-inner join #location.all() location on weather.Location = location.Name
+from @weather.all() weather 
+inner join @location.all() location on weather.Location = location.Name
 ";
         dynamic weather = new ExpandoObject();
         weather.Location = "London";
@@ -268,7 +268,7 @@ inner join #location.all() location on weather.Location = location.Name
     [TestMethod]
     public void WithDynamicSource_SyntaxKeywordAsColumnNameUSed_ShouldPass()
     {
-        const string query = "select [case], [end] from #dynamic.all()";
+        const string query = "select [case], [end] from @dynamic.all()";
         IDictionary<string, object> expando = new ExpandoObject();
         
         expando.Add("case", "case");

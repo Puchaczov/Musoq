@@ -36,7 +36,7 @@ public class CrossApplyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_ShouldPass()
     {
-        const string query = "select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from #schema.first() a cross apply #schema.second(a.Country) b";
+        const string query = "select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from @schema.first() a cross apply @schema.second(a.Country) b";
         
         var firstSource = new List<CrossApplyClass1>
         {
@@ -122,7 +122,7 @@ public class CrossApplyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_UseOnlyValuesOfCrossApplySchemaMethod_ShouldPass()
     {
-        const string query = "select b.Country, b.Money, b.Month from #schema.first() a cross apply #schema.second(a.Country) b";
+        const string query = "select b.Country, b.Money, b.Month from @schema.first() a cross apply @schema.second(a.Country) b";
         
         var firstSource = new List<CrossApplyClass1>
         {
@@ -193,7 +193,7 @@ public class CrossApplyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_FilterWithAValue_ShouldPass()
     {
-        const string query = "select b.Country, b.Money, b.Month from #schema.first() a cross apply #schema.second(a.Country) b where a.Country = 'Country2'";
+        const string query = "select b.Country, b.Money, b.Month from @schema.first() a cross apply @schema.second(a.Country) b where a.Country = 'Country2'";
         
         var firstSource = new List<CrossApplyClass1>
         {
@@ -238,7 +238,7 @@ public class CrossApplyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenSchemaMethodCrossAppliedWithAnotherSameSchemas_UsesValuesOfSchemaMethodWithinTableValue_ShouldPass()
     {
-        const string query = "select b.Country, b.Money, b.Month from #schema.first() a cross apply #schema.second(a.Country) b cross apply #schema.third(b.Country) c";
+        const string query = "select b.Country, b.Money, b.Month from @schema.first() a cross apply @schema.second(a.Country) b cross apply @schema.third(b.Country) c";
         
         var firstSource = new List<CrossApplyClass1>
         {
@@ -306,7 +306,7 @@ public class CrossApplyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenSchemaMethodCrossAppliedWithAnotherSameSchemas_GroupedByCountry_ShouldPass()
     {
-        const string query = "select b.Country from #schema.first() a cross apply #schema.second(a.Country) b cross apply #schema.third(b.Country) c group by b.Country";
+        const string query = "select b.Country from @schema.first() a cross apply @schema.second(a.Country) b cross apply @schema.third(b.Country) c group by b.Country";
         
         var firstSource = new List<CrossApplyClass1>
         {
@@ -356,7 +356,7 @@ public class CrossApplyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenSchemaMethodCrossAppliedWithAnotherSameSchemas_WithFilterAndGroupBy_ShouldPass()
     {
-        const string query = "select b.Country from #schema.first() a cross apply #schema.second(a.Country) b cross apply #schema.third(b.Country) c where b.Country = 'Country1' group by b.Country";
+        const string query = "select b.Country from @schema.first() a cross apply @schema.second(a.Country) b cross apply @schema.third(b.Country) c where b.Country = 'Country1' group by b.Country";
         
         var firstSource = new List<CrossApplyClass1>
         {
@@ -408,7 +408,7 @@ public class CrossApplyTests : GenericEntityTestBase
         const string query =
             """
             with rows as (
-                select b.Country as Country, b.Money as Money, b.Month as Month from #schema.first() a cross apply #schema.second(a.Country) b
+                select b.Country as Country, b.Money as Money, b.Month as Month from @schema.first() a cross apply @schema.second(a.Country) b
             )
             select Country, Money, Month from rows as p
             """;

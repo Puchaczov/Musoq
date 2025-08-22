@@ -13,12 +13,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenComplexObjectAccessNonExistingProperty_ShouldFail()
     {
-        const string query = @"select Self.NonExistingProperty from #A.entities()";
+        const string query = @"select Self.NonExistingProperty from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "@A", Array.Empty<BasicEntity>()
             }
         };
         
@@ -28,12 +28,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenComplexObjectAccessOnProperty_ShouldPass()
     {
-        const string query = @"select Self.Name from #A.entities()";
+        const string query = @"select Self.Name from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new("Karol")
                 ]
             }
@@ -53,12 +53,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenChainedComplexObjectAccessOnProperty_ShouldPass()
     {
-        const string query = @"select Self.Self.Name from #A.entities()";
+        const string query = @"select Self.Self.Name from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new("Karol")
                 ]
             }
@@ -78,12 +78,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenEntityDoesNotImplementIndexer_ShouldFail()
     {
-        const string query = @"select Self['NonExistingProperty'] from #A.entities()";
+        const string query = @"select Self['NonExistingProperty'] from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "@A", Array.Empty<BasicEntity>()
             }
         };
         
@@ -93,12 +93,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNestedObjectDoesNotImplementIndexer_ShouldFail()
     {
-        const string query = @"select Self.Other['NonExistingProperty'] from #A.entities()";
+        const string query = @"select Self.Other['NonExistingProperty'] from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "@A", Array.Empty<BasicEntity>()
             }
         };
         
@@ -108,12 +108,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNestedObjectUsesNotSupportedConstruction_ShouldFail()
     {
-        const string query = @"select Self.Other[NonExistingProperty] from #A.entities()";
+        const string query = @"select Self.Other[NonExistingProperty] from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "@A", Array.Empty<BasicEntity>()
             }
         };
         
@@ -123,12 +123,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenObjectIsNotArray_ShouldFail()
     {
-        const string query = @"select Self[0] from #A.entities()";
+        const string query = @"select Self[0] from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "@A", Array.Empty<BasicEntity>()
             }
         };
         
@@ -138,12 +138,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNestedObjectIsNotArray_ShouldFail()
     {
-        const string query = @"select Self.Other[0] from #A.entities()";
+        const string query = @"select Self.Other[0] from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "@A", Array.Empty<BasicEntity>()
             }
         };
         
@@ -153,12 +153,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNestedObjectMightBeTreatAsArray_ShouldPass()
     {
-        const string query = @"select Self.Name[0] from #A.entities()";
+        const string query = @"select Self.Name[0] from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("Karol")
                 ]
             }
@@ -178,12 +178,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenDoubleNestedObjectMightBeTreatAsArray_ShouldPass()
     {
-        const string query = @"select Self.Self.Name[0] from #A.entities()";
+        const string query = @"select Self.Self.Name[0] from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("Karol")
                 ]
             }
@@ -203,12 +203,12 @@ public class ColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenObjectIsNotArrayAndIndexIsNotNumber_ShouldPass()
     {
-        const string query = @"select Self.Dictionary['AA'] from #A.entities()";
+        const string query = @"select Self.Dictionary['AA'] from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity()
                 ]
             }

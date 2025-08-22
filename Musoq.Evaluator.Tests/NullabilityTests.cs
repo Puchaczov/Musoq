@@ -11,12 +11,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void QueryWithWhereWithNullableValueResultTest()
     {
-        var query = "select NullableValue from #A.Entities() where NullableValue is not null and NullableValue <> 5";
+        var query = "select NullableValue from @A.Entities() where NullableValue is not null and NullableValue <> 5";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity{NullableValue = 1},
                     new BasicEntity{NullableValue = null},
@@ -35,12 +35,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOneOfResultsAreExplicitlyNull_ShouldInferNullabilityTypeFromQueryContext()
     {
-        var query = "select (case when NullableValue is null then 0 else null end) from #A.Entities()";
+        var query = "select (case when NullableValue is null then 0 else null end) from @A.Entities()";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity{NullableValue = null},
                     new BasicEntity{NullableValue = 125}
@@ -60,12 +60,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void QueryWithWhereWithNullableMethodResultTest()
     {
-        var query = "select NullableValue from #A.Entities() where NullableMethod(NullableValue) is not null and NullableMethod(NullableValue) <> 5";
+        var query = "select NullableValue from @A.Entities() where NullableMethod(NullableValue) is not null and NullableMethod(NullableValue) <> 5";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity{ NullableValue = 1 },
                     new BasicEntity{ NullableValue = null },
@@ -86,11 +86,11 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void GroupBySingleColumnWithNullGroupTest()
     {
-        var query = @"select Name from #A.Entities() group by Name";
+        var query = @"select Name from @A.Entities() group by Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -122,11 +122,11 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void GroupByMultiColumnWithNullGroupTest()
     {
-        var query = @"select Country, City from #A.Entities() group by Country, City";
+        var query = @"select Country, City from @A.Entities() group by Country, City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("POLAND", "WARSAW"),
                     new BasicEntity("POLAND", null),
                     new BasicEntity("UK", "LONDON"),
@@ -178,12 +178,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void IsNotNullReferenceTypeTest()
     {
-        var query = @"select Name from #A.Entities() where Name is not null";
+        var query = @"select Name from @A.Entities() where Name is not null";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity(null), new BasicEntity("003"), new BasicEntity(null),
                     new BasicEntity("005"), new BasicEntity("006")
@@ -204,12 +204,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void IsNullReferenceTypeTest()
     {
-        var query = @"select City from #A.Entities() where Country is null";
+        var query = @"select City from @A.Entities() where Country is null";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("Poland", "Gdansk"), new BasicEntity(null, "Warsaw"), new BasicEntity("France", "Paris"), new BasicEntity(null, "Bratislava")
                 ]
@@ -229,12 +229,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void IsNotNullValueTypeTest()
     {
-        var query = @"select Population from #A.Entities() where Population is not null";
+        var query = @"select Population from @A.Entities() where Population is not null";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("ABC", 100), new BasicEntity("CBA", 200), new BasicEntity("aaa")
                 ]
@@ -262,12 +262,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void IsNullValueTypeTest()
     {
-        var query = @"select Population from #A.Entities() where Population is null";
+        var query = @"select Population from @A.Entities() where Population is null";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("ABC", 100), 
                     new BasicEntity("CBA", 200), 
@@ -285,12 +285,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void OrOperator_WhenLeftFieldIsNull_ShouldShowLeftNull()
     {
-        var query = @"select Country, City from #A.Entities() where City is null or Country = 'England'";
+        var query = @"select Country, City from @A.Entities() where City is null or Country = 'England'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
@@ -325,12 +325,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void OrOperator_WhenRightFieldIsNull_ShouldShowLeftNull()
     {
-        var query = @"select Country, City from #A.Entities() where Country = 'Poland' or Country is null";
+        var query = @"select Country, City from @A.Entities() where Country = 'Poland' or Country is null";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
@@ -365,12 +365,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void OrOperator_WhenBothFieldsAreNull_ShouldShowThreeRows()
     {
-        var query = @"select Country, City from #A.Entities() where City is null or Country is null";
+        var query = @"select Country, City from @A.Entities() where City is null or Country is null";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
@@ -405,12 +405,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void AndOperator_WhenLeftFieldIsNull_ShouldShowLeftNull()
     {
-        var query = @"select Country, City from #A.Entities() where City is null and Country = 'Brazil'";
+        var query = @"select Country, City from @A.Entities() where City is null and Country = 'Brazil'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
@@ -433,12 +433,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void AndOperator_WhenRightFieldIsNull_ShouldShowLeftNull()
     {
-        var query = @"select Country, City from #A.Entities() where City = 'Bratislava' and Country is null";
+        var query = @"select Country, City from @A.Entities() where City = 'Bratislava' and Country is null";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
@@ -461,12 +461,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void AndOperator_WhenBothFieldsAreNull_ShouldShowThreeRows()
     {
-        var query = @"select Country, City from #A.Entities() where City is null and Country is null";
+        var query = @"select Country, City from @A.Entities() where City is null and Country is null";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("Poland", "Warsaw"), 
                     new BasicEntity("England", "London"), 
@@ -489,12 +489,12 @@ public class NullabilityTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMethodCalledWithNullValue_ShouldReturnNull()
     {
-        var query = @"select NullableMethod(null) from #A.Entities()";
+        var query = @"select NullableMethod(null) from @A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity{ NullableValue = 1 },
                     new BasicEntity{ NullableValue = null },

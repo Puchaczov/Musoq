@@ -36,7 +36,7 @@ public class OuterApplyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApply_NoMatchesShouldReturnNull_ShouldPass()
     {
-        const string query = "select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from #schema.first() a outer apply #schema.second(a.Country) b";
+        const string query = "select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from @schema.first() a outer apply @schema.second(a.Country) b";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -108,7 +108,7 @@ public class OuterApplyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApply_MultipleMatches_ShouldPass()
     {
-        const string query = "select a.City, a.Country, b.Money, b.Month from #schema.first() a outer apply #schema.second(a.Country) b";
+        const string query = "select a.City, a.Country, b.Money, b.Month from @schema.first() a outer apply @schema.second(a.Country) b";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -162,7 +162,7 @@ public class OuterApplyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApply_NoMatches_ShouldPass()
     {
-        const string query = "select a.City, a.Country, b.Money, b.Month from #schema.first() a outer apply #schema.second(a.Country) b";
+        const string query = "select a.City, a.Country, b.Money, b.Month from @schema.first() a outer apply @schema.second(a.Country) b";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -204,9 +204,9 @@ public class OuterApplyTests : GenericEntityTestBase
     {
         const string query = @"
             select a.City, a.Country, b.Money, b.Month, c.Address 
-            from #schema.first() a 
-            outer apply #schema.second(a.Country) b
-            outer apply #schema.third(a.Country) c";
+            from @schema.first() a 
+            outer apply @schema.second(a.Country) b
+            outer apply @schema.third(a.Country) c";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -271,8 +271,8 @@ public class OuterApplyTests : GenericEntityTestBase
     {
         const string query = @"
             select a.Country, b.Sum(b.Money) as TotalMoney, b.Count(b.Money) as TransactionCount
-            from #schema.first() a 
-            outer apply #schema.second(a.Country) b
+            from @schema.first() a 
+            outer apply @schema.second(a.Country) b
             group by a.Country";
         
         var firstSource = new List<OuterApplyClass1>
@@ -332,8 +332,8 @@ public class OuterApplyTests : GenericEntityTestBase
     {
         const string query = @"
             select a.City, a.Country, b.Money, b.Month 
-            from #schema.first() a 
-            outer apply #schema.second(a.Country) b
+            from @schema.first() a 
+            outer apply @schema.second(a.Country) b
             where b.Money > 1500 or b.Money is null";
         
         var firstSource = new List<OuterApplyClass1>

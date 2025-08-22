@@ -41,8 +41,8 @@ public class OuterApplyMixedTests : GenericEntityTestBase
             b.Country, 
             c.StreetName, 
             c.HouseNumber 
-        from #schema.first() a 
-        outer apply #schema.second(a.Country) b 
+        from @schema.first() a 
+        outer apply @schema.second(a.Country) b 
         outer apply b.Addresses c";
 
         var firstSource = new OuterApplyClass1[]
@@ -150,8 +150,8 @@ public class OuterApplyMixedTests : GenericEntityTestBase
             b.Name, 
             b.Salary,
             c.Value
-        from #schema.first() a 
-        outer apply #schema.second(a.Department) b 
+        from @schema.first() a 
+        outer apply @schema.second(a.Department) b 
         outer apply b.Distinct(b.Skills) c";
 
         var firstSource = new OuterApplyClass3[]
@@ -239,7 +239,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         a.Department,
         b.Name,
         c.Value
-    from #schema.first() a 
+    from @schema.first() a 
     outer apply a.Employees b 
     outer apply a.Distinct(b.Skills) c
     where a.Budget > 400000";
@@ -302,7 +302,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     select 
         a.Department,
         Count(a.Department)
-    from #schema.first() a 
+    from @schema.first() a 
     outer apply a.Employees b 
     outer apply a.Distinct(b.Skills) c
     where a.Budget > 400000
@@ -378,8 +378,8 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         a.Name,
         a.Surname,
         c.Value
-    from #schema.first() a
-    inner join #schema.second() b on a.Id = b.Id
+    from @schema.first() a
+    inner join @schema.second() b on a.Id = b.Id
     outer apply b.Skills c";
         
         var firstSource = new OuterApplyClass6[]
@@ -454,8 +454,8 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         a.Name,
         a.Surname,
         c.Value
-    from #schema.first() a
-    left outer join #schema.second() b on a.Id = b.Id
+    from @schema.first() a
+    left outer join @schema.second() b on a.Id = b.Id
     outer apply b.Skills c";
         
         var firstSource = new OuterApplyClass6[]

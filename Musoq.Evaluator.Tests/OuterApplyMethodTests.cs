@@ -23,7 +23,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_NoMatch_ShouldPass()
     {
-        const string query = "select b.Value from #schema.first() a outer apply a.Split(a.Value2, ' ') as b";
+        const string query = "select b.Value from @schema.first() a outer apply a.Split(a.Value2, ' ') as b";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -49,7 +49,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_SplitStringToWords_ShouldPass()
     {
-        const string query = "select b.Value from #schema.first() a outer apply a.Split(a.Text, ' ') as b";
+        const string query = "select b.Value from @schema.first() a outer apply a.Split(a.Text, ' ') as b";
         
         var firstSource = new List<OuterApplyClass2>
         {
@@ -78,7 +78,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_SkipAfterSplit_ShouldPass()
     {
-        const string query = "select b.Value from #schema.first() a outer apply a.Skip(a.Split(a.Text, ' '), 1) as b";
+        const string query = "select b.Value from @schema.first() a outer apply a.Skip(a.Split(a.Text, ' '), 1) as b";
         
         var firstSource = new List<OuterApplyClass2>
         {
@@ -110,7 +110,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_TakeSkipAfterSplit_ShouldPass()
     {
-        const string query = "select b.Value from #schema.first() a outer apply a.Take(a.Skip(a.Split(a.Text, ' '), 1), 6) as b";
+        const string query = "select b.Value from @schema.first() a outer apply a.Take(a.Skip(a.Split(a.Text, ' '), 1), 6) as b";
         
         var firstSource = new List<OuterApplyClass2>
         {
@@ -141,7 +141,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_WhereCondition_ShouldPass()
     {
-        const string query = "select b.Value from #schema.first() a outer apply a.Split(a.Text, ' ') as b where b.Value.Length > 5";
+        const string query = "select b.Value from @schema.first() a outer apply a.Split(a.Text, ' ') as b where b.Value.Length > 5";
         
         var firstSource = new List<OuterApplyClass2>
         {
@@ -168,7 +168,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_GroupBy_ShouldPass()
     {
-        const string query = "select b.Length(b.Value), b.Count(b.Length(b.Value)) from #schema.first() a outer apply a.Split(a.Text, ' ') as b group by b.Length(b.Value)";
+        const string query = "select b.Length(b.Value), b.Count(b.Length(b.Value)) from @schema.first() a outer apply a.Split(a.Text, ' ') as b group by b.Length(b.Value)";
         
         var firstSource = new List<OuterApplyClass2>
         {
@@ -214,7 +214,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_MultipleSplitWords_ShouldPass()
     {
-        const string query = "select b.Value, c.Value from #schema.first() a outer apply a.Split(a.Text, ' ') as b outer apply a.Split(a.Text, ' ') as c";
+        const string query = "select b.Value, c.Value from @schema.first() a outer apply a.Split(a.Text, ' ') as b outer apply a.Split(a.Text, ' ') as c";
         
         string[] words = ["Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."];
         

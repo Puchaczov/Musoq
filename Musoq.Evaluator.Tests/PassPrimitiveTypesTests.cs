@@ -18,7 +18,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     [TestMethod]
     public void GetSchemaTableAndRowSourcePassedPrimitiveArgumentsTest()
     {
-        var query = "select 1 from #test.whatever(1, 2d, true, false, 'text')";
+        var query = "select 1 from @test.whatever(1, 2d, true, false, 'text')";
 
         var vm = CreateAndRunVirtualMachine(query, new List<TestEntity>(), (passedParams) =>
         {
@@ -35,7 +35,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     [TestMethod]
     public void CallWithPrimitiveArgumentsTest()
     {
-        var query = "select PrimitiveArgumentsMethod(1, 2d, true, false, 'text') from #test.whatever()";
+        var query = "select PrimitiveArgumentsMethod(1, 2d, true, false, 'text') from @test.whatever()";
 
         var vm = CreateAndRunVirtualMachine(query, new List<TestEntity>(), (passedParams) =>
         {

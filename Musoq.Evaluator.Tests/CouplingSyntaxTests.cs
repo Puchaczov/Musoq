@@ -21,13 +21,13 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         const string query = "table DummyTable {" +
                              "   Name 'System.String'" +
                              "};" +
-                             "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
+                             "couple @A.Entities with table DummyTable as SourceOfDummyRows;" +
                              "select Name from SourceOfDummyRows();";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("ABCAACBA"),
                     new BasicEntity("AAeqwgQEW"),
@@ -70,13 +70,13 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                              "   Country 'System.String'," +
                              "   Population 'System.Decimal'" +
                              "};" +
-                             "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
+                             "couple @A.Entities with table DummyTable as SourceOfDummyRows;" +
                              "select Country, Population from SourceOfDummyRows();";
         
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("ABCAACBA", 10),
                     new BasicEntity("AAeqwgQEW", 20),
@@ -125,14 +125,14 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                              "table SecondTable {" +
                              "   Name 'System.String'," +
                              "};" +
-                             "couple #A.Entities with table FirstTable as SourceOfFirstTableRows;" +
-                             "couple #B.Entities with table SecondTable as SourceOfSecondTableRows;" +
+                             "couple @A.Entities with table FirstTable as SourceOfFirstTableRows;" +
+                             "couple @B.Entities with table SecondTable as SourceOfSecondTableRows;" +
                              "select s2.Name from SourceOfFirstTableRows() s1 inner join SourceOfSecondTableRows() s2 on s1.Country = s2.Name";
         
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("ABCAACBA", 10),
                     new BasicEntity("AAeqwgQEW", 20),
@@ -141,7 +141,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("ABCAACBA"),
                     new BasicEntity("AAeqwgQEW"),
@@ -183,7 +183,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                              "   Parameter0 'System.Boolean'," +
                              "   Parameter1 'System.String'" +
                              "};" +
-                             "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
+                             "couple @A.Entities with table DummyTable as SourceOfDummyRows;" +
                              "select Parameter0, Parameter1 from SourceOfDummyRows(true, 'test');";
 
         var vm = CreateAndRunVirtualMachine(query, null, new ParametersSchemaProvider());
@@ -209,9 +209,9 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                     "table Values {" +
                     "   Text 'System.String'" +
                     "};" +
-                    "couple #unknown.others with table Values as SourceOfValues;" +
+                    "couple @unknown.others with table Values as SourceOfValues;" +
                     "with Anything as (" +
-                    "   select Text from #unknown.anything()" +
+                    "   select Text from @unknown.anything()" +
                     ")" +
                     "select Text from SourceOfValues(Anything)";
 

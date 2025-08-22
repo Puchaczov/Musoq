@@ -12,11 +12,11 @@ public class GroupByTests : BasicEntityTestBase
     [TestMethod]
     public void GroupByWithParentSumTest()
     {
-        var query = @"select SumIncome(Money, 1), SumOutcome(Money, 1) from #A.Entities() group by Month, City";
+        var query = @"select SumIncome(Money, 1), SumOutcome(Money, 1) from @A.Entities() group by Month, City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
@@ -40,11 +40,11 @@ public class GroupByTests : BasicEntityTestBase
     public void GroupBySubtractGroupsTest()
     {
         var query =
-            @"select SumIncome(Money), SumOutcome(Money), SumIncome(Money) - Abs(SumOutcome(Money)) from #A.Entities() group by Month";
+            @"select SumIncome(Money), SumOutcome(Money), SumIncome(Money) - Abs(SumOutcome(Money)) from @A.Entities() group by Month";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("jan", Convert.ToDecimal(400)), new BasicEntity("jan", Convert.ToDecimal(300)),
                     new BasicEntity("jan", Convert.ToDecimal(-200))
@@ -64,11 +64,11 @@ public class GroupByTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleGroupByTest()
     {
-        var query = @"select Name, Count(Name) from #A.Entities() group by Name having Count(Name) >= 2";
+        var query = @"select Name, Count(Name) from @A.Entities() group by Name having Count(Name) >= 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -106,11 +106,11 @@ public class GroupByTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleRowNumberForGroupByTest()
     {
-        var query = @"select Name, Count(Name), RowNumber() from #A.Entities() group by Name";
+        var query = @"select Name, Count(Name), RowNumber() from @A.Entities() group by Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -163,11 +163,11 @@ public class GroupByTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleGroupByWithSkipTest()
     {
-        var query = @"select Name, Count(Name) from #A.Entities() group by Name skip 2";
+        var query = @"select Name, Count(Name) from @A.Entities() group by Name skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -196,11 +196,11 @@ public class GroupByTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleGroupByWithTakeTest()
     {
-        var query = @"select Name, Count(Name) from #A.Entities() group by Name take 2";
+        var query = @"select Name, Count(Name) from @A.Entities() group by Name take 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -231,11 +231,11 @@ public class GroupByTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleGroupByWithSkipTakeTest()
     {
-        var query = @"select Name, Count(Name) from #A.Entities() group by Name skip 2 take 1";
+        var query = @"select Name, Count(Name) from @A.Entities() group by Name skip 2 take 1";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -264,11 +264,11 @@ public class GroupByTests : BasicEntityTestBase
     [TestMethod]
     public void GroupByWithValueTest()
     {
-        var query = @"select Country, Sum(Population) from #A.Entities() group by Country";
+        var query = @"select Country, Sum(Population) from @A.Entities() group by Country";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("ABBA", 200),
                     new BasicEntity("ABBA", 500),
                     new BasicEntity("BABBA", 100),
@@ -309,11 +309,11 @@ public class GroupByTests : BasicEntityTestBase
     [TestMethod]
     public void GroupByMultipleColumnsTest()
     {
-        var query = @"select Country, City, Count(Country), Count(City) from #A.Entities() group by Country, City";
+        var query = @"select Country, City, Count(Country), Count(City) from @A.Entities() group by Country, City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("POLAND", "WARSAW"),
                     new BasicEntity("POLAND", "CZESTOCHOWA"),
                     new BasicEntity("UK", "LONDON"),
@@ -363,11 +363,11 @@ public class GroupByTests : BasicEntityTestBase
     public void GroupBySubstrTest()
     {
         var query =
-            @"select Substring(Name, 0, 2), Count(Substring(Name, 0, 2)) from #A.Entities() group by Substring(Name, 0, 2)";
+            @"select Substring(Name, 0, 2), Count(Substring(Name, 0, 2)) from @A.Entities() group by Substring(Name, 0, 2)";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("AA:1"),
                     new BasicEntity("AA:2"),
                     new BasicEntity("AA:3"),
@@ -409,11 +409,11 @@ public class GroupByTests : BasicEntityTestBase
     public void GroupByWithSelectedConstantModifiedByFunctionTest()
     {
         var query =
-            @"select Name, Count(Name), Inc(10d), 1 from #A.Entities() group by Name having Count(Name) >= 2";
+            @"select Name, Count(Name), Inc(10d), 1 from @A.Entities() group by Name having Count(Name) >= 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -464,14 +464,14 @@ select
     Substring(City, IndexOf(City, ':')) as 'City', 
     Count(City) as 'Count', 
     Sum(Population) as 'Sum' 
-from #A.Entities() 
+from @A.Entities() 
 group by Substring(City, IndexOf(City, ':')), Country
 """;
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW:TARGOWEK", "POLAND", 500),
                     new BasicEntity("WARSAW:URSYNOW", "POLAND", 500),
                     new BasicEntity("KATOWICE:ZAWODZIE", "POLAND", 250)
@@ -513,12 +513,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     public void GroupByWithParentCountTest()
     {
         var query =
-            "select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' from #A.Entities() group by Country, City";
+            "select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' from @A.Entities() group by Country, City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -583,12 +583,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     public void GroupByForFakeWindowTest()
     {
         var query =
-            "select Window(Population) from #A.Entities() group by 'fake'";
+            "select Window(Population) from @A.Entities() group by 'fake'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -619,12 +619,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     public void GroupByForCountriesWideWindowTest()
     {
         var query =
-            "select Window(Population) from #A.Entities() group by Country";
+            "select Window(Population) from @A.Entities() group by Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -664,12 +664,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     public void GroupByWithWhereTest()
     {
         var query =
-            "select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' from #A.Entities() where Country = 'POLAND' group by Country, City";
+            "select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' from @A.Entities() where Country = 'POLAND' group by Country, City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -720,12 +720,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     public void ReorderedGroupByWithWhereAndSkipTakeTest()
     {
         var query =
-            "from #A.Entities() where Country = 'POLAND' group by Country, City select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' skip 1 take 1";
+            "from @A.Entities() where Country = 'POLAND' group by Country, City select Country, City as 'City', Count(City, 1), Count(City) as 'CountOfCities' skip 1 take 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -757,12 +757,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupWasNotListedTest()
     {
-        var query = "select Count(Country) from #A.entities() group by Country";
+        var query = "select Count(Country) from @A.entities() group by Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -788,12 +788,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void CountWithFakeGroupByTest()
     {
-        var query = "select Count(Country) from #A.entities() group by 'fake'";
+        var query = "select Count(Country) from @A.entities() group by 'fake'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -817,12 +817,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void CountWithoutGroupByTest()
     {
-        var query = "select Count(Country), Sum(Population) from #A.entities()";
+        var query = "select Count(Country), Sum(Population) from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -868,12 +868,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void CountWithRowNumberAndWithoutGroupByTest()
     {
-        var query = "select Count(Country), RowNumber() from #A.entities()";
+        var query = "select Count(Country), RowNumber() from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -901,12 +901,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void SumWithoutGroupByAndWithNoGroupingField()
     {
-        var query = "select Sum(Population) from #A.entities()";
+        var query = "select Sum(Population) from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -931,11 +931,11 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupBySimpleAccessTest()
     {
-        var query = @"select Month from #A.Entities() group by Month";
+        var query = @"select Month from @A.Entities() group by Month";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
@@ -953,11 +953,11 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupByComplexObjectAccessTest()
     {
-        var query = @"select Self.Month from #A.Entities() group by Self.Month";
+        var query = @"select Self.Month from @A.Entities() group by Self.Month";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
@@ -975,11 +975,11 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupByComplexObjectAccessWithSumTest()
     {
-        var query = @"select Self.Month, Sum(Self.Money) from #A.Entities() group by Self.Month";
+        var query = @"select Self.Month, Sum(Self.Money) from @A.Entities() group by Self.Month";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
@@ -1007,12 +1007,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupByWithCaseWhenInSelectTest()
     {
-        var query = @"select (case when Self.Month = 'jan' then 'JANUARY' when Self.Month = 'feb' then 'FEBRUARY' else 'NONE' end) from #A.Entities() group by Self.Month";
+        var query = @"select (case when Self.Month = 'jan' then 'JANUARY' when Self.Month = 'feb' then 'FEBRUARY' else 'NONE' end) from @A.Entities() group by Self.Month";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
@@ -1035,12 +1035,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupByWithCaseWhenAsGroupingResultFunctionTest()
     {
-        var query = @"select (case when e.Month = e.Month then e.Month else '' end), Count(case when e.Month = e.Month then e.Month else '' end) from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end)";
+        var query = @"select (case when e.Month = e.Month then e.Month else '' end), Count(case when e.Month = e.Month then e.Month else '' end) from @A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end)";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
@@ -1069,12 +1069,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupByWithFieldLinkSyntaxTest()
     {
-        var query = @"select ::1, Count(::1), ::2 from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
+        var query = @"select ::1, Count(::1), ::2 from @A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
@@ -1109,12 +1109,12 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupByWithFieldLinkSyntaxAndCustomColumnNamingTest()
     {
-        var query = @"select ::1 as firstColumn, Count(::1) as secondColumn, ::2 as thirdColumn from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
+        var query = @"select ::1 as firstColumn, Count(::1) as secondColumn, ::2 as thirdColumn from @A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
@@ -1152,21 +1152,21 @@ group by Substring(City, IndexOf(City, ':')), Country
 select 
     countries.GetCountry() as Country,
     population.Sum(population.GetPopulation()) as Population
-from #A.entities() countries 
-inner join #B.entities() cities on countries.GetCountry() = cities.GetCountry() 
-inner join #C.entities() population on cities.GetCity() = population.GetCity()
+from @A.entities() countries 
+inner join @B.entities() cities on countries.GetCountry() = cities.GetCountry() 
+inner join @C.entities() population on cities.GetCity() = population.GetCity()
 group by countries.GetCountry()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"}
                 ]
             },
             {
-                "#B", [
+                "@B", [
                     new BasicEntity {Country = "Poland", City = "Krakow"},
                     new BasicEntity {Country = "Poland", City = "Wroclaw"},
                     new BasicEntity {Country = "Poland", City = "Warszawa"},
@@ -1175,7 +1175,7 @@ group by countries.GetCountry()";
                 ]
             },
             {
-                "#C", [
+                "@C", [
                     new BasicEntity {City = "Krakow", Population = 400},
                     new BasicEntity {City = "Wroclaw", Population = 500},
                     new BasicEntity {City = "Warszawa", Population = 1000},
@@ -1208,20 +1208,20 @@ group by countries.GetCountry()";
 select 
     a.Country,
     b.AggregateValues(b.City)
-from #A.entities() a     
-inner join #B.entities() b on a.Country = b.Country
+from @A.entities() a     
+inner join @B.entities() b on a.Country = b.Country
 where a.Country = 'Poland'
 group by a.Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"}
                 ]
             },
             {
-                "#B", [
+                "@B", [
                     new BasicEntity {City = "Warsaw", Country = "Poland"},
                     new BasicEntity {City = "Gdansk", Country = "Poland"}
                 ]
@@ -1243,20 +1243,20 @@ group by a.Country";
 select 
     a.Country,
     b.AggregateValues(b.City)
-from #A.entities() a     
-inner join #B.entities() b on a.Country = b.Country
+from @A.entities() a     
+inner join @B.entities() b on a.Country = b.Country
 where b.Population > 200
 group by a.Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"}
                 ]
             },
             {
-                "#B", [
+                "@B", [
                     new BasicEntity {City = "Warsaw", Country = "Poland", Population = 200},
                     new BasicEntity {City = "Gdansk", Country = "Poland", Population = 300}
                 ]
@@ -1279,13 +1279,13 @@ group by a.Country";
 select 
     a.Country,
     AggregateValues(GetElementAt(a.Country, 0))
-from #A.entities() a
+from @A.entities() a
 group by a.Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Brazil"}
                 ]
@@ -1317,13 +1317,13 @@ group by a.Country";
 select 
     a.Country,
     AggregateValues(a.Country[0])
-from #A.entities() a
+from @A.entities() a
 group by a.Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Brazil"}
                 ]

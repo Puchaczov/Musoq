@@ -11,12 +11,12 @@ public class RowNumberTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRowNumberSimpleTest_ShouldPass()
     {
-        var query = "select RowNumber() from #A.entities()";
+        var query = "select RowNumber() from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Brazil"}
                 ]
@@ -48,12 +48,12 @@ public class RowNumberTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRowNumberWithOrderBySimpleTest_ShouldPass()
     {
-        var query = "select Country, RowNumber() from #A.entities() order by Country";
+        var query = "select Country, RowNumber() from @A.entities() order by Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"}
                 ]
@@ -75,12 +75,12 @@ public class RowNumberTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRowNumberWithWhereTest_ShouldPass()
     {
-        var query = "select Country, RowNumber() from #A.entities() where Country = 'Poland'";
+        var query = "select Country, RowNumber() from @A.entities() where Country = 'Poland'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"},
                     new BasicEntity {Country = "Poland"}
@@ -100,12 +100,12 @@ public class RowNumberTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRowNumberWithSkipTest_ShouldPass()
     {
-        var query = "select Country, RowNumber() from #A.entities() where Country = 'Poland' skip 1";
+        var query = "select Country, RowNumber() from @A.entities() where Country = 'Poland' skip 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"},
                     new BasicEntity {Country = "Poland"}
@@ -140,12 +140,12 @@ public class RowNumberTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRowNumberWithGroupByAndSkipTest_ShouldPass()
     {
-        var query = "select Country, RowNumber() from #A.entities() group by Country order by Country skip 1";
+        var query = "select Country, RowNumber() from @A.entities() group by Country order by Country skip 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"},
                     new BasicEntity {Country = "Poland"}
@@ -180,12 +180,12 @@ public class RowNumberTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRowNumberWithGroupByAndTakeTest_ShouldPass()
     {
-        var query = "select Country, RowNumber() from #A.entities() group by Country order by Country take 1";
+        var query = "select Country, RowNumber() from @A.entities() group by Country order by Country take 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity {Country = "Poland"},
                     new BasicEntity {Country = "Germany"},
                     new BasicEntity {Country = "Poland"}

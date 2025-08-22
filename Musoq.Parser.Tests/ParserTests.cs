@@ -11,7 +11,7 @@ public class ParserTests
     public void CheckReorderedQueryWithJoin_ShouldConstructQuery()
     {
         var query =
-            "from #some.a() s1 inner join #some.b() s2 on s1.col = s2.col where s1.col2 = '1' group by s2.col3 select s1.col4, s2.col4 skip 1 take 1";
+            "from @some.a() s1 inner join @some.b() s2 on s1.col = s2.col where s1.col2 = '1' group by s2.col3 select s1.col4, s2.col4 skip 1 take 1";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -22,7 +22,7 @@ public class ParserTests
     [TestMethod]
     public void CouplingSyntax_ComposeSchemaMethodWithKeywordAsMethod_ShouldParse()
     {
-        var query = "couple #some.table with table Test as SourceOfTestValues;";
+        var query = "couple @some.table with table Test as SourceOfTestValues;";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -33,7 +33,7 @@ public class ParserTests
     [TestMethod]
     public void CouplingSyntax_ComposeSchemaMethodWithWordAsMethod_ShouldParse()
     {
-        var query = "couple #some.something with table Test as SourceOfTestValues;";
+        var query = "couple @some.something with table Test as SourceOfTestValues;";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -44,7 +44,7 @@ public class ParserTests
     [TestMethod]
     public void CouplingSyntax_ComposeSchemaMethodWithWordFinishedWithNumberAsMethod_ShouldParse()
     {
-        var query = "couple #some.something4 with table Test as SourceOfTestValues;";
+        var query = "couple @some.something4 with table Test as SourceOfTestValues;";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -55,7 +55,7 @@ public class ParserTests
     [TestMethod]
     public void SelectWithUnnecessaryFirstComma_ShouldFail()
     {
-        var query = "select ,1, 2, 3 from #some.a()";
+        var query = "select ,1, 2, 3 from @some.a()";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -66,7 +66,7 @@ public class ParserTests
     [TestMethod]
     public void SelectWithUnnecessaryLastComma_ShouldFail()
     {
-        var query = "select 1, from #some.a()";
+        var query = "select 1, from @some.a()";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -77,7 +77,7 @@ public class ParserTests
     [TestMethod]
     public void SelectTwoCommas_ShouldFail()
     {
-        var query = "select ,, from #some.a()";
+        var query = "select ,, from @some.a()";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -88,7 +88,7 @@ public class ParserTests
     [TestMethod]
     public void GroupByWithUnnecessaryFirstComma_ShouldParse()
     {
-        var query = "select 1 from #some.a() group by ,1";
+        var query = "select 1 from @some.a() group by ,1";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -99,7 +99,7 @@ public class ParserTests
     [TestMethod]
     public void GroupByWithUnnecessaryLastComma_ShouldFail()
     {
-        var query = "select 1 from #some.a() group by 1,";
+        var query = "select 1 from @some.a() group by 1,";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -110,7 +110,7 @@ public class ParserTests
     [TestMethod]
     public void SelectTypo_ShouldFail()
     {
-        var query = "sleect 1 from #some.a() group by 1,";
+        var query = "sleect 1 from @some.a() group by 1,";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -121,20 +121,20 @@ public class ParserTests
     [TestMethod]
     public void FromTypo_ShouldFail()
     {
-        var query = "select 1 form #some.a() group by 1";
+        var query = "select 1 form @some.a() group by 1";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
         var exc = Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
 
-        Assert.AreEqual("select 1 form #some.", exc.QueryPart);
+        Assert.AreEqual("select 1 form @some.", exc.QueryPart);
     }
 
     [TestMethod]
     public void SemicolonAtTheEnd_ShouldPass()
     {
-        var query = "select 1 from #some.a() order by x;";
+        var query = "select 1 from @some.a() order by x;";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -145,7 +145,7 @@ public class ParserTests
     [TestMethod]
     public void WhenCaseWhenWithMissingEnd_ShouldFail()
     {
-        var query = "select case when 1 = 1 then 1 else 0 from #some.a()";
+        var query = "select case when 1 = 1 then 1 else 0 from @some.a()";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -160,7 +160,7 @@ public class ParserTests
                     --some comment
                     select
                         1
-                    from #some.a() --some comment
+                    from @some.a() --some comment
                     """;
 
         var lexer = new Lexer(query, true);
@@ -175,7 +175,7 @@ public class ParserTests
         var query = """
                     select
                         1 --some comment
-                    from #some.a()
+                    from @some.a()
                     """;
 
         var lexer = new Lexer(query, true);
@@ -190,7 +190,7 @@ public class ParserTests
         var query = """
                     select
                         1
-                    from #some.a() --some comment
+                    from @some.a() --some comment
                     """;
 
         var lexer = new Lexer(query, true);
@@ -205,7 +205,7 @@ public class ParserTests
         var query = """
                     select
                         1
-                    from #some.a() 
+                    from @some.a() 
                     --some comment
                     """;
 
@@ -222,7 +222,7 @@ public class ParserTests
                     select
                         1 --some comment
                         --some comment
-                    from #some.a() 
+                    from @some.a() 
                     """;
 
         var lexer = new Lexer(query, true);
@@ -237,7 +237,7 @@ public class ParserTests
         var query = """
                     select --some comment
                         1
-                    from #some.a()
+                    from @some.a()
                     """;
 
         var lexer = new Lexer(query, true);
@@ -252,7 +252,7 @@ public class ParserTests
         var query = """
                     select --first comment --second comment
                         1
-                    from #some.a()
+                    from @some.a()
                     """;
 
         var lexer = new Lexer(query, true);
@@ -267,7 +267,7 @@ public class ParserTests
         var query = """
                     select
                         1
-                    from #some.a() --comment with !@#$%^&*()
+                    from @some.a() --comment with !@#$%^&*()
                     """;
 
         var lexer = new Lexer(query, true);
@@ -282,7 +282,7 @@ public class ParserTests
         var query = """
                     select
                         1
-                    from #some.a() --comment containing SELECT FROM WHERE
+                    from @some.a() --comment containing SELECT FROM WHERE
                     """;
 
         var lexer = new Lexer(query, true);
@@ -297,7 +297,7 @@ public class ParserTests
         var query = """
                     select
                         1 --
-                    from #some.a()
+                    from @some.a()
                     """;
 
         var lexer = new Lexer(query, true);
@@ -312,7 +312,7 @@ public class ParserTests
         var query = """
                     select
                         1 --    spaced comment
-                    from #some.a()
+                    from @some.a()
                     """;
 
         var lexer = new Lexer(query, true);
@@ -327,8 +327,8 @@ public class ParserTests
         var query = """
                     select
                         1
-                    from #some.a() a--comment before join
-                    inner join #some.b() b--comment after join
+                    from @some.a() a--comment before join
+                    inner join @some.b() b--comment after join
                         on a.id = b.id
                     """;
 
@@ -344,7 +344,7 @@ public class ParserTests
         var query = """
                     select
                         1 -- comment with -- inside
-                    from #some.a()
+                    from @some.a()
                     """;
 
         var lexer = new Lexer(query, true);
@@ -354,9 +354,9 @@ public class ParserTests
     }
 
     [TestMethod]
-    [DataRow("select 1 from #some.thing() r cross apply r.Prop.Nested c")]
-    [DataRow("select 1 from #some.thing() r cross apply r.Prop.Nested c cross apply c.Prop.Nested2 d")]
-    [DataRow("select 1 from #some.thing() r cross apply r.Prop.Nested.Deeply c")]
+    [DataRow("select 1 from @some.thing() r cross apply r.Prop.Nested c")]
+    [DataRow("select 1 from @some.thing() r cross apply r.Prop.Nested c cross apply c.Prop.Nested2 d")]
+    [DataRow("select 1 from @some.thing() r cross apply r.Prop.Nested.Deeply c")]
     public void WhenNestedPropertyUsedWithCrossApply_ShouldPass(string query)
     {
         var lexer = new Lexer(query, true);

@@ -11,12 +11,12 @@ public class ComparisonTests : BasicEntityTestBase
     [TestMethod]
     public void ArithmeticOpsGreaterTest()
     {
-        var query = "select City from #A.entities() where Population > 400d";
+        var query = "select City from @A.entities() where Population > 400d";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -39,12 +39,12 @@ public class ComparisonTests : BasicEntityTestBase
     [TestMethod]
     public void ArithmeticOpsGreaterEqualTest()
     {
-        var query = "select City from #A.entities() where Population >= 400d";
+        var query = "select City from @A.entities() where Population >= 400d";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -69,12 +69,12 @@ public class ComparisonTests : BasicEntityTestBase
     [TestMethod]
     public void ArithmeticOpsEqualsTest()
     {
-        var query = "select City from #A.entities() where Population = 250d";
+        var query = "select City from @A.entities() where Population = 250d";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -98,12 +98,12 @@ public class ComparisonTests : BasicEntityTestBase
     [TestMethod]
     public void ArithmeticOpsLessTest()
     {
-        var query = "select City from #A.entities() where Population < 350d";
+        var query = "select City from @A.entities() where Population < 350d";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -129,12 +129,12 @@ public class ComparisonTests : BasicEntityTestBase
     [TestMethod]
     public void ArithmeticOpsLessEqualTest()
     {
-        var query = "select City from #A.entities() where Population <= 350d";
+        var query = "select City from @A.entities() where Population <= 350d";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),

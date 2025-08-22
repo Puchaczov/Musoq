@@ -15,11 +15,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMissingSchema_ShouldFail()
     {
-        var query = "select Name from #B.Entities()";
+        var query = "select Name from @B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", []
+                "@A", []
             }
         };
 
@@ -29,11 +29,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void LikeOperatorTest()
     {
-        var query = "select Name from #A.Entities() where Name like '%AA%'";
+        var query = "select Name from @A.Entities() where Name like '%AA%'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("ABCAACBA"), 
                     new BasicEntity("AAeqwgQEW"), 
@@ -68,11 +68,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void NotLikeOperatorTest()
     {
-        var query = "select Name from #A.Entities() where Name not like '%AA%'";
+        var query = "select Name from @A.Entities() where Name not like '%AA%'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
                     new BasicEntity("dadsqqAA")
@@ -94,12 +94,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void WrongColumnNameWithHintTest()
     {
-        var query = "select Namre from #A.Entities()";
+        var query = "select Namre from @A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
                     new BasicEntity("dadsqqAA")
@@ -113,11 +113,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void RLikeOperatorTest()
     {
-        var query = @"select Name from #A.Entities() where Name rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
+        var query = @"select Name from @A.Entities() where Name rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
@@ -144,11 +144,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void NotRLikeOperatorTest()
     {
-        var query = @"select Name from #A.Entities() where Name not rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
+        var query = @"select Name from @A.Entities() where Name not rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
@@ -172,11 +172,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void FirstLetterOfColumnTest()
     {
-        var query = @"select Name from #A.Entities() where Name[0] = 'd'";
+        var query = @"select Name from @A.Entities() where Name[0] = 'd'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
@@ -200,11 +200,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void FirstLetterOfColumnTest2()
     {
-        var query = @"select Name from #A.Entities() f where f.Name[0] = 'd'";
+        var query = @"select Name from @A.Entities() f where f.Name[0] = 'd'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
@@ -229,12 +229,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void WrongColumnNameTest()
     {
         var query =
-            $"select Populationr from #A.Entities()";
+            $"select Populationr from @A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -247,12 +247,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void EmptyStringTest()
     {
         var query =
-            $"select '' from #A.Entities()";
+            $"select '' from @A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -272,12 +272,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void NullColumnTest()
     {
         var query =
-            "select null from #A.Entities()";
+            "select null from @A.Entities()";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -297,12 +297,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void CaseWhenWithEmptyStringTest()
     {
         var query =
-            $"select (case when 1 = 2 then 'test' else '' end) from #A.Entities()";
+            $"select (case when 1 = 2 then 'test' else '' end) from @A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -322,12 +322,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void CaseWhenWithNullTest()
     {
         var query =
-            $"select (case when 1 = 2 then 'test' else null end) from #A.Entities()";
+            $"select (case when 1 = 2 then 'test' else null end) from @A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500)
                 ]
             }
@@ -347,12 +347,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void ComplexWhere1Test()
     {
         var query =
-            $"select Population from #A.Entities() where Population > 0 and Population - 100 > -1.5d and Population - 100 < 1.5d";
+            $"select Population from @A.Entities() where Population > 0 and Population - 100 > -1.5d and Population - 100 < 1.5d";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 99),
                     new BasicEntity("KATOWICE", "POLAND", 101),
@@ -378,11 +378,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void MultipleAndOperatorTest()
     {
         var query =
-            "select Name from #A.Entities() where IndexOf(Name, 'A') = 0 and IndexOf(Name, 'B') = 1 and IndexOf(Name, 'C') = 2";
+            "select Name from @A.Entities() where IndexOf(Name, 'A') = 0 and IndexOf(Name, 'B') = 1 and IndexOf(Name, 'C') = 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")]
             }
         };
@@ -403,11 +403,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void MultipleOrOperatorTest()
     {
-        var query = "select Name from #A.Entities() where Name = 'ABC' or Name = 'ABCD' or Name = 'A'";
+        var query = "select Name from @A.Entities() where Name = 'ABC' or Name = 'ABCD' or Name = 'A'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")]
             }
         };
@@ -429,10 +429,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void AddOperatorWithStringsTurnsIntoConcatTest()
     {
-        var query = "select 'abc' + 'cda' from #A.Entities()";
+        var query = "select 'abc' + 'cda' from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("ABCAACBA")]}
+            {"@A", [new BasicEntity("ABCAACBA")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -449,11 +449,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void ContainsStringsTest()
     {
-        var query = "select Name from #A.Entities() where Name contains ('ABC', 'CdA', 'CDA', 'DDABC')";
+        var query = "select Name from @A.Entities() where Name contains ('ABC', 'CdA', 'CDA', 'DDABC')";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("ABC"),
                     new BasicEntity("XXX"),
@@ -480,11 +480,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void CanPassComplexArgumentToFunctionTest()
     {
-        var query = "select NothingToDo(Self) from #A.Entities()";
+        var query = "select NothingToDo(Self) from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001")
                     {
@@ -513,11 +513,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void TableShouldReturnComplexTypeTest()
     {
-        var query = "select Self from #A.Entities()";
+        var query = "select Self from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001")
                     {
@@ -558,10 +558,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             Id = 5,
             NullableValue = null
         };
-        var query = "select 1, *, Name as Name2, ToString(Self) as SelfString from #A.Entities()";
+        var query = "select 1, *, Name as Name2, ToString(Self) as SelfString from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [entity]}
+            {"@A", [entity]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -639,10 +639,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleAccessArrayTest()
     {
-        var query = @"select Self.Array[2] from #A.Entities()";
+        var query = @"select Self.Array[2] from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -659,10 +659,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleAccessObjectTest()
     {
-        var query = @"select Self.Array from #A.Entities()";
+        var query = @"select Self.Array from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -677,10 +677,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void AccessObjectTest()
     {
-        var query = @"select Self.Self.Array from #A.Entities()";
+        var query = @"select Self.Self.Array from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -695,10 +695,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleAccessObjectIncrementTest()
     {
-        var query = @"select Inc(Self.Array[2]) from #A.Entities()";
+        var query = @"select Inc(Self.Array[2]) from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -715,10 +715,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void WhereWithOrTest()
     {
-        var query = @"select Name from #A.Entities() where Name = '001' or Name = '005'";
+        var query = @"select Name from @A.Entities() where Name = '001' or Name = '005'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -733,10 +733,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleQueryTest()
     {
-        var query = @"select Name as 'x1' from #A.Entities()";
+        var query = @"select Name as 'x1' from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -756,11 +756,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleSkipTest()
     {
-        var query = @"select Name from #A.Entities() skip 2";
+        var query = @"select Name from @A.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
@@ -782,11 +782,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleTakeTest()
     {
-        var query = @"select Name from #A.Entities() take 2";
+        var query = @"select Name from @A.Entities() take 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"),
                     new BasicEntity("002"),
@@ -810,11 +810,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void GetHexTest()
     {
-        var query = @"select ToHex(GetBytes(5), '|') as hexValue from #A.Entities()";
+        var query = @"select ToHex(GetBytes(5), '|') as hexValue from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001")
                 ]
@@ -831,11 +831,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleSkipTakeTest()
     {
-        var query = @"select Name from #A.Entities() skip 1 take 2";
+        var query = @"select Name from @A.Entities() skip 1 take 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
@@ -855,11 +855,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleSkipAboveTableAmountTest()
     {
-        var query = @"select Name from #A.Entities() skip 100";
+        var query = @"select Name from @A.Entities() skip 100";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
@@ -876,11 +876,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleTakeAboveTableAmountTest()
     {
-        var query = @"select Name from #A.Entities() take 100";
+        var query = @"select Name from @A.Entities() take 100";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
@@ -903,11 +903,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleSkipTakeAboveTableAmountTest()
     {
-        var query = @"select Name from #A.Entities() skip 100 take 100";
+        var query = @"select Name from @A.Entities() skip 100 take 100";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005"), new BasicEntity("006")
@@ -925,10 +925,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void ColumnNamesSimpleTest()
     {
         var query =
-            @"select Name as TestName, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from #A.Entities()";
+            @"select Name as TestName, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", []}
+            {"@A", []}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -951,11 +951,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void CallMethodWithTwoParametersTest()
     {
-        var query = @"select Concat(Country, ToString(Population)) from #A.Entities()";
+        var query = @"select Concat(Country, ToString(Population)) from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("ABBA", 200)
                 ]
             }
@@ -975,12 +975,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void ColumnTypeDateTimeTest()
     {
-        var query = "select Time from #A.entities()";
+        var query = "select Time from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity(DateTime.MinValue)
                 ]
             }
@@ -999,11 +999,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleRowNumberStatTest()
     {
-        var query = @"select RowNumber() from #A.Entities()";
+        var query = @"select RowNumber() from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("001"),
                     new BasicEntity("002"),
                     new BasicEntity("003"),
@@ -1030,12 +1030,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SelectDecimalWithoutMarkingNumberExplicitlyTest()
     {
-        var query = "select 1.0, -1.0 from #A.entities()";
+        var query = "select 1.0, -1.0 from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("xX")
                 ]
             }
@@ -1058,12 +1058,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void DescEntityTest()
     {
-        var query = "desc #A.entities()";
+        var query = "desc @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("xX")
                 ]
             }
@@ -1102,7 +1102,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("xX")
                 ]
             }
@@ -1124,7 +1124,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("xX")
                 ]
             }
@@ -1143,12 +1143,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void AggregateValuesTest()
     {
-        var query = @"select AggregateValues(Name) from #A.entities() a group by Name";
+        var query = @"select AggregateValues(Name) from @A.entities() a group by Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("A"),
                     new BasicEntity("B")
                 ]
@@ -1168,12 +1168,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void AggregateValuesParentTest()
     {
-        var query = @"select AggregateValues(Name, 1) from #A.entities() a group by Name";
+        var query = @"select AggregateValues(Name, 1) from @A.entities() a group by Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("A"),
                     new BasicEntity("B")
                 ]
@@ -1189,12 +1189,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void CoalesceTest()
     {
-        var query = @"select Coalesce('a', 'b', 'c', 'e', 'f') from #A.entities()";
+        var query = @"select Coalesce('a', 'b', 'c', 'e', 'f') from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("A")
                 ]
             }
@@ -1209,12 +1209,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void ChooseTest()
     {
-        var query = @"select Choose(2, 'a', 'b', 'c', 'e', 'f') from #A.entities()";
+        var query = @"select Choose(2, 'a', 'b', 'c', 'e', 'f') from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("A")
                 ]
             }
@@ -1229,12 +1229,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void MatchWithRegexTest()
     {
-        var query = @"select Match('\d{7}', Name) from #A.entities()";
+        var query = @"select Match('\d{7}', Name) from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("3213213")
                 ]
             }
@@ -1249,12 +1249,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void HeadWithStringTest()
     {
-        var query = "select Head('ABCDEF', 2) from #A.entities()";
+        var query = "select Head('ABCDEF', 2) from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("3213213")
                 ]
             }
@@ -1269,12 +1269,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void TailWithStringTest()
     {
-        var query = "select Tail('ABCDEF', 2) from #A.entities()";
+        var query = "select Tail('ABCDEF', 2) from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("3213213")
                 ]
             }
@@ -1289,12 +1289,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SubtractTwoAliasedValuesTest()
     {
-        var query = "select a.Money - a.Money from #A.entities() a";
+        var query = "select a.Money - a.Money from @A.entities() a";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 2512m)
                 ]
             }
@@ -1309,12 +1309,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void SubtractThreeAliasedValuesTest()
     {
-        var query = "select (a.Money - a.Population) / a.Money from #A.entities() a";
+        var query = "select (a.Money - a.Population) / a.Money from @A.entities() a";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 10 }
                 ]
             }
@@ -1329,12 +1329,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void FilterByComplexObjectAccessInWhereTest()
     {
-        var query = "select Population from #A.entities() where Self.Money > 100";
+        var query = "select Population from @A.entities() where Self.Money > 100";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 10 },
                     new BasicEntity("june", 200m) { Population = 20 }
                 ]
@@ -1351,12 +1351,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void ComputeStDevTest()
     {
-        var query = "select StDev(Population) from #A.entities()";
+        var query = "select StDev(Population) from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 10 },
                     new BasicEntity("june", 200m) { Population = 20 }
                 ]
@@ -1378,12 +1378,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
                     "       then true" +
                     "       else false" +
                     "   end)" +
-                    "from #A.entities()";
+                    "from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 100 },
                     new BasicEntity("june", 200m) { Population = 200 }
                 ]
@@ -1408,12 +1408,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
                     "       then entities.GetOne()" +
                     "       else entities.Inc(entities.GetOne())" +
                     "   end)" +
-                    "from #A.entities() entities";
+                    "from @A.entities() entities";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 100 },
                     new BasicEntity("june", 200m) { Population = 200 }
                 ]
@@ -1444,12 +1444,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
                     "       then entities.GetOne()" +
                     "       else entities.Inc(entities.GetOne())" +
                     "   end)" +
-                    "from #A.entities() entities";
+                    "from @A.entities() entities";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 100 },
                     new BasicEntity("june", 200m) { Population = 200 }
                 ]
@@ -1475,12 +1475,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void QueryWithTimeSpanTest()
     {
-        var query = "select ToTimeSpan('00:12:15') from #A.entities()";
+        var query = "select ToTimeSpan('00:12:15') from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 100 }
                 ]
             }
@@ -1496,12 +1496,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void QueryWithToDateTimeTest()
     {
-        var query = "select ToDateTime('2012/01/13') from #A.entities()";
+        var query = "select ToDateTime('2012/01/13') from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 100 }
                 ]
             }
@@ -1517,12 +1517,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void QueryWithToDateTimeAndTimeSpanAdditionTest()
     {
-        var query = "select ToDateTime('2012/01/13') + ToTimeSpan('00:12:15') from #A.entities()";
+        var query = "select ToDateTime('2012/01/13') + ToTimeSpan('00:12:15') from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 100 }
                 ]
             }
@@ -1538,12 +1538,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void QueryWithTimeSpansAdditionTest()
     {
-        var query = "select ToTimeSpan('00:12:15') + ToTimeSpan('00:12:15') from #A.entities()";
+        var query = "select ToTimeSpan('00:12:15') + ToTimeSpan('00:12:15') from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("may", 100m) { Population = 100 }
                 ]
             }
@@ -1559,12 +1559,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void RegexMatchesIntegrationTest()
     {
-        var query = @"select RegexMatches('\d+', Name) from #A.entities()";
+        var query = @"select RegexMatches('\d+', Name) from @A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("Test 123 and 456")
                 ]
             }

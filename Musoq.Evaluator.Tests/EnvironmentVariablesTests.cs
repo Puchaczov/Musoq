@@ -38,7 +38,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     [TestMethod]
     public void WhenPassedEnvironmentVariables_ShouldListThemAll()
     {
-        var query = "select Key, Value from #EnvironmentVariables.All()";
+        var query = "select Key, Value from @EnvironmentVariables.All()";
         
         var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
@@ -65,7 +65,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     [TestMethod]
     public void WhenPassedEnvironmentVariables_JoinedDataSources_ShouldListThemAll()
     {
-        var query = "select e1.Key, e1.Value, e2.Value from #EnvironmentVariables.All() e1 inner join #EnvironmentVariables.All() e2 on e1.Key = e2.Key";
+        var query = "select e1.Key, e1.Value, e2.Value from @EnvironmentVariables.All() e1 inner join @EnvironmentVariables.All() e2 on e1.Key = e2.Key";
         var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
@@ -105,7 +105,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     [TestMethod]
     public void WhenPassedEnvironmentVariables_UnionDataSources_ShouldListThemAll()
     {
-        var query = "select Key, Value from #EnvironmentVariables.All() union all (Key) select Key, Value from #EnvironmentVariables.All()";
+        var query = "select Key, Value from @EnvironmentVariables.All() union all (Key) select Key, Value from @EnvironmentVariables.All()";
         var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
@@ -155,14 +155,14 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     {
         const string query = @"
 with p as ( 
-    select 1 from #A.entities()
+    select 1 from @A.entities()
 )
-select Key, Value from #EnvironmentVariables.All()";
+select Key, Value from @EnvironmentVariables.All()";
         
         var basicEntitiesSource = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 Array.Empty<BasicEntity>()
             }
         };

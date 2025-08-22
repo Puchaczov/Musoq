@@ -13,7 +13,7 @@ public class CTECrossApplyTestCases : GenericEntityTestBase
         const string query = @"
             with testX as ( 
                 select 'to jest test' as Text 
-                from #schema.first() a 
+                from @schema.first() a 
             ) 
             select t.Text as Text, t2.Value as Value 
             from testX t 
@@ -49,7 +49,7 @@ public class CTECrossApplyTestCases : GenericEntityTestBase
         const string query = @"
             with testX as ( 
                 select 'Hello World' as Text 
-                from #schema.first() 
+                from @schema.first() 
             ) 
             select t.Text as Text, t2.Value as Value 
             from testX t 

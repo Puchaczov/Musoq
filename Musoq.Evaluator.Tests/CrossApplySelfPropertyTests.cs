@@ -103,7 +103,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_NoMatch_ShouldPass()
     {
-        const string query = "select a.City, b.Value from #schema.first() a cross apply a.Values as b";
+        const string query = "select a.City, b.Value from @schema.first() a cross apply a.Values as b";
         
         var firstSource = new List<CrossApplyClass1>
         {
@@ -127,7 +127,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_WithPrimitiveArray_ShouldPass()
     {
-        const string query = "select a.City, b.Value from #schema.first() a cross apply a.Values as b";
+        const string query = "select a.City, b.Value from @schema.first() a cross apply a.Values as b";
         
         var firstSource = new List<CrossApplyClass1>
         {
@@ -183,7 +183,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_WithPrimitiveList_ShouldPass()
     {
-        const string query = "select a.City, b.Value from #schema.first() a cross apply a.Values as b";
+        const string query = "select a.City, b.Value from @schema.first() a cross apply a.Values as b";
         
         var firstSource = new List<CrossApplyClass2>
         {
@@ -239,7 +239,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_WithComplexArray_ShouldPass()
     {
-        const string query = "select a.City, b.Value1, b.Value2 from #schema.first() a cross apply a.Values as b";
+        const string query = "select a.City, b.Value1, b.Value2 from @schema.first() a cross apply a.Values as b";
         
         var firstSource = new List<CrossApplyClass3>
         {
@@ -287,7 +287,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_WithComplexList_ShouldPass()
     {
-        const string query = "select a.City, b.Value1, b.Value2 from #schema.first() a cross apply a.Values as b";
+        const string query = "select a.City, b.Value1, b.Value2 from @schema.first() a cross apply a.Values as b";
         
         var firstSource = new List<CrossApplyClass4>
         {
@@ -353,7 +353,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_MultiplePrimitiveArrays_ShouldPass()
     {
-        const string query = "select b.Value, c.Value from #schema.first() a cross apply a.Values1 as b cross apply a.Values2 as c";
+        const string query = "select b.Value, c.Value from @schema.first() a cross apply a.Values1 as b cross apply a.Values2 as c";
         
         var firstSource = new List<CrossApplyClass5>
         {
@@ -438,7 +438,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyProperty_MultipleComplexArrays_ShouldPass()
     {
-        const string query = "select d.Value from #schema.first() a cross apply a.Values as b cross apply b.Values as c cross apply c.Values as d";
+        const string query = "select d.Value from @schema.first() a cross apply a.Values as b cross apply b.Values as c cross apply c.Values as d";
         
         var firstSource = new List<CrossApplyClass6>
         {
@@ -509,9 +509,9 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         const string query = 
         """
         with a as (
-            select 1 from #schema.first()
+            select 1 from @schema.first()
         )
-        select d.Value from #schema.first() a cross apply a.Values as b cross apply b.Values as c cross apply c.Values as d
+        select d.Value from @schema.first() a cross apply a.Values as b cross apply b.Values as c cross apply c.Values as d
         """;
 
         var firstSource = new List<CrossApplyClass6>().ToArray();
@@ -533,7 +533,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         const string query = """
                              select 
                                 b.Value 
-                             from #schema.first() a 
+                             from @schema.first() a 
                              cross apply a.ComplexType.PrimitiveValues as b
                              """;
         
@@ -566,7 +566,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         const string query = """
                              select 
                                 b.Value 
-                             from #schema.first() a 
+                             from @schema.first() a 
                              cross apply a.ComplexType.ComplexValues as b
                              """;
         
@@ -601,7 +601,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         const string query = """
                              select 
                                 b.GetTypeName(b.Value)
-                             from #schema.first() a 
+                             from @schema.first() a 
                              cross apply a.ComplexType.ComplexValues as b
                              group by b.GetTypeName(b.Value)
                              order by b.GetTypeName(b.Value)

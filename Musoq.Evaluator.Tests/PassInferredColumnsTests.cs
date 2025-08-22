@@ -12,7 +12,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
     [TestMethod]
     public void PassInferredColumnsTest()
     {
-        var query = "select Name, Surname, ContactNumber from #test.whatever() where Country = 'Poland'";
+        var query = "select Name, Surname, ContactNumber from @test.whatever() where Country = 'Poland'";
         
         dynamic first = new ExpandoObject();
         first.Name = "Roland";
@@ -55,7 +55,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
                              "   Age 'System.Int32'," +
                              "   Country 'System.String'" +
                              "};" +
-                             "couple #test.whatever with table Persons as SourceOfPersons;" +
+                             "couple @test.whatever with table Persons as SourceOfPersons;" +
                              "select Name, Age from SourceOfPersons() where Country = 'Poland';";
         
         dynamic first = new ExpandoObject();
@@ -96,7 +96,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
                              "   Age 'System.Int32'," +
                              "   Country 'System.String'" +
                              "};" +
-                             "couple #test.whatever with table Persons as SourceOfPersons;" +
+                             "couple @test.whatever with table Persons as SourceOfPersons;" +
                              "select p1.Name, p1.Age, p2.Name, p2.Age from SourceOfPersons() p1 inner join SourceOfPersons() p2 on p1.Country = p2.Country " +
                              "where p1.Country = 'Poland' and p1.Name <> p2.Name;";
         
@@ -160,7 +160,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
                              "   Age 'System.Int32'," +
                              "   Country 'System.String'" +
                              "};" +
-                             "couple #test.whatever with table Persons as SourceOfPersons;" +
+                             "couple @test.whatever with table Persons as SourceOfPersons;" +
                              "select Name, Age from SourceOfPersons() where Country = 'Poland' " +
                              "union all (Name, Age) " +
                              "select Name, Age from SourceOfPersons() where Country = 'USA';";
