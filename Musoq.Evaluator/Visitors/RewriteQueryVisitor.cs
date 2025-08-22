@@ -351,9 +351,11 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             _globalUsedAliases[schemaMethodKey] = effectiveAlias;
         }
         
+        // CRITICAL FIX: Use Evaluator.Parser.SchemaFromNode for consistent ID format with metadata building
+        // This ensures the queriesInformation dictionary keys match between all phases
         var newNode = node is Parser.SchemaFromNode schemaFromNode ?
-            new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, node.QueryId, schemaFromNode.HasExternallyProvidedTypes) :
-            new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, node.QueryId, false);
+            new Musoq.Evaluator.Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, 1, schemaFromNode.HasExternallyProvidedTypes) :
+            new Musoq.Evaluator.Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, 1, false);
         
         Nodes.Push(newNode);
     }

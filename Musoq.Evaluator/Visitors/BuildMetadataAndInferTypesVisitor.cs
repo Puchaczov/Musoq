@@ -1001,8 +1001,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         _generatedAliases.Add(_queryAlias);
 
-        var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
-            _queryAlias, node.QueryId, hasExternallyProvidedTypes);
+        // CRITICAL FIX: Use Evaluator.Parser.SchemaFromNode for consistent ID format with code generation
+        // This ensures the queriesInformation dictionary keys match the generated C# lookup keys
+        var aliasedSchemaFromNode = new Musoq.Evaluator.Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
+            _queryAlias, 1, hasExternallyProvidedTypes);
 
         var environmentVariables =
             RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode);
@@ -1155,12 +1157,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
 
-        var aliasedSchemaFromNode = new Parser.SchemaFromNode(
+        // CRITICAL FIX: Use Evaluator.Parser.SchemaFromNode for consistent ID format with code generation
+        // This ensures the queriesInformation dictionary keys match the generated C# lookup keys
+        var aliasedSchemaFromNode = new Musoq.Evaluator.Parser.SchemaFromNode(
             schemaInfo.Schema,
             schemaInfo.Method,
             (ArgsListNode) Nodes.Pop(),
             _queryAlias,
-            node.InSourcePosition,
+            1, // Use position 1 for consistent ID format
             hasExternallyProvidedTypes
         );
 
