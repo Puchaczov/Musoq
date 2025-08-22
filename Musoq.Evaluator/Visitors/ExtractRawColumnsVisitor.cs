@@ -449,4 +449,14 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     public void InnerCteEnds()
     {
     }
+
+    public void SetPivotAliasOverride(string pivotAlias)
+    {
+        // Not used in this visitor
+    }
+
+    public void ClearPivotAliasOverride()
+    {
+        // Not used in this visitor
+    }
 }

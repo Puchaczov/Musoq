@@ -95,6 +95,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     private string _identifier;
     private string _queryAlias;
     private IdentifierNode _theMostInnerIdentifier;
+    private string _pivotAliasOverride; // Track PIVOT context to override schema registration
 
     private Stack<string> Methods { get; } = new();
 
@@ -1027,7 +1028,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
-        _currentScope[node.Id] = _queryAlias;
+        
+        // Use PIVOT alias override if available, otherwise use normal alias
+        var aliasToRegister = _pivotAliasOverride ?? _queryAlias;
+        _currentScope[node.Id] = aliasToRegister;
         _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_queryAlias);
 
         _aliasToSchemaFromNodeMap.Add(_queryAlias, aliasedSchemaFromNode);
@@ -2041,9 +2045,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             _currentScope.ScopeSymbolTable.AddSymbol(node.Alias, pivotTableSymbol);
             _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
             
-            // CRITICAL FIX: Register the PIVOT node ID in the current scope
-            // This ensures runtime lookup can find the correct query information
-            _currentScope[pivotFromNode.Id] = node.Alias;
+            // The source node ID registration is handled by the SchemaFromNode visitor
+            // using the _pivotAliasOverride field we set above
         }
         
         Nodes.Push(pivotFromNode);
@@ -2052,6 +2055,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     public void SetQueryPart(QueryPart part)
     {
         _queryPart = part;
+    }
+
+    public void SetPivotAliasOverride(string pivotAlias)
+    {
+        _pivotAliasOverride = pivotAlias;
+    }
+
+    public void ClearPivotAliasOverride()
+    {
+        _pivotAliasOverride = null;
     }
 
     public QueryPart QueryPart => _queryPart;
