@@ -917,12 +917,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         // Process source first to establish base context
         node.Source.Accept(this);
         
-        // CRITICAL: Call main visitor to set up the identifier context 
-        // This ensures _identifier is available when processing aggregations
-        node.Accept(_visitor);
-        
-        // CRITICAL: Process PIVOT aggregations for method resolution during metadata building
-        // but avoid processing the full PIVOT node which should only happen in code generation
+        // CRITICAL: Process PIVOT aggregations BEFORE calling main visitor
+        // This ensures aggregations are resolved against the source table, not PIVOT table
         foreach (var aggregation in node.Pivot.AggregationExpressions)
         {
             if (aggregation is AccessMethodNode methodNode)
@@ -938,6 +934,15 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
                 aggregation.Accept(this);
             }
         }
+        
+        // Process FOR column and IN values for validation (before main visitor)
+        node.Pivot.ForColumn.Accept(this);
+        foreach (var inValue in node.Pivot.InValues)
+            inValue.Accept(this);
+        
+        // CRITICAL: Only NOW call main visitor to set up the PIVOT identifier context 
+        // At this point, all aggregations have been resolved against the source table
+        node.Accept(_visitor);
         
         // Process FOR column and IN values for validation
         node.Pivot.ForColumn.Accept(this);

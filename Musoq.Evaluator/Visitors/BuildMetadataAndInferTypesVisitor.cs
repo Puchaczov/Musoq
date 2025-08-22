@@ -92,7 +92,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     private int _schemaFromKey;
     private uint _positionalEnvironmentVariablesKey;
     private Scope _currentScope;
-    private string _identifier;
+    internal string _identifier;
     private string _queryAlias;
     private IdentifierNode _theMostInnerIdentifier;
 
@@ -1977,6 +1977,21 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             source = node.Source;
         }
         
+        // Keep track of original source alias for symbol table lookup
+        var originalSourceAlias = source.Alias;
+        
+        // CRITICAL FIX: Ensure the embedded SchemaFromNode uses the PIVOT alias
+        // This prevents the key mismatch between metadata building and code generation
+        if (source is SchemaFromNode schemaFromNode && !string.IsNullOrEmpty(node.Alias))
+        {
+            // Create new SchemaFromNode with PIVOT alias to ensure consistent IDs
+            var pivotAliasedSchemaNode = schemaFromNode is Parser.SchemaFromNode originalSchemaFromNode ?
+                new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, originalSchemaFromNode.HasExternallyProvidedTypes) :
+                new Parser.SchemaFromNode(schemaFromNode.Schema, schemaFromNode.Method, schemaFromNode.Parameters, node.Alias, schemaFromNode.QueryId, false);
+            
+            source = pivotAliasedSchemaNode;
+        }
+        
         // CRITICAL: Set identifier context for subsequent PIVOT processing
         // This ensures Sum/Count/Avg methods can be resolved in PIVOT context
         if (!string.IsNullOrEmpty(source.Alias))
@@ -2001,8 +2016,9 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         if (!string.IsNullOrEmpty(node.Alias))
         {
             // Get the source table symbol to copy its schema information
-            var sourceTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-            var (schema, table, _) = sourceTableSymbol.GetTableByAlias(_identifier);
+            // Use the original source alias to look up the symbol, not the PIVOT alias
+            var sourceTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(originalSourceAlias);
+            var (schema, table, _) = sourceTableSymbol.GetTableByAlias(originalSourceAlias);
             
             // Create PIVOT columns from the IN values
             var pivotColumns = new List<ISchemaColumn>();
