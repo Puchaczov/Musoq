@@ -2470,6 +2470,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // We just need to create an alias from the PIVOT to the source data
         var sourceAlias = GetSourceAlias(node.Source);
         
+        Console.WriteLine($"PIVOT CODEGEN DEBUG: PivotFromNode processing - node.Alias='{node.Alias}', sourceAlias='{sourceAlias}', node.Source type={node.Source.GetType().Name}");
+        if (node.Source is SchemaFromNode schemaSource)
+        {
+            Console.WriteLine($"PIVOT CODEGEN DEBUG: SchemaFromNode - Alias='{schemaSource.Alias}', Id='{schemaSource.Id}'");
+        }
+        
         // Determine the actual alias used for the source variables
         string actualSourceAlias;
         if (!string.IsNullOrEmpty(sourceAlias))
@@ -2478,14 +2484,37 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
         else
         {
-            // For sources without explicit aliases, determine the default alias used by the visitor
-            actualSourceAlias = node.Source switch
+            // CRITICAL FIX: For PIVOT scenarios, we need to use the same alias that was registered
+            // in the metadata building phase. The metadata building determines the actual alias.
+            // Don't default to "DefaultSchema" - find the actual alias from the _currentScope
+            if (node.Source is SchemaFromNode schemaFromNode)
             {
-                SchemaFromNode => "DefaultSchema",
-                AccessMethodFromNode => "DefaultRowSource", 
-                _ => "UnknownSource"
-            };
+                // Try to get the actual alias that was registered for this SchemaFromNode
+                try
+                {
+                    var registeredAlias = _scope[schemaFromNode.Id];
+                    actualSourceAlias = registeredAlias;
+                    Console.WriteLine($"PIVOT CODEGEN DEBUG: Found registered alias '{registeredAlias}' for SchemaFromNode.Id '{schemaFromNode.Id}'");
+                }
+                catch
+                {
+                    // If not found in scope, use the SchemaFromNode's alias directly
+                    actualSourceAlias = !string.IsNullOrEmpty(schemaFromNode.Alias) ? schemaFromNode.Alias : "DefaultSchema";
+                    Console.WriteLine($"PIVOT CODEGEN DEBUG: No registered alias found, using SchemaFromNode.Alias '{actualSourceAlias}'");
+                }
+            }
+            else
+            {
+                // For non-SchemaFromNode sources, use the original fallback logic
+                actualSourceAlias = node.Source switch
+                {
+                    AccessMethodFromNode => "DefaultRowSource", 
+                    _ => "UnknownSource"
+                };
+            }
         }
+        
+        Console.WriteLine($"PIVOT CODEGEN DEBUG: Using actualSourceAlias='{actualSourceAlias}'");
         
         // Create an alias from the PIVOT to the source data
         var sourceRowsVariable = $"{actualSourceAlias}Rows";

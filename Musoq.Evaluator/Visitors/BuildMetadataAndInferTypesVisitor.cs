@@ -1031,6 +1031,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         // Use PIVOT alias override if available, otherwise use normal alias
         var aliasToRegister = _pivotAliasOverride ?? _queryAlias;
+        
+        // DEBUG: Log alias registration for PIVOT debugging
+        Console.WriteLine($"PIVOT DEBUG: Registering SchemaFromNode {node.Id} with alias '{aliasToRegister}' (override='{_pivotAliasOverride}', queryAlias='{_queryAlias}')");
+        
         _currentScope[node.Id] = aliasToRegister;
         _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_queryAlias);
 
@@ -2059,11 +2063,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void SetPivotAliasOverride(string pivotAlias)
     {
+        Console.WriteLine($"PIVOT DEBUG: Setting alias override to '{pivotAlias}'");
         _pivotAliasOverride = pivotAlias;
     }
 
     public void ClearPivotAliasOverride()
     {
+        Console.WriteLine($"PIVOT DEBUG: Clearing alias override (was '{_pivotAliasOverride}')");
         _pivotAliasOverride = null;
     }
 
