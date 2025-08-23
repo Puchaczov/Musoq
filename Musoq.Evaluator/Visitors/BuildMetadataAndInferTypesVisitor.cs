@@ -78,6 +78,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     private readonly IDictionary<string, FieldNode[]> _cachedSetFields =
         new Dictionary<string, FieldNode[]>();
 
+    private bool _hasSelectAllColumns = false; // Track if current query uses SELECT *
+
     private readonly List<FieldNode> _groupByFields = [];
     private readonly List<Type> _nullSuspiciousTypes = [];
 
@@ -467,6 +469,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(AllColumnsNode node)
     {
+        _hasSelectAllColumns = true; // Track that this query uses SELECT *
+        
         var identifier = _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
@@ -2163,22 +2167,28 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var pivotColumns = new List<ISchemaColumn>();
             
             // Add non-aggregated, non-FOR columns from the source (these pass through PIVOT)
-            // These are needed for queries that explicitly reference non-pivot columns
-            var forColumnName = GetColumnNameFromNode(node.Pivot.ForColumn);
-            var aggregateColumnNames = node.Pivot.AggregationExpressions
-                .Select(GetColumnNameFromAggregationExpression)
-                .ToHashSet();
+            // Only include these when they're actually needed (not for SELECT * scenarios)
+            var includePassThroughColumns = !_hasSelectAllColumns; // Include pass-through columns only for specific column selection
+            Console.WriteLine($"[PIVOT METADATA] includePassThroughColumns: {includePassThroughColumns} (hasSelectAllColumns: {_hasSelectAllColumns})");
             
-            foreach (var sourceColumn in table.Columns)
+            if (includePassThroughColumns)
             {
-                // Skip the FOR column and aggregated columns as they are transformed
-                if (sourceColumn.ColumnName != forColumnName && 
-                    !aggregateColumnNames.Contains(sourceColumn.ColumnName))
+                var forColumnName = GetColumnNameFromNode(node.Pivot.ForColumn);
+                var aggregateColumnNames = node.Pivot.AggregationExpressions
+                    .Select(GetColumnNameFromAggregationExpression)
+                    .ToHashSet();
+                
+                foreach (var sourceColumn in table.Columns)
                 {
-                    // Create a new column with appropriate index for PIVOT result
-                    var passthroughColumn = new SchemaColumn(sourceColumn.ColumnName, pivotColumns.Count, sourceColumn.ColumnType);
-                    pivotColumns.Add(passthroughColumn);
-                    Console.WriteLine($"[PIVOT METADATA] Added pass-through column: {sourceColumn.ColumnName}");
+                    // Skip the FOR column and aggregated columns as they are transformed
+                    if (sourceColumn.ColumnName != forColumnName && 
+                        !aggregateColumnNames.Contains(sourceColumn.ColumnName))
+                    {
+                        // Create a new column with appropriate index for PIVOT result
+                        var passthroughColumn = new SchemaColumn(sourceColumn.ColumnName, pivotColumns.Count, sourceColumn.ColumnType);
+                        pivotColumns.Add(passthroughColumn);
+                        Console.WriteLine($"[PIVOT METADATA] Added pass-through column: {sourceColumn.ColumnName}");
+                    }
                 }
             }
             

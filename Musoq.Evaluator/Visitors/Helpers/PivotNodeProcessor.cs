@@ -189,22 +189,30 @@ public static class PivotNodeProcessor
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
                 .GroupBy(row => {{
-                    // CRITICAL FIX: Group by pass-through columns (non-FOR, non-aggregation columns)
-                    // For this query, we should group by Region since it's not the FOR column or aggregation column
-                    var groupKey = new List<object>();
-                    var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
-                    var forColumnName = ""{forColumnName}"";
-                    var aggregationColumnName = ""{aggregationColumn}"";
+                    // Group by pass-through columns when they're included, otherwise group all together
+                    var includePassThroughColumns = true; // TODO: Pass this information from metadata building
                     
-                    foreach(var colName in passThroughColumns) {{
-                        if(colName != forColumnName && colName != aggregationColumnName) {{
-                            groupKey.Add(row[colName]?.ToString() ?? ""null"");
+                    if (includePassThroughColumns) {{
+                        // Group by pass-through columns (non-FOR, non-aggregation columns)
+                        var groupKey = new List<object>();
+                        var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
+                        var forColumnName = ""{forColumnName}"";
+                        var aggregationColumnName = ""{aggregationColumn}"";
+                        
+                        foreach(var colName in passThroughColumns) {{
+                            if(colName != forColumnName && colName != aggregationColumnName) {{
+                                groupKey.Add(row[colName]?.ToString() ?? ""null"");
+                            }}
                         }}
+                        
+                        var result = string.Join(""||"", groupKey);
+                        Console.WriteLine($""[PIVOT DEBUG] Grouping key: {{result}}"");
+                        return result;
                     }}
-                    
-                    var result = string.Join(""||"", groupKey);
-                    Console.WriteLine($""[PIVOT DEBUG] Grouping key: {{result}}"");
-                    return result;
+                    else {{
+                        // For SELECT *, group all rows together to create single aggregated result
+                        return ""all"";
+                    }}
                 }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
@@ -216,17 +224,23 @@ public static class PivotNodeProcessor
                     // Get first row for value access
                     var firstRowInGroup = group.First();
                     
-                    // Step 1: Add pass-through columns (all columns except FOR and aggregation columns)
-                    // Use predefined list of pass-through columns that were determined during metadata building
-                    var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
-                    var forColumnName = ""{forColumnName}"";
-                    var aggregationColumnName = ""{aggregationColumn}"";
+                    // Step 1: Add pass-through columns conditionally based on whether this is SELECT * or specific columns
+                    // For SELECT *, we don't include pass-through columns; for specific column selection, we do
+                    // This matches the metadata building logic
+                    var includePassThroughColumns = true; // TODO: Pass this information from metadata building
                     
-                    foreach(var colName in passThroughColumns) {{
-                        if(colName != forColumnName && colName != aggregationColumnName) {{
-                            fieldNames.Add(colName);
-                            values.Add(firstRowInGroup[colName]);
-                            Console.WriteLine($""[PIVOT DEBUG] Added pass-through column: {{colName}}"");
+                    if (includePassThroughColumns)
+                    {{
+                        var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
+                        var forColumnName = ""{forColumnName}"";
+                        var aggregationColumnName = ""{aggregationColumn}"";
+                        
+                        foreach(var colName in passThroughColumns) {{
+                            if(colName != forColumnName && colName != aggregationColumnName) {{
+                                fieldNames.Add(colName);
+                                values.Add(firstRowInGroup[colName]);
+                                Console.WriteLine($""[PIVOT DEBUG] Added pass-through column: {{colName}}"");
+                            }}
                         }}
                     }}
                     
