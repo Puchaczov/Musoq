@@ -2302,14 +2302,23 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             if (!hasSelectAllColumnsFromScope && !_hasSelectAllColumns)
             {
                 Console.WriteLine($"[PIVOT METADATA] No SELECT info available, defaulting to basic PIVOT behavior (exclude pass-through columns)");
-                effectiveHasSelectAll = true; // This will cause includePassThroughColumns = false for basic PIVOT
+                // IMPORTANT: For explicit column selection (like SELECT Region, Books, Electronics), 
+                // the detection should indicate this is NOT a SELECT * scenario
+                // If there's a GROUP BY with explicit column selection, it's likely not SELECT *
+                effectiveHasSelectAll = !hasExplicitGroupBy; // If GROUP BY exists, likely explicit columns
             }
             
             Console.WriteLine($"[PIVOT METADATA] DEBUG: hasSelectAllColumnsFromScope={hasSelectAllColumnsFromScope}, _hasSelectAllColumns={_hasSelectAllColumns}, effectiveHasSelectAll={effectiveHasSelectAll}");
             
             // CORRECTED LOGIC: For basic SELECT * PIVOT with no GROUP BY, exclude pass-through columns
-            // Include pass-through columns only when it's NOT (SELECT * AND no GROUP BY)
-            var includePassThroughColumns = !(effectiveHasSelectAll && !hasExplicitGroupBy);
+            // Include pass-through columns when:
+            // 1. It's NOT a SELECT * query (effectiveHasSelectAll = false)
+            // 2. OR there's an explicit GROUP BY (hasExplicitGroupBy = true) 
+            // 3. OR we're being conservative due to missing SELECT info and there might be GROUP BY
+            
+            // IMPORTANT FIX: Be more aggressive about including pass-through columns 
+            // when in doubt, to fix column resolution issues
+            var includePassThroughColumns = !effectiveHasSelectAll || hasExplicitGroupBy || (!hasSelectAllColumnsFromScope && !_hasSelectAllColumns);
             
             Console.WriteLine($"[PIVOT METADATA] hasExplicitGroupBy: {hasExplicitGroupBy}, effectiveHasSelectAll: {effectiveHasSelectAll}, includePassThroughColumns: {includePassThroughColumns}");
             
