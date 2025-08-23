@@ -2583,8 +2583,18 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // Apply PIVOT transformation using PivotNodeProcessor
         try
         {
+            // Retrieve the includePassThroughColumns setting from metadata building phase
+            var pivotConfigKey = $"PivotConfig_{node.Alias}";
+            var includePassThroughColumns = true; // default value
+            if (_scope.ContainsAttribute(pivotConfigKey))
+            {
+                var storedValue = _scope[pivotConfigKey];
+                bool.TryParse(storedValue, out includePassThroughColumns);
+            }
+            Console.WriteLine($"[PIVOT CODEGEN] Retrieved {pivotConfigKey} = {includePassThroughColumns}");
+            
             var pivotResult = PivotNodeProcessor.ProcessPivotNode(
-                node.Pivot, sourceRowsVariable, _scope, node.Alias);
+                node.Pivot, sourceRowsVariable, _scope, node.Alias, includePassThroughColumns);
             
             // Ensure the PIVOT transform statement is a LocalDeclarationStatementSyntax
             LocalDeclarationStatementSyntax pivotStatement;

@@ -470,6 +470,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     public void Visit(AllColumnsNode node)
     {
         _hasSelectAllColumns = true; // Track that this query uses SELECT *
+        Console.WriteLine($"[SELECT DEBUG] AllColumnsNode.Visit called - _hasSelectAllColumns set to true");
         
         var identifier = _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
@@ -2167,9 +2168,33 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var pivotColumns = new List<ISchemaColumn>();
             
             // Add non-aggregated, non-FOR columns from the source (these pass through PIVOT)
-            // Only include these when they're actually needed (not for SELECT * scenarios)
-            var includePassThroughColumns = !_hasSelectAllColumns; // Include pass-through columns only for specific column selection
-            Console.WriteLine($"[PIVOT METADATA] includePassThroughColumns: {includePassThroughColumns} (hasSelectAllColumns: {_hasSelectAllColumns})");
+            // For basic PIVOT scenarios (SELECT * with simple aggregation), typically only pivot columns are needed
+            // For complex scenarios (explicit column selection), pass-through columns are needed
+            
+            // Heuristic: Check if we're in a basic PIVOT scenario
+            // Basic PIVOT: SELECT * with simple aggregation, no complex grouping
+            // Complex PIVOT: Explicit column selection or complex queries
+            
+            var isBasicPivotScenario = true; // Start with assumption of basic PIVOT
+            
+            // If we haven't seen AllColumnsNode yet but _generatedColumns is empty, we're likely in SELECT *
+            var likelySelectAll = _generatedColumns.Count == 0 || 
+                                 _generatedColumns.Values.All(cols => cols.Count == 0);
+            
+            Console.WriteLine($"[PIVOT METADATA] _generatedColumns.Count: {_generatedColumns.Count}");
+            foreach(var kvp in _generatedColumns)
+            {
+                Console.WriteLine($"[PIVOT METADATA] _generatedColumns['{kvp.Key}'] = {kvp.Value.Count} columns");
+            }
+            
+            // For basic PIVOT with SELECT *, don't include pass-through columns
+            var includePassThroughColumns = !likelySelectAll; 
+            
+            // Store the includePassThroughColumns decision for later use in code generation
+            var pivotConfigKey = $"PivotConfig_{node.Alias}";
+            _currentScope[pivotConfigKey] = includePassThroughColumns.ToString();
+            Console.WriteLine($"[PIVOT METADATA] Stored {pivotConfigKey} = {includePassThroughColumns}"); 
+            Console.WriteLine($"[PIVOT METADATA] includePassThroughColumns: {includePassThroughColumns} (likelySelectAll: {likelySelectAll}, _hasSelectAllColumns: {_hasSelectAllColumns})");
             
             if (includePassThroughColumns)
             {

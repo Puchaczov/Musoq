@@ -38,20 +38,22 @@ public static class PivotNodeProcessor
     /// <param name="sourceVariable">Variable name of the source data</param>
     /// <param name="scope">Current scope for symbol resolution</param>
     /// <param name="pivotAlias">The alias used for the PIVOT operation</param>
+    /// <param name="includePassThroughColumns">Whether to include pass-through columns in grouping</param>
     /// <returns>PivotProcessingResult containing generated transformation code</returns>
     /// <exception cref="ArgumentNullException">Thrown when parameters are null</exception>
     public static PivotProcessingResult ProcessPivotNode(
         PivotNode pivotNode,
         string sourceVariable,
         Scope scope,
-        string pivotAlias = null)
+        string pivotAlias = null,
+        bool includePassThroughColumns = true)
     {
         ValidateParameters(pivotNode, sourceVariable, scope);
 
         var pivotTableVariable = $"pivotTable_{Guid.NewGuid():N}";
         var pivotColumns = ExtractPivotColumns(pivotNode);
         var transformStatement = GeneratePivotTransformation(
-            pivotNode, sourceVariable, pivotTableVariable, pivotColumns, pivotAlias);
+            pivotNode, sourceVariable, pivotTableVariable, pivotColumns, pivotAlias, includePassThroughColumns);
 
         return new PivotProcessingResult
         {
@@ -80,7 +82,7 @@ public static class PivotNodeProcessor
             ?? throw new InvalidOperationException("Expected source expression for PIVOT operation");
 
         var sourceVariable = $"source_{Guid.NewGuid():N}";
-        var pivotResult = ProcessPivotNode(pivotFromNode.Pivot, sourceVariable, scope);
+        var pivotResult = ProcessPivotNode(pivotFromNode.Pivot, sourceVariable, scope, null, true);
 
         // Create a statement that declares the source variable
         var sourceDeclaration = SyntaxFactory.VariableDeclaration(
@@ -153,13 +155,15 @@ public static class PivotNodeProcessor
     /// <param name="pivotTableVariable">Target pivot table variable name</param>
     /// <param name="pivotColumns">List of pivot column names</param>
     /// <param name="pivotAlias">The alias used for the PIVOT operation</param>
+    /// <param name="includePassThroughColumns">Whether to include pass-through columns in grouping</param>
     /// <returns>Statement containing the PIVOT transformation logic</returns>
     private static StatementSyntax GeneratePivotTransformation(
         PivotNode pivotNode,
         string sourceVariable,
         string pivotTableVariable,
         List<string> pivotColumns,
-        string pivotAlias = null)
+        string pivotAlias = null,
+        bool includePassThroughColumns = true)
     {
         // Generate actual PIVOT transformation logic
         // This creates C# code that:
@@ -185,12 +189,15 @@ public static class PivotNodeProcessor
         // PIVOT should group by all columns that are not the FOR column or aggregation columns
         var aggregationColumnName = aggregationColumn; // Use the already declared variable
         
+        // Evaluate the boolean to string for code generation
+        var includePassThroughColumnsStr = includePassThroughColumns.ToString().ToLower();
+        
         var pivotCode = $@"
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
                 .GroupBy(row => {{
                     // Group by pass-through columns when they're included, otherwise group all together
-                    var includePassThroughColumns = true; // TODO: Pass this information from metadata building
+                    var includePassThroughColumns = {includePassThroughColumnsStr}; 
                     
                     if (includePassThroughColumns) {{
                         // Group by pass-through columns (non-FOR, non-aggregation columns)
@@ -227,7 +234,7 @@ public static class PivotNodeProcessor
                     // Step 1: Add pass-through columns conditionally based on whether this is SELECT * or specific columns
                     // For SELECT *, we don't include pass-through columns; for specific column selection, we do
                     // This matches the metadata building logic
-                    var includePassThroughColumns = true; // TODO: Pass this information from metadata building
+                    var includePassThroughColumns = {includePassThroughColumnsStr}; 
                     
                     if (includePassThroughColumns)
                     {{
