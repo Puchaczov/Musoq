@@ -261,7 +261,9 @@ public static class PivotNodeProcessor
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, 
                         SyntaxFactory.Literal(aggMethod))),
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                        includePassThroughColumns ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression))
+                        includePassThroughColumns ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression)),
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, 
+                        SyntaxFactory.Literal(columnsLiteral)))
                 })));
 
         var variableDeclaration = SyntaxFactory.VariableDeclaration(
@@ -474,12 +476,29 @@ public static class PivotNodeProcessor
         
         Console.WriteLine($"[PIVOT RUNTIME] Processing {allSourceRows.Count} source rows");
         
-        // Discover all categories from the data
-        var allCategories = allSourceRows
+        // Start with expected categories from IN clause
+        var allCategories = new List<string>();
+        if (!string.IsNullOrEmpty(expectedCategoriesParam))
+        {
+            // Parse the expectedCategoriesParam which is a comma-separated list like "Books", "Electronics", "Fashion"
+            var expectedCategories = expectedCategoriesParam
+                .Split(',')
+                .Select(c => c.Trim().Trim('"'))
+                .Where(c => !string.IsNullOrEmpty(c))
+                .ToList();
+            allCategories.AddRange(expectedCategories);
+            Console.WriteLine($"[PIVOT RUNTIME] Expected categories from IN clause: {string.Join(", ", expectedCategories)}");
+        }
+        
+        // Also discover categories from the data and add any new ones
+        var discoveredCategories = allSourceRows
             .Select(row => row[forColumnName]?.ToString())
             .Where(c => c != null)
             .Distinct()
+            .Where(c => !allCategories.Contains(c))
             .ToList();
+            
+        allCategories.AddRange(discoveredCategories);
             
         Console.WriteLine($"[PIVOT RUNTIME] Discovered categories: {string.Join(", ", allCategories)}");
         
