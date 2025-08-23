@@ -14,15 +14,13 @@ if (isReadmeGenMode)
     Console.WriteLine("📝 Generating README performance section from existing data...");
     try
     {
-        var tracker = new PerformanceTracker();
-        var history = await tracker.LoadHistoryAsync();
-        await tracker.GenerateReadmeReportsAsync(history);
+        var tracker = new SimplePerformanceTracker();
+        await tracker.GenerateReadmeFromExistingDataAsync();
         Console.WriteLine("✅ README components generated successfully!");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"❌ Error: {ex.Message}");
-        Console.WriteLine($"Stack trace: {ex.StackTrace}");
     }
     return;
 }
@@ -80,7 +78,7 @@ static async Task ProcessPerformanceResults(BenchmarkDotNet.Reports.Summary summ
 {
     try
     {
-        var tracker = new PerformanceTracker();
+        var tracker = new SimplePerformanceTracker();
         
         // Find the CSV report file
         var resultsDir = Path.Combine(Directory.GetCurrentDirectory(), "BenchmarkDotNet.Artifacts", "results");

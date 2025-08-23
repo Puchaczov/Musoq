@@ -2,22 +2,17 @@
 
 Musoq query performance is continuously monitored to ensure optimal execution times across different query patterns.
 
-![Performance Benchmarks](./Musoq.Benchmarks/performance-reports/readme-performance-chart.png)
-
 ### Current Performance Summary
 
 | Query Type | Execution Time | Status |
 |------------|----------------|--------|
-| Sequential Query | 68.3ms | 🔄 Stable |
-| Parallel Query | 34.0ms | 🔄 Stable |
-
-*Last updated: 2025-08-23 17:12 UTC*
+*Last updated: 2025-08-23 17:21 UTC*
 
 ### Detailed Performance Analysis
 
 For comprehensive performance analysis including:
-- Historical trends and performance graphs
-- Detailed execution statistics and error margins
+- Historical trends and performance data
+- Detailed execution statistics
 - Performance regression detection
 - Environment-specific benchmarks
 

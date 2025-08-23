@@ -54,76 +54,21 @@ jobs:
           Musoq.Benchmarks/performance-reports/
           Musoq.Benchmarks/performance-data/
         retention-days: 90
-    
-    - name: Upload Benchmark Artifacts
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: benchmark-artifacts
-        path: Musoq.Benchmarks/BenchmarkDotNet.Artifacts/
-        retention-days: 30
-        
-    - name: Comment Performance Results
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          const path = require('path');
-          
-          // Try to read performance data
-          const dataPath = 'Musoq.Benchmarks/performance-data/performance-history.json';
-          if (fs.existsSync(dataPath)) {
-            const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
             
-            let comment = '## 📊 Performance Benchmark Results\n\n';
-            comment += `**Run Date:** ${new Date().toISOString()}\n`;
-            comment += `**Commit:** ${context.sha}\n\n`;
-            
-            let hasData = false;
-            for (const [benchmarkName, results] of Object.entries(data.benchmarks)) {
-              if (results.length >= 2) {
-                hasData = true;
-                const latest = results[results.length - 1];
-                const previous = results[results.length - 2];
-                const changePercent = ((latest.mean - previous.mean) / previous.mean) * 100;
-                const changeIcon = changePercent < -5 ? '🚀' : changePercent > 5 ? '🐌' : '🔄';
-                
-                comment += `### ${changeIcon} ${benchmarkName}\n`;
-                comment += `- **Current:** ${latest.mean.toFixed(2)}ms\n`;
-                comment += `- **Previous:** ${previous.mean.toFixed(2)}ms\n`;
-                comment += `- **Change:** ${changePercent > 0 ? '+' : ''}${changePercent.toFixed(1)}%\n\n`;
-              }
-            }
-            
-            if (!hasData) {
-              comment += 'No historical data available for comparison.\n';
-            }
-            
-            comment += '\n📈 [View detailed performance report in artifacts]';
-            
-            github.rest.repos.createCommitComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-              body: comment
-            });
-          }
-            
-    - name: Commit Performance Charts to Repository
+    - name: Commit Performance Data to Repository
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # Add performance charts and README section
-        git add Musoq.Benchmarks/performance-reports/readme-performance-chart.png || true
+        # Add performance data and README section
         git add Musoq.Benchmarks/performance-reports/performance-section.md || true
+        git add Musoq.Benchmarks/performance-data/ || true
         
         # Check if there are changes to commit
         if ! git diff --staged --quiet; then
-          git commit -m "Update performance charts and README section [skip ci]"
+          git commit -m "Update performance data [skip ci]"
           git push
         else
-          echo "No performance chart changes to commit"
+          echo "No performance data changes to commit"
         fi
