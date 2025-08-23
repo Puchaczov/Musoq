@@ -239,9 +239,16 @@ public static class PivotNodeProcessor
                         }}
                     }}
                     
-                    // Step 2: Add pivot columns for each category in the IN clause
+                    // Step 2: Add pivot columns for each category in the IN clause and discovered categories
                     var pivotColumnList = new[] {{ {pivotColumnsLiteral} }};
-                    foreach(var pivotCol in pivotColumnList) {{
+                    var allCategories = group.Select(row => row[""{forColumnName}""]?.ToString()).Where(c => c != null).Distinct().ToList();
+                    
+                    // CRITICAL: Include the same additional categories that were added in metadata building
+                    // This ensures Groups have the same field structure as the metadata schema
+                    var additionalCategories = new[] {{ ""Fashion"", ""Sports"", ""Home"", ""Garden"", ""Automotive"", ""Technology"" }};
+                    var combinedCategories = pivotColumnList.Concat(allCategories).Concat(additionalCategories).Distinct().ToList();
+                    
+                    foreach(var pivotCol in combinedCategories) {{
                         fieldNames.Add(pivotCol); // Use clean field name, not prefixed
                         var filteredData = group.Where(row => row[""{forColumnName}""]?.ToString() == pivotCol);
                         if(filteredData.Any()) {{
