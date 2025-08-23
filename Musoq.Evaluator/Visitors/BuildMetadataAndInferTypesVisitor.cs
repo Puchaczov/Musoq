@@ -2298,15 +2298,47 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var effectiveHasSelectAll = hasSelectAllColumnsFromScope || _hasSelectAllColumns;
             
             // PROCESSING ORDER ISSUE: When no SELECT information is available, we need to make a sensible default.
-            // For basic PIVOT scenarios (effectively SELECT *), exclude pass-through columns (SQL PIVOT standard behavior)
-            // Only include pass-through columns when we have explicit column selection with GROUP BY
+            // SMART HEURISTIC: Use contextual clues to determine if this is likely SELECT * or explicit column selection
             if (!hasSelectAllColumnsFromScope && !_hasSelectAllColumns)
             {
-                Console.WriteLine($"[PIVOT METADATA] No SELECT info available, defaulting to basic PIVOT behavior (exclude pass-through columns)");
-                // IMPORTANT: For explicit column selection (like SELECT Region, Books, Electronics), 
-                // the detection should indicate this is NOT a SELECT * scenario
-                // If there's a GROUP BY with explicit column selection, it's likely not SELECT *
-                effectiveHasSelectAll = !hasExplicitGroupBy; // If GROUP BY exists, likely explicit columns
+                Console.WriteLine($"[PIVOT METADATA] No SELECT info available, using SMART HEURISTICS to determine column inclusion");
+                
+                // HEURISTIC 1: Check if there are contextual clues suggesting explicit column selection
+                // Look for indicators like GROUP BY fields, ORDER BY hints, etc.
+                var hasContextCluesForExplicitColumns = false;
+                
+                // Check if GROUP BY exists (strong indicator of explicit column selection)
+                if (hasExplicitGroupBy)
+                {
+                    hasContextCluesForExplicitColumns = true;
+                    Console.WriteLine($"[PIVOT METADATA] GROUP BY detected - likely explicit column selection");
+                }
+                
+                // HEURISTIC 2: Look for ORDER BY hints in scope (if stored by other visitors)
+                try
+                {
+                    if (_currentScope != null && _currentScope.ContainsAttribute("HasOrderBy"))
+                    {
+                        hasContextCluesForExplicitColumns = true;
+                        Console.WriteLine($"[PIVOT METADATA] ORDER BY hint detected - likely explicit column selection");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[PIVOT METADATA] Cannot check OrderBy hint: {ex.Message}");
+                }
+                
+                // DECISION LOGIC: Default to basic PIVOT (SELECT *) behavior unless context suggests otherwise
+                if (hasContextCluesForExplicitColumns)
+                {
+                    effectiveHasSelectAll = false; // Explicit columns - include pass-through columns
+                    Console.WriteLine($"[PIVOT METADATA] Context clues suggest explicit columns - including pass-through columns");
+                }
+                else
+                {
+                    effectiveHasSelectAll = true; // Basic PIVOT - exclude pass-through columns  
+                    Console.WriteLine($"[PIVOT METADATA] No context clues - assuming basic SELECT * PIVOT (exclude pass-through columns)");
+                }
             }
             
             Console.WriteLine($"[PIVOT METADATA] DEBUG: hasSelectAllColumnsFromScope={hasSelectAllColumnsFromScope}, _hasSelectAllColumns={_hasSelectAllColumns}, effectiveHasSelectAll={effectiveHasSelectAll}");

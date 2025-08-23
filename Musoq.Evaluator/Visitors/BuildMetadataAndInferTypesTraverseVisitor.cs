@@ -800,6 +800,13 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(OrderByNode node)
     {
+        // Store ORDER BY hint in scope for PIVOT processing
+        if (Scope != null)
+        {
+            Scope["HasOrderBy"] = "true";
+            Console.WriteLine($"[ORDER BY DEBUG] Stored HasOrderBy hint in scope: {Scope.Name}");
+        }
+        
         foreach (var field in node.Fields)
             field.Accept(this);
 
