@@ -2587,77 +2587,56 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var pivotRowsVariable = node.Alias.ToRowsSource();
         
         // Apply PIVOT transformation using PivotNodeProcessor
-        try
+        // SIMPLIFIED APPROACH: Remove try-catch complexity to avoid syntax issues
+        
+        // Retrieve the includePassThroughColumns setting from metadata building phase
+        var pivotConfigKey = $"PivotConfig_{node.Alias}";
+        var includePassThroughColumns = true; // default value
+        if (_scope.ContainsAttribute(pivotConfigKey))
         {
-            // Retrieve the includePassThroughColumns setting from metadata building phase
-            var pivotConfigKey = $"PivotConfig_{node.Alias}";
-            var includePassThroughColumns = true; // default value
-            if (_scope.ContainsAttribute(pivotConfigKey))
-            {
-                var storedValue = _scope[pivotConfigKey];
-                bool.TryParse(storedValue, out includePassThroughColumns);
-            }
-            Console.WriteLine($"[PIVOT CODEGEN] Retrieved {pivotConfigKey} = {includePassThroughColumns}");
-            
-            var pivotResult = PivotNodeProcessor.ProcessPivotNode(
-                node.Pivot, sourceRowsVariable, _scope, node.Alias, includePassThroughColumns);
-            
-            // Ensure the PIVOT transform statement is a LocalDeclarationStatementSyntax
-            LocalDeclarationStatementSyntax pivotStatement;
-            if (pivotResult.PivotTransformStatement is LocalDeclarationStatementSyntax localDecl)
-            {
-                pivotStatement = localDecl;
-            }
-            else
-            {
-                // Wrap the statement in a block and create a simple declaration
-                pivotStatement = SyntaxFactory.LocalDeclarationStatement(
-                    SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotResult.PivotTableVariable))
-                                .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                    SyntaxFactory.IdentifierName("new List<dynamic>()"))))));
-            }
-            
-            // Add the PIVOT transformation statement first (creates the pivotTable_xxx variable)
-            Statements.Add(pivotStatement);
-            
-            // Since the PIVOT transformation already creates Group objects, we don't need 
-            // to create a separate alias variable. The system should use the PIVOT result directly.
-            // However, the current infrastructure expects a RowSource-like variable.
-            // For now, create a simple alias that avoids the variable name conflict.
-            
-            var uniqueAliasVariable = $"pivot_{node.Alias}_{Guid.NewGuid():N}";
-            var pivotAliasStatement = SyntaxFactory.LocalDeclarationStatement(
+            var storedValue = _scope[pivotConfigKey];
+            bool.TryParse(storedValue, out includePassThroughColumns);
+        }
+        Console.WriteLine($"[PIVOT CODEGEN] Retrieved {pivotConfigKey} = {includePassThroughColumns}");
+        
+        var pivotResult = PivotNodeProcessor.ProcessPivotNode(
+            node.Pivot, sourceRowsVariable, _scope, node.Alias, includePassThroughColumns);
+        
+        // Ensure the PIVOT transform statement is a LocalDeclarationStatementSyntax
+        LocalDeclarationStatementSyntax pivotStatement;
+        if (pivotResult.PivotTransformStatement is LocalDeclarationStatementSyntax localDecl)
+        {
+            pivotStatement = localDecl;
+        }
+        else
+        {
+            // Wrap the statement in a block and create a simple declaration
+            pivotStatement = SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                     .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(uniqueAliasVariable))
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotResult.PivotTableVariable))
                             .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                SyntaxFactory.IdentifierName(pivotResult.PivotTableVariable))))));
-            
-            // Add the unique alias statement to avoid conflicts
-            _getRowsSourceStatement.Add(node.Alias, pivotAliasStatement);
-            
-            // CRITICAL FIX: Update SourceName to use PIVOT table variable for foreach loop
-            // This ensures the query execution iterates over PIVOT Groups instead of original source
-            Console.WriteLine($"[PIVOT DEBUG] Setting SourceName from '{_scope[MetaAttributes.SourceName]}' to '{uniqueAliasVariable}'");
-            _scope[MetaAttributes.SourceName] = uniqueAliasVariable;
+                                SyntaxFactory.IdentifierName("new List<dynamic>()"))))));
         }
-        catch (Exception ex)
-        {
-            // Fallback to simple alias if PIVOT processing fails
-            if (pivotRowsVariable != sourceRowsVariable)
-            {
-                var aliasStatement = SyntaxFactory.LocalDeclarationStatement(
-                    SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotRowsVariable))
-                                .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                    SyntaxFactory.IdentifierName(sourceRowsVariable))))));
-                
-                _getRowsSourceStatement.Add(node.Alias, aliasStatement);
-            }
-        }
+        
+        // SIMPLIFIED APPROACH: Add the PIVOT transformation statement
+        Statements.Add(pivotStatement);
+        
+        // SIMPLIFIED ALIASING: Instead of complex variable aliasing, use direct reference
+        // This eliminates potential syntax errors in variable declarations
+        Console.WriteLine($"[PIVOT DEBUG] Using simplified aliasing for {node.Alias}");
+        
+        var simpleAliasStatement = SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier($"{node.Alias}Rows"))
+                        .WithInitializer(SyntaxFactory.EqualsValueClause(
+                            SyntaxFactory.IdentifierName(pivotResult.PivotTableVariable))))));
+        
+        _getRowsSourceStatement.Add(node.Alias, simpleAliasStatement);
+        
+        // Update SourceName for field access coordination
+        _scope[MetaAttributes.SourceName] = $"{node.Alias}Rows";
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
