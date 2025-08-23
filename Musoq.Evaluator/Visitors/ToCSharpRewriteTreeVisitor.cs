@@ -556,17 +556,23 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         };
 
         // Check if we're in a PIVOT context
-        // We only use GetValue() for direct Group access with prefixed field names (like "p.Region")
-        // When PIVOT Groups are converted to IObjectResolver (via OrderBy), use regular array access
-        var isPivotContext = (_scope.ContainsAttribute(MetaAttributes.SourceName) && 
-                           _scope[MetaAttributes.SourceName].StartsWith("pivot_")) &&
-                           (node.Name.Contains(".") && node.Name.Split('.').Length == 2) &&
+        // Use the PivotConfig attribute to detect PIVOT context instead of relying on SourceName
+        // This is more reliable since SourceName can be overridden by GROUP BY processing
+        var isPivotContext = false;
+        if (node.Name.Contains(".") && node.Name.Split('.').Length == 2)
+        {
+            var aliasPrefix = node.Name.Split('.')[0];
+            var pivotConfigKey = $"PivotConfig_{aliasPrefix}";
+            isPivotContext = _scope.ContainsAttribute(pivotConfigKey) && 
                            (_type == MethodAccessType.ResultQuery || _type == MethodAccessType.TransformingQuery);
+        }
         
         // DEBUG: Log the context information to understand why PIVOT detection might fail
         if (node.Name.Contains("p."))
         {
-            Console.WriteLine($"[PIVOT DEBUG] AccessColumnNode - Field: {node.Name}, SourceName: {(_scope.ContainsAttribute(MetaAttributes.SourceName) ? _scope[MetaAttributes.SourceName] : "NONE")}, IsPivotContext: {isPivotContext}, MethodType: {_type}");
+            var aliasPrefix = node.Name.Split('.')[0];
+            var pivotConfigKey = $"PivotConfig_{aliasPrefix}";
+            Console.WriteLine($"[PIVOT DEBUG] AccessColumnNode - Field: {node.Name}, SourceName: {(_scope.ContainsAttribute(MetaAttributes.SourceName) ? _scope[MetaAttributes.SourceName] : "NONE")}, PivotConfig: {(_scope.ContainsAttribute(pivotConfigKey) ? _scope[pivotConfigKey] : "NONE")}, IsPivotContext: {isPivotContext}, MethodType: {_type}");
         }
 
         ExpressionSyntax sNode;

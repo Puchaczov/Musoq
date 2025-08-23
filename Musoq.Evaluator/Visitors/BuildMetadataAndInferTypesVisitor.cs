@@ -2084,16 +2084,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                         }
                     }
                     
-                    // ENHANCEMENT: Add commonly found categories that might not be in IN clause
-                    // This handles the case where test data has categories not in IN clause
-                    var commonCategories = new[] { "Fashion" }; // Only add Fashion for test compatibility
-                    foreach (var category in commonCategories)
-                    {
-                        if (!allPossibleCategories.Contains(category))
-                        {
-                            allPossibleCategories.Add(category);
-                        }
-                    }
+                    // Categories from IN clause are sufficient for PIVOT operation
+                    // No need to add additional categories beyond what's explicitly specified
                     
                     // Create schema columns for all possible categories
                     int columnIndex = 0;
@@ -2175,27 +2167,22 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // Basic PIVOT: SELECT * with simple aggregation, no complex grouping
             // Complex PIVOT: Explicit column selection or complex queries
             
-            var isBasicPivotScenario = true; // Start with assumption of basic PIVOT
+            // Determine if this is a basic SELECT * PIVOT scenario or an explicit column selection with GROUP BY
+            // Key logic: For SELECT * PIVOT without explicit GROUP BY, only return pivot columns
+            // For PIVOT with explicit GROUP BY or column selection, include pass-through columns
+            var hasExplicitGroupBy = _groupByFields.Count > 0;
             
-            // Temporary heuristic: Check if this is likely a SELECT * scenario vs explicit column selection
-            // This is a simplified approach until we have better AST analysis
-            // Key insight: If the test expects only pivot columns, it's likely SELECT *
-            // If it expects pass-through columns too, it's likely explicit selection
+            // For basic SELECT * PIVOT without GROUP BY, don't include pass-through columns
+            // This creates a clean aggregated result with only pivot columns
+            var includePassThroughColumns = hasExplicitGroupBy;
             
-            // For now, use a simple heuristic based on known test patterns:
-            // - BasicPivotWithSum expects 3 columns (pivot only) -> SELECT *
-            // - PivotWithOrderBy expects 4 columns (pass-through + pivot) -> explicit selection
-            
-            // Better approach: Always include pass-through columns in metadata for safety,
-            // but control grouping behavior in code generation
-            var includePassThroughColumns = true; // Always include for metadata safety
+            Console.WriteLine($"[PIVOT METADATA] hasExplicitGroupBy: {hasExplicitGroupBy}, includePassThroughColumns: {includePassThroughColumns}");
             
             // Store additional hint about whether this might be a SELECT * scenario
-            // This can be refined with better detection logic later
-            var mightBeSelectAll = true; // Default assumption for now
-            _currentScope[$"PivotSelectAllHint_{node.Alias}"] = mightBeSelectAll.ToString();
+            var isBasicPivotScenario = !hasExplicitGroupBy;
+            _currentScope[$"PivotSelectAllHint_{node.Alias}"] = isBasicPivotScenario.ToString();
             
-            Console.WriteLine($"[PIVOT METADATA] includePassThroughColumns: {includePassThroughColumns} (metadata safety mode)"); 
+            Console.WriteLine($"[PIVOT METADATA] includePassThroughColumns: {includePassThroughColumns} (based on GROUP BY detection)"); 
             
             // Store the includePassThroughColumns decision for later use in code generation
             var pivotConfigKey = $"PivotConfig_{node.Alias}";

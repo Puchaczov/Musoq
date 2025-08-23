@@ -131,18 +131,6 @@ public static class PivotNodeProcessor
             }
         }
 
-        // CRITICAL FIX: Add additional categories that the metadata building includes
-        // to ensure runtime and metadata are coordinated
-        var additionalCategories = new[] { "Fashion" }; // Match BuildMetadataAndInferTypesVisitor
-        foreach (var categoryName in additionalCategories)
-        {
-            // Only add if not already in IN clause
-            if (!columns.Any(col => col == categoryName))
-            {
-                columns.Add(categoryName);
-            }
-        }
-
         return columns;
     }
 
