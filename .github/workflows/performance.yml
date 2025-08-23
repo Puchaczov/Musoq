@@ -3,7 +3,10 @@ name: Performance Tracking
 on:
   push:
     branches:
-      - master
+      - '**'  # Run on all branches
+  pull_request:
+    branches:
+      - '**'  # Run on all pull requests
   workflow_dispatch:
     inputs:
       benchmark_type:
@@ -14,6 +17,7 @@ on:
         options:
         - standard
         - extended
+        - compilation
 
 jobs:
   performance-benchmarks:
@@ -36,7 +40,9 @@ jobs:
     - name: Run Performance Benchmarks
       run: |
         cd Musoq.Benchmarks
-        if [ "${{ github.event.inputs.benchmark_type }}" = "extended" ]; then
+        if [ "${{ github.event.inputs.benchmark_type }}" = "compilation" ]; then
+          dotnet run --configuration Release -- --track-performance --compilation
+        elif [ "${{ github.event.inputs.benchmark_type }}" = "extended" ]; then
           dotnet run --configuration Release -- --track-performance --extended
         else
           dotnet run --configuration Release -- --track-performance
@@ -67,7 +73,7 @@ jobs:
         
         # Check if there are changes to commit
         if ! git diff --staged --quiet; then
-          git commit -m "Update performance data [skip ci]"
+          git commit -m "Update performance data for branch ${{ github.ref_name }} [skip ci]"
           git push
         else
           echo "No performance data changes to commit"

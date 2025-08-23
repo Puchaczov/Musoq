@@ -7,6 +7,7 @@ using Musoq.Benchmarks.Performance;
 var commandArgs = Environment.GetCommandLineArgs();
 var isPerformanceTrackingMode = commandArgs.Contains("--track-performance");
 var isExtendedBenchmarks = commandArgs.Contains("--extended");
+var isCompilationBenchmarks = commandArgs.Contains("--compilation");
 var isReadmeGenMode = commandArgs.Contains("--readme-gen");
 
 if (isReadmeGenMode)
@@ -32,7 +33,12 @@ if (isPerformanceTrackingMode)
     // Use default config which includes CSV export
     var config = DefaultConfig.Instance;
 
-    if (isExtendedBenchmarks)
+    if (isCompilationBenchmarks)
+    {
+        var summary = BenchmarkRunner.Run<CompilationBenchmark>(config);
+        await ProcessPerformanceResults(summary);
+    }
+    else if (isExtendedBenchmarks)
     {
         var summary = BenchmarkRunner.Run<ExtendedExecutionBenchmark>(config);
         await ProcessPerformanceResults(summary);
@@ -47,7 +53,15 @@ else
 {
     // Run benchmarks normally
 #if DEBUG
-    if (isExtendedBenchmarks)
+    if (isCompilationBenchmarks)
+    {
+        BenchmarkRunner.Run<CompilationBenchmark>(
+            new DebugInProcessConfig().AddFilter(
+                new NameFilter(name => name.Contains(nameof(CompilationBenchmark.CompileSimpleQuery_Profiles)))
+            )
+        );
+    }
+    else if (isExtendedBenchmarks)
     {
         BenchmarkRunner.Run<ExtendedExecutionBenchmark>(
             new DebugInProcessConfig().AddFilter(
@@ -63,7 +77,11 @@ else
         );
     }
 #else
-    if (isExtendedBenchmarks)
+    if (isCompilationBenchmarks)
+    {
+        BenchmarkRunner.Run<CompilationBenchmark>();
+    }
+    else if (isExtendedBenchmarks)
     {
         BenchmarkRunner.Run<ExtendedExecutionBenchmark>();
     }
