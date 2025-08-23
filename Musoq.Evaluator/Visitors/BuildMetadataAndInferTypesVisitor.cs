@@ -2248,12 +2248,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // ENHANCED HEURISTIC: Use scope-stored SELECT * information if available, fallback to instance variable
             var effectiveHasSelectAll = hasSelectAllColumnsFromScope || _hasSelectAllColumns;
             
-            // TEMPORARY FIX: If no explicit GROUP BY and scope information failed, assume basic SELECT * PIVOT
-            // This handles the processing order issue where PIVOT is processed before SELECT
-            if (!hasExplicitGroupBy && !hasSelectAllColumnsFromScope && !_hasSelectAllColumns)
+            // PROCESSING ORDER ISSUE: When no SELECT information is available, we need to make a sensible default.
+            // For now, prefer including pass-through columns when in doubt to avoid column resolution failures.
+            if (!hasSelectAllColumnsFromScope && !_hasSelectAllColumns)
             {
-                Console.WriteLine($"[PIVOT METADATA] Assuming SELECT * scenario due to no GROUP BY and no SELECT info available yet");
-                effectiveHasSelectAll = true;
+                Console.WriteLine($"[PIVOT METADATA] No SELECT info available, defaulting to include pass-through columns to avoid resolution errors");
+                effectiveHasSelectAll = false; // This will cause includePassThroughColumns = true
             }
             
             Console.WriteLine($"[PIVOT METADATA] DEBUG: hasSelectAllColumnsFromScope={hasSelectAllColumnsFromScope}, _hasSelectAllColumns={_hasSelectAllColumns}, effectiveHasSelectAll={effectiveHasSelectAll}");
