@@ -1,0 +1,135 @@
+{
+  "lastUpdated": "2025-08-23T17:08:21.1945232Z",
+  "benchmarks": {
+    "ComputeSimpleSelect_WithParallelization_10MbOfData_Profiles": [
+      {
+        "method": "ComputeSimpleSelect_WithParallelization_10MbOfData_Profiles",
+        "mean": 33.24,
+        "error": 0.63,
+        "stdDev": 1.382,
+        "min": 0.0,
+        "max": 0.0,
+        "median": 0.0,
+        "unit": "ms",
+        "timestamp": "2025-08-23T16:45:06.0396459Z",
+        "commitHash": "b81d133e9d2ee9ae56dd58ca9119ed36f9f82a13",
+        "branch": "copilot/fix-3ae72244-15c9-452c-b0a5-8550a38d582f",
+        "environment": {
+          "runtime": ".NET 8.0.19",
+          "platform": "Ubuntu 24.04.2 LTS",
+          "processorName": "Unknown",
+          "logicalCores": 4,
+          "physicalCores": 2,
+          "gcMode": "Workstation"
+        }
+      },
+      {
+        "method": "ComputeSimpleSelect_WithParallelization_10MbOfData_Profiles",
+        "mean": 32.86,
+        "error": 0.655,
+        "stdDev": 0.851,
+        "min": 0.0,
+        "max": 0.0,
+        "median": 0.0,
+        "unit": "ms",
+        "timestamp": "2025-08-23T16:48:06.3883008Z",
+        "commitHash": "b81d133e9d2ee9ae56dd58ca9119ed36f9f82a13",
+        "branch": "copilot/fix-3ae72244-15c9-452c-b0a5-8550a38d582f",
+        "environment": {
+          "runtime": ".NET 8.0.19",
+          "platform": "Ubuntu 24.04.2 LTS",
+          "processorName": "Unknown",
+          "logicalCores": 4,
+          "physicalCores": 2,
+          "gcMode": "Workstation"
+        }
+      },
+      {
+        "method": "ComputeSimpleSelect_WithParallelization_10MbOfData_Profiles",
+        "mean": 34.05,
+        "error": 0.666,
+        "stdDev": 1.218,
+        "min": 0.0,
+        "max": 0.0,
+        "median": 0.0,
+        "unit": "ms",
+        "timestamp": "2025-08-23T17:08:21.1009647Z",
+        "commitHash": "83a8eaecd77e81637cfedd7707d265c692700eba",
+        "branch": "copilot/fix-3ae72244-15c9-452c-b0a5-8550a38d582f",
+        "environment": {
+          "runtime": ".NET 8.0.19",
+          "platform": "Ubuntu 24.04.2 LTS",
+          "processorName": "Unknown",
+          "logicalCores": 4,
+          "physicalCores": 2,
+          "gcMode": "Workstation"
+        }
+      }
+    ],
+    "ComputeSimpleSelect_WithoutParallelization_10MbOfData_Profiles": [
+      {
+        "method": "ComputeSimpleSelect_WithoutParallelization_10MbOfData_Profiles",
+        "mean": 70.87,
+        "error": 1.084,
+        "stdDev": 1.014,
+        "min": 0.0,
+        "max": 0.0,
+        "median": 0.0,
+        "unit": "ms",
+        "timestamp": "2025-08-23T16:45:06.0402393Z",
+        "commitHash": "b81d133e9d2ee9ae56dd58ca9119ed36f9f82a13",
+        "branch": "copilot/fix-3ae72244-15c9-452c-b0a5-8550a38d582f",
+        "environment": {
+          "runtime": ".NET 8.0.19",
+          "platform": "Ubuntu 24.04.2 LTS",
+          "processorName": "Unknown",
+          "logicalCores": 4,
+          "physicalCores": 2,
+          "gcMode": "Workstation"
+        }
+      },
+      {
+        "method": "ComputeSimpleSelect_WithoutParallelization_10MbOfData_Profiles",
+        "mean": 70.77,
+        "error": 0.754,
+        "stdDev": 0.705,
+        "min": 0.0,
+        "max": 0.0,
+        "median": 0.0,
+        "unit": "ms",
+        "timestamp": "2025-08-23T16:48:06.388831Z",
+        "commitHash": "b81d133e9d2ee9ae56dd58ca9119ed36f9f82a13",
+        "branch": "copilot/fix-3ae72244-15c9-452c-b0a5-8550a38d582f",
+        "environment": {
+          "runtime": ".NET 8.0.19",
+          "platform": "Ubuntu 24.04.2 LTS",
+          "processorName": "Unknown",
+          "logicalCores": 4,
+          "physicalCores": 2,
+          "gcMode": "Workstation"
+        }
+      },
+      {
+        "method": "ComputeSimpleSelect_WithoutParallelization_10MbOfData_Profiles",
+        "mean": 68.29,
+        "error": 0.662,
+        "stdDev": 0.587,
+        "min": 0.0,
+        "max": 0.0,
+        "median": 0.0,
+        "unit": "ms",
+        "timestamp": "2025-08-23T17:08:21.1014787Z",
+        "commitHash": "83a8eaecd77e81637cfedd7707d265c692700eba",
+        "branch": "copilot/fix-3ae72244-15c9-452c-b0a5-8550a38d582f",
+        "environment": {
+          "runtime": ".NET 8.0.19",
+          "platform": "Ubuntu 24.04.2 LTS",
+          "processorName": "Unknown",
+          "logicalCores": 4,
+          "physicalCores": 2,
+          "gcMode": "Workstation"
+        }
+      }
+    ]
+  }
+}

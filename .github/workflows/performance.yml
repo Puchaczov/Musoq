@@ -1,0 +1,80 @@
+name: Performance Tracking
+
+on:
+  push:
+    branches:
+      - '**'  # Run on all branches
+  pull_request:
+    branches:
+      - '**'  # Run on all pull requests
+  workflow_dispatch:
+    inputs:
+      benchmark_type:
+        description: 'Type of benchmarks to run'
+        required: false
+        default: 'standard'
+        type: choice
+        options:
+        - standard
+        - extended
+        - compilation
+
+jobs:
+  performance-benchmarks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Run Performance Benchmarks
+      run: |
+        cd Musoq.Benchmarks
+        if [ "${{ github.event.inputs.benchmark_type }}" = "compilation" ]; then
+          dotnet run --configuration Release -- --track-performance --compilation
+        elif [ "${{ github.event.inputs.benchmark_type }}" = "extended" ]; then
+          dotnet run --configuration Release -- --track-performance --extended
+        else
+          dotnet run --configuration Release -- --track-performance
+        fi
+      env:
+        GITHUB_SHA: ${{ github.sha }}
+        GITHUB_REF_NAME: ${{ github.ref_name }}
+    
+    - name: Upload Performance Reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-reports
+        path: |
+          Musoq.Benchmarks/performance-reports/
+          Musoq.Benchmarks/performance-data/
+        retention-days: 90
+            
+    - name: Commit Performance Data to Repository
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add performance data and README section
+        git add Musoq.Benchmarks/performance-reports/performance-section.md || true
+        git add Musoq.Benchmarks/performance-data/ || true
+        
+        # Check if there are changes to commit
+        if ! git diff --staged --quiet; then
+          git commit -m "Update performance data for branch ${{ github.ref_name }} [skip ci]"
+          git push
+        else
+          echo "No performance data changes to commit"
+        fi
