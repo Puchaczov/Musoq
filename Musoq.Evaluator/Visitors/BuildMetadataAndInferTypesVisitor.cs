@@ -93,7 +93,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     private int _setKey;
     private int _schemaFromKey;
     private uint _positionalEnvironmentVariablesKey;
-    private Scope _currentScope;
+    private Scope _currentScope = new Scope(null, -1, "Initial");
     internal string _identifier;
     private string _queryAlias;
     private IdentifierNode _theMostInnerIdentifier;
@@ -387,6 +387,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
         try
         {
+            if (_currentScope == null)
+            {
+                throw VisitorException.CreateForProcessingFailure(
+                    VisitorName,
+                    nameof(Visit) + nameof(AccessColumnNode),
+                    "Current scope is null",
+                    "Ensure the visitor is properly initialized with SetScope before processing nodes."
+                );
+            }
+            
             var hasProcessedQueryId = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
             var identifier = (hasProcessedQueryId
                 ? _currentScope[MetaAttributes.ProcessedQueryId]
@@ -473,20 +483,34 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Console.WriteLine($"[SELECT DEBUG] AllColumnsNode.Visit called - _hasSelectAllColumns set to true");
         
         // Store in scope so it persists across visitor instances
-        _currentScope["HasSelectAllColumns"] = "true";
-        Console.WriteLine($"[SELECT DEBUG] Stored HasSelectAllColumns=true in scope");
+        if (_currentScope != null)
+        {
+            _currentScope["HasSelectAllColumns"] = "true";
+            Console.WriteLine($"[SELECT DEBUG] Stored HasSelectAllColumns=true in scope");
+        }
+        else
+        {
+            Console.WriteLine($"[SELECT DEBUG] Cannot store HasSelectAllColumns - _currentScope is null");
+        }
         
         var identifier = _identifier;
-        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
+        if (_currentScope != null)
+        {
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
-        if (!string.IsNullOrWhiteSpace(node.Alias) /* r.* */ ||
-            (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) /* * from #abc.cda() */)
-        {
-            ProcessSingleTable(node, tableSymbol, identifier);
+            if (!string.IsNullOrWhiteSpace(node.Alias) /* r.* */ ||
+                (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) /* * from #abc.cda() */)
+            {
+                ProcessSingleTable(node, tableSymbol, identifier);
+            }
+            else if (tableSymbol.IsCompoundTable)
+            {
+                ProcessCompoundTable(tableSymbol);
+            }
         }
-        else if (tableSymbol.IsCompoundTable)
+        else
         {
-            ProcessCompoundTable(tableSymbol);
+            Console.WriteLine($"[SELECT DEBUG] Cannot process table symbol - _currentScope is null");
         }
 
         Nodes.Push(node);
@@ -1056,7 +1080,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         var environmentVariables =
             RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode);
-        var isDesc = _currentScope.Name == "Desc";
+        var isDesc = _currentScope?.Name == "Desc";
         var table = !isDesc ? schema.GetTableByName(
             node.Method,
             new RuntimeContext(
@@ -1076,10 +1100,17 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         AddAssembly(schema.GetType().Assembly);
 
         var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
-        _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
-        
-        _currentScope[node.Id] = _queryAlias;
-        _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_queryAlias);
+        if (_currentScope != null)
+        {
+            _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
+            
+            _currentScope[node.Id] = _queryAlias;
+            _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_queryAlias);
+        }
+        else
+        {
+            Console.WriteLine($"[SCHEMA DEBUG] Cannot add table symbol - _currentScope is null");
+        }
 
         _aliasToSchemaFromNodeMap.Add(_queryAlias, aliasedSchemaFromNode);
 
@@ -1542,6 +1573,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     public void SetScope(Scope scope)
     {
         _currentScope = scope;
+        if (_currentScope == null)
+        {
+            Console.WriteLine("[SCOPE DEBUG] Warning: SetScope called with null scope, creating default scope");
+            _currentScope = new Scope(null, -1, "Default");
+        }
     }
 
     protected virtual IReadOnlyDictionary<string, string> RetrieveEnvironmentVariables(uint position, SchemaFromNode node)
@@ -2238,9 +2274,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var hasSelectAllColumnsFromScope = false;
             try
             {
-                var scopeValue = _currentScope["HasSelectAllColumns"];
-                hasSelectAllColumnsFromScope = scopeValue == "true";
-                Console.WriteLine($"[PIVOT METADATA] Scope HasSelectAllColumns value: '{scopeValue}' → {hasSelectAllColumnsFromScope}");
+                if (_currentScope != null)
+                {
+                    var scopeValue = _currentScope["HasSelectAllColumns"];
+                    hasSelectAllColumnsFromScope = scopeValue == "true";
+                    Console.WriteLine($"[PIVOT METADATA] Scope HasSelectAllColumns value: '{scopeValue}' → {hasSelectAllColumnsFromScope}");
+                }
+                else
+                {
+                    Console.WriteLine($"[PIVOT METADATA] _currentScope is null, cannot read HasSelectAllColumns");
+                }
             }
             catch (Exception ex)
             {
@@ -2272,14 +2315,24 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             
             // Store additional hint about whether this might be a SELECT * scenario
             var isBasicPivotScenario = effectiveHasSelectAll && !hasExplicitGroupBy;
-            _currentScope[$"PivotSelectAllHint_{node.Alias}"] = isBasicPivotScenario.ToString();
+            if (_currentScope != null)
+            {
+                _currentScope[$"PivotSelectAllHint_{node.Alias}"] = isBasicPivotScenario.ToString();
+            }
             
             Console.WriteLine($"[PIVOT METADATA] includePassThroughColumns: {includePassThroughColumns} (based on SELECT * detection + GROUP BY detection)"); 
             
             // Store the includePassThroughColumns decision for later use in code generation
             var pivotConfigKey = $"PivotConfig_{node.Alias}";
-            _currentScope[pivotConfigKey] = includePassThroughColumns.ToString();
-            Console.WriteLine($"[PIVOT METADATA] Stored {pivotConfigKey} = {includePassThroughColumns}"); 
+            if (_currentScope != null)
+            {
+                _currentScope[pivotConfigKey] = includePassThroughColumns.ToString();
+                Console.WriteLine($"[PIVOT METADATA] Stored {pivotConfigKey} = {includePassThroughColumns}"); 
+            }
+            else
+            {
+                Console.WriteLine($"[PIVOT METADATA] Cannot store {pivotConfigKey} - _currentScope is null");
+            }
             
             if (includePassThroughColumns)
             {
@@ -2349,10 +2402,17 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             
             // Create a new table symbol for the PIVOT with the new schema
             var pivotTableSymbol = new TableSymbol(node.Alias, schema, pivotTable, true);
-            _currentScope.ScopeSymbolTable.AddSymbol(node.Alias, pivotTableSymbol);
-            _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
-            
-            Console.WriteLine($"[PIVOT METADATA] Added PIVOT table symbol with alias '{node.Alias}'");
+            if (_currentScope != null)
+            {
+                _currentScope.ScopeSymbolTable.AddSymbol(node.Alias, pivotTableSymbol);
+                _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
+                
+                Console.WriteLine($"[PIVOT METADATA] Added PIVOT table symbol with alias '{node.Alias}'");
+            }
+            else
+            {
+                Console.WriteLine($"[PIVOT METADATA] Cannot add PIVOT table symbol - _currentScope is null");
+            }
             
             // The source node ID registration is handled by the SchemaFromNode visitor
             // with consistent aliases from RewriteQueryVisitor
