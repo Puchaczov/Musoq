@@ -472,6 +472,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _hasSelectAllColumns = true; // Track that this query uses SELECT *
         Console.WriteLine($"[SELECT DEBUG] AllColumnsNode.Visit called - _hasSelectAllColumns set to true");
         
+        // Store in scope so it persists across visitor instances
+        _currentScope["HasSelectAllColumns"] = "true";
+        Console.WriteLine($"[SELECT DEBUG] Stored HasSelectAllColumns=true in scope");
+        
         var identifier = _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
@@ -960,6 +964,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(GroupByNode node)
     {
+        Console.WriteLine($"[PIVOT DEBUG] Processing GROUP BY with {node.Fields.Length} fields");
+        
         var having = Nodes.Peek() as HavingNode;
 
         if (having != null)
@@ -972,8 +978,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var field = Nodes.Pop() as FieldNode;
             _groupByFields.Insert(0, field);
             fields[i] = field;
+            Console.WriteLine($"[PIVOT DEBUG] Added GROUP BY field: {field.Expression}");
         }
 
+        Console.WriteLine($"[PIVOT DEBUG] Total GROUP BY fields: {_groupByFields.Count}");
         Nodes.Push(new GroupByNode(fields, having));
     }
 
@@ -2084,17 +2092,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                         }
                     }
                     
-                    // PIVOT ENHANCEMENT: Include additional common categories that might exist in data
-                    // This ensures PIVOT tables include ALL categories from the source data, not just IN clause
-                    var additionalCategories = new[] { "Fashion", "Sports", "Home", "Garden", "Automotive", "Technology" };
-                    foreach (var category in additionalCategories)
-                    {
-                        if (!allPossibleCategories.Contains(category))
-                        {
-                            allPossibleCategories.Add(category);
-                            Console.WriteLine($"[PIVOT METADATA] Added discovered category: {category}");
-                        }
-                    }
+                    // TODO: Could add dynamic category discovery from actual data if needed
+                    // For now, use only categories explicitly specified in the IN clause and existing data
                     
                     // Create schema columns for all possible categories
                     int columnIndex = 0;
@@ -2176,22 +2175,40 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // Basic PIVOT: SELECT * with simple aggregation, no complex grouping
             // Complex PIVOT: Explicit column selection or complex queries
             
-            // Determine if this is a basic SELECT * PIVOT scenario or an explicit column selection with GROUP BY
-            // Key logic: For SELECT * PIVOT without explicit GROUP BY, only return pivot columns
-            // For PIVOT with explicit GROUP BY or column selection, include pass-through columns
+            // Determine if this is a basic SELECT * PIVOT scenario or an explicit column selection
+            // Key insight: SELECT * PIVOT typically wants only aggregated pivot columns
+            //             SELECT specific_columns PIVOT typically wants pass-through columns for grouping
+            
+            // Use available information instead of relying on GROUP BY detection which happens later
             var hasExplicitGroupBy = _groupByFields.Count > 0;
             
-            // For basic SELECT * PIVOT without GROUP BY, don't include pass-through columns
-            // This creates a clean aggregated result with only pivot columns
-            var includePassThroughColumns = hasExplicitGroupBy;
+            // Check for SELECT * information stored in scope (more reliable than instance variable)
+            var hasSelectAllColumnsFromScope = false;
+            try
+            {
+                hasSelectAllColumnsFromScope = _currentScope["HasSelectAllColumns"] == "true";
+            }
+            catch
+            {
+                // Key doesn't exist, hasSelectAllColumnsFromScope remains false
+            }
             
-            Console.WriteLine($"[PIVOT METADATA] hasExplicitGroupBy: {hasExplicitGroupBy}, hasSelectAllColumns: {_hasSelectAllColumns}, includePassThroughColumns: {includePassThroughColumns}");
+            Console.WriteLine($"[PIVOT METADATA] hasSelectAllColumnsFromScope: {hasSelectAllColumnsFromScope}, _hasSelectAllColumns: {_hasSelectAllColumns}");
+            
+            // ENHANCED HEURISTIC: Use scope-stored SELECT * information if available, fallback to instance variable
+            var effectiveHasSelectAll = hasSelectAllColumnsFromScope || _hasSelectAllColumns;
+            
+            // If not SELECT *, assume pass-through columns are needed
+            // This handles cases where GROUP BY hasn't been processed yet but specific columns are selected
+            var includePassThroughColumns = hasExplicitGroupBy || !effectiveHasSelectAll;
+            
+            Console.WriteLine($"[PIVOT METADATA] hasExplicitGroupBy: {hasExplicitGroupBy}, effectiveHasSelectAll: {effectiveHasSelectAll}, includePassThroughColumns: {includePassThroughColumns}");
             
             // Store additional hint about whether this might be a SELECT * scenario
-            var isBasicPivotScenario = !hasExplicitGroupBy;
+            var isBasicPivotScenario = effectiveHasSelectAll && !hasExplicitGroupBy;
             _currentScope[$"PivotSelectAllHint_{node.Alias}"] = isBasicPivotScenario.ToString();
             
-            Console.WriteLine($"[PIVOT METADATA] includePassThroughColumns: {includePassThroughColumns} (based on GROUP BY detection)"); 
+            Console.WriteLine($"[PIVOT METADATA] includePassThroughColumns: {includePassThroughColumns} (based on SELECT * detection + GROUP BY detection)"); 
             
             // Store the includePassThroughColumns decision for later use in code generation
             var pivotConfigKey = $"PivotConfig_{node.Alias}";
@@ -2232,18 +2249,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 pivotColumns.Add(pivotColumn);
             }
             
-            // Then add common additional categories that might be in test data
-            var additionalCategories = new[] { "Fashion" }; // Only add Fashion for test compatibility
-            foreach (var categoryName in additionalCategories)
-            {
-                // Only add if not already in IN clause
-                if (!pivotColumns.Any(col => col.ColumnName == categoryName))
-                {
-                    var columnType = GetAggregationResultType(node.Pivot.AggregationExpressions.First());
-                    var pivotColumn = new SchemaColumn(categoryName, columnIndex++, columnType);
-                    pivotColumns.Add(pivotColumn);
-                }
-            }
+            // Future enhancement: Could add dynamic category discovery from actual data here
+            // For now, use only categories explicitly specified in the IN clause
             
             // Create new table with PIVOT columns using DynamicTable
             var pivotTable = new DynamicTable(pivotColumns.ToArray());

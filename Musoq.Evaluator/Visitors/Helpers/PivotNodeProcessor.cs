@@ -243,10 +243,9 @@ public static class PivotNodeProcessor
                     var pivotColumnList = new[] {{ {pivotColumnsLiteral} }};
                     var allCategories = group.Select(row => row[""{forColumnName}""]?.ToString()).Where(c => c != null).Distinct().ToList();
                     
-                    // CRITICAL: Include the same additional categories that were added in metadata building
+                    // Use only IN clause categories and categories found in the actual data
                     // This ensures Groups have the same field structure as the metadata schema
-                    var additionalCategories = new[] {{ ""Fashion"", ""Sports"", ""Home"", ""Garden"", ""Automotive"", ""Technology"" }};
-                    var combinedCategories = pivotColumnList.Concat(allCategories).Concat(additionalCategories).Distinct().ToList();
+                    var combinedCategories = pivotColumnList.Concat(allCategories).Distinct().ToList();
                     
                     foreach(var pivotCol in combinedCategories) {{
                         fieldNames.Add(pivotCol); // Use clean field name, not prefixed
