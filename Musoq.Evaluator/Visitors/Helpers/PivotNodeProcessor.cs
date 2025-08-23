@@ -420,7 +420,8 @@ public static class PivotNodeProcessor
         string forColumnName,
         string aggregationColumn,
         string aggregationMethod,
-        bool includePassThroughColumns)
+        bool includePassThroughColumns,
+        string expectedCategoriesParam = null)
     {
         Console.WriteLine("========================================");
         Console.WriteLine("[PIVOT RUNTIME] CreatePivotGroups method called!");

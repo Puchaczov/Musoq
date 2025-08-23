@@ -2319,7 +2319,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             
             // IMPORTANT FIX: Be more aggressive about including pass-through columns 
             // when in doubt, to fix column resolution issues
-            var includePassThroughColumns = !effectiveHasSelectAll || hasExplicitGroupBy || (!hasSelectAllColumnsFromScope && !_hasSelectAllColumns);
+            var includePassThroughColumns = !effectiveHasSelectAll || hasExplicitGroupBy;
             
             Console.WriteLine($"[PIVOT METADATA] hasExplicitGroupBy: {hasExplicitGroupBy}, effectiveHasSelectAll: {effectiveHasSelectAll}, includePassThroughColumns: {includePassThroughColumns}");
             
