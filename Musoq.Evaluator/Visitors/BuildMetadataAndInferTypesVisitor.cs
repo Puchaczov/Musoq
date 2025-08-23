@@ -1572,6 +1572,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void SetScope(Scope scope)
     {
+        Console.WriteLine($"[SCOPE DEBUG] SetScope called with scope: {scope?.Name ?? "NULL"}");
         _currentScope = scope;
         if (_currentScope == null)
         {

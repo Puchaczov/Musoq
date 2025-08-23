@@ -778,6 +778,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     {
         var newScope = Scope.AddScope(name);
         _scopes.Push(Scope);
+        Console.WriteLine($"[SCOPE DEBUG] LoadScope - created new scope: {name}, pushed old scope: {Scope?.Name ?? "NULL"}");
         Scope = newScope;
         
         _visitor.SetScope(newScope);
@@ -785,7 +786,15 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     private void RestoreScope()
     {
+        if (_scopes.Count == 0)
+        {
+            Console.WriteLine("[SCOPE DEBUG] RestoreScope called but _scopes stack is empty, using current scope");
+            _visitor.SetScope(Scope);
+            return;
+        }
+        
         Scope = _scopes.Pop();
+        Console.WriteLine($"[SCOPE DEBUG] RestoreScope - restored scope: {Scope?.Name ?? "NULL"}");
         _visitor.SetScope(Scope);
     }
 

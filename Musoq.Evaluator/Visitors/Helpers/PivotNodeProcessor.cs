@@ -552,6 +552,18 @@ public static class PivotNodeProcessor
                 }
             }
             
+            // Add aggregation result fields for HAVING clause support
+            // HAVING clauses expect to access aggregation results like 'p.Sum(Quantity)'
+            var totalSum = allCategories.Sum(category => {
+                var filtered = group.Where(r => r[forColumnName]?.ToString() == category);
+                return filtered.Any() ? filtered.Sum(r => Convert.ToDecimal(r[aggregationColumn] ?? 0)) : 0m;
+            });
+            
+            // Add the aggregation field that HAVING clauses might reference
+            fieldNames.Add($"p.{aggregationMethod}({aggregationColumn})");
+            values.Add(totalSum);
+            Console.WriteLine($"[PIVOT RUNTIME] Added HAVING aggregation field: p.{aggregationMethod}({aggregationColumn}) = {totalSum}");
+            
             Console.WriteLine($"[PIVOT RUNTIME] Creating Group with {fieldNames.Count} fields: {string.Join(", ", fieldNames)}");
             var pivotGroup = new Group(null, fieldNames.ToArray(), values.ToArray());
             result.Add(new GroupObjectResolver(pivotGroup));
