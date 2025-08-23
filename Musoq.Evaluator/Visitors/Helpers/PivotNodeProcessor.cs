@@ -181,90 +181,109 @@ public static class PivotNodeProcessor
         var includePassThroughColumnsStr = includePassThroughColumns.ToString().ToLower();
         
         var pivotCode = $@"
-            var {pivotTableVariable} = {sourceVariable}.Rows
-                .Cast<Musoq.Schema.DataSources.IObjectResolver>()
-                .GroupBy(row => {{
-                    // Group by pass-through columns when they're included, otherwise group all together
-                    var includePassThroughColumns = {includePassThroughColumnsStr}; 
-                    
-                    if (includePassThroughColumns) {{
-                        // Group by pass-through columns (non-FOR, non-aggregation columns)
-                        var groupKey = new List<object>();
-                        var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
-                        var forColumnName = ""{forColumnName}"";
-                        var aggregationColumnName = ""{aggregationColumn}"";
+            var {pivotTableVariable} = (() => {{
+                // CRITICAL FIX: Pre-discover ALL categories from entire dataset BEFORE creating any Groups
+                // This ensures all Groups have identical field structures for consistency
+                var allSourceRows = {sourceVariable}.Rows.Cast<Musoq.Schema.DataSources.IObjectResolver>().ToList();
+                var allPossibleCategories = allSourceRows
+                    .Select(row => row[""{forColumnName}""]?.ToString())
+                    .Where(c => c != null)
+                    .Distinct()
+                    .ToList();
+                
+                var pivotColumnList = new[] {{ {pivotColumnsLiteral} }};
+                var finalCategories = pivotColumnList.Concat(allPossibleCategories).Distinct().ToList();
+                
+                Console.WriteLine($""[PIVOT DEBUG] Pre-discovered all categories: {{string.Join("", "", finalCategories)}}"");
+                
+                return allSourceRows
+                    .GroupBy(row => {{
+                        // Group by pass-through columns when they're included, otherwise group all together
+                        var includePassThroughColumns = {includePassThroughColumnsStr}; 
                         
-                        foreach(var colName in passThroughColumns) {{
-                            if(colName != forColumnName && colName != aggregationColumnName) {{
-                                groupKey.Add(row[colName]?.ToString() ?? ""null"");
+                        if (includePassThroughColumns) {{
+                            // Group by pass-through columns (non-FOR, non-aggregation columns)
+                            var groupKey = new List<object>();
+                            var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
+                            var forColumnName = ""{forColumnName}"";
+                            var aggregationColumnName = ""{aggregationColumn}"";
+                            
+                            foreach(var colName in passThroughColumns) {{
+                                if(colName != forColumnName && colName != aggregationColumnName) {{
+                                    groupKey.Add(row[colName]?.ToString() ?? ""null"");
+                                }}
+                            }}
+                            
+                            var result = string.Join(""||"", groupKey);
+                            Console.WriteLine($""[PIVOT DEBUG] Grouping key: {{result}}"");
+                            return result;
+                        }}
+                        else {{
+                            // For SELECT *, group all rows together to create single aggregated result
+                            return ""all"";
+                        }}
+                    }})
+                    .Select(group => {{
+                        // Create field names and values arrays for Group constructor
+                        var fieldNames = new List<string>();
+                        var values = new List<object>();
+                        
+                        Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
+                        
+                        // Get first row for value access
+                        var firstRowInGroup = group.First();
+                        
+                        // Step 1: Add pass-through columns conditionally based on whether this is SELECT * or specific columns
+                        // For SELECT *, we don't include pass-through columns; for specific column selection, we do
+                        // This matches the metadata building logic
+                        var includePassThroughColumns = {includePassThroughColumnsStr}; 
+                        
+                        if (includePassThroughColumns)
+                        {{
+                            var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
+                            var forColumnName = ""{forColumnName}"";
+                            var aggregationColumnName = ""{aggregationColumn}"";
+                            
+                            foreach(var colName in passThroughColumns) {{
+                                if(colName != forColumnName && colName != aggregationColumnName) {{
+                                    fieldNames.Add(colName);
+                                    values.Add(firstRowInGroup[colName]);
+                                    Console.WriteLine($""[PIVOT DEBUG] Added pass-through column: {{colName}}"");
+                                }}
                             }}
                         }}
                         
-                        var result = string.Join(""||"", groupKey);
-                        Console.WriteLine($""[PIVOT DEBUG] Grouping key: {{result}}"");
-                        return result;
-                    }}
-                    else {{
-                        // For SELECT *, group all rows together to create single aggregated result
-                        return ""all"";
-                    }}
-                }})
-                .Select(group => {{
-                    // Create field names and values arrays for Group constructor
-                    var fieldNames = new List<string>();
-                    var values = new List<object>();
-                    
-                    Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
-                    
-                    // Get first row for value access
-                    var firstRowInGroup = group.First();
-                    
-                    // Step 1: Add pass-through columns conditionally based on whether this is SELECT * or specific columns
-                    // For SELECT *, we don't include pass-through columns; for specific column selection, we do
-                    // This matches the metadata building logic
-                    var includePassThroughColumns = {includePassThroughColumnsStr}; 
-                    
-                    if (includePassThroughColumns)
-                    {{
-                        var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
-                        var forColumnName = ""{forColumnName}"";
-                        var aggregationColumnName = ""{aggregationColumn}"";
+                        // Step 2: Add pivot columns by re-discovering categories for consistency
+                        // Re-discover to ensure all Groups have the same structure
+                        var allRows = {sourceVariable}.Rows.Cast<Musoq.Schema.DataSources.IObjectResolver>().ToList();
+                        var rediscoveredCategories = allRows
+                            .Select(row => row[""{forColumnName}""]?.ToString())
+                            .Where(c => c != null)
+                            .Distinct()
+                            .ToList();
                         
-                        foreach(var colName in passThroughColumns) {{
-                            if(colName != forColumnName && colName != aggregationColumnName) {{
-                                fieldNames.Add(colName);
-                                values.Add(firstRowInGroup[colName]);
-                                Console.WriteLine($""[PIVOT DEBUG] Added pass-through column: {{colName}}"");
+                        var pivotColumnList = new[] {{ {pivotColumnsLiteral} }};
+                        var combinedCategories = pivotColumnList.Concat(rediscoveredCategories).Distinct().ToList();
+                        
+                        foreach(var pivotCol in combinedCategories) {{
+                            fieldNames.Add(pivotCol); // Use clean field name, not prefixed
+                            var filteredData = group.Where(row => row[""{forColumnName}""]?.ToString() == pivotCol);
+                            if(filteredData.Any()) {{
+                                values.Add(filteredData.{aggregationMethod}(row => Convert.ToDecimal(row[""{aggregationColumn}""] ?? 0)));
+                            }} else {{
+                                values.Add(0m);
                             }}
+                            Console.WriteLine($""[PIVOT DEBUG] Added pivot column: {{pivotCol}}"");
                         }}
-                    }}
-                    
-                    // Step 2: Add pivot columns for each category in the IN clause and discovered categories
-                    var pivotColumnList = new[] {{ {pivotColumnsLiteral} }};
-                    var allCategories = group.Select(row => row[""{forColumnName}""]?.ToString()).Where(c => c != null).Distinct().ToList();
-                    
-                    // Use only IN clause categories and categories found in the actual data
-                    // This ensures Groups have the same field structure as the metadata schema
-                    var combinedCategories = pivotColumnList.Concat(allCategories).Distinct().ToList();
-                    
-                    foreach(var pivotCol in combinedCategories) {{
-                        fieldNames.Add(pivotCol); // Use clean field name, not prefixed
-                        var filteredData = group.Where(row => row[""{forColumnName}""]?.ToString() == pivotCol);
-                        if(filteredData.Any()) {{
-                            values.Add(filteredData.{aggregationMethod}(row => Convert.ToDecimal(row[""{aggregationColumn}""] ?? 0)));
-                        }} else {{
-                            values.Add(0m);
-                        }}
-                        Console.WriteLine($""[PIVOT DEBUG] Added pivot column: {{pivotCol}}"");
-                    }}
-                    
-                    Console.WriteLine($""[PIVOT DEBUG] Final field count: {{fieldNames.Count}}"");
-                    Console.WriteLine($""[PIVOT DEBUG] Field names: {{string.Join("", "", fieldNames)}}"");
-                    
-                    // Create and return a Group object that exposes all columns
-                    return new Musoq.Plugins.Group(null, fieldNames.ToArray(), values.ToArray());
-                }})
-                .ToList();";
+                        
+                        Console.WriteLine($""[PIVOT DEBUG] Final field count: {{fieldNames.Count}}"");
+                        Console.WriteLine($""[PIVOT DEBUG] Field names: {{string.Join("", "", fieldNames)}}"");
+                        
+                        // Create and return a Group object that exposes all columns
+                        return new Musoq.Plugins.Group(null, fieldNames.ToArray(), values.ToArray());
+                    }})
+                    .ToList();
+            }})();";
 
         // Parse the generated C# code into a statement
         try

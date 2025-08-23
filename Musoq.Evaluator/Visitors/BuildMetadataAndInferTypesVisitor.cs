@@ -2104,15 +2104,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     _usedColumns.Remove(existingSchemaNode);
                     _usedWhereNodes.Remove(existingSchemaNode);
                     
-                    // PIVOT FIX: Create PIVOT-specific columns for ALL categories found in data
+                    // PIVOT FIX: Create PIVOT-specific columns for categories from IN clause only
                     var pivotColumns = new List<ISchemaColumn>();
                     
-                    // CRITICAL: We need to determine ALL unique categories in the data at metadata time
-                    // Since actual data isn't available at metadata time, use the IN clause categories
-                    // plus common categories that typically appear in test scenarios
+                    // SIMPLIFIED: Use only IN clause categories to ensure metadata-runtime consistency
+                    // The runtime will auto-discover additional categories and pad missing ones with 0
                     var allPossibleCategories = new List<string>();
                     
-                    // Add categories from IN clause
+                    // Add categories from IN clause only - no more hardcoded additions
                     foreach (var inValue in node.Pivot.InValues)
                     {
                         string columnName = null;
@@ -2124,25 +2123,17 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                         {
                             columnName = wordNode.Value;
                         }
-                        
+
                         if (!string.IsNullOrEmpty(columnName))
                         {
                             allPossibleCategories.Add(columnName);
                         }
                     }
                     
-                    // ENHANCEMENT: Add common categories that typically appear in test data
-                    // This ensures metadata includes all categories that runtime will discover
-                    var commonCategories = new[] { "Fashion", "Sports", "Home", "Health", "Travel", "Food", "Technology" };
-                    foreach (var category in commonCategories)
-                    {
-                        if (!allPossibleCategories.Contains(category))
-                        {
-                            allPossibleCategories.Add(category);
-                        }
-                    }
+                    // NOTE: Runtime will discover additional categories and create Groups with complete field sets
+                    // This ensures flexibility while maintaining core structure consistency
                     
-                    // Create schema columns for all possible categories
+                    // Create schema columns for categories from IN clause only
                     int columnIndex = 0;
                     foreach (var columnName in allPossibleCategories)
                     {
@@ -2296,13 +2287,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 }
             }
             
-            // Add the PIVOT columns (includes both IN clause and additional data categories)
+            // Add the PIVOT columns from IN clause 
             var columnIndex = pivotColumns.Count;
             
-            // ENHANCED: Add discovered categories based on heuristics
+            // SIMPLIFIED: Use only IN clause categories for metadata consistency
             var allPivotCategories = new List<string>();
             
-            // First add IN clause columns
+            // Add IN clause columns only
             foreach (var inValue in node.Pivot.InValues)
             {
                 var columnName = GetColumnNameFromNode(inValue);
@@ -2312,21 +2303,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 }
             }
             
-            // SMART ENHANCEMENT: Only add Fashion for single aggregation scenarios
-            // Multiple aggregation scenarios typically use different column naming
-            var isMultipleAggregations = node.Pivot.AggregationExpressions.Length > 1;
-            if (!isMultipleAggregations)
-            {
-                // CONSERVATIVE: Only add Fashion for specific scenarios where it's likely to appear
-                // Heuristic: Add Fashion only if the IN clause includes both Books and Electronics
-                // This matches the pattern in BasicPivotWithSum test
-                var inClauseCategories = allPivotCategories.ToHashSet();
-                if (inClauseCategories.Contains("Books") && inClauseCategories.Contains("Electronics") && 
-                    !allPivotCategories.Contains("Fashion"))
-                {
-                    allPivotCategories.Add("Fashion");
-                }
-            }
+            // NOTE: Runtime will discover any additional categories and handle them appropriately
+            // This provides flexibility while ensuring core metadata consistency
             
             // Create PIVOT columns for all discovered categories
             foreach (var columnName in allPivotCategories)
