@@ -581,25 +581,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         {
             if (node.Name.Contains("p."))
             {
-                Console.WriteLine($"[PIVOT DEBUG] Generating GetValue<T>() call for field: {node.Name}");
+                Console.WriteLine($"[PIVOT DEBUG] Generating indexer access for field: {node.Name}");
             }
             
-            // For PIVOT context, generate GetValue<T>() method call instead of array access
-            var typeIdentifier = SyntaxFactory.IdentifierName(
-                EvaluationHelper.GetCastableType(node.ReturnType));
-
-            if (node.ReturnType is NullNode.NullType)
-            {
-                typeIdentifier = SyntaxFactory.IdentifierName("object");
-            }
-
-            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
-            {
-                typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
-            }
-
-            // Generate: score.GetValue<Type>("field.name")
-            // For PIVOT context, strip alias prefix from field name
+            // For PIVOT context, generate indexer access for IObjectResolver objects
+            // PIVOT CreatePivotGroups returns List<IObjectResolver>, so use indexer access
             var fieldName = node.Name;
             if (fieldName.Contains(".") && fieldName.Split('.').Length == 2)
             {
@@ -607,21 +593,20 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 Console.WriteLine($"[PIVOT DEBUG] Stripped alias prefix: {node.Name} -> {fieldName}");
             }
             
-            sNode = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(variableName),
-                    SyntaxFactory.GenericName("GetValue")
-                        .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(typeIdentifier)))))
+            // Generate: (Type)score["field_name"]
+            var castExpression = SyntaxFactory.CastExpression(
+                SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(node.ReturnType)),
+                SyntaxFactory.ElementAccessExpression(
+                    SyntaxFactory.IdentifierName(variableName))
                 .WithArgumentList(
-                    SyntaxFactory.ArgumentList(
+                    SyntaxFactory.BracketedArgumentList(
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(
                                 SyntaxFactory.LiteralExpression(
                                     SyntaxKind.StringLiteralExpression,
-                                    SyntaxFactory.Literal(fieldName))))));
+                                    SyntaxFactory.Literal(fieldName)))))));
+            
+            sNode = castExpression;
         }
         else
         {

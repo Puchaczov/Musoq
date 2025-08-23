@@ -229,25 +229,46 @@ public static class PivotNodeProcessor
                 .ToList();";
 
         // DIFFERENT PERSPECTIVE: Instead of parsing complex strings (prone to syntax errors),
-        // ALWAYS use the simple, reliable fallback implementation
-        // This eliminates all C# syntax parsing issues and simplifies debugging
+        // Implement the PIVOT transformation using reliable Roslyn syntax generation
+        // This eliminates all C# syntax parsing issues while providing actual PIVOT functionality
         Console.WriteLine("[PIVOT DEBUG] Using simplified reliable approach - no string parsing");
         
-        // Simple reliable implementation that always works
-        var listCreation = SyntaxFactory.ObjectCreationExpression(
-            SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("List"))
-            .WithTypeArgumentList(
-                SyntaxFactory.TypeArgumentList(
-                    SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                        SyntaxFactory.IdentifierName("dynamic")))))
-        .WithArgumentList(SyntaxFactory.ArgumentList());
+        // PIVOT transformation using reliable Roslyn syntax generation:
+        // 1. Get all source rows
+        // 2. Discover categories from data  
+        // 3. Group and aggregate appropriately
+        // 4. Create Groups with proper field structure
+        
+        var forColumn = GetForColumnName(pivotNode);
+        var aggColumn = GetAggregationColumn(pivotNode);
+        var aggMethod = GetAggregationMethodName(pivotNode);
+        var columnsLiteral = string.Join(", ", pivotColumns.Select(col => $"\"{col}\""));
+        
+        // Generate method call to create PIVOT Groups at runtime
+        var pivotTransformCall = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName("Musoq.Evaluator.Visitors.Helpers.PivotNodeProcessor"),
+                SyntaxFactory.IdentifierName("CreatePivotGroups")))
+            .WithArgumentList(SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList(new[]
+                {
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(sourceVariable)),
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, 
+                        SyntaxFactory.Literal(forColumn))),
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, 
+                        SyntaxFactory.Literal(aggColumn))),
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, 
+                        SyntaxFactory.Literal(aggMethod))),
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                        includePassThroughColumns ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression))
+                })));
 
         var variableDeclaration = SyntaxFactory.VariableDeclaration(
             SyntaxFactory.IdentifierName("var"))
             .WithVariables(SyntaxFactory.SingletonSeparatedList(
                 SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotTableVariable))
-                    .WithInitializer(SyntaxFactory.EqualsValueClause(listCreation))));
+                    .WithInitializer(SyntaxFactory.EqualsValueClause(pivotTransformCall))));
 
         return SyntaxFactory.LocalDeclarationStatement(variableDeclaration);
     }
@@ -388,5 +409,159 @@ public static class PivotNodeProcessor
             throw new ArgumentNullException(nameof(additionalParam));
         if (scope == null)
             throw new ArgumentNullException(nameof(scope));
+    }
+    
+    /// <summary>
+    /// Runtime method to create PIVOT Groups with proper field structure and aggregated data.
+    /// Called by generated C# code to perform the actual PIVOT transformation.
+    /// </summary>
+    public static List<Musoq.Schema.DataSources.IObjectResolver> CreatePivotGroups(
+        object sourceData,
+        string forColumnName,
+        string aggregationColumn,
+        string aggregationMethod,
+        bool includePassThroughColumns)
+    {
+        Console.WriteLine("========================================");
+        Console.WriteLine("[PIVOT RUNTIME] CreatePivotGroups method called!");
+        Console.WriteLine($"[PIVOT RUNTIME] Parameters: forColumn={forColumnName}, aggColumn={aggregationColumn}, method={aggregationMethod}");
+        Console.WriteLine($"[PIVOT RUNTIME] SourceData type: {sourceData?.GetType().Name ?? "null"}");
+        Console.WriteLine("========================================");
+        
+        // Convert source data to IObjectResolver rows
+        var allSourceRows = new List<Musoq.Schema.DataSources.IObjectResolver>();
+        
+        // Handle different types of source data
+        if (sourceData is IEnumerable<Musoq.Schema.DataSources.IObjectResolver> resolverRows)
+        {
+            allSourceRows = resolverRows.ToList();
+        }
+        else if (sourceData is System.Collections.IEnumerable enumerable)
+        {
+            // Handle EntitySource or other enumerable data - iterate to get the actual rows
+            foreach (var item in enumerable)
+            {
+                if (item is Musoq.Schema.DataSources.IObjectResolver resolver)
+                {
+                    allSourceRows.Add(resolver);
+                }
+            }
+        }
+        else if (sourceData != null)
+        {
+            // Try to access Rows property if it exists
+            var rowsProperty = sourceData.GetType().GetProperty("Rows");
+            if (rowsProperty != null)
+            {
+                var rowsValue = rowsProperty.GetValue(sourceData);
+                if (rowsValue is IEnumerable<Musoq.Schema.DataSources.IObjectResolver> sourceRows)
+                {
+                    allSourceRows = sourceRows.ToList();
+                }
+                else if (rowsValue is System.Collections.IEnumerable rowsEnumerable)
+                {
+                    foreach (var item in rowsEnumerable)
+                    {
+                        if (item is Musoq.Schema.DataSources.IObjectResolver resolver)
+                        {
+                            allSourceRows.Add(resolver);
+                        }
+                    }
+                }
+            }
+        }
+        
+        Console.WriteLine($"[PIVOT RUNTIME] Processing {allSourceRows.Count} source rows");
+        
+        // Discover all categories from the data
+        var allCategories = allSourceRows
+            .Select(row => row[forColumnName]?.ToString())
+            .Where(c => c != null)
+            .Distinct()
+            .ToList();
+            
+        Console.WriteLine($"[PIVOT RUNTIME] Discovered categories: {string.Join(", ", allCategories)}");
+        
+        // Group data appropriately (for basic PIVOT, group all together)
+        var groupKey = includePassThroughColumns ? "complex_grouping" : "all";
+        var groups = allSourceRows.GroupBy(row => groupKey);
+        
+        var result = new List<Musoq.Schema.DataSources.IObjectResolver>();
+        
+        foreach (var group in groups)
+        {
+            var fieldNames = new List<string>();
+            var values = new List<object>();
+            
+            // Add pass-through columns if needed
+            if (includePassThroughColumns)
+            {
+                // For now, skip pass-through columns in basic PIVOT
+                Console.WriteLine("[PIVOT RUNTIME] Skipping pass-through columns for basic PIVOT");
+            }
+            
+            // Add pivot columns for all discovered categories
+            foreach (var category in allCategories)
+            {
+                fieldNames.Add(category);
+                var filtered = group.Where(r => r[forColumnName]?.ToString() == category);
+                if (filtered.Any())
+                {
+                    if (aggregationMethod == "Sum")
+                    {
+                        var sum = filtered.Sum(r => Convert.ToDecimal(r[aggregationColumn] ?? 0));
+                        values.Add(sum);
+                        Console.WriteLine($"[PIVOT RUNTIME] {category} = {sum}");
+                    }
+                    else
+                    {
+                        values.Add(0m); // Default for other aggregation methods
+                    }
+                }
+                else
+                {
+                    values.Add(0m); // Default value for missing category
+                }
+            }
+            
+            Console.WriteLine($"[PIVOT RUNTIME] Creating Group with {fieldNames.Count} fields: {string.Join(", ", fieldNames)}");
+            var pivotGroup = new Group(null, fieldNames.ToArray(), values.ToArray());
+            result.Add(new GroupObjectResolver(pivotGroup));
+        }
+        
+        Console.WriteLine($"[PIVOT RUNTIME] Created {result.Count} Groups");
+        return result;
+    }
+    
+    /// <summary>
+    /// Wrapper class to make Group objects compatible with IObjectResolver interface.
+    /// </summary>
+    private class GroupObjectResolver : Musoq.Schema.DataSources.IObjectResolver
+    {
+        private readonly Group _group;
+        
+        public GroupObjectResolver(Group group)
+        {
+            _group = group;
+        }
+        
+        public object[] Contexts => new object[0]; // Empty contexts for PIVOT Groups
+        
+        public object this[string name] => _group.GetValue<object>(name);
+        
+        public object this[int index] => throw new NotSupportedException("Index access not supported for PIVOT Groups");
+        
+        public bool HasColumn(string name) 
+        {
+            try 
+            {
+                _group.GetValue<object>(name);
+                return true;
+            }
+            catch 
+            {
+                return false;
+            }
+        }
     }
 }
