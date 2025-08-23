@@ -2626,17 +2626,21 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // This eliminates potential syntax errors in variable declarations
         Console.WriteLine($"[PIVOT DEBUG] Using simplified aliasing for {node.Alias}");
         
+        // FIX: Ensure unique variable name to avoid conflicts with source variables
+        var pivotVariableName = $"{node.Alias}PivotRows"; // Add "Pivot" to make it unique
+        Console.WriteLine($"[PIVOT DEBUG] Creating PIVOT variable: {pivotVariableName} (avoiding conflict with source {node.Alias}Rows)");
+        
         var simpleAliasStatement = SyntaxFactory.LocalDeclarationStatement(
             SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                 .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier($"{node.Alias}Rows"))
+                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotVariableName))
                         .WithInitializer(SyntaxFactory.EqualsValueClause(
                             SyntaxFactory.IdentifierName(pivotResult.PivotTableVariable))))));
         
         _getRowsSourceStatement.Add(node.Alias, simpleAliasStatement);
         
         // Update SourceName for field access coordination
-        _scope[MetaAttributes.SourceName] = $"{node.Alias}Rows";
+        _scope[MetaAttributes.SourceName] = pivotVariableName;
     }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)

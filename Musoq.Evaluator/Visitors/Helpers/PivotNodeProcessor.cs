@@ -222,6 +222,8 @@ public static class PivotNodeProcessor
                         }}
                     }}
                     
+                    Console.WriteLine($""[PIVOT DEBUG] Creating Group with {{fieldNames.Count}} fields: {{string.Join("", "", fieldNames)}}"");
+                    
                     return new Musoq.Plugins.Group(null, fieldNames.ToArray(), values.ToArray());
                 }})
                 .ToList();";
