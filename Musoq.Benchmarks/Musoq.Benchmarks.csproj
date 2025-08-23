@@ -10,6 +10,9 @@
     <ItemGroup>
       <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
       <PackageReference Include="CsvHelper" Version="33.0.1" />
+      <PackageReference Include="OxyPlot.Core" Version="2.1.2" />
+      <PackageReference Include="OxyPlot.ImageSharp" Version="2.1.2" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 
     <ItemGroup>

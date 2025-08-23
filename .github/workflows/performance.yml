@@ -1,0 +1,111 @@
+name: Performance Tracking
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      benchmark_type:
+        description: 'Type of benchmarks to run'
+        required: false
+        default: 'standard'
+        type: choice
+        options:
+        - standard
+        - extended
+
+jobs:
+  performance-benchmarks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Run Performance Benchmarks
+      run: |
+        cd Musoq.Benchmarks
+        if [ "${{ github.event.inputs.benchmark_type }}" = "extended" ]; then
+          dotnet run --configuration Release -- --track-performance --extended
+        else
+          dotnet run --configuration Release -- --track-performance
+        fi
+      env:
+        GITHUB_SHA: ${{ github.sha }}
+        GITHUB_REF_NAME: ${{ github.ref_name }}
+    
+    - name: Upload Performance Reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-reports
+        path: |
+          Musoq.Benchmarks/performance-reports/
+          Musoq.Benchmarks/performance-data/
+        retention-days: 90
+    
+    - name: Upload Benchmark Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: benchmark-artifacts
+        path: Musoq.Benchmarks/BenchmarkDotNet.Artifacts/
+        retention-days: 30
+        
+    - name: Comment Performance Results
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Try to read performance data
+          const dataPath = 'Musoq.Benchmarks/performance-data/performance-history.json';
+          if (fs.existsSync(dataPath)) {
+            const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+            
+            let comment = '## 📊 Performance Benchmark Results\n\n';
+            comment += `**Run Date:** ${new Date().toISOString()}\n`;
+            comment += `**Commit:** ${context.sha}\n\n`;
+            
+            let hasData = false;
+            for (const [benchmarkName, results] of Object.entries(data.benchmarks)) {
+              if (results.length >= 2) {
+                hasData = true;
+                const latest = results[results.length - 1];
+                const previous = results[results.length - 2];
+                const changePercent = ((latest.mean - previous.mean) / previous.mean) * 100;
+                const changeIcon = changePercent < -5 ? '🚀' : changePercent > 5 ? '🐌' : '🔄';
+                
+                comment += `### ${changeIcon} ${benchmarkName}\n`;
+                comment += `- **Current:** ${latest.mean.toFixed(2)}ms\n`;
+                comment += `- **Previous:** ${previous.mean.toFixed(2)}ms\n`;
+                comment += `- **Change:** ${changePercent > 0 ? '+' : ''}${changePercent.toFixed(1)}%\n\n`;
+              }
+            }
+            
+            if (!hasData) {
+              comment += 'No historical data available for comparison.\n';
+            }
+            
+            comment += '\n📈 [View detailed performance report in artifacts]';
+            
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: comment
+            });
+          }
