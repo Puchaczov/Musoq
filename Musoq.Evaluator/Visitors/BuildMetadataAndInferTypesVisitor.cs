@@ -503,6 +503,41 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
             var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
 
+            // Special handling for HAVING clauses in PIVOT context
+            // HAVING aggregations should resolve against source table, not PIVOT table
+            if (column == null && _queryPart == QueryPart.Having)
+            {
+                try
+                {
+                    var sourceAlias = _currentScope["PIVOT_SOURCE_ALIAS"];
+                    if (!string.IsNullOrEmpty(sourceAlias))
+                    {
+                        var sourceTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(sourceAlias);
+                        column = sourceTableSymbol.GetColumnByAliasAndName(sourceAlias, node.Name);
+                        
+                        if (column != null)
+                        {
+                            Console.WriteLine($"[PIVOT HAVING] Resolved '{node.Name}' against source table '{sourceAlias}'");
+                            // Change the identifier context temporarily to resolve against source table
+                            var previousIdentifier = _identifier;
+                            _identifier = sourceAlias;
+                            
+                            // Use the normal column resolution path instead of creating new AccessColumnNode
+                            var accessColumn = new AccessColumnNode(node.Name, string.Empty, column?.ColumnType, TextSpan.Empty);
+                            Nodes.Push(accessColumn);
+                            
+                            // Restore previous identifier
+                            _identifier = previousIdentifier;
+                            return;
+                        }
+                    }
+                }
+                catch
+                {
+                    // PIVOT_SOURCE_ALIAS not found, continue with normal processing
+                }
+            }
+
             if (column == null)
                 PrepareAndThrowUnknownColumnExceptionMessage(node.Name, tableSymbol.GetColumns());
 
@@ -1999,6 +2034,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         // because the symbol table was populated with the generated alias
         var originalSourceAlias = _currentScope[source.Id];
         
+        // Store source alias for HAVING clause resolution in PIVOT context
+        _currentScope["PIVOT_SOURCE_ALIAS"] = originalSourceAlias;
+        Console.WriteLine($"[PIVOT HAVING] Stored source alias: {originalSourceAlias}");
+        
         // CRITICAL FIX: Ensure the embedded SchemaFromNode uses the PIVOT alias
         // This prevents the key mismatch between metadata building and code generation
         if (source is SchemaFromNode schemaFromNode && !string.IsNullOrEmpty(node.Alias))
@@ -2186,10 +2225,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             var hasSelectAllColumnsFromScope = false;
             try
             {
-                hasSelectAllColumnsFromScope = _currentScope["HasSelectAllColumns"] == "true";
+                var scopeValue = _currentScope["HasSelectAllColumns"];
+                hasSelectAllColumnsFromScope = scopeValue == "true";
+                Console.WriteLine($"[PIVOT METADATA] Scope HasSelectAllColumns value: '{scopeValue}' → {hasSelectAllColumnsFromScope}");
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[PIVOT METADATA] Failed to read HasSelectAllColumns from scope: {ex.Message}");
                 // Key doesn't exist, hasSelectAllColumnsFromScope remains false
             }
             
@@ -2198,9 +2240,19 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // ENHANCED HEURISTIC: Use scope-stored SELECT * information if available, fallback to instance variable
             var effectiveHasSelectAll = hasSelectAllColumnsFromScope || _hasSelectAllColumns;
             
-            // If not SELECT *, assume pass-through columns are needed
-            // This handles cases where GROUP BY hasn't been processed yet but specific columns are selected
-            var includePassThroughColumns = hasExplicitGroupBy || !effectiveHasSelectAll;
+            // TEMPORARY FIX: If no explicit GROUP BY and scope information failed, assume basic SELECT * PIVOT
+            // This handles the processing order issue where PIVOT is processed before SELECT
+            if (!hasExplicitGroupBy && !hasSelectAllColumnsFromScope && !_hasSelectAllColumns)
+            {
+                Console.WriteLine($"[PIVOT METADATA] Assuming SELECT * scenario due to no GROUP BY and no SELECT info available yet");
+                effectiveHasSelectAll = true;
+            }
+            
+            Console.WriteLine($"[PIVOT METADATA] DEBUG: hasSelectAllColumnsFromScope={hasSelectAllColumnsFromScope}, _hasSelectAllColumns={_hasSelectAllColumns}, effectiveHasSelectAll={effectiveHasSelectAll}");
+            
+            // CORRECTED LOGIC: For basic SELECT * PIVOT with no GROUP BY, exclude pass-through columns
+            // Include pass-through columns only when it's NOT (SELECT * AND no GROUP BY)
+            var includePassThroughColumns = !(effectiveHasSelectAll && !hasExplicitGroupBy);
             
             Console.WriteLine($"[PIVOT METADATA] hasExplicitGroupBy: {hasExplicitGroupBy}, effectiveHasSelectAll: {effectiveHasSelectAll}, includePassThroughColumns: {includePassThroughColumns}");
             
