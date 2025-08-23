@@ -109,3 +109,21 @@ jobs:
               body: comment
             });
           }
+            
+    - name: Commit Performance Charts to Repository
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add performance charts and README section
+        git add Musoq.Benchmarks/performance-reports/readme-performance-chart.png || true
+        git add Musoq.Benchmarks/performance-reports/performance-section.md || true
+        
+        # Check if there are changes to commit
+        if ! git diff --staged --quiet; then
+          git commit -m "Update performance charts and README section [skip ci]"
+          git push
+        else
+          echo "No performance chart changes to commit"
+        fi

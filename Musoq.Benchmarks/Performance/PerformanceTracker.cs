@@ -8,6 +8,7 @@ public class PerformanceTracker
     private readonly PerformanceDataService _dataService;
     private readonly ChartGenerationService _chartService;
     private readonly HtmlReportService _reportService;
+    private readonly ReadmePerformanceService _readmeService;
 
     public PerformanceTracker(string dataDirectory = "performance-data")
     {
@@ -16,6 +17,7 @@ public class PerformanceTracker
         _dataService = new PerformanceDataService(Path.Combine(dataDirectory, "performance-history.json"));
         _chartService = new ChartGenerationService();
         _reportService = new HtmlReportService();
+        _readmeService = new ReadmePerformanceService();
     }
 
     public async Task ProcessBenchmarkResultsAsync(string csvFilePath, string outputDirectory = "performance-reports")
@@ -56,6 +58,9 @@ public class PerformanceTracker
 
         Console.WriteLine("📄 Generating HTML report...");
         await _reportService.GenerateReportAsync(history, outputDirectory);
+
+        Console.WriteLine("📝 Generating README performance section...");
+        await _readmeService.GenerateReadmePerformanceSection(history, outputDirectory);
 
         Console.WriteLine($"✨ Performance report generated in: {Path.GetFullPath(outputDirectory)}");
         
@@ -105,6 +110,21 @@ public class PerformanceTracker
         }
 
         return analysis;
+    }
+
+    public async Task<PerformanceHistory> LoadHistoryAsync()
+    {
+        return await _dataService.LoadHistoryAsync();
+    }
+
+    public async Task GenerateReadmeReportsAsync(PerformanceHistory history, string outputDirectory = "performance-reports")
+    {
+        Directory.CreateDirectory(outputDirectory);
+        
+        Console.WriteLine("📝 Generating README performance section...");
+        await _readmeService.GenerateReadmePerformanceSection(history, outputDirectory);
+        
+        Console.WriteLine($"✨ README performance section generated in: {Path.GetFullPath(outputDirectory)}");
     }
 
     public async Task PrintPerformanceSummaryAsync()

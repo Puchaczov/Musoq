@@ -7,6 +7,25 @@ using Musoq.Benchmarks.Performance;
 var commandArgs = Environment.GetCommandLineArgs();
 var isPerformanceTrackingMode = commandArgs.Contains("--track-performance");
 var isExtendedBenchmarks = commandArgs.Contains("--extended");
+var isReadmeGenMode = commandArgs.Contains("--readme-gen");
+
+if (isReadmeGenMode)
+{
+    Console.WriteLine("📝 Generating README performance section from existing data...");
+    try
+    {
+        var tracker = new PerformanceTracker();
+        var history = await tracker.LoadHistoryAsync();
+        await tracker.GenerateReadmeReportsAsync(history);
+        Console.WriteLine("✅ README components generated successfully!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+    }
+    return;
+}
 
 if (isPerformanceTrackingMode)
 {
