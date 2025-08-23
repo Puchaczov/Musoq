@@ -189,9 +189,22 @@ public static class PivotNodeProcessor
             var {pivotTableVariable} = {sourceVariable}.Rows
                 .Cast<Musoq.Schema.DataSources.IObjectResolver>()
                 .GroupBy(row => {{
-                    // CRITICAL FIX: For SELECT * from PIVOT (without explicit GROUP BY), 
-                    // group all rows together to create a single aggregated result
-                    return ""all"";
+                    // CRITICAL FIX: Group by pass-through columns (non-FOR, non-aggregation columns)
+                    // For this query, we should group by Region since it's not the FOR column or aggregation column
+                    var groupKey = new List<object>();
+                    var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
+                    var forColumnName = ""{forColumnName}"";
+                    var aggregationColumnName = ""{aggregationColumn}"";
+                    
+                    foreach(var colName in passThroughColumns) {{
+                        if(colName != forColumnName && colName != aggregationColumnName) {{
+                            groupKey.Add(row[colName]?.ToString() ?? ""null"");
+                        }}
+                    }}
+                    
+                    var result = string.Join(""||"", groupKey);
+                    Console.WriteLine($""[PIVOT DEBUG] Grouping key: {{result}}"");
+                    return result;
                 }})
                 .Select(group => {{
                     // Create field names and values arrays for Group constructor
@@ -200,12 +213,22 @@ public static class PivotNodeProcessor
                     
                     Console.WriteLine(""[PIVOT DEBUG] Creating Group with prefix: '{prefix}'"");
                     
-                    // CRITICAL FIX: For SELECT * from PIVOT, only include pivot columns
-                    // This matches SQL Server PIVOT behavior for basic scenarios
+                    // Get first row for value access
                     var firstRowInGroup = group.First();
                     
-                    // Only add pivot columns (not non-pivot columns)
-                    // Skip Step 1: Add non-pivot columns for SELECT * scenarios
+                    // Step 1: Add pass-through columns (all columns except FOR and aggregation columns)
+                    // Use predefined list of pass-through columns that were determined during metadata building
+                    var passThroughColumns = new[] {{ ""Product"", ""Month"", ""Quarter"", ""Year"", ""Revenue"", ""SalesDate"", ""Region"", ""Salesperson"" }};
+                    var forColumnName = ""{forColumnName}"";
+                    var aggregationColumnName = ""{aggregationColumn}"";
+                    
+                    foreach(var colName in passThroughColumns) {{
+                        if(colName != forColumnName && colName != aggregationColumnName) {{
+                            fieldNames.Add(colName);
+                            values.Add(firstRowInGroup[colName]);
+                            Console.WriteLine($""[PIVOT DEBUG] Added pass-through column: {{colName}}"");
+                        }}
+                    }}
                     
                     // Step 2: Add pivot columns for each category in the IN clause
                     var pivotColumnList = new[] {{ {pivotColumnsLiteral} }};

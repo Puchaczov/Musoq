@@ -2162,12 +2162,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             // Create PIVOT columns from the IN values
             var pivotColumns = new List<ISchemaColumn>();
             
-            // CRITICAL FIX: For SELECT * from PIVOT, only include pivot columns (not non-pivot columns)
-            // This matches the expected behavior for the BasicPivotWithSum test case
-            // Standard SQL PIVOT behavior can vary, but test expects only pivot columns
-            // Comment out pass-through columns for SELECT * scenarios
-            /*
             // Add non-aggregated, non-FOR columns from the source (these pass through PIVOT)
+            // These are needed for queries that explicitly reference non-pivot columns
             var forColumnName = GetColumnNameFromNode(node.Pivot.ForColumn);
             var aggregateColumnNames = node.Pivot.AggregationExpressions
                 .Select(GetColumnNameFromAggregationExpression)
@@ -2185,7 +2181,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     Console.WriteLine($"[PIVOT METADATA] Added pass-through column: {sourceColumn.ColumnName}");
                 }
             }
-            */
             
             // Add the PIVOT columns (includes both IN clause and additional data categories)
             var columnIndex = pivotColumns.Count;
