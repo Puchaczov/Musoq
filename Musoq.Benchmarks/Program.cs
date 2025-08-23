@@ -8,6 +8,7 @@ var commandArgs = Environment.GetCommandLineArgs();
 var isPerformanceTrackingMode = commandArgs.Contains("--track-performance");
 var isExtendedBenchmarks = commandArgs.Contains("--extended");
 var isCompilationBenchmarks = commandArgs.Contains("--compilation");
+var isPerformanceAnalysis = commandArgs.Contains("--performance-analysis");
 var isReadmeGenMode = commandArgs.Contains("--readme-gen");
 
 if (isReadmeGenMode)
@@ -38,6 +39,11 @@ if (isPerformanceTrackingMode)
         var summary = BenchmarkRunner.Run<CompilationBenchmark>(config);
         await ProcessPerformanceResults(summary);
     }
+    else if (isPerformanceAnalysis)
+    {
+        var summary = BenchmarkRunner.Run<PerformanceAnalysisBenchmark>(config);
+        await ProcessPerformanceResults(summary);
+    }
     else if (isExtendedBenchmarks)
     {
         var summary = BenchmarkRunner.Run<ExtendedExecutionBenchmark>(config);
@@ -61,6 +67,14 @@ else
             )
         );
     }
+    else if (isPerformanceAnalysis)
+    {
+        BenchmarkRunner.Run<PerformanceAnalysisBenchmark>(
+            new DebugInProcessConfig().AddFilter(
+                new NameFilter(name => name.Contains(nameof(PerformanceAnalysisBenchmark.SimpleSelect_CurrentSchemaProvider)))
+            )
+        );
+    }
     else if (isExtendedBenchmarks)
     {
         BenchmarkRunner.Run<ExtendedExecutionBenchmark>(
@@ -80,6 +94,10 @@ else
     if (isCompilationBenchmarks)
     {
         BenchmarkRunner.Run<CompilationBenchmark>();
+    }
+    else if (isPerformanceAnalysis)
+    {
+        BenchmarkRunner.Run<PerformanceAnalysisBenchmark>();
     }
     else if (isExtendedBenchmarks)
     {

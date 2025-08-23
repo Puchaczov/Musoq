@@ -8,6 +8,7 @@ This document describes the comprehensive performance testing framework implemen
 Tests the runtime performance of executing compiled queries:
 - **ExecutionBenchmark** - Standard tests comparing parallel vs sequential execution
 - **ExtendedExecutionBenchmark** - Extended tests covering various query patterns (SELECT, filter, aggregation, sorting)
+- **PerformanceAnalysisBenchmark** - Targeted tests for performance analysis and optimization validation
 
 ### 2. Compilation Performance Tests  
 Tests the performance of SQL parsing and C# code generation:
@@ -23,6 +24,9 @@ dotnet run --configuration Release -- --track-performance
 
 # Extended execution benchmarks  
 dotnet run --configuration Release -- --track-performance --extended
+
+# Performance analysis benchmarks
+dotnet run --configuration Release -- --track-performance --performance-analysis
 
 # Compilation/build performance benchmarks
 dotnet run --configuration Release -- --track-performance --compilation
@@ -43,6 +47,7 @@ Performance tests run automatically on:
 |---------------|--------------|-------------|
 | Standard | (default) | Basic parallel vs sequential execution tests |
 | Extended | `--extended` | Comprehensive query pattern testing (7 different patterns) |
+| Performance Analysis | `--performance-analysis` | Targeted benchmarks for optimization validation |
 | Compilation | `--compilation` | SQL parsing and C# compilation performance tests |
 
 ## Performance Data Storage
