@@ -568,7 +568,8 @@ public static class PivotNodeProcessor
                 }
                 else
                 {
-                    values.Add(0m); // Default value for missing category
+                    Console.WriteLine($"[PIVOT RUNTIME] {category} = null (no data found)");
+                    values.Add(null); // Default value for missing category
                 }
             }
             
