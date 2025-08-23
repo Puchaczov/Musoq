@@ -9,6 +9,7 @@ var isPerformanceTrackingMode = commandArgs.Contains("--track-performance");
 var isExtendedBenchmarks = commandArgs.Contains("--extended");
 var isCompilationBenchmarks = commandArgs.Contains("--compilation");
 var isPerformanceAnalysis = commandArgs.Contains("--performance-analysis");
+var isAssemblyCachingBenchmarks = commandArgs.Contains("--assembly-caching");
 var isReadmeGenMode = commandArgs.Contains("--readme-gen");
 
 if (isReadmeGenMode)
@@ -44,6 +45,11 @@ if (isPerformanceTrackingMode)
         var summary = BenchmarkRunner.Run<PerformanceAnalysisBenchmark>(config);
         await ProcessPerformanceResults(summary);
     }
+    else if (isAssemblyCachingBenchmarks)
+    {
+        var summary = BenchmarkRunner.Run<AssemblyCachingBenchmark>(config);
+        await ProcessPerformanceResults(summary);
+    }
     else if (isExtendedBenchmarks)
     {
         var summary = BenchmarkRunner.Run<ExtendedExecutionBenchmark>(config);
@@ -75,6 +81,14 @@ else
             )
         );
     }
+    else if (isAssemblyCachingBenchmarks)
+    {
+        BenchmarkRunner.Run<AssemblyCachingBenchmark>(
+            new DebugInProcessConfig().AddFilter(
+                new NameFilter(name => name.Contains(nameof(AssemblyCachingBenchmark.SimpleQuery_WithCache_CacheHit)))
+            )
+        );
+    }
     else if (isExtendedBenchmarks)
     {
         BenchmarkRunner.Run<ExtendedExecutionBenchmark>(
@@ -98,6 +112,10 @@ else
     else if (isPerformanceAnalysis)
     {
         BenchmarkRunner.Run<PerformanceAnalysisBenchmark>();
+    }
+    else if (isAssemblyCachingBenchmarks)
+    {
+        BenchmarkRunner.Run<AssemblyCachingBenchmark>();
     }
     else if (isExtendedBenchmarks)
     {

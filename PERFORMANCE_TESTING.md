@@ -28,6 +28,9 @@ dotnet run --configuration Release -- --track-performance --extended
 # Performance analysis benchmarks
 dotnet run --configuration Release -- --track-performance --performance-analysis
 
+# Assembly caching benchmarks (Phase 1 optimization validation)
+dotnet run --configuration Release -- --track-performance --assembly-caching
+
 # Compilation/build performance benchmarks
 dotnet run --configuration Release -- --track-performance --compilation
 
@@ -48,6 +51,8 @@ Performance tests run automatically on:
 | Standard | (default) | Basic parallel vs sequential execution tests |
 | Extended | `--extended` | Comprehensive query pattern testing (7 different patterns) |
 | Performance Analysis | `--performance-analysis` | Targeted benchmarks for optimization validation |
+| Assembly Caching | `--assembly-caching` | Tests assembly caching performance impact (Phase 1 optimization) |
+| Compilation | `--compilation` | SQL parsing and C# code generation performance |
 | Compilation | `--compilation` | SQL parsing and C# compilation performance tests |
 
 ## Performance Data Storage
