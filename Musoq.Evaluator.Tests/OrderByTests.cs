@@ -12,11 +12,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByColumn_ShouldSucceed()
     {
-        var query = @"select City from #A.Entities() order by Money";
+        var query = @"select City from @A.Entities() order by Money";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
@@ -36,11 +36,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByDescColumn_ShouldSucceed()
     {
-        var query = @"select City from #A.Entities() order by Money desc";
+        var query = @"select City from @A.Entities() order by Money desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
@@ -60,11 +60,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByMultipleColumnFirstDesc_ShouldSucceed()
     {
-        var query = @"select City from #A.Entities() order by Money desc, Name";
+        var query = @"select City from @A.Entities() order by Money desc, Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
@@ -84,11 +84,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByMultipleColumns_ShoulSucceed()
     {
-        var query = @"select City from #A.Entities() order by Money, Name";
+        var query = @"select City from @A.Entities() order by Money, Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
@@ -108,11 +108,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByMultipleColumnsBothDesc_ShouldSucceed()
     {
-        var query = @"select City from #A.Entities() order by Money desc, Name desc";
+        var query = @"select City from @A.Entities() order by Money desc, Name desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
@@ -132,11 +132,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByMultipleColumnsSecondColumnDesc_ShouldSucceed()
     {
-        var query = @"select City + '-' + ToString(Money) from #A.Entities() order by City, Money desc";
+        var query = @"select City + '-' + ToString(Money) from @A.Entities() order by City, Money desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -158,11 +158,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByAfterGroupBy_ShouldSuccess()
     {
-        var query = @"select City from #A.Entities() group by City order by City";
+        var query = @"select City from @A.Entities() group by City order by City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -183,11 +183,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByWithDescAfterGroupBy_ShouldSucceed()
     {
-        var query = @"select City from #A.Entities() group by City order by City desc";
+        var query = @"select City from @A.Entities() group by City order by City desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -208,11 +208,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByWithGroupByMultipleColumnAndFirstDesc_ShouldSucceed()
     {
-        var query = @"select City, Money from #A.Entities() group by City, Money order by City desc, Money";
+        var query = @"select City, Money from @A.Entities() group by City, Money order by City desc, Money";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -238,11 +238,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByAfterGroupByMultipleColumnBothDesc_ShouldSucceed()
     {
-        var query = @"select City, Money from #A.Entities() group by City, Money order by City desc, Money desc";
+        var query = @"select City, Money from @A.Entities() group by City, Money order by City desc, Money desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -268,11 +268,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByAfterGroupByHaving_ShouldSucceed()
     {
-        var query = @"select City, Sum(Money) from #A.Entities() group by City having Sum(Money) >= 400 order by City";
+        var query = @"select City, Sum(Money) from @A.Entities() group by City having Sum(Money) >= 400 order by City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -294,11 +294,11 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByDescAfterGroupByHaving_ShouldSucceed()
     {
-        var query = @"select City, Sum(Money) from #A.Entities() group by City having Sum(Money) >= 400 order by City desc";
+        var query = @"select City, Sum(Money) from @A.Entities() group by City having Sum(Money) >= 400 order by City desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -320,12 +320,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByClauseWithOperation_ShouldSucceed()
     {
-        const string query = @"select Money from #A.Entities() order by Money * -1";
+        const string query = @"select Money from @A.Entities() order by Money * -1";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -350,12 +350,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByClauseWithOperationDesc_ShouldSucceed()
     {
-        var query = @"select Money from #A.Entities() order by Money * -1 desc";
+        var query = @"select Money from @A.Entities() order by Money * -1 desc";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -380,12 +380,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByWithinCteExpression_ShouldSucceed()
     {
-        const string query = @"with cte as ( select City, Money from #A.Entities() order by Money ) select City from cte";
+        const string query = @"with cte as ( select City, Money from @A.Entities() order by Money ) select City from cte";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -419,12 +419,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByDescWithinCteExpression_ShouldSucceed()
     {
-        const string query = @"with cte as ( select City, Money from #A.Entities() order by Money desc ) select City from cte";
+        const string query = @"with cte as ( select City, Money from @A.Entities() order by Money desc ) select City from cte";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -449,12 +449,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByWithMultipleColumnsFirstDescWithinCteExpression_ShouldSucceed()
     {
-        const string query = @"with cte as ( select City, Money from #A.Entities() order by Money desc, City ) select City from cte";
+        const string query = @"with cte as ( select City, Money from @A.Entities() order by Money desc, City ) select City from cte";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -480,12 +480,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByWithMultipleColumnsBothDescWithinCteExpression_ShouldSucceed()
     {
-        const string query = @"with cte as ( select City, Money from #A.Entities() order by Money desc, City desc ) select City from cte";
+        const string query = @"with cte as ( select City, Money from @A.Entities() order by Money desc, City desc ) select City from cte";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -514,12 +514,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByWithMultipleColumnsBothDescWithinCteExpression_BothRetrieved_ShouldSucceed()
     {
-        const string query = @"with cte as ( select City, Money from #A.Entities() order by Money desc, City desc ) select City, Money from cte";
+        const string query = @"with cte as ( select City, Money from @A.Entities() order by Money desc, City desc ) select City, Money from cte";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -562,12 +562,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByCaseWhenExpression_ShouldSucceed()
     {
-        var query = @"select City from #A.Entities() order by case when Money > 0 then Money else 0d end";
+        var query = @"select City from @A.Entities() order by case when Money > 0 then Money else 0d end";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -592,12 +592,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByCaseWhenDescExpression_ShouldSucceed()
     {
-        var query = @"select City from #A.Entities() order by case when Money > 0 then Money else 0d end desc";
+        var query = @"select City from @A.Entities() order by case when Money > 0 then Money else 0d end desc";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -622,12 +622,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByMultipleColumnsFirstOneIsCaseWhenExpression_ShouldSucceed()
     {
-        var query = @"select City from #A.Entities() order by case when Money > 0 then Money else 0d end, City";
+        var query = @"select City from @A.Entities() order by case when Money > 0 then Money else 0d end, City";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -652,12 +652,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByMultipleColumnsFirstOneIsCaseWhenDescExpression_ShouldSucceed()
     {
-        var query = @"select City from #A.Entities() order by case when Money > 0 then Money else 0d end desc, City desc";
+        var query = @"select City from @A.Entities() order by case when Money > 0 then Money else 0d end desc, City desc";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
@@ -682,12 +682,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByWithInnerJoin_ShouldSucceed()
     {
-        var query = @"select a.City from #A.Entities() a inner join #A.Entities() b on a.City = b.City order by a.Money";
+        var query = @"select a.City from @A.Entities() a inner join @A.Entities() b on a.City = b.City order by a.Money";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
@@ -710,12 +710,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByDescendingWithInnerJoin_ShouldSucceed()
     {
-        var query = @"select a.City from #A.Entities() a inner join #A.Entities() b on a.City = b.City order by a.Money desc";
+        var query = @"select a.City from @A.Entities() a inner join @A.Entities() b on a.City = b.City order by a.Money desc";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
@@ -738,12 +738,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByWithInnerJoinAndGroupBy_ShouldSucceed()
     {
-        var query = @"select a.City from #A.Entities() a inner join #A.Entities() b on a.City = b.City group by a.City order by a.City";
+        var query = @"select a.City from @A.Entities() a inner join @A.Entities() b on a.City = b.City group by a.City order by a.City";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
@@ -766,12 +766,12 @@ public class OrderByTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByDescendingWithInnerJoinAndGroupBy_ShouldSucceed()
     {
-        var query = @"select a.City from #A.Entities() a inner join #A.Entities() b on a.City = b.City group by a.City order by a.City desc";
+        var query = @"select a.City from @A.Entities() a inner join @A.Entities() b on a.City = b.City group by a.City order by a.City desc";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
                     new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
                     new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
@@ -798,14 +798,14 @@ public class OrderByTests : BasicEntityTestBase
                              select 
                                 a.GetTypeName(a.Name),
                                 a.Count(a.Name)
-                             from #A.Entities() a
+                             from @A.Entities() a
                              group by a.GetTypeName(a.Name)
                              order by a.GetTypeName(a.Name)
                              """;
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [new BasicEntity("a"), new BasicEntity("b"), new BasicEntity("c")]
+                "@A", [new BasicEntity("a"), new BasicEntity("b"), new BasicEntity("c")]
             }
         };
         

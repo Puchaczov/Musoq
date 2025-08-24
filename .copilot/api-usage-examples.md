@@ -16,7 +16,7 @@ using Musoq.Evaluator;
 using Musoq.Schema;
 
 // Basic query compilation and execution
-var query = "SELECT Name, Count(*) FROM #schema.source() GROUP BY Name";
+var query = "SELECT Name, Count(*) FROM @schema.source() GROUP BY Name";
 var schemaProvider = new MySchemaProvider();
 var loggerResolver = new LoggerResolver();
 
@@ -349,7 +349,7 @@ public class ParameterizedQueryExample
         // Use parameters to prevent injection and improve reusability
         var query = @"
             SELECT Name, CreatedAt, Status
-            FROM #system.events()
+            FROM @system.events()
             WHERE Name LIKE @userPattern
               AND CreatedAt BETWEEN @fromDate AND @toDate
             ORDER BY CreatedAt DESC";
@@ -418,9 +418,9 @@ var results = engine.ExecuteQuery(@"
         c.CustomerName,
         p.ProductName,
         o.Quantity * p.Price as TotalValue
-    FROM #sales.orders() o
-    INNER JOIN #users.customers() c ON o.CustomerId = c.Id
-    INNER JOIN #inventory.products() p ON o.ProductId = p.Id
+    FROM @sales.orders() o
+    INNER JOIN @users.customers() c ON o.CustomerId = c.Id
+    INNER JOIN @inventory.products() p ON o.ProductId = p.Id
     WHERE o.OrderDate >= '2023-01-01'
     ORDER BY TotalValue DESC");
 ```
@@ -456,7 +456,7 @@ public class StreamingQueryProcessor
 var processor = new StreamingQueryProcessor();
 
 await foreach (var row in processor.ExecuteStreamingQuery(
-    "SELECT * FROM #large.dataset() WHERE Status = 'Active'",
+    "SELECT * FROM @large.dataset() WHERE Status = 'Active'",
     schemaProvider,
     cancellationToken))
 {
@@ -670,7 +670,7 @@ public class ApiUsageTests
 
         var query = @"
             SELECT Department, COUNT(*) as EmployeeCount, AVG(Age) as AverageAge
-            FROM #test.table('employees')
+            FROM @test.table('employees')
             GROUP BY Department
             ORDER BY EmployeeCount DESC";
 

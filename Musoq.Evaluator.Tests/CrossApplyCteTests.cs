@@ -46,7 +46,7 @@ public class CrossApplyCteTests : GenericEntityTestBase
     {
         const string query = @"
 with p as (
-    select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from #schema.first() a cross apply #schema.second(a.Country) b
+    select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from @schema.first() a cross apply @schema.second(a.Country) b
 )
 select [a.City], [a.Country], [a.Population], [b.Country], [b.Money], [b.Month] from p";
         
@@ -125,9 +125,9 @@ with p as (
         f.City as City, 
         f.Country as Country, 
         f.Population as Population 
-    from #schema.first() f
+    from @schema.first() f
 )
-select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a cross apply #schema.second(a.Country) b";
+select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a cross apply @schema.second(a.Country) b";
         
         var firstSource = new List<CrossApplyClass1>
         {
@@ -216,7 +216,7 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a cro
     {
         const string query = @"
 with p as (
-    select a.Name, b.Value from #schema.first() a cross apply a.Skills b
+    select a.Name, b.Value from @schema.first() a cross apply a.Skills b
 )
 select [a.Name], [b.Value] from p";
         
@@ -286,7 +286,7 @@ select [a.Name], [b.Value] from p";
     {
         const string query = @"
 with first as (
-    select a.Name as Name, a.Skills as Skills from #schema.first() a
+    select a.Name as Name, a.Skills as Skills from @schema.first() a
 )
 select a.Name, b.Value from first a cross apply a.Skills b";
         
@@ -333,7 +333,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
                         select 
                             r.AggregateValues(r.Name) as Name1,
                             r.AggregateValues(r.Name) as Name2
-                        from #schema.first() r
+                        from @schema.first() r
                         cross apply r.JustReturnArrayOfString() b
                         cross apply r.JustReturnArrayOfString() c
                         group by 'fake'
@@ -343,7 +343,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
                         b.Name2,
                         p.Value
                     from first b
-                    inner join #schema.first() r on 1 = 1
+                    inner join @schema.first() r on 1 = 1
                     cross apply r.MethodArrayOfStrings(r.TestMethodWithInjectEntityAndParameter(b.Name1), r.TestMethodWithInjectEntityAndParameter(b.Name2)) p
                     """;
         
@@ -373,7 +373,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
                     select
                         p.Value,
                         np.Value
-                    from #schema.first() sln
+                    from @schema.first() sln
                     cross apply sln.Skills p
                     cross apply p.MethodArrayOfStringsWithDefaultParameter() np
                     """;
@@ -408,7 +408,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
                     select
                         p.Value,
                         np.Value
-                    from #schema.first() sln
+                    from @schema.first() sln
                     cross apply sln.Skills p
                     cross apply p.MethodArrayOfStringsWithDefaultParameter(true) np
                     """;
@@ -443,7 +443,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
                     select
                         p.Value,
                         np.Value
-                    from #schema.first() sln
+                    from @schema.first() sln
                     cross apply sln.Skills p
                     cross apply p.MethodArrayOfStringsWithOneParamAndDefaultParameter('value') np
                     """;
@@ -478,7 +478,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
                     select
                         p.Value,
                         np.Value
-                    from #schema.first() sln
+                    from @schema.first() sln
                     cross apply sln.Skills p
                     cross apply p.MethodArrayOfStringsWithOneParamAndDefaultParameter('value', true) np
                     """;

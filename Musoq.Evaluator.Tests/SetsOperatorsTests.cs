@@ -13,11 +13,11 @@ public class SetsOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void UnionWithDifferentColumnsAsAKeyTest()
     {
-        var query = @"select Name from #A.Entities() union (Name) select City as Name from #B.Entities()";
+        var query = @"select Name from @A.Entities() union (Name) select City as Name from @B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003", "", 0), new BasicEntity("004", "", 0)]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003", "", 0), new BasicEntity("004", "", 0)]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -39,18 +39,18 @@ public class SetsOperatorsTests : BasicEntityTestBase
 select 
     a.Name as a1,
     b.Value
-from #A.Entities() a
+from @A.Entities() a
 cross apply a.ToCharArray(a.Name) b
 union (Name) 
 select 
     a.Name as a1,
     b.Value
-from #A.Entities() a
+from @A.Entities() a
 cross apply a.ToCharArray(a.Name) b
 """;
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -60,11 +60,11 @@ cross apply a.ToCharArray(a.Name) b
     [TestMethod]
     public void UnionWithSkipTest()
     {
-        var query = @"select Name from #A.Entities() skip 1 union (Name) select Name from #B.Entities() skip 2";
+        var query = @"select Name from @A.Entities() skip 1 union (Name) select Name from @B.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -79,11 +79,11 @@ cross apply a.ToCharArray(a.Name) b
     [TestMethod]
     public void UnionAllWithSkipTest()
     {
-        var query = @"select Name from #A.Entities() skip 1 union all (Name) select Name from #B.Entities() skip 2";
+        var query = @"select Name from @A.Entities() skip 1 union all (Name) select Name from @B.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("005")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("005")]},
+            {"@B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -98,15 +98,15 @@ cross apply a.ToCharArray(a.Name) b
     public void MultipleUnionAllTest()
     {
         var query = @"
-select Name from #A.Entities() union all (Name) 
-select Name from #A.Entities() union all (Name) 
-select Name from #A.Entities() union all (Name) 
-select Name from #A.Entities() union all (Name) 
-select Name from #A.Entities()";
+select Name from @A.Entities() union all (Name) 
+select Name from @A.Entities() union all (Name) 
+select Name from @A.Entities() union all (Name) 
+select Name from @A.Entities() union all (Name) 
+select Name from @A.Entities()";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("005")]}
+            {"@A", [new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -124,18 +124,18 @@ select Name from #A.Entities()";
     {
         var query = @"
 with p as (
-    select 1 as Id, 'EMPTY' as Name from #A.Entities()
+    select 1 as Id, 'EMPTY' as Name from @A.Entities()
     union all (Name)
-    select 2 as Id, 'EMPTY2' as Name from #A.Entities()
+    select 2 as Id, 'EMPTY2' as Name from @A.Entities()
     union all (Name)
-    select 3 as Id, 'EMPTY3' as Name from #A.Entities()
+    select 3 as Id, 'EMPTY3' as Name from @A.Entities()
 )
 select Id, Name from p
 ";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("005")]}
+            {"@A", [new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -164,18 +164,18 @@ select Id, Name from p
     {
         var query = @"
 with p as (
-    select 1 as Id, 'EMPTY' as Name from #A.Entities()
+    select 1 as Id, 'EMPTY' as Name from @A.Entities()
     union (Name)
-    select 2 as Id, 'EMPTY2' as Name from #A.Entities()
+    select 2 as Id, 'EMPTY2' as Name from @A.Entities()
     union (Name)
-    select 3 as Id, 'EMPTY3' as Name from #A.Entities()
+    select 3 as Id, 'EMPTY3' as Name from @A.Entities()
 )
 select Id, Name from p
 ";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("005")]}
+            {"@A", [new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -203,17 +203,17 @@ select Id, Name from p
     public void MultipleUnionAllWithSkipTest()
     {
         var query = @"
-select Name from #A.Entities() skip 1 
+select Name from @A.Entities() skip 1 
 union all (Name) 
-select Name from #B.Entities() skip 2
+select Name from @B.Entities() skip 2
 union all (Name)
-select Name from #C.Entities() skip 3";
+select Name from @C.Entities() skip 3";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("005")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]},
+            {"@A", [new BasicEntity("001"), new BasicEntity("005")]},
+            {"@B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]},
             {
-                "#C",
+                "@C",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("004"), new BasicEntity("005")
                 ]
@@ -231,11 +231,11 @@ select Name from #C.Entities() skip 3";
     [TestMethod]
     public void UnionWithoutDuplicatedKeysTest()
     {
-        var query = @"select Name from #A.Entities() union (Name) select Name from #B.Entities()";
+        var query = @"select Name from @A.Entities() union (Name) select Name from @B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -253,11 +253,11 @@ select Name from #C.Entities() skip 3";
     [TestMethod]
     public void UnionWithDuplicatedKeysTest()
     {
-        var query = @"select Name from #A.Entities() union (Name) select Name from #B.Entities()";
+        var query = @"select Name from @A.Entities() union (Name) select Name from @B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -274,12 +274,12 @@ select Name from #C.Entities() skip 3";
     public void MultipleUnionsWithDuplicatedKeysTest()
     {
         var query =
-            @"select Name from #A.Entities() union (Name) select Name from #B.Entities() union (Name) select Name from #C.Entities()";
+            @"select Name from @A.Entities() union (Name) select Name from @B.Entities() union (Name) select Name from @C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001")]},
+            {"@B", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@C", [new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -296,12 +296,12 @@ select Name from #C.Entities() skip 3";
     public void MultipleUnionsWithoutDuplicatedKeysTest()
     {
         var query =
-            @"select Name from #A.Entities() union (Name) select Name from #B.Entities() union (Name) select Name from #C.Entities()";
+            @"select Name from @A.Entities() union (Name) select Name from @B.Entities() union (Name) select Name from @C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001")]},
+            {"@B", [new BasicEntity("002")]},
+            {"@C", [new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -319,17 +319,17 @@ select Name from #C.Entities() skip 3";
     {
         var query =
             @"
-select Name from #A.Entities() union (Name) 
-select Name from #B.Entities() union (Name) 
-select Name from #C.Entities() union (Name) 
-select Name from #D.Entities()";
+select Name from @A.Entities() union (Name) 
+select Name from @B.Entities() union (Name) 
+select Name from @C.Entities() union (Name) 
+select Name from @D.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]},
-            {"#D", [new BasicEntity("007"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]},
+            {"@B", [new BasicEntity("002")]},
+            {"@C", [new BasicEntity("005")]},
+            {"@D", [new BasicEntity("007"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -346,11 +346,11 @@ select Name from #D.Entities()";
     [TestMethod]
     public void UnionAllWithDuplicatedKeysTest()
     {
-        var query = @"select Name from #A.Entities() union all (Name) select Name from #B.Entities()";
+        var query = @"select Name from @A.Entities() union all (Name) select Name from @B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -369,12 +369,12 @@ select Name from #D.Entities()";
     public void MultipleUnionsAllWithDuplicatedKeysTest()
     {
         var query =
-            @"select Name from #A.Entities() union all (Name) select Name from #B.Entities() union all (Name) select Name from #C.Entities()";
+            @"select Name from @A.Entities() union all (Name) select Name from @B.Entities() union all (Name) select Name from @C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001")]},
+            {"@B", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@C", [new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -391,12 +391,12 @@ select Name from #D.Entities()";
     public void MultipleUnionsAllWithoutDuplicatedKeysTest()
     {
         var query =
-            @"select Name from #A.Entities() union all (Name) select Name from #B.Entities() union all (Name) select Name from #C.Entities()";
+            @"select Name from @A.Entities() union all (Name) select Name from @B.Entities() union all (Name) select Name from @C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001")]},
+            {"@B", [new BasicEntity("002")]},
+            {"@C", [new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -413,16 +413,16 @@ select Name from #D.Entities()";
     {
         var query =
             @"
-select Name from #A.Entities() union all (Name) 
-select Name from #B.Entities() union all (Name) 
-select Name from #C.Entities() union all (Name) 
-select Name from #D.Entities()";
+select Name from @A.Entities() union all (Name) 
+select Name from @B.Entities() union all (Name) 
+select Name from @C.Entities() union all (Name) 
+select Name from @D.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]},
-            {"#D", [new BasicEntity("007"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]},
+            {"@B", [new BasicEntity("002")]},
+            {"@C", [new BasicEntity("005")]},
+            {"@D", [new BasicEntity("007"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -440,11 +440,11 @@ select Name from #D.Entities()";
     [TestMethod]
     public void UnionAllWithoutDuplicatedKeysTest()
     {
-        var query = @"select Name from #A.Entities() union all (Name) select Name from #B.Entities()";
+        var query = @"select Name from @A.Entities() union all (Name) select Name from @B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -462,11 +462,11 @@ select Name from #D.Entities()";
     [TestMethod]
     public void ExceptDoubleSourceTest()
     {
-        var query = @"select Name from #A.Entities() except (Name) select Name from #B.Entities()";
+        var query = @"select Name from @A.Entities() except (Name) select Name from @B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -479,11 +479,11 @@ select Name from #D.Entities()";
     [TestMethod]
     public void ExceptWithSkipDoubleSourceTest()
     {
-        var query = @"select Name from #A.Entities() skip 1 except (Name) select Name from #B.Entities() skip 2";
+        var query = @"select Name from @A.Entities() skip 1 except (Name) select Name from @B.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("010")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("002")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("010")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("002")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -497,12 +497,12 @@ select Name from #D.Entities()";
     public void ExceptTripleSourcesTest()
     {
         var query =
-            @"select Name from #A.Entities() except (Name) select Name from #B.Entities() except (Name) select Name from #C.Entities()";
+            @"select Name from @A.Entities() except (Name) select Name from @B.Entities() except (Name) select Name from @C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("002")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -515,14 +515,14 @@ select Name from #D.Entities()";
     public void ExceptWithSkipTripleSourcesTest()
     {
         var query =
-            @"select Name from #A.Entities() skip 1 except (Name) 
-select Name from #B.Entities() skip 2 except (Name) 
-select Name from #C.Entities() skip 3";
+            @"select Name from @A.Entities() skip 1 except (Name) 
+select Name from @B.Entities() skip 2 except (Name) 
+select Name from @C.Entities() skip 3";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("005")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -537,22 +537,22 @@ select Name from #C.Entities() skip 3";
     {
         var query =
             @"
-select Name from #A.Entities() except (Name) 
-select Name from #B.Entities() except (Name) 
-select Name from #C.Entities() except (Name) 
-select Name from #D.Entities()";
+select Name from @A.Entities() except (Name) 
+select Name from @B.Entities() except (Name) 
+select Name from @C.Entities() except (Name) 
+select Name from @D.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
                 ]
             },
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("005")]},
-            {"#D", [new BasicEntity("007")]}
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("005")]},
+            {"@D", [new BasicEntity("007")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -566,11 +566,11 @@ select Name from #D.Entities()";
     [TestMethod]
     public void IntersectDoubleSourceTest()
     {
-        var query = @"select Name from #A.Entities() intersect (Name) select Name from #B.Entities()";
+        var query = @"select Name from @A.Entities() intersect (Name) select Name from @B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -583,12 +583,12 @@ select Name from #D.Entities()";
     [TestMethod]
     public void IntersectWithSkipDoubleSourceTest()
     {
-        var query = @"select Name from #A.Entities() skip 1 intersect (Name) select Name from #B.Entities() skip 2";
+        var query = @"select Name from @A.Entities() skip 1 intersect (Name) select Name from @B.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]},
+            {"@A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]},
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005")
                 ]
@@ -606,12 +606,12 @@ select Name from #D.Entities()";
     public void IntersectTripleSourcesTest()
     {
         var query =
-            @"select Name from #A.Entities() intersect (Name) select Name from #B.Entities() intersect (Name) select Name from #C.Entities()";
+            @"select Name from @A.Entities() intersect (Name) select Name from @B.Entities() intersect (Name) select Name from @C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("002"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -626,20 +626,20 @@ select Name from #D.Entities()";
     {
         var query =
             @"
-select Name from #A.Entities() skip 1 intersect (Name) 
-select Name from #B.Entities() skip 2 intersect (Name) 
-select Name from #C.Entities()";
+select Name from @A.Entities() skip 1 intersect (Name) 
+select Name from @B.Entities() skip 2 intersect (Name) 
+select Name from @C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]},
+            {"@A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]},
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005")
                 ]
             },
-            {"#C", [new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("005")]}
+            {"@C", [new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("005")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -654,22 +654,22 @@ select Name from #C.Entities()";
     {
         var query =
             @"
-select Name from #A.Entities() intersect (Name) 
-select Name from #B.Entities() intersect (Name) 
-select Name from #C.Entities() intersect (Name) 
-select Name from #D.Entities()";
+select Name from @A.Entities() intersect (Name) 
+select Name from @B.Entities() intersect (Name) 
+select Name from @C.Entities() intersect (Name) 
+select Name from @D.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
                 ]
             },
-            {"#B", [new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("005"), new BasicEntity("007"), new BasicEntity("001")]},
-            {"#D", [new BasicEntity("008"), new BasicEntity("007"), new BasicEntity("001")]}
+            {"@B", [new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("005"), new BasicEntity("007"), new BasicEntity("001")]},
+            {"@D", [new BasicEntity("008"), new BasicEntity("007"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -685,17 +685,17 @@ select Name from #D.Entities()";
     public void MixedSourcesExceptUnionScenarioTest()
     {
         var query =
-            @"select Name from #A.Entities()
+            @"select Name from @A.Entities()
 except (Name)
-select Name from #B.Entities()
+select Name from @B.Entities()
 union (Name)
-select Name from #C.Entities()";
+select Name from @C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("002"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -711,17 +711,17 @@ select Name from #C.Entities()";
     public void MixedSourcesExceptUnionScenario1Test()
     {
         var query =
-            @"select Name from #A.Entities()
+            @"select Name from @A.Entities()
 except (Name)
-select Name from #B.Entities()
+select Name from @B.Entities()
 union (Name)
-select Name from #C.Entities()";
+select Name from @C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("002"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -737,17 +737,17 @@ select Name from #C.Entities()";
     public void MixedSourcesWithSkipExceptUnionWithConditionsScenarioTest()
     {
         var query =
-            @"select Name from #A.Entities() skip 1
+            @"select Name from @A.Entities() skip 1
 except (Name)
-select Name from #B.Entities() skip 2
+select Name from @B.Entities() skip 2
 union (Name)
-select Name from #C.Entities() skip 3";
+select Name from @C.Entities() skip 3";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("002"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -761,18 +761,18 @@ select Name from #C.Entities() skip 3";
     public void MixedSourcesWithSkipIntersectUnionScenarioTest()
     {
         var query =
-            @"select Name from #A.Entities() skip 1
+            @"select Name from @A.Entities() skip 1
 intersect (Name)
-select Name from #B.Entities() skip 2
+select Name from @B.Entities() skip 2
 union (Name)
-select Name from #C.Entities() skip 3";
+select Name from @C.Entities() skip 3";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("002"), new BasicEntity("001")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            {"@A", [new BasicEntity("002"), new BasicEntity("001")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
             {
-                "#C",
+                "@C",
                 [
                     new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("003"), new BasicEntity("006")
                 ]
@@ -792,17 +792,17 @@ select Name from #C.Entities() skip 3";
     public void MixedSourcesExceptUnionWithMultipleColumnsScenarioTest()
     {
         var query =
-            @"select Name, RandomNumber() from #A.Entities()
+            @"select Name, RandomNumber() from @A.Entities()
 except (Name)
-select Name, RandomNumber() from #B.Entities()
+select Name, RandomNumber() from @B.Entities()
 union (Name)
-select Name, RandomNumber() from #C.Entities()";
+select Name, RandomNumber() from @C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]},
+            {"@B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("002"), new BasicEntity("001")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -819,22 +819,22 @@ select Name, RandomNumber() from #C.Entities()";
     {
         var query =
             @"
-select Name from #A.Entities() union (Name) 
-select Name from #B.Entities() except (Name) 
-select Name from #C.Entities() intersect (Name) 
-select Name from #D.Entities()";
+select Name from @A.Entities() union (Name) 
+select Name from @B.Entities() except (Name) 
+select Name from @C.Entities() intersect (Name) 
+select Name from @D.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
                 ]
             },
-            {"#B", [new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("005"), new BasicEntity("007")]},
-            {"#D", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003")]}
+            {"@B", [new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")]},
+            {"@C", [new BasicEntity("005"), new BasicEntity("007")]},
+            {"@D", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -851,22 +851,22 @@ select Name from #D.Entities()";
     public void UnionSourceGroupByTest()
     {
         var query =
-            @"select City, Sum(Population) from #A.Entities() group by City
+            @"select City, Sum(Population) from @A.Entities() group by City
 union (City)
-select City, Sum(Population) from #B.Entities() group by City
+select City, Sum(Population) from @B.Entities() group by City
 union (City)
-select City, Sum(Population) from #C.Entities() group by City";
+select City, Sum(Population) from @C.Entities() group by City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)]},
+            {"@A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)]},
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
                 ]
             },
-            {"#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
+            {"@C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -894,22 +894,22 @@ select City, Sum(Population) from #C.Entities() group by City";
     public void UnionAllSourceGroupByTest()
     {
         var query =
-            @"select City, Sum(Population) from #A.Entities() group by City
+            @"select City, Sum(Population) from @A.Entities() group by City
 union all (City)
-select City, Sum(Population) from #B.Entities() group by City
+select City, Sum(Population) from @B.Entities() group by City
 union all (City)
-select City, Sum(Population) from #C.Entities() group by City";
+select City, Sum(Population) from @C.Entities() group by City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)]},
+            {"@A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)]},
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
                 ]
             },
-            {"#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
+            {"@C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -938,28 +938,28 @@ select City, Sum(Population) from #C.Entities() group by City";
     public void ExceptSourceGroupByTest()
     {
         var query =
-            @"select City, Sum(Population) from #A.Entities() group by City
+            @"select City, Sum(Population) from @A.Entities() group by City
 except (City)
-select City, Sum(Population) from #B.Entities() group by City
+select City, Sum(Population) from @B.Entities() group by City
 except (City)
-select City, Sum(Population) from #C.Entities() group by City";
+select City, Sum(Population) from @C.Entities() group by City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001", "", 100), new BasicEntity("001", "", 100),
                     new BasicEntity("002", "", 500)
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
                 ]
             },
-            {"#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
+            {"@C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -977,28 +977,28 @@ select City, Sum(Population) from #C.Entities() group by City";
     public void IntersectSourceGroupByTest()
     {
         var query =
-            @"select City, Sum(Population) from #A.Entities() group by City
+            @"select City, Sum(Population) from @A.Entities() group by City
 except (City)
-select City, Sum(Population) from #B.Entities() group by City
+select City, Sum(Population) from @B.Entities() group by City
 except (City)
-select City, Sum(Population) from #C.Entities() group by City";
+select City, Sum(Population) from @C.Entities() group by City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001", "", 100), new BasicEntity("001", "", 100),
                     new BasicEntity("002", "", 500)
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
                 ]
             },
-            {"#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
+            {"@C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -1014,13 +1014,13 @@ select City, Sum(Population) from #C.Entities() group by City";
     {
         var query =
             @"
-select Name from #A.Entities() where Name = '001'
+select Name from @A.Entities() where Name = '001'
 union (Name)
-select Name from #A.Entities() where Name = '002'";
+select Name from @A.Entities() where Name = '002'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            {"@A", [new BasicEntity("001"), new BasicEntity("002")]}
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -1037,20 +1037,20 @@ select Name from #A.Entities() where Name = '002'";
     {
         var query =
             @"
-select Name from #A.Entities() where Name = '001'
+select Name from @A.Entities() where Name = '001'
 union (Name)
-select Name from #A.Entities() where Name = '002'
+select Name from @A.Entities() where Name = '002'
 union (Name)
-select Name from #A.Entities() where Name = '003'
+select Name from @A.Entities() where Name = '003'
 union (Name)
-select Name from #A.Entities() where Name = '004'
+select Name from @A.Entities() where Name = '004'
 union (Name)
-select Name from #A.Entities() where Name = '005'";
+select Name from @A.Entities() where Name = '005'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
                     new BasicEntity("005")
@@ -1073,10 +1073,10 @@ select Name from #A.Entities() where Name = '005'";
     [TestMethod]
     public void WhenWrongTypeBetweenUnions_ShouldFail()
     {
-        var query = @"select Name from #A.Entities() union (Name) select 1 as Name from #A.Entities()";
+        var query = @"select Name from @A.Entities() union (Name) select 1 as Name from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
         
         Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -1085,10 +1085,10 @@ select Name from #A.Entities() where Name = '005'";
     [TestMethod]
     public void WhenWrongTypeBetweenUnionAll_ShouldFail()
     {
-        var query = @"select Name from #A.Entities() union all (Name) select 1 as Name from #A.Entities()";
+        var query = @"select Name from @A.Entities() union all (Name) select 1 as Name from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
         
         Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -1097,10 +1097,10 @@ select Name from #A.Entities() where Name = '005'";
     [TestMethod]
     public void WhenWrongTypeBetweenExcept_ShouldFail()
     {
-        var query = @"select Name from #A.Entities() except (Name) select 1 as Name from #A.Entities()";
+        var query = @"select Name from @A.Entities() except (Name) select 1 as Name from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
         
         Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -1109,10 +1109,10 @@ select Name from #A.Entities() where Name = '005'";
     [TestMethod]
     public void WhenWrongTypeBetweenIntersect_ShouldFail()
     {
-        var query = @"select Name from #A.Entities() intersect (Name) select 1 as Name from #A.Entities()";
+        var query = @"select Name from @A.Entities() intersect (Name) select 1 as Name from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
         
         Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -1121,10 +1121,10 @@ select Name from #A.Entities() where Name = '005'";
     [TestMethod]
     public void WhenUnionDoesNotHaveAKey_ShouldFail()
     {
-        var query = @"select Name from #A.Entities() union () select Name as Name from #A.Entities()";
+        var query = @"select Name from @A.Entities() union () select Name as Name from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
         
         Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -1133,10 +1133,10 @@ select Name from #A.Entities() where Name = '005'";
     [TestMethod]
     public void WhenUnionAllDoesNotHaveAKey_ShouldFail()
     {
-        var query = @"select Name from #A.Entities() union all () select Name from #A.Entities()";
+        var query = @"select Name from @A.Entities() union all () select Name from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
         
         Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -1145,10 +1145,10 @@ select Name from #A.Entities() where Name = '005'";
     [TestMethod]
     public void WhenExceptDoesNotHaveAKey_ShouldFail()
     {
-        var query = @"select Name from #A.Entities() except () select Name from #A.Entities()";
+        var query = @"select Name from @A.Entities() except () select Name from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
         
         Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -1157,10 +1157,10 @@ select Name from #A.Entities() where Name = '005'";
     [TestMethod]
     public void WhenIntersectDoesNotHaveAKey_ShouldFail()
     {
-        var query = @"select Name from #A.Entities() intersect () select Name from #A.Entities()";
+        var query = @"select Name from @A.Entities() intersect () select Name from @A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            {"@A", [new BasicEntity("001")]}
         };
         
         Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));

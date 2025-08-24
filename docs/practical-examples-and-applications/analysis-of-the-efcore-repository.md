@@ -16,7 +16,7 @@ There are exactly `15992` commits, we can count this with a simple query:
 ```sql
 select
     Count(1) as CommitsCount
-from #git.repository('D:\repos\efcore') r
+from @git.repository('D:\repos\efcore') r
 cross apply r.Commits c
 group by 'fake'
 ```
@@ -36,7 +36,7 @@ select
     c.Author,
     c.AuthorEmail,
     c.CommittedWhen
-from #git.repository('D:\repos\efcore') r
+from @git.repository('D:\repos\efcore') r
 cross apply r.Commits c
 order by c.CommittedWhen desc
 take 10
@@ -68,7 +68,7 @@ select
     b.IsCurrentRepositoryHead,
     b.UpstreamBranchCanonicalName,
     b.RemoteName
-from #git.repository('D:\repos\efcore') r
+from @git.repository('D:\repos\efcore') r
 cross apply r.Branches b
 ```
 
@@ -83,7 +83,7 @@ select
     b.IsCurrentRepositoryHead,
     b.UpstreamBranchCanonicalName,
     b.RemoteName
-from #git.repository('D:\repos\efcore') r
+from @git.repository('D:\repos\efcore') r
 cross apply r.Branches b
 where b.FriendlyName like '%release%'
 ```
@@ -129,7 +129,7 @@ with AllAuthors as
 (
     select
         Count(c.AuthorEmail) as AuthorsCommits
-    from #git.repository('D:\repos\efcore') r
+    from @git.repository('D:\repos\efcore') r
     cross apply r.Commits c
     group by c.AuthorEmail
 )
@@ -142,7 +142,7 @@ Here's the top 10 by number of commits:
 select
     c.AuthorEmail,
     Count(c.Sha) as CommitCount
-from #git.repository('D:\repos\efcore') r
+from @git.repository('D:\repos\efcore') r
 cross apply r.Commits c
 group by c.AuthorEmail
 having Count(c.Sha) > 10
@@ -173,7 +173,7 @@ with MentionedBugFix as (
         ToString(c.CommittedWhen, 'yyyy-MM') as Month,
         c.Sha as CommitSha,
         c.MessageShort as CommitMessage
-    from #git.repository('D:\repos\efcore') s
+    from @git.repository('D:\repos\efcore') s
     cross apply s.Commits c
     where
         ToLowerInvariant(c.MessageShort) like '%fix%' or
@@ -213,7 +213,7 @@ with ContributionLength as (
         c.Count(1) as TotalCommits,
         c.MinDateTimeOffset(c.CommittedWhen) as FirstCommit,
         c.MaxDateTimeOffset(c.CommittedWhen) as LastCommit
-    from #git.repository('D:\repos\efcore') r
+    from @git.repository('D:\repos\efcore') r
     cross apply r.Commits c
     group by c.AuthorEmail
     having Count(c.AuthorEmail) > 1
@@ -248,7 +248,7 @@ WITH FileChanges AS (
     SELECT
         d.Path,
         c.Count(c.Sha) as TimesModified
-    FROM #git.repository('D:\repos\efcore') r
+    FROM @git.repository('D:\repos\efcore') r
     CROSS APPLY r.Head.Commits c
     CROSS APPLY r.DifferenceBetween(r.CommitFrom(c.Sha), r.CommitFrom(c.Sha + '^')) d
     GROUP BY d.Path
@@ -284,7 +284,7 @@ SELECT
     c.Author,
     c.CommittedWhen,
     Count(d.Path) as FilesChanged
-FROM #git.repository('D:\repos\efcore') r
+FROM @git.repository('D:\repos\efcore') r
 CROSS APPLY r.Take(r.Head.Commits, 10) c
 CROSS APPLY r.DifferenceBetween(r.CommitFrom(c.Sha), r.CommitFrom(c.Sha + '^')) d
 GROUP BY c.Sha, c.MessageShort, c.Author, c.CommittedWhen
@@ -316,7 +316,7 @@ select
     b.IsCurrentRepositoryHead,
     b.RemoteName,
     Count(1) as NumberOfCommits
-from #git.repository('D:\repos\efcore') r
+from @git.repository('D:\repos\efcore') r
 cross apply r.Branches b
 cross apply r.GetBranchSpecificCommits(r.Self, b.Self) c
 group by b.FriendlyName, b.IsRemote, b.IsTracking, b.IsCurrentRepositoryHead, b.RemoteName
@@ -339,7 +339,7 @@ with BranchInfo as (
         c.Author,
         c.AuthorEmail,
         c.CommittedWhen
-    from #git.repository('D:\repos\efcore') r
+    from @git.repository('D:\repos\efcore') r
     cross apply r.SearchForBranches('origin/release/6.0') b
     cross apply b.GetBranchSpecificCommits(r.Self, b.Self) c
 )
@@ -352,7 +352,7 @@ Most are merge commits. Let's see what files were changed:
 with DifferenceInfo as (
     select
         d.Path
-    from #git.repository('D:\repos\efcore') r
+    from @git.repository('D:\repos\efcore') r
     cross apply r.SearchForBranches('origin/release/6.0') b
     cross apply b.GetBranchSpecificCommits(r.Self, b.Self) c
     cross apply r.DifferenceBetween(r.CommitFrom(c.Sha), r.CommitFrom(c.Sha + '^')) d
@@ -426,7 +426,7 @@ with CommitsFromTags as (
     select
         t.MinCommit(t.Commit) as FirstCommit,
         t.MaxCommit(t.Commit) as LastCommit
-    from #git.repository('D:\repos\efcore') r
+    from @git.repository('D:\repos\efcore') r
     cross apply r.Tags t
     where t.FriendlyName = 'v5.0.0' or t.FriendlyName = 'v6.0.0'
     group by 'fake'
@@ -435,7 +435,7 @@ select
     b.FirstCommit.CommittedWhen as FirstCommitDate,
     b.LastCommit.CommittedWhen as LastCommitDate,
     d.Path
-from #git.repository('D:\repos\efcore') r2
+from @git.repository('D:\repos\efcore') r2
 inner join CommitsFromTags b on 1 = 1
 cross apply r2.DifferenceBetween(b.FirstCommit, b.LastCommit) d
 ```
@@ -464,7 +464,7 @@ with CommitsFromTags as (
     select
         t.MinCommit(t.Commit) as FirstCommit,
         t.MaxCommit(t.Commit) as LastCommit
-    from #git.repository('D:\repos\efcore') r
+    from @git.repository('D:\repos\efcore') r
     cross apply r.Tags t
     where t.FriendlyName = 'v5.0.0' or t.FriendlyName = 'v6.0.0'
     group by 'fake'
@@ -472,7 +472,7 @@ with CommitsFromTags as (
     select
         d.Path,
         d.Count(1) as NumberOfChanges
-    from #git.repository('D:\repos\efcore') r2
+    from @git.repository('D:\repos\efcore') r2
     inner join CommitsFromTags b on 1 = 1
     cross apply r2.Commits c1
     cross apply r2.DifferenceBetween(r2.CommitFrom(c1.Sha), r2.CommitFrom(c1.Sha + '^')) d
@@ -507,7 +507,7 @@ For visualizing the codebase evolution, we can count added and deleted lines for
 select
     p.LinesAdded,
     p.LinesDeleted
-from #git.repository('D:\repos\efcore') r
+from @git.repository('D:\repos\efcore') r
 cross apply r.Commits c
 cross apply r.PatchBetween(c.Self, r.CommitFrom(c.Self.Sha + '^')) p
 ```

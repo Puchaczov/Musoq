@@ -15,8 +15,8 @@ A quite useful feature of the tool is the ability to query multiple Git reposito
 with ProjectsToAnalyze as (
     select
         dir2.FullName as FullName
-    from #os.directories('D:\repos', false) dir1
-    cross apply #os.directories(dir1.FullName, false) dir2
+    from @os.directories('D:\repos', false) dir1
+    cross apply @os.directories(dir1.FullName, false) dir2
     where
         dir2.Name = '.git'
 )
@@ -24,7 +24,7 @@ select
     c.Message,
     c.Author,
     c.CommittedWhen
-from ProjectsToAnalyze p cross apply #git.repository(p.FullName) r 
+from ProjectsToAnalyze p cross apply @git.repository(p.FullName) r 
 cross apply r.Commits c
 where c.AuthorEmail = 'my-email@email.ok'
 order by c.CommitedWhen desc
@@ -59,8 +59,8 @@ with Repositories as (
     select
         dir2.FullName as GitPath,
         dir2.Parent.Name as RepositoryName
-    from #os.directories('D:\repos', false) dir1
-    cross apply #os.directories(dir1.FullName, false) dir2
+    from @os.directories('D:\repos', false) dir1
+    cross apply @os.directories(dir1.FullName, false) dir2
     where
         dir2.Name = '.git'
 )
@@ -71,7 +71,7 @@ select
     repo.StringsJoin(',', repo.Distinct(repo.Split(repo.AggregateValues(c.AuthorEmail), ','))) as Authors,
     repo.MaxDateTimeOffset(c.CommittedWhen) as LastCommitDate
 from Repositories r
-cross apply #git.repository(r.GitPath) repo
+cross apply @git.repository(r.GitPath) repo
 cross apply repo.Commits c
 group by r.RepositoryName
 order by repo.Count(c.Sha) desc

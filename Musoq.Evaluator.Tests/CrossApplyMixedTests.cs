@@ -42,8 +42,8 @@ public class CrossApplyMixedTests : GenericEntityTestBase
             b.Country, 
             c.StreetName, 
             c.HouseNumber 
-        from #schema.first() a 
-        cross apply #schema.second(a.Country) b 
+        from @schema.first() a 
+        cross apply @schema.second(a.Country) b 
         cross apply b.Addresses c";
 
         var firstSource = new CrossApplyClass1[]
@@ -155,8 +155,8 @@ public class CrossApplyMixedTests : GenericEntityTestBase
             b.Name, 
             b.Salary,
             c.Value
-        from #schema.first() a 
-        cross apply #schema.second(a.Department) b 
+        from @schema.first() a 
+        cross apply @schema.second(a.Department) b 
         cross apply b.Distinct(b.Skills) c";
 
         var firstSource = new CrossApplyClass3[]
@@ -296,7 +296,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         a.Department,
         b.Name,
         c.Value
-    from #schema.first() a 
+    from @schema.first() a 
     cross apply a.Employees b 
     cross apply a.Distinct(b.Skills) c
     where a.Budget > 400000";
@@ -364,7 +364,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     select 
         a.Department,
         Count(a.Department)
-    from #schema.first() a 
+    from @schema.first() a 
     cross apply a.Employees b 
     cross apply a.Distinct(b.Skills) c
     where a.Budget > 400000
@@ -442,8 +442,8 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         a.Name,
         a.Surname,
         c.Value
-    from #schema.first() a
-    inner join #schema.second() b on a.Id = b.Id
+    from @schema.first() a
+    inner join @schema.second() b on a.Id = b.Id
     cross apply b.Skills c";
         
         var firstSource = new CrossApplyClass6[]
@@ -513,8 +513,8 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         a.Name,
         a.Surname,
         c.Value
-    from #schema.first() a
-    left outer join #schema.second() b on a.Id = b.Id
+    from @schema.first() a
+    left outer join @schema.second() b on a.Id = b.Id
     cross apply b.Skills c";
         
         var firstSource = new CrossApplyClass6[]
@@ -601,7 +601,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApply_WhenTwoMethodsReturnsEntities_AndThenUseColumnOfEntity_ShouldPass()
     {
-        const string query = @"select a.Value, d.Name from #schema.first() a cross apply a.GetOne() b cross apply a.GetSpecialCaseComplexType2(b.Value) c cross apply c.Employees d";
+        const string query = @"select a.Value, d.Name from @schema.first() a cross apply a.GetOne() b cross apply a.GetSpecialCaseComplexType2(b.Value) c cross apply c.Employees d";
         
         var vm = CreateAndRunVirtualMachine<SpecialCaseEmptyType, SpecialCaseLibrary1>(query, [new SpecialCaseEmptyType()]);
         
@@ -626,7 +626,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     [TestMethod]
     public void WhenCteHasTheSameAliasWithinDifferentQueries_ShouldNotThrow()
     {
-        const string query = "with p as (select 1 from #schema.first() a cross apply a.Split('a,b', ',') b), r as (select 1 from #schema.first() a cross apply a.Split('a,b', ',') b) select * from p";
+        const string query = "with p as (select 1 from @schema.first() a cross apply a.Split('a,b', ',') b), r as (select 1 from @schema.first() a cross apply a.Split('a,b', ',') b) select * from p";
         var firstSource = System.Array.Empty<CrossApplyClass5>();
         var vm = CreateAndRunVirtualMachine(
             query,

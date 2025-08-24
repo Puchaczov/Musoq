@@ -11,7 +11,7 @@ The `Select` command retrieves data from a specified source. As part of the sele
 
 ```sql
 with Dummy as (
-   select 1 + 2 as 'EvaluatedExpression', SomeMethod(SomeColumn) as 'MyMethod', SomeColumn from #dummy.source()
+   select 1 + 2 as 'EvaluatedExpression', SomeMethod(SomeColumn) as 'MyMethod', SomeColumn from @dummy.source()
 )
 select EvaluatedExpression, SomeColumn, MyMethod from Dummmy
 ```
@@ -19,9 +19,9 @@ select EvaluatedExpression, SomeColumn, MyMethod from Dummmy
 in this particular case, `SomeMethod(SomeColumn)` and `1 + 2` need to be aliased because they represent a complex expression within the CTE expression. Another example here involves set operators, which require that the columns match on both sides.
 
 ```sql
-select ColumnName, 1 + 2 as 'EvaluatedExpression', SomeMethod(SomeColumn) as 'MyMethod' from #dummy.source()
+select ColumnName, 1 + 2 as 'EvaluatedExpression', SomeMethod(SomeColumn) as 'MyMethod' from @dummy.source()
 union
-select OtherMethod(ColumnName) as ColumnName, 3 + 4 as 'EvaluatedExpression', SomeMethod2(SomeColumn) as 'MyMethod' from #dummy.source()
+select OtherMethod(ColumnName) as ColumnName, 3 + 4 as 'EvaluatedExpression', SomeMethod2(SomeColumn) as 'MyMethod' from @dummy.source()
 ```
 
 As you can see, both operators require the same name. What is not visible here, but is also very important, is that expressions on both sides **must return the same types**.

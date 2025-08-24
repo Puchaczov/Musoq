@@ -13,12 +13,12 @@ public class CteTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleCteTest()
     {
-        var query = "with p as (select City, Country from #A.entities()) select Country, City from p";
+        var query = "with p as (select City, Country from @A.entities()) select Country, City from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -64,12 +64,12 @@ public class CteTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleCteWithStarTest()
     {
-        var query = "with p as (select City, Country from #A.entities()) select * from p";
+        var query = "with p as (select City, Country from @A.entities()) select * from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -118,12 +118,12 @@ public class CteTests : BasicEntityTestBase
     public void SimpleCteWithGroupingTest()
     {
         var query =
-            "with p as (select Country, Sum(Population) from #A.entities() group by Country) select * from p";
+            "with p as (select Country, Sum(Population) from @A.entities() group by Country) select * from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -157,12 +157,12 @@ public class CteTests : BasicEntityTestBase
     public void WhenSameAliasesUsedWithinCteInnerExpression_ShouldThrow()
     {
         var query =
-            "with p as (select 1 from #A.entities() a inner join #A.entities() a on 1 = 1) select * from p";
+            "with p as (select 1 from @A.entities() a inner join @A.entities() a on 1 = 1) select * from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", []
+                "@A", []
             }
         };
 
@@ -179,14 +179,14 @@ with p as (
     select 
         Population, 
         Country 
-    from #A.entities()
+    from @A.entities()
 ) 
 select Country, Sum(Population) from p group by Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -220,19 +220,19 @@ select Country, Sum(Population) from p group by Country";
     public void SimpleCteWithUnionTest()
     {
         var query =
-            "with p as (select City, Country from #A.entities() union (Country, City) select City, Country from #B.entities()) select City, Country from p";
+            "with p as (select City, Country from @A.entities() union (Country, City) select City, Country from @B.entities()) select City, Country from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400)
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
@@ -265,19 +265,19 @@ select Country, Sum(Population) from p group by Country";
     public void SimpleCteWithUnionAllTest()
     {
         var query =
-            "with p as (select City, Country from #A.entities() union all (Country) select City, Country from #B.entities()) select City, Country from p";
+            "with p as (select City, Country from @A.entities() union all (Country) select City, Country from @B.entities()) select City, Country from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400)
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
@@ -325,12 +325,12 @@ select Country, Sum(Population) from p group by Country";
     public void SimpleCteWithExceptTest()
     {
         var query =
-            "with p as (select City, Country from #A.entities() except (Country) select City, Country from #B.entities()) select City, Country from p";
+            "with p as (select City, Country from @A.entities() except (Country) select City, Country from @B.entities()) select City, Country from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
@@ -338,7 +338,7 @@ select Country, Sum(Population) from p group by Country";
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
@@ -366,12 +366,12 @@ select Country, Sum(Population) from p group by Country";
     public void SimpleCteWithIntersectTest()
     {
         var query =
-            "with p as (select City, Country from #A.entities() intersect (Country, City) select City, Country from #B.entities()) select City, Country from p";
+            "with p as (select City, Country from @A.entities() intersect (Country, City) select City, Country from @B.entities()) select City, Country from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
@@ -379,7 +379,7 @@ select Country, Sum(Population) from p group by Country";
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
@@ -408,15 +408,15 @@ select Country, Sum(Population) from p group by Country";
     {
         var query = @"
 with p as (
-    select City, Country from #A.entities() intersect (Country, City) 
-    select City, Country from #B.entities()
+    select City, Country from @A.entities() intersect (Country, City) 
+    select City, Country from @B.entities()
 ) 
 select City, Country from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
@@ -424,7 +424,7 @@ select City, Country from p";
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
@@ -459,15 +459,15 @@ select City, Country from p";
     {
         var query = @"
 with p as (
-    select City, Country from #A.entities()
+    select City, Country from @A.entities()
 ) 
 select City, Country from p union (City, Country)
-select City, Country from #B.entities()";
+select City, Country from @B.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
@@ -475,7 +475,7 @@ select City, Country from #B.entities()";
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
@@ -525,15 +525,15 @@ select City, Country from #B.entities()";
     {
         var query = @"
 with p as (
-    select City, Country from #A.entities() intersect (Country, City) 
-    select City, Country from #B.entities()
+    select City, Country from @A.entities() intersect (Country, City) 
+    select City, Country from @B.entities()
 ) select City, Country from p where Country = 'FINLAND' union (Country, City)
   select City, Country from p where Country = 'POLAND'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
@@ -541,7 +541,7 @@ with p as (
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
@@ -577,16 +577,16 @@ with p as (
     {
         var query = @"
 with p as (
-    select City, Country from #A.entities() intersect (Country, City) 
-    select City, Country from #B.entities()
+    select City, Country from @A.entities() intersect (Country, City) 
+    select City, Country from @B.entities()
 ) 
 select City, Country from p union (City, Country)
-select City, Country from #C.Entities()";
+select City, Country from @C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
@@ -594,7 +594,7 @@ select City, Country from #C.Entities()";
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
@@ -603,7 +603,7 @@ select City, Country from #C.Entities()";
                 ]
             },
             {
-                "#C",
+                "@C",
                 [
                     new BasicEntity("NEW YORK", "USA", 250)
                 ]
@@ -640,13 +640,13 @@ select City, Country from #C.Entities()";
     {
         const string query = @"
 with p as (
-    select City, Country from #A.entities()
+    select City, Country from @A.entities()
 ), c as (
-    select City, Country from #B.entities()
+    select City, Country from @B.entities()
 ), d as (
     select City, Country from p where City = 'HELSINKI'
 ), f as (
-    select City, Country from #B.entities() where City = 'WARSAW'
+    select City, Country from @B.entities() where City = 'WARSAW'
 )
 select City, Country from p union (City, Country)
 select City, Country from c union (City, Country)
@@ -656,7 +656,7 @@ select City, Country from f";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
@@ -664,7 +664,7 @@ select City, Country from f";
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
@@ -714,24 +714,24 @@ select City, Country from f";
     {
         var query = @"
 with first as (
-    select 1 as Test from #A.entities()
+    select 1 as Test from @A.entities()
 ), second as (
-    select 2 as Test from #B.entities() group by 'fake'
+    select 2 as Test from @B.entities() group by 'fake'
 )
 select c.GetBytes(c.Name) from first a 
-    inner join #A.entities() c on 1 = 1 
+    inner join @A.entities() c on 1 = 1 
     inner join second b on 1 = 1";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("First")
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("Second")
                 ]
@@ -752,26 +752,26 @@ select c.GetBytes(c.Name) from first a
     {
         var query = @"
 with first as (
-    select Name from #A.entities()
+    select Name from @A.entities()
 ), second as (
-    select Name from #B.entities() group by Name
+    select Name from @B.entities() group by Name
 )
 select 
     c.GetBytes(c.Name) 
 from first a 
-    inner join #A.entities() c on 1 = 1 
+    inner join @A.entities() c on 1 = 1 
     inner join second b on 1 = 1";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("First")
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("Second")
                 ]
@@ -790,28 +790,28 @@ from first a
     {
         var query = @"
 with first as (
-    select Name from #A.entities()
+    select Name from @A.entities()
 ), second as (
-    select Name from #B.entities() group by Name
+    select Name from @B.entities() group by Name
 )
 select
     a.Name,
     b.Name,
     c.GetBytes(c.Name) 
 from first a 
-    inner join #A.entities() c on 1 = 1 
+    inner join @A.entities() c on 1 = 1 
     inner join second b on 1 = 1";
             
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("First")
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("Second")
                 ]
@@ -832,16 +832,16 @@ from first a
     {
         var query = @"
 with first as (
-    select a.Name as Name from #A.entities() a group by a.Name having Count(a.Name) > 0
+    select a.Name as Name from @A.entities() a group by a.Name having Count(a.Name) > 0
 ), second as (
-    select b.Name() as Name from #B.entities() b inner join first a on 1 = 1
+    select b.Name() as Name from @B.entities() b inner join first a on 1 = 1
 ), third as (
     select b.Name as Name from second b group by b.Name having Count(b.Name) > 0
 ), fourth as (
     select
         c.Name() as Name
     from second b
-        inner join #A.entities() c on 1 = 1
+        inner join @A.entities() c on 1 = 1
         inner join third d on 1 = 1
 )
 select
@@ -851,19 +851,19 @@ from fourth c";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("First")
                 ]
             },
             {
-                "#B",
+                "@B",
                 [
                     new BasicEntity("Second")
                 ]
             },
             {
-                "#C",
+                "@C",
                 [
                     new BasicEntity("Third")
                 ]

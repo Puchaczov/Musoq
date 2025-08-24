@@ -7,11 +7,11 @@ nav_order: 3
 
 # From Clause
 
-You can witness three different types of `from` clauses. The first one is `from #schema.table(param1, ..., paramN)`, the second is `from SomeTableAlias`, and the third `from AnotherAlias(param1, ..., paramN)`. Basic usage often involves the first syntax, the second is utilized when referring to a source coming from **Common Table Expressions (CTEs)**, while the third is mainly used in situations where the data source's return types are unknown but known to the user writing the query.
+You can witness three different types of `from` clauses. The first one is `from @schema.table(param1, ..., paramN)`, the second is `from SomeTableAlias`, and the third `from AnotherAlias(param1, ..., paramN)`. Basic usage often involves the first syntax, the second is utilized when referring to a source coming from **Common Table Expressions (CTEs)**, while the third is mainly used in situations where the data source's return types are unknown but known to the user writing the query.
 
-## from #a.b(param1, ..., paramN)
+## from @a.b(param1, ..., paramN)
 
-In query writing, a commonly used command `from` is `from #a.b(param1, ...)`. This syntax specifies that we will be using an external data source. For instance, from `#separatedValues.csv(...)` indicates that we will utilize the source `separatedValues` and the table `csv` whose parameters will be passed `(...)`. This instructs the data source directly on how to retrieve the data and then load it into the evaluator. The data source is parameterized, which allows for configuring what data you want to receive and how you want to receive it. For example, when querying about an operating system disk, you likely wouldn't want to iterate over the entire disk but rather a set of folders that are important to you. Parameterization provides the flexibility to construct the portion of data you are inquiring about. By narrowing your searches, we speed up operation. **This clause must be aliased when using it in conjunction with the join syntax**
+In query writing, a commonly used command `from` is `from @a.b(param1, ...)`. This syntax specifies that we will be using an external data source. For instance, from `@separatedValues.csv(...)` indicates that we will utilize the source `separatedValues` and the table `csv` whose parameters will be passed `(...)`. This instructs the data source directly on how to retrieve the data and then load it into the evaluator. The data source is parameterized, which allows for configuring what data you want to receive and how you want to receive it. For example, when querying about an operating system disk, you likely wouldn't want to iterate over the entire disk but rather a set of folders that are important to you. Parameterization provides the flexibility to construct the portion of data you are inquiring about. By narrowing your searches, we speed up operation. **This clause must be aliased when using it in conjunction with the join syntax**
 
 ## from SomeTableAlias
 
@@ -37,7 +37,7 @@ table Invoice {
 	ProductName 'string',
 	ProductPrize 'decimal'
 };
-couple table #toolbox.invoices with Invoice as SourceOfInvoiceValues;
+couple table @toolbox.invoices with Invoice as SourceOfInvoiceValues;
 ```
 
 In this way, we provide the plugin and compiler with sufficient information about the required columns and types in the query.

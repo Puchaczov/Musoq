@@ -11,12 +11,12 @@ public class InTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleInOperator()
     {
-        var query = "select Population from #A.Entities() where Population in (100, 400)";
+        var query = "select Population from @A.Entities() where Population in (100, 400)";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("A", 100),
                     new BasicEntity("AB", 200),
@@ -38,12 +38,12 @@ public class InTests : BasicEntityTestBase
     [TestMethod]
     public void SimpleNotInOperator()
     {
-        var query = "select Population from #A.Entities() where Population not in (100, 400)";
+        var query = "select Population from @A.Entities() where Population not in (100, 400)";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("A", 100),
                     new BasicEntity("AB", 200),
@@ -65,12 +65,12 @@ public class InTests : BasicEntityTestBase
     [TestMethod]
     public void InWithArgumentFromSourceOperator()
     {
-        var query = "select Country from #A.Entities() where City in (Country, 'Warsaw')";
+        var query = "select Country from @A.Entities() where City in (Country, 'Warsaw')";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("Poland", "Warsaw"),
                     new BasicEntity("Berlin", "Germany"),
@@ -94,12 +94,12 @@ public class InTests : BasicEntityTestBase
     [TestMethod]
     public void NotInWithArgumentFromSourceOperator()
     {
-        var query = "select Country from #A.Entities() where City not in (Country, 'Warsaw')";
+        var query = "select Country from @A.Entities() where City not in (Country, 'Warsaw')";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A",
+                "@A",
                 [
                     new BasicEntity("Poland", "Warsaw"),
                     new BasicEntity("Berlin", "Germany"),

@@ -16,7 +16,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         const string query = "table Dates {" +
                              "  Date 'System.DateTimeOffset'" +
                              "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
+                             "couple @test.whatever with table Dates as Dates; " +
                              "select MinDateTimeOffset(Date) from Dates()";
         
         dynamic first = new ExpandoObject();
@@ -46,7 +46,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         const string query = "table Dates {" +
                              "  Date 'System.DateTimeOffset'" +
                              "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
+                             "couple @test.whatever with table Dates as Dates; " +
                              "select MaxDateTimeOffset(Date) from Dates()";
         
         dynamic first = new ExpandoObject();
@@ -77,7 +77,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
                              "  Date1 'System.DateTimeOffset'," +
                              "  Date2 'System.DateTimeOffset'" +
                              "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
+                             "couple @test.whatever with table Dates as Dates; " +
                              "select SubtractDateTimeOffsets(Date1, Date2) from Dates()";
         
         dynamic first = new ExpandoObject();
@@ -106,7 +106,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
                              "  Date1 'System.DateTimeOffset'," +
                              "  Date2 'System.DateTimeOffset'" +
                              "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
+                             "couple @test.whatever with table Dates as Dates; " +
                              "select Date1 - Date2 from Dates()";
         
         dynamic first = new ExpandoObject();

@@ -16,7 +16,7 @@ public class BuildMetadataAndInferTypesVisitorTests
     [TestMethod]
     public void WhenPassedToSchemaMethodArgumentMustHaveKnownType_ShouldHave()
     {
-        var query = "select 1 from #EnironmentVariables.All() d cross apply #EnvironmentVariables.All(d.Key) e";
+        var query = "select 1 from @EnironmentVariables.All() d cross apply @EnvironmentVariables.All(d.Key) e";
 
         var lexer = new Lexer(query, true);
         var parser = new Musoq.Parser.Parser(lexer);

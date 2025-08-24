@@ -41,7 +41,7 @@ with BranchCommits as (
     select
         r.MinCommit(c.Self) as FirstCommit,
         r.MaxCommit(c.Self) as LastCommit
-    from #git.repository('/some/git/repo') r
+    from @git.repository('/some/git/repo') r
     cross apply r.SearchForBranches('feature/feature_1') b 
     cross apply r.GetBranchSpecificCommits(r.Self, b.Self, false) c
     group by 'fake'
@@ -56,7 +56,7 @@ select
     p.LinesAdded,
     p.LinesDeleted
 from BranchCommits b 
-inner join #git.repository('/some/git/repo') r on 1 = 1
+inner join @git.repository('/some/git/repo') r on 1 = 1
 cross apply r.PatchBetween(r.CommitFrom(b.FirstCommit.Sha), r.CommitFrom(b.LastCommit.Sha)) p
 ```
 
@@ -82,7 +82,7 @@ with BranchCommits as (
     select
         r.MinCommit(c.Self) as FirstCommit,
         r.MaxCommit(c.Self) as LastCommit
-    from #git.repository('/some/git/repo') r
+    from @git.repository('/some/git/repo') r
     cross apply r.SearchForBranches('feature/feature_1') b 
     cross apply r.GetBranchSpecificCommits(r.Self, b.Self, false) c
     group by 'fake'
@@ -92,7 +92,7 @@ select
     c.LinesAdded,
     c.LinesDeleted
 from BranchCommits b 
-inner join #git.repository('/some/git/repo') r on 1 = 1
+inner join @git.repository('/some/git/repo') r on 1 = 1
 cross apply r.PatchBetween(r.CommitFrom(b.FirstCommit.Sha), r.CommitFrom(b.LastCommit.Sha)) p
 cross apply p.Changes c
 ```

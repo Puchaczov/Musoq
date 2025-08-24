@@ -8,7 +8,7 @@ parent: Os
 Provides schema to work with operating system abstractions
 ## Tables
 
-A table in Musoq represents a structured data source with rows and columns. Each table provides access to specific data types and can be queried using the FROM clause (e.g., 'FROM #source.table()'). Below are the available tables exposed by this data source:
+A table in Musoq represents a structured data source with rows and columns. Each table provides access to specific data types and can be queried using the FROM clause (e.g., 'FROM @source.table()'). Below are the available tables exposed by this data source:
 
 ### os.dirscompare(string sourceDirectory, string destinationDirectory)
 

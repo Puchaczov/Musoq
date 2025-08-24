@@ -74,7 +74,7 @@ Let's trace a simple query through the system:
 ### Input Query
 ```sql
 SELECT Name, Size 
-FROM #os.files('/Documents') 
+FROM @os.files('/Documents') 
 WHERE Extension = '.pdf'
 ORDER BY Size DESC
 ```
@@ -87,7 +87,7 @@ ORDER BY Size DESC
 
 ### 2. Schema Resolution
 ```csharp
-// Resolve #os.files -> OSSchema.GetFilesRowSource
+// Resolve @os.files -> OSSchema.GetFilesRowSource
 // Infer types: Name (string), Size (long), Extension (string)
 ```
 
@@ -140,7 +140,7 @@ public class MyDataRowSource : RowSource
 }
 
 // 3. Usage in Queries
-// SELECT * FROM #mydata.source('parameter')
+// SELECT * FROM @mydata.source('parameter')
 ```
 
 ## Performance Characteristics
@@ -179,18 +179,18 @@ public class MyDataRowSource : RowSource
 ### Embedded Usage
 ```csharp
 var engine = new MusoqEngine();
-var results = engine.Execute("SELECT COUNT(*) FROM #os.files('/logs')");
+var results = engine.Execute("SELECT COUNT(*) FROM @os.files('/logs')");
 ```
 
 ### CLI Usage
 ```bash
-musoq "SELECT Name FROM #git.commits('/repo') WHERE AuthorEmail LIKE '%@company.com'"
+musoq "SELECT Name FROM @git.commits('/repo') WHERE AuthorEmail LIKE '%@company.com'"
 ```
 
 ### Custom Plugin Integration
 ```csharp
 engine.RegisterSchema<MyCustomSchema>();
-var results = engine.Execute("SELECT * FROM #mycustom.data()");
+var results = engine.Execute("SELECT * FROM @mycustom.data()");
 ```
 
 ## Next Steps

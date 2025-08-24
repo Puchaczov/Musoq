@@ -261,7 +261,7 @@ Query Engine ←→ Schema Interface ←→ Data Source Plugin ←→ External D
 ### 1. **Library Integration**
 ```csharp
 // Direct API usage
-var query = "SELECT * FROM #os.files('/path') WHERE Extension = '.txt'";
+var query = "SELECT * FROM @os.files('/path') WHERE Extension = '.txt'";
 var compiledQuery = MusoqQueryCompiler.Compile(query);
 var results = compiledQuery.Run();
 ```
@@ -269,7 +269,7 @@ var results = compiledQuery.Run();
 ### 2. **CLI Integration**
 ```bash
 # Command-line usage
-musoq "SELECT COUNT(*) FROM #git.commits('/repo')"
+musoq "SELECT COUNT(*) FROM @git.commits('/repo')"
 ```
 
 ### 3. **Plugin Development**

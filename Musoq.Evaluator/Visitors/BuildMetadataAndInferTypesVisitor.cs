@@ -471,7 +471,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
         if (!string.IsNullOrWhiteSpace(node.Alias) /* r.* */ ||
-            (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) /* * from #abc.cda() */)
+            (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) /* * from @abc.cda() */)
         {
             ProcessSingleTable(node, tableSymbol, identifier);
         }

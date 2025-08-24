@@ -285,7 +285,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KSelect = Format(Keyword, SelectToken.TokenText);
         public static readonly string KFrom = Format(Keyword, FromToken.TokenText);
         public static readonly string KColumn = @"\[[^\]]+\]|(\w+)|(\*)";
-        public static readonly string KHFrom = @"#[\w*?_]{1,}";
+        public static readonly string KHFrom = @"@[\w*?_]{1,}";
         public static readonly string KLike = Format(Keyword, LikeToken.TokenText);
         public static readonly string KNotLike = @"(?<=[\s]{1,}|^)not[\s]{1,}like(?=[\s]{1,}|$)";
         public static readonly string KRLike = Format(Keyword, RLikeToken.TokenText);

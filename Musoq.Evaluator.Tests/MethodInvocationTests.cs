@@ -12,12 +12,12 @@ public class MethodInvocationTests : BasicEntityTestBase
     [TestMethod]
     public void MethodInvocationOnAliasFinishedWithNumber_ShouldPass()
     {
-        var query = "select population2.GetPopulation() from #A.entities() population2";
+        var query = "select population2.GetPopulation() from @A.entities() population2";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -40,12 +40,12 @@ public class MethodInvocationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNullableBooleanFieldWithFullSyntaxApplied_ShouldPass()
     {
-        var query = "select City from #A.entities() population2 where Contains(City, 'W') = true";
+        var query = "select City from @A.entities() population2 where Contains(City, 'W') = true";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -68,12 +68,12 @@ public class MethodInvocationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNullableBooleanFieldWithShortenedSyntaxApplied_ShouldPass()
     {
-        var query = "select City from #A.entities() population2 where Contains(City, 'W')";
+        var query = "select City from @A.entities() population2 where Contains(City, 'W')";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -96,12 +96,12 @@ public class MethodInvocationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNullableBooleanFields_ForBinaryOperator_WithFullSyntaxApplied_ShouldPass()
     {
-        var query = "select City from #A.entities() population2 where Contains(City, 'W') = true and Contains(City, 'A') = true";
+        var query = "select City from @A.entities() population2 where Contains(City, 'W') = true and Contains(City, 'A') = true";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -124,12 +124,12 @@ public class MethodInvocationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNullableBooleanFields_ForBinaryOperator_WithShortenedSyntaxApplied_ShouldPass()
     {
-        var query = "select City from #A.entities() population2 where Contains(City, 'W') and Contains(City, 'A')";
+        var query = "select City from @A.entities() population2 where Contains(City, 'W') and Contains(City, 'A')";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -152,12 +152,12 @@ public class MethodInvocationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNullableBooleanFields_ForBinaryOperator_WithMixedSyntaxApplied_FirstExpression_ShouldPass()
     {
-        var query = "select City from #A.entities() population2 where Contains(City, 'W') = true and Contains(City, 'A')";
+        var query = "select City from @A.entities() population2 where Contains(City, 'W') = true and Contains(City, 'A')";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -180,12 +180,12 @@ public class MethodInvocationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNullableBooleanFields_ForBinaryOperator_WithMixedSyntaxApplied_SecondExpression_ShouldPass()
     {
-        var query = "select City from #A.entities() population2 where Contains(City, 'W') and Contains(City, 'A') = true";
+        var query = "select City from @A.entities() population2 where Contains(City, 'W') and Contains(City, 'A') = true";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
@@ -209,15 +209,15 @@ public class MethodInvocationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMethodCallDoesNotHaveAlias_ShouldThrows()
     {
-        var query = "select Contains(first.City, 'W') from #A.entities() first inner join #B.entities() second on first.Country = second.Country";
+        var query = "select Contains(first.City, 'W') from @A.entities() first inner join @B.entities() second on first.Country = second.Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", []
+                "@A", []
             },
             {
-                "#B", []
+                "@B", []
             }
         };
 
@@ -231,20 +231,20 @@ public class MethodInvocationTests : BasicEntityTestBase
                     with first as (
                         select 
                             x.Name as Name
-                        from #A.entities() x
+                        from @A.entities() x
                         cross apply x.JustReturnArrayOfString() b
                     )
                     select 
                         p.Value
                     from first b
-                    inner join #A.entities() r on 1 = 1
+                    inner join @A.entities() r on 1 = 1
                     cross apply r.MethodArrayOfStrings(r.TestMethodWithInjectEntityAndParameter(b.Name), r.TestMethodWithInjectEntityAndParameter(b.Name)) p
                     """;
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>()
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("TEST")
                 ]
             }

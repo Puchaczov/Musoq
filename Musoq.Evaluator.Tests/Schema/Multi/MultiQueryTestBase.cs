@@ -51,7 +51,7 @@ public class MultiSchemaTestBase
             Guid.NewGuid().ToString(), 
             new MultiSchemaProvider(new Dictionary<string, ISchema>()
             {
-                {"#schema", schema}
+                {"@schema", schema}
             }),
             LoggerResolver);
     }

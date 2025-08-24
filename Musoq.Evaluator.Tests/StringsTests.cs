@@ -11,12 +11,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenQuoteUsed_MustNotThrow()
     {
-        var query = """select '"' from #A.entities()""";
+        var query = """select '"' from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("test")
                 ]
             }
@@ -37,12 +37,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenQuotePrecededByTextUsed_MustNotThrow()
     {
-        var query = """select 'text "' from #A.entities()""";
+        var query = """select 'text "' from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("test")
                 ]
             }
@@ -63,12 +63,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenQuoteFollowedByTextUsed_MustNotThrow()
     {
-        var query = """select '"text' from #A.entities()""";
+        var query = """select '"text' from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("test")
                 ]
             }
@@ -89,12 +89,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenQuoteFollowedAndPrecededByTextUsed_MustNotThrow()
     {
-        var query = """select '"text"' from #A.entities()""";
+        var query = """select '"text"' from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("test")
                 ]
             }
@@ -115,12 +115,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenEscapeCharacterUsed_MustNotThrow()
     {
-        const string query = """select '\'' from #A.entities()""";
+        const string query = """select '\'' from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("test")
                 ]
             }
@@ -137,12 +137,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenEscapeCharacterUsedInText_MustNotThrow()
     {
-        const string query = """select 'text \'' from #A.entities()""";
+        const string query = """select 'text \'' from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("test")
                 ]
             }
@@ -159,12 +159,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMultipleEscapeCharactersUsedInText_MustNotThrow()
     {
-        const string query = """select 'lorem\' ipsum dolor\'' from #A.entities()""";
+        const string query = """select 'lorem\' ipsum dolor\'' from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("test")
                 ]
             }
@@ -181,12 +181,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMultipleEscapeCharactersUsedInTextWithQuote_MustNotThrow()
     {
-        const string query = """select 'lorem\' " ipsum dolor\'' from #A.entities()""";
+        const string query = """select 'lorem\' " ipsum dolor\'' from @A.entities()""";
         
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("test")
                 ]
             }
@@ -234,12 +234,12 @@ public class StringsTests : BasicEntityTestBase
     [DataTestMethod]
     public void WhenSpecialCharacterStartBracketUsedInTextWith_MustNotThrow(char specialCharacter)
     {
-        var query = $"select '{specialCharacter}' from #A.entities()";
+        var query = $"select '{specialCharacter}' from @A.entities()";
         
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity("test")
                 ]
             }
@@ -257,12 +257,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenIndexOfCalled_ShouldReturnFirstIndex()
     {
-        const string query = """select IndexOf('a/b/c', '/') from #A.entities()""";
+        const string query = """select IndexOf('a/b/c', '/') from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity(string.Empty)
                 ]
             }
@@ -278,12 +278,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNthIndexOfCalled_ShouldReturnSecondIndex()
     {
-        const string query = """select NthIndexOf('a/b/c', '/', 1) from #A.entities()""";
+        const string query = """select NthIndexOf('a/b/c', '/', 1) from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity(string.Empty)
                 ]
             }
@@ -299,12 +299,12 @@ public class StringsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenLastIndexOfCalled_ShouldReturnLastIndex()
     {
-        const string query = """select LastIndexOf('a/b/c', '/') from #A.entities()""";
+        const string query = """select LastIndexOf('a/b/c', '/') from @A.entities()""";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "@A", [
                     new BasicEntity(string.Empty)
                 ]
             }

@@ -234,7 +234,7 @@ public class MyLibrary : LibraryBase
 
 ### 1. Lexical Analysis
 ```
-"SELECT Name FROM #mydata.source('param')" → Tokens
+"SELECT Name FROM @mydata.source('param')" → Tokens
 ```
 
 ### 2. Parsing
@@ -338,7 +338,7 @@ dotnet test --filter "TestCategory=Integration"
 // Using test infrastructure pattern
 var schemaProvider = new BasicSchemaProvider<MyEntity>(dataSources);
 var compiledQuery = InstanceCreator.CompileForExecution(
-    "SELECT Name, Value FROM #schema.table('param')",
+    "SELECT Name, Value FROM @schema.table('param')",
     Guid.NewGuid().ToString(),
     schemaProvider,
     loggerResolver);
@@ -351,8 +351,8 @@ var results = compiledQuery.Run();
 ```csharp
 var query = @"
     SELECT a.Name, b.Value 
-    FROM #source1.data() a 
-    INNER JOIN #source2.data() b ON a.Id = b.Id
+    FROM @source1.data() a 
+    INNER JOIN @source2.data() b ON a.Id = b.Id
     WHERE a.CreatedAt > '2023-01-01'
     ORDER BY a.Name";
 
@@ -382,7 +382,7 @@ public class MyFeatureTests : BasicEntityTestBase
     public void Should_Parse_Complex_Query()
     {
         // Arrange
-        var query = "SELECT Name FROM #test.data()";
+        var query = "SELECT Name FROM @test.data()";
         
         // Act
         var buildItems = CreateBuildItems<BasicEntity>(query);
@@ -410,7 +410,7 @@ public void Should_Execute_Query_With_Results()
     };
     
     // Act
-    var vm = CreateAndRunVirtualMachine("SELECT Name FROM #basic.entities()", data);
+    var vm = CreateAndRunVirtualMachine("SELECT Name FROM @basic.entities()", data);
     var table = vm.Run();
     
     // Assert

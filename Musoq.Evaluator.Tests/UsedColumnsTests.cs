@@ -10,7 +10,7 @@ public class UsedColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenColumnsUsedAsSourceOfMethod_ShouldPass()
     {
-        var query = "select DoNothing(a.City) from #A.entities() a";
+        var query = "select DoNothing(a.City) from @A.entities() a";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -30,9 +30,9 @@ public class UsedColumnsTests : BasicEntityTestBase
     {
         const string query = @"
 with q1 as (
-    select a.City as City from #A.entities() a where a.City = 'Warsaw'
+    select a.City as City from @A.entities() a where a.City = 'Warsaw'
 ), q2 as (
-    select a.Population as Population from #A.entities() a where a.Population = 200d
+    select a.Population as Population from @A.entities() a where a.Population = 200d
 ) select City from q1";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
@@ -60,9 +60,9 @@ with q1 as (
     {
         const string query = @"
 with q1 as (
-    select a.City as City from #A.entities('1') a
+    select a.City as City from @A.entities('1') a
 ), q2 as (
-    select a.Population as Population from #A.entities('2') a
+    select a.Population as Population from @A.entities('2') a
 ) select City from q1";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
@@ -89,7 +89,7 @@ with q1 as (
     [TestMethod]
     public void WhenColumnsUsedAsSourceOfMethodAndUsedInWhere_ShouldPass()
     {
-        var query = "select a.City from #A.entities() a where DoNothing(a.Population) = 400d";
+        var query = "select a.City from @A.entities() a where DoNothing(a.Population) = 400d";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -108,7 +108,7 @@ with q1 as (
     [TestMethod]
     public void WhenColumnsUsedAsSourceOfMethodAndUsedInWhereAndUsedInSelect_ShouldPass()
     {
-        var query = "select a.City, DoNothing(a.Population) from #A.entities() a where DoNothing(a.Population) = 400d";
+        var query = "select a.City, DoNothing(a.Population) from @A.entities() a where DoNothing(a.Population) = 400d";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -127,7 +127,7 @@ with q1 as (
     [TestMethod]
     public void WhenColumnsUsedAsSourceOfMethodAndUsedInWhereAndUsedInSelectAndUsedInGroupBy_ShouldPass()
     {
-        var query = "select a.City, DoNothing(a.Population) from #A.entities() a where DoNothing(a.Population) = 400d group by a.Month";
+        var query = "select a.City, DoNothing(a.Population) from @A.entities() a where DoNothing(a.Population) = 400d group by a.Month";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -147,7 +147,7 @@ with q1 as (
     [TestMethod]
     public void WhenColumnsUsedAsSourceOfMethodAndUsedInWhereAndUsedInSelectAndUsedInGroupByWithHaving_ShouldPass()
     {
-        var query = "select a.City from #A.entities() a group by a.Month having a.Population > 100d";
+        var query = "select a.City from @A.entities() a group by a.Month having a.Population > 100d";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -167,7 +167,7 @@ with q1 as (
     [TestMethod]
     public void WhenColumnsUsedInJoinQuery_ShouldPass()
     {
-        var query = "select a.City, b.City from #A.entities() a inner join #B.entities() b on a.City = b.City";
+        var query = "select a.City, b.City from @A.entities() a inner join @B.entities() b on a.City = b.City";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -193,7 +193,7 @@ with q1 as (
     [TestMethod]
     public void WhenGroupByAndOrderByUsed_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a inner join #B.entities() b on a.Population = b.Population group by a.City";
+        var query = "select 1 from @A.entities() a inner join @B.entities() b on a.Population = b.Population group by a.City";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         

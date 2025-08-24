@@ -13,7 +13,7 @@ public class BuildTests
     [TestMethod]
     public void CompileForStoreTest()
     {
-        var query = "select 1 from #system.dual()";
+        var query = "select 1 from @system.dual()";
 
         var (dllFile, pdbFile) = CreateForStore(query);
 
@@ -27,7 +27,7 @@ public class BuildTests
     [TestMethod]
     public async Task CompileForStoreAsyncTest()
     {
-        var query = "select 1 from #system.dual()";
+        var query = "select 1 from @system.dual()";
 
         var arrays = await InstanceCreator.CompileForStoreAsync(query, Guid.NewGuid().ToString(), new SystemSchemaProvider(), new TestsLoggerResolver());
 

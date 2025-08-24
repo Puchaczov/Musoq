@@ -79,7 +79,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_NoMatch_ShouldPass()
     {
-        const string query = "select a.City, b.Value from #schema.first() a outer apply a.Values as b";
+        const string query = "select a.City, b.Value from @schema.first() a outer apply a.Values as b";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -106,7 +106,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_WithPrimitiveArray_ShouldPass()
     {
-        const string query = "select a.City, b.Value from #schema.first() a outer apply a.Values as b";
+        const string query = "select a.City, b.Value from @schema.first() a outer apply a.Values as b";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -149,7 +149,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_WithWhere_ShouldPass()
     {
-        const string query = "select a.City, b.Value from #schema.first() a outer apply a.Values as b where b.Value >= 2";
+        const string query = "select a.City, b.Value from @schema.first() a outer apply a.Values as b where b.Value >= 2";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -200,7 +200,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_WithGroupBy_ShouldPass()
     {
-        const string query = "select a.City, a.Sum(b.Value) from #schema.first() a outer apply a.Values as b group by a.City";
+        const string query = "select a.City, a.Sum(b.Value) from @schema.first() a outer apply a.Values as b group by a.City";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -240,7 +240,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_WithPrimitiveList_ShouldPass()
     {
-        const string query = "select a.City, b.Value from #schema.first() a outer apply a.Values as b";
+        const string query = "select a.City, b.Value from @schema.first() a outer apply a.Values as b";
         
         var firstSource = new List<OuterApplyClass2>
         {
@@ -296,7 +296,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_WithComplexArray_ShouldPass()
     {
-        const string query = "select a.City, b.Value1, b.Value2 from #schema.first() a outer apply a.Values as b";
+        const string query = "select a.City, b.Value1, b.Value2 from @schema.first() a outer apply a.Values as b";
         
         var firstSource = new List<OuterApplyClass3>
         {
@@ -362,7 +362,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_WithComplexList_ShouldPass()
     {
-        const string query = "select a.City, b.Value1, b.Value2 from #schema.first() a outer apply a.Values as b";
+        const string query = "select a.City, b.Value1, b.Value2 from @schema.first() a outer apply a.Values as b";
         
         var firstSource = new List<OuterApplyClass4>
         {
@@ -428,7 +428,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void OuterApplyProperty_MultiplePrimitiveArrays_ShouldPass()
     {
-        const string query = "select b.Value, c.Value from #schema.first() a outer apply a.Values1 as b outer apply a.Values2 as c";
+        const string query = "select b.Value, c.Value from @schema.first() a outer apply a.Values1 as b outer apply a.Values2 as c";
         
         var firstSource = new List<OuterApplyClass5>
         {
@@ -502,7 +502,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         const string query = """
                              select 
                                 b.Value 
-                             from #schema.first() a 
+                             from @schema.first() a 
                              outer apply a.ComplexType.PrimitiveValues as b
                              """;
         
@@ -542,7 +542,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         const string query = """
                              select 
                                 b.Value 
-                             from #schema.first() a 
+                             from @schema.first() a 
                              outer apply a.ComplexType.ComplexValues as b
                              """;
         

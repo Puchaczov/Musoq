@@ -40,7 +40,7 @@ public class OuterApplyCteTests : GenericEntityTestBase
     {
         const string query = @"
 with p as (
-    select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from #schema.first() a outer apply #schema.second(a.Country) b
+    select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from @schema.first() a outer apply @schema.second(a.Country) b
 )
 select [a.City], [a.Country], [a.Population], [b.Country], [b.Money], [b.Month] from p";
         
@@ -129,9 +129,9 @@ with p as (
         f.City as City, 
         f.Country as Country, 
         f.Population as Population 
-    from #schema.first() f
+    from @schema.first() f
 )
-select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a outer apply #schema.second(a.Country) b";
+select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a outer apply @schema.second(a.Country) b";
         
         var firstSource = new List<OuterApplyClass1>
         {
@@ -214,7 +214,7 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a out
     {
         const string query = @"
 with p as (
-    select a.Name, b.Value from #schema.first() a outer apply a.Skills b
+    select a.Name, b.Value from @schema.first() a outer apply a.Skills b
 )
 select [a.Name], [b.Value] from p";
         
@@ -294,7 +294,7 @@ select [a.Name], [b.Value] from p";
     {
         const string query = @"
 with first as (
-    select a.Name as Name, a.Skills as Skills from #schema.first() a
+    select a.Name as Name, a.Skills as Skills from @schema.first() a
 )
 select a.Name, b.Value from first a outer apply a.Skills b";
         

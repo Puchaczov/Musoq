@@ -10,7 +10,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     [TestMethod]
     public void WhenWhereExpressionIsNotRewritten_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a where a.Population > 0";
+        var query = "select 1 from @A.entities() a where a.Population > 0";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -29,7 +29,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     [TestMethod]
     public void WhenLikeExpressionIsRewritten_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a where a.City like '%abc%'";
+        var query = "select 1 from @A.entities() a where a.City like '%abc%'";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -48,7 +48,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     [TestMethod]
     public void WhenRLikeExpressionIsRewritten_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a where a.City rlike '%abc%'";
+        var query = "select 1 from @A.entities() a where a.City rlike '%abc%'";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -67,7 +67,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     [TestMethod]
     public void WhenContainsExpressionIsNotRewritten_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a where a.City contains ('abc', 'def')";
+        var query = "select 1 from @A.entities() a where a.City contains ('abc', 'def')";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -86,7 +86,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     [TestMethod]
     public void WhenContainsExpressionIsRewritten_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a where a.City contains (DoNothing('abc'), 'def')";
+        var query = "select 1 from @A.entities() a where a.City contains (DoNothing('abc'), 'def')";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -105,7 +105,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     [TestMethod]
     public void WhenWhereExpressionIsNotRewrittenAndUsesConditionOnTwoColumns_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a where a.Population > a.Population";
+        var query = "select 1 from @A.entities() a where a.Population > a.Population";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -124,7 +124,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     [TestMethod]
     public void WhenWhereExpressionUsesMustBeRewrittenForBothDataSources_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City where a.Population > 0";
+        var query = "select 1 from @A.entities() a inner join @B.entities() b on a.City = b.City where a.Population > 0";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -148,7 +148,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     [TestMethod]
     public void WhenWhereExpressionMustBeRewrittenDueToExchangingColumnsBetweenTwoSources_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City where a.Population > b.Population";
+        var query = "select 1 from @A.entities() a inner join @B.entities() b on a.City = b.City where a.Population > b.Population";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -172,7 +172,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     [TestMethod]
     public void WhenWhereExpressionMustBeRewrittenDueToExchangingColumnsBetweenThreeSources_ShouldPass()
     {
-        var query = "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City inner join #C.entities() c on b.City = c.City where a.Population > b.Population and c.Population = 200d";
+        var query = "select 1 from @A.entities() a inner join @B.entities() b on a.City = b.City inner join @C.entities() c on b.City = c.City where a.Population > b.Population and c.Population = 200d";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
@@ -203,9 +203,9 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
     {
         var query = @"
 with a as (
-    select City, Population from #A.entities() x where x.Population > 100d 
+    select City, Population from @A.entities() x where x.Population > 100d 
 )
-select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.City inner join #C.entities() c on b.City = c.City where firstTable.Population > b.Population and c.Population = 200d";
+select 1 from a firstTable inner join @B.entities() b on firstTable.City = b.City inner join @C.entities() c on b.City = c.City where firstTable.Population > b.Population and c.Population = 200d";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         

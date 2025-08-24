@@ -53,12 +53,12 @@ public class ExecutionBenchmark : BenchmarkBase
 
     private CompiledQuery CreateCompiledQueryWithOptions(CompilationOptions compilationOptions)
     {
-        var script = "select City, Country, Population from #A.Entities() where Population > 500000";
+        var script = "select City, Country, Population from @A.Entities() where Population > 500000";
         var contentPath = Path.Combine(AppContext.BaseDirectory, "Data", "countries.json");
         var data = DataHelpers.ParseCountryData(contentPath);
         var sources = new Dictionary<string, IEnumerable<CountryEntity>>
         {
-            {"#A", data}
+            {"@A", data}
         };
         
         return CreateForCountryWithOptions(script, sources, compilationOptions);
@@ -66,12 +66,12 @@ public class ExecutionBenchmark : BenchmarkBase
 
     private CompiledQuery ComputeProfilesWithOptions(CompilationOptions compilationOptions)
     {
-        const string script = "select FirstName, LastName, Email, Gender, IpAddress, Date, Image, Animal, Avatar from #A.Entities() where Email like '%.co.uk'";
+        const string script = "select FirstName, LastName, Email, Gender, IpAddress, Date, Image, Animal, Avatar from @A.Entities() where Email like '%.co.uk'";
         var contentPath = Path.Combine(AppContext.BaseDirectory, "Data", "profiles.csv");
         var data = DataHelpers.ReadProfiles(contentPath);
         var sources = new Dictionary<string, IEnumerable<ProfileEntity>>
         {
-            {"#A", data}
+            {"@A", data}
         };
         
         return CreateForProfilesWithOptions(script, sources, compilationOptions);

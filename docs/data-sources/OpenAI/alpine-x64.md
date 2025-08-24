@@ -8,7 +8,7 @@ parent: OpenAI
 Provides interface to work with OpenAI API.
 ## Tables
 
-A table in Musoq represents a structured data source with rows and columns. Each table provides access to specific data types and can be queried using the FROM clause (e.g., 'FROM #source.table()'). Below are the available tables exposed by this data source:
+A table in Musoq represents a structured data source with rows and columns. Each table provides access to specific data types and can be queried using the FROM clause (e.g., 'FROM @source.table()'). Below are the available tables exposed by this data source:
 
 ### openai.gpt()
 

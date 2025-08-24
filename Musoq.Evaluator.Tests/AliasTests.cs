@@ -12,7 +12,7 @@ public class AliasTests : MultiSchemaTestBase
     public void WhenUniqueColumnAcrossJoinedDataSetOccurred_ShouldNotNeedToUseAlias()
     {
         //ZeroItem doesn't need an alias as it is unique column within those two data sources
-        const string query = "select ZeroItem from #schema.first() first inner join #schema.second() second on 1 = 1";
+        const string query = "select ZeroItem from @schema.first() first inner join @schema.second() second on 1 = 1";
         
         var vm = CreateAndRunVirtualMachine(query, [
             new()
@@ -30,7 +30,7 @@ public class AliasTests : MultiSchemaTestBase
     [TestMethod]
     public void WhenNonExistingAliasUsed_ShouldThrow()
     {
-        const string query = "select b.ZeroItem from #schema.first() a";
+        const string query = "select b.ZeroItem from @schema.first() a";
         
         Assert.ThrowsException<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, [
             new()
@@ -43,7 +43,7 @@ public class AliasTests : MultiSchemaTestBase
     public void WhenAmbiguousColumnAcrossJoinedDataSetOccurred_ShouldNeedToUseAlias()
     {
         //FirstItem needs an alias as it is ambiguous column within those two data sources
-        const string query = "select first.FirstItem, second.FirstItem from #schema.first() first inner join #schema.second() second on 1 = 1";
+        const string query = "select first.FirstItem, second.FirstItem from @schema.first() first inner join @schema.second() second on 1 = 1";
         
         var vm = CreateAndRunVirtualMachine(query, [
             new()
@@ -68,8 +68,8 @@ with p as (
     select 
         first.FirstItem, 
         second.FirstItem 
-    from #schema.first() first 
-    inner join #schema.second() second on 1 = 1
+    from @schema.first() first 
+    inner join @schema.second() second on 1 = 1
 )
 select [first.FirstItem], [second.FirstItem] from p";
         
@@ -97,8 +97,8 @@ with p as (
         first.FirstItem, 
         second.FirstItem
     }
-    from #schema.first() first
-    inner join #schema.second() second on 1 = 1
+    from @schema.first() first
+    inner join @schema.second() second on 1 = 1
 )
 select p.[first.FirstItem], p.[second.FirstItem] from p";
         
@@ -125,8 +125,8 @@ with p as (
     select 
         first.FirstItem, 
         second.FirstItem
-    from #schema.first() first
-    inner join #schema.second() second on 1 = 1
+    from @schema.first() first
+    inner join @schema.second() second on 1 = 1
 ), q as (
     select p.[first.FirstItem] as FirstItem, p.[second.FirstItem] as SecondItem from p
 )
@@ -156,8 +156,8 @@ with p as (
         first.FirstItem, 
         second.FirstItem
     }
-    from #schema.first() first
-    inner join #schema.second() second on 1 = 1
+    from @schema.first() first
+    inner join @schema.second() second on 1 = 1
 ), q as (
     select p.[first.FirstItem], p.[second.FirstItem] from p
 )
@@ -184,12 +184,12 @@ select q.[p.first.FirstItem], q.[p.second.FirstItem] from q";
 with p as (
     select 
         1 
-    from #schema.first() first
+    from @schema.first() first
     cross apply first.Split('') b
 )
 select 
     1 
-from p inner join #schema.first() first on 1 = 1
+from p inner join @schema.first() first on 1 = 1
 cross apply first.Split('') b";
         
         var vm = CreateAndRunVirtualMachine(query, [
@@ -208,7 +208,7 @@ cross apply first.Split('') b";
     [TestMethod]
     public void WhenSameAliasUsedInFromAndJoin_ShouldThrow()
     {
-        const string query = "select a.FirstItem from #schema.first() a inner join #schema.second() a on a.FirstItem = a.FirstItem";
+        const string query = "select a.FirstItem from @schema.first() a inner join @schema.second() a on a.FirstItem = a.FirstItem";
         
         Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
             new(),
@@ -224,9 +224,9 @@ cross apply first.Split('') b";
     {
         const string query = @"
             select src.FirstItem 
-            from #schema.first() src 
-            inner join #schema.second() b on src.FirstItem = b.FirstItem
-            inner join #schema.third() b on b.FirstItem = src.FirstItem";
+            from @schema.first() src 
+            inner join @schema.second() b on src.FirstItem = b.FirstItem
+            inner join @schema.third() b on b.FirstItem = src.FirstItem";
         
         Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
             new(),
@@ -244,10 +244,10 @@ cross apply first.Split('') b";
     {
         const string query = @"
             with src as (
-                select FirstItem from #schema.first()
+                select FirstItem from @schema.first()
             )
             select src.FirstItem 
-            from #schema.second() src
+            from @schema.second() src
             inner join src on src.FirstItem = src.FirstItem";
         
         Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
@@ -264,8 +264,8 @@ cross apply first.Split('') b";
     {
         const string query = @"
             select a.FirstItem 
-            from #schema.first() a 
-            cross apply #schema.second() a";
+            from @schema.first() a 
+            cross apply @schema.second() a";
         
         Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
             new(),
@@ -281,8 +281,8 @@ cross apply first.Split('') b";
     {
         const string query = @"
             select a.FirstItem 
-            from #schema.first() a 
-            outer apply #schema.second() a";
+            from @schema.first() a 
+            outer apply @schema.second() a";
         
         Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
             new(),

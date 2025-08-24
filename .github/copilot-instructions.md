@@ -109,7 +109,7 @@ Each module has corresponding test projects (*.Tests) with comprehensive coverag
 - **Common usage pattern**:
   ```csharp
   var compiledQuery = InstanceCreator.CompileForExecution(
-      "SELECT Name, Count(*) FROM #test.data() GROUP BY Name",
+      "SELECT Name, Count(*) FROM @test.data() GROUP BY Name",
       Guid.NewGuid().ToString(),
       schemaProvider,
       loggerResolver);

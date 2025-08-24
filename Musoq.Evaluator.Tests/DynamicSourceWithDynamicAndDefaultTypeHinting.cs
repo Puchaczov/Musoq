@@ -14,7 +14,7 @@ public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBa
     [TestMethod]
     public void WithDynamicSource_AccessComplexObjectProperties_ShouldPass()
     {
-        const string query = "select Multiform.AsInt, Multiform.AsDouble from #dynamic.all()";
+        const string query = "select Multiform.AsInt, Multiform.AsDouble from @dynamic.all()";
         var sources = new List<dynamic>
         {
             CreateExpandoObject(new MultiformType(2.99d))

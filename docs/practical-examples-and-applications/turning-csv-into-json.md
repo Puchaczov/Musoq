@@ -14,7 +14,7 @@ This guide shows you how to convert CSV files to JSON using Musoq, with special 
 To view your CSV data in table format, use this command:
 
 ```powershell
-./Musoq.exe run query "select * from #separatedvalues.comma('cities.csv', true, 0)"
+./Musoq.exe run query "select * from @separatedvalues.comma('cities.csv', true, 0)"
 ```
 
 You'll see your data in a clear table format:
@@ -36,7 +36,7 @@ You'll see your data in a clear table format:
 To convert the same data to flat JSON, add the --format json flag:
 
 ```powershell
-./Musoq.exe run query "select * from #separatedvalues.comma('cities.csv', true, 0)" --format json
+./Musoq.exe run query "select * from @separatedvalues.comma('cities.csv', true, 0)" --format json
 ```
 
 This produces:
@@ -50,7 +50,7 @@ This produces:
 The interpreted_json format allows you to treat column headers as a hierarchy of a JSON object and thus, interpret it to create complex objects. Here's how to use it:
 
 ```powershell
-./Musoq.exe run query "select cityId as [city.id], cityName as [city.name], cityPopulation as [city.features.population], cityArea as [city.features.area], postOffices as [city.features.postOffices], schools as [city.features.schools], isCapitol as [city.features.isCapitol], isVoivodeshipCity as [city.features.isVoivodeship] from #separatedvalues.comma('cities.csv', true, 0)" --format interpreted_json
+./Musoq.exe run query "select cityId as [city.id], cityName as [city.name], cityPopulation as [city.features.population], cityArea as [city.features.area], postOffices as [city.features.postOffices], schools as [city.features.schools], isCapitol as [city.features.isCapitol], isVoivodeshipCity as [city.features.isVoivodeship] from @separatedvalues.comma('cities.csv', true, 0)" --format interpreted_json
 ```
 
 This creates a structured JSON output:

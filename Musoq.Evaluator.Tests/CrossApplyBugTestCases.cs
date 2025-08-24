@@ -25,7 +25,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
     public void CrossApply_WithNullParameter_ShouldHandleGracefully()
     {
         // Test case where the parameter passed to cross apply is null
-        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from #schema.first() a cross apply #schema.second(a.Key) b";
+        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from @schema.first() a cross apply @schema.second(a.Key) b";
         
         var firstSource = new List<TestClass1>
         {
@@ -65,7 +65,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
     public void CrossApply_WithEmptySecondSource_ShouldReturnEmpty()
     {
         // Test case where the second source returns no rows for some parameters
-        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from #schema.first() a cross apply #schema.second(a.Key) b";
+        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from @schema.first() a cross apply @schema.second(a.Key) b";
         
         var firstSource = new List<TestClass1>
         {
@@ -104,7 +104,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
     public void CrossApply_WithComplexParameterTypes_ShouldHandleGracefully()
     {
         // Test more complex parameter scenarios that might cause issues
-        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from #schema.first() a cross apply #schema.second(a.Key, a.Value) b";
+        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from @schema.first() a cross apply @schema.second(a.Key, a.Value) b";
         
         var firstSource = new List<TestClass1>
         {
@@ -145,7 +145,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
     {
         // This test demonstrates the bug fix: when the cross apply function returns a source with null Rows
         // The fix ensures null Rows are converted to empty enumerable instead of causing NullReferenceException
-        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from #schema.first() a cross apply #schema.second(a.Key) b";
+        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from @schema.first() a cross apply @schema.second(a.Key) b";
         
         var firstSource = new List<TestClass1>
         {
@@ -174,7 +174,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
     public void CrossApply_WithThrowingFunction_ShouldPropagateException()
     {
         // Test what happens when the cross apply function throws an exception
-        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from #schema.first() a cross apply #schema.second(a.Key) b";
+        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from @schema.first() a cross apply @schema.second(a.Key) b";
         
         var firstSource = new List<TestClass1>
         {
@@ -200,7 +200,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
     public void CrossApply_WithParameterTypeMismatch_ShouldHandleGracefully()
     {
         // Test what happens when parameter types don't match expected types
-        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from #schema.first() a cross apply #schema.second(a.Key) b";
+        const string query = "select a.Key, a.Value, b.FilterKey, b.Amount from @schema.first() a cross apply @schema.second(a.Key) b";
         
         var firstSource = new List<TestClass1>
         {

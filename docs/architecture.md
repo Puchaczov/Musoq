@@ -180,7 +180,7 @@ public interface IRunnable
 
 ```csharp
 // Input: SQL string
-var sql = "SELECT Name FROM #os.files('/path') WHERE Extension = '.txt'";
+var sql = "SELECT Name FROM @os.files('/path') WHERE Extension = '.txt'";
 
 // Lexical analysis
 var lexer = new Lexer(sql);
