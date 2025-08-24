@@ -1,0 +1,82 @@
+[
+  {
+    "date": "2025-08-15",
+    "sequential_query_ms": 77.52979428733101,
+    "parallel_query_ms": 50.691578262093344,
+    "parsing_query_ms": 88.8351746899016,
+    "git_commit": "abc1000",
+    "status": "Stable"
+  },
+  {
+    "date": "2025-08-16",
+    "sequential_query_ms": 71.23186438412013,
+    "parallel_query_ms": 51.00910259535745,
+    "parsing_query_ms": 79.7088170370799,
+    "git_commit": "abc1001",
+    "status": "Stable"
+  },
+  {
+    "date": "2025-08-17",
+    "sequential_query_ms": 78.31943883675716,
+    "parallel_query_ms": 46.124295190121295,
+    "parsing_query_ms": 85.36331635211542,
+    "git_commit": "abc1002",
+    "status": "Stable"
+  },
+  {
+    "date": "2025-08-18",
+    "sequential_query_ms": 80.0169987309395,
+    "parallel_query_ms": 47.587743811888565,
+    "parsing_query_ms": 84.01454393296764,
+    "git_commit": "abc1003",
+    "status": "Stable"
+  },
+  {
+    "date": "2025-08-19",
+    "sequential_query_ms": 74.41688652323998,
+    "parallel_query_ms": 49.73150729949439,
+    "parsing_query_ms": 83.39283975197759,
+    "git_commit": "abc1004",
+    "status": "Stable"
+  },
+  {
+    "date": "2025-08-20",
+    "sequential_query_ms": 71.23610900655882,
+    "parallel_query_ms": 47.91567063582133,
+    "parsing_query_ms": 85.92195716331935,
+    "git_commit": "abc1005",
+    "status": "Stable"
+  },
+  {
+    "date": "2025-08-21",
+    "sequential_query_ms": 70.74724440462104,
+    "parallel_query_ms": 52.8568406503407,
+    "parsing_query_ms": 84.04687160905756,
+    "git_commit": "abc1006",
+    "status": "Stable"
+  },
+  {
+    "date": "2025-08-22",
+    "sequential_query_ms": 71.17403224630242,
+    "parallel_query_ms": 48.199183828040205,
+    "parsing_query_ms": 83.10175801429563,
+    "git_commit": "abc1007",
+    "status": "Stable"
+  },
+  {
+    "date": "2025-08-23",
+    "sequential_query_ms": 69.67816643171842,
+    "parallel_query_ms": 49.02500101837806,
+    "parsing_query_ms": 81.69464032910511,
+    "git_commit": "abc1008",
+    "status": "Improving"
+  },
+  {
+    "date": "2025-08-24",
+    "sequential_query_ms": 68.76,
+    "parallel_query_ms": 45.14,
+    "parsing_query_ms": 82.3,
+    "git_commit": "current",
+    "status": "Stable"
+  }
+]
