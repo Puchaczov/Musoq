@@ -62,7 +62,7 @@ public class AssemblyCachingBenchmark : BenchmarkBase
             ProfileEntity.KNameToIndexMap, 
             ProfileEntity.KIndexToObjectAccessMap);
             
-        _simpleQuery = "SELECT FirstName, LastName FROM #A.profiles() WHERE FirstName like 'FirstName1%'";
+        _simpleQuery = "SELECT FirstName, LastName FROM #A.entities() WHERE FirstName like 'FirstName1%'";
         _complexQuery = @"
             SELECT 
                 FirstName, 
@@ -74,7 +74,7 @@ public class AssemblyCachingBenchmark : BenchmarkBase
                     ELSE 'U' 
                 END as GenderCode,
                 Count(*) OVER (PARTITION BY Gender) as GenderCount
-            FROM #A.profiles() 
+            FROM #A.entities() 
             WHERE Email like '%.com'
             GROUP BY FirstName, LastName, Email, Gender
             ORDER BY LastName";

@@ -64,42 +64,40 @@ public class SchemaProviderOptimizationBenchmark : BenchmarkBase
 
     private void SetupQueries()
     {
-        // Simple query with basic method calls
-        _simpleQuery = "SELECT FirstName.ToUpper(), Length(FirstName) FROM #A.entities() WHERE FirstName like 'FirstName1%'";
+        // Simple query with basic field access
+        _simpleQuery = "SELECT FirstName, LastName FROM #A.entities() WHERE FirstName like 'FirstName1%'";
         
-        // Complex query with multiple method calls per row
+        // Complex query with multiple field accesses and filtering
         _complexMethodQuery = @"
             SELECT 
-                FirstName.ToUpper(), 
-                FirstName.ToLower(),
-                Length(FirstName),
-                Substring(FirstName, 0, 3),
-                IndexOf(FirstName, 'Name'),
-                Replace(FirstName, 'First', 'Last'),
-                Concat(FirstName, '_processed')
+                FirstName, 
+                LastName,
+                Email,
+                Gender,
+                IpAddress,
+                Date,
+                Animal
             FROM #A.entities() 
-            WHERE FirstName like 'FirstName1%'";
+            WHERE FirstName like 'FirstName1%' AND Gender = 'Male'";
             
-        // Aggregation query with method calls
+        // Aggregation query
         _aggregationQuery = @"
             SELECT 
-                Length(FirstName) as NameLength,
-                Count() as ItemCount,
-                Max(Length(FirstName)) as MaxLength,
-                Min(Length(FirstName)) as MinLength
+                Gender,
+                Count() as ItemCount
             FROM #A.entities() 
             WHERE FirstName like 'FirstName%'
-            GROUP BY Length(FirstName)";
+            GROUP BY Gender";
             
-        // Query with repeated method calls (should benefit most from caching)
+        // Query with repeated field access (should still benefit from schema optimizations)
         _repeatedMethodQuery = @"
             SELECT 
-                ToUpper(FirstName) as Upper1,
-                ToUpper(FirstName) as Upper2,
-                ToLower(FirstName) as Lower1,
-                ToLower(FirstName) as Lower2,
-                Length(FirstName) as Len1,
-                Length(FirstName) as Len2
+                FirstName as Name1,
+                FirstName as Name2,
+                LastName as LName1,
+                LastName as LName2,
+                Email as Email1,
+                Email as Email2
             FROM #A.entities() 
             WHERE FirstName like 'FirstName1%'";
     }
