@@ -31,7 +31,7 @@ public class ExtendedExecutionBenchmark : BenchmarkBase
             profileData);
             
         _aggregationProfiles = CreateProfileQuery(
-            "select Gender, Count(*) as Total from #A.Entities() group by Gender",
+            "select Gender, Count() as Total from #A.Entities() group by Gender",
             profileData);
             
         _filteringProfiles = CreateProfileQuery(

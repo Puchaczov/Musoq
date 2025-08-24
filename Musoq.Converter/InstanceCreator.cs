@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
-using Musoq.Evaluator.Cache;
 using Musoq.Evaluator.Runtime;
 using Musoq.Schema;
 using SchemaFromNode = Musoq.Evaluator.Parser.SchemaFromNode;
@@ -82,21 +81,6 @@ public static class InstanceCreator
     }
 
     public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, Func<BuildChain> createChain, Action<BuildItems> modifyBuildItems)
-    {
-        // Try to use assembly cache if enabled
-        if (QueryAssemblyCacheManager.IsEnabled)
-        {
-            var querySignature = QueryAssemblyCache.GenerateQuerySignature(script, schemaProvider);
-            
-            return QueryAssemblyCacheManager.Instance.GetOrCompile(querySignature, () =>
-                CompileWithoutCache(script, assemblyName, schemaProvider, loggerResolver, createChain, modifyBuildItems));
-        }
-        
-        // Fall back to direct compilation if cache is disabled
-        return CompileWithoutCache(script, assemblyName, schemaProvider, loggerResolver, createChain, modifyBuildItems);
-    }
-    
-    private static CompiledQuery CompileWithoutCache(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, Func<BuildChain> createChain, Action<BuildItems> modifyBuildItems)
     {
         var items = new BuildItems
         {
