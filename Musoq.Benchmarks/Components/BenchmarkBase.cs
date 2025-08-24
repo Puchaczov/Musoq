@@ -17,6 +17,8 @@ public class BenchmarkBase
     }
         
     protected CancellationTokenSource TokenSource { get; } = new();
+    
+    protected ILoggerResolver LoggerResolver => _loggerResolver;
 
     protected CompiledQuery CreateForCountryWithOptions(
         string script,

@@ -10,6 +10,7 @@ var isExtendedBenchmarks = commandArgs.Contains("--extended");
 var isCompilationBenchmarks = commandArgs.Contains("--compilation");
 var isPerformanceAnalysis = commandArgs.Contains("--performance-analysis");
 var isAssemblyCachingBenchmarks = commandArgs.Contains("--assembly-caching");
+var isSchemaProviderBenchmarks = commandArgs.Contains("--schema-provider");
 var isReadmeGenMode = commandArgs.Contains("--readme-gen");
 
 if (isReadmeGenMode)
@@ -50,6 +51,18 @@ if (isPerformanceTrackingMode)
         var summary = BenchmarkRunner.Run<AssemblyCachingBenchmark>(config);
         await ProcessPerformanceResults(summary);
     }
+    else if (isSchemaProviderBenchmarks)
+    {
+        var summary = BenchmarkRunner.Run<SchemaProviderOptimizationBenchmark>(config);
+        await ProcessPerformanceResults(summary);
+        
+        // Run additional performance tracking for schema provider optimization
+        Console.WriteLine("\n🔍 Running detailed schema provider optimization analysis...");
+        var benchmark = new SchemaProviderOptimizationBenchmark();
+        benchmark.Setup();
+        benchmark.SimpleQuery_WithPerformanceTracking();
+        benchmark.ComplexMethodQuery_WithPerformanceTracking();
+    }
     else if (isExtendedBenchmarks)
     {
         var summary = BenchmarkRunner.Run<ExtendedExecutionBenchmark>(config);
@@ -89,6 +102,14 @@ else
             )
         );
     }
+    else if (isSchemaProviderBenchmarks)
+    {
+        BenchmarkRunner.Run<SchemaProviderOptimizationBenchmark>(
+            new DebugInProcessConfig().AddFilter(
+                new NameFilter(name => name.Contains(nameof(SchemaProviderOptimizationBenchmark.SimpleQuery_WithOptimization)))
+            )
+        );
+    }
     else if (isExtendedBenchmarks)
     {
         BenchmarkRunner.Run<ExtendedExecutionBenchmark>(
@@ -116,6 +137,10 @@ else
     else if (isAssemblyCachingBenchmarks)
     {
         BenchmarkRunner.Run<AssemblyCachingBenchmark>();
+    }
+    else if (isSchemaProviderBenchmarks)
+    {
+        BenchmarkRunner.Run<SchemaProviderOptimizationBenchmark>();
     }
     else if (isExtendedBenchmarks)
     {
