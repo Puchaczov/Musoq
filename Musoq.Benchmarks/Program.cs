@@ -3,7 +3,6 @@ using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Running;
 using Musoq.Benchmarks.Components;
 using Musoq.Benchmarks.Performance;
-using Musoq.Benchmarks.Demo;
 using System.IO;
 
 var commandArgs = Environment.GetCommandLineArgs();
@@ -120,10 +119,6 @@ else
             )
         );
     }
-    else if (commandArgs.Contains("--comprehensive-performance"))
-    {
-        RunComprehensivePerformanceAnalysis();
-    }
     else if (isExtendedBenchmarks)
     {
         BenchmarkRunner.Run<ExtendedExecutionBenchmark>(
@@ -159,10 +154,6 @@ else
     else if (commandArgs.Contains("--memory-management"))
     {
         BenchmarkRunner.Run<MemoryManagementBenchmark>();
-    }
-    else if (commandArgs.Contains("--comprehensive-performance"))
-    {
-        RunComprehensivePerformanceAnalysis();
     }
     else if (isExtendedBenchmarks)
     {
@@ -202,91 +193,4 @@ static async Task ProcessPerformanceResults(BenchmarkDotNet.Reports.Summary summ
     {
         Console.WriteLine($"❌ Error processing performance results: {ex.Message}");
     }
-}
-
-static void RunComprehensivePerformanceAnalysis()
-{
-    Console.WriteLine("📊 COMPREHENSIVE PERFORMANCE ANALYSIS");
-    Console.WriteLine("======================================");
-    Console.WriteLine("Running all optimization phases to demonstrate overall performance improvements...");
-    Console.WriteLine();
-
-    // Phase 1: Assembly Caching
-    Console.WriteLine("🚀 Phase 1: Assembly Caching Performance");
-    Console.WriteLine("-----------------------------------------");
-    BenchmarkRunner.Run<AssemblyCachingBenchmark>(
-        new DebugInProcessConfig().AddFilter(
-            new NameFilter(name => name.Contains("SimpleQuery") || name.Contains("RepeatedQueries"))
-        )
-    );
-
-    // Phase 2: Schema Provider Optimization
-    Console.WriteLine("\n⚡ Phase 2: Schema Provider Optimization");
-    Console.WriteLine("------------------------------------------");
-    BenchmarkRunner.Run<SchemaProviderOptimizationBenchmark>(
-        new DebugInProcessConfig().AddFilter(
-            new NameFilter(name => name.Contains("SimpleQuery") || name.Contains("MethodResolution"))
-        )
-    );
-
-    // Phase 3: Memory Management
-    Console.WriteLine("\n🧠 Phase 3: Memory Management Optimization");
-    Console.WriteLine("-------------------------------------------");
-    BenchmarkRunner.Run<MemoryManagementBenchmark>(
-        new DebugInProcessConfig().AddFilter(
-            new NameFilter(name => name.Contains("Query_Execution") || name.Contains("Table_Creation"))
-        )
-    );
-
-    // Performance Summary
-    DisplayPerformanceSummary();
-}
-
-static void DisplayPerformanceSummary()
-{
-    Console.WriteLine("\n📈 OVERALL PERFORMANCE IMPROVEMENT SUMMARY");
-    Console.WriteLine("============================================");
-    
-    // Get statistics from all optimization components
-    var assemblyCacheStats = Musoq.Evaluator.Caching.QueryAssemblyCacheManager.Instance.GetStatistics();
-    var methodCacheStats = Musoq.Schema.Compilation.SchemaMethodCompilationCacheManager.GetStatistics();
-    var memoryPoolStats = Musoq.Schema.Performance.MemoryPoolManager.GetStatistics();
-    
-    Console.WriteLine($"✅ Phase 1 - Assembly Caching:");
-    Console.WriteLine($"   Cache Efficiency: {assemblyCacheStats.CacheEfficiency:P1}");
-    Console.WriteLine($"   Total Requests: {assemblyCacheStats.TotalRequests}");
-    Console.WriteLine($"   Cache Hits: {assemblyCacheStats.CacheHits}");
-    Console.WriteLine($"   Estimated Compilation Time Saved: {(assemblyCacheStats.CacheEfficiency * 100):F0}%");
-    
-    Console.WriteLine($"\n✅ Phase 2 - Schema Provider Optimization:");
-    Console.WriteLine($"   Method Resolution Cache Efficiency: {methodCacheStats.CacheEfficiency:P1}");
-    Console.WriteLine($"   Compiled Methods: {methodCacheStats.CacheHits}");
-    Console.WriteLine($"   Fallback to Reflection: {methodCacheStats.CacheMisses}");
-    Console.WriteLine($"   Estimated Method Resolution Speed-up: 15-30%");
-    
-    Console.WriteLine($"\n✅ Phase 3 - Memory Management:");
-    Console.WriteLine($"   Table Pool Efficiency: {memoryPoolStats.TableCacheEfficiency:P1}");
-    Console.WriteLine($"   Resolver Pool Efficiency: {memoryPoolStats.ResolverCacheEfficiency:P1}");
-    Console.WriteLine($"   Available Pooled Objects: Tables={memoryPoolStats.PooledTablesAvailable}, Resolvers={memoryPoolStats.PooledResolversAvailable}");
-    
-    // Calculate estimated overall improvement
-    var overallCacheEfficiency = (assemblyCacheStats.CacheEfficiency + methodCacheStats.CacheEfficiency + 
-                                 ((memoryPoolStats.TableCacheEfficiency + memoryPoolStats.ResolverCacheEfficiency) / 2)) / 3;
-    
-    Console.WriteLine($"\n🎯 ESTIMATED OVERALL PERFORMANCE IMPROVEMENT:");
-    Console.WriteLine($"   Combined Optimization Efficiency: {overallCacheEfficiency:P1}");
-    Console.WriteLine($"   Target Performance Gain: 25-40%");
-    Console.WriteLine($"   Measured Cache Effectiveness: {(overallCacheEfficiency > 0.4 ? "✅ Meeting Target" : "⚠️ Below Target")}");
-    
-    if (overallCacheEfficiency > 0.4)
-    {
-        Console.WriteLine($"   🚀 Performance optimizations are working effectively!");
-        Console.WriteLine($"   🎉 Musoq is now {(overallCacheEfficiency * 40):F0}% faster for repeated operations!");
-    }
-    else
-    {
-        Console.WriteLine($"   📈 Performance optimizations are building cache. Run more queries to see full benefits.");
-    }
-    
-    Console.WriteLine("\n" + new string('=', 60));
 }
