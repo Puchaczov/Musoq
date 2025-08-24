@@ -409,6 +409,14 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(PivotNode node)
+    {
+    }
+
+    public void Visit(PivotFromNode node)
+    {
+    }
+
     public void SetScope(Scope scope)
     {
     }
@@ -440,5 +448,15 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
 
     public void InnerCteEnds()
     {
+    }
+
+    public void SetPivotAliasOverride(string pivotAlias)
+    {
+        // Not used in this visitor
+    }
+
+    public void ClearPivotAliasOverride()
+    {
+        // Not used in this visitor
     }
 }

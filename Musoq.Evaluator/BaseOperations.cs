@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema.DataSources;
@@ -101,5 +102,16 @@ public abstract class BaseOperations
     public IOrderedEnumerable<IObjectResolver> ThenByDescending<T>(IOrderedEnumerable<IObjectResolver> rowSource, Func<IObjectResolver, T> selector)
     { 
         return rowSource.ThenByDescending(selector);
+    }
+        
+    // PIVOT Support: OrderBy methods for List<Group>
+    public IOrderedEnumerable<IObjectResolver> OrderBy<T>(List<Musoq.Plugins.Group> list, Func<IObjectResolver, T> selector)
+    { 
+        return Helpers.EvaluationHelper.ConvertTableToSource(list).Rows.OrderBy(selector);
+    }
+        
+    public IOrderedEnumerable<IObjectResolver> OrderByDescending<T>(List<Musoq.Plugins.Group> list, Func<IObjectResolver, T> selector)
+    { 
+        return Helpers.EvaluationHelper.ConvertTableToSource(list).Rows.OrderByDescending(selector);
     }
 }

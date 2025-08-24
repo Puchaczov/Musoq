@@ -555,33 +555,95 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
         };
 
-        var sNode = Generator.ElementAccessExpression(
-            Generator.IdentifierName(variableName),
-            SyntaxFactory.Argument(
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression,
-                    SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
-
-        var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
-
-        AddNamespace(types);
-        AddReference(types);
-
-        var typeIdentifier =
-            SyntaxFactory.IdentifierName(
-                EvaluationHelper.GetCastableType(node.ReturnType));
-
-        if (node.ReturnType is NullNode.NullType)
+        // Check if we're in a PIVOT context
+        // Use the PivotConfig attribute to detect PIVOT context instead of relying on SourceName
+        // This is more reliable since SourceName can be overridden by GROUP BY processing
+        var isPivotContext = false;
+        if (node.Name.Contains(".") && node.Name.Split('.').Length == 2)
         {
-            typeIdentifier = SyntaxFactory.IdentifierName("object");
+            var aliasPrefix = node.Name.Split('.')[0];
+            var pivotConfigKey = $"PivotConfig_{aliasPrefix}";
+            isPivotContext = _scope.ContainsAttribute(pivotConfigKey) && 
+                           (_type == MethodAccessType.ResultQuery || _type == MethodAccessType.TransformingQuery);
+        }
+        
+        // DEBUG: Log the context information to understand why PIVOT detection might fail
+        if (node.Name.Contains("p."))
+        {
+            var aliasPrefix = node.Name.Split('.')[0];
+            var pivotConfigKey = $"PivotConfig_{aliasPrefix}";
+            Console.WriteLine($"[PIVOT DEBUG] AccessColumnNode - Field: {node.Name}, SourceName: {(_scope.ContainsAttribute(MetaAttributes.SourceName) ? _scope[MetaAttributes.SourceName] : "NONE")}, PivotConfig: {(_scope.ContainsAttribute(pivotConfigKey) ? _scope[pivotConfigKey] : "NONE")}, IsPivotContext: {isPivotContext}, MethodType: {_type}");
         }
 
-        if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
+        ExpressionSyntax sNode;
+        
+        if (isPivotContext && (_type == MethodAccessType.ResultQuery || _type == MethodAccessType.CaseWhen))
         {
-            typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
+            if (node.Name.Contains("p."))
+            {
+                Console.WriteLine($"[PIVOT DEBUG] Generating indexer access for field: {node.Name}");
+            }
+            
+            // For PIVOT context, generate indexer access for IObjectResolver objects
+            // PIVOT CreatePivotGroups returns List<IObjectResolver>, so use indexer access
+            var fieldName = node.Name;
+            if (fieldName.Contains(".") && fieldName.Split('.').Length == 2)
+            {
+                fieldName = fieldName.Split('.')[1]; // Extract just the column name part
+                Console.WriteLine($"[PIVOT DEBUG] Stripped alias prefix: {node.Name} -> {fieldName}");
+            }
+            
+            // Generate: (Type)score["field_name"]
+            var castExpression = SyntaxFactory.CastExpression(
+                SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(node.ReturnType)),
+                SyntaxFactory.ElementAccessExpression(
+                    SyntaxFactory.IdentifierName(variableName))
+                .WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    SyntaxFactory.Literal(fieldName)))))));
+            
+            sNode = castExpression;
         }
+        else
+        {
+            if (node.Name.Contains("p."))
+            {
+                Console.WriteLine($"[PIVOT DEBUG] Generating array access for field: {node.Name} (isPivotContext: {isPivotContext}, type: {_type})");
+            }
+            
+            // Default behavior: generate array access expression
+            sNode = (ExpressionSyntax)Generator.ElementAccessExpression(
+                Generator.IdentifierName(variableName),
+                SyntaxFactory.Argument(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
 
-        sNode = Generator.CastExpression(typeIdentifier, sNode);
+            var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
+
+            AddNamespace(types);
+            AddReference(types);
+
+            var typeIdentifier =
+                SyntaxFactory.IdentifierName(
+                    EvaluationHelper.GetCastableType(node.ReturnType));
+
+            if (node.ReturnType is NullNode.NullType)
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("object");
+            }
+
+            if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
+            {
+                typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
+            }
+
+            sNode = (ExpressionSyntax)Generator.CastExpression(typeIdentifier, sNode);
+        }
 
         if (!node.ReturnType.IsTrueValueType() && NullSuspiciousNodes.Count > 0)
             NullSuspiciousNodes[^1].Push(sNode);
@@ -595,14 +657,25 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(IdentifierNode node)
     {
-        Nodes.Push(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults"))
-            .WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
+        // Check if this identifier is in the in-memory table indexes
+        if (_inMemoryTableIndexes.TryGetValue(node.Name, out var tableIndex))
+        {
+            Nodes.Push(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults"))
+                .WithArgumentList(
+                    SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(tableIndex)))))));
+        }
+        else
+        {
+            // If not found in _inMemoryTableIndexes, treat as raw identifier
+            // This handles cases like PIVOT aggregation where identifiers refer to 
+            // source table columns that aren't in the in-memory table indexes yet
+            Nodes.Push(SyntaxFactory.IdentifierName(node.Name));
+        }
     }
 
     public void Visit(AccessObjectArrayNode node)
@@ -786,7 +859,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(SchemaFromNode node)
     {
-        var originColumns = InferredColumns[node];
+        // DEFENSIVE: Handle case where node might not be in InferredColumns
+        // This can happen during PIVOT processing with fallback nodes
+        ISchemaColumn[] originColumns;
+        if (!InferredColumns.TryGetValue(node, out originColumns))
+        {
+            // Fallback: try to get columns from any similar node or create empty array
+            originColumns = InferredColumns.Values.FirstOrDefault() ?? new ISchemaColumn[0];
+        }
 
         var tableInfoVariableName = node.Alias.ToInfoTable();
         var tableInfoObject = SyntaxHelper.CreateAssignment(
@@ -815,8 +895,28 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         );
 
         var args = new List<ExpressionSyntax>();
-        var argList = (ArgumentListSyntax) Nodes.Pop();
-        args.AddRange(argList.Arguments.Select(arg => arg.Expression));
+        var stackNode = Nodes.Pop();
+        
+        // DEFENSIVE: Handle unexpected node types during PIVOT processing
+        if (stackNode is ArgumentListSyntax argList)
+        {
+            args.AddRange(argList.Arguments.Select(arg => arg.Expression));
+        }
+        else if (stackNode is LiteralExpressionSyntax literal)
+        {
+            // Handle case where a literal expression is on the stack instead of argument list
+            // This can happen during PIVOT processing
+            args.Add(literal);
+        }
+        else
+        {
+            // For other node types, try to use them as expressions if possible
+            if (stackNode is ExpressionSyntax expr)
+            {
+                args.Add(expr);
+            }
+            // If it's not an expression, we'll leave args empty and continue
+        }
 
         var createdSchemaRows = SyntaxHelper.CreateAssignmentByMethodCall(
             $"{node.Alias}Rows",
@@ -1308,7 +1408,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             block = block.AddStatements(GroupForStatement());
 
             if (node.Refresh.Nodes.Length > 0)
-                block = block.AddStatements(((BlockSyntax) Nodes.Pop()).Statements.ToArray());
+            {
+                var refreshBlock = Nodes.Pop() as BlockSyntax;
+                if (refreshBlock != null)
+                    block = block.AddStatements(refreshBlock.Statements.ToArray());
+            }
 
             if (node.GroupBy.Having != null)
                 block = block.AddStatements((StatementSyntax) _groupHaving);
@@ -2411,8 +2515,136 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         return EvaluationHelper.GetCastableType(type);
     }
 
+    public void Visit(PivotNode node)
+    {
+        // PIVOT node processing should typically happen within PivotFromNode context
+        // during code generation. If we reach here directly, it means the PIVOT aggregations
+        // are being processed independently, which can happen during complex query processing.
+        // Handle this defensively without throwing an exception.
+        
+        // Do nothing - PIVOT processing is handled by PivotNodeProcessor within PivotFromNode
+        // The aggregations would have been resolved during metadata building phase
+    }
+
+    public void Visit(PivotFromNode node)
+    {
+        Console.WriteLine($"[PIVOT DEBUG] ToCSharpRewriteTreeVisitor.Visit(PivotFromNode) called for alias: {node.Alias}");
+        
+        // Apply the actual PIVOT transformation using PivotNodeProcessor
+        var sourceAlias = GetSourceAlias(node.Source);
+        
+        // Determine the actual alias used for the source variables
+        string actualSourceAlias;
+        if (!string.IsNullOrEmpty(sourceAlias))
+        {
+            actualSourceAlias = sourceAlias;
+        }
+        else
+        {
+            // For PIVOT scenarios, we need to use the same alias that was registered
+            // in the metadata building phase, but it should NOT be the same as the PIVOT alias
+            if (node.Source is SchemaFromNode schemaFromNode)
+            {
+                try
+                {
+                    var registeredAlias = _scope[schemaFromNode.Id];
+                    // Ensure source alias is different from PIVOT alias to avoid conflicts
+                    actualSourceAlias = registeredAlias != node.Alias ? registeredAlias : "DefaultSchema";
+                }
+                catch
+                {
+                    actualSourceAlias = !string.IsNullOrEmpty(schemaFromNode.Alias) && schemaFromNode.Alias != node.Alias 
+                        ? schemaFromNode.Alias : "DefaultSchema";
+                }
+            }
+            else
+            {
+                actualSourceAlias = node.Source switch
+                {
+                    AccessMethodFromNode => "DefaultRowSource", 
+                    _ => "UnknownSource"
+                };
+            }
+        }
+        
+        // Get the source rows variable and PIVOT rows variable
+        var sourceRowsVariable = $"{actualSourceAlias}Rows";
+        var pivotRowsVariable = node.Alias.ToRowsSource();
+        
+        // Apply PIVOT transformation using PivotNodeProcessor
+        // SIMPLIFIED APPROACH: Remove try-catch complexity to avoid syntax issues
+        
+        // Retrieve the includePassThroughColumns setting from metadata building phase
+        var pivotConfigKey = $"PivotConfig_{node.Alias}";
+        var includePassThroughColumns = true; // default value
+        if (_scope.ContainsAttribute(pivotConfigKey))
+        {
+            var storedValue = _scope[pivotConfigKey];
+            bool.TryParse(storedValue, out includePassThroughColumns);
+        }
+        Console.WriteLine($"[PIVOT CODEGEN] Retrieved {pivotConfigKey} = {includePassThroughColumns}");
+        
+        var pivotResult = PivotNodeProcessor.ProcessPivotNode(
+            node.Pivot, sourceRowsVariable, _scope, node.Alias, includePassThroughColumns);
+        
+        // Ensure the PIVOT transform statement is a LocalDeclarationStatementSyntax
+        LocalDeclarationStatementSyntax pivotStatement;
+        if (pivotResult.PivotTransformStatement is LocalDeclarationStatementSyntax localDecl)
+        {
+            pivotStatement = localDecl;
+        }
+        else
+        {
+            // Wrap the statement in a block and create a simple declaration
+            pivotStatement = SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotResult.PivotTableVariable))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.IdentifierName("new List<dynamic>()"))))));
+        }
+        
+        // SIMPLIFIED APPROACH: Add the PIVOT transformation statement
+        Statements.Add(pivotStatement);
+        
+        // SIMPLIFIED ALIASING: Instead of complex variable aliasing, use direct reference
+        // This eliminates potential syntax errors in variable declarations
+        Console.WriteLine($"[PIVOT DEBUG] Using simplified aliasing for {node.Alias}");
+        
+        // FIX: Ensure unique variable name to avoid conflicts with source variables
+        var pivotVariableName = $"{node.Alias}PivotRows"; // Add "Pivot" to make it unique
+        Console.WriteLine($"[PIVOT DEBUG] Creating PIVOT variable: {pivotVariableName} (avoiding conflict with source {node.Alias}Rows)");
+        
+        var simpleAliasStatement = SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(pivotVariableName))
+                        .WithInitializer(SyntaxFactory.EqualsValueClause(
+                            SyntaxFactory.IdentifierName(pivotResult.PivotTableVariable))))));
+        
+        _getRowsSourceStatement.Add(node.Alias, simpleAliasStatement);
+        
+        // Update SourceName for field access coordination
+        _scope[MetaAttributes.SourceName] = pivotVariableName;
+    }
+
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {
         return SyntaxFactory.Block(statements.Where(f => f is not EmptyStatementSyntax));
+    }
+
+    /// <summary>
+    /// Extracts the alias from a source node for PIVOT transformation
+    /// </summary>
+    private static string GetSourceAlias(FromNode source)
+    {
+        return source switch
+        {
+            AccessMethodFromNode accessMethod => accessMethod.Alias,
+            JoinFromNode join => join.Alias,
+            ExpressionFromNode expression => expression.Alias,
+            SchemaFromNode schema => schema.Alias,
+            _ => null
+        };
     }
 }

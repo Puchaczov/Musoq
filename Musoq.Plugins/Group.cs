@@ -33,6 +33,14 @@ public sealed class Group
 #if DEBUG
         Name = fieldNames.Length == 0 ? "root" : fieldNames.Aggregate((a, b) => a + ',' + b);
 #endif
+        
+        // DEBUG: Print Group constructor details
+        Console.WriteLine($"[GROUP CONSTRUCTOR] Creating Group with {fieldNames.Length} fields and {values.Length} values");
+        for (var i = 0; i < fieldNames.Length && i < values.Length; i++)
+        {
+            Console.WriteLine($"[GROUP CONSTRUCTOR] Field[{i}]: name='{fieldNames[i]}', value='{values[i]}'");
+        }
+        
         for (var i = 0; i < fieldNames.Length; i++) Values.Add(fieldNames[i], values[i]);
     }
 
@@ -63,6 +71,10 @@ public sealed class Group
     /// <exception cref="KeyNotFoundException"></exception>
     public T? GetValue<T>(string name)
     {
+        // DEBUG: Print available fields and requested field
+        Console.WriteLine($"[GROUP DEBUG] GetValue called for: '{name}'");
+        Console.WriteLine($"[GROUP DEBUG] Available fields: {string.Join(", ", Values.Keys.Select(k => $"'{k}'"))}");
+        
         if (!Values.TryGetValue(name, out var value))
             throw new KeyNotFoundException($"Group does not have value {name}.");
 

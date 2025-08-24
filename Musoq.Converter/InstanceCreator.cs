@@ -11,6 +11,7 @@ using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
+using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using SchemaFromNode = Musoq.Evaluator.Parser.SchemaFromNode;
 
@@ -138,9 +139,10 @@ public static class InstanceCreator
             items.Compilation?.SyntaxTrees.ElementAt(0).GetRoot().WriteTo(writer);
         }
 
+        var generatedCode = builder.ToString();
         using (var file = new StreamWriter(File.Open(csPath, FileMode.Create)))
         {
-            file.Write(builder.ToString());
+            file.Write(generatedCode);
         }
 
         if (items.DllFile is {Length: > 0})
@@ -158,7 +160,11 @@ public static class InstanceCreator
         }
 
         if (!compiled && compilationError != null)
-            throw compilationError;
+        {
+            // Add generated code to compilation error for debugging PIVOT issues
+            var enhancedMessage = compilationError.Message + "\n\nGenerated C# Code:\n" + generatedCode;
+            throw new Exceptions.CompilationException(enhancedMessage);
+        }
 
         var assemblyLoadContext = new DebugAssemblyLoadContext();
         runnable = new RunnableDebugDecorator(
@@ -221,6 +227,52 @@ public static class InstanceCreator
             {
                 HasExternallyProvidedTypes: true
             }));
+
+        // CRITICAL FIX: Add PIVOT alias mapping to QueriesInformation
+        // This ensures that PIVOT generated code can find the correct metadata using PIVOT alias
+        var queriesInfo = new Dictionary<string, (Musoq.Parser.Nodes.From.SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode, bool HasExternallyProvidedTypes)>(runnable.QueriesInformation);
+        
+        foreach (var kvp in runnable.QueriesInformation)
+        {
+            var schemaNode = kvp.Value.FromNode;
+            
+            // Check if this is a SchemaFromNode that could be accessed via PIVOT
+            if (schemaNode is Musoq.Parser.Nodes.From.SchemaFromNode fromNode && fromNode.Id.Contains(":"))
+            {
+                // Parse the original ID format: "alias:position"
+                var parts = fromNode.Id.Split(':');
+                if (parts.Length == 2 && int.TryParse(parts[1], out var position))
+                {
+                    var originalAlias = parts[0];
+                    
+                    // Create potential PIVOT alias entries
+                    // PIVOT queries commonly use aliases like 'p', 't', 'pivot', etc.
+                    var commonPivotAliases = new[] { "p", "t", "pivot", "pv", "result" };
+                    
+                    foreach (var pivotAlias in commonPivotAliases)
+                    {
+                        var pivotKey = $"{pivotAlias}:{position}";
+                        if (!queriesInfo.ContainsKey(pivotKey))
+                        {
+                            // Add the same metadata under the PIVOT alias key
+                            queriesInfo[pivotKey] = kvp.Value;
+                        }
+                    }
+                }
+            }
+        }
+        
+        runnable.QueriesInformation = queriesInfo;
+
+        // DEBUG: Add debugging for PIVOT key mismatch issues
+        if (runnable.QueriesInformation.Any())
+        {
+            System.Diagnostics.Debug.WriteLine("[QUERIES DEBUG] QueriesInformation keys:");
+            foreach (var key in runnable.QueriesInformation.Keys)
+            {
+                System.Diagnostics.Debug.WriteLine($"[QUERIES DEBUG] Key: '{key}'");
+            }
+        }
 
         return runnable;
     }

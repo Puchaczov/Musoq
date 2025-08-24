@@ -34,8 +34,13 @@ namespace Musoq.Evaluator.Visitors;
 public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 {
     private readonly List<BinaryFromNode> _joinedTables = [];
+    // Use static tracking to persist across visitor instances
+    private static readonly Dictionary<string, string> _globalUsedAliases = new();
     private int _queryIndex = 0;
+    private int _inSourcePosition = 1; // Position index for Evaluator.Parser.SchemaFromNode - UNUSED, keeping for future use
     private Scope _scope;
+    
+    private static string GetSchemaMethodKey(SchemaFromNode node) => $"{node.Schema}:{node.Method}";
 
     private Stack<Node> Nodes { get; } = new();
 
@@ -321,10 +326,38 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(SchemaFromNode node)
     {
-        Nodes.Push(
-            node is Parser.SchemaFromNode schemaFromNode ?
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, schemaFromNode.HasExternallyProvidedTypes) :
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, false));
+        // CRITICAL FIX: Ensure alias consistency across multiple SchemaFromNode instances
+        // Use global tracking to ensure all SchemaFromNode objects with the same schema/method 
+        // combination use the same alias, preventing PIVOT key mismatch issues
+        var schemaMethodKey = GetSchemaMethodKey(node);
+        string effectiveAlias;
+        
+        if (!string.IsNullOrEmpty(node.Alias))
+        {
+            // If node has an alias, use it and remember it for this schema/method combination
+            effectiveAlias = node.Alias;
+            _globalUsedAliases[schemaMethodKey] = effectiveAlias;
+        }
+        else if (_globalUsedAliases.TryGetValue(schemaMethodKey, out var existingAlias))
+        {
+            // If we've seen this schema/method combination before, reuse the same alias
+            // This ensures PIVOT scenarios maintain alias consistency
+            effectiveAlias = existingAlias;
+        }
+        else
+        {
+            // First time seeing this schema/method combination with empty alias
+            effectiveAlias = "DefaultSchema";
+            _globalUsedAliases[schemaMethodKey] = effectiveAlias;
+        }
+        
+        // CRITICAL FIX: Use Evaluator.Parser.SchemaFromNode for consistent ID format with metadata building
+        // This ensures the queriesInformation dictionary keys match between all phases
+        var newNode = node is Parser.SchemaFromNode schemaFromNode ?
+            new Musoq.Evaluator.Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, 1, schemaFromNode.HasExternallyProvidedTypes) :
+            new Musoq.Evaluator.Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), effectiveAlias, 1, false);
+        
+        Nodes.Push(newNode);
     }
 
     public void Visit(JoinSourcesTableFromNode node)
@@ -1063,6 +1096,50 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     public void Visit(FieldLinkNode node)
     {
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
+    }
+
+    public void Visit(PivotNode node)
+    {
+        var inValues = new Node[node.InValues.Length];
+        for (int i = node.InValues.Length - 1; i >= 0; i--)
+            inValues[i] = Nodes.Pop();
+
+        var forColumn = Nodes.Pop();
+
+        var aggregationExpressions = new Node[node.AggregationExpressions.Length];
+        for (int i = node.AggregationExpressions.Length - 1; i >= 0; i--)
+            aggregationExpressions[i] = Nodes.Pop();
+
+        Nodes.Push(new PivotNode(aggregationExpressions, forColumn, inValues));
+    }
+
+    public void Visit(PivotFromNode node)
+    {
+        var pivot = Nodes.Pop() as PivotNode;
+        var source = Nodes.Pop() as FromNode;
+        
+        // CRITICAL FIX: Ensure the embedded SchemaFromNode uses the PIVOT alias
+        // This prevents the key mismatch between metadata building and code generation
+        if (source is SchemaFromNode schemaFromNode && !string.IsNullOrEmpty(node.Alias))
+        {
+            // Update global alias tracking to use PIVOT alias for this schema/method combination
+            var schemaMethodKey = GetSchemaMethodKey(schemaFromNode);
+            _globalUsedAliases[schemaMethodKey] = node.Alias;
+            
+            // CRITICAL: Create Evaluator.Parser.SchemaFromNode instead of Parser.SchemaFromNode
+            // to ensure the ID format matches what InstanceCreator expects for QueriesInformation
+            var pivotAliasedSchemaNode = new Musoq.Evaluator.Parser.SchemaFromNode(
+                schemaFromNode.Schema, 
+                schemaFromNode.Method, 
+                schemaFromNode.Parameters, 
+                node.Alias, 
+                1, // Use position 1 for PIVOT - matches generated C# code expectation
+                schemaFromNode is Parser.SchemaFromNode originalSchemaFromNode && originalSchemaFromNode.HasExternallyProvidedTypes);
+            
+            source = pivotAliasedSchemaNode;
+        }
+        
+        Nodes.Push(new PivotFromNode(source, pivot, node.Alias));
     }
 
     private void VisitAccessMethod(AccessMethodNode node)

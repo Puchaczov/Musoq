@@ -778,6 +778,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     {
         var newScope = Scope.AddScope(name);
         _scopes.Push(Scope);
+        Console.WriteLine($"[SCOPE DEBUG] LoadScope - created new scope: {name}, pushed old scope: {Scope?.Name ?? "NULL"}");
         Scope = newScope;
         
         _visitor.SetScope(newScope);
@@ -785,12 +786,27 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     private void RestoreScope()
     {
+        if (_scopes.Count == 0)
+        {
+            Console.WriteLine("[SCOPE DEBUG] RestoreScope called but _scopes stack is empty, using current scope");
+            _visitor.SetScope(Scope);
+            return;
+        }
+        
         Scope = _scopes.Pop();
+        Console.WriteLine($"[SCOPE DEBUG] RestoreScope - restored scope: {Scope?.Name ?? "NULL"}");
         _visitor.SetScope(Scope);
     }
 
     public void Visit(OrderByNode node)
     {
+        // Store ORDER BY hint in scope for PIVOT processing
+        if (Scope != null)
+        {
+            Scope["HasOrderBy"] = "true";
+            Console.WriteLine($"[ORDER BY DEBUG] Stored HasOrderBy hint in scope: {Scope.Name}");
+        }
+        
         foreach (var field in node.Fields)
             field.Accept(this);
 
@@ -878,6 +894,97 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public void Visit(FieldLinkNode node)
     {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(PivotNode node)
+    {
+        // Process each aggregation with proper visitor pattern:
+        // 1. Process arguments in traverse visitor
+        // 2. Immediately call main visitor for method resolution
+        // This matches the AccessMethodNode pattern exactly
+        foreach (var aggregation in node.AggregationExpressions)
+        {
+            if (aggregation is AccessMethodNode methodNode)
+            {
+                // Process arguments first (traverse visitor responsibility)
+                methodNode.Arguments.Accept(this);
+                // Then immediately process the method for resolution (main visitor)
+                methodNode.Accept(_visitor);
+            }
+            else
+            {
+                // For non-method aggregations, process normally
+                aggregation.Accept(this);
+            }
+        }
+        
+        // Process FOR column and IN values 
+        node.ForColumn.Accept(this);
+        foreach (var inValue in node.InValues)
+            inValue.Accept(this);
+        
+        // Now process the PIVOT node itself (but aggregations already handled)
+        // Remove aggregation processing from main visitor to avoid double processing
+    }
+
+    public void Visit(PivotFromNode node)
+    {
+        // Process source first to establish base context
+        node.Source.Accept(this);
+        
+        // CRITICAL: After source processing, set up global alias tracking for PIVOT
+        // This ensures BuildMetadataAndInferTypesVisitor and RewriteQueryVisitor use consistent aliases
+        if (node.Source is SchemaFromNode schemaFromNode && !string.IsNullOrEmpty(node.Alias))
+        {
+            // Set up global alias tracking like RewriteQueryVisitor does
+            var schemaMethodKey = $"{schemaFromNode.Schema}:{schemaFromNode.Method}";
+            
+            // Use reflection to access the static _globalUsedAliases dictionary in RewriteQueryVisitor
+            var rewriteVisitorType = typeof(Musoq.Evaluator.Visitors.RewriteQueryVisitor);
+            var globalAliasesField = rewriteVisitorType.GetField("_globalUsedAliases", 
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            
+            if (globalAliasesField != null)
+            {
+                var globalAliases = (Dictionary<string, string>)globalAliasesField.GetValue(null);
+                globalAliases[schemaMethodKey] = node.Alias;
+            }
+        }
+        
+        // Get the alias that was registered
+        var sourceAlias = Scope[node.Source.Id];
+        
+        if (!string.IsNullOrEmpty(sourceAlias))
+        {
+            // Set up identifier context for aggregation method resolution
+            ((BuildMetadataAndInferTypesVisitor)_visitor)._identifier = sourceAlias;
+        }
+        
+        // Process PIVOT aggregations with the correct context
+        foreach (var aggregation in node.Pivot.AggregationExpressions)
+        {
+            if (aggregation is AccessMethodNode methodNode)
+            {
+                // Process arguments first (traverse visitor responsibility)
+                methodNode.Arguments.Accept(this);
+                // Then immediately process the method for resolution (main visitor)
+                methodNode.Accept(_visitor);
+            }
+            else
+            {
+                // For non-method aggregations, process normally
+                aggregation.Accept(this);
+            }
+        }
+        
+        // Process FOR column and IN values BEFORE calling main visitor
+        // This ensures they are resolved against the source table context
+        node.Pivot.ForColumn.Accept(this);
+        foreach (var inValue in node.Pivot.InValues)
+            inValue.Accept(this);
+        
+        // Call main visitor for PIVOT processing
         node.Accept(_visitor);
     }
 

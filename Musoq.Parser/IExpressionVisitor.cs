@@ -100,4 +100,6 @@ public interface IExpressionVisitor
     void Visit(ThenNode node);
     void Visit(ElseNode node);
     void Visit(FieldLinkNode node);
+    void Visit(PivotNode node);
+    void Visit(PivotFromNode node);
 }
