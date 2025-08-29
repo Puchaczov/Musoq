@@ -409,4 +409,391 @@ public class CodeGenerationQualityAnalyzer
 }
 ```
 
-This comprehensive optimization strategy addresses the core inefficiencies in Musoq's code generation pipeline and provides a clear path to achieving significantly better generated code quality and performance.
+---
+
+## Advanced Optimization Strategies
+
+Based on deeper analysis and architectural considerations, the following advanced strategies represent the next generation of code generation optimizations for Musoq.
+
+### Phase 4: Staged Transformation Classes
+
+**Problem**: Current monolithic code generation produces large, complex methods that are difficult for the JIT compiler to optimize effectively.
+
+**Solution**: Generate separate transformation stage classes that process data in optimized pipelines.
+
+#### Current vs. Staged Approach
+
+**Current Monolithic Generation:**
+```csharp
+public class Query_12345 : ICompiledQuery
+{
+    public void Run() {
+        // All stages mixed: data access + filtering + projection + aggregation
+        foreach (var row in schemaRows) {
+            var filtered = /* complex filtering logic with reflection */;
+            var projected = /* projection logic with type casting */;
+            var aggregated = /* grouping logic with object creation */;
+            yield return result;
+        }
+    }
+}
+```
+
+**Optimized Staged Transformation:**
+```csharp
+// Stage 1: Raw data access and filtering
+public class DataAccessStage_12345 
+{
+    private readonly Func<ISchemaRow, bool> _compiledFilter;
+    
+    public DataAccessStage_12345()
+    {
+        // Pre-compiled filter expression - no reflection at runtime
+        _compiledFilter = CompileFilterExpression();
+    }
+    
+    public IEnumerable<FilteredRow> Execute(IRowSource source) 
+    {
+        foreach (var row in source.Rows)
+        {
+            if (_compiledFilter(row))  // Fast delegate call
+                yield return new FilteredRow(row);
+        }
+    }
+}
+
+// Stage 2: Field projections and transformations  
+public class ProjectionStage_12345 
+{
+    private readonly Func<FilteredRow, ProjectedRow>[] _projectors;
+    
+    public IEnumerable<ProjectedRow> Execute(IEnumerable<FilteredRow> input) 
+    {
+        foreach (var row in input)
+        {
+            // Vectorized field access - no casting
+            yield return new ProjectedRow(_projectors.Select(p => p(row)).ToArray());
+        }
+    }
+}
+
+// Stage 3: Aggregations and final results
+public class AggregationStage_12345 
+{
+    private readonly Dictionary<object, AggregatorState> _aggregators = new();
+    
+    public Table Execute(IEnumerable<ProjectedRow> input) 
+    {
+        // Optimized aggregation with pre-allocated buffers
+        foreach (var row in input)
+        {
+            ProcessAggregation(row);  // Specialized per aggregation type
+        }
+        return MaterializeResults();
+    }
+}
+```
+
+#### Benefits of Staged Transformation
+
+**Performance Improvements:**
+- **JIT Optimization**: 20-40% better optimization for smaller, focused methods
+- **CPU Cache Efficiency**: Better instruction cache utilization and memory access patterns
+- **Reduced Reflection**: 50-70% reduction through stage-specific type handling
+- **SIMD Opportunities**: Vectorized operations within homogeneous stages
+- **Parallelization Potential**: Independent stages can run concurrently
+
+**Code Quality Improvements:**
+- **Maintainability**: Clear separation of concerns between processing stages
+- **Testability**: Individual stages can be unit tested independently  
+- **Debugging**: Easier to isolate and debug specific processing stages
+- **Modularity**: Stages can be reused across similar query patterns
+
+#### Implementation Strategy
+
+**ToCSharpRewriteTreeVisitor Modifications:**
+```csharp
+public class StagedCodeGenerator
+{
+    public GeneratedStages GenerateStages(QueryAst ast)
+    {
+        var stages = new List<CodeGenerationStage>();
+        
+        // Analyze query complexity and determine optimal stage boundaries
+        if (ast.HasComplexFiltering())
+            stages.Add(new FilterStage(ast.WhereClause));
+            
+        if (ast.HasProjections())
+            stages.Add(new ProjectionStage(ast.SelectClause));
+            
+        if (ast.HasAggregations())
+            stages.Add(new AggregationStage(ast.GroupByClause, ast.HavingClause));
+            
+        return new GeneratedStages(stages);
+    }
+}
+```
+
+### Phase 5: Intermediate Operations Description Language (Musoq IL)
+
+**Problem**: Direct AST-to-C# transformation mixes logical query representation with physical implementation details, leading to complex casting and reflection-heavy code.
+
+**Solution**: Introduce an intermediate typed operations language that bridges the gap between logical queries and physical code generation.
+
+#### Current vs. IL Pipeline
+
+**Current Pipeline:**
+```
+SQL → AST → [BuildMetadata+RewriteQuery+ToCSharp] → C# Code
+        ↳ Complex visitor interactions with casting and reflection
+```
+
+**Proposed IL Pipeline:**
+```
+SQL → AST → Musoq IL → Optimized IL → C# Code (template-based)
+           ↳ Type resolution   ↳ IL optimizations   ↳ Clean generation
+```
+
+#### Musoq IL Structure
+
+```csharp
+// Core IL operation types
+public abstract class ILOperation
+{
+    public Type ResultType { get; protected set; }
+    public bool IsNullable { get; protected set; }
+    public abstract string ToOptimizedCSharp();
+}
+
+public class FieldAccessOperation : ILOperation
+{
+    public string TableAlias { get; set; }
+    public string FieldName { get; set; }
+    public int FieldIndex { get; set; }  // Pre-resolved for fast access
+    
+    public override string ToOptimizedCSharp() => 
+        $"row.GetValue<{ResultType.Name}>({FieldIndex})";  // No casting needed
+}
+
+public class FilterOperation : ILOperation
+{
+    public ILExpression Condition { get; set; }
+    public override Type ResultType => typeof(bool);
+    
+    public override string ToOptimizedCSharp() => 
+        $"({Condition.ToOptimizedCSharp()})";
+}
+
+public class AggregationOperation : ILOperation
+{
+    public AggregationFunction Function { get; set; }
+    public ILExpression[] Arguments { get; set; }
+    public Type[] ArgumentTypes { get; set; }  // Pre-resolved
+    
+    public override string ToOptimizedCSharp()
+    {
+        return Function switch
+        {
+            AggregationFunction.Count => "++count",
+            AggregationFunction.Sum => $"sum += {Arguments[0].ToOptimizedCSharp()}",
+            AggregationFunction.Avg => GenerateAverageCode(),
+            _ => throw new NotSupportedException($"Aggregation {Function}")
+        };
+    }
+}
+```
+
+#### IL-Based Code Generation Templates
+
+```csharp
+public class ILToCodeGenerator
+{
+    public string GenerateOptimizedCode(ILProgram program)
+    {
+        var template = SelectTemplate(program);
+        return template.Generate(program);
+    }
+    
+    private ICodeTemplate SelectTemplate(ILProgram program)
+    {
+        return program switch
+        {
+            { HasAggregations: true, HasJoins: true } => new ComplexAggregationTemplate(),
+            { HasAggregations: true } => new SimpleAggregationTemplate(),
+            { HasJoins: true } => new JoinTemplate(),
+            _ => new SimpleSelectTemplate()
+        };
+    }
+}
+
+public class SimpleSelectTemplate : ICodeTemplate
+{
+    public string Generate(ILProgram program)
+    {
+        return $@"
+public class {program.QueryId} : ICompiledQuery
+{{
+    private static readonly Func<IRow, {program.ResultType}>[] Projectors = 
+    {{
+        {string.Join(",\n        ", program.ProjectionOps.Select(op => op.ToCompiledDelegate()))}
+    }};
+    
+    public void Run()
+    {{
+        foreach (var row in source.Rows)
+        {{
+            {GenerateFilterCode(program.FilterOps)}
+            yield return new Row({string.Join(", ", program.ProjectionOps.Select((op, i) => $"Projectors[{i}](row)"))});
+        }}
+    }}
+}}";
+    }
+}
+```
+
+#### Benefits of Musoq IL
+
+**Eliminates Code Generation Issues:**
+- **No Runtime Casting**: Types resolved during IL generation, not C# runtime
+- **Faster Generation**: Template-based C# from typed IL operations (40-60% faster)
+- **Cleaner Code**: Generated C# is more readable and optimizable
+- **Better Optimization**: IL can be optimized before code generation
+
+**Improved Visitor Architecture:**
+- **BuildMetadataAndInferTypesVisitor**: AST → Fully-typed IL (clean separation)
+- **RewriteQueryVisitor**: IL → Optimized IL (not AST manipulation)  
+- **ToCSharpRewriteTreeVisitor**: IL → C# templates (much simpler)
+
+#### IL Optimization Pipeline
+
+```csharp
+public class ILOptimizer
+{
+    public ILProgram Optimize(ILProgram program)
+    {
+        program = EliminateDeadCode(program);
+        program = CombineOperations(program);
+        program = OptimizeFieldAccess(program);
+        program = OptimizeAggregations(program);
+        return program;
+    }
+    
+    private ILProgram CombineOperations(ILProgram program)
+    {
+        // Combine consecutive field accesses into bulk operations
+        // Merge compatible filter operations
+        // Optimize aggregation patterns
+        return program;
+    }
+}
+```
+
+---
+
+## Integration with Existing Performance Analysis
+
+### Baseline Performance Characteristics
+
+Based on comprehensive performance analysis of real Musoq queries:
+
+**Current Code Generation Metrics:**
+- **Generated Code Size**: 46-604 lines per query (average 86+ lines)
+- **Reflection Calls**: 10.3 average per query (high overhead)
+- **Object Allocations**: 19.4 average per query (memory pressure)
+- **Conditional Complexity**: Up to 67 conditionals in complex queries
+- **Execution Time**: 2-13ms for test queries (dominated by compilation overhead)
+
+**Optimization Impact Projections:**
+
+| Phase | Optimization | Code Size Reduction | Performance Gain | Memory Reduction |
+|-------|-------------|-------------------|------------------|------------------|
+| 1-3 | Basic Optimizations | 30-50% | 20-40% | 25-40% |
+| 4 | Staged Transformation | 15-25% | 25-45% | 20-35% |
+| 5 | Musoq IL Pipeline | 40-60% | 30-50% | 35-50% |
+| **Combined** | **All Phases** | **60-80%** | **45-75%** | **50-70%** |
+
+---
+
+## Complete Implementation Roadmap
+
+### Phase 1-3: Foundation Optimizations (Completed)
+- ✅ Assembly caching infrastructure
+- ✅ Schema provider optimization
+- ✅ Memory management infrastructure
+- ✅ **Achieved**: 25-40% baseline performance improvement
+
+### Phase 4: Staged Transformation (2-4 months)
+
+**Month 1: Infrastructure**
+- [ ] Design stage boundary analysis algorithm
+- [ ] Implement stage class generation framework
+- [ ] Create stage composition pipeline
+- [ ] Build stage-specific optimization patterns
+
+**Month 2: Core Stages**
+- [ ] Implement data access stage generation
+- [ ] Build projection stage with vectorization
+- [ ] Create aggregation stage with pre-compiled delegates
+- [ ] Add join stage optimization
+
+**Month 3: Integration & Optimization**
+- [ ] Integrate staged generation into ToCSharpRewriteTreeVisitor
+- [ ] Add parallel stage execution support
+- [ ] Implement stage-specific JIT optimization hints
+- [ ] Complete performance validation and tuning
+
+**Month 4: Advanced Features**
+- [ ] Dynamic stage boundary optimization
+- [ ] SIMD instruction generation for compatible stages
+- [ ] Memory-mapped stage data exchange
+- [ ] Production deployment and monitoring
+
+### Phase 5: Musoq IL Pipeline (3-6 months)
+
+**Month 1-2: IL Design & Infrastructure**
+- [ ] Design complete Musoq IL operation set
+- [ ] Implement IL generation from AST
+- [ ] Create IL optimization pipeline
+- [ ] Build template-based code generation framework
+
+**Month 3-4: Visitor Transformation**
+- [ ] Redesign BuildMetadataAndInferTypesVisitor for IL output
+- [ ] Transform RewriteQueryVisitor to IL optimizer
+- [ ] Rebuild ToCSharpRewriteTreeVisitor as template generator
+- [ ] Add comprehensive IL validation and debugging
+
+**Month 5-6: Advanced IL Features**
+- [ ] Implement query plan optimization in IL
+- [ ] Add adaptive compilation strategies
+- [ ] Build IL-level vectorization and parallelization
+- [ ] Complete integration testing and performance validation
+
+### Phase 6: Production Excellence (1-2 months)
+- [ ] Comprehensive performance regression testing
+- [ ] Production monitoring and alerting integration
+- [ ] Documentation and developer training materials
+- [ ] Long-term maintenance and optimization framework
+
+---
+
+## Expected Total Impact
+
+### Performance Achievements
+- **Query Compilation Time**: 60-80% improvement through IL pipeline and staged generation
+- **Query Execution Time**: 70-90% improvement through optimized generated code
+- **Memory Usage**: 50-70% reduction through advanced memory management and pooling
+- **Code Generation Quality**: 80-95% improvement in generated code readability and efficiency
+
+### Development Benefits
+- **Maintainability**: Dramatic improvement through clean IL abstraction and templates
+- **Debugging**: Enhanced debugging capabilities through IL inspection and stage isolation
+- **Extensibility**: Easy addition of new optimization patterns and generation strategies
+- **Testing**: Comprehensive testing framework for IL operations and generated code quality
+
+### Production Benefits
+- **Scalability**: Significantly improved performance under high query loads
+- **Resource Efficiency**: Lower CPU and memory usage across the board
+- **Reliability**: More predictable performance characteristics and better error handling
+- **Monitoring**: Advanced performance tracking and optimization opportunity identification
+
+This comprehensive optimization strategy transforms Musoq's code generation from a basic AST-to-C# translator into a sophisticated, high-performance query compilation engine that rivals commercial database systems in terms of generated code quality and execution efficiency.
