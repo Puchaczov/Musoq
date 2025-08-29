@@ -432,6 +432,12 @@ public class PerformanceAnalysisRunner
             report.AppendLine($"- Row Count: {result.PerformanceMetrics.RowCount}");
             report.AppendLine();
             
+            // Show complete generated code for full reference
+            report.AppendLine("**Generated Code:**");
+            report.AppendLine("```csharp");
+            report.AppendLine(result.GeneratedCode);
+            report.AppendLine("```");
+            report.AppendLine();
 
             report.AppendLine("---");
             report.AppendLine();
