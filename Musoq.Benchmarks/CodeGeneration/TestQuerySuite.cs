@@ -3,7 +3,8 @@ using Musoq.Benchmarks.Schema;
 namespace Musoq.Benchmarks.CodeGeneration;
 
 /// <summary>
-/// Test queries representing different complexity levels and patterns for code generation analysis
+/// Test queries representing different complexity levels and patterns for code generation analysis.
+/// These queries are based on working examples from Musoq unit tests to ensure compatibility.
 /// </summary>
 public static class TestQuerySuite
 {
@@ -16,17 +17,21 @@ public static class TestQuerySuite
         
         ("Simple Where", "SELECT City FROM #test.Entities() WHERE Population > 1000000"),
         
-        ("Simple Count", "SELECT COUNT(*) FROM #test.Entities()"),
-        
         ("Simple Order", "SELECT City, Population FROM #test.Entities() ORDER BY Population DESC"),
         
         ("Basic Math", "SELECT City, Population * 2 AS DoublePopulation FROM #test.Entities()"),
         
-        ("String Operations", "SELECT CONCAT(City, ' - ', Country) AS FullName FROM #test.Entities()"),
+        ("Array Indexing", "SELECT City FROM #test.Entities() WHERE City[0] = 'N'"),
         
         ("Simple CASE", @"SELECT City, 
                            CASE WHEN Population > 1000000 THEN 'Large' ELSE 'Small' END AS Size 
                          FROM #test.Entities()"),
+                         
+        ("Like Pattern", "SELECT City FROM #test.Entities() WHERE City LIKE '%York%'"),
+        
+        ("Not Like Pattern", "SELECT City FROM #test.Entities() WHERE City NOT LIKE '%test%'"),
+        
+        ("Regex Pattern", @"SELECT City FROM #test.Entities() WHERE City RLIKE '^[A-Z][a-z]+'"),
     };
 
     /// <summary>
@@ -34,28 +39,27 @@ public static class TestQuerySuite
     /// </summary>
     public static readonly List<(string Name, string Query)> MediumQueries = new()
     {
-        ("Group By with Count", "SELECT Country, COUNT(*) AS CityCount FROM #test.Entities() GROUP BY Country"),
+        ("Group By with Count", "SELECT Country, Count(City) FROM #test.Entities() GROUP BY Country"),
         
-        ("Group By with Sum", "SELECT Country, SUM(Population) AS TotalPopulation FROM #test.Entities() GROUP BY Country"),
+        ("Group By with Sum", "SELECT Country, Sum(Population) FROM #test.Entities() GROUP BY Country"),
         
-        ("Having Clause", @"SELECT Country, COUNT(*) AS CityCount 
+        ("Having Clause", @"SELECT Country, Count(City) 
                             FROM #test.Entities() 
                             GROUP BY Country 
-                            HAVING COUNT(*) > 5"),
+                            HAVING Count(City) >= 2"),
                             
         ("Multiple Aggregations", @"SELECT Country, 
-                                     COUNT(*) AS CityCount,
-                                     SUM(Population) AS TotalPop,
-                                     AVG(Population) AS AvgPop,
-                                     MAX(Population) AS MaxPop,
-                                     MIN(Population) AS MinPop
+                                     Count(City),
+                                     Sum(Population),
+                                     Avg(Population),
+                                     Max(Population),
+                                     Min(Population)
                                    FROM #test.Entities() 
                                    GROUP BY Country"),
                                    
         ("Complex Where", @"SELECT City, Population 
                             FROM #test.Entities() 
                             WHERE Population > 500000 
-                              AND Country IN ('USA', 'Canada', 'Mexico')
                               AND City LIKE '%City%'"),
                               
         ("Nested CASE", @"SELECT City,
@@ -70,6 +74,10 @@ public static class TestQuerySuite
                               ELSE 'Small'
                             END AS Classification
                           FROM #test.Entities()"),
+                          
+        ("String Functions", "SELECT Substring(City, 0, 3), Length(City) FROM #test.Entities()"),
+        
+        ("RowNumber Function", "SELECT City, Country, RowNumber() FROM #test.Entities()"),
     };
 
     /// <summary>
@@ -77,67 +85,65 @@ public static class TestQuerySuite
     /// </summary>
     public static readonly List<(string Name, string Query)> ComplexQueries = new()
     {
-        ("Multiple CTEs", @"WITH LargeCities AS (
-                             SELECT City, Country, Population 
-                             FROM #test.Entities() 
-                             WHERE Population > 1000000
-                           ),
-                           CountryStats AS (
-                             SELECT Country, 
-                                    COUNT(*) AS LargeCityCount,
-                                    AVG(Population) AS AvgPopulation
-                             FROM LargeCities 
-                             GROUP BY Country
-                           )
-                           SELECT * FROM CountryStats ORDER BY LargeCityCount DESC"),
+        ("Simple CTE", @"WITH p AS (
+                           SELECT City, Country, Population 
+                           FROM #test.Entities() 
+                           WHERE Population > 1000000
+                         )
+                         SELECT * FROM p ORDER BY Population DESC"),
                            
-        ("Window Functions", @"SELECT City, Country, Population,
-                                ROW_NUMBER() OVER (PARTITION BY Country ORDER BY Population DESC) AS Rank,
-                                SUM(Population) OVER (PARTITION BY Country) AS CountryTotal,
-                                LAG(Population) OVER (PARTITION BY Country ORDER BY Population) AS PrevPop
-                              FROM #test.Entities()"),
-                              
-        ("Complex Aggregation", @"SELECT Country,
-                                   COUNT(DISTINCT City) AS UniqueCities,
-                                   PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY Population) AS MedianPop,
-                                   STRING_AGG(City, ', ') AS CityList
-                                 FROM #test.Entities()
+        ("CTE with Grouping", @"WITH p AS (
+                                 SELECT Country, Sum(Population) AS TotalPop
+                                 FROM #test.Entities() 
                                  GROUP BY Country
-                                 HAVING COUNT(*) >= 3"),
+                               )
+                               SELECT * FROM p WHERE TotalPop > 5000000"),
+                              
+        ("Simple Join", @"SELECT a.Country, b.City, b.Population
+                          FROM #test.Entities() a
+                          INNER JOIN #test.Entities() b ON a.Country = b.Country
+                          WHERE a.Population > b.Population"),
                                  
-        ("Heavy String Processing", @"SELECT 
-                                       UPPER(LEFT(City, 3)) + '_' + 
-                                       LOWER(RIGHT(Country, 2)) + '_' + 
-                                       CAST(LEN(City) AS VARCHAR) + '_' +
-                                       REPLACE(REPLACE(City, ' ', '_'), '-', '_') AS ProcessedName,
-                                       SUBSTRING(City, 1, CHARINDEX(' ', City + ' ') - 1) AS FirstWord,
-                                       REVERSE(Country) AS ReversedCountry
-                                     FROM #test.Entities()"),
-                                     
-        ("Multiple Operations", @"SELECT City,
-                                   ABS(Population - 1000000) AS PopDiff,
-                                   SQRT(Population) AS SqrtPop,
-                                   LOG(Population + 1) AS LogPop,
-                                   POWER(Population / 1000000.0, 2) AS PopSquared,
-                                   ROUND(Population / 1000000.0, 2) AS PopInMillions
-                                 FROM #test.Entities()
-                                 WHERE Population > 0"),
+        ("Math Functions", @"SELECT City,
+                              Abs(Population - 1000000) AS PopDiff,
+                              Round(Population / 1000000.0, 2) AS PopInMillions
+                            FROM #test.Entities()
+                            WHERE Population > 0"),
+                            
+        ("String Processing", @"SELECT 
+                                 ToUpper(Substring(City, 0, 3)) AS CityPrefix,
+                                 ToString(Length(City)) AS CityLength,
+                                 Replace(City, ' ', '_') AS ProcessedName
+                               FROM #test.Entities()"),
+                               
+        ("Complex Grouping", @"SELECT 
+                                Substring(Country, 0, 2) AS CountryPrefix,
+                                Count(City) AS CityCount,
+                                Sum(Population) AS TotalPop
+                              FROM #test.Entities()
+                              GROUP BY Substring(Country, 0, 2)
+                              HAVING Count(City) > 1"),
+                              
+        ("Skip Take", @"SELECT City, Population 
+                        FROM #test.Entities() 
+                        ORDER BY Population DESC 
+                        SKIP 5 TAKE 10"),
     };
 
     /// <summary>
-    /// Performance stress test queries that generate very complex code
+    /// Performance stress test queries that generate complex code but work within Musoq's capabilities
     /// </summary>
     public static readonly List<(string Name, string Query)> StressTestQueries = new()
     {
-        ("Many Columns Select", GenerateManyColumnsQuery(50)),
+        ("Many Columns Select", GenerateManyColumnsQuery(30)),
         
-        ("Deep Nested CASE", GenerateDeepNestedCaseQuery(10)),
+        ("Deep Nested CASE", GenerateDeepNestedCaseQuery(8)),
         
-        ("Many Aggregations", GenerateManyAggregationsQuery(20)),
+        ("Many Aggregations", GenerateManyAggregationsQuery(10)),
         
-        ("Complex String Operations", GenerateComplexStringOperationsQuery(15)),
+        ("Complex String Operations", GenerateComplexStringOperationsQuery(8)),
         
-        ("Multiple CTEs Chain", GenerateMultipleCTEsQuery(5)),
+        ("Multiple CTEs Chain", GenerateMultipleCTEsQuery(3)),
     };
 
     /// <summary>
@@ -182,8 +188,8 @@ public static class TestQuerySuite
         var aggregations = new List<string>();
         for (int i = 0; i < aggCount; i++)
         {
-            aggregations.Add($"COUNT(CASE WHEN Population > {i * 50000} THEN 1 END) AS Count{i}");
-            aggregations.Add($"SUM(CASE WHEN Population > {i * 50000} THEN Population ELSE 0 END) AS Sum{i}");
+            aggregations.Add($"Count(City) AS Count{i}");
+            aggregations.Add($"Sum(Population) AS Sum{i}");
         }
         
         return $"SELECT Country, {string.Join(", ", aggregations)} FROM #test.Entities() GROUP BY Country";
@@ -194,14 +200,14 @@ public static class TestQuerySuite
         var operations = new List<string>();
         for (int i = 0; i < operationCount; i++)
         {
-            operations.Add($@"CONCAT(
-                UPPER(SUBSTRING(City, 1, {i + 1})), 
+            operations.Add($@"Concat(
+                ToUpper(Substring(City, 0, {i + 1})), 
                 '_', 
-                LOWER(SUBSTRING(Country, 1, {i + 2})), 
+                ToLower(Substring(Country, 0, {i + 2})), 
                 '_', 
-                CAST({i} AS VARCHAR),
+                ToString({i}),
                 '_',
-                REPLACE(REPLACE(City, ' ', '_{i}'), '-', '_{i}')
+                Replace(City, ' ', '_')
             ) AS StringOp{i}");
         }
         
@@ -217,8 +223,7 @@ public static class TestQuerySuite
             if (i == 0)
             {
                 ctes.Add($@"CTE{i} AS (
-                    SELECT City, Country, Population, 
-                           ROW_NUMBER() OVER (ORDER BY Population) AS Rank{i}
+                    SELECT City, Country, Population
                     FROM #test.Entities() 
                     WHERE Population > {i * 100000}
                 )");
@@ -226,11 +231,10 @@ public static class TestQuerySuite
             else
             {
                 ctes.Add($@"CTE{i} AS (
-                    SELECT City, Country, Population, Rank{i - 1},
-                           Population * {i + 1} AS AdjustedPop{i},
-                           RANK() OVER (PARTITION BY Country ORDER BY Population) AS Rank{i}
+                    SELECT City, Country, Population,
+                           Population * {i + 1} AS AdjustedPop{i}
                     FROM CTE{i - 1}
-                    WHERE Rank{i - 1} <= {10 + i * 5}
+                    WHERE Population > {i * 200000}
                 )");
             }
         }
