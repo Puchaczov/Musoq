@@ -4,6 +4,7 @@ using BenchmarkDotNet.Running;
 using Musoq.Benchmarks.Components;
 using Musoq.Benchmarks.Tests;
 using Musoq.Benchmarks.CodeGeneration;
+using Musoq.Benchmarks.Programs;
 
 var commandArgs = Environment.GetCommandLineArgs();
 var isExtendedBenchmarks = commandArgs.Contains("--extended");
@@ -12,8 +13,15 @@ var isParsingBenchmarks = commandArgs.Contains("--parsing");
 var isCodeGenBenchmarks = commandArgs.Contains("--codegen");
 var isAnalysisBenchmarks = commandArgs.Contains("--analysis");
 var isAnalysisTest = commandArgs.Contains("--test");
+var isComprehensiveAnalysis = commandArgs.Contains("--comprehensive");
 
 // Handle custom analysis
+if (isComprehensiveAnalysis)
+{
+    await RunComprehensiveAnalysis.Main(args);
+    return;
+}
+
 if (isAnalysisBenchmarks)
 {
     Console.WriteLine("Running Code Generation Performance Analysis...");
