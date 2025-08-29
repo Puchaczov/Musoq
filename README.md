@@ -161,18 +161,19 @@ Have an idea? [Submit a feature request](https://github.com/Puchaczov/Musoq/issu
 
 ## 📊 Performance Benchmarks
 
-Musoq query performance is continuously monitored to ensure optimal execution times across different query patterns.
+Musoq query performance is continuously monitored to ensure optimal execution times across different query patterns. The following graph shows the last 10 performance indicators tracking improvements over time.
 
 ![Performance Benchmarks](./Musoq.Benchmarks/performance-reports/readme-performance-chart.png)
 
 ### Current Performance Summary
 
-| Query Type | Execution Time | Status |
-|------------|----------------|--------|
-| Sequential Query | 68.3ms | 🔄 Stable |
-| Parallel Query | 34.0ms | 🔄 Stable |
+| Query Type | Execution Time | Trend | Status |
+|------------|----------------|--------|--------|
+| Sequential Query | 68.8ms | 📈 Improved | 🔄 Stable |
+| Parallel Query | 45.1ms | 📈 Improved | 🔄 Stable |
+| Complex Parsing | 82.3ms | 📉 Slower | 🔄 Stable |
 
-*Last updated: 2025-08-23 17:11 UTC*
+*Last updated: 2025-08-24 21:45 UTC*
 
 ### Detailed Performance Analysis
 
