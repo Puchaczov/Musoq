@@ -36,14 +36,6 @@ public class CodeGenerationAnalysisTest
             Console.WriteLine($"  Execution Time: {result.PerformanceMetrics.ExecutionTimeMs}ms");
             Console.WriteLine($"  Memory Used: {result.PerformanceMetrics.MemoryUsedBytes} bytes");
             Console.WriteLine($"  Row Count: {result.PerformanceMetrics.RowCount}");
-            
-            // Show first few lines of generated code
-            var codeLines = result.GeneratedCode.Split('\n').Take(10);
-            Console.WriteLine("  Generated Code Preview:");
-            foreach (var line in codeLines)
-            {
-                Console.WriteLine($"    {line}");
-            }
         }
         else
         {

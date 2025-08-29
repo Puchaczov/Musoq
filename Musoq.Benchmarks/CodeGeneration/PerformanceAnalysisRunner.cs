@@ -432,17 +432,7 @@ public class PerformanceAnalysisRunner
             report.AppendLine($"- Row Count: {result.PerformanceMetrics.RowCount}");
             report.AppendLine();
             
-            // Show snippet of generated code (first 20 lines)
-            var codeLines = result.GeneratedCode.Split('\n').Take(20);
-            report.AppendLine("**Generated Code (first 20 lines):**");
-            report.AppendLine("```csharp");
-            foreach (var line in codeLines)
-            {
-                report.AppendLine(line);
-            }
-            report.AppendLine("... (truncated)");
-            report.AppendLine("```");
-            report.AppendLine();
+
             report.AppendLine("---");
             report.AppendLine();
         }
