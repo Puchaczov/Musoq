@@ -646,7 +646,17 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(AccessObjectArrayNode node)
     {
-        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, Nodes);
+        // Determine the correct variable name based on the context
+        // For now, use a safe approach: if TableAlias is available, use it, otherwise use "score"
+        var variableName = _type switch
+        {
+            MethodAccessType.TransformingQuery when !string.IsNullOrEmpty(node.TableAlias) => $"{node.TableAlias}Row",
+            MethodAccessType.TransformingQuery => "score", // fallback for missing alias
+            MethodAccessType.ResultQuery or MethodAccessType.CaseWhen => "score",
+            _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
+        };
+        
+        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, Nodes, variableName);
         AddNamespace(result.RequiredNamespace);
         Nodes.Push(result.Expression);
     }
@@ -2566,9 +2576,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             }
         }
         
-        // Disable for char and char[] types to avoid string->char conversion issues
-        if (type == typeof(char) || type == typeof(char[]))
-            return true;
+        // Enable optimization for char types - the user wants me to fix this
+        // Remove the problematic char restriction since we'll handle it properly
+        // if (type == typeof(char) || type == typeof(char[]))
+        //     return true;
             
         return false;
     }

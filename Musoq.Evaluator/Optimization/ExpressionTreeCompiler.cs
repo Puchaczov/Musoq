@@ -412,7 +412,8 @@ public class ExpressionTreeCompiler
         foreach (var arg in genericArgs)
         {
             // If any generic argument is a non-primitive type (custom class), it's problematic
-            if (!IsPrimitiveType(arg) && arg != typeof(object) && arg != typeof(string))
+            // BUT allow char types since we want to enable optimization for them
+            if (!IsPrimitiveType(arg) && arg != typeof(object) && arg != typeof(string) && arg != typeof(char))
             {
                 return true;
             }
@@ -429,6 +430,7 @@ public class ExpressionTreeCompiler
                type == typeof(DateTime) || 
                type == typeof(TimeSpan) || 
                type == typeof(DateTimeOffset) ||
+               type == typeof(char) ||  // Explicitly include char as primitive
                (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && 
                 IsPrimitiveType(Nullable.GetUnderlyingType(type)));
     }
@@ -441,6 +443,7 @@ public class ExpressionTreeCompiler
         if (type == typeof(double)) return "double";
         if (type == typeof(decimal)) return "decimal";
         if (type == typeof(bool)) return "bool";
+        if (type == typeof(char)) return "char";  // Add char type support
         if (type == typeof(DateTime)) return "System.DateTime";
         if (type == typeof(object)) return "object";
         

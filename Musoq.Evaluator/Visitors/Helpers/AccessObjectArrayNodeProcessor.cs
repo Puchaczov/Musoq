@@ -36,12 +36,14 @@ public static class AccessObjectArrayNodeProcessor
     /// </summary>
     /// <param name="node">The AccessObjectArrayNode to process</param>
     /// <param name="nodes">The syntax node stack</param>
+    /// <param name="variableName">The variable name to use for array access (e.g., "score", "aliasRow")</param>
     /// <returns>Processing result containing the expression and required namespace</returns>
     /// <exception cref="ArgumentNullException">Thrown when node or nodes is null</exception>
     /// <exception cref="InvalidOperationException">Thrown when property access is attempted without a parent expression</exception>
     public static AccessObjectArrayProcessingResult ProcessAccessObjectArrayNode(
         AccessObjectArrayNode node, 
-        Stack<SyntaxNode> nodes)
+        Stack<SyntaxNode> nodes,
+        string variableName = "score")
     {
         if (node == null)
             throw new ArgumentNullException(nameof(node));
@@ -53,7 +55,7 @@ public static class AccessObjectArrayNodeProcessor
 
         if (node.IsColumnAccess)
         {
-            resultExpression = ProcessColumnBasedAccess(node);
+            resultExpression = ProcessColumnBasedAccess(node, variableName);
         }
         else
         {
@@ -66,13 +68,13 @@ public static class AccessObjectArrayNodeProcessor
     /// <summary>
     /// Processes column-based indexed access (e.g., Name[0], f.Name[0]).
     /// </summary>
-    private static ExpressionSyntax ProcessColumnBasedAccess(AccessObjectArrayNode node)
+    private static ExpressionSyntax ProcessColumnBasedAccess(AccessObjectArrayNode node, string variableName)
     {
         // Generate safe column access using SafeArrayAccess helper
         var columnAccess = SyntaxFactory.CastExpression(
             GetCSharpType(node.ColumnType),
             SyntaxFactory.ParenthesizedExpression(
-                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("score"))
+                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(variableName))
                     .WithArgumentList(SyntaxFactory.BracketedArgumentList(
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
