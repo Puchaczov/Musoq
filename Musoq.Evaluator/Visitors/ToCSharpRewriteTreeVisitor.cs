@@ -574,8 +574,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
             var optimizedAccessCode = expressionTreeCompiler.GenerateOptimizedFieldAccess(node.Name, node.ReturnType, variableName);
             
-            // Generate optimized field access using compiled accessor
-            sNode = SyntaxFactory.ParseExpression($"/* Optimized field access */ {optimizedAccessCode}");
+            // Generate strongly typed field access - no casting needed since accessor returns correct type
+            sNode = SyntaxFactory.ParseExpression($"/* Optimized strongly typed field access */ {optimizedAccessCode}");
             
             // Fallback to traditional approach if parsing fails
             if (sNode == null)
@@ -1137,15 +1137,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 node.PropertiesChain[0].PropertyType, 
                 $"{node.SourceAlias}Row");
             
-            // Try to use optimized access, fallback to traditional if needed
-            var optimizedExpression = SyntaxFactory.ParseExpression($"/* Optimized property access */ {optimizedAccessCode}");
+            // Try to use optimized access - no casting needed since strongly typed
+            var optimizedExpression = SyntaxFactory.ParseExpression($"/* Optimized strongly typed property access */ {optimizedAccessCode}");
             
             if (optimizedExpression != null)
             {
-                propertyAccess = SyntaxFactory.ParenthesizedExpression(
-                    SyntaxFactory.CastExpression(
-                        SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(node.PropertiesChain[0].PropertyType)),
-                        optimizedExpression));
+                // Strongly typed accessor returns correct type - no cast needed
+                propertyAccess = optimizedExpression;
             }
             else
             {
@@ -2520,15 +2518,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     }
     
     /// <summary>
-    /// Generates a compiled field accessor declaration
+    /// Generates a compiled field accessor declaration with strong typing
     /// </summary>
     private SyntaxNode GenerateAccessorField(string accessorName, string fieldName, Type fieldType)
     {
-        // Create: private static readonly Func<ISchemaRow, object> _accessor_FieldName = ...
-        var fieldTypeName = GetCSharpTypeName(fieldType);
-        
-        var accessorCode = $@"private static readonly System.Func<Musoq.Schema.ISchemaRow, object> {accessorName} = 
-            new Musoq.Evaluator.Optimization.ExpressionTreeCompiler().CompileDynamicFieldAccessor(""{fieldName}"", typeof({fieldTypeName}));";
+        // Use strongly typed accessor instead of object-returning accessor
+        var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
+        var accessorCode = expressionTreeCompiler.GenerateStronglyTypedAccessorDeclaration(fieldName, fieldType);
         
         return SyntaxFactory.ParseMemberDeclaration(accessorCode);
     }

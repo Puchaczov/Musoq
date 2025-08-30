@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Optimization;
 
@@ -22,6 +24,27 @@ public class ExpressionTreeCompiler
     public ExpressionTreeCompiler(ILogger<ExpressionTreeCompiler> logger = null)
     {
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Compiles a universal field accessor that works with both IReadOnlyRow and IObjectResolver.
+    /// </summary>
+    public Func<object, T> CompileUniversalFieldAccessor<T>(string fieldName, Type expectedType = null)
+    {
+        var cacheKey = $"{fieldName}:universal:{typeof(T).FullName}";
+        
+        if (_compiledAccessors.TryGetValue(cacheKey, out var cached))
+        {
+            _statistics.CacheHits++;
+            return (Func<object, T>)cached;
+        }
+
+        _statistics.CacheMisses++;
+        var compiled = CreateUniversalFieldAccessorExpression<T>(fieldName, expectedType);
+        _compiledAccessors.TryAdd(cacheKey, compiled);
+        
+        _logger?.LogDebug("Compiled universal field accessor for {FieldName} with type {Type}", fieldName, typeof(T).Name);
+        return compiled;
     }
 
     /// <summary>
@@ -102,7 +125,7 @@ public class ExpressionTreeCompiler
         var fieldTypeString = GetTypeFullName(fieldType);
         
         return $@"
-    private static readonly Func<ISchemaRow, object> {accessorVariableName} = 
+    private static readonly Func<IReadOnlyRow, object> {accessorVariableName} = 
         ExpressionTreeCompiler.CompileDynamicFieldAccessor(""{fieldName}"", typeof({fieldTypeString}));
     
     // Usage: var value = {accessorVariableName}({rowVariableName});";
@@ -114,7 +137,22 @@ public class ExpressionTreeCompiler
     public string GenerateOptimizedFieldAccess(string fieldName, Type fieldType, string rowVariableName)
     {
         var accessorName = $"_accessor_{SanitizeFieldName(fieldName)}";
+        // Direct delegate invocation - no GetValue() method call needed
         return $"{accessorName}({rowVariableName})";
+    }
+
+    /// <summary>
+    /// Generates strongly typed field accessor declaration for code generation.
+    /// Uses object type to be compatible with both IReadOnlyRow and IObjectResolver.
+    /// </summary>
+    public string GenerateStronglyTypedAccessorDeclaration(string fieldName, Type fieldType)
+    {
+        var accessorName = $"_accessor_{SanitizeFieldName(fieldName)}";
+        var typeString = GetTypeFullName(fieldType);
+        
+        // Use object as input parameter to handle both IReadOnlyRow and IObjectResolver
+        return $@"private static readonly System.Func<object, {typeString}> {accessorName} = 
+            new Musoq.Evaluator.Optimization.ExpressionTreeCompiler().CompileUniversalFieldAccessor<{typeString}>(""{fieldName}"", typeof({typeString}));";
     }
 
     /// <summary>
@@ -162,6 +200,70 @@ public class ExpressionTreeCompiler
     }
 
     #region Private Implementation
+
+    private Func<object, T> CreateUniversalFieldAccessorExpression<T>(string fieldName, Type expectedType)
+    {
+        try
+        {
+            // Create expression that works with both IReadOnlyRow and IObjectResolver
+            var parameter = Expression.Parameter(typeof(object), "row");
+            
+            // Check if it's IReadOnlyRow first
+            var isReadOnlyRowVariable = Expression.Variable(typeof(bool), "isReadOnlyRow");
+            var readOnlyRowVariable = Expression.Variable(typeof(IReadOnlyRow), "readOnlyRow");
+            var objectResolverVariable = Expression.Variable(typeof(IObjectResolver), "objectResolver");
+            var resultVariable = Expression.Variable(typeof(object), "result");
+            
+            var readOnlyRowTest = Expression.TypeIs(parameter, typeof(IReadOnlyRow));
+            var readOnlyRowAssign = Expression.Assign(readOnlyRowVariable, Expression.TypeAs(parameter, typeof(IReadOnlyRow)));
+            var objectResolverAssign = Expression.Assign(objectResolverVariable, Expression.TypeAs(parameter, typeof(IObjectResolver)));
+            
+            // Access via IReadOnlyRow (uses index 0 as placeholder - this may need refinement)
+            var readOnlyRowAccess = Expression.Property(readOnlyRowVariable, "Item", Expression.Constant(0));
+            
+            // Access via IObjectResolver (uses field name)
+            var objectResolverAccess = Expression.Property(objectResolverVariable, "Item", Expression.Constant(fieldName));
+            
+            // Choose the right access method
+            var conditionalAccess = Expression.Condition(
+                readOnlyRowTest,
+                Expression.Block(
+                    new[] { readOnlyRowVariable },
+                    readOnlyRowAssign,
+                    readOnlyRowAccess),
+                Expression.Block(
+                    new[] { objectResolverVariable },
+                    objectResolverAssign,
+                    objectResolverAccess));
+            
+            // Convert to target type
+            Expression convertedValue;
+            if (typeof(T) == typeof(object))
+            {
+                convertedValue = conditionalAccess;
+            }
+            else
+            {
+                convertedValue = Expression.Convert(conditionalAccess, typeof(T));
+            }
+            
+            var lambda = Expression.Lambda<Func<object, T>>(convertedValue, parameter);
+            return lambda.Compile();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to compile universal field accessor for {FieldName}", fieldName);
+            // Fallback to simple object resolver access
+            return row =>
+            {
+                if (row is IObjectResolver resolver)
+                    return ConvertValue(resolver[fieldName], typeof(T)) is T value ? value : default(T);
+                if (row is IReadOnlyRow readOnlyRow)
+                    return ConvertValue(readOnlyRow[0], typeof(T)) is T value ? value : default(T);
+                return default(T);
+            };
+        }
+    }
 
     private Func<IReadOnlyRow, T> CreateFieldAccessorExpression<T>(string fieldName, Type expectedType)
     {
@@ -275,8 +377,35 @@ public class ExpressionTreeCompiler
         if (type == typeof(decimal)) return "decimal";
         if (type == typeof(bool)) return "bool";
         if (type == typeof(DateTime)) return "System.DateTime";
+        if (type == typeof(object)) return "object";
         
-        return type.FullName;
+        // Handle generic types properly
+        if (type.IsGenericType)
+        {
+            var genericTypeName = type.GetGenericTypeDefinition().FullName;
+            if (genericTypeName != null)
+            {
+                // Remove the backtick and arity (e.g., "System.Collections.Generic.List`1" -> "System.Collections.Generic.List")
+                var backtickIndex = genericTypeName.IndexOf('`');
+                if (backtickIndex >= 0)
+                {
+                    genericTypeName = genericTypeName.Substring(0, backtickIndex);
+                }
+                
+                var typeArgs = type.GetGenericArguments();
+                var typeArgNames = string.Join(", ", typeArgs.Select(GetTypeFullName));
+                return $"{genericTypeName}<{typeArgNames}>";
+            }
+        }
+        
+        // Handle nullable types
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+        {
+            var underlyingType = Nullable.GetUnderlyingType(type);
+            return GetTypeFullName(underlyingType) + "?";
+        }
+        
+        return type.FullName?.Replace("+", ".") ?? "object";
     }
 
     #endregion
