@@ -137,6 +137,14 @@ public class ExpressionTreeCompiler
     public string GenerateOptimizedFieldAccess(string fieldName, Type fieldType, string rowVariableName)
     {
         var accessorName = $"_accessor_{SanitizeFieldName(fieldName)}";
+        
+        // If it's a problematic generic type, we need to cast from object since we use object return type
+        if (IsProblematicGenericType(fieldType))
+        {
+            var typeString = GetTypeFullName(fieldType);
+            return $"({typeString}){accessorName}({rowVariableName})";
+        }
+        
         // Direct delegate invocation - no GetValue() method call needed
         return $"{accessorName}({rowVariableName})";
     }
@@ -148,6 +156,15 @@ public class ExpressionTreeCompiler
     public string GenerateStronglyTypedAccessorDeclaration(string fieldName, Type fieldType)
     {
         var accessorName = $"_accessor_{SanitizeFieldName(fieldName)}";
+        
+        // Use object return type for problematic generic types to avoid casting issues
+        // This specifically targets List<ComplexType> scenarios that cause compilation errors
+        if (IsProblematicGenericType(fieldType))
+        {
+            return $@"private static readonly System.Func<object, object> {accessorName} = 
+                new Musoq.Evaluator.Optimization.ExpressionTreeCompiler().CompileUniversalFieldAccessor<object>(""{fieldName}"", typeof(object));";
+        }
+        
         var typeString = GetTypeFullName(fieldType);
         
         // Use object as input parameter to handle both IReadOnlyRow and IObjectResolver
@@ -366,6 +383,54 @@ public class ExpressionTreeCompiler
     private string SanitizeFieldName(string fieldName)
     {
         return fieldName.Replace(".", "_").Replace("[", "_").Replace("]", "_").Replace(" ", "_");
+    }
+
+    private bool IsComplexType(Type type)
+    {
+        // Consider complex types as anything that's:
+        // 1. Generic type (List<T>, Dictionary<K,V>, etc.)
+        // 2. Custom class types (not built-in primitives)
+        // 3. Array types of complex objects
+        
+        if (type.IsGenericType)
+            return true;
+            
+        if (type.IsArray && !IsPrimitiveType(type.GetElementType()))
+            return true;
+            
+        return !IsPrimitiveType(type) && !type.IsEnum && type != typeof(string) && type != typeof(object);
+    }
+    
+    private bool IsProblematicGenericType(Type type)
+    {
+        // Specifically target generic types that contain custom classes in their type arguments
+        // These tend to cause compilation issues when type names are resolved incorrectly
+        if (!type.IsGenericType)
+            return false;
+            
+        var genericArgs = type.GetGenericArguments();
+        foreach (var arg in genericArgs)
+        {
+            // If any generic argument is a non-primitive type (custom class), it's problematic
+            if (!IsPrimitiveType(arg) && arg != typeof(object) && arg != typeof(string))
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private bool IsPrimitiveType(Type type)
+    {
+        return type.IsPrimitive || 
+               type == typeof(string) || 
+               type == typeof(decimal) || 
+               type == typeof(DateTime) || 
+               type == typeof(TimeSpan) || 
+               type == typeof(DateTimeOffset) ||
+               (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && 
+                IsPrimitiveType(Nullable.GetUnderlyingType(type)));
     }
 
     private string GetTypeFullName(Type type)

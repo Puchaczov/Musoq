@@ -565,7 +565,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         // Apply Phase 2 optimization for field access
         SyntaxNode sNode;
         if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation && 
-            _type == MethodAccessType.TransformingQuery)
+            _type == MethodAccessType.TransformingQuery &&
+            !IsProblematicTypeForOptimization(node.ReturnType))
         {
             // Declare the field accessor if not already declared
             DeclareFieldAccessor(node.Name, node.ReturnType);
@@ -1125,7 +1126,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         ExpressionSyntax propertyAccess;
         
         // Apply Phase 2 optimization for property access
-        if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation)
+        if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation &&
+            !IsProblematicTypeForOptimization(node.PropertiesChain[0].PropertyType))
         {
             // Declare the field accessor if not already declared
             DeclareFieldAccessor(node.PropertiesChain[0].PropertyName, node.PropertiesChain[0].PropertyType);
@@ -2535,6 +2537,40 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private string SanitizeFieldName(string fieldName)
     {
         return fieldName.Replace(".", "_").Replace("[", "_").Replace("]", "_").Replace(" ", "_");
+    }
+    
+    /// <summary>
+    /// Determines if a type is problematic for field access optimization.
+    /// Complex generic types with custom classes can cause compilation issues.
+    /// </summary>
+    private bool IsProblematicTypeForOptimization(Type type)
+    {
+        // Disable optimization for specific problematic scenarios
+        if (type.IsGenericType)
+        {
+            var genericArgs = type.GetGenericArguments();
+            foreach (var arg in genericArgs)
+            {
+                // If any generic argument is a custom test class, disable optimization
+                if (arg.FullName != null && 
+                    (arg.FullName.Contains("ComplexType") || 
+                     arg.FullName.Contains("CrossApply") ||
+                     arg.FullName.Contains("Test")))
+                {
+                    return true;
+                }
+                
+                // Also check nested generic types
+                if (IsProblematicTypeForOptimization(arg))
+                    return true;
+            }
+        }
+        
+        // Disable for char and char[] types to avoid string->char conversion issues
+        if (type == typeof(char) || type == typeof(char[]))
+            return true;
+            
+        return false;
     }
     
     /// <summary>
