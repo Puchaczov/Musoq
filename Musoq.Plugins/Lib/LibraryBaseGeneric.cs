@@ -167,6 +167,22 @@ public partial class LibraryBase
     }
 
     /// <summary>
+    /// Gets the element at the specified index in a sequence (throws exception if out of range)
+    /// </summary>
+    /// <param name="enumerable">The enumerable</param>
+    /// <param name="index">The index</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>Element of a given index</returns>
+    [BindableMethod]
+    public T GetElementAt<T>(IEnumerable<T>? enumerable, int index)
+    {
+        if (enumerable == null)
+            throw new ArgumentNullException(nameof(enumerable));
+
+        return enumerable.ElementAt(index);
+    }
+
+    /// <summary>
     /// Gets the length of the sequence
     /// </summary>
     /// <param name="enumerable">The enumerable</param>

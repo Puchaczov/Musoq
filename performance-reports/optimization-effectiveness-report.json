@@ -1,0 +1,25 @@
+{
+  "TestName": "Phase 4 Code Generation Optimizations",
+  "TestDate": "2025-08-30T05:24:55.0227979Z",
+  "Baseline": {
+    "Scenario": "Baseline",
+    "ReflectionTime": 23,
+    "CodeGenerationTime": 9,
+    "StagedTransformationTime": 3,
+    "EndToEndTime": 4,
+    "TotalTime": 39
+  },
+  "Optimized": {
+    "Scenario": "Optimized",
+    "ReflectionTime": 18,
+    "CodeGenerationTime": 3,
+    "StagedTransformationTime": 4,
+    "EndToEndTime": 6,
+    "TotalTime": 31
+  },
+  "ReflectionImprovement": 21.73913043478261,
+  "CodeGenerationImprovement": 66.66666666666666,
+  "StagedTransformationImprovement": -33.33333333333333,
+  "EndToEndImprovement": -50,
+  "TotalImprovement": 20.51282051282051
+}
