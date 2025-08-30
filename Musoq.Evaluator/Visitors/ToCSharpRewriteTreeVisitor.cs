@@ -559,11 +559,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
         };
 
-        // Apply Phase 2 optimization for field access
+        // Apply Phase 2 optimization for field access (currently fallback to traditional approach)
         SyntaxNode sNode;
         if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation && 
-            _type == MethodAccessType.TransformingQuery && 
-            false) // TODO: Enable once accessor declaration is implemented
+            _type == MethodAccessType.TransformingQuery &&
+            false) // Disabled until accessor declaration generation is implemented
         {
             // Use expression tree compiled field accessor for better performance
             var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
@@ -1119,9 +1119,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         ExpressionSyntax propertyAccess;
         
-        // Apply Phase 2 optimization for property access 
-        if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation && 
-            false) // TODO: Enable once accessor declaration is implemented
+        // Apply Phase 2 optimization for property access (currently fallback to traditional approach)
+        if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation &&
+            false) // Disabled until accessor declaration generation is implemented
         {
             // Use optimized property access with expression trees
             var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
