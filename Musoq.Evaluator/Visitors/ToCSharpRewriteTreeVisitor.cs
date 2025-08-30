@@ -65,6 +65,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private SyntaxNode _groupHaving;
 
     private readonly Dictionary<string, LocalDeclarationStatementSyntax> _getRowsSourceStatement = new();
+    
+    // Track declared field accessors to avoid duplication
+    private readonly HashSet<string> _declaredAccessors = new();
 
     private VariableDeclarationSyntax _groupKeys;
     private VariableDeclarationSyntax _groupValues;
@@ -559,12 +562,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
         };
 
-        // Apply Phase 2 optimization for field access (currently fallback to traditional approach)
+        // Apply Phase 2 optimization for field access
         SyntaxNode sNode;
         if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation && 
-            _type == MethodAccessType.TransformingQuery &&
-            false) // Disabled until accessor declaration generation is implemented
+            _type == MethodAccessType.TransformingQuery)
         {
+            // Declare the field accessor if not already declared
+            DeclareFieldAccessor(node.Name, node.ReturnType);
+            
             // Use expression tree compiled field accessor for better performance
             var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
             var optimizedAccessCode = expressionTreeCompiler.GenerateOptimizedFieldAccess(node.Name, node.ReturnType, variableName);
@@ -1119,10 +1124,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         ExpressionSyntax propertyAccess;
         
-        // Apply Phase 2 optimization for property access (currently fallback to traditional approach)
-        if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation &&
-            false) // Disabled until accessor declaration generation is implemented
+        // Apply Phase 2 optimization for property access
+        if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation)
         {
+            // Declare the field accessor if not already declared
+            DeclareFieldAccessor(node.PropertiesChain[0].PropertyName, node.PropertiesChain[0].PropertyType);
+            
             // Use optimized property access with expression trees
             var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
             var optimizedAccessCode = expressionTreeCompiler.GenerateOptimizedFieldAccess(
@@ -2491,5 +2498,63 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {
         return SyntaxFactory.Block(statements.Where(f => f is not EmptyStatementSyntax));
+    }
+
+    /// <summary>
+    /// Declares a compiled field accessor for optimized access
+    /// </summary>
+    private void DeclareFieldAccessor(string fieldName, Type fieldType)
+    {
+        var accessorName = $"_accessor_{SanitizeFieldName(fieldName)}";
+        
+        if (_declaredAccessors.Contains(accessorName))
+            return; // Already declared
+            
+        _declaredAccessors.Add(accessorName);
+        
+        // Generate the field declaration
+        var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
+        var fieldDeclaration = GenerateAccessorField(accessorName, fieldName, fieldType);
+        
+        _members.Add(fieldDeclaration);
+    }
+    
+    /// <summary>
+    /// Generates a compiled field accessor declaration
+    /// </summary>
+    private SyntaxNode GenerateAccessorField(string accessorName, string fieldName, Type fieldType)
+    {
+        // Create: private static readonly Func<ISchemaRow, object> _accessor_FieldName = ...
+        var fieldTypeName = GetCSharpTypeName(fieldType);
+        
+        var accessorCode = $@"private static readonly System.Func<Musoq.Schema.ISchemaRow, object> {accessorName} = 
+            new Musoq.Evaluator.Optimization.ExpressionTreeCompiler().CompileDynamicFieldAccessor(""{fieldName}"", typeof({fieldTypeName}));";
+        
+        return SyntaxFactory.ParseMemberDeclaration(accessorCode);
+    }
+    
+    /// <summary>
+    /// Sanitizes field names for use as C# identifiers
+    /// </summary>
+    private string SanitizeFieldName(string fieldName)
+    {
+        return fieldName.Replace(".", "_").Replace("[", "_").Replace("]", "_").Replace(" ", "_");
+    }
+    
+    /// <summary>
+    /// Gets C# type name for code generation
+    /// </summary>
+    private string GetCSharpTypeName(Type type)
+    {
+        if (type == typeof(string)) return "string";
+        if (type == typeof(int)) return "int";
+        if (type == typeof(long)) return "long";
+        if (type == typeof(double)) return "double";
+        if (type == typeof(decimal)) return "decimal";
+        if (type == typeof(bool)) return "bool";
+        if (type == typeof(DateTime)) return "System.DateTime";
+        if (type == typeof(object)) return "object";
+        
+        return type.FullName ?? "object";
     }
 }
