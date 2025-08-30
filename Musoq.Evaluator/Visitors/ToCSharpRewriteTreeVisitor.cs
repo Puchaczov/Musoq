@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Optimization;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
@@ -57,6 +58,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private readonly List<string> _namespaces = [];
     private readonly IDictionary<string, int[]> _setOperatorFieldIndexes;
+    private readonly OptimizationManager _optimizationManager;
 
     private readonly Dictionary<string, Type> _typesToInstantiate = new();
     private BlockSyntax _emptyBlock;
@@ -85,7 +87,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         IEnumerable<Assembly> assemblies,
         IDictionary<string, int[]> setOperatorFieldIndexes,
         IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
-        string assemblyName)
+        string assemblyName,
+        OptimizationManager optimizationManager = null)
     {
         // Validate constructor parameters
         ValidateConstructorParameter(nameof(assemblies), assemblies);
@@ -95,6 +98,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         _setOperatorFieldIndexes = setOperatorFieldIndexes;
         InferredColumns = inferredColumns;
+        _optimizationManager = optimizationManager ?? new OptimizationManager();
         Workspace = new AdhocWorkspace();
         Nodes = new Stack<SyntaxNode>();
 
@@ -126,9 +130,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
 #if DEBUG
-                    optimizationLevel: OptimizationLevel.Debug,
+                    optimizationLevel: Microsoft.CodeAnalysis.OptimizationLevel.Debug,
 #else
-                        optimizationLevel: OptimizationLevel.Release,
+                        optimizationLevel: Microsoft.CodeAnalysis.OptimizationLevel.Release,
 #endif
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default)
                 .WithConcurrentBuild(true)
@@ -555,12 +559,41 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
         };
 
-        var sNode = Generator.ElementAccessExpression(
-            Generator.IdentifierName(variableName),
-            SyntaxFactory.Argument(
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression,
-                    SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
+        // Apply Phase 2 optimization for field access
+        SyntaxNode sNode;
+        if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation && 
+            _type == MethodAccessType.TransformingQuery && 
+            false) // TODO: Enable once accessor declaration is implemented
+        {
+            // Use expression tree compiled field accessor for better performance
+            var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
+            var optimizedAccessCode = expressionTreeCompiler.GenerateOptimizedFieldAccess(node.Name, node.ReturnType, variableName);
+            
+            // Generate optimized field access using compiled accessor
+            sNode = SyntaxFactory.ParseExpression($"/* Optimized field access */ {optimizedAccessCode}");
+            
+            // Fallback to traditional approach if parsing fails
+            if (sNode == null)
+            {
+                sNode = Generator.ElementAccessExpression(
+                    Generator.IdentifierName(variableName),
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.StringLiteralExpression,
+                            SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
+            }
+        }
+        else
+        {
+            // Traditional reflection-based field access
+            // TODO: This will be optimized once Phase 2 integration is complete
+            sNode = Generator.ElementAccessExpression(
+                Generator.IdentifierName(variableName),
+                SyntaxFactory.Argument(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
+        }
 
         var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
 
@@ -1084,17 +1117,61 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
         AddNamespace(node.ReturnType);
 
-        ExpressionSyntax propertyAccess = SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.CastExpression(
-                SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(node.PropertiesChain[0].PropertyType)),
-                SyntaxFactory.ElementAccessExpression(
-                    SyntaxFactory.IdentifierName($"{node.SourceAlias}Row"),
-                    SyntaxFactory.BracketedArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.LiteralExpression(
-                                    SyntaxKind.StringLiteralExpression,
-                                    SyntaxFactory.Literal(node.PropertiesChain[0].PropertyName))))))));
+        ExpressionSyntax propertyAccess;
+        
+        // Apply Phase 2 optimization for property access 
+        if (_optimizationManager.GetConfiguration().EnableExpressionTreeCompilation && 
+            false) // TODO: Enable once accessor declaration is implemented
+        {
+            // Use optimized property access with expression trees
+            var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
+            var optimizedAccessCode = expressionTreeCompiler.GenerateOptimizedFieldAccess(
+                node.PropertiesChain[0].PropertyName, 
+                node.PropertiesChain[0].PropertyType, 
+                $"{node.SourceAlias}Row");
+            
+            // Try to use optimized access, fallback to traditional if needed
+            var optimizedExpression = SyntaxFactory.ParseExpression($"/* Optimized property access */ {optimizedAccessCode}");
+            
+            if (optimizedExpression != null)
+            {
+                propertyAccess = SyntaxFactory.ParenthesizedExpression(
+                    SyntaxFactory.CastExpression(
+                        SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(node.PropertiesChain[0].PropertyType)),
+                        optimizedExpression));
+            }
+            else
+            {
+                // Fallback to traditional reflection-based access
+                propertyAccess = SyntaxFactory.ParenthesizedExpression(
+                    SyntaxFactory.CastExpression(
+                        SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(node.PropertiesChain[0].PropertyType)),
+                        SyntaxFactory.ElementAccessExpression(
+                            SyntaxFactory.IdentifierName($"{node.SourceAlias}Row"),
+                            SyntaxFactory.BracketedArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.Argument(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.StringLiteralExpression,
+                                            SyntaxFactory.Literal(node.PropertiesChain[0].PropertyName))))))));
+            }
+        }
+        else
+        {
+            // Traditional reflection-based property access
+            // TODO: This will be optimized once Phase 2 integration is complete
+            propertyAccess = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.CastExpression(
+                    SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(node.PropertiesChain[0].PropertyType)),
+                    SyntaxFactory.ElementAccessExpression(
+                        SyntaxFactory.IdentifierName($"{node.SourceAlias}Row"),
+                        SyntaxFactory.BracketedArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.StringLiteralExpression,
+                                        SyntaxFactory.Literal(node.PropertiesChain[0].PropertyName))))))));
+        }
 
         for (var i = 1; i < node.PropertiesChain.Length; i++)
         {

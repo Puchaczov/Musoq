@@ -258,6 +258,11 @@ public class OptimizationManager
     /// </summary>
     public QueryAnalysisEngine GetQueryAnalysisEngine() => _queryAnalysisEngine;
 
+    /// <summary>
+    /// Gets the current optimization configuration.
+    /// </summary>
+    public OptimizationConfiguration GetConfiguration() => _configuration;
+
     private bool ShouldUseReflectionCaching(QueryAnalysisInput input)
     {
         // Always beneficial for reducing reflection overhead
