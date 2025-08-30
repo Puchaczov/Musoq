@@ -68,6 +68,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     
     // Track declared field accessors to avoid duplication
     private readonly HashSet<string> _declaredAccessors = new();
+    
+    // Track column access caching within each row processing context
+    private readonly Dictionary<string, string> _columnValueCache = new();
+    private readonly HashSet<string> _accessedColumnsInCurrentContext = new();
 
     private VariableDeclarationSyntax _groupKeys;
     private VariableDeclarationSyntax _groupValues;
@@ -575,8 +579,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             var expressionTreeCompiler = _optimizationManager.GetExpressionTreeCompiler();
             var optimizedAccessCode = expressionTreeCompiler.GenerateOptimizedFieldAccess(node.Name, node.ReturnType, variableName);
             
-            // Generate strongly typed field access - no casting needed since accessor returns correct type
-            sNode = SyntaxFactory.ParseExpression($"/* Optimized strongly typed field access */ {optimizedAccessCode}");
+            // Apply column value caching optimization
+            var cachedAccess = GetCachedColumnAccess(node.Name, node.ReturnType, variableName, optimizedAccessCode);
+            
+            // Generate strongly typed field access with caching
+            sNode = SyntaxFactory.ParseExpression($"/* Optimized cached field access */ {cachedAccess}");
             
             // Fallback to traditional approach if parsing fails
             if (sNode == null)
@@ -591,14 +598,22 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
         else
         {
-            // Traditional reflection-based field access
-            // TODO: This will be optimized once Phase 2 integration is complete
-            sNode = Generator.ElementAccessExpression(
-                Generator.IdentifierName(variableName),
-                SyntaxFactory.Argument(
-                    SyntaxFactory.LiteralExpression(
-                        SyntaxKind.StringLiteralExpression,
-                        SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
+            // Traditional reflection-based field access with basic caching
+            var originalAccess = $"{variableName}[\"{node.Name}\"]";
+            var cachedAccess = GetCachedColumnAccess(node.Name, node.ReturnType, variableName, originalAccess);
+            
+            sNode = SyntaxFactory.ParseExpression($"/* Cached field access */ {cachedAccess}");
+            
+            // Fallback to original access if parsing fails
+            if (sNode == null)
+            {
+                sNode = Generator.ElementAccessExpression(
+                    Generator.IdentifierName(variableName),
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.StringLiteralExpression,
+                            SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
+            }
         }
 
         var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
@@ -2599,5 +2614,72 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         if (type == typeof(object)) return "object";
         
         return type.FullName ?? "object";
+    }
+    
+    /// <summary>
+    /// Starts a new column access caching context (e.g., for a new row processing)
+    /// </summary>
+    private void StartColumnAccessContext()
+    {
+        _columnValueCache.Clear();
+        _accessedColumnsInCurrentContext.Clear();
+    }
+    
+    /// <summary>
+    /// Gets cached column access code or generates caching code for first access
+    /// </summary>
+    private string GetCachedColumnAccess(string columnName, Type columnType, string variableName, string originalAccessCode)
+    {
+        var cacheKey = $"{variableName}_{columnName}";
+        var cachedVariableName = $"{SanitizeFieldName(columnName).ToLower()}_cached_{Guid.NewGuid().ToString("N")[..8]}";
+        
+        if (_columnValueCache.ContainsKey(cacheKey))
+        {
+            // Return reference to cached value
+            return _columnValueCache[cacheKey];
+        }
+        
+        // This is the first access - cache the value
+        _columnValueCache[cacheKey] = cachedVariableName;
+        _accessedColumnsInCurrentContext.Add(cacheKey);
+        
+        // For first access, we need to declare and initialize the cached variable
+        // The actual variable declaration will be added to the method block
+        return cachedVariableName;
+    }
+    
+    /// <summary>
+    /// Generates column caching variable declarations for the current context
+    /// </summary>
+    private List<StatementSyntax> GenerateColumnCacheDeclarations(string variableName)
+    {
+        var declarations = new List<StatementSyntax>();
+        
+        foreach (var cacheEntry in _columnValueCache)
+        {
+            var cacheKey = cacheEntry.Key;
+            var cachedVarName = cacheEntry.Value;
+            
+            if (!cacheKey.StartsWith($"{variableName}_"))
+                continue;
+                
+            var columnName = cacheKey.Substring($"{variableName}_".Length);
+            
+            // Generate: var country_cached_abc123 = optimizedAccessor(row);
+            var accessCode = _optimizationManager.GetConfiguration().EnableExpressionTreeCompilation 
+                ? $"_accessor_{SanitizeFieldName(columnName)}({variableName})"
+                : $"{variableName}[\"{columnName}\"]";
+                
+            var declaration = SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(cachedVarName))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.ParseExpression($"/* Column value cache */ {accessCode}"))))));
+                                
+            declarations.Add(declaration);
+        }
+        
+        return declarations;
     }
 }
