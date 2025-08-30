@@ -1271,7 +1271,6 @@ group by a.Country";
         Assert.AreEqual("Gdansk", table[0][1]);
     }
 
-    [Ignore("WORK IN PROGRESS")]
     [TestMethod]
     public void WhenAccessingTheFirstLetterWithMethodCallInsideAggregation_ShouldSucceed()
     {
@@ -1309,7 +1308,6 @@ group by a.Country";
         ), "Second entry should be Brazil with 'B'");
     }
 
-    [Ignore("WORK IN PROGRESS")]
     [TestMethod]
     public void WhenAccessingTheFirstLetterWithIndexerInsideAggregation_ShouldSucceed()
     {

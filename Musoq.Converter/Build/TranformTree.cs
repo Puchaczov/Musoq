@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Musoq.Evaluator.Optimization;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
@@ -35,7 +36,10 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         queryTree = rewriter.RootScript;
 
-        var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadata.Assemblies, metadata.SetOperatorFieldPositions, metadata.InferredColumns, items.AssemblyName);
+        // Create optimization manager for enhanced code generation  
+        var optimizationManager = new OptimizationManager();
+
+        var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadata.Assemblies, metadata.SetOperatorFieldPositions, metadata.InferredColumns, items.AssemblyName, optimizationManager);
         var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, new ScopeWalker(metadataTraverser.Scope), items.CompilationOptions);
 
         queryTree.Accept(csharpRewriteTraverser);

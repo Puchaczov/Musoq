@@ -626,6 +626,24 @@ public abstract partial class LibraryBase
     }
 
     /// <summary>
+    /// Gets the element at the specified index in a string (treats string as char array)
+    /// </summary>
+    /// <param name="value">The string value</param>
+    /// <param name="index">The index</param>
+    /// <returns>Character at the specified index</returns>
+    [BindableMethod]
+    public char GetElementAt(string value, int index)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        if (index < 0 || index >= value.Length)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        return value[index];
+    }
+
+    /// <summary>
     /// Reverses the string
     /// </summary>
     /// <param name="value">The value</param>
