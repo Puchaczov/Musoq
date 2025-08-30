@@ -60,6 +60,15 @@ public class OptimizationManager
             {
                 queryAnalysis.Pattern = ConvertToAnalysisPattern(input.Pattern);
                 queryAnalysis.ComplexityScore = input.Pattern.ComplexityScore;
+                
+                // CRITICAL FIX: Re-analyze field complexity for the new pattern
+                queryAnalysis.FieldAnalysis = _queryAnalysisEngine.AnalyzeFieldComplexity(queryAnalysis.Pattern);
+                
+                // CRITICAL FIX: Re-determine strategy AFTER complexity score and field analysis is set
+                queryAnalysis.RecommendedStrategy = _queryAnalysisEngine.DetermineOptimizationStrategy(queryAnalysis);
+                
+                // CRITICAL FIX: Re-calculate performance impact AFTER strategy is updated
+                queryAnalysis.EstimatedImpact = EstimatePerformanceImpactFixed(queryAnalysis);
             }
             
             var plan = new OptimizationPlan
@@ -269,6 +278,34 @@ public class OptimizationManager
     /// Gets the current optimization configuration.
     /// </summary>
     public OptimizationConfiguration GetConfiguration() => _configuration;
+
+    /// <summary>
+    /// Estimates performance impact based on the current strategy (fixed version).
+    /// </summary>
+    private PerformanceImpactEstimate EstimatePerformanceImpactFixed(QueryOptimizationInfo analysis)
+    {
+        var estimate = new PerformanceImpactEstimate();
+
+        if (analysis.RecommendedStrategy.UseExpressionTrees)
+            estimate.ExpectedImprovement += 0.45; // 45% from expression trees
+
+        if (analysis.RecommendedStrategy.UseMemoryPooling)
+            estimate.ExpectedImprovement += 0.30; // 30% from memory pooling
+
+        if (analysis.RecommendedStrategy.UseTemplateGeneration)
+            estimate.ExpectedImprovement += 0.25; // 25% from templates
+
+        if (analysis.RecommendedStrategy.UseStagedTransformation)
+            estimate.ExpectedImprovement += 0.20; // 20% from staging
+
+        // Cap at 75% maximum improvement
+        estimate.ExpectedImprovement = Math.Min(estimate.ExpectedImprovement, 0.75);
+        
+        estimate.ConfidenceLevel = 0.8; // Default confidence
+        estimate.OptimizationComplexity = OptimizationComplexity.High;
+
+        return estimate;
+    }
 
     private bool ShouldUseReflectionCaching(QueryAnalysisInput input)
     {
