@@ -30,7 +30,7 @@ public static class QueryRewriteUtilities
             throw new ArgumentNullException(nameof(node));
 
         var nullableBoolType = typeof(bool?);
-        if (node.ReturnType != nullableBoolType || node is BinaryNode)
+        if (node.ReturnType != nullableBoolType)
             return node;
             
         return new AndNode(new IsNullNode(node, true), new EqualityNode(node, new BooleanNode(true)));

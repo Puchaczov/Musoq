@@ -1045,7 +1045,8 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     public void Visit(WhenNode node)
     {
         var expression = Nodes.Pop();
-        Nodes.Push(new WhenNode(expression));
+        var rewrittenExpression = QueryRewriteUtilities.RewriteNullableBoolExpressions(expression);
+        Nodes.Push(new WhenNode(rewrittenExpression));
     }
 
     public void Visit(ThenNode node)
