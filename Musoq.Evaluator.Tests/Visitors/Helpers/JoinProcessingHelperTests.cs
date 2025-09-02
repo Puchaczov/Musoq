@@ -20,7 +20,6 @@ public class JoinProcessingHelperTests
     private Workspace _workspace;
     private StatementSyntax _ifStatement;
     private BlockSyntax _emptyBlock;
-    private JoinInMemoryWithSourceTableFromNode _joinNode;
 
     [TestInitialize]
     public void SetUp()
@@ -29,10 +28,6 @@ public class JoinProcessingHelperTests
         _generator = SyntaxGenerator.GetGenerator(_workspace, LanguageNames.CSharp);
         _ifStatement = SyntaxFactory.ContinueStatement();
         _emptyBlock = SyntaxFactory.Block();
-
-        // Create test join node with minimal setup to avoid constructor issues
-        // Using null checks in the actual helper methods make this safe for testing
-        _joinNode = null; // Will be mocked in individual tests
     }
 
     [TestCleanup]

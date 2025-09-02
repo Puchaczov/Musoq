@@ -16,14 +16,14 @@ public class StringsTests : LibraryBaseBaseTests
         Assert.AreEqual(string.Empty, Library.Substring("lorem ipsum dolor", 0));
         Assert.AreEqual("lorem", Library.Substring("lorem ipsum dolor", 5));
         Assert.AreEqual("lorem ipsum dolor", Library.Substring("lorem ipsum dolor", 150));
-        Assert.AreEqual((string?)null, Library.Substring((string?)null, 150));
+        Assert.AreEqual((string?)null, Library.Substring((string?)null!, 150));
     }
 
     [TestMethod]
     public void ConcatTest()
     {
         Assert.AreEqual("lorem ipsum dolor", Library.Concat("lorem ", "ipsum ", "dolor"));
-        Assert.AreEqual("lorem dolor", Library.Concat("lorem ", (string?)null, "dolor"));
+        Assert.AreEqual("lorem dolor", Library.Concat("lorem ", (string?)null!, "dolor"));
         Assert.AreEqual("this is 1", Library.Concat("this ", "is ", 1));
     }
 
