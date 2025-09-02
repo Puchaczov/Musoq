@@ -10,7 +10,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMatchFunctionUsedWithExplicitTrueComparison_ShouldWork()
     {
-        var query = "select Name from #A.entities() where Match('\\d+', Name) = true";
+        var query = "select Name from #A.entities() where Match('\\d+', Name) = true order by Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -32,7 +32,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMatchFunctionUsedWithImplicitBooleanConversion_ShouldWork()
     {
-        var query = "select Name from #A.entities() where Match('\\d+', Name)";
+        var query = "select Name from #A.entities() where Match('\\d+', Name) order by Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -54,7 +54,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
     [TestMethod]
     public void WhenCaseWhenUsedWithExplicitTrueComparison_ShouldWork()
     {
-        var query = "select (case when Match('\\d+', Name) = true then 'HasNumbers' else 'NoNumbers' end) as Result from #A.entities()";
+        var query = "select (case when Match('\\d+', Name) = true then 'HasNumbers' else 'NoNumbers' end) as Result from #A.entities() order by Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -70,14 +70,14 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("HasNumbers", table[0].Values[0]);
-        Assert.AreEqual("NoNumbers", table[1].Values[0]);
+        Assert.AreEqual("NoNumbers", table[0].Values[0]);
+        Assert.AreEqual("HasNumbers", table[1].Values[0]);
     }
 
     [TestMethod]
     public void WhenCaseWhenUsedWithImplicitBooleanConversion_ShouldWork()
     {
-        var query = "select (case when Match('\\d+', Name) then 'HasNumbers' else 'NoNumbers' end) as Result from #A.entities()";
+        var query = "select (case when Match('\\d+', Name) then 'HasNumbers' else 'NoNumbers' end) as Result from #A.entities() order by Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -93,7 +93,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("HasNumbers", table[0].Values[0]);
-        Assert.AreEqual("NoNumbers", table[1].Values[0]);
+        Assert.AreEqual("NoNumbers", table[0].Values[0]);
+        Assert.AreEqual("HasNumbers", table[1].Values[0]);
     }
 }
