@@ -11,7 +11,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
     [BindableMethod]
-    public int? ToInt32(string value)
+    public int? ToInt32(string? value)
     {
         if (int.TryParse(value, out var number))
             return number;
