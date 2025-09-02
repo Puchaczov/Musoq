@@ -92,7 +92,7 @@ public abstract partial class LibraryBase
     /// <param name="length">The length</param>
     /// <returns>Substring of a string</returns>
     [BindableMethod]
-    public string? Substring(string value, int? length)
+    public string? Substring(string? value, int? length)
     {
         return Substring(value, 0, length);
     }
@@ -103,7 +103,7 @@ public abstract partial class LibraryBase
     /// <param name="strings">The strings</param>
     /// <returns>Concatenated values</returns>
     [BindableMethod]
-    public string? Concat(params string[]? strings)
+    public string? Concat(params string?[]? strings)
     {
         if (strings == null)
             return null;
@@ -184,7 +184,7 @@ public abstract partial class LibraryBase
     /// <param name="objects">The objects</param>
     /// <returns>Concatenated string</returns>
     [BindableMethod]
-    public string? Concat(params object[]? objects)
+    public string? Concat(params object?[]? objects)
     {
         if (objects == null)
             return null;
@@ -203,7 +203,7 @@ public abstract partial class LibraryBase
     /// <param name="objects">The objects</param>
     /// <returns>Concatenated string</returns>
     [BindableMethod]
-    public string? Concat<T>(params T[]? objects)
+    public string? Concat<T>(params T?[]? objects)
     {
         if (objects == null)
             return null;

@@ -4,10 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 
 namespace Musoq.Plugins;
-#if DEBUG
+
 /// <summary>
 /// Represents a group of rows.
 /// </summary>
+#if DEBUG
 [DebuggerDisplay("{Name}")]
 #endif
 public sealed class Group

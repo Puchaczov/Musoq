@@ -23,7 +23,7 @@ namespace Musoq.Plugins.Tests
         [TestMethod]
         public void ToInt64_FromNullString_ShouldReturnNull()
         {
-            var result = Library.ToInt64((string)null);
+            var result = Library.ToInt64((string?)null);
             Assert.IsNull(result);
         }
 
@@ -226,7 +226,7 @@ namespace Musoq.Plugins.Tests
         [TestMethod]
         public void ToInt64_FromNullObject_ShouldReturnNull()
         {
-            var result = Library.ToInt64((object)null);
+            var result = Library.ToInt64((object?)null);
             Assert.IsNull(result);
         }
 

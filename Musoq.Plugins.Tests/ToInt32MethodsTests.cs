@@ -23,7 +23,7 @@ namespace Musoq.Plugins.Tests
         [TestMethod]
         public void ToInt32_FromNullString_ShouldReturnNull()
         {
-            var result = Library.ToInt32((string)null);
+            var result = Library.ToInt32((string?)null);
             Assert.IsNull(result);
         }
 
@@ -219,7 +219,7 @@ namespace Musoq.Plugins.Tests
         [TestMethod]
         public void ToInt32_FromNullObject_ShouldReturnNull()
         {
-            var result = Library.ToInt32((object)null);
+            var result = Library.ToInt32((object?)null);
             Assert.IsNull(result);
         }
 
