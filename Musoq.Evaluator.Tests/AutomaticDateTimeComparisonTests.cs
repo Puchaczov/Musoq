@@ -422,6 +422,276 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
     #endregion
 
+    #region CASE WHEN Expression Tests
+
+    [TestMethod]
+    public void WhenUsingDateTimeComparisonInCaseWhen_ShouldAutomaticallyConvert()
+    {
+        var testData = DateTimeTypes[0]; // DateTime
+        const string query = "table Events {" +
+                             "  EventDate 'System.DateTime'," +
+                             "  Name 'System.String'" +
+                             "};" +
+                             "couple #test.whatever with table Events as Events; " +
+                             "select Name, " +
+                             "case when EventDate > '2023-03-15' then 'Future' " +
+                             "     when EventDate = '2023-03-15' then 'Present' " +
+                             "     else 'Past' end as TimeCategory " +
+                             "from Events()";
+
+        var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
+        var table = vm.Run();
+
+        Assert.AreEqual(3, table.Count);
+        
+        // Verify all rows returned correct category
+        var results = table.Select(row => new { Name = row.Values[0] as string, Category = row.Values[1] as string })
+                          .OrderBy(x => x.Name).ToList();
+        
+        Assert.AreEqual("Earlier Event", results[0].Name);
+        Assert.AreEqual("Past", results[0].Category);
+        
+        Assert.AreEqual("Equal Event", results[1].Name);
+        Assert.AreEqual("Present", results[1].Category);
+        
+        Assert.AreEqual("Later Event", results[2].Name);
+        Assert.AreEqual("Future", results[2].Category);
+    }
+
+    [TestMethod]
+    public void WhenUsingDateTimeOffsetComparisonInCaseWhen_ShouldAutomaticallyConvert()
+    {
+        var testData = DateTimeTypes[2]; // DateTimeOffset
+        const string query = "table Events {" +
+                             "  EventDate 'System.DateTimeOffset'," +
+                             "  Name 'System.String'" +
+                             "};" +
+                             "couple #test.whatever with table Events as Events; " +
+                             "select Name, " +
+                             "case when EventDate >= '2023-03-15T12:00:00+00:00' then 'Recent' " +
+                             "     else 'Old' end as Category " +
+                             "from Events()";
+
+        var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
+        var table = vm.Run();
+
+        Assert.AreEqual(3, table.Count);
+        
+        // Count recent vs old events
+        var recentCount = table.Count(row => row.Values[1] as string == "Recent");
+        var oldCount = table.Count(row => row.Values[1] as string == "Old");
+        
+        Assert.AreEqual(2, recentCount); // Equal Event and Later Event
+        Assert.AreEqual(1, oldCount);    // Earlier Event
+    }
+
+    [TestMethod]
+    public void WhenUsingTimeSpanComparisonInCaseWhen_ShouldAutomaticallyConvert()
+    {
+        var testData = DateTimeTypes[4]; // TimeSpan
+        const string query = "table Events {" +
+                             "  Duration 'System.TimeSpan'," +
+                             "  Name 'System.String'" +
+                             "};" +
+                             "couple #test.whatever with table Events as Events; " +
+                             "select Name, " +
+                             "case when Duration < '02:00:00' then 'Short' " +
+                             "     when Duration = '02:00:00' then 'Medium' " +
+                             "     else 'Long' end as DurationCategory " +
+                             "from Events()";
+
+        var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, "Duration"));
+        var table = vm.Run();
+
+        Assert.AreEqual(3, table.Count);
+        
+        // Verify duration categories
+        var results = table.Select(row => new { Name = row.Values[0] as string, Category = row.Values[1] as string })
+                          .OrderBy(x => x.Name).ToList();
+        
+        Assert.AreEqual("Earlier Event", results[0].Name);
+        Assert.AreEqual("Short", results[0].Category);
+        
+        Assert.AreEqual("Equal Event", results[1].Name);
+        Assert.AreEqual("Medium", results[1].Category);
+        
+        Assert.AreEqual("Later Event", results[2].Name);
+        Assert.AreEqual("Long", results[2].Category);
+    }
+
+    [TestMethod]
+    public void WhenUsingNullableDateTimeComparisonInCaseWhen_ShouldAutomaticallyConvert()
+    {
+        var testData = DateTimeTypes[1]; // Nullable DateTime
+        const string query = "table Events {" +
+                             "  EventDate 'System.Nullable`1[System.DateTime]'," +
+                             "  Name 'System.String'" +
+                             "};" +
+                             "couple #test.whatever with table Events as Events; " +
+                             "select Name, " +
+                             "case when EventDate <= '2023-03-15' then 'Early' " +
+                             "     else 'Late' end as Timing " +
+                             "from Events()";
+
+        var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
+        var table = vm.Run();
+
+        Assert.AreEqual(3, table.Count);
+        
+        // Count early vs late events
+        var earlyCount = table.Count(row => row.Values[1] as string == "Early");
+        var lateCount = table.Count(row => row.Values[1] as string == "Late");
+        
+        Assert.AreEqual(2, earlyCount); // Earlier Event and Equal Event
+        Assert.AreEqual(1, lateCount);  // Later Event
+    }
+
+    [TestMethod]
+    public void WhenUsingAllOperatorsInCaseWhen_ShouldAutomaticallyConvert()
+    {
+        var testData = DateTimeTypes[0]; // DateTime
+        var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
+        
+        foreach (var op in operators)
+        {
+            var query = $"table Events {{ EventDate '{testData.TypeName}', Name 'System.String' }};" +
+                        $"couple #test.whatever with table Events as Events; " +
+                        $"select Name, " +
+                        $"case when EventDate {op} '{testData.StringEqual}' then 'Match' " +
+                        $"     else 'NoMatch' end as Result " +
+                        $"from Events()";
+
+            try
+            {
+                var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
+                var table = vm.Run();
+                
+                // Basic validation that query executes without error
+                Assert.IsNotNull(table, $"Table should not be null for operator {op}");
+                Assert.AreEqual(3, table.Count, $"Should return 3 rows for operator {op}");
+                
+                // Verify that all rows have Result values (either "Match" or "NoMatch")
+                foreach (var row in table)
+                {
+                    var result = row.Values[1] as string;
+                    Assert.IsTrue(result == "Match" || result == "NoMatch", 
+                        $"Result should be either 'Match' or 'NoMatch' for operator {op}, got: {result}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail($"Test failed for operator {op} in CASE WHEN: {ex.Message}");
+            }
+        }
+    }
+
+    [TestMethod]
+    public void WhenUsingReversedComparisonInCaseWhen_ShouldAutomaticallyConvert()
+    {
+        var testData = DateTimeTypes[0]; // DateTime
+        const string query = "table Events {" +
+                             "  EventDate 'System.DateTime'," +
+                             "  Name 'System.String'" +
+                             "};" +
+                             "couple #test.whatever with table Events as Events; " +
+                             "select Name, " +
+                             "case when '2023-03-15' < EventDate then 'After' " +
+                             "     when '2023-03-15' = EventDate then 'Same' " +
+                             "     else 'Before' end as Position " +
+                             "from Events()";
+
+        var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
+        var table = vm.Run();
+
+        Assert.AreEqual(3, table.Count);
+        
+        // Verify position categories for reversed comparison
+        var results = table.Select(row => new { Name = row.Values[0] as string, Position = row.Values[1] as string })
+                          .OrderBy(x => x.Name).ToList();
+        
+        Assert.AreEqual("Earlier Event", results[0].Name);
+        Assert.AreEqual("Before", results[0].Position);
+        
+        Assert.AreEqual("Equal Event", results[1].Name);
+        Assert.AreEqual("Same", results[1].Position);
+        
+        Assert.AreEqual("Later Event", results[2].Name);
+        Assert.AreEqual("After", results[2].Position);
+    }
+
+    [TestMethod]
+    public void WhenUsingAllDateTimeTypesInCaseWhen_ShouldAutomaticallyConvert()
+    {
+        foreach (var dateTimeType in DateTimeTypes)
+        {
+            var fieldName = dateTimeType.TypeName.Contains("TimeSpan") ? "Duration" : "EventDate";
+            var query = $"table Events {{ {fieldName} '{dateTimeType.TypeName}', Name 'System.String' }};" +
+                        $"couple #test.whatever with table Events as Events; " +
+                        $"select Name, " +
+                        $"case when {fieldName} > '{dateTimeType.StringEarlier}' then 'NotEarliest' " +
+                        $"     else 'Earliest' end as Category " +
+                        $"from Events()";
+
+            try
+            {
+                var vm = CreateAndRunVirtualMachine(query, CreateTestData(dateTimeType, fieldName));
+                var table = vm.Run();
+                
+                // Basic validation that query executes without error
+                Assert.IsNotNull(table, $"Table should not be null for type {dateTimeType.TypeName}");
+                Assert.AreEqual(3, table.Count, $"Should return 3 rows for type {dateTimeType.TypeName}");
+                
+                // Verify that all rows have Category values
+                foreach (var row in table)
+                {
+                    var category = row.Values[1] as string;
+                    Assert.IsTrue(category == "NotEarliest" || category == "Earliest", 
+                        $"Category should be either 'NotEarliest' or 'Earliest' for type {dateTimeType.TypeName}, got: {category}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail($"Test failed for datetime type {dateTimeType.TypeName} in CASE WHEN: {ex.Message}");
+            }
+        }
+    }
+
+    [TestMethod]
+    public void WhenUsingNestedCaseWhenWithDateTimeComparison_ShouldAutomaticallyConvert()
+    {
+        var testData = DateTimeTypes[0]; // DateTime
+        const string query = "table Events {" +
+                             "  EventDate 'System.DateTime'," +
+                             "  Name 'System.String'" +
+                             "};" +
+                             "couple #test.whatever with table Events as Events; " +
+                             "select Name, " +
+                             "case when EventDate > '2023-03-15' then " +
+                             "    case when EventDate > '2023-05-01' then 'VeryFuture' else 'NearFuture' end " +
+                             "else 'PastOrPresent' end as DetailedCategory " +
+                             "from Events()";
+
+        var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
+        var table = vm.Run();
+
+        Assert.AreEqual(3, table.Count);
+        
+        // Verify nested case when logic
+        var results = table.Select(row => new { Name = row.Values[0] as string, Category = row.Values[1] as string })
+                          .OrderBy(x => x.Name).ToList();
+        
+        Assert.AreEqual("Earlier Event", results[0].Name);
+        Assert.AreEqual("PastOrPresent", results[0].Category);
+        
+        Assert.AreEqual("Equal Event", results[1].Name);
+        Assert.AreEqual("PastOrPresent", results[1].Category);
+        
+        Assert.AreEqual("Later Event", results[2].Name);
+        Assert.AreEqual("VeryFuture", results[2].Category); // 2023-06-15 > 2023-05-01
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private void TestBasicOperatorFunctionality(DateTimeTypeTestData testData, string op, string fieldName)
