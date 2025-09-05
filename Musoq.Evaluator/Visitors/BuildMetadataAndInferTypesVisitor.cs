@@ -176,6 +176,83 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(nodeFactory(left, right));
     }
 
+    private void VisitBinaryOperatorWithDateTimeConversion<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    {
+        var right = SafePop(Nodes, "VisitBinaryOperatorWithDateTimeConversion (right)");
+        var left = SafePop(Nodes, "VisitBinaryOperatorWithDateTimeConversion (left)");
+        
+        // Check for datetime vs string comparison and transform if needed
+        var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
+        var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
+        
+        Nodes.Push(nodeFactory(transformedLeft, transformedRight));
+    }
+
+    private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)
+    {
+        // Only transform if candidateNode is a string literal (WordNode) and otherNode is a datetime type
+        if (candidateNode is not WordNode stringNode || !IsDateTimeType(otherNode.ReturnType))
+            return candidateNode;
+
+        // Create AccessMethodNode for the appropriate conversion function
+        return CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
+    }
+
+    private bool IsDateTimeType(Type type)
+    {
+        return type == typeof(DateTime) || type == typeof(DateTime?) ||
+               type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?) ||
+               type == typeof(TimeSpan) || type == typeof(TimeSpan?);
+    }
+
+    private AccessMethodNode CreateDateTimeConversionNode(Type targetType, string stringValue)
+    {
+        string methodName;
+        
+        if (targetType == typeof(DateTime) || targetType == typeof(DateTime?))
+        {
+            methodName = "ToDateTime";
+        }
+        else if (targetType == typeof(DateTimeOffset) || targetType == typeof(DateTimeOffset?))
+        {
+            methodName = "ToDateTimeOffset";
+        }
+        else if (targetType == typeof(TimeSpan) || targetType == typeof(TimeSpan?))
+        {
+            methodName = "ToTimeSpan";
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unsupported datetime type: {targetType}");
+        }
+
+        // Create function token
+        var functionToken = new FunctionToken(methodName, new TextSpan(0, methodName.Length));
+        
+        // Create arguments list with the string literal
+        var stringLiteralNode = new WordNode(stringValue);
+        var args = new ArgsListNode([stringLiteralNode]);
+        
+        // Get the MethodInfo for the conversion function from LibraryBase
+        var libraryBaseType = typeof(LibraryBase);
+        var method = libraryBaseType.GetMethod(methodName, [typeof(string)]);
+        
+        if (method == null)
+        {
+            throw new InvalidOperationException($"Method {methodName}(string) not found in LibraryBase");
+        }
+        
+        // Create AccessMethodNode for the conversion function
+        var accessMethodNode = new AccessMethodNode(
+            functionToken, 
+            args, 
+            ArgsListNode.Empty, 
+            false,
+            method);
+
+        return accessMethodNode;
+    }
+
     public void Visit(DescNode node)
     {
         var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
@@ -231,32 +308,32 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public void Visit(EqualityNode node)
     {
-        VisitBinaryOperatorWithDirectPop((left, right) => new EqualityNode(left, right));
+        VisitBinaryOperatorWithDateTimeConversion((left, right) => new EqualityNode(left, right));
     }
 
     public void Visit(GreaterOrEqualNode node)
     {
-        VisitBinaryOperatorWithDirectPop((left, right) => new GreaterOrEqualNode(left, right));
+        VisitBinaryOperatorWithDateTimeConversion((left, right) => new GreaterOrEqualNode(left, right));
     }
 
     public void Visit(LessOrEqualNode node)
     {
-        VisitBinaryOperatorWithDirectPop((left, right) => new LessOrEqualNode(left, right));
+        VisitBinaryOperatorWithDateTimeConversion((left, right) => new LessOrEqualNode(left, right));
     }
 
     public void Visit(GreaterNode node)
     {
-        VisitBinaryOperatorWithDirectPop((left, right) => new GreaterNode(left, right));
+        VisitBinaryOperatorWithDateTimeConversion((left, right) => new GreaterNode(left, right));
     }
 
     public void Visit(LessNode node)
     {
-        VisitBinaryOperatorWithDirectPop((left, right) => new LessNode(left, right));
+        VisitBinaryOperatorWithDateTimeConversion((left, right) => new LessNode(left, right));
     }
 
     public void Visit(DiffNode node)
     {
-        VisitBinaryOperatorWithDirectPop((left, right) => new DiffNode(left, right));
+        VisitBinaryOperatorWithDateTimeConversion((left, right) => new DiffNode(left, right));
     }
 
     public void Visit(NotNode node)

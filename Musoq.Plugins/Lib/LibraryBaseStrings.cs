@@ -8,7 +8,7 @@ using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
 
-public abstract partial class LibraryBase
+public partial class LibraryBase
 {
     private readonly Soundex _soundex = new();
     

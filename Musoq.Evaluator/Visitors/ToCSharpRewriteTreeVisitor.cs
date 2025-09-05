@@ -256,12 +256,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             var convertedComparison = HandleCharStringComparison(node.Left, node.Right, a, b);
             Nodes.Push(convertedComparison);
         }
-        // Handle datetime vs string comparison
-        else if (IsDateTimeVsStringComparison(node.Left, node.Right))
-        {
-            var convertedComparison = HandleDateTimeStringComparison(node.Left, node.Right, a, b, "==");
-            Nodes.Push(convertedComparison);
-        }
         else
         {
             // Use the helper for normal equality operations
@@ -322,205 +316,29 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         return Generator.ValueEqualsExpression(leftSyntax, rightSyntax);
     }
 
-    private bool IsDateTimeVsStringComparison(Node leftNode, Node rightNode)
-    {
-        // Check if we have a datetime/timespan column compared with a string literal
-        var leftIsDateTime = IsDateTimeType(leftNode.ReturnType);
-        var rightIsDateTime = IsDateTimeType(rightNode.ReturnType);
-        var leftIsString = leftNode is WordNode;
-        var rightIsString = rightNode is WordNode;
-
-        return (leftIsDateTime && rightIsString) || (leftIsString && rightIsDateTime);
-    }
-
-    private bool IsDateTimeType(Type type)
-    {
-        return type == typeof(DateTime) || type == typeof(DateTime?) ||
-               type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?) ||
-               type == typeof(TimeSpan) || type == typeof(TimeSpan?);
-    }
-
-    private SyntaxNode HandleDateTimeStringComparison(Node leftNode, Node rightNode, SyntaxNode leftSyntax, SyntaxNode rightSyntax, string operatorType)
-    {
-        // Determine which side is the datetime and which is the string
-        var leftIsDateTime = IsDateTimeType(leftNode.ReturnType);
-        
-        SyntaxNode convertedDateTime;
-        SyntaxNode datetimeColumn;
-        
-        if (leftIsDateTime && rightNode is WordNode rightWord)
-        {
-            // Left is datetime, right is string - convert string to datetime
-            convertedDateTime = CreateDateTimeConversion(leftNode.ReturnType, rightWord.Value);
-            datetimeColumn = leftSyntax;
-        }
-        else if (leftNode is WordNode leftWord && IsDateTimeType(rightNode.ReturnType))
-        {
-            // Left is string, right is datetime - convert string to datetime
-            convertedDateTime = CreateDateTimeConversion(rightNode.ReturnType, leftWord.Value);
-            datetimeColumn = rightSyntax;
-            
-            // For string on left, we need to swap the operands and flip certain operators
-            return CreateComparisonExpression(convertedDateTime, datetimeColumn, FlipOperator(operatorType));
-        }
-        else
-        {
-            // Fallback to standard comparison
-            return CreateComparisonExpression(leftSyntax, rightSyntax, operatorType);
-        }
-
-        return CreateComparisonExpression(datetimeColumn, convertedDateTime, operatorType);
-    }
-
-    private SyntaxNode CreateDateTimeConversion(Type targetType, string stringValue)
-    {
-        string conversionMethod;
-        
-        if (targetType == typeof(DateTime) || targetType == typeof(DateTime?))
-        {
-            conversionMethod = "ToDateTime";
-        }
-        else if (targetType == typeof(DateTimeOffset) || targetType == typeof(DateTimeOffset?))
-        {
-            conversionMethod = "ToDateTimeOffset";
-        }
-        else if (targetType == typeof(TimeSpan) || targetType == typeof(TimeSpan?))
-        {
-            conversionMethod = "ToTimeSpan";
-        }
-        else
-        {
-            throw new InvalidOperationException($"Unsupported datetime type: {targetType}");
-        }
-
-        // Create LibraryBase instance and call the conversion method
-        var libraryBaseInstance = SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.IdentifierName("LibraryBase"))
-            .WithArgumentList(SyntaxFactory.ArgumentList());
-        
-        var methodName = SyntaxFactory.IdentifierName(conversionMethod);
-        var memberAccess = SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            libraryBaseInstance,
-            methodName);
-        
-        var stringLiteral = SyntaxFactory.LiteralExpression(
-            SyntaxKind.StringLiteralExpression,
-            SyntaxFactory.Literal(stringValue));
-        
-        var argumentList = SyntaxFactory.ArgumentList(
-            SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Argument(stringLiteral)));
-        
-        return SyntaxFactory.InvocationExpression(memberAccess, argumentList);
-    }
-
-    private SyntaxNode CreateComparisonExpression(SyntaxNode left, SyntaxNode right, string operatorType)
-    {
-        return operatorType switch
-        {
-            "==" => Generator.ValueEqualsExpression(left, right),
-            "!=" => Generator.ValueNotEqualsExpression(left, right),
-            ">" => Generator.GreaterThanExpression(left, right),
-            "<" => Generator.LessThanExpression(left, right),
-            ">=" => Generator.GreaterThanOrEqualExpression(left, right),
-            "<=" => Generator.LessThanOrEqualExpression(left, right),
-            _ => throw new InvalidOperationException($"Unsupported comparison operator: {operatorType}")
-        };
-    }
-
-    private string FlipOperator(string operatorType)
-    {
-        return operatorType switch
-        {
-            ">" => "<",
-            "<" => ">",
-            ">=" => "<=",
-            "<=" => ">=",
-            "==" => "==",
-            "!=" => "!=",
-            _ => operatorType
-        };
-    }
-
     public void Visit(GreaterOrEqualNode node)
     {
-        // Handle datetime vs string comparison
-        if (IsDateTimeVsStringComparison(node.Left, node.Right))
-        {
-            var b = Nodes.Pop();
-            var a = Nodes.Pop();
-            var convertedComparison = HandleDateTimeStringComparison(node.Left, node.Right, a, b, ">=");
-            Nodes.Push(convertedComparison);
-        }
-        else
-        {
-            SyntaxBinaryOperationHelper.ProcessGreaterThanOrEqualOperation(Nodes, Generator);
-        }
+        SyntaxBinaryOperationHelper.ProcessGreaterThanOrEqualOperation(Nodes, Generator);
     }
 
     public void Visit(LessOrEqualNode node)
     {
-        // Handle datetime vs string comparison
-        if (IsDateTimeVsStringComparison(node.Left, node.Right))
-        {
-            var b = Nodes.Pop();
-            var a = Nodes.Pop();
-            var convertedComparison = HandleDateTimeStringComparison(node.Left, node.Right, a, b, "<=");
-            Nodes.Push(convertedComparison);
-        }
-        else
-        {
-            SyntaxBinaryOperationHelper.ProcessLessThanOrEqualOperation(Nodes, Generator);
-        }
+        SyntaxBinaryOperationHelper.ProcessLessThanOrEqualOperation(Nodes, Generator);
     }
 
     public void Visit(GreaterNode node)
     {
-        // Handle datetime vs string comparison
-        if (IsDateTimeVsStringComparison(node.Left, node.Right))
-        {
-            var b = Nodes.Pop();
-            var a = Nodes.Pop();
-            var convertedComparison = HandleDateTimeStringComparison(node.Left, node.Right, a, b, ">");
-            Nodes.Push(convertedComparison);
-        }
-        else
-        {
-            SyntaxBinaryOperationHelper.ProcessGreaterThanOperation(Nodes, Generator);
-        }
+        SyntaxBinaryOperationHelper.ProcessGreaterThanOperation(Nodes, Generator);
     }
 
     public void Visit(LessNode node)
     {
-        // Handle datetime vs string comparison
-        if (IsDateTimeVsStringComparison(node.Left, node.Right))
-        {
-            var b = Nodes.Pop();
-            var a = Nodes.Pop();
-            var convertedComparison = HandleDateTimeStringComparison(node.Left, node.Right, a, b, "<");
-            Nodes.Push(convertedComparison);
-        }
-        else
-        {
-            SyntaxBinaryOperationHelper.ProcessLessThanOperation(Nodes, Generator);
-        }
+        SyntaxBinaryOperationHelper.ProcessLessThanOperation(Nodes, Generator);
     }
 
     public void Visit(DiffNode node)
     {
-        // Handle datetime vs string comparison
-        if (IsDateTimeVsStringComparison(node.Left, node.Right))
-        {
-            var b = Nodes.Pop();
-            var a = Nodes.Pop();
-            var convertedComparison = HandleDateTimeStringComparison(node.Left, node.Right, a, b, "!=");
-            Nodes.Push(convertedComparison);
-        }
-        else
-        {
-            SyntaxBinaryOperationHelper.ProcessValueNotEqualsOperation(Nodes, Generator);
-        }
+        SyntaxBinaryOperationHelper.ProcessValueNotEqualsOperation(Nodes, Generator);
     }
 
     public void Visit(NotNode node)
