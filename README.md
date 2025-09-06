@@ -5,423 +5,303 @@
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
 ![Tests](https://raw.githubusercontent.com/puchaczov/musoq/master/badges/tests-badge.svg)
 
-**One query language for everything.** Musoq brings the power of SQL to diverse data sources without requiring a database. Query your filesystem, Git repos, code structure, and more—all with the SQL syntax you already know.
+**Stop writing throwaway scripts.** Use SQL instead.
+
+Every developer has been there: you need to process some files, check git history, or transform data. Do you write a bash one-liner that breaks on edge cases? A Python script you'll delete in 5 minutes? 
+
+With Musoq, just write a query.
 
 ## 🚀 Quick Start
 
-To try out Musoq, follow the instructions in [CLI repository](https://github.com/Puchaczov/Musoq.CLI).
+```bash
+# Install CLI
+# Follow instructions in [CLI repository](https://github.com/Puchaczov/Musoq.CLI)
 
-## 🌟 Why Musoq?
+# Generate some GUIDs
+Musoq run query "select NewId() from #system.range(1, 5)"
 
-Musoq transforms how developers interact with their data:
+# Find your largest files  
+Musoq run query "select Name, Length from #os.files('/home/user', true) where Length > 1000000 order by Length desc take 10"
 
-- **Query anything with SQL:** From files and directories to Git history and C# code structure
-- **Data insights without databases:** Analyze in place—no import/export necessary
-- **Beyond grep and find:** Perform complex data operations with a familiar, declarative language
-- **Unified syntax across sources:** Use one query language for all your development assets
-- **Extensible plugin architecture:** Easily add new data sources to your query toolkit
+# Check git commits this month
+Musoq run query "select Count(1) from #git.repository('.') r cross apply r.Commits c where c.CommittedWhen > '2024-11-01'"
+```
 
-Musoq exists to eliminate tedious loops and scripts for everyday data tasks, helping you extract insights faster.
+## 💡 Why SQL for Scripting?
 
-## 🎯 Perfect For
+**Instead of this bash nightmare:**
+```bash
+find . -name "*.js" -exec wc -l {} \; | awk '{sum+=$1} END {print sum}'
+```
 
-- **Code analysis:** Extract metrics and patterns from your codebase
-- **Git repository insights:** Understand contributor patterns and code evolution
-- **Data transformation:** Convert between formats with minimal effort
-- **System administration:** Query processes, files, and system metadata
-- **AI-enhanced analysis:** Combine SQL with AI models for advanced text and image analysis
-
-## 🛠 Supported Data Sources
-
-### Development Assets
-- **Git:** Extract insights from commit history, branches, diffs, and more
-- **Roslyn:** Analyze C# code structure, methods, complexity, and patterns
-- **OS:** Query your filesystem, processes, and system metadata
-- **Docker/K8s:** Explore containers and Kubernetes resources *(experimental)*
-
-### Data & Documents
-- **Archives:** Query ZIP and archive contents without extraction *(experimental)*
-- **Files:** Parse text files, CSVs, JSONs, and more with SQL
-- **Images:** Extract metadata and use AI to analyze image content
-- **Databases:** Direct queries to Postgres, SQLite, and Airtable
-
-### AI-Enhanced Analysis
-- **OpenAI/Ollama:** Extract structured data from unstructured content
-- **Image Understanding:** Use LLMs for understanding image content
-- **Text Extraction:** Turn plaintext into structured, queryable data
-
-View the [practilcal examples and applications](https://puchaczov.github.io/Musoq/practical-examples-and-applications.html) from the docs to understand how you can use it.
-
-## 💡 Real-World Examples
-
-### Git Insights: Who's Contributing What?
-
+**Write this:**
 ```sql
--- Top contributors by number of commits
+select Sum(Length(f.GetFileContent())) as TotalLines 
+from #os.files('.', true) f 
+where f.Extension = '.js'
+```
+
+**Instead of throwaway Python:**
+```python
+import os, subprocess, re
+# 15 lines of file handling, regex, and loops
+```
+
+**Write this:**
+```sql
+select f.Name, f.Directory 
+from #os.files('/project', true) f 
+where f.GetFileContent() rlike 'TODO.*urgent'
+```
+
+## 🎯 Perfect For Daily Developer Tasks
+
+- **Quick utilities**: Generate data, check file sizes, count lines
+- **File system queries**: Find files, compare directories, analyze disk usage  
+- **Git insights**: Who changed what, commit patterns, file history
+- **Code analysis**: Search patterns, extract metrics, find dependencies
+- **Data transformation**: Convert between formats, clean up data
+- **System administration**: Process queries, log analysis, monitoring
+
+All with the declarative power of SQL instead of imperative loops and conditionals.
+
+## 🛠 What You Can Query
+
+### Everyday Stuff
+```sql
+-- Generate test data
+select 'User' + ToString(Value) as Username, NewId() as UserId 
+from #system.range(1, 100)
+
+-- Find duplicate files by name
 select
-    c.AuthorEmail,
-    Count(c.Sha) as CommitCount
-from #git.repository('/path/to/repo') r
+  Name,
+  Count(1) as Duplicates
+from #os.files('/downloads', true)
+group by Name having Count(Name) > 1
+
+-- Disk space by file type
+select
+  Extension,
+  Sum(Length) / 1024 / 1024 as SizeMB,
+  Count(1) as FileCount
+from #os.files('/project', true)  
+group by Extension
+order by Sum(Length) / 1024 / 1024 desc
+```
+
+### Development Tasks  
+```sql
+-- Git contributors last month
+select
+  c.Author,
+  Count(1) as Commits
+from #git.repository('.') r
 cross apply r.Commits c
-group by c.AuthorEmail
-having Count(c.Sha) > 10
-order by Count(c.Sha) desc
-take 10
-```
+where c.CommittedWhen > SubtractDateTimeOffsets(GetDate(), FromString('30.00:00:00'))
+group by c.Author
+order by c.Commits desc
 
-### Code Quality Analysis: Finding Complex Methods
-
-```sql
--- Top 3 methods with highest complexity
+-- Find TODOs in codebase
 select
-    c.Name as ClassName,
-    m.Name as MethodName,
-    Max(m.CyclomaticComplexity) as HighestComplexity
-from #csharp.solution('/some/path/Musoq.sln') s
-cross apply s.Projects p 
-cross apply p.Documents d 
-cross apply d.Classes c 
-cross apply c.Methods m 
-group by c.Name, m.Name
-order by Max(m.CyclomaticComplexity) desc
-take 3
+  files.Name,
+  f.LineNumber,
+  f.Line
+from #os.files('./src', true) files
+cross apply #flat.file(files.FullName) f
+where files.Extension in ('.cs', '.js', '.py') and f.Line like '%TODO%'
+
+-- Complex C# classes (requires solution analysis)
+select
+  c.Name,
+  c.MethodsCount,
+  c.LinesOfCode
+from #csharp.solution('./MyProject.sln') s
+cross apply s.Projects p
+cross apply p.Documents d
+cross apply d.Classes c
+where c.MethodsCount > 20 order by c.LinesOfCode desc
 ```
 
-### Storage Management: Where's Your Space Going?
-
+### Data Processing
 ```sql
--- Analyze disk space usage by file extension
-SELECT
-    Extension,
-    Round(Sum(Length) / 1024 / 1024 / 1024, 1) as SpaceOccupiedInGB,
-    Count(Extension) as FileCount
-FROM #os.files('/some/directory', true)
-GROUP BY Extension
-HAVING Round(Sum(Length) / 1024 / 1024 / 1024, 1) > 0
-ORDER BY SpaceOccupiedInGB DESC
+-- Transform CSV data
+select
+  Category,
+  Sum(ToDecimal(Amount)) as Total
+from #separatedvalues.csv('./sales.csv', true, 0)
+group by Category
+
+-- Extract structured data from text using AI
+select
+  t.ProductName,
+  t.Price,
+  t.Description  
+from #stdin.text('OpenAI', 'gpt-4o') t
+where ToDecimal(t.Price) > 100
 ```
 
-### AI-Enhanced Analysis: Extract Structure from Unstructured Data
+## 🌟 Why You Might Love It
 
+- **No context switching**: Stay in SQL instead of jumping between bash/Python/tools
+- **Declarative**: Say what you want, not how to get it
+- **Composable**: Complex queries from simple building blocks  
+- **Familiar**: You probably already know SQL
+- **Fast**: No need to write, debug, and maintain scripts
+- **Powerful**: Joins, aggregations, and complex logic built-in
+
+## 📈 Scales From Simple to Sophisticated
+
+Start with basic utilities:
 ```sql
--- Extract structured data from unstructured text
-select s.Who, s.Age from #stdin.text('from-text-extraction-model') s 
-where ToInt32(s.Age) > 26 and ToInt32(s.Age) < 75
-
--- Extract product info from receipt images
-select s.Shop, s.ProductName, s.Price 
-from #stdin.image('from-image-extraction-model') s
+select NewId() from #system.dual()
 ```
+
+Scale up to complex analysis:
+```sql
+-- Analyze codebase evolution over time
+with MonthlyStats as (
+    select 
+        ToString(c.CommittedWhen, 'yyyy-MM') as Month,
+        Count(d.Path) as FilesChanged,
+        Sum(p.LinesAdded) as LinesAdded,
+        Sum(p.LinesDeleted) as LinesDeleted
+    from #git.repository('./large-project') r
+    cross apply r.Commits c
+    cross apply r.DifferenceBetween(c, r.CommitFrom(c.Sha + '^')) d  
+    cross apply r.PatchBetween(c, r.CommitFrom(c.Sha + '^')) p
+    group by ToString(c.CommittedWhen, 'yyyy-MM')
+)
+select
+  Month,
+  FilesChanged,
+  LinesAdded - LinesDeleted as NetLines
+from MonthlyStats
+order by Month desc
+take 12
+```
+
+## 🎬 Real-World Examples
+
+**File Management:**
+```sql
+-- Find files not accessed in 6 months
+select
+  FullName,
+  LastAccessTime from #os.files('/old-project', true)
+where LastAccessTime < SubtractDateTimeOffsets(GetDate(), FromString('180.00:00:00'))
+
+-- Compare two directories
+select
+  FullName,
+  Status from
+#os.dirscompare('/backup', '/current')
+where Status != 'The Same'
+```
+
+**Development Workflow:**
+```sql
+-- Which files change together most often?
+select f1.Path, f2.Path, Count(1) as CoChanges
+from #git.repository('.') r cross apply r.Commits c
+cross apply r.DifferenceBetween(c, r.CommitFrom(c.Sha + '^')) f1
+cross apply r.DifferenceBetween(c, r.CommitFrom(c.Sha + '^')) f2  
+where f1.Path < f2.Path
+group by f1.Path, f2.Path
+having Count(1) > 5
+order by CoChanges desc
+```
+
+**Data Processing:**
+```sql
+-- Extract and count imports from protobuf files
+with Imports as (
+    select Replace(Replace(Line, 'import "', ''), '";', '') as ImportPath
+    from #flat.file('./proto/service.proto') f
+    where Line like 'import "%'  
+)
+select
+  ImportPath,
+  Count(1) as Usage
+from Imports
+group by ImportPath
+```
+
+## 🚀 Data Sources
+
+Query everything with the same SQL syntax:
+
+**File System & OS**
+- Files, directories, processes, metadata
+- Archives (ZIP contents without extraction)
+- Text files, CSVs, JSON
+
+**Development Tools**  
+- Git repositories (commits, diffs, branches)
+- C# codebases (classes, methods, complexity)
+- Docker containers, Kubernetes resources
+
+**AI & Analysis**
+- OpenAI/GPT integration for text/image analysis
+- Local LLMs via Ollama
+- Extract structure from unstructured data
+
+**Specialized**
+- Time-series data and schedules
+- CAN bus data for automotive
+- Airtable, databases, APIs
+
+## ⚡ Getting Started
+
+1. **[Install CLI](https://github.com/Puchaczov/Musoq.CLI)** - Quick setup guide
+2. **Try basic queries** - Generate data, list files, check git
+3. **Explore data sources** - See what you can query
+4. **Replace your next script** - Use SQL instead
+
+## 📚 Resources
+
+- **[Documentation](https://puchaczov.github.io/Musoq/)** - Guide and examples
+- **[Data Sources](https://github.com/Puchaczov/Musoq.DataSources)** - All available plugins
+- **[CLI Tool](https://github.com/Puchaczov/Musoq.CLI)** - Command-line interface
+
+## 🎨 Advanced Features
+
+SQL power including:
+- Common Table Expressions (CTEs)
+- JOINs across different data sources  
+- Set operations (UNION, EXCEPT, INTERSECT)
+- Regular expressions and pattern matching
+- Aggregations
+- Custom data type handling through plugins
 
 ## 🤔 When to Use Musoq
 
-Musoq shines when you need to:
+**✅ Perfect for:**
+- One-off data tasks that would need a script
+- Combining data from multiple sources  
+- Quick analysis and reporting
+- File system operations beyond basic commands
+- Git repository insights
+- Code pattern searches
 
-- **Extract insights** from code, Git history, or system data
-- **Transform data** between formats without writing custom scripts
-- **Combine sources** that normally don't speak to each other
-- **Avoid the overhead** of importing data into a database
-- **Leverage SQL skills** for non-database tasks
+**❌ Not ideal for:**
+- Large-scale data processing (>memory size)
+- Real-time/streaming data
+- Production ETL pipelines  
+- Applications requiring millisecond performance
 
-Musoq is ideal for small to medium datasets where the cognitive efficiency of SQL outweighs raw performance requirements.
+## 🐛 Philosophy
 
-## 📑 Documentation & Resources
+Musoq is designed around one principle: **eliminate developer friction**.
 
-- **[Documentation](https://puchaczov.github.io/Musoq/)**: Project overview and documentation
-- **[Architecture Guide](ARCHITECTURE.md)**: Comprehensive architecture documentation for developers
-- **[Data Sources](https://github.com/Puchaczov/Musoq.DataSources)**: All data sources resides here
-- **[CLI Tool](https://github.com/Puchaczov/Musoq.CLI)**: CLI tool that allows to runs musoq queries
+Stop deciding whether a task is "worth writing a script for." Stop context-switching between tools. Stop debugging bash pipes.
 
-## 🔧 Advanced Features
+Just write a query.
 
-Musoq supports a rich set of SQL-like features:
+---
 
-- Parameterizable sources
-- Common Table Expressions (CTEs)
-- CROSS/OUTER APPLY operators
-- Set operations (UNION, EXCEPT, INTERSECT)
-- Regular expression matching
-- Advanced filtering with WHERE/HAVING
-- JOIN operations across disparate sources
-- Pagination with SKIP/TAKE
-
-## 🚀 Roadmap
-
-Key areas of development include:
-
-- Comprehensive documentation
-- Runtime efficiency improvements
-- Parallel query execution
-- Recursive CTE support
-- Enhanced JSON/XML handling
-- Subquery support
-- Improved error handling
-
-Have an idea? [Submit a feature request](https://github.com/Puchaczov/Musoq/issues/new).
-
-## 🌱 Project Maturity
-
-Musoq is an actively developed tool used in professional environments. It's designed with these principles:
-
-- **Read-only by design:** Focuses exclusively on querying, not modifying data
-- **Developer-friendly syntax:** Prioritizes ease of use over strict SQL compliance
-- **Right-sized solutions:** Optimized for small to medium datasets
-- **Pragmatic innovations:** Introduces syntax extensions when they simplify complex tasks
-
-I use Musoq daily across various workplaces, refining it based on real-world needs.
+*"Why write loops when you can write queries?"*
 
 ## 📄 License
 
-Musoq is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🛠 Supported Data Sources (Complete)
-
-### Operating System & Files
-- **OS**: Query your filesystem, processes, and system metadata - from file contents to EXIF data
-- **Archives**: Treat ZIP and other archive files as queryable tables
-- **FlatFile**: Work with any text-based files as database tables
-- **SeparatedValues**: Handle CSV, TSV and other delimited files with SQL capabilities
-
-### Development Tools
-- **Git**: Query Git repositories - analyze commits, diffs, branches and more
-- **Roslyn**: Analyze C# code structure, metrics and patterns using SQL
-- **Docker**: Query containers, images and Docker resources *(experimental)*
-- **Kubernetes**: Interact with K8s clusters, pods and services *(experimental)*
-
-### Database & Storage
-- **Airtable**: Access Airtable bases through SQL interface
-- **Json**: Query JSON files with SQL syntax
-
-### AI & Analysis
-- **OpenAI**: Enhance queries with GPT models for text extraction and analysis
-- **Ollama**: Use open-source LLMs for data extraction and processing
-
-### Domain-Specific
-- **CANBus**: Analyze CAN bus data and DBC files for automotive applications
-- **Time**: Work with time-series data and schedules
-
-### Utility
-- **System**: Core utilities including ranges, dual tables and common functions
-
-## 🎬 More Examples
-
-### Git Repository Analysis
-
-```sql
--- How many commits does the repository have
-select
-    Count(1) as CommitsCount
-from #git.repository('D:\repos\efcore') r
-cross apply r.Commits c
-group by 'fake'
-```
-
-### Solution Analysis
-
-```sql
--- How many lines of code does the project contain?
-select 
-    Sum(c.LinesOfCode) as TotalLinesOfCode,
-    Sum(c.MethodsCount) as TotalMethodsCount
-from #csharp.solution('/some/path/Musoq.sln') s 
-cross apply s.Projects p 
-cross apply p.Documents d 
-cross apply d.Classes c 
-group by 'fake'
-
--- Extract all SQL queries from tests
-select 
-    p.RowNumber() as RowNumber, 
-    p.Name, 
-    c.Name, 
-    m.Name, 
-    g.ToBase64(g.GetBytes(g.LlmPerform('You are C# developer. Your task is to extract SQL query without any markdown characters. If no sql, then return empty string', m.Body))) as QueryBase64
-from #csharp.solution('/some/path/Musoq.sln') s 
-inner join #openai.gpt('gpt-4o') g on 1 = 1 
-cross apply s.Projects p 
-cross apply p.Documents d 
-cross apply d.Classes c 
-cross apply c.Attributes a 
-cross apply c.Methods m 
-where a.Name = 'TestClassAttribute'
-```
-
-### File System Operations
-
-```sql
--- Find large files
-SELECT 
-	FullName 
-FROM #os.files('/some/path', true) 
-WHERE ToDecimal(Length) / 1024 / 1024 / 1024 > 1
-
--- Query image EXIF metadata
-SELECT
-    f.Name,
-    m.DirectoryName,
-    m.TagName,
-    m.Description
-FROM #os.files('./Images', false) f CROSS APPLY #os.metadata(f.FullName) m
-WHERE f.Extension = '.jpg'
-
--- Compare directories
-SELECT 
-    (CASE WHEN SourceFile IS NOT NULL 
-     THEN SourceFileRelative 
-     ELSE DestinationFileRelative 
-     END) AS FullName, 
-    (CASE WHEN State = 'TheSame' 
-     THEN 'The Same' 
-     ELSE State 
-     END) AS Status 
-FROM #os.dirscompare('E:\DiffDirsTests\A', 'E:\DiffDirsTests\B')
-```
-
-### Archive Exploration
-
-```sql
--- Query .csv files from archive file
-table PeopleDetails {
-	Name 'System.String',
-	Surname 'System.String',
-	Age 'System.Int32'
-};
-couple #separatedvalues.comma with table PeopleDetails as SourceOfPeopleDetails;
-with Files as (
-	select 
-		a.Key as InZipPath
-	from #archives.file('./Files/Example2/archive.zip') a
-	where 
-		a.IsDirectory = false and
-		a.Contains(a.Key, '/') = false and 
-		a.Key like '%.csv'
-)
-select 
-	f.InZipPath, 
-	b.Name, 
-	b.Surname, 
-	b.Age 
-from #archives.file('./Files/Example2/archive.zip') a
-inner join Files f on f.InZipPath = a.Key
-cross apply SourceOfPeopleDetails(a.GetStreamContent(), true, 0) as b;
-```
-
-### Data Extraction & Transformation
-
-```sql
--- Count word frequencies within text
-with p as (
-    select 
-        Replace(Replace(ToLowerInvariant(w.Value), '.', ''), ',', '') as Word
-    from #flat.file('/some/path/to/text/file.txt') f cross apply f.Split(f.Line, ' ') w
-)
-select
-    Count(p.Word, 1) as AllWordsCount, 
-    Count(p.Word) as SpecificWordCount,
-    Round(ToDecimal((Count(p.Word) * 100)) / Count(p.Word, 1), 2) as WordFrequencies,
-    Word
-from p group by p.Word having Count(p.Word) > 1
-
--- Transform imports in proto files
-with Events as (
-    select
-        Replace(
-            Replace(
-                Line,
-                'import "',
-                ''
-            ),
-            '.proto";',
-            ''
-        ) as Namespace
-    from #flat.file('/path/to/file.proto') f
-    where
-        Length(Line) > 6 and
-        Head(Line, 6) = 'import' and
-        IndexOf(Line, 'some') <> -1
-)
-select
-    Choose(
-        0,
-        Split(e.Namespace, '/')
-    ) +
-    '/' +
-    Replace(
-        ToTitleCase(
-            Choose(
-                1,
-                Split(e.Namespace, '/')
-            )
-        ),
-        '_',
-        ''
-    ) as Events
-from Events e
-```
-
-### AI Integration
-
-```sql
--- Describe images using AI
-SELECT
-    llava.DescribeImage(photo.Base64File()),
-    photo.FullName
-FROM #os.files('/path/to/directory', false) photo 
-INNER JOIN #ollama.models('llava:13b', 0.0) llava ON 1 = 1
-
--- Count tokens in files
-SELECT 
-   SUM(gpt.CountTokens(f.GetFileContent())) AS TokensCount 
-FROM #os.files('/path/to/directory', true) f 
-INNER JOIN #openai.gpt('gpt-4') gpt ON 1 = 1 
-WHERE f.Extension IN ('.md', '.c')
-
--- Sentiment analysis on comments
-SELECT 
-    csv.PostId,
-    csv.Comment,
-    gpt.Sentiment(csv.Comment) as Sentiment,
-    csv.Date
-FROM #separatedvalues.csv('/home/somebody/comments_sample.csv', true, 0) csv
-INNER JOIN #openai.gpt('gpt-4-1106-preview') gpt on 1 = 1
-```
-
-### Domain Specific Analysis
-
-```sql
--- Analyze CAN bus data
-select 
-    m.Id, 
-    m.Name, 
-    m.DLC, 
-    m.Transmitter, 
-    m.Comment as MessageComment, 
-    m.CycleTime,
-    s.Name, 
-    s.StartBit, 
-    s.Length, 
-    s.ByteOrder, 
-    s.InitialValue, 
-    s.Factor, 
-    s.IsInteger, 
-    s.Offset, 
-    s.Minimum, 
-    s.Maximum, 
-    s.Unit,
-    s.Comment as SignalsComment
-from #can.messages('@qfs/Model3CAN.dbc') m cross apply m.Signals s
-```
-
-## 🏗 Architecture
-
-### High-level Overview
-![Architecture Overview](https://github.com/Puchaczov/Musoq/blob/master/Musoq-Architecture-Engine.png)
-
-### Plugins
-Musoq offers a plugin API that all sources use. To learn how to implement your own plugin, you should examine how existing plugins are created.
-
----
-
-**Note:** While Musoq uses SQL-like syntax, it may not be fully SQL compliant. Some differences may appear, and Musoq implements some experimental syntax and behaviors that are not used by traditional database engines. This is by design to optimize for developer productivity and clarity.
+MIT License - see the [LICENSE](LICENSE) file for details.
