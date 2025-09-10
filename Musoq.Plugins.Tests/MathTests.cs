@@ -78,4 +78,83 @@ public class MathTests : LibraryBaseBaseTests
         Assert.AreEqual(null, Library.PercentOf(25, null));
         Assert.AreEqual(null, Library.PercentOf(null, null));
     }
+
+    [TestMethod]
+    public void FromHexTest()
+    {
+        // Basic hex parsing
+        Assert.AreEqual(255L, Library.FromHex("FF"));
+        Assert.AreEqual(255L, Library.FromHex("ff"));
+        Assert.AreEqual(10L, Library.FromHex("A"));
+        Assert.AreEqual(16L, Library.FromHex("10"));
+        
+        // With 0x prefix
+        Assert.AreEqual(255L, Library.FromHex("0xFF"));
+        Assert.AreEqual(255L, Library.FromHex("0xff"));
+        Assert.AreEqual(255L, Library.FromHex("0XFF"));
+        
+        // Negative values
+        Assert.AreEqual(-1L, Library.FromHex("FFFFFFFFFFFFFFFF"));
+        
+        // Edge cases
+        Assert.AreEqual(0L, Library.FromHex("0"));
+        Assert.AreEqual(0L, Library.FromHex("0x0"));
+        
+        // Invalid inputs
+        Assert.AreEqual(null, Library.FromHex(null));
+        Assert.AreEqual(null, Library.FromHex(""));
+        Assert.AreEqual(null, Library.FromHex("   "));
+        Assert.AreEqual(null, Library.FromHex("GG"));
+        Assert.AreEqual(null, Library.FromHex("0xGG"));
+    }
+
+    [TestMethod]
+    public void FromBinTest()
+    {
+        // Basic binary parsing
+        Assert.AreEqual(5L, Library.FromBin("101"));
+        Assert.AreEqual(10L, Library.FromBin("1010"));
+        Assert.AreEqual(15L, Library.FromBin("1111"));
+        
+        // With 0b prefix
+        Assert.AreEqual(5L, Library.FromBin("0b101"));
+        Assert.AreEqual(5L, Library.FromBin("0B101"));
+        
+        // Edge cases
+        Assert.AreEqual(0L, Library.FromBin("0"));
+        Assert.AreEqual(0L, Library.FromBin("0b0"));
+        Assert.AreEqual(1L, Library.FromBin("1"));
+        
+        // Invalid inputs
+        Assert.AreEqual(null, Library.FromBin(null));
+        Assert.AreEqual(null, Library.FromBin(""));
+        Assert.AreEqual(null, Library.FromBin("   "));
+        Assert.AreEqual(null, Library.FromBin("102"));
+        Assert.AreEqual(null, Library.FromBin("0b102"));
+    }
+
+    [TestMethod]
+    public void FromOctTest()
+    {
+        // Basic octal parsing
+        Assert.AreEqual(8L, Library.FromOct("10"));
+        Assert.AreEqual(64L, Library.FromOct("100"));
+        Assert.AreEqual(7L, Library.FromOct("7"));
+        Assert.AreEqual(511L, Library.FromOct("777"));
+        
+        // With 0o prefix
+        Assert.AreEqual(8L, Library.FromOct("0o10"));
+        Assert.AreEqual(8L, Library.FromOct("0O10"));
+        
+        // Edge cases
+        Assert.AreEqual(0L, Library.FromOct("0"));
+        Assert.AreEqual(0L, Library.FromOct("0o0"));
+        
+        // Invalid inputs
+        Assert.AreEqual(null, Library.FromOct(null));
+        Assert.AreEqual(null, Library.FromOct(""));
+        Assert.AreEqual(null, Library.FromOct("   "));
+        Assert.AreEqual(null, Library.FromOct("8"));
+        Assert.AreEqual(null, Library.FromOct("0o8"));
+    }
 }

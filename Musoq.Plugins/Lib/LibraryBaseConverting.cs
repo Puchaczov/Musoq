@@ -102,6 +102,87 @@ public partial class LibraryBase
         return Convert.FromBase64String(value);
     }
 
+    /// <summary>
+    /// Converts hexadecimal string to long integer
+    /// </summary>
+    /// <param name="value">The hexadecimal string (with or without 0x prefix)</param>
+    /// <returns>Converted long value</returns>
+    [BindableMethod]
+    public long? FromHex(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        var cleanValue = value.Trim();
+        
+        // Remove 0x or 0X prefix if present
+        if (cleanValue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            cleanValue = cleanValue.Substring(2);
+
+        try
+        {
+            return Convert.ToInt64(cleanValue, 16);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Converts binary string to long integer
+    /// </summary>
+    /// <param name="value">The binary string (with or without 0b prefix)</param>
+    /// <returns>Converted long value</returns>
+    [BindableMethod]
+    public long? FromBin(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        var cleanValue = value.Trim();
+        
+        // Remove 0b or 0B prefix if present
+        if (cleanValue.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
+            cleanValue = cleanValue.Substring(2);
+
+        try
+        {
+            return Convert.ToInt64(cleanValue, 2);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Converts octal string to long integer
+    /// </summary>
+    /// <param name="value">The octal string (with or without 0o prefix)</param>
+    /// <returns>Converted long value</returns>
+    [BindableMethod]
+    public long? FromOct(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        var cleanValue = value.Trim();
+        
+        // Remove 0o or 0O prefix if present
+        if (cleanValue.StartsWith("0o", StringComparison.OrdinalIgnoreCase))
+            cleanValue = cleanValue.Substring(2);
+
+        try
+        {
+            return Convert.ToInt64(cleanValue, 8);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private string ToBase<T>(T value, int baseNumber) where T : IConvertible
     {
         return Type.GetTypeCode(typeof(T)) switch
