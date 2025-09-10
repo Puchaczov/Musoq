@@ -430,5 +430,72 @@ namespace Musoq.Evaluator.Tests
             TestMethodTemplate("0b1", 1L);
             TestMethodTemplate("0o1", 1L);
         }
+
+        // Underflow Protection and Boundary Tests
+        [TestMethod]
+        public void MinimumValidValues_HexBinaryOctal()
+        {
+            // Test minimum valid values (long.MinValue) - these should work
+            TestMethodTemplate("0x8000000000000000", -9223372036854775808L); // long.MinValue in hex
+            TestMethodTemplate("0b1000000000000000000000000000000000000000000000000000000000000000", -9223372036854775808L); // long.MinValue in binary (64 bits)
+            TestMethodTemplate("0o1000000000000000000000", -9223372036854775808L); // long.MinValue in octal
+        }
+
+        [TestMethod]
+        public void NegativeRepresentations_TwosComplement()
+        {
+            // Test negative values represented in two's complement
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFF", -1L); // -1 in hex
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFE", -2L); // -2 in hex
+            TestMethodTemplate("0x8000000000000001", -9223372036854775807L); // long.MinValue + 1 in hex
+            
+            // Test binary negative representations
+            TestMethodTemplate("0b1111111111111111111111111111111111111111111111111111111111111111", -1L); // -1 in binary
+            TestMethodTemplate("0b1111111111111111111111111111111111111111111111111111111111111110", -2L); // -2 in binary
+            
+            // Test octal negative representations  
+            TestMethodTemplate("0o1777777777777777777777", -1L); // -1 in octal
+            TestMethodTemplate("0o1777777777777777777776", -2L); // -2 in octal
+        }
+
+        [TestMethod]
+        public void UnderflowArithmetic_Operations()
+        {
+            // Test arithmetic that results in values near the lower boundary
+            TestMethodTemplate("0x8000000000000000 + 0x1", -9223372036854775807L); // MinValue + 1
+            TestMethodTemplate("0x8000000000000001 - 0x1", -9223372036854775808L); // Back to MinValue
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFF + 0x1", 0L); // -1 + 1 = 0
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFE + 0x2", 0L); // -2 + 2 = 0
+        }
+
+        [TestMethod]
+        public void UnderflowBoundaryValues_CrossFormat()
+        {
+            // Test cross-format operations with boundary values
+            TestMethodTemplate("0x8000000000000000 + 0b1", -9223372036854775807L); // MinValue + 1 (cross-format)
+            TestMethodTemplate("0o1000000000000000000000 + 0x1", -9223372036854775807L); // MinValue + 1 (cross-format)
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFF + 0b1", 0L); // -1 + 1 = 0 (cross-format)
+        }
+
+        [TestMethod]
+        public void SignedValueInterpretation_ConsistencyTests()
+        {
+            // Verify that signed interpretation is consistent across formats
+            // Note: Convert.ToInt64() treats values as unsigned until they exceed long range
+            // So 0x80000000 = 2147483648L (not int.MinValue when converted to long)
+            TestMethodTemplate("0x80000000", 2147483648L); // 0x80000000 as long (unsigned interpretation)
+            TestMethodTemplate("0b10000000000000000000000000000000", 2147483648L); // 0x80000000 as binary
+            TestMethodTemplate("0o20000000000", 2147483648L); // 0x80000000 as octal
+            
+            // Test that max unsigned 32-bit values are interpreted as positive when cast to long
+            TestMethodTemplate("0xFFFFFFFF", 4294967295L); // uint.MaxValue (positive in long)
+            TestMethodTemplate("0b11111111111111111111111111111111", 4294967295L); // uint.MaxValue as binary
+            TestMethodTemplate("0o37777777777", 4294967295L); // uint.MaxValue as octal
+            
+            // Test 64-bit values that are truly negative (two's complement)
+            TestMethodTemplate("0x8000000000000000", -9223372036854775808L); // long.MinValue (signed interpretation)
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFF", -1L); // -1 in two's complement
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFE", -2L); // -2 in two's complement
+        }
     }
 }

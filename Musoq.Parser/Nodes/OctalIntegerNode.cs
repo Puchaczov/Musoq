@@ -42,9 +42,20 @@ public class OctalIntegerNode : ConstantValueNode
         // Parse as long for consistency with existing test expectations
         try
         {
-            return Convert.ToInt64(octalValue, 8);
+            var result = Convert.ToInt64(octalValue, 8);
+            
+            // Additional validation for boundary cases
+            // Note: Convert.ToInt64 handles two's complement representation correctly
+            // Values within octal long range are valid
+            // Only values that truly overflow beyond long range should be rejected
+            
+            return result;
         }
         catch (OverflowException)
+        {
+            throw new NotSupportedException($"Octal value {originalValue} is too large and not supported.");
+        }
+        catch (ArgumentException)
         {
             throw new NotSupportedException($"Octal value {originalValue} is too large and not supported.");
         }

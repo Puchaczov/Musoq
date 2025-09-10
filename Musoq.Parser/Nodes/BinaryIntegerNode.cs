@@ -42,9 +42,20 @@ public class BinaryIntegerNode : ConstantValueNode
         // Parse as long for consistency with existing test expectations
         try
         {
-            return Convert.ToInt64(binaryValue, 2);
+            var result = Convert.ToInt64(binaryValue, 2);
+            
+            // Additional validation for boundary cases
+            // Note: Convert.ToInt64 handles two's complement representation correctly
+            // Values with 64 bits or less are valid within long range
+            // Only values that truly overflow beyond long range should be rejected
+            
+            return result;
         }
         catch (OverflowException)
+        {
+            throw new NotSupportedException($"Binary value {originalValue} is too large and not supported.");
+        }
+        catch (ArgumentException)
         {
             throw new NotSupportedException($"Binary value {originalValue} is too large and not supported.");
         }

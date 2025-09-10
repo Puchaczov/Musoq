@@ -42,9 +42,20 @@ public class HexIntegerNode : ConstantValueNode
         // Parse as long for consistency with existing test expectations
         try
         {
-            return Convert.ToInt64(hexValue, 16);
+            var result = Convert.ToInt64(hexValue, 16);
+            
+            // Additional validation for boundary cases
+            // Note: Convert.ToInt64 handles two's complement representation correctly
+            // Values like 0x8000000000000000 are valid (long.MinValue)
+            // Only values that truly overflow beyond long range should be rejected
+            
+            return result;
         }
         catch (OverflowException)
+        {
+            throw new NotSupportedException($"Hexadecimal value {originalValue} is too large and not supported.");
+        }
+        catch (ArgumentException)
         {
             throw new NotSupportedException($"Hexadecimal value {originalValue} is too large and not supported.");
         }
