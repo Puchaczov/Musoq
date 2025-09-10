@@ -11,7 +11,7 @@ public class BinaryIntegerNode : ConstantValueNode
             ? value.Substring(2) 
             : value;
         
-        ObjValue = Convert.ToInt64(binaryValue, 2);
+        ObjValue = ParseBinaryValue(binaryValue, value);
         Id = $"{nameof(BinaryIntegerNode)}{value}{ReturnType.Name}";
     }
 
@@ -35,5 +35,22 @@ public class BinaryIntegerNode : ConstantValueNode
     public override void Accept(IExpressionVisitor visitor)
     {
         visitor.Visit(this);
+    }
+
+    private static object ParseBinaryValue(string binaryValue, string originalValue)
+    {
+        // Parse as long for consistency with existing test expectations
+        try
+        {
+            return Convert.ToInt64(binaryValue, 2);
+        }
+        catch (OverflowException)
+        {
+            throw new NotSupportedException($"Binary value {originalValue} is too large and not supported.");
+        }
+        catch (FormatException)
+        {
+            throw new NotSupportedException($"Binary value {originalValue} has invalid format.");
+        }
     }
 }

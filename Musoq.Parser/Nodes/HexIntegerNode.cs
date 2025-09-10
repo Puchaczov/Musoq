@@ -11,7 +11,7 @@ public class HexIntegerNode : ConstantValueNode
             ? value.Substring(2) 
             : value;
         
-        ObjValue = Convert.ToInt64(hexValue, 16);
+        ObjValue = ParseHexValue(hexValue, value);
         Id = $"{nameof(HexIntegerNode)}{value}{ReturnType.Name}";
     }
 
@@ -35,5 +35,22 @@ public class HexIntegerNode : ConstantValueNode
     public override void Accept(IExpressionVisitor visitor)
     {
         visitor.Visit(this);
+    }
+
+    private static object ParseHexValue(string hexValue, string originalValue)
+    {
+        // Parse as long for consistency with existing test expectations
+        try
+        {
+            return Convert.ToInt64(hexValue, 16);
+        }
+        catch (OverflowException)
+        {
+            throw new NotSupportedException($"Hexadecimal value {originalValue} is too large and not supported.");
+        }
+        catch (FormatException)
+        {
+            throw new NotSupportedException($"Hexadecimal value {originalValue} has invalid format.");
+        }
     }
 }

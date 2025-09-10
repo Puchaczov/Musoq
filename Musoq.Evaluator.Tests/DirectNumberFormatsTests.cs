@@ -1,4 +1,6 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests
@@ -369,6 +371,64 @@ namespace Musoq.Evaluator.Tests
             TestMethodTemplate("0b1111 + 0b1", 16L);
             TestMethodTemplate("0o17 + 0o1", 16L);
             TestMethodTemplate("15 + 1", 16L);
+        }
+
+        // Overflow Protection Tests
+        [TestMethod]
+        [ExpectedException(typeof(AstValidationException))]
+        public void HexadecimalOverflow_TooLargeForLong()
+        {
+            // This hex value is too large for long (more than 16 hex digits)
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFF1", 0L);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(AstValidationException))]
+        public void BinaryOverflow_TooLargeForLong()
+        {
+            // This binary value has 65 bits (too large for 64-bit long)
+            TestMethodTemplate("0b11111111111111111111111111111111111111111111111111111111111111111", 0L);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(AstValidationException))]
+        public void OctalOverflow_TooLargeForLong()
+        {
+            // This octal value is too large for long (more than 21 octal digits)
+            TestMethodTemplate("0o7777777777777777777777", 0L);
+        }
+
+        [TestMethod]
+        public void MaximumValidValues_HexBinaryOctal()
+        {
+            // Test maximum valid values that should work
+            TestMethodTemplate("0x7FFFFFFFFFFFFFFF", 9223372036854775807L); // long.MaxValue in hex
+            TestMethodTemplate("0b111111111111111111111111111111111111111111111111111111111111111", 9223372036854775807L); // long.MaxValue in binary (63 bits)
+            TestMethodTemplate("0o777777777777777777777", 9223372036854775807L); // long.MaxValue in octal
+        }
+
+        [TestMethod]
+        public void BoundaryValues_IntToLongTransition()
+        {
+            // Test values around int.MaxValue (all return long for consistency)
+            TestMethodTemplate("0x7FFFFFFF", 2147483647L); // int.MaxValue in hex
+            TestMethodTemplate("0x80000000", 2147483648L); // int.MaxValue + 1 in hex
+            TestMethodTemplate("0b1111111111111111111111111111111", 2147483647L); // int.MaxValue in binary (31 bits)
+            TestMethodTemplate("0b10000000000000000000000000000000", 2147483648L); // int.MaxValue + 1 in binary (32 bits)
+            TestMethodTemplate("0o17777777777", 2147483647L); // int.MaxValue in octal
+            TestMethodTemplate("0o20000000000", 2147483648L); // int.MaxValue + 1 in octal
+        }
+
+        [TestMethod]
+        public void EdgeCases_ZeroAndOne()
+        {
+            // Test edge cases with minimal values
+            TestMethodTemplate("0x0", 0L);
+            TestMethodTemplate("0b0", 0L);
+            TestMethodTemplate("0o0", 0L);
+            TestMethodTemplate("0x1", 1L);
+            TestMethodTemplate("0b1", 1L);
+            TestMethodTemplate("0o1", 1L);
         }
     }
 }

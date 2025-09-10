@@ -11,7 +11,7 @@ public class OctalIntegerNode : ConstantValueNode
             ? value.Substring(2) 
             : value;
         
-        ObjValue = Convert.ToInt64(octalValue, 8);
+        ObjValue = ParseOctalValue(octalValue, value);
         Id = $"{nameof(OctalIntegerNode)}{value}{ReturnType.Name}";
     }
 
@@ -35,5 +35,22 @@ public class OctalIntegerNode : ConstantValueNode
     public override void Accept(IExpressionVisitor visitor)
     {
         visitor.Visit(this);
+    }
+
+    private static object ParseOctalValue(string octalValue, string originalValue)
+    {
+        // Parse as long for consistency with existing test expectations
+        try
+        {
+            return Convert.ToInt64(octalValue, 8);
+        }
+        catch (OverflowException)
+        {
+            throw new NotSupportedException($"Octal value {originalValue} is too large and not supported.");
+        }
+        catch (FormatException)
+        {
+            throw new NotSupportedException($"Octal value {originalValue} has invalid format.");
+        }
     }
 }
