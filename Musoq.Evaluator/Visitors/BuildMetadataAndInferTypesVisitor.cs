@@ -406,6 +406,27 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _schemaFromArgs.Add(node.ObjValue);
     }
 
+    public void Visit(HexIntegerNode node)
+    {
+        AddAssembly(typeof(long).Assembly);
+        Nodes.Push(new HexIntegerNode(node.ObjValue));
+        _schemaFromArgs.Add(node.ObjValue);
+    }
+
+    public void Visit(BinaryIntegerNode node)
+    {
+        AddAssembly(typeof(long).Assembly);
+        Nodes.Push(new BinaryIntegerNode(node.ObjValue));
+        _schemaFromArgs.Add(node.ObjValue);
+    }
+
+    public void Visit(OctalIntegerNode node)
+    {
+        AddAssembly(typeof(long).Assembly);
+        Nodes.Push(new OctalIntegerNode(node.ObjValue));
+        _schemaFromArgs.Add(node.ObjValue);
+    }
+
     public void Visit(BooleanNode node)
     {
         AddAssembly(typeof(bool).Assembly);

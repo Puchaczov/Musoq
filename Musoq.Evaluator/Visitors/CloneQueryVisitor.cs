@@ -207,6 +207,21 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new IntegerNode(node.ObjValue));
     }
 
+    public virtual void Visit(HexIntegerNode node)
+    {
+        Nodes.Push(new HexIntegerNode(node.ObjValue));
+    }
+
+    public virtual void Visit(BinaryIntegerNode node)
+    {
+        Nodes.Push(new BinaryIntegerNode(node.ObjValue));
+    }
+
+    public virtual void Visit(OctalIntegerNode node)
+    {
+        Nodes.Push(new OctalIntegerNode(node.ObjValue));
+    }
+
     public void Visit(BooleanNode node)
     {
         Nodes.Push(new BooleanNode(node.Value));

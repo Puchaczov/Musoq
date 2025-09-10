@@ -134,6 +134,18 @@ public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
     {
     }
 
+    public void Visit(HexIntegerNode node)
+    {
+    }
+
+    public void Visit(BinaryIntegerNode node)
+    {
+    }
+
+    public void Visit(OctalIntegerNode node)
+    {
+    }
+
     public void Visit(BooleanNode node)
     {
     }

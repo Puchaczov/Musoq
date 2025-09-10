@@ -31,6 +31,9 @@ public interface IExpressionVisitor
     void Visit(StringNode node);
     void Visit(DecimalNode node);
     void Visit(IntegerNode node);
+    void Visit(HexIntegerNode node);
+    void Visit(BinaryIntegerNode node);
+    void Visit(OctalIntegerNode node);
     void Visit(BooleanNode node);
     void Visit(WordNode node);
     void Visit(NullNode node);

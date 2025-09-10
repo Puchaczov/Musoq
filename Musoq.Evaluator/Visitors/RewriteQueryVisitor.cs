@@ -182,6 +182,21 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new IntegerNode(node.ObjValue));
     }
 
+    public void Visit(HexIntegerNode node)
+    {
+        Nodes.Push(new HexIntegerNode(node.ObjValue));
+    }
+
+    public void Visit(BinaryIntegerNode node)
+    {
+        Nodes.Push(new BinaryIntegerNode(node.ObjValue));
+    }
+
+    public void Visit(OctalIntegerNode node)
+    {
+        Nodes.Push(new OctalIntegerNode(node.ObjValue));
+    }
+
     public void Visit(BooleanNode node)
     {
         Nodes.Push(new BooleanNode(node.Value));
