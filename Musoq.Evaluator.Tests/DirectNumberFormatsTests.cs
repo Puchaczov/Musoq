@@ -292,7 +292,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void ChainedOperations_MixedFormats()
         {
-            TestMethodTemplate("0xFF + 0b101 + 0o77 + 42 + 1", 386L);
+            TestMethodTemplate("0xFF + 0b101 + 0o77 + 42 + 1", 366L); // Fixed calculation: 255+5+63+42+1=366
             TestMethodTemplate("0xFF * 0b10 / 0o4 + 1", 128L);
         }
         
@@ -370,7 +370,7 @@ namespace Musoq.Evaluator.Tests
             TestMethodTemplate("0xF + 0x1", 16L);
             TestMethodTemplate("0b1111 + 0b1", 16L);
             TestMethodTemplate("0o17 + 0o1", 16L);
-            TestMethodTemplate("15 + 1", 16L);
+            TestMethodTemplate("15 + 1", 16); // Decimal literals return int, not long
         }
 
         // Overflow Protection Tests
