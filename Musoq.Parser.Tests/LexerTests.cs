@@ -253,20 +253,12 @@ public class LexerTests
         Assert.AreEqual(TokenType.HexadecimalInteger, token.TokenType);
         Assert.AreEqual("0x0", token.Value);
         
-        // Skip whitespace
-        token = lexer.Next();
-        Assert.AreEqual(TokenType.WhiteSpace, token.TokenType);
-        
-        // Binary zero
+        // Binary zero (whitespace skipped automatically)
         token = lexer.Next();
         Assert.AreEqual(TokenType.BinaryInteger, token.TokenType);
         Assert.AreEqual("0b0", token.Value);
         
-        // Skip whitespace
-        token = lexer.Next();
-        Assert.AreEqual(TokenType.WhiteSpace, token.TokenType);
-        
-        // Octal zero
+        // Octal zero (whitespace skipped automatically)
         token = lexer.Next();
         Assert.AreEqual(TokenType.OctalInteger, token.TokenType);
         Assert.AreEqual("0o0", token.Value);

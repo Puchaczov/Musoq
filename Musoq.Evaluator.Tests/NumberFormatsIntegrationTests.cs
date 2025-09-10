@@ -182,13 +182,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void IntegrationTest_ParenthesesAndPrecedence()
         {
-            var query = @"
-                SELECT 
-                    0xFF + 0x2 * 0x3 as WithoutParens,
-                    (0xFF + 0x2) * 0x3 as WithParens,
-                    0xFF * 0x2 + 0x3 as MultiplyFirst,
-                    0xFF + 0x2 * 0x3 + 0x1 as ChainedOps
-                FROM #A.Entities()";
+            var query = "SELECT 0xFF + 0x2 * 0x3 as WithoutParens, (0xFF + 0x2) * 0x3 as WithParens, 0xFF * 0x2 + 0x3 as MultiplyFirst, 0xFF + 0x2 * 0x3 + 0x1 as ChainedOps FROM #A.Entities()";
             
             var result = TestResultMethodTemplate(query);
             Assert.AreEqual(1, result.Count);
@@ -201,13 +195,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void IntegrationTest_MixedWithRegularIntegers()
         {
-            var query = @"
-                SELECT 
-                    0xFF + 1 as HexPlusInt,
-                    100 - 0x10 as IntMinusHex,
-                    0b1010 * 5 as BinaryTimesInt,
-                    1000 / 0o10 as IntDivideOctal
-                FROM #A.Entities()";
+            var query = "SELECT 0xFF + 1 as HexPlusInt, 100 - 0x10 as IntMinusHex, 0b1010 * 5 as BinaryTimesInt, 1000 / 0o10 as IntDivideOctal FROM #A.Entities()";
             
             var result = TestResultMethodTemplate(query);
             Assert.AreEqual(1, result.Count);

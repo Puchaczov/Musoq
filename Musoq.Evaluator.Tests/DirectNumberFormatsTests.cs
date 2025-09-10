@@ -133,7 +133,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void DeepNesting_ArithmeticExpression()
         {
-            TestMethodTemplate("(((0x10 + 0b10) * 0o2) - (0xFF / 0x5)) / 0b11", 5L);
+            TestMethodTemplate("(((0x10 + 0b10) * 0o2) - (0xFF / 0x5)) / 0b11", -5L);
         }
         
         // Single digit values
@@ -222,7 +222,7 @@ namespace Musoq.Evaluator.Tests
             TestMethodTemplate("0xFF - 0o77", 192L);
             TestMethodTemplate("0x10 * 0o2", 32L);
             TestMethodTemplate("0x10 / 0o2", 8L);
-            TestMethodTemplate("0xFF % 0o77", 24L);
+            TestMethodTemplate("0xFF % 0o77", 3L);
         }
         
         [TestMethod]
@@ -232,7 +232,7 @@ namespace Musoq.Evaluator.Tests
             TestMethodTemplate("0b11111111 - 0o77", 192L);
             TestMethodTemplate("0b10000 * 0o2", 32L);
             TestMethodTemplate("0b10000 / 0o2", 8L);
-            TestMethodTemplate("0b11111111 % 0o77", 24L);
+            TestMethodTemplate("0b11111111 % 0o77", 3L);
         }
         
         // Integration with regular integers
@@ -251,7 +251,7 @@ namespace Musoq.Evaluator.Tests
         public void MixedWithRegularIntegers_ComplexExpressions()
         {
             TestMethodTemplate("(0xFF + 1) * (0b101 - 2)", 768L);
-            TestMethodTemplate("100 - (0xFF - 0b101) + 0o10", -42L);
+            TestMethodTemplate("100 - (0xFF - 0b101) + 0o10", -142L);
         }
         
         // Division by zero and other edge conditions
