@@ -6,7 +6,6 @@ public class HexIntegerNode : ConstantValueNode
 {
     public HexIntegerNode(string value)
     {
-        // Remove 0x prefix and parse as hex
         var hexValue = value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) 
             ? value.Substring(2) 
             : value;
@@ -39,15 +38,9 @@ public class HexIntegerNode : ConstantValueNode
 
     private static object ParseHexValue(string hexValue, string originalValue)
     {
-        // Parse as long for consistency with existing test expectations
         try
         {
             var result = Convert.ToInt64(hexValue, 16);
-            
-            // Additional validation for boundary cases
-            // Note: Convert.ToInt64 handles two's complement representation correctly
-            // Values like 0x8000000000000000 are valid (long.MinValue)
-            // Only values that truly overflow beyond long range should be rejected
             
             return result;
         }

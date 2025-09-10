@@ -6,7 +6,6 @@ public class BinaryIntegerNode : ConstantValueNode
 {
     public BinaryIntegerNode(string value)
     {
-        // Remove 0b prefix and parse as binary
         var binaryValue = value.StartsWith("0b", StringComparison.OrdinalIgnoreCase) 
             ? value.Substring(2) 
             : value;
@@ -39,15 +38,9 @@ public class BinaryIntegerNode : ConstantValueNode
 
     private static object ParseBinaryValue(string binaryValue, string originalValue)
     {
-        // Parse as long for consistency with existing test expectations
         try
         {
             var result = Convert.ToInt64(binaryValue, 2);
-            
-            // Additional validation for boundary cases
-            // Note: Convert.ToInt64 handles two's complement representation correctly
-            // Values with 64 bits or less are valid within long range
-            // Only values that truly overflow beyond long range should be rejected
             
             return result;
         }
