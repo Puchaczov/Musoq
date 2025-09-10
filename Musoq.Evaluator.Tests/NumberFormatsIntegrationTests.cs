@@ -193,6 +193,16 @@ namespace Musoq.Evaluator.Tests
         }
         
         [TestMethod]
+        public void IntegrationTest_SimpleHex()
+        {
+            var query = "select 0xFF from #A.Entities()";
+            
+            var result = TestResultMethodTemplate(query);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(255L, result[0][0]);
+        }
+
+        [TestMethod]
         public void IntegrationTest_MixedWithRegularIntegers()
         {
             var query = "SELECT 0xFF + 1 as HexPlusInt, 100 - 0x10 as IntMinusHex, 0b1010 * 5 as BinaryTimesInt, 1000 / 0o10 as IntDivideOctal FROM #A.Entities()";
