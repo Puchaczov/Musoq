@@ -237,6 +237,18 @@ public class Lexer : LexerBase<Token>
             
         if (_decimalCandidates.Any(decimalCandidate => decimalCandidate.IsMatch(tokenText)))
             return TokenType.Decimal;
+
+        var regexHexInteger = new Regex(TokenRegexDefinition.KHexadecimalInteger);
+        if (regexHexInteger.IsMatch(tokenText))
+            return TokenType.HexadecimalInteger;
+
+        var regexBinaryInteger = new Regex(TokenRegexDefinition.KBinaryInteger);
+        if (regexBinaryInteger.IsMatch(tokenText))
+            return TokenType.BinaryInteger;
+
+        var regexOctalInteger = new Regex(TokenRegexDefinition.KOctalInteger);
+        if (regexOctalInteger.IsMatch(tokenText))
+            return TokenType.OctalInteger;
                 
         var regexSignedInteger = new Regex(TokenRegexDefinition.KSignedInteger);
                 
@@ -308,7 +320,10 @@ public class Lexer : LexerBase<Token>
         public static readonly string KDecimalWithDotAndSuffix = @"[\-]?([0-9]+\.[0-9]{1,})[dD]{1}";
         public static readonly string KSignedInteger = @"-?\d+(?:I|i|L|l|S|s|B|b)?";
         public static readonly string KUnsignedInteger = "[0-9]+(?:UI|ui|UL|ul|US|us|UB|ub){1}";
-        public static readonly string KDecimalOrInteger = $"({KDecimalWithDotAndSuffix}|{KDecimalWithDot}|{KDecimalWithSuffix}|{KUnsignedInteger}|{KSignedInteger})";
+        public static readonly string KHexadecimalInteger = @"0[xX][0-9a-fA-F]+";
+        public static readonly string KBinaryInteger = @"0[bB][01]+";
+        public static readonly string KOctalInteger = @"0[oO][0-7]+";
+        public static readonly string KDecimalOrInteger = $"({KDecimalWithDotAndSuffix}|{KDecimalWithDot}|{KDecimalWithSuffix}|{KHexadecimalInteger}|{KBinaryInteger}|{KOctalInteger}|{KUnsignedInteger}|{KSignedInteger})";
         public static readonly string KComment = "--[^\\r\\n]*|/\\*[\\s\\S]*?\\*/";
 
         public static readonly string KMethodAccess =
@@ -537,6 +552,12 @@ public class Lexer : LexerBase<Token>
                 var abbreviation = GetAbbreviation(tokenText);
                 var unAbbreviatedValue = abbreviation.Length > 0 ? tokenText.Replace(abbreviation, string.Empty) : tokenText;
                 return new IntegerToken(unAbbreviatedValue, new TextSpan(Position, tokenText.Length), abbreviation);
+            case TokenType.HexadecimalInteger:
+                return new HexIntegerToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.BinaryInteger:
+                return new BinaryIntegerToken(tokenText, new TextSpan(Position, tokenText.Length));
+            case TokenType.OctalInteger:
+                return new OctalIntegerToken(tokenText, new TextSpan(Position, tokenText.Length));
             case TokenType.Or:
                 return new OrToken(new TextSpan(Position, tokenText.Length));
             case TokenType.Plus:

@@ -44,6 +44,21 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
     }
 
+    public void Visit(HexIntegerNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BinaryIntegerNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(OctalIntegerNode node)
+    {
+        node.Accept(_visitor);
+    }
+
     public void Visit(BooleanNode node)
     {
         node.Accept(_visitor);

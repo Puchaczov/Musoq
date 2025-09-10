@@ -453,6 +453,21 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertIntegerNode(node));
     }
 
+    public void Visit(HexIntegerNode node)
+    {
+        Nodes.Push(LiteralNodeSyntaxConverter.ConvertHexIntegerNode(node));
+    }
+
+    public void Visit(BinaryIntegerNode node)
+    {
+        Nodes.Push(LiteralNodeSyntaxConverter.ConvertBinaryIntegerNode(node));
+    }
+
+    public void Visit(OctalIntegerNode node)
+    {
+        Nodes.Push(LiteralNodeSyntaxConverter.ConvertOctalIntegerNode(node));
+    }
+
     public void Visit(BooleanNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertBooleanNode(node, Generator));

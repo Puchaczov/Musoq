@@ -82,6 +82,48 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
+    /// Converts a HexIntegerNode to C# integer literal syntax.
+    /// </summary>
+    /// <param name="node">The hex integer node to convert.</param>
+    /// <returns>A C# long literal expression.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when node is null.</exception>
+    public static CastExpressionSyntax ConvertHexIntegerNode(HexIntegerNode node)
+    {
+        if (node == null)
+            throw new ArgumentNullException(nameof(node));
+
+        return CreateIntegerCast(SyntaxKind.LongKeyword, (long)node.ObjValue);
+    }
+
+    /// <summary>
+    /// Converts a BinaryIntegerNode to C# integer literal syntax.
+    /// </summary>
+    /// <param name="node">The binary integer node to convert.</param>
+    /// <returns>A C# long literal expression.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when node is null.</exception>
+    public static CastExpressionSyntax ConvertBinaryIntegerNode(BinaryIntegerNode node)
+    {
+        if (node == null)
+            throw new ArgumentNullException(nameof(node));
+
+        return CreateIntegerCast(SyntaxKind.LongKeyword, (long)node.ObjValue);
+    }
+
+    /// <summary>
+    /// Converts a OctalIntegerNode to C# integer literal syntax.
+    /// </summary>
+    /// <param name="node">The octal integer node to convert.</param>
+    /// <returns>A C# long literal expression.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when node is null.</exception>
+    public static CastExpressionSyntax ConvertOctalIntegerNode(OctalIntegerNode node)
+    {
+        if (node == null)
+            throw new ArgumentNullException(nameof(node));
+
+        return CreateIntegerCast(SyntaxKind.LongKeyword, (long)node.ObjValue);
+    }
+
+    /// <summary>
     /// Converts a BooleanNode to C# boolean literal syntax.
     /// </summary>
     /// <param name="node">The boolean node to convert.</param>

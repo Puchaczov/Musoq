@@ -354,6 +354,116 @@ public class ParserTests
     }
 
     [TestMethod]
+    public void HexadecimalLiteral_InSelectStatement_ShouldParse()
+    {
+        var query = "select 0xFF from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void BinaryLiteral_InSelectStatement_ShouldParse()
+    {
+        var query = "select 0b101 from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void OctalLiteral_InSelectStatement_ShouldParse()
+    {
+        var query = "select 0o77 from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void NumberFormats_InArithmeticExpression_ShouldParse()
+    {
+        var query = "select 0xFF + 0b101 - 0o77 from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void NumberFormats_InWhereClause_ShouldParse()
+    {
+        var query = "select 1 from #some.a() where column = 0xFF";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void NumberFormats_InGroupByClause_ShouldParse()
+    {
+        var query = "select count(*) from #some.a() group by column + 0xFF";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void NumberFormats_CaseInsensitive_ShouldParse()
+    {
+        var query = "select 0XFF + 0B101 + 0O77 from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void NumberFormats_ComplexArithmetic_ShouldParse()
+    {
+        var query = "select (0xFF * 0b10) / (0o7 + 1) from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void NumberFormats_InFunctionCall_ShouldParse()
+    {
+        var query = "select ABS(0xFF - 0b11111111) from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void NumberFormats_WithParentheses_ShouldParse()
+    {
+        var query = "select (0xFF) + (0b101) * (0o77) from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        Assert.IsNotNull(parser.ComposeAll());
+    }
+
+    [TestMethod]
     [DataRow("select 1 from #some.thing() r cross apply r.Prop.Nested c")]
     [DataRow("select 1 from #some.thing() r cross apply r.Prop.Nested c cross apply c.Prop.Nested2 d")]
     [DataRow("select 1 from #some.thing() r cross apply r.Prop.Nested.Deeply c")]

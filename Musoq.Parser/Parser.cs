@@ -874,6 +874,12 @@ public class Parser
                 return new DecimalNode(token.Value);
             case TokenType.Integer:
                 return ComposeInteger();
+            case TokenType.HexadecimalInteger:
+                return ComposeHexInteger();
+            case TokenType.BinaryInteger:
+                return ComposeBinaryInteger();
+            case TokenType.OctalInteger:
+                return ComposeOctalInteger();
             case TokenType.Word:
                 return ComposeWord();
             case TokenType.Skip:
@@ -968,6 +974,24 @@ public class Parser
         return new IntegerNode(token.Value, token.Abbreviation);
     }
 
+    private HexIntegerNode ComposeHexInteger()
+    {
+        var token = (HexIntegerToken)ConsumeAndGetToken(TokenType.HexadecimalInteger);
+        return new HexIntegerNode(token.Value);
+    }
+
+    private BinaryIntegerNode ComposeBinaryInteger()
+    {
+        var token = (BinaryIntegerToken)ConsumeAndGetToken(TokenType.BinaryInteger);
+        return new BinaryIntegerNode(token.Value);
+    }
+
+    private OctalIntegerNode ComposeOctalInteger()
+    {
+        var token = (OctalIntegerToken)ConsumeAndGetToken(TokenType.OctalInteger);
+        return new OctalIntegerNode(token.Value);
+    }
+
     private WordNode ComposeWord()
     {
         return new WordNode(ConsumeAndGetToken(TokenType.Word).Value);
@@ -1057,7 +1081,7 @@ public class Parser
 
     private static bool IsNumericToken(Token current)
     {
-        return current.TokenType is TokenType.Decimal or TokenType.Integer;
+        return current.TokenType is TokenType.Decimal or TokenType.Integer or TokenType.HexadecimalInteger or TokenType.BinaryInteger or TokenType.OctalInteger;
     }
 
     private enum Associativity
