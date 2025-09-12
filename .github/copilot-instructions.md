@@ -89,17 +89,23 @@ Each module has corresponding test projects (*.Tests) with comprehensive coverag
 
 ### Manual Testing and Validation Scenarios
 - **ALWAYS run the full test suite** after making changes: `dotnet test --configuration Release`
-- **The test suite validates core functionality**: 1183 tests cover parsing, evaluation, compilation, and schema resolution
+- **The test suite validates core functionality**: 1467 tests total (1465 passing, 2 skipped) cover parsing, evaluation, compilation, and schema resolution
 - **For targeted testing**, run specific modules:
   ```bash
-  # Test parser changes - takes ~1.5 seconds
+  # Test parser changes - takes ~1.5 seconds (148 tests)
   dotnet test Musoq.Parser.Tests --configuration Release --no-build
   
-  # Test evaluator changes - takes ~90 seconds
+  # Test evaluator changes - takes ~90 seconds (largest test suite)
   dotnet test Musoq.Evaluator.Tests --configuration Release --no-build
   
-  # Test converter changes - takes ~15 seconds  
+  # Test converter changes - takes ~4 seconds (2 tests)
   dotnet test Musoq.Converter.Tests --configuration Release --no-build
+  
+  # Test schema changes - takes ~1.5 seconds (85 tests)
+  dotnet test Musoq.Schema.Tests --configuration Release --no-build
+  
+  # Test plugins changes - takes ~1.7 seconds (421 tests)
+  dotnet test Musoq.Plugins.Tests --configuration Release --no-build
   ```
 
 ### Query Engine Validation
@@ -118,8 +124,50 @@ Each module has corresponding test projects (*.Tests) with comprehensive coverag
 
 ### Build Validation
 - **Build succeeds without errors**: All projects compile cleanly in Release configuration
-- **NuGet packages are generated**: Build produces .nupkg files for all distributable modules
+- **NuGet packages are generated**: Build produces 12 .nupkg files for all distributable modules
 - **No build-time dependencies**: Only requires .NET 8.0 SDK
+
+### Performance and Benchmarks Validation
+- **Benchmarks validate functionality**: Run `dotnet run --project Musoq.Benchmarks --configuration Release` to verify core query engine works
+- **Performance regression testing**: Use benchmarks to measure impact of changes
+- **Memory usage validation**: Monitor compilation and execution phases for memory efficiency
+
+### Manual SQL Query Validation Scenarios
+After making changes to core components, validate actual SQL functionality:
+
+1. **Basic Query Compilation Test**:
+   ```csharp
+   // Test that queries compile successfully
+   var query = "select 1 from #system.dual()";
+   var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, loggerResolver);
+   var results = compiled.Run(); // Should execute without errors
+   ```
+
+2. **Arithmetic Operations Test**:
+   ```sql
+   SELECT 1 + 2 * 3 - 4 / 2 FROM #system.dual()
+   -- Should return: 5
+   ```
+
+3. **String Operations Test**:
+   ```sql  
+   SELECT 'Hello' + ' ' + 'World' FROM #system.dual()
+   -- Should return: "Hello World"
+   ```
+
+4. **Cross-Format Number Literals** (if parser changes affect literals):
+   ```sql
+   SELECT 0xFF + 0b101 + 0o77 FROM #system.dual()
+   -- Should return: 327 (255 + 5 + 63)
+   ```
+
+5. **Test Error Handling**:
+   ```sql
+   SELECT invalid_function() FROM #system.dual()
+   -- Should fail with clear error message
+   ```
+
+**CRITICAL**: Always test at least one complete query execution after making changes to verify the entire pipeline works.
 
 ## Module-Specific Development
 
@@ -200,10 +248,15 @@ dotnet test --filter TestCategory=Performance
 ## Critical Timing Expectations
 
 ### Build Commands - NEVER CANCEL These Operations
-- **dotnet restore**: 30-60 seconds depending on cache state
-- **dotnet build**: 20-30 seconds for Release configuration  
-- **dotnet test**: 2-3 minutes for full test suite (1183 tests)
+- **dotnet restore**: 15-30 seconds depending on cache state (measured: ~17s)
+- **dotnet build**: 20-30 seconds for Release configuration (measured: ~24s)
+- **dotnet test**: 2-3 minutes for full test suite (measured: ~2m32s for 1467 tests)
 - **Individual module tests**: 1-90 seconds depending on module
+  - Parser: ~1.5 seconds (148 tests)
+  - Schema: ~1.5 seconds (85 tests) 
+  - Plugins: ~1.7 seconds (421 tests)
+  - Converter: ~4 seconds (2 tests)
+  - Evaluator: ~90+ seconds (largest test suite)
 
 ### Memory and Performance
 - **The system generates and compiles C# code at runtime**
@@ -236,6 +289,24 @@ dotnet test --filter TestCategory=Performance
 - **Build failures**: Usually missing .NET 8.0 SDK or corrupted package cache
 - **Test failures**: Often related to environment-specific paths or test data
 - **Memory issues during development**: Expected due to runtime code generation
+- **Package conflicts**: Use `dotnet clean` then rebuild if dependency issues occur
+
+### Development Environment Issues  
+- **"Permission denied" during benchmarks**: This is normal - benchmarks will run but without high priority
+- **Temp file conflicts**: Delete `/tmp/Musoq` folder if compilation conflicts occur
+- **Assembly loading errors**: Restart development session if assembly conflicts persist
+
+### Debugging Failed Tests
+```bash
+# Run specific failing test with detailed output
+dotnet test Musoq.Evaluator.Tests --configuration Release --no-build --verbosity detailed --filter "TestMethodName"
+
+# Check for test data dependencies
+dotnet test Musoq.Parser.Tests --configuration Release --no-build --verbosity detailed --logger "console;verbosity=diagnostic"
+
+# Run tests in isolation to identify environment conflicts
+dotnet test Musoq.Schema.Tests --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage"
+```
 
 ### Performance Considerations  
 - **Compilation is expensive**: First query execution includes compilation overhead
