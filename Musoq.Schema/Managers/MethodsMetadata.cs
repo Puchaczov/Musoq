@@ -116,6 +116,7 @@ public class MethodsMetadata
     };
     
     private readonly Dictionary<string, List<MethodInfo>> _methods;
+    private readonly Dictionary<string, string> _normalizedToOriginalMethodNames;
 
     /// <summary>
     ///     Initialize object.
@@ -123,6 +124,7 @@ public class MethodsMetadata
     public MethodsMetadata()
     {
         _methods = new Dictionary<string, List<MethodInfo>>();
+        _normalizedToOriginalMethodNames = new Dictionary<string, string>();
     }
 
     /// <summary>
@@ -141,7 +143,7 @@ public class MethodsMetadata
         if (methodArgs == null)
             throw SchemaArgumentException.ForNullArgument(nameof(methodArgs), "resolving a method");
 
-        if (!TryGetAnnotatedMethod(name, methodArgs, entityType, out var index))
+        if (!TryGetAnnotatedMethod(name, methodArgs, entityType, out var index, out var actualMethodName))
         {
             // Get available method signatures for better error message
             var availableSignatures = GetAvailableMethodSignatures(name);
@@ -150,7 +152,7 @@ public class MethodsMetadata
             throw MethodResolutionException.ForUnresolvedMethod(name, providedTypes, availableSignatures);
         }
 
-        return _methods[name][index];
+        return _methods[actualMethodName][index];
     }
 
     /// <summary>
@@ -163,13 +165,13 @@ public class MethodsMetadata
     /// <returns>True if method exists, otherwise false.</returns>
     public bool TryGetMethod(string name, Type[] methodArgs, Type entityType, out MethodInfo result)
     {
-        if (!TryGetAnnotatedMethod(name, methodArgs, entityType, out var index))
+        if (!TryGetAnnotatedMethod(name, methodArgs, entityType, out var index, out var actualMethodName))
         {
             result = null;
             return false;
         }
 
-        result = _methods[name][index];
+        result = _methods[actualMethodName][index];
         return true;
     }
 
@@ -182,13 +184,13 @@ public class MethodsMetadata
     /// <returns>True if some method fits, else false.</returns>
     public bool TryGetRawMethod(string name, Type[] methodArgs, out MethodInfo result)
     {
-        if (!TryGetRawMethod(name, methodArgs, out int index))
+        if (!TryGetRawMethod(name, methodArgs, out int index, out var actualMethodName))
         {
             result = null;
             return false;
         }
 
-        result = _methods[name][index];
+        result = _methods[actualMethodName][index];
         return true;
     }
 
@@ -207,8 +209,37 @@ public class MethodsMetadata
     /// <param name="name">Method name</param>
     /// <param name="methodArgs">Types of method arguments</param>
     /// <param name="index">Index of method that fits requirements.</param>
+    /// <param name="actualMethodName">The actual method name that was found (may differ from input due to case-insensitive lookup).</param>
     /// <returns>True if some method fits, else false.</returns>
-    private bool TryGetRawMethod(string name, Type[] methodArgs, out int index)
+    private bool TryGetRawMethod(string name, Type[] methodArgs, out int index, out string actualMethodName)
+    {
+        // First, try exact match
+        if (TryGetRawMethodByExactName(name, methodArgs, out index))
+        {
+            actualMethodName = name;
+            return true;
+        }
+        
+        // Then try case-insensitive match
+        var normalizedName = MethodNameNormalizer.Normalize(name);
+        if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName))
+        {
+            if (TryGetRawMethodByExactName(originalName, methodArgs, out index))
+            {
+                actualMethodName = originalName;
+                return true;
+            }
+        }
+        
+        index = -1;
+        actualMethodName = null;
+        return false;
+    }
+    
+    /// <summary>
+    /// Internal helper method for exact name-based raw method resolution.
+    /// </summary>
+    private bool TryGetRawMethodByExactName(string name, Type[] methodArgs, out int index)
     {
         if (!_methods.TryGetValue(name, out var methods))
         {
@@ -253,8 +284,37 @@ public class MethodsMetadata
     /// <param name="methodArgs">Types of method arguments</param>
     /// <param name="entityType">Type of entity.</param>
     /// <param name="index">Index of method that fits requirements.</param>
+    /// <param name="actualMethodName">The actual method name that was found (may differ from input due to case-insensitive lookup).</param>
     /// <returns>True if some method fits, else false.</returns>
-    private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index)
+    private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index, out string actualMethodName)
+    {
+        // First, try exact match
+        if (TryGetAnnotatedMethodByExactName(name, methodArgs, entityType, out index))
+        {
+            actualMethodName = name;
+            return true;
+        }
+        
+        // Then try case-insensitive match
+        var normalizedName = MethodNameNormalizer.Normalize(name);
+        if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName))
+        {
+            if (TryGetAnnotatedMethodByExactName(originalName, methodArgs, entityType, out index))
+            {
+                actualMethodName = originalName;
+                return true;
+            }
+        }
+        
+        index = -1;
+        actualMethodName = null;
+        return false;
+    }
+    
+    /// <summary>
+    /// Internal helper method for exact name-based method resolution.
+    /// </summary>
+    private bool TryGetAnnotatedMethodByExactName(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index)
     {
         if (!_methods.TryGetValue(name, out var methods))
         {
@@ -453,6 +513,17 @@ public class MethodsMetadata
             method.Add(methodInfo);
         else
             _methods.Add(name, [methodInfo]);
+            
+        // Also register by normalized name for case-insensitive lookup
+        var normalizedName = MethodNameNormalizer.Normalize(name);
+        if (normalizedName != name) // Only if normalized differs from original
+        {
+            // Store the mapping from normalized name to the first original name we encounter
+            if (!_normalizedToOriginalMethodNames.ContainsKey(normalizedName))
+            {
+                _normalizedToOriginalMethodNames[normalizedName] = name;
+            }
+        }
     }
 
     private static bool CanBeAssignedFromGeneric(Type paramType, Type arrayType)
