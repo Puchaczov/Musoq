@@ -20,9 +20,16 @@ public abstract class BinaryNode : Node
         ? typeof(void)
         : NodeHelpers.GetReturnTypeMap(Left.ReturnType, Right.ReturnType);
 
+    private static int _calculateIdCalls = 0;
+    
     protected static string CalculateId<T>(T node)
         where T : BinaryNode
     {
+        _calculateIdCalls++;
+        if (_calculateIdCalls % 100 == 0 || _calculateIdCalls <= 50)
+        {
+            System.Console.WriteLine($"[DEBUG] CalculateId called {_calculateIdCalls} times");
+        }
         return $"{typeof(T).Name}{node.Left.Id}{node.Right.Id}{node.ReturnType?.Name}";
     }
 
