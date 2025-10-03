@@ -141,7 +141,8 @@ public class ArithmeticTests : BasicEntityTestBase
     [TestMethod]
     public void ComplexNestedArithmeticExpressionTest()
     {
-        // Original 6-level deeply nested expression - now works after parser optimization
+        // Original 6-level deeply nested expression with 30+ arithmetic operations
+        // Fixed by caching ReturnType in BinaryNode constructor (was O(2^n), now O(n))
         TestMethodTemplate("(((((1 + (6 * 2)) + 4 + 4 + 4 + 2 + 8 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 1 + 32 + 1 + 4 + 4 + 4 + 1 + 4 + 4 + 1 + (6 * 4) + 1 + 1 + 1 + 1 + 32 + 1) + 4) + 1 + 1) + 4 + 4) + 4 + 4 + 4", 188);
     }
 }

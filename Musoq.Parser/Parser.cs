@@ -566,14 +566,8 @@ public class Parser
         }
     }
 
-    private static int _composeOperationsCount = 0;
-    private static int _composeEqualityOperatorsCount = 0;
-    private static int _composeArithmeticExpressionCount = 0;
-    private static int _composeBaseTypesCount = 0;
-    
     private Node ComposeOperations()
     {
-        _composeOperationsCount++;
         var node = ComposeEqualityOperators();
 
         while (IsQueryOperator(Current))
@@ -598,7 +592,6 @@ public class Parser
 
     private Node ComposeArithmeticExpression(int minPrecedence)
     {
-        _composeArithmeticExpressionCount++;
         var left = ComposeBaseTypes(minPrecedence);
 
         if (IsNumericToken(Current))
@@ -631,7 +624,6 @@ public class Parser
 
     private Node ComposeEqualityOperators()
     {
-        _composeEqualityOperatorsCount++;
         var node = ComposeArithmeticExpression(0);
 
         while (IsEqualityOperator(Current))
@@ -875,15 +867,6 @@ public class Parser
 
     private Node ComposeBaseTypes(int minPrecedence = 0)
     {
-        _composeBaseTypesCount++;
-        if (_composeBaseTypesCount % 1000 == 0)
-        {
-            System.Console.WriteLine($"[DEBUG] ComposeBaseTypes called {_composeBaseTypesCount} times");
-            System.Console.WriteLine($"[DEBUG]   ComposeOperations: {_composeOperationsCount}");
-            System.Console.WriteLine($"[DEBUG]   ComposeEqualityOperators: {_composeEqualityOperatorsCount}");
-            System.Console.WriteLine($"[DEBUG]   ComposeArithmeticExpression: {_composeArithmeticExpressionCount}");
-        }
-        
         switch (Current.TokenType)
         {
             case TokenType.Decimal:

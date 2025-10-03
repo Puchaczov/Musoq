@@ -478,7 +478,8 @@ public class ParserTests
     [TestMethod]
     public void ComplexNestedArithmeticExpression_ShouldParse()
     {
-        // Original 6-level deeply nested expression - now works after parser optimization
+        // Original 6-level deeply nested expression with 30+ arithmetic operations
+        // Fixed by caching ReturnType in BinaryNode constructor (was O(2^n), now O(n))
         var query = "select (((((1 + (6 * 2)) + 4 + 4 + 4 + 2 + 8 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 1 + 32 + 1 + 4 + 4 + 4 + 1 + 4 + 4 + 1 + (6 * 4) + 1 + 1 + 1 + 1 + 32 + 1) + 4) + 1 + 1) + 4 + 4) + 4 + 4 + 4 from #some.a()";
 
         var lexer = new Lexer(query, true);
