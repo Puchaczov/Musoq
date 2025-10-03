@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Tokens;
@@ -262,5 +263,92 @@ public class LexerTests
         token = lexer.Next();
         Assert.AreEqual(TokenType.OctalInteger, token.TokenType);
         Assert.AreEqual("0o0", token.Value);
+    }
+    
+    [TestMethod]
+    public void ComplexNestedExpression_ShouldTokenizeCorrectly()
+    {
+        // Test the original problematic expression with 30+ operations and 6 levels of nesting
+        var query = "select (((((1 + (6 * 2)) + 4 + 4 + 4 + 2 + 8 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 1 + 32 + 1 + 4 + 4 + 4 + 1 + 4 + 4 + 1 + (6 * 4) + 1 + 1 + 1 + 1 + 32 + 1) + 4) + 1 + 1) + 4 + 4) + 4 + 4 + 4 from #some.a()";
+        var lexer = new Lexer(query, true);
+        
+        int tokenCount = 0;
+        while (lexer.Current().TokenType != TokenType.EndOfFile)
+        {
+            tokenCount++;
+            lexer.Next();
+        }
+        
+        // Should tokenize all tokens without errors
+        Assert.IsTrue(tokenCount > 0, "Should have tokenized multiple tokens");
+    }
+    
+    [TestMethod]
+    public void VeryLongArithmeticChain_ShouldTokenizeQuickly()
+    {
+        // Test with 50 additions - lexer should be linear O(n)
+        var numbers = string.Join(" + ", System.Linq.Enumerable.Range(1, 50).Select(i => i.ToString()));
+        var query = $"select {numbers} from #a.b()";
+        var lexer = new Lexer(query, true);
+        
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        int tokenCount = 0;
+        while (lexer.Current().TokenType != TokenType.EndOfFile)
+        {
+            tokenCount++;
+            lexer.Next();
+        }
+        sw.Stop();
+        
+        Assert.IsTrue(tokenCount > 100, "Should have many tokens");
+        Assert.IsTrue(sw.ElapsedMilliseconds < 100, $"Lexer should be fast but took {sw.ElapsedMilliseconds}ms");
+    }
+    
+    [TestMethod]
+    public void DeeplyNestedParentheses_ShouldTokenize()
+    {
+        // Test with deep nesting of parentheses
+        var expr = "((((((1 + 2))))))";
+        var query = $"select {expr} from #a.b()";
+        var lexer = new Lexer(query, true);
+        
+        int leftParenCount = 0;
+        int rightParenCount = 0;
+        
+        while (lexer.Current().TokenType != TokenType.EndOfFile)
+        {
+            var token = lexer.Current();
+            if (token.TokenType == TokenType.LeftParenthesis) leftParenCount++;
+            if (token.TokenType == TokenType.RightParenthesis) rightParenCount++;
+            lexer.Next();
+        }
+        
+        // 6 from the expression + 1 from #a.b()
+        Assert.AreEqual(7, leftParenCount, "Should have 7 left parentheses");
+        Assert.AreEqual(7, rightParenCount, "Should have 7 right parentheses");
+    }
+    
+    [TestMethod]
+    public void MixedOperatorsAndParentheses_ShouldTokenize()
+    {
+        // Test complex expression with mixed operators
+        var query = "select (1 + 2) * (3 - 4) / (5 + 6) - (7 * 8) + (9 / 10) from #a.b()";
+        var lexer = new Lexer(query, true);
+        
+        int operatorCount = 0;
+        while (lexer.Current().TokenType != TokenType.EndOfFile)
+        {
+            var token = lexer.Current();
+            if (token.TokenType == TokenType.Plus || 
+                token.TokenType == TokenType.Hyphen ||
+                token.TokenType == TokenType.Star ||
+                token.TokenType == TokenType.FSlash)
+            {
+                operatorCount++;
+            }
+            lexer.Next();
+        }
+        
+        Assert.AreEqual(9, operatorCount, "Should have 9 arithmetic operators");
     }
 }

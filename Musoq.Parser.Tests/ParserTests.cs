@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 
@@ -486,5 +487,109 @@ public class ParserTests
         var parser = new Parser(lexer);
 
         Assert.IsNotNull(parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void VeryLongArithmeticChain_ShouldParseQuickly()
+    {
+        // Test with 50 additions - should be linear O(n) after fix
+        var numbers = string.Join(" + ", System.Linq.Enumerable.Range(1, 50).Select(i => i.ToString()));
+        var query = $"select {numbers} from #a.b()";
+        
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        sw.Stop();
+        
+        Assert.IsNotNull(result);
+        Assert.IsTrue(sw.ElapsedMilliseconds < 100, $"Parser should be fast but took {sw.ElapsedMilliseconds}ms");
+    }
+    
+    [TestMethod]
+    public void DeeplyNestedParentheses_ShouldParse()
+    {
+        // Test with 10 levels of parentheses nesting
+        var expr = "((((((((((1 + 2))))))))))";
+        var query = $"select {expr} from #a.b()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void MixedOperatorPrecedence_ShouldParseCorrectly()
+    {
+        // Test complex expression with mixed operator precedence
+        var query = "select 1 + 2 * 3 - 4 / 2 + 5 * 6 - 7 + 8 / 4 from #a.b()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void ComplexNestedWithMultipleOperators_ShouldParse()
+    {
+        // Test expression with multiple types of operators and nesting
+        var query = "select ((1 + 2) * (3 - 4)) / ((5 + 6) - (7 * 8)) + ((9 / 10) * (11 + 12)) from #a.b()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void ExtremeLongExpression_ShouldParseInReasonableTime()
+    {
+        // Test with 100 additions - extreme case
+        var numbers = string.Join(" + ", System.Linq.Enumerable.Range(1, 100).Select(i => i.ToString()));
+        var query = $"select {numbers} from #a.b()";
+        
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        sw.Stop();
+        
+        Assert.IsNotNull(result);
+        Assert.IsTrue(sw.ElapsedMilliseconds < 200, $"Parser should handle 100 additions in <200ms but took {sw.ElapsedMilliseconds}ms");
+    }
+    
+    [TestMethod]
+    public void MultipleNestedSubExpressions_ShouldParse()
+    {
+        // Test multiple nested sub-expressions
+        var query = "select (1 + (2 * (3 - (4 / (5 + 6))))) + (7 - (8 * (9 + (10 / 2)))) from #a.b()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void CombinedArithmeticAndParentheses_StressTest()
+    {
+        // Stress test: combination of long chains and deep nesting
+        var innerExpr = string.Join(" + ", System.Linq.Enumerable.Range(1, 20).Select(i => i.ToString()));
+        var query = $"select ((({innerExpr}))) * 2 + ((({innerExpr}))) from #a.b()";
+        
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        sw.Stop();
+        
+        Assert.IsNotNull(result);
+        Assert.IsTrue(sw.ElapsedMilliseconds < 150, $"Combined stress test should be fast but took {sw.ElapsedMilliseconds}ms");
     }
 }
