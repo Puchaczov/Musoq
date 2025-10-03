@@ -474,4 +474,15 @@ public class ParserTests
 
         Assert.IsNotNull(parser.ComposeAll());
     }
+
+    [TestMethod]
+    public void ComplexNestedArithmeticExpression_ShouldParse()
+    {
+        var query = "select (((((1 + (6 * 2)) + 4 + 4 + 4 + 2 + 8 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 1 + 32 + 1 + 4 + 4 + 4 + 1 + 4 + 4 + 1 + (6 * 4) + 1 + 1 + 1 + 1 + 32 + 1) + 4) + 1 + 1) + 4 + 4) + 4 + 4 + 4 from #some.a()";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        Assert.IsNotNull(parser.ComposeAll());
+    }
 }
