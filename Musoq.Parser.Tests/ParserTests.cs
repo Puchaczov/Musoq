@@ -479,8 +479,6 @@ public class ParserTests
     [TestMethod]
     public void ComplexNestedArithmeticExpression_ShouldParse()
     {
-        // Original 6-level deeply nested expression with 30+ arithmetic operations
-        // Fixed by caching ReturnType in BinaryNode constructor (was O(2^n), now O(n))
         var query = "select (((((1 + (6 * 2)) + 4 + 4 + 4 + 2 + 8 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 1 + 32 + 1 + 4 + 4 + 4 + 1 + 4 + 4 + 1 + (6 * 4) + 1 + 1 + 1 + 1 + 32 + 1) + 4) + 1 + 1) + 4 + 4) + 4 + 4 + 4 from #some.a()";
 
         var lexer = new Lexer(query, true);
@@ -492,7 +490,6 @@ public class ParserTests
     [TestMethod]
     public void VeryLongArithmeticChain_ShouldParseQuickly()
     {
-        // Test with 50 additions - should be linear O(n) after fix
         var numbers = string.Join(" + ", System.Linq.Enumerable.Range(1, 50).Select(i => i.ToString()));
         var query = $"select {numbers} from #a.b()";
         
@@ -509,7 +506,6 @@ public class ParserTests
     [TestMethod]
     public void DeeplyNestedParentheses_ShouldParse()
     {
-        // Test with 10 levels of parentheses nesting
         var expr = "((((((((((1 + 2))))))))))";
         var query = $"select {expr} from #a.b()";
         
@@ -523,7 +519,6 @@ public class ParserTests
     [TestMethod]
     public void MixedOperatorPrecedence_ShouldParseCorrectly()
     {
-        // Test complex expression with mixed operator precedence
         var query = "select 1 + 2 * 3 - 4 / 2 + 5 * 6 - 7 + 8 / 4 from #a.b()";
         
         var lexer = new Lexer(query, true);
@@ -536,7 +531,6 @@ public class ParserTests
     [TestMethod]
     public void ComplexNestedWithMultipleOperators_ShouldParse()
     {
-        // Test expression with multiple types of operators and nesting
         var query = "select ((1 + 2) * (3 - 4)) / ((5 + 6) - (7 * 8)) + ((9 / 10) * (11 + 12)) from #a.b()";
         
         var lexer = new Lexer(query, true);
@@ -549,7 +543,6 @@ public class ParserTests
     [TestMethod]
     public void ExtremeLongExpression_ShouldParseInReasonableTime()
     {
-        // Test with 100 additions - extreme case
         var numbers = string.Join(" + ", System.Linq.Enumerable.Range(1, 100).Select(i => i.ToString()));
         var query = $"select {numbers} from #a.b()";
         
@@ -566,7 +559,6 @@ public class ParserTests
     [TestMethod]
     public void MultipleNestedSubExpressions_ShouldParse()
     {
-        // Test multiple nested sub-expressions
         var query = "select (1 + (2 * (3 - (4 / (5 + 6))))) + (7 - (8 * (9 + (10 / 2)))) from #a.b()";
         
         var lexer = new Lexer(query, true);
@@ -579,7 +571,6 @@ public class ParserTests
     [TestMethod]
     public void CombinedArithmeticAndParentheses_StressTest()
     {
-        // Stress test: combination of long chains and deep nesting
         var innerExpr = string.Join(" + ", System.Linq.Enumerable.Range(1, 20).Select(i => i.ToString()));
         var query = $"select ((({innerExpr}))) * 2 + ((({innerExpr}))) from #a.b()";
         

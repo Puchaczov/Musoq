@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Musoq.Parser.Helpers;
 
 namespace Musoq.Parser.Nodes;
@@ -11,11 +12,22 @@ public abstract class BinaryNode : Node
     protected BinaryNode(Node left, Node right)
     {
         _nodes = [left, right];
-        // Cache the return type calculation to avoid exponential complexity
-        // when accessing ReturnType recursively during Id calculation
-        _returnType = IsNullOrVoid(left.ReturnType) || IsNullOrVoid(right.ReturnType)
-            ? typeof(void)
-            : NodeHelpers.GetReturnTypeMap(left.ReturnType, right.ReturnType);
+        
+        if (IsNullOrVoid(left.ReturnType) || IsNullOrVoid(right.ReturnType))
+        {
+            _returnType = typeof(void);
+        }
+        else
+        {
+            try
+            {
+                _returnType = NodeHelpers.GetReturnTypeMap(left.ReturnType, right.ReturnType);
+            }
+            catch (KeyNotFoundException)
+            {
+                _returnType = typeof(void);
+            }
+        }
     }
 
     public Node Left => _nodes[0];

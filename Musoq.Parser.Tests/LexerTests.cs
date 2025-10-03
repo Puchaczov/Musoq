@@ -212,29 +212,23 @@ public class LexerTests
     {
         var lexer = new Lexer("0xFF + 0b101 - 0o77", true);
         
-        // Skip None token
         var token = lexer.Current();
         Assert.AreEqual(TokenType.None, token.TokenType);
         
-        // First hex token
         token = lexer.Next();
         Assert.AreEqual(TokenType.HexadecimalInteger, token.TokenType);
         Assert.AreEqual("0xFF", token.Value);
         
-        // Plus operator
         token = lexer.Next();
         Assert.AreEqual(TokenType.Plus, token.TokenType);
         
-        // Binary token
         token = lexer.Next();
         Assert.AreEqual(TokenType.BinaryInteger, token.TokenType);
         Assert.AreEqual("0b101", token.Value);
         
-        // Minus operator
         token = lexer.Next();
         Assert.AreEqual(TokenType.Hyphen, token.TokenType);
         
-        // Octal token
         token = lexer.Next();
         Assert.AreEqual(TokenType.OctalInteger, token.TokenType);
         Assert.AreEqual("0o77", token.Value);
@@ -245,21 +239,17 @@ public class LexerTests
     {
         var lexer = new Lexer("0x0 0b0 0o0", true);
         
-        // Skip None token
         var token = lexer.Current();
         Assert.AreEqual(TokenType.None, token.TokenType);
         
-        // Hex zero
         token = lexer.Next();
         Assert.AreEqual(TokenType.HexadecimalInteger, token.TokenType);
         Assert.AreEqual("0x0", token.Value);
         
-        // Binary zero (whitespace skipped automatically)
         token = lexer.Next();
         Assert.AreEqual(TokenType.BinaryInteger, token.TokenType);
         Assert.AreEqual("0b0", token.Value);
         
-        // Octal zero (whitespace skipped automatically)
         token = lexer.Next();
         Assert.AreEqual(TokenType.OctalInteger, token.TokenType);
         Assert.AreEqual("0o0", token.Value);
@@ -268,7 +258,6 @@ public class LexerTests
     [TestMethod]
     public void ComplexNestedExpression_ShouldTokenizeCorrectly()
     {
-        // Test the original problematic expression with 30+ operations and 6 levels of nesting
         var query = "select (((((1 + (6 * 2)) + 4 + 4 + 4 + 2 + 8 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 1 + 32 + 1 + 4 + 4 + 4 + 1 + 4 + 4 + 1 + (6 * 4) + 1 + 1 + 1 + 1 + 32 + 1) + 4) + 1 + 1) + 4 + 4) + 4 + 4 + 4 from #some.a()";
         var lexer = new Lexer(query, true);
         
@@ -279,14 +268,12 @@ public class LexerTests
             lexer.Next();
         }
         
-        // Should tokenize all tokens without errors
         Assert.IsTrue(tokenCount > 0, "Should have tokenized multiple tokens");
     }
     
     [TestMethod]
     public void VeryLongArithmeticChain_ShouldTokenizeQuickly()
     {
-        // Test with 50 additions - lexer should be linear O(n)
         var numbers = string.Join(" + ", System.Linq.Enumerable.Range(1, 50).Select(i => i.ToString()));
         var query = $"select {numbers} from #a.b()";
         var lexer = new Lexer(query, true);
@@ -307,7 +294,6 @@ public class LexerTests
     [TestMethod]
     public void DeeplyNestedParentheses_ShouldTokenize()
     {
-        // Test with deep nesting of parentheses
         var expr = "((((((1 + 2))))))";
         var query = $"select {expr} from #a.b()";
         var lexer = new Lexer(query, true);
@@ -323,7 +309,6 @@ public class LexerTests
             lexer.Next();
         }
         
-        // 6 from the expression + 1 from #a.b()
         Assert.AreEqual(7, leftParenCount, "Should have 7 left parentheses");
         Assert.AreEqual(7, rightParenCount, "Should have 7 right parentheses");
     }
@@ -331,7 +316,6 @@ public class LexerTests
     [TestMethod]
     public void MixedOperatorsAndParentheses_ShouldTokenize()
     {
-        // Test complex expression with mixed operators
         var query = "select (1 + 2) * (3 - 4) / (5 + 6) - (7 * 8) + (9 / 10) from #a.b()";
         var lexer = new Lexer(query, true);
         
