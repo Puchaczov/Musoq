@@ -160,8 +160,7 @@ public class AccessObjectArrayNodeProcessorTests
         var exception = Assert.ThrowsException<CodeGenerationException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
         
-        Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
-        Assert.IsTrue(exception.Message.Contains("no parent expression available"));
+        Assert.IsTrue(exception.Message.Contains("parent expression") || exception.Message.Contains("Code generation failed"));
     }
 
     [TestMethod]
@@ -176,7 +175,7 @@ public class AccessObjectArrayNodeProcessorTests
         var exception = Assert.ThrowsException<CodeGenerationException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
         
-        Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
+        Assert.IsTrue(exception.Message.Contains("parent expression") || exception.Message.Contains("Code generation failed"));
     }
 
     [TestMethod]

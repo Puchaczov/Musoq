@@ -271,7 +271,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(VisitorException))]
+    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_FieldNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -282,7 +282,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(VisitorException))]
+    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_ArgsListNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -296,7 +296,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(VisitorException))]
+    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_GroupByNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -312,7 +312,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(VisitorException))]
+    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_SchemaFromNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -448,7 +448,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(VisitorException))]
+    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_HavingNode_WithEmptyStack_ShouldThrow()
     {
         // Arrange
