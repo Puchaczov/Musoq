@@ -1,4 +1,5 @@
 using System;
+using Musoq.Evaluator.Exceptions;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
@@ -18,7 +19,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessMultiplyOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -33,7 +34,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessDivideOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -48,7 +49,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessModuloOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -63,7 +64,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessAddOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -78,7 +79,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessSubtractOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -93,7 +94,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessLogicalAndOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -108,7 +109,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessLogicalOrOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -123,7 +124,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessValueEqualsOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -138,7 +139,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessGreaterThanOrEqualOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -153,7 +154,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessLessThanOrEqualOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -168,7 +169,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessGreaterThanOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -183,7 +184,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessLessThanOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -198,7 +199,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     public static void ProcessValueNotEqualsOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         ValidateBinaryOperation(nodes, generator);
@@ -213,7 +214,7 @@ public static class SyntaxBinaryOperationHelper
     /// <param name="nodes">The syntax node stack to validate.</param>
     /// <param name="generator">The syntax generator to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     private static void ValidateBinaryOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
     {
         if (nodes == null)
@@ -223,6 +224,6 @@ public static class SyntaxBinaryOperationHelper
             throw new ArgumentNullException(nameof(generator));
             
         if (nodes.Count < 2)
-            throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
+            throw VisitorException.CreateForStackUnderflow("SyntaxBinaryOperationHelper", "Binary Operation", 2, nodes.Count);
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser.Nodes;
@@ -117,7 +118,9 @@ public static class AccessObjectArrayNodeProcessor
         }
         
         // This should not happen for valid queries, but fallback to avoid crashes
-        throw new InvalidOperationException($"Cannot generate code for array access {node} - no parent expression available");
+        throw CodeGenerationException.CreateForMissingContext(
+            "AccessObjectArrayNodeProcessor", 
+            "parent expression for array access");
     }
 
     /// <summary>

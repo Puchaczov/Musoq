@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
@@ -220,7 +221,7 @@ public class RewriteQueryVisitorTests
     // ============================================
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void Visit_StarNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -231,7 +232,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void Visit_AddNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -245,7 +246,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void Visit_EqualityNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -256,7 +257,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void Visit_AndNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -270,7 +271,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void Visit_FieldNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -281,7 +282,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void Visit_ArgsListNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -295,7 +296,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void Visit_GroupByNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -311,7 +312,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void Visit_SchemaFromNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -447,7 +448,7 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void Visit_HavingNode_WithEmptyStack_ShouldThrow()
     {
         // Arrange
@@ -533,11 +534,11 @@ public class RewriteQueryVisitorTests
             try
             {
                 operation();
-                Assert.Fail("Expected InvalidOperationException was not thrown");
+                Assert.Fail("Expected VisitorException was not thrown");
             }
-            catch (InvalidOperationException ex)
+            catch (VisitorException ex)
             {
-                Assert.IsTrue(ex.Message.Contains("Stack must contain at least"), 
+                Assert.IsTrue(ex.Message.Contains("Stack underflow") || ex.Message.Contains("Expected at least"), 
                     $"Error message should be informative: {ex.Message}");
             }
         }

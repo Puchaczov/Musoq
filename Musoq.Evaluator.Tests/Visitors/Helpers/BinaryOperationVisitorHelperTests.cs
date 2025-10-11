@@ -1,4 +1,5 @@
 using System;
+using Musoq.Evaluator.Exceptions;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors.Helpers;
@@ -135,7 +136,7 @@ public class BinaryOperationVisitorHelperTests
         nodes.Push(new IntegerNode("5")); // Only one node
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() => 
+        Assert.ThrowsException<VisitorException>(() => 
             BinaryOperationVisitorHelper.ProcessStarOperation(nodes));
     }
 }
