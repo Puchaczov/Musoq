@@ -69,6 +69,23 @@ The Musoq query engine includes robust error handling to provide clear, actionab
 | `NestedAggregatesNotAllowed_ShouldThrowMeaningfulError` | `select Count(Sum(Population)) from #A.Entities() group by City` | Nested aggregate functions |
 | `InvalidCTEReference_ShouldThrowMeaningfulError` | `with cte as (select Name from #A.Entities()) select * from NonExistentCTE` | CTE reference not found |
 
+### 3. Schema-Level Operation Tests
+**File:** `Musoq.Schema.Tests/InvalidSchemaOperationsTests.cs`
+**Test Count:** 7 tests
+**Purpose:** Validate that schema-level operations produce meaningful error messages.
+
+#### Test Coverage
+
+| Test Name | Invalid Operation Pattern | Error Validated |
+|-----------|--------------------------|-----------------|
+| `MethodsMetadata_GetNonExistentMethod_ShouldThrowMeaningfulError` | Attempt to get non-existent method | Method not found error |
+| `EmptySchemaName_ShouldThrowMeaningfulError` | Create schema with empty name | `SchemaArgumentException` - empty name |
+| `WhiteSpaceSchemaName_ShouldThrowMeaningfulError` | Create schema with whitespace name | `SchemaArgumentException` - whitespace |
+| `SchemaProvider_AccessNonRegisteredSchema_ShouldReturnNull` | Access non-registered schema | Returns null appropriately |
+| `MethodsManager_TryGetMethodWithNullName_ShouldThrowMeaningfulError` | Get method with null name | Null parameter error |
+| `MethodsManager_TryGetMethodWithNullTypes_ShouldThrowMeaningfulError` | Get method with null types array | Null parameter error |
+| `MethodsAggregator_WithNullMethodsManager_ShouldThrowMeaningfulError` | Create aggregator with null manager | Null parameter error |
+
 ## Error Message Quality
 
 All tests validate that:
@@ -95,12 +112,16 @@ UnknownColumnOrAliasException: "Column or Alias NonExistentColumn could not be f
 CannotResolveMethodException: "Method NonExistentFunction with argument types String cannot be resolved"
 
 AmbiguousColumnException: "Column 'Name' is ambiguous. It exists in multiple tables."
+
+SchemaArgumentException: "Schema name cannot be empty when initializing a schema"
 ```
 
 ## Test Results
 
 - **Parser Tests:** 181 total (21 new invalid query tests)
 - **Evaluator Tests:** 1,498 total (20 new invalid query tests)
+- **Schema Tests:** 118 total (7 new invalid operation tests)
+- **Total:** 2,220 tests
 - **All tests passing:** ✅ 100% pass rate
 
 ## Usage
@@ -114,8 +135,11 @@ dotnet test Musoq.Parser.Tests --filter "FullyQualifiedName~InvalidQuerySyntaxTe
 # Run all Evaluator invalid query tests
 dotnet test Musoq.Evaluator.Tests --filter "FullyQualifiedName~InvalidQueryEvaluationTests"
 
-# Run both test suites
-dotnet test Musoq.Parser.Tests Musoq.Evaluator.Tests --filter "FullyQualifiedName~InvalidQuery"
+# Run all Schema invalid operation tests
+dotnet test Musoq.Schema.Tests --filter "FullyQualifiedName~InvalidSchemaOperationsTests"
+
+# Run all three test suites
+dotnet test --filter "FullyQualifiedName~InvalidQuery OR FullyQualifiedName~InvalidSchemaOperations"
 ```
 
 ## Benefits

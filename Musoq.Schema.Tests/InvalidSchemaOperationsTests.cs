@@ -74,15 +74,15 @@ public class InvalidSchemaOperationsTests
     }
 
     [TestMethod]
-    public void MethodsManager_TryGetMethodWithNullName_ShouldThrowMeaningfulError()
+    public void MethodsMetadata_GetMethodWithNullName_ShouldThrowMeaningfulError()
     {
         // Arrange
-        var manager = new MethodsManager();
+        var metadata = new MethodsMetadata();
 
         // Act & Assert
         try
         {
-            manager.TryGetMethod(null, Array.Empty<Type>(), null, out _);
+            metadata.GetMethod(null, Array.Empty<Type>(), null);
             Assert.Fail("Expected an exception for null method name");
         }
         catch (Exception exc)
@@ -93,15 +93,15 @@ public class InvalidSchemaOperationsTests
     }
 
     [TestMethod]
-    public void MethodsManager_TryGetMethodWithNullTypes_ShouldThrowMeaningfulError()
+    public void MethodsMetadata_GetMethodWithNullTypes_ShouldThrowMeaningfulError()
     {
         // Arrange
-        var manager = new MethodsManager();
+        var metadata = new MethodsMetadata();
 
         // Act & Assert
         try
         {
-            manager.TryGetMethod("SomeMethod", null, null, out _);
+            metadata.GetMethod("SomeMethod", null, null);
             Assert.Fail("Expected an exception for null method types");
         }
         catch (Exception exc)
