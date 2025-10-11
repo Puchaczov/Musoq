@@ -1,6 +1,22 @@
 # Invalid Query Error Handling Tests
 
-This document describes the comprehensive test coverage for invalid SQL queries and the meaningful error messages they produce.
+This document describes the comprehensive test coverage for invalid SQL queries and the meaningful error messages they produce, plus improvements to error handling.
+
+## Recent Improvements (Latest)
+
+### Parser Error Message Enhancement
+**Completed:** All `NotSupportedException` instances in Parser replaced with `SyntaxException`
+
+**Changes:**
+- 11 instances of generic exceptions replaced with SQL-specific exceptions
+- Error messages improved to be more actionable and helpful
+- 10 new tests added to validate improved error handling
+
+**Impact:** Users get meaningful, context-rich error messages with query position instead of generic .NET exceptions.
+
+See `ERROR_HANDLING_ANALYSIS.md` for detailed analysis of improvements made and remaining work.
+
+---
 
 ## Overview
 
@@ -74,6 +90,11 @@ The Musoq query engine includes robust error handling to provide clear, actionab
 **Test Count:** 7 tests
 **Purpose:** Validate that schema-level operations produce meaningful error messages.
 
+### 4. Improved Parser Error Messages Tests
+**File:** `Musoq.Parser.Tests/ImprovedErrorMessagesTests.cs`
+**Test Count:** 10 tests
+**Purpose:** Validate that Parser throws `SyntaxException` (not `NotSupportedException`) with helpful, actionable error messages.
+
 #### Test Coverage
 
 | Test Name | Invalid Operation Pattern | Error Validated |
@@ -85,6 +106,26 @@ The Musoq query engine includes robust error handling to provide clear, actionab
 | `MethodsManager_TryGetMethodWithNullName_ShouldThrowMeaningfulError` | Get method with null name | Null parameter error |
 | `MethodsManager_TryGetMethodWithNullTypes_ShouldThrowMeaningfulError` | Get method with null types array | Null parameter error |
 | `MethodsAggregator_WithNullMethodsManager_ShouldThrowMeaningfulError` | Create aggregator with null manager | Null parameter error |
+
+### 4. Improved Parser Error Messages Tests
+**File:** `Musoq.Parser.Tests/ImprovedErrorMessagesTests.cs`
+**Test Count:** 10 tests
+**Purpose:** Validate Parser error handling improvements.
+
+#### Test Coverage
+
+| Test Name | Validates |
+|-----------|-----------|
+| `InvalidQueryStart_ShouldThrowSyntaxExceptionNotNotSupportedException` | Parser throws `SyntaxException` not `NotSupportedException` |
+| `EmptyGroupByFields_ShouldThrowSyntaxExceptionWithHelpfulMessage` | GROUP BY error messages are helpful |
+| `InvalidOrderDirection_ShouldThrowSyntaxExceptionWithHelpfulMessage` | ORDER BY errors mention ASC/DESC |
+| `InvalidOperatorInExpression_ShouldThrowSyntaxExceptionWithHelpfulMessage` | Expression errors are meaningful |
+| `MissingAliasInFrom_ShouldThrowSyntaxExceptionWithHelpfulMessage` | Alias errors provide guidance |
+| `InvalidTokenInBaseTypes_ShouldThrowSyntaxExceptionWithHelpfulMessage` | Invalid token errors are clear |
+| `InvalidLogicalOperator_ShouldThrowSyntaxExceptionWithHelpfulMessage` | Logical operator errors are meaningful |
+| `InvalidComparisonOperator_ShouldThrowSyntaxExceptionWithHelpfulMessage` | Comparison operator errors are clear |
+| `AllParserErrorsAreSyntaxException_NotNotSupportedException` | No generic exceptions from Parser |
+| `ErrorMessagesContainQueryContext` | Errors include query position |
 
 ## Error Message Quality
 
@@ -114,14 +155,18 @@ CannotResolveMethodException: "Method NonExistentFunction with argument types St
 AmbiguousColumnException: "Column 'Name' is ambiguous. It exists in multiple tables."
 
 SchemaArgumentException: "Schema name cannot be empty when initializing a schema"
+
+SyntaxException: "Expected SELECT or FROM keyword to start query, but received {token}" (improved from NotSupportedException)
+
+SyntaxException: "GROUP BY clause requires at least one column or expression. Please specify columns to group by." (improved)
 ```
 
 ## Test Results
 
-- **Parser Tests:** 181 total (21 new invalid query tests)
+- **Parser Tests:** 191 total (21 invalid query + 10 improved errors)
 - **Evaluator Tests:** 1,498 total (20 new invalid query tests)
 - **Schema Tests:** 118 total (7 new invalid operation tests)
-- **Total:** 2,220 tests
+- **Total:** 2,230 tests
 - **All tests passing:** ✅ 100% pass rate
 
 ## Usage
@@ -132,14 +177,17 @@ Run the invalid query tests:
 # Run all Parser invalid query tests
 dotnet test Musoq.Parser.Tests --filter "FullyQualifiedName~InvalidQuerySyntaxTests"
 
+# Run all Parser improved error message tests
+dotnet test Musoq.Parser.Tests --filter "FullyQualifiedName~ImprovedErrorMessagesTests"
+
 # Run all Evaluator invalid query tests
 dotnet test Musoq.Evaluator.Tests --filter "FullyQualifiedName~InvalidQueryEvaluationTests"
 
 # Run all Schema invalid operation tests
 dotnet test Musoq.Schema.Tests --filter "FullyQualifiedName~InvalidSchemaOperationsTests"
 
-# Run all three test suites
-dotnet test --filter "FullyQualifiedName~InvalidQuery OR FullyQualifiedName~InvalidSchemaOperations"
+# Run all error handling tests
+dotnet test --filter "FullyQualifiedName~InvalidQuery OR FullyQualifiedName~InvalidSchemaOperations OR FullyQualifiedName~ImprovedErrorMessages"
 ```
 
 ## Benefits
