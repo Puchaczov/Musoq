@@ -1,4 +1,5 @@
 using System;
+using Musoq.Evaluator.Exceptions;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;

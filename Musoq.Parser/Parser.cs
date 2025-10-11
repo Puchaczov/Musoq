@@ -297,7 +297,7 @@ public class Parser
         else if (Current.TokenType == TokenType.From)
             query = ComposeReorderedQuery();
         else
-            throw new NotSupportedException($"Cannot recognize if query is regular or reordered.");
+            throw new SyntaxException($"Expected SELECT or FROM keyword to start query, but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
         return query;
     }
 
@@ -433,7 +433,8 @@ public class Parser
             throw new SyntaxException("Unnecessary comma found after GROUP BY clause.", _lexer.AlreadyResolvedQueryPart);
         }
                 
-        if (fields.Length == 0) throw new NotSupportedException("Group by clause does not have any fields.");
+        if (fields.Length == 0) 
+            throw new SyntaxException("GROUP BY clause requires at least one column or expression. Please specify columns to group by.", _lexer.AlreadyResolvedQueryPart);
         if (Current.TokenType != TokenType.Having) return new GroupByNode(fields, null);
 
         Consume(TokenType.Having);
@@ -562,7 +563,7 @@ public class Parser
             case TokenType.Take:
                 return Order.Ascending;
             default:
-                throw new NotSupportedException($"Unrecognized token for ComposeOrder(), the token was {Current.TokenType}");
+                throw new SyntaxException($"Expected ASC or DESC in ORDER BY clause, but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
         }
     }
 
@@ -583,7 +584,7 @@ public class Parser
                     node = new OrNode(node, ComposeEqualityOperators());
                     break;
                 default:
-                    throw new NotSupportedException($"Unrecognized token for ComposeOperations(), the token was {Current.TokenType}");
+                    throw new SyntaxException($"Expected logical operator (AND/OR) but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
             }
         }
             
@@ -615,7 +616,7 @@ public class Parser
                 TokenType.FSlash => new FSlashNode(left, right),
                 TokenType.Mod => new ModuloNode(left, right),
                 TokenType.Dot => new DotNode(left, right, string.Empty),
-                _ => throw new NotSupportedException($"{curr.TokenType} is not supported while parsing expression.")
+                _ => throw new SyntaxException($"Unexpected operator '{curr.TokenType}' in expression. Expected arithmetic operator (+, -, *, /, %).", _lexer.AlreadyResolvedQueryPart)
             };
         }
 
@@ -692,7 +693,7 @@ public class Parser
                     node = new NotNode(new InNode(node, ComposeArgs()));
                     break;
                 default:
-                    throw new NotSupportedException($"Unrecognized token for ComposeEqualityOperators(), the token was {Current.TokenType}");
+                    throw new SyntaxException($"Unexpected operator in WHERE clause. Expected comparison operator (=, <>, >, <, >=, <=, LIKE, IN, etc.) but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
             }
 
         return node;
@@ -752,7 +753,7 @@ public class Parser
             alias = ComposeAlias();
                     
             if (string.IsNullOrWhiteSpace(alias))
-                throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
+                throw new SyntaxException("Table or data source must have an alias. Use 'AS alias_name' or provide an alias directly after the table name.", _lexer.AlreadyResolvedQueryPart);
                     
             var fromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
 
@@ -792,12 +793,12 @@ public class Parser
                 alias = ComposeAlias();
             
                 if (string.IsNullOrWhiteSpace(alias))
-                    throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
+                    throw new SyntaxException("Property reference must have an alias. Use 'AS alias_name' after the property path.", _lexer.AlreadyResolvedQueryPart);
                 
                 return new PropertyFromNode(alias, column.Name, properties.ToArray());
             }
                 
-            throw new NotSupportedException($"Unrecognized token {Current.TokenType} when parsing From clause.");
+            throw new SyntaxException($"Expected property name or alias after dot (.) but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
         }
             
         alias = ComposeAlias();
@@ -940,7 +941,7 @@ public class Parser
                 return new NullNode();
         }
 
-        throw new NotSupportedException($"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.");
+        throw new SyntaxException($"Unexpected token '{Current.Value}' ({Current.TokenType}) at position {Current.Span.Start}. Expected a valid expression (number, string, identifier, function call, etc.).", _lexer.AlreadyResolvedQueryPart);
     }
 
     private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode) ComposeCase()
@@ -1018,7 +1019,7 @@ public class Parser
                 null, alias);
         }
             
-        throw new NotSupportedException($"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
+        throw new SyntaxException($"Expected function call or method access but received {Current.TokenType}. Check your FROM clause syntax.", _lexer.AlreadyResolvedQueryPart);
     }
 
     private Token ConsumeAndGetToken(TokenType expected)

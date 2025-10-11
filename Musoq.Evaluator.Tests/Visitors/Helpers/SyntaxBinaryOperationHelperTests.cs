@@ -1,4 +1,5 @@
 using System;
+using Musoq.Evaluator.Exceptions;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -115,7 +116,7 @@ public class SyntaxBinaryOperationHelperTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void ProcessDivideOperation_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange - only one node in stack
@@ -126,7 +127,7 @@ public class SyntaxBinaryOperationHelperTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
+    [ExpectedException(typeof(VisitorException))]
     public void ProcessSubtractOperation_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Act

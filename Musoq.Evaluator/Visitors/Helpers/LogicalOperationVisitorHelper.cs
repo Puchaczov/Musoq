@@ -1,4 +1,5 @@
 using System;
+using Musoq.Evaluator.Exceptions;
 using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 
@@ -16,7 +17,7 @@ public static class LogicalOperationVisitorHelper
     /// <param name="nodes">The node stack.</param>
     /// <param name="rewriteNullableBoolExpressions">Function to rewrite nullable boolean expressions.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or rewriteNullableBoolExpressions is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessAndOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions)
     {
@@ -40,7 +41,7 @@ public static class LogicalOperationVisitorHelper
     /// <param name="nodes">The node stack.</param>
     /// <param name="rewriteNullableBoolExpressions">Function to rewrite nullable boolean expressions.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes or rewriteNullableBoolExpressions is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessOrOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions)
     {
@@ -81,7 +82,7 @@ public static class LogicalOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null or right operand is not ArgsListNode.</exception>
     public static void ProcessContainsOperation(Stack<Node> nodes)
     {
@@ -121,7 +122,7 @@ public static class LogicalOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null or right operand is not ArgsListNode.</exception>
     public static void ProcessInOperation(Stack<Node> nodes)
     {
@@ -164,14 +165,14 @@ public static class LogicalOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     private static void ValidateBinaryOperation(Stack<Node> nodes)
     {
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
             
         if (nodes.Count < 2)
-            throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
+            throw VisitorException.CreateForStackUnderflow("LogicalOperationVisitorHelper", "Binary Operation", 2, nodes.Count);
     }
 
     /// <summary>
@@ -186,7 +187,7 @@ public static class LogicalOperationVisitorHelper
             throw new ArgumentNullException(nameof(nodes));
             
         if (nodes.Count < 1)
-            throw new InvalidOperationException("Stack must contain at least 1 node for unary operation");
+            throw VisitorException.CreateForStackUnderflow("LogicalOperationVisitorHelper", "Unary Operation", 1, nodes.Count);
     }
 
     /// <summary>

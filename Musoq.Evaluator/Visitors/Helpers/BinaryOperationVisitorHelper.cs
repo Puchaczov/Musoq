@@ -1,4 +1,5 @@
 using System;
+using Musoq.Evaluator.Exceptions;
 using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 
@@ -16,7 +17,7 @@ public static class BinaryOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessStarOperation(Stack<Node> nodes)
     {
@@ -32,7 +33,7 @@ public static class BinaryOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessFSlashOperation(Stack<Node> nodes)
     {
@@ -48,7 +49,7 @@ public static class BinaryOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessModuloOperation(Stack<Node> nodes)
     {
@@ -64,7 +65,7 @@ public static class BinaryOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessAddOperation(Stack<Node> nodes)
     {
@@ -80,7 +81,7 @@ public static class BinaryOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessHyphenOperation(Stack<Node> nodes)
     {
@@ -96,14 +97,14 @@ public static class BinaryOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     private static void ValidateBinaryOperation(Stack<Node> nodes)
     {
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
             
         if (nodes.Count < 2)
-            throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
+            throw VisitorException.CreateForStackUnderflow("BinaryOperationVisitorHelper", "Binary Operation", 2, nodes.Count);
     }
 
     /// <summary>

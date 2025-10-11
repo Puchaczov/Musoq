@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
@@ -16,7 +17,7 @@ public static class ComparisonOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessEqualityOperation(Stack<Node> nodes)
     {
@@ -32,7 +33,7 @@ public static class ComparisonOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessGreaterOrEqualOperation(Stack<Node> nodes)
     {
@@ -48,7 +49,7 @@ public static class ComparisonOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessLessOrEqualOperation(Stack<Node> nodes)
     {
@@ -64,7 +65,7 @@ public static class ComparisonOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessGreaterOperation(Stack<Node> nodes)
     {
@@ -80,7 +81,7 @@ public static class ComparisonOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessLessOperation(Stack<Node> nodes)
     {
@@ -96,7 +97,7 @@ public static class ComparisonOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessDiffOperation(Stack<Node> nodes)
     {
@@ -112,7 +113,7 @@ public static class ComparisonOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessLikeOperation(Stack<Node> nodes)
     {
@@ -128,7 +129,7 @@ public static class ComparisonOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessRLikeOperation(Stack<Node> nodes)
     {
@@ -144,14 +145,14 @@ public static class ComparisonOperationVisitorHelper
     /// </summary>
     /// <param name="nodes">The node stack to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    /// <exception cref="VisitorException">Thrown when stack has insufficient nodes.</exception>
     private static void ValidateBinaryOperation(Stack<Node> nodes)
     {
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
             
         if (nodes.Count < 2)
-            throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
+            throw VisitorException.CreateForStackUnderflow("ComparisonOperationVisitorHelper", "Binary Operation", 2, nodes.Count);
     }
 
     /// <summary>

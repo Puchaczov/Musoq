@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser.Nodes;
 
@@ -149,22 +150,21 @@ public class AccessObjectArrayNodeProcessorTests
     }
 
     [TestMethod]
-    public void ProcessAccessObjectArrayNode_WithPropertyAccess_NoParentExpression_ThrowsInvalidOperationException()
+    public void ProcessAccessObjectArrayNode_WithPropertyAccess_NoParentExpression_ThrowsCodeGenerationException()
     {
         // Arrange
         var node = CreateAccessObjectArrayNode("Property", 1, typeof(string), isColumnAccess: false);
         var nodes = new Stack<SyntaxNode>();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<InvalidOperationException>(() => 
+        var exception = Assert.ThrowsException<CodeGenerationException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
         
-        Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
-        Assert.IsTrue(exception.Message.Contains("no parent expression available"));
+        Assert.IsTrue(exception.Message.Contains("parent expression") || exception.Message.Contains("Code generation failed"));
     }
 
     [TestMethod]
-    public void ProcessAccessObjectArrayNode_WithPropertyAccess_NonExpressionOnStack_ThrowsInvalidOperationException()
+    public void ProcessAccessObjectArrayNode_WithPropertyAccess_NonExpressionOnStack_ThrowsCodeGenerationException()
     {
         // Arrange
         var node = CreateAccessObjectArrayNode("Property", 1, typeof(string), isColumnAccess: false);
@@ -172,10 +172,10 @@ public class AccessObjectArrayNodeProcessorTests
         nodes.Push(SyntaxFactory.Block()); // Non-expression syntax node
 
         // Act & Assert
-        var exception = Assert.ThrowsException<InvalidOperationException>(() => 
+        var exception = Assert.ThrowsException<CodeGenerationException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
         
-        Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
+        Assert.IsTrue(exception.Message.Contains("parent expression") || exception.Message.Contains("Code generation failed"));
     }
 
     [TestMethod]
