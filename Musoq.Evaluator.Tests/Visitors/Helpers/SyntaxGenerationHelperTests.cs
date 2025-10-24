@@ -58,8 +58,8 @@ public class SyntaxGenerationHelperTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("myObject.DoSomething"));
-        Assert.IsTrue(code.Contains("test"));
+        Assert.Contains("myObject.DoSomething", code);
+        Assert.Contains("test", code);
     }
 
     [TestMethod]
@@ -74,8 +74,8 @@ public class SyntaxGenerationHelperTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("calculator.Add"));
-        Assert.IsTrue(code.Contains("42"));
+        Assert.Contains("calculator.Add", code);
+        Assert.Contains("42", code);
     }
 
     [TestMethod]
@@ -90,8 +90,8 @@ public class SyntaxGenerationHelperTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("Helper.Process"));
-        Assert.IsTrue(code.Contains("input"));
+        Assert.Contains("Helper.Process", code);
+        Assert.Contains("input", code);
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public class SyntaxGenerationHelperTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("hello world"));
+        Assert.Contains("hello world", code);
     }
 
     [TestMethod]

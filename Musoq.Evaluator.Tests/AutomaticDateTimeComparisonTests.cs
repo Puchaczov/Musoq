@@ -216,8 +216,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
-        Assert.IsTrue(results.Contains("Equal Event"));
-        Assert.IsTrue(results.Contains("Later Event"));
+        Assert.Contains("Equal Event", results);
+        Assert.Contains("Later Event", results);
     }
 
     [TestMethod]
@@ -236,8 +236,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
-        Assert.IsTrue(results.Contains("Equal Event"));
-        Assert.IsTrue(results.Contains("Later Event"));
+        Assert.Contains("Equal Event", results);
+        Assert.Contains("Later Event", results);
     }
 
     [TestMethod]
@@ -256,8 +256,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         Assert.AreEqual(2, table.Count); // Should match both "Earlier Event" and "Equal Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
-        Assert.IsTrue(results.Contains("Earlier Event"));
-        Assert.IsTrue(results.Contains("Equal Event"));
+        Assert.Contains("Earlier Event", results);
+        Assert.Contains("Equal Event", results);
     }
 
     [TestMethod]
@@ -276,8 +276,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
-        Assert.IsTrue(results.Contains("Equal Event"));
-        Assert.IsTrue(results.Contains("Later Event"));
+        Assert.Contains("Equal Event", results);
+        Assert.Contains("Later Event", results);
     }
 
     [TestMethod]
@@ -296,8 +296,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         Assert.AreEqual(2, table.Count); // Should match both "Earlier Event" and "Equal Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
-        Assert.IsTrue(results.Contains("Earlier Event"));
-        Assert.IsTrue(results.Contains("Equal Event"));
+        Assert.Contains("Earlier Event", results);
+        Assert.Contains("Equal Event", results);
     }
 
     #endregion
@@ -335,8 +335,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
-        Assert.IsTrue(results.Contains("Equal Event"));
-        Assert.IsTrue(results.Contains("Later Event"));
+        Assert.Contains("Equal Event", results);
+        Assert.Contains("Later Event", results);
     }
 
     #endregion
@@ -707,7 +707,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             
             // Basic validation that query executes without error
             Assert.IsNotNull(table, $"Table should not be null for {testData.TypeName} with operator {op}");
-            Assert.IsTrue(table.Count >= 0, $"Table count should be non-negative for {testData.TypeName} with operator {op}");
+            Assert.IsGreaterThanOrEqualTo(0, table.Count, $"Table count should be non-negative for {testData.TypeName} with operator {op}");
         }
         catch (Exception ex)
         {
@@ -734,7 +734,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                 
                 // Basic validation that query executes without error
                 Assert.IsNotNull(table, $"Table should not be null for {testData.TypeName} with reversed operator {reversedOp}");
-                Assert.IsTrue(table.Count >= 0, $"Table count should be non-negative for {testData.TypeName} with reversed operator {reversedOp}");
+                Assert.IsGreaterThanOrEqualTo(0, table.Count, $"Table count should be non-negative for {testData.TypeName} with reversed operator {reversedOp}");
             }
             catch (Exception ex)
             {
@@ -794,7 +794,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                 
                 // Basic validation that query executes without error
                 Assert.IsNotNull(table, $"Table should not be null for operator {op}");
-                Assert.IsTrue(table.Count >= 0, $"Table count should be non-negative for operator {op}");
+                Assert.IsGreaterThanOrEqualTo(0, table.Count, $"Table count should be non-negative for operator {op}");
             }
             catch (Exception ex)
             {
@@ -822,7 +822,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                 
                 // Basic validation that query executes without error
                 Assert.IsNotNull(table, $"Table should not be null for reversed operator {reversedOp}");
-                Assert.IsTrue(table.Count >= 0, $"Table count should be non-negative for reversed operator {reversedOp}");
+                Assert.IsGreaterThanOrEqualTo(0, table.Count, $"Table count should be non-negative for reversed operator {reversedOp}");
             }
             catch (Exception ex)
             {
@@ -856,7 +856,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count > 0, "Query should return at least one result");
+        Assert.IsGreaterThan(0, table.Count, "Query should return at least one result");
         return table[0].Values[0] as string;
     }
 

@@ -29,7 +29,7 @@ public class InTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 100m), "First entry should be 100");
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 400m), "Second entry should be 400");
@@ -56,7 +56,7 @@ public class InTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 200m), "First entry should be 200");
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 300m), "Second entry should be 300");
@@ -84,7 +84,7 @@ public class InTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "Poland"), "First entry should be Poland");
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "Singapore"), "Second entry should be Singapore");
@@ -113,7 +113,7 @@ public class InTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "Berlin"), "First entry should be Berlin");
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "France"), "Second entry should be France");

@@ -177,7 +177,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             
             // Assert
             Assert.IsNotNull(result.RequiredNamespaces);
-            Assert.AreEqual(2, result.RequiredNamespaces.Length);
+            Assert.HasCount(2, result.RequiredNamespaces);
             Assert.IsTrue(result.RequiredNamespaces.Contains(typeof(string).Namespace));
             Assert.IsTrue(result.RequiredNamespaces.Contains(typeof(IObjectResolver).Namespace));
         }

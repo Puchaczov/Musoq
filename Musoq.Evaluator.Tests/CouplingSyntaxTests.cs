@@ -157,7 +157,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("s2.Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry.Values[0] == "ABCAACBA"), 
@@ -198,7 +198,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(true, table[0].Values[0]);
+        Assert.IsTrue((bool?)table[0].Values[0]);
         Assert.AreEqual("test", table[0].Values[1]);
     }
 

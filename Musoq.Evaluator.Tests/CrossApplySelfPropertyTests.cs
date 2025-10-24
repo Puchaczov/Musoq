@@ -147,7 +147,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 6, "Table should have 6 entries");
+        Assert.AreEqual(6, table.Count, "Table should have 6 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry.Values[0] == "City1" && 
@@ -203,7 +203,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 6, "Table should have 6 entries");
+        Assert.AreEqual(6, table.Count, "Table should have 6 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry.Values[0] == "City1" && 
@@ -263,25 +263,25 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("b.Value2", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.IsTrue(table.Count == 6, "Table should contain 6 rows");
+        Assert.AreEqual(6, table.Count, "Table should contain 6 rows");
 
-        Assert.IsTrue(table.Count(row => 
+        Assert.AreEqual(1,
+table.Count(row =>
                 (string)row.Values[0] == "City1" &&
                 (string)row.Values[1] == "Value1" &&
-                (int)row.Values[2] == 1) == 1,
-            "Expected data for City1 not found");
+                (int)row.Values[2] == 1), "Expected data for City1 not found");
 
-        Assert.IsTrue(table.Count(row => 
+        Assert.AreEqual(2,
+table.Count(row =>
                 (string)row.Values[0] == "City2" &&
                 new[] { "Value2", "Value3" }.Contains((string)row.Values[1]) &&
-                ((int)row.Values[2] == 2 || (int)row.Values[2] == 3)) == 2,
-            "Expected data for City2 not found");
+                ((int)row.Values[2] == 2 || (int)row.Values[2] == 3)), "Expected data for City2 not found");
 
-        Assert.IsTrue(table.Count(row => 
+        Assert.AreEqual(3,
+table.Count(row =>
                 (string)row.Values[0] == "City3" &&
                 new[] { "Value4", "Value5", "Value6" }.Contains((string)row.Values[1]) &&
-                ((int)row.Values[2] == 4 || (int)row.Values[2] == 5 || (int)row.Values[2] == 6)) == 3,
-            "Expected data for City3 not found");
+                ((int)row.Values[2] == 4 || (int)row.Values[2] == 5 || (int)row.Values[2] == 6)), "Expected data for City3 not found");
     }
     
     [TestMethod]
@@ -311,7 +311,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("b.Value2", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.IsTrue(table.Count == 6, "Table should have 6 entries");
+        Assert.AreEqual(6, table.Count, "Table should have 6 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry.Values[0] == "City1" && 
@@ -556,7 +556,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         
         Assert.AreEqual(1, table.Columns.Count());
         
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
         Assert.IsTrue(table.Any(row => (int)row.Values[0] == 1) && table.Any(row => (int)row.Values[0] == 2), "Expected values 1 and 2 not found");
     }
     
@@ -589,7 +589,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         
         Assert.AreEqual(1, table.Columns.Count());
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 1), "First entry should be 1");
         Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 2), "Second entry should be 2");

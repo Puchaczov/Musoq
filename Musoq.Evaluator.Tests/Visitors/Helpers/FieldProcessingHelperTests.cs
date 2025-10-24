@@ -26,7 +26,7 @@ public class FieldProcessingHelperTests
         var result = FieldProcessingHelper.CreateFields(oldFields, nodes);
 
         // Assert
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("newfield1", result[0].FieldName);
         Assert.AreEqual("newfield2", result[1].FieldName);
     }
@@ -47,7 +47,7 @@ public class FieldProcessingHelperTests
         var result = FieldProcessingHelper.CreateFields(oldFields, nodes);
 
         // Assert
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual("newfield1", result[0].FieldName);
     }
 
@@ -62,6 +62,6 @@ public class FieldProcessingHelperTests
         var result = FieldProcessingHelper.CreateFields(oldFields, nodes);
 
         // Assert
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 }

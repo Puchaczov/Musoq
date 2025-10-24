@@ -97,29 +97,29 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Count(r => 
+        Assert.AreEqual(1, table.Count(r =>
             (string)r[0] == "New York" &&
             (string)r[1] == "USA" &&
             (string)r[2] == "Broadway" &&
-            (int)r[3] == 123) == 1);
+            (int)r[3] == 123));
 
-        Assert.IsTrue(table.Count(r => 
+        Assert.AreEqual(1, table.Count(r =>
             (string)r[0] == "New York" &&
             (string)r[1] == "USA" &&
             (string)r[2] == "Fifth Avenue" &&
-            (int)r[3] == 456) == 1);
+            (int)r[3] == 456));
 
-        Assert.IsTrue(table.Count(r => 
+        Assert.AreEqual(1, table.Count(r =>
             (string)r[0] == "Los Angeles" &&
             (string)r[1] == "USA" &&
             (string)r[2] == "Broadway" &&
-            (int)r[3] == 123) == 1);
+            (int)r[3] == 123));
 
-        Assert.IsTrue(table.Count(r => 
-            (string)r[0] == "Los Angeles" && 
+        Assert.AreEqual(1, table.Count(r =>
+            (string)r[0] == "Los Angeles" &&
             (string)r[1] == "USA" &&
             (string)r[2] == "Fifth Avenue" &&
-            (int)r[3] == 456) == 1);
+            (int)r[3] == 456));
     }
 
     private class OuterApplyClass3
@@ -197,21 +197,21 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(4).ColumnType);
         
-        Assert.IsTrue(table.Count == 8, "Table should contain 8 rows");
+        Assert.AreEqual(8, table.Count, "Table should contain 8 rows");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row[0] == "IT" && 
+        Assert.AreEqual(4,
+table.Count(row =>
+                (string)row[0] == "IT" &&
                 (int)row[1] == 500000 &&
                 new[] { ("John Doe", 50000), ("Jane Smith", 60000) }.Contains(((string)row[2], (int)row[3])) &&
-                new[] { "C#", "JavaScript" }.Contains((string)row[4])) == 4,
-            "Expected 4 IT rows with correct employee and skill combinations");
+                new[] { "C#", "JavaScript" }.Contains((string)row[4])), "Expected 4 IT rows with correct employee and skill combinations");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row[0] == "HR" && 
+        Assert.AreEqual(4,
+table.Count(row =>
+                (string)row[0] == "HR" &&
                 (int)row[1] == 300000 &&
                 new[] { ("John Doe", 50000), ("Jane Smith", 60000) }.Contains(((string)row[2], (int)row[3])) &&
-                new[] { "Communication", "Negotiation" }.Contains((string)row[4])) == 4,
-            "Expected 4 HR rows with correct employee and skill combinations");
+                new[] { "Communication", "Negotiation" }.Contains((string)row[4])), "Expected 4 HR rows with correct employee and skill combinations");
     }
 
     private class OuterApplyClass5
@@ -408,7 +408,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.IsTrue(table.Count(row => 
                           (string) row[0] == "John" && 
@@ -484,13 +484,13 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row[0] == "John" && 
-                (string)row[1] == "Doe" && 
-                new[] { "C#", "JavaScript" }.Contains((string)row[2])) == 2,
-            "Expected 2 rows for John Doe with C# and JavaScript skills");
+        Assert.AreEqual(2,
+table.Count(row =>
+                (string)row[0] == "John" &&
+                (string)row[1] == "Doe" &&
+                new[] { "C#", "JavaScript" }.Contains((string)row[2])), "Expected 2 rows for John Doe with C# and JavaScript skills");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row[0] == "Jane" && 
@@ -498,10 +498,10 @@ public class OuterApplyMixedTests : GenericEntityTestBase
                 (string)row[2] == "Java"),
             "Row for Jane Smith with Java skill not found");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row[0] == "Alice" && 
-                (string)row[1] == "Johnson" && 
-                new[] { "Communication", "Negotiation" }.Contains((string)row[2])) == 2,
-            "Expected 2 rows for Alice Johnson with Communication and Negotiation skills");
+        Assert.AreEqual(2,
+table.Count(row =>
+                (string)row[0] == "Alice" &&
+                (string)row[1] == "Johnson" &&
+                new[] { "Communication", "Negotiation" }.Contains((string)row[2])), "Expected 2 rows for Alice Johnson with Communication and Negotiation skills");
     }
 }

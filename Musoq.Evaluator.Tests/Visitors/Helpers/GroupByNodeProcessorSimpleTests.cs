@@ -74,7 +74,7 @@ public class GroupByNodeProcessorSimpleTests
         Assert.IsTrue(method.IsPublic);
         
         var parameters = method.GetParameters();
-        Assert.AreEqual(3, parameters.Length);
+        Assert.HasCount(3, parameters);
     }
 
     [TestMethod]
@@ -85,7 +85,7 @@ public class GroupByNodeProcessorSimpleTests
         var methods = type.GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
         
         // Check that private helper methods exist
-        Assert.IsTrue(methods.Length > 1, "Should have multiple helper methods");
+        Assert.IsGreaterThan(1, methods.Length, "Should have multiple helper methods");
     }
 
     [TestMethod]
@@ -97,6 +97,6 @@ public class GroupByNodeProcessorSimpleTests
         
         // This is an indirect test to ensure the class compiled with all required references
         Assert.IsNotNull(assembly);
-        Assert.IsTrue(assembly.GetTypes().Length > 0);
+        Assert.IsNotEmpty(assembly.GetTypes());
     }
 }

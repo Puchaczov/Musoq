@@ -76,7 +76,7 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row.Values[0] == "City1" && 
@@ -157,7 +157,7 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual("b.Month", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry.Values[0] == "Country1" && 
@@ -282,25 +282,25 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(2).ColumnName);
         
-        Assert.IsTrue(table.Count == 9, "Table should contain 9 rows");
+        Assert.AreEqual(9, table.Count, "Table should contain 9 rows");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "Country1" && 
-                (decimal)row.Values[1] == 1000m && 
-                (string)row.Values[2] == "January") == 4,
-            "Should have exactly 4 rows of Country1/1000/January");
+        Assert.AreEqual(4,
+table.Count(row =>
+                (string)row.Values[0] == "Country1" &&
+                (decimal)row.Values[1] == 1000m &&
+                (string)row.Values[2] == "January"), "Should have exactly 4 rows of Country1/1000/January");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "Country1" && 
-                (decimal)row.Values[1] == 2000m && 
-                (string)row.Values[2] == "February") == 4,
-            "Should have exactly 4 rows of Country1/2000/February");
+        Assert.AreEqual(4,
+table.Count(row =>
+                (string)row.Values[0] == "Country1" &&
+                (decimal)row.Values[1] == 2000m &&
+                (string)row.Values[2] == "February"), "Should have exactly 4 rows of Country1/2000/February");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "Country2" && 
-                (decimal)row.Values[1] == 3000m && 
-                (string)row.Values[2] == "March") == 1,
-            "Should have exactly 1 row of Country2/3000/March");
+        Assert.AreEqual(1,
+table.Count(row =>
+                (string)row.Values[0] == "Country2" &&
+                (decimal)row.Values[1] == 3000m &&
+                (string)row.Values[2] == "March"), "Should have exactly 1 row of Country2/3000/March");
     }
     
     [TestMethod]
@@ -347,7 +347,7 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual("b.Country", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Country1"), "Missing Country1 row");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Country2"), "Missing Country2 row");
@@ -446,7 +446,7 @@ public class CrossApplyTests : GenericEntityTestBase
         Assert.AreEqual("Month", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row.Values[0] == "Country1" && 
@@ -460,17 +460,17 @@ public class CrossApplyTests : GenericEntityTestBase
                 (string)row.Values[2] == "February"),
             "Missing Country1/2000/February row");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "Country1" && 
-                (decimal)row.Values[1] == 1000m && 
-                (string)row.Values[2] == "January") == 2,
-            "Should have exactly 2 rows of Country1/1000/January");
+        Assert.AreEqual(2,
+table.Count(row =>
+                (string)row.Values[0] == "Country1" &&
+                (decimal)row.Values[1] == 1000m &&
+                (string)row.Values[2] == "January"), "Should have exactly 2 rows of Country1/1000/January");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "Country1" && 
-                (decimal)row.Values[1] == 2000m && 
-                (string)row.Values[2] == "February") == 2,
-            "Should have exactly 2 rows of Country1/2000/February");
+        Assert.AreEqual(2,
+table.Count(row =>
+                (string)row.Values[0] == "Country1" &&
+                (decimal)row.Values[1] == 2000m &&
+                (string)row.Values[2] == "February"), "Should have exactly 2 rows of Country1/2000/February");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row.Values[0] == "Country2" && 

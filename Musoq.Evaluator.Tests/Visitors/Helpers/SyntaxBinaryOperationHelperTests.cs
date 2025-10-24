@@ -35,7 +35,7 @@ public class SyntaxBinaryOperationHelperTests
         SyntaxBinaryOperationHelper.ProcessMultiplyOperation(_nodes, _generator);
 
         // Assert
-        Assert.AreEqual(1, _nodes.Count);
+        Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
         Assert.IsTrue(code.Contains("5") && code.Contains("3") && code.Contains("*"));
@@ -54,7 +54,7 @@ public class SyntaxBinaryOperationHelperTests
         SyntaxBinaryOperationHelper.ProcessAddOperation(_nodes, _generator);
 
         // Assert
-        Assert.AreEqual(1, _nodes.Count);
+        Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
         Assert.IsTrue(code.Contains("10") && code.Contains("20") && code.Contains("+"));
@@ -73,7 +73,7 @@ public class SyntaxBinaryOperationHelperTests
         SyntaxBinaryOperationHelper.ProcessLogicalAndOperation(_nodes, _generator);
 
         // Assert
-        Assert.AreEqual(1, _nodes.Count);
+        Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
         Assert.IsTrue(code.Contains("true") && code.Contains("false") && code.Contains("&&"));
@@ -92,7 +92,7 @@ public class SyntaxBinaryOperationHelperTests
         SyntaxBinaryOperationHelper.ProcessValueEqualsOperation(_nodes, _generator);
 
         // Assert
-        Assert.AreEqual(1, _nodes.Count);
+        Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
         Assert.IsTrue(code.Contains("test") && code.Contains("value") && code.Contains("=="));
@@ -142,7 +142,7 @@ public class SyntaxBinaryOperationHelperTests
         SyntaxBinaryOperationHelper.ProcessGreaterThanOperation(_nodes, _generator);
 
         // Assert
-        Assert.AreEqual(1, _nodes.Count);
+        Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
         Assert.IsTrue(code.Contains("10") && code.Contains("5") && code.Contains(">"));
@@ -161,7 +161,7 @@ public class SyntaxBinaryOperationHelperTests
         SyntaxBinaryOperationHelper.ProcessLessThanOrEqualOperation(_nodes, _generator);
 
         // Assert
-        Assert.AreEqual(1, _nodes.Count);
+        Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
         Assert.IsTrue(code.Contains("5") && code.Contains("10") && code.Contains("<="));

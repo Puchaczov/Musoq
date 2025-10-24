@@ -75,7 +75,7 @@ public class OuterApplyTests : GenericEntityTestBase
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry[0] == "City1" && 
@@ -139,24 +139,24 @@ public class OuterApplyTests : GenericEntityTestBase
         Assert.AreEqual("b.Money", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(3).ColumnName);
         
-        Assert.IsTrue(table.Count == 4, "Table should contain 4 rows");
+        Assert.AreEqual(4, table.Count, "Table should contain 4 rows");
 
-        Assert.IsTrue(table.Count(row =>
+        Assert.AreEqual(4,
+table.Count(row =>
                 new[] { "City1", "City2" }.Contains((string)row[0]) &&
                 (string)row[1] == "Country1" &&
                 new[] { 1000m, 2000m }.Contains((decimal)row[2]) &&
-                new[] { "January", "February" }.Contains((string)row[3])) == 4,
-            "Expected 4 rows matching the pattern: (City1|City2), Country1, (1000|2000), (January|February)");
+                new[] { "January", "February" }.Contains((string)row[3])), "Expected 4 rows matching the pattern: (City1|City2), Country1, (1000|2000), (January|February)");
 
-        Assert.IsTrue(table.Count(row =>
+        Assert.AreEqual(2,
+table.Count(row =>
                 (string)row[0] == "City1" &&
-                new[] { (1000m, "January"), (2000m, "February") }.Contains(((decimal)row[2], (string)row[3]))) == 2,
-            "Expected 2 rows for City1 with correct amount/month combinations");
+                new[] { (1000m, "January"), (2000m, "February") }.Contains(((decimal)row[2], (string)row[3]))), "Expected 2 rows for City1 with correct amount/month combinations");
 
-        Assert.IsTrue(table.Count(row =>
+        Assert.AreEqual(2,
+table.Count(row =>
                 (string)row[0] == "City2" &&
-                new[] { (1000m, "January"), (2000m, "February") }.Contains(((decimal)row[2], (string)row[3]))) == 2,
-            "Expected 2 rows for City2 with correct amount/month combinations");
+                new[] { (1000m, "January"), (2000m, "February") }.Contains(((decimal)row[2], (string)row[3]))), "Expected 2 rows for City2 with correct amount/month combinations");
     }
     
     [TestMethod]
@@ -306,7 +306,7 @@ public class OuterApplyTests : GenericEntityTestBase
         Assert.AreEqual("TotalMoney", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual("TransactionCount", table.Columns.ElementAt(2).ColumnName);
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry[0] == "Country1" && 

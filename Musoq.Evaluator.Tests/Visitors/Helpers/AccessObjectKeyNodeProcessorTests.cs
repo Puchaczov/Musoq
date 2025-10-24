@@ -189,7 +189,7 @@ public class AccessObjectKeyNodeProcessorTests
         var result = AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, _nodes);
 
         // Assert
-        Assert.AreEqual(initialCount - 1, _nodes.Count);
+        Assert.HasCount(initialCount - 1, _nodes);
         Assert.AreEqual(expression1, _nodes.Peek()); // expression2 should have been popped
     }
 

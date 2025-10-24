@@ -72,7 +72,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 8, "Table should contain 8 rows");
+        Assert.AreEqual(8, table.Count, "Table should contain 8 rows");
 
         Assert.IsTrue(table.Any(row => (string)row[0] == "Lorem"), "Missing Lorem row");
         Assert.IsTrue(table.Any(row => (string)row[0] == "ipsum"), "Missing ipsum row");
@@ -286,9 +286,9 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         
         foreach (var actual in actualPairs)
         {
-            Assert.IsTrue(
-                actual.Word.Contains(actual.Character),
-                $"Character '{actual.Character}' should not be paired with word '{actual.Word}' as it's not part of that word"
+            Assert.Contains(
+actual.Character,
+                actual.Word, $"Character '{actual.Character}' should not be paired with word '{actual.Word}' as it's not part of that word"
             );
         }
     }
@@ -337,16 +337,16 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         
         foreach (var actualWord in actualWords)
         {
-            Assert.IsTrue(
-                expectedWords.Contains(actualWord),
-                $"Found unexpected word '{actualWord}' in results"
+            Assert.Contains(
+actualWord,
+                expectedWords, $"Found unexpected word '{actualWord}' in results"
             );
         }
         
         var firstWord = inputText.Split(' ')[0];
-        Assert.IsFalse(
-            actualWords.Contains(firstWord),
-            $"First word '{firstWord}' should not appear in results due to Skip(1)"
+        Assert.DoesNotContain(
+firstWord,
+            actualWords, $"First word '{firstWord}' should not appear in results due to Skip(1)"
         );
     }
     
@@ -371,7 +371,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 6, "Table should contain 6 rows");
+        Assert.AreEqual(6, table.Count, "Table should contain 6 rows");
 
         var expectedWords = new[] { "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing" };
         Assert.IsTrue(expectedWords.All(word => 

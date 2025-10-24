@@ -527,8 +527,8 @@ public class RewriteQueryVisitorTests
             }
             catch (InvalidOperationException ex)
             {
-                Assert.IsTrue(ex.Message.Contains("Stack must contain at least"), 
-                    $"Error message should be informative: {ex.Message}");
+                Assert.Contains("Stack must contain at least",
+ex.Message, $"Error message should be informative: {ex.Message}");
             }
         }
     }
@@ -560,8 +560,8 @@ public class RewriteQueryVisitorTests
             }
             catch (ArgumentException ex)
             {
-                Assert.IsTrue(ex.Message.Contains("operand cannot be null"), 
-                    $"Error message should be informative: {ex.Message}");
+                Assert.Contains("operand cannot be null",
+ex.Message, $"Error message should be informative: {ex.Message}");
             }
 
             // Clear the stack for next test

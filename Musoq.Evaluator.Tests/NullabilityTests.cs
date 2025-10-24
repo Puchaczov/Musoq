@@ -28,7 +28,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
         Assert.IsTrue(table.Any(row => (int)row.Values[0] == 1) && table.Any(row => (int)row.Values[0] == 2), "Expected values 1 and 2 not found");
     }
 
@@ -51,7 +51,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Where(entry => entry.Values[0] != null).Any(entry => (int)entry.Values[0] == 0), "First entry should be 0");
         Assert.IsTrue(table.Any(entry => entry.Values[0] == null), "Second entry should be null");
@@ -77,7 +77,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 1), "First entry should be 1");
         Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 2), "Second entry should be 2");
@@ -111,7 +111,7 @@ public class NullabilityTests : BasicEntityTestBase
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABBA"), "First entry should be 'ABBA'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "BABBA"), "Second entry should be 'BABBA'");
@@ -147,7 +147,7 @@ public class NullabilityTests : BasicEntityTestBase
         Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
-        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry.Values[0] == "POLAND" && 
@@ -194,7 +194,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "003"), "Second entry should be '003'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Third entry should be '005'");
@@ -219,7 +219,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "Warsaw"), "First entry should be Warsaw");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "Bratislava"), "Second entry should be Bratislava");
@@ -244,7 +244,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (decimal)entry.Values[0] == 100m), 
@@ -304,7 +304,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry.Values[0] == "England" && 
@@ -344,7 +344,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+        Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row.Values[0] == "Poland" && 
@@ -384,7 +384,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+        Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row.Values[0] == "Brazil" && 
@@ -427,7 +427,7 @@ public class NullabilityTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
             
         Assert.AreEqual("Brazil", table[0].Values[0]);
-        Assert.AreEqual(null, table[0].Values[1]);
+        Assert.IsNull(table[0].Values[1]);
     }
 
     [TestMethod]
@@ -454,7 +454,7 @@ public class NullabilityTests : BasicEntityTestBase
             
         Assert.AreEqual(1, table.Count);
             
-        Assert.AreEqual(null, table[0].Values[0]);
+        Assert.IsNull(table[0].Values[0]);
         Assert.AreEqual("Bratislava", table[0].Values[1]);
     }
 
@@ -482,8 +482,8 @@ public class NullabilityTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count);
             
-        Assert.AreEqual(null, table[0].Values[0]);
-        Assert.AreEqual(null, table[0].Values[1]);
+        Assert.IsNull(table[0].Values[0]);
+        Assert.IsNull(table[0].Values[1]);
     }
         
     [TestMethod]
@@ -506,7 +506,7 @@ public class NullabilityTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.All(entry => entry.Values[0] == null), "All entries should have null first value");
     }

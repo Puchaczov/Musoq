@@ -385,7 +385,7 @@ public class BuildMetadataAndInferTypesVisitorUtilitiesTests
         var result = BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes(queryNode, keys);
         
         // Assert
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual(0, result[0]); // Field1 is at index 0
         Assert.AreEqual(2, result[1]); // Field3 is at index 2
     }

@@ -202,7 +202,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(4).ColumnType);
         
-        Assert.IsTrue(table.Count == 8, "Table should have 8 entries");
+        Assert.AreEqual(8, table.Count, "Table should have 8 entries");
 
         // IT Department with John Doe
         Assert.IsTrue(table.Any(entry => 
@@ -342,7 +342,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(row => 
             (string)row[0] == "IT" && 
@@ -409,7 +409,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("Count(a.Department)", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.IsTrue(table.Count == 1, "Table should have 1 entry");
+        Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
         Assert.IsTrue(table.Any(row => 
             (string)row[0] == "IT" && 
@@ -472,7 +472,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry[0] == "John" && 
@@ -543,13 +543,13 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row[0] == "John" && 
+        Assert.AreEqual(2,
+table.Count(row =>
+                (string)row[0] == "John" &&
                 (string)row[1] == "Doe" &&
-                ((string)row[2] == "C#" || (string)row[2] == "JavaScript")) == 2,
-            "Expected data for John Doe not found");
+                ((string)row[2] == "C#" || (string)row[2] == "JavaScript")), "Expected data for John Doe not found");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row[0] == "Jane" && 
@@ -557,11 +557,11 @@ public class CrossApplyMixedTests : GenericEntityTestBase
                 (string)row[2] == "Java"),
             "Expected data for Jane Smith not found");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row[0] == "Alice" && 
+        Assert.AreEqual(2,
+table.Count(row =>
+                (string)row[0] == "Alice" &&
                 (string)row[1] == "Johnson" &&
-                ((string)row[2] == "Communication" || (string)row[2] == "Negotiation")) == 2,
-            "Expected data for Alice Johnson not found");
+                ((string)row[2] == "Communication" || (string)row[2] == "Negotiation")), "Expected data for Alice Johnson not found");
     }
     
     public class SpecialCaseEmptyType

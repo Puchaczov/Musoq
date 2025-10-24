@@ -56,7 +56,7 @@ public class JoinProcessingHelperTests
         // Assert
         Assert.IsNotNull(result);
         Assert.IsInstanceOfType(result, typeof(BlockSyntax));
-        Assert.IsTrue(result.Statements.Count > 0, "Block should contain statements");
+        Assert.IsGreaterThan(0, result.Statements.Count, "Block should contain statements");
         
         // Verify the structure contains a foreach statement (the outer join loop)
         var firstStatement = result.Statements[0];
