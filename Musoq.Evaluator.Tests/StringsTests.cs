@@ -231,7 +231,7 @@ public class StringsTests : BasicEntityTestBase
     [DataRow('$')]
     [DataRow(' ')]
     [DataRow('"')]
-    [DataTestMethod]
+    [TestMethod]
     public void WhenSpecialCharacterStartBracketUsedInTextWith_MustNotThrow(char specialCharacter)
     {
         var query = $"select '{specialCharacter}' from #A.entities()";

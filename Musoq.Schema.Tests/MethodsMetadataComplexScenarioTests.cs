@@ -76,8 +76,8 @@ public class MethodsMetadataComplexScenarioTests
         );
 
         var parameters = method.GetParameters();
-        Assert.AreEqual(5, parameters.Length);
-        Assert.IsTrue(parameters[^1].GetCustomAttribute<ParamArrayAttribute>() != null);
+        Assert.HasCount(5, parameters);
+        Assert.IsNotNull(parameters[^1].GetCustomAttribute<ParamArrayAttribute>());
         Assert.IsTrue(Attribute.IsDefined(method, typeof(AggregationMethodAttribute)));
     }
 

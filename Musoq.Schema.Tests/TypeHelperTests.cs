@@ -35,9 +35,9 @@ public class TypeHelperTests
             Prop4 = true
         };
 
-        Assert.AreEqual(4, columns.Length);
-        Assert.AreEqual(4, indexToMethodAccessMap.Count);
-        Assert.AreEqual(4, nameToIndexMap.Count);
+        Assert.HasCount(4, columns);
+        Assert.HasCount(4, indexToMethodAccessMap);
+        Assert.HasCount(4, nameToIndexMap);
 
         Assert.AreEqual(0, columns[0].ColumnIndex);
         Assert.AreEqual(1, columns[1].ColumnIndex);
@@ -54,14 +54,14 @@ public class TypeHelperTests
         Assert.AreEqual(typeof(decimal), columns[2].ColumnType);
         Assert.AreEqual(typeof(bool), columns[3].ColumnType);
 
-        Assert.AreEqual(nameToIndexMap[nameof(TestEntity.Prop1)], 0);
-        Assert.AreEqual(nameToIndexMap[nameof(TestEntity.Prop2)], 1);
-        Assert.AreEqual(nameToIndexMap[nameof(TestEntity.Prop3)], 2);
-        Assert.AreEqual(nameToIndexMap[nameof(TestEntity.Prop4)], 3);
+        Assert.AreEqual(0, nameToIndexMap[nameof(TestEntity.Prop1)]);
+        Assert.AreEqual(1, nameToIndexMap[nameof(TestEntity.Prop2)]);
+        Assert.AreEqual(2, nameToIndexMap[nameof(TestEntity.Prop3)]);
+        Assert.AreEqual(3, nameToIndexMap[nameof(TestEntity.Prop4)]);
 
         Assert.AreEqual(4, indexToMethodAccessMap[0](test));
         Assert.AreEqual("Test", indexToMethodAccessMap[1](test));
         Assert.AreEqual(5.3m, indexToMethodAccessMap[2](test));
-        Assert.AreEqual(true, indexToMethodAccessMap[3](test));
+        Assert.IsTrue((bool?)indexToMethodAccessMap[3](test));
     }
 }

@@ -267,7 +267,6 @@ namespace Musoq.Evaluator.Tests
             catch
             {
                 // Expected behavior for division by zero
-                Assert.IsTrue(true);
             }
         }
         

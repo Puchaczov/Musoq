@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
@@ -12,7 +13,9 @@ public class StDevTests : LibraryBaseBaseTests
         Library.SetStDev(Group, "test", 60000m, 0);
         Library.SetStDev(Group, "test", 80000m, 0);
 
-        Assert.IsTrue(0.01m > (Library.StDev(Group, "test") - 14142.13m));
+        var result = Library.StDev(Group, "test");
+        var difference = Math.Abs(result - 14142.13m);
+        Assert.IsLessThan(difference, 0.01m);
     }
 
     [TestMethod]
@@ -23,7 +26,9 @@ public class StDevTests : LibraryBaseBaseTests
         Library.SetStDev(Group, "test", 8m, 0);
         Library.SetStDev(Group, "test", 9m, 0);
 
-        Assert.IsTrue(0.001m > (Library.StDev(Group, "test") - 1.8257m));
+        var result = Library.StDev(Group, "test");
+        var difference = Math.Abs(result - 1.8257m);
+        Assert.IsLessThan(difference, 0.001m);
     }
 
     [TestMethod]
@@ -39,6 +44,8 @@ public class StDevTests : LibraryBaseBaseTests
         Library.SetStDev(Group, "test", 12m, 0);
         Library.SetStDev(Group, "test", 14m, 0);
 
-        Assert.IsTrue(0.001m > (Library.StDev(Group, "test") - 3.94m));
+        var result = Library.StDev(Group, "test");
+        var difference = Math.Abs(result - 3.94m);
+        Assert.IsLessThan(difference, 0.001m);
     }
 }

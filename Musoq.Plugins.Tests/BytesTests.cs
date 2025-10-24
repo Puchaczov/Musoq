@@ -20,7 +20,7 @@ public class BytesTests : LibraryBaseBaseTests
 
     private void AssertLoop(byte[] byte1, byte[] byte2)
     {
-        Assert.AreEqual(byte1.Length, byte2.Length);
+        Assert.HasCount(byte1.Length, byte2);
 
         for(var i = 0; i < byte1.Length; ++i)
         {

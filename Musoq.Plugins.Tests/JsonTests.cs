@@ -29,7 +29,7 @@ public class JsonTests : LibraryBaseBaseTests
     [TestMethod]
     public void WhenNull_ShouldPass()
     {
-        Assert.AreEqual(null, Library.ToJson<int?>(null));
+        Assert.IsNull(Library.ToJson<int?>(null));
     }
 
     [TestMethod]
@@ -43,7 +43,7 @@ public class JsonTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -56,7 +56,7 @@ public class JsonTests : LibraryBaseBaseTests
         var result = JsonExtractorHelper.ExtractFromJson(json, "$.test");
 
         // Assert
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual("value", result[0]);
     }
 
@@ -70,7 +70,7 @@ public class JsonTests : LibraryBaseBaseTests
         var result = JsonExtractorHelper.ExtractFromJson(json, "$.abc.test");
 
         // Assert
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual("something", result[0]);
     }
 
@@ -84,7 +84,7 @@ public class JsonTests : LibraryBaseBaseTests
         var result = JsonExtractorHelper.ExtractFromJson(json, "$[*].abc.test");
 
         // Assert
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("something", result[0]);
         Assert.AreEqual("something2", result[1]);
     }
@@ -99,7 +99,7 @@ public class JsonTests : LibraryBaseBaseTests
         var result = JsonExtractorHelper.ExtractFromJson(json, "$[1].value");
 
         // Assert
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual("second", result[0]);
     }
 
@@ -113,7 +113,7 @@ public class JsonTests : LibraryBaseBaseTests
         var result = JsonExtractorHelper.ExtractFromJson(json, "$.*.value");
 
         // Assert
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         CollectionAssert.Contains(result, "one");
         CollectionAssert.Contains(result, "two");
     }
@@ -129,7 +129,7 @@ public class JsonTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -142,7 +142,7 @@ public class JsonTests : LibraryBaseBaseTests
         var result = JsonExtractorHelper.ExtractFromJson(json, "abc.test");
 
         // Assert
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual("something", result[0]);
     }
 
@@ -157,9 +157,9 @@ public class JsonTests : LibraryBaseBaseTests
         var boolResult = JsonExtractorHelper.ExtractFromJson(json, "$.boolean");
 
         // Assert
-        Assert.AreEqual(1, numberResult.Length);
+        Assert.HasCount(1, numberResult);
         Assert.AreEqual("42", numberResult[0]);
-        Assert.AreEqual(1, boolResult.Length);
+        Assert.HasCount(1, boolResult);
         Assert.AreEqual("true", boolResult[0]);
     }
 
@@ -173,7 +173,7 @@ public class JsonTests : LibraryBaseBaseTests
         var result = JsonExtractorHelper.ExtractFromJson(json, "$.items[*].values[*].test");
 
         // Assert
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         CollectionAssert.Contains(result, "first");
         CollectionAssert.Contains(result, "second");
     }
@@ -189,7 +189,7 @@ public class JsonTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -207,12 +207,12 @@ public class JsonTests : LibraryBaseBaseTests
         var valueResults = JsonExtractorHelper.ExtractFromJson(json, "$[*].abc.value");
 
         // Assert
-        Assert.AreEqual(3, testResults.Length);
+        Assert.HasCount(3, testResults);
         Assert.AreEqual("something", testResults[0]);
         Assert.AreEqual("something2", testResults[1]);
         Assert.AreEqual("something3", testResults[2]);
 
-        Assert.AreEqual(3, valueResults.Length);
+        Assert.HasCount(3, valueResults);
         Assert.AreEqual("42", valueResults[0]);
         Assert.AreEqual("43", valueResults[1]);
         Assert.AreEqual("44", valueResults[2]);
@@ -246,27 +246,27 @@ public class JsonTests : LibraryBaseBaseTests
         Assert.AreEqual("true", booleanResult[0]);
 
         var nullResult = JsonExtractorHelper.ExtractFromJson(json, "$.nullValue");
-        Assert.AreEqual(0, nullResult.Length);
+        Assert.IsEmpty(nullResult);
 
         // Testing object extraction
         var objectResult = JsonExtractorHelper.ExtractFromJson(json, "$.object.nested");
-        Assert.AreEqual(1, objectResult.Length);
+        Assert.HasCount(1, objectResult);
         Assert.AreEqual("value", objectResult[0]);
 
         // Testing array extraction
         var arrayResult = JsonExtractorHelper.ExtractFromJson(json, "$.array[*]");
-        Assert.AreEqual(3, arrayResult.Length);
+        Assert.HasCount(3, arrayResult);
         Assert.AreEqual("1", arrayResult[0]);
         Assert.AreEqual("2", arrayResult[1]);
         Assert.AreEqual("3", arrayResult[2]);
 
         // Testing direct object/array extraction (should return JSON string representation)
         var fullObjectResult = JsonExtractorHelper.ExtractFromJson(json, "$.object");
-        Assert.AreEqual(1, fullObjectResult.Length);
+        Assert.HasCount(1, fullObjectResult);
         Assert.AreEqual("{\"nested\":\"value\"}", fullObjectResult[0]);
 
         var fullArrayResult = JsonExtractorHelper.ExtractFromJson(json, "$.array");
-        Assert.AreEqual(1, fullArrayResult.Length);
+        Assert.HasCount(1, fullArrayResult);
         Assert.AreEqual("[1,2,3]", fullArrayResult[0]);
     }
 
@@ -287,14 +287,14 @@ public class JsonTests : LibraryBaseBaseTests
         var doubleWildcardResult = JsonExtractorHelper.ExtractFromJson(json, "$.items[*].values[*]");
 
         // Assert
-        Assert.AreEqual(1, specificArrayResult.Length);
+        Assert.HasCount(1, specificArrayResult);
         Assert.AreEqual("b", specificArrayResult[0]);
 
-        Assert.AreEqual(2, wildCardArrayResult.Length);
+        Assert.HasCount(2, wildCardArrayResult);
         Assert.AreEqual("a", wildCardArrayResult[0]);
         Assert.AreEqual("d", wildCardArrayResult[1]);
 
-        Assert.AreEqual(6, doubleWildcardResult.Length);
+        Assert.HasCount(6, doubleWildcardResult);
         CollectionAssert.AreEqual(new[] {"a", "b", "c", "d", "e", "f"}, doubleWildcardResult);
     }
 
@@ -325,7 +325,7 @@ public class JsonTests : LibraryBaseBaseTests
         var results = JsonExtractorHelper.ExtractFromJson(json, "$.data[*].items[*].value");
 
         // Assert
-        Assert.AreEqual(6, results.Length);
+        Assert.HasCount(6, results);
         Assert.AreEqual("true", results[0]);
         Assert.AreEqual("42", results[1]);
         Assert.AreEqual("text", results[2]);
@@ -353,9 +353,9 @@ public class JsonTests : LibraryBaseBaseTests
         var arrayWithEmptyResult = JsonExtractorHelper.ExtractFromJson(json, "$.arrayWithEmpty[*].value");
 
         // Assert
-        Assert.AreEqual(0, emptyArrayResult.Length);
-        Assert.AreEqual(0, emptyObjectResult.Length);
-        Assert.AreEqual(1, arrayWithEmptyResult.Length);
+        Assert.IsEmpty(emptyArrayResult);
+        Assert.IsEmpty(emptyObjectResult);
+        Assert.HasCount(1, arrayWithEmptyResult);
         Assert.AreEqual("something", arrayWithEmptyResult[0]);
     }
 
@@ -370,13 +370,13 @@ public class JsonTests : LibraryBaseBaseTests
 
         // Act & Assert
         var outOfBoundsResult = JsonExtractorHelper.ExtractFromJson(json, "$.array[5]");
-        Assert.AreEqual(0, outOfBoundsResult.Length);
+        Assert.IsEmpty(outOfBoundsResult);
 
         var invalidPathResult = JsonExtractorHelper.ExtractFromJson(json, "$.nonexistent.path");
-        Assert.AreEqual(0, invalidPathResult.Length);
+        Assert.IsEmpty(invalidPathResult);
 
         var invalidArrayPathResult = JsonExtractorHelper.ExtractFromJson(json, "$.nested[0]");
-        Assert.AreEqual(0, invalidArrayPathResult.Length);
+        Assert.IsEmpty(invalidArrayPathResult);
     }
 
     [TestMethod]
@@ -387,11 +387,11 @@ public class JsonTests : LibraryBaseBaseTests
 
         // Act & Assert
         var extraDotsResult = JsonExtractorHelper.ExtractFromJson(json, "$...value");
-        Assert.AreEqual(1, extraDotsResult.Length);
+        Assert.HasCount(1, extraDotsResult);
         Assert.AreEqual("test", extraDotsResult[0]);
 
         var extraBracketsResult = JsonExtractorHelper.ExtractFromJson(json, "$.[value]");
-        Assert.AreEqual(1, extraBracketsResult.Length);
+        Assert.HasCount(1, extraBracketsResult);
         Assert.AreEqual("test", extraBracketsResult[0]);
     }
     

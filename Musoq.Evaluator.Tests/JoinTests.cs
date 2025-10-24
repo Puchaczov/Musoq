@@ -907,8 +907,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual(typeof(int?), column.ColumnType);
 
         Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual((int?)null, table[0][1]);
-        Assert.AreEqual((int?)null, table[0][2]);
+        Assert.IsNull(table[0][1]);
+        Assert.IsNull(table[0][2]);
     }
 
     [TestMethod]
@@ -959,8 +959,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual(typeof(int?), column.ColumnType);
 
         Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual((int?)null, table[0][1]);
-        Assert.AreEqual((int?)null, table[0][2]);
+        Assert.IsNull(table[0][1]);
+        Assert.IsNull(table[0][2]);
     }
 
     [TestMethod]
@@ -1061,7 +1061,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual("b.Id", column.ColumnName);
         Assert.AreEqual(typeof(int), column.ColumnType);
 
-        Assert.AreEqual((int?)null, table[0][0]);
+        Assert.IsNull(table[0][0]);
         Assert.AreEqual(1, table[0][1]);
     }
 

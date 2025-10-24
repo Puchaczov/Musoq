@@ -500,7 +500,7 @@ public class ParserTests
         sw.Stop();
         
         Assert.IsNotNull(result);
-        Assert.IsTrue(sw.ElapsedMilliseconds < 100, $"Parser should be fast but took {sw.ElapsedMilliseconds}ms");
+        Assert.IsLessThan(100, sw.ElapsedMilliseconds, $"Parser should be fast but took {sw.ElapsedMilliseconds}ms");
     }
     
     [TestMethod]
@@ -553,7 +553,7 @@ public class ParserTests
         sw.Stop();
         
         Assert.IsNotNull(result);
-        Assert.IsTrue(sw.ElapsedMilliseconds < 200, $"Parser should handle 100 additions in <200ms but took {sw.ElapsedMilliseconds}ms");
+        Assert.IsLessThan(200, sw.ElapsedMilliseconds, $"Parser should handle 100 additions in <200ms but took {sw.ElapsedMilliseconds}ms");
     }
     
     [TestMethod]
@@ -581,7 +581,7 @@ public class ParserTests
         sw.Stop();
         
         Assert.IsNotNull(result);
-        Assert.IsTrue(sw.ElapsedMilliseconds < 200, $"Parser should handle complex combined expressions in <200ms but took {sw.ElapsedMilliseconds}ms");
+        Assert.IsLessThan(200, sw.ElapsedMilliseconds, $"Parser should handle complex combined expressions in <200ms but took {sw.ElapsedMilliseconds}ms");
     }
 
     [TestMethod]

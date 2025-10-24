@@ -133,7 +133,7 @@ public class CaseInsensitiveMethodResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("MyMethod", method.Name);
-        Assert.AreEqual(1, method.GetParameters().Length);
+        Assert.HasCount(1, method.GetParameters());
         Assert.AreEqual(typeof(int), method.GetParameters()[0].ParameterType);
     }
 

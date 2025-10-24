@@ -12,11 +12,11 @@ namespace Musoq.Plugins.Tests
         {
             var trueBytes = BitConverter.GetBytes(true);
             var result = Library.FromBytesToBool(trueBytes);
-            Assert.AreEqual(true, result);
+            Assert.IsTrue(result);
 
             var falseBytes = BitConverter.GetBytes(false);
             result = Library.FromBytesToBool(falseBytes);
-            Assert.AreEqual(false, result);
+            Assert.IsFalse(result);
         }
 
         [TestMethod]

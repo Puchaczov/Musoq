@@ -370,7 +370,6 @@ public class RewriteQueryVisitorTests
 
         // Assert - setting null scope shouldn't throw immediately
         // but might cause issues during actual visitor operations
-        Assert.IsTrue(true, "SetScope with null should not throw immediately");
     }
 
     // ============================================

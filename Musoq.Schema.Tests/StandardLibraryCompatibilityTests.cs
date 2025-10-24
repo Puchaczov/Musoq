@@ -142,7 +142,7 @@ public class StandardLibraryCompatibilityTests
                 .Where(g => g.Key.ToLowerInvariant().Replace("_", "") == normalizedName)
                 .ToArray();
             
-            Assert.AreEqual(0, conflictingMethods.Length, 
+            Assert.IsEmpty(conflictingMethods, 
                 $"Method '{methodName}' has potential naming conflicts after normalization: " +
                 $"{string.Join(", ", conflictingMethods.Select(g => g.Key))}");
         }
@@ -176,8 +176,8 @@ public class StandardLibraryCompatibilityTests
         var msPerResolution = elapsed.TotalMilliseconds / iterations;
         
         // Should be very fast - less than 0.1ms per resolution
-        Assert.IsTrue(msPerResolution < 0.1, 
-            $"Case-insensitive method resolution is too slow: {msPerResolution:F4}ms per resolution");
+        Assert.IsLessThan(0.1,
+msPerResolution, $"Case-insensitive method resolution is too slow: {msPerResolution:F4}ms per resolution");
     }
 
     [TestMethod]

@@ -101,11 +101,11 @@ public class MethodsMetadataMethodOrderingTests
     {
         var result = _methodsMetadata.TryGetMethod("OptionalParams", [typeof(int), typeof(string)], null, out var method);
         Assert.IsTrue(result);
-        Assert.AreEqual(2, method.GetParameters().Length);
+        Assert.HasCount(2, method.GetParameters());
         
         result = _methodsMetadata.TryGetMethod("OptionalParams", [typeof(int), typeof(string), typeof(int)], null, out method);
         Assert.IsTrue(result);
-        Assert.AreEqual(3, method.GetParameters().Length);
+        Assert.HasCount(3, method.GetParameters());
     }
 
     [TestMethod]
