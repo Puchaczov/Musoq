@@ -2407,8 +2407,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _methodNames.Push(methodName);
     }
 
-
-
     private StatementSyntax GetRowsSourceOrEmpty(string alias)
     {
         return _getRowsSourceStatement.TryGetValue(alias, out var value)
@@ -2416,15 +2414,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             : SyntaxFactory.EmptyStatement();
     }
 
-
-
-    /// <summary>
-    /// Gets the C# type name for code generation
-    /// </summary>
-    private static string GetTypeName(Type type)
-    {
-        return EvaluationHelper.GetCastableType(type);
-    }
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {

@@ -154,7 +154,7 @@ public class CteExpressionNodeProcessorTests
     public void ProcessCteExpressionNode_NullNode_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             CteExpressionNodeProcessor.ProcessCteExpressionNode(null, _methodNames, _nodes));
     }
 
@@ -162,7 +162,7 @@ public class CteExpressionNodeProcessorTests
     public void ProcessCteExpressionNode_NullMethodNames_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, null, _nodes));
     }
 
@@ -170,7 +170,7 @@ public class CteExpressionNodeProcessorTests
     public void ProcessCteExpressionNode_NullNodes_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, null));
     }
 

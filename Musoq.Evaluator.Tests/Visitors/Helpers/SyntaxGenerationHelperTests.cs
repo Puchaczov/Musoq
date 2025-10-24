@@ -194,45 +194,40 @@ public class SyntaxGenerationHelperTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void CreateArgumentList_WithNullExpressions_ShouldThrowArgumentNullException()
     {
         // Act
-        SyntaxGenerationHelper.CreateArgumentList((ExpressionSyntax[])null);
+        Assert.Throws<ArgumentNullException>(() => SyntaxGenerationHelper.CreateArgumentList((ExpressionSyntax[])null));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void CreateMethodInvocation_WithNullTarget_ShouldThrowArgumentNullException()
     {
         // Act
-        SyntaxGenerationHelper.CreateMethodInvocation((ExpressionSyntax)null, "method");
+        Assert.Throws<ArgumentNullException>(() => SyntaxGenerationHelper.CreateMethodInvocation((ExpressionSyntax)null, "method"));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void CreateStringLiteral_WithNullValue_ShouldThrowArgumentNullException()
     {
         // Act
-        SyntaxGenerationHelper.CreateStringLiteral(null);
+        Assert.Throws<ArgumentNullException>(() => SyntaxGenerationHelper.CreateStringLiteral(null));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
     public void CreateIdentifier_WithEmptyString_ShouldThrowArgumentException()
     {
         // Act
-        SyntaxGenerationHelper.CreateIdentifier("");
+        Assert.Throws<ArgumentException>(() => SyntaxGenerationHelper.CreateIdentifier(""));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
     public void CreateMemberAccess_WithEmptyMemberName_ShouldThrowArgumentException()
     {
         // Arrange
         var target = SyntaxFactory.IdentifierName("object");
 
         // Act
-        SyntaxGenerationHelper.CreateMemberAccess(target, "");
+        Assert.Throws<ArgumentException>(() => SyntaxGenerationHelper.CreateMemberAccess(target, ""));
     }
 }

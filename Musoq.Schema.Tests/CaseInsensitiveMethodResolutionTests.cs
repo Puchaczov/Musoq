@@ -65,14 +65,14 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void MethodNameNormalizer_ShouldThrowOnNull()
     {
-        Assert.ThrowsException<ArgumentNullException>(() => MethodNameNormalizer.Normalize(null));
+        Assert.Throws<ArgumentNullException>(() => MethodNameNormalizer.Normalize(null));
     }
 
     [TestMethod]
     public void MethodNameNormalizer_ShouldThrowOnEmpty()
     {
-        Assert.ThrowsException<ArgumentException>(() => MethodNameNormalizer.Normalize(""));
-        Assert.ThrowsException<ArgumentException>(() => MethodNameNormalizer.Normalize("   "));
+        Assert.Throws<ArgumentException>(() => MethodNameNormalizer.Normalize(""));
+        Assert.Throws<ArgumentException>(() => MethodNameNormalizer.Normalize("   "));
     }
 
     [TestMethod]

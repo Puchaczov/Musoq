@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +23,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<SchemaNotFoundException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SchemaNotFoundException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -107,7 +107,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -240,7 +240,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]

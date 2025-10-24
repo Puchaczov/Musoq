@@ -21,7 +21,7 @@ public class DefensiveProgrammingTests
     public void Parser_Should_ThrowMeaningfulException_WhenNullInput()
     {
         // Act & Assert
-        var exception = Assert.ThrowsException<ParserValidationException>(() => new Lexer(null, true));
+        var exception = Assert.Throws<ParserValidationException>(() => new Lexer(null, true));
         Assert.IsTrue(exception.Message.Contains("cannot be null"));
         Assert.IsTrue(exception.Message.Contains("valid SQL query"));
     }
@@ -30,7 +30,7 @@ public class DefensiveProgrammingTests
     public void Parser_Should_ThrowMeaningfulException_WhenEmptyInput()
     {
         // Act & Assert
-        var exception = Assert.ThrowsException<ParserValidationException>(() => new Lexer("", true));
+        var exception = Assert.Throws<ParserValidationException>(() => new Lexer("", true));
         Assert.IsTrue(exception.Message.Contains("cannot be empty"));
         Assert.IsTrue(exception.Message.Contains("valid SQL query"));
     }
@@ -39,7 +39,7 @@ public class DefensiveProgrammingTests
     public void Parser_Should_ThrowMeaningfulException_WhenWhitespaceInput()
     {
         // Act & Assert
-        var exception = Assert.ThrowsException<ParserValidationException>(() => new Lexer("   ", true));
+        var exception = Assert.Throws<ParserValidationException>(() => new Lexer("   ", true));
         Assert.IsTrue(exception.Message.Contains("cannot be empty"));
         Assert.IsTrue(exception.Message.Contains("whitespace"));
     }
@@ -52,7 +52,7 @@ public class DefensiveProgrammingTests
         var aggregator = new MethodsAggregator(methodManager);
 
         // Act & Assert
-        var exception = Assert.ThrowsException<SchemaArgumentException>(() => new TestSchema(null, aggregator));
+        var exception = Assert.Throws<SchemaArgumentException>(() => new TestSchema(null, aggregator));
         Assert.IsTrue(exception.Message.Contains("cannot be empty"));
         Assert.IsTrue(exception.Message.Contains("initializing a schema"));
         Assert.AreEqual("name", exception.ParamName);
@@ -62,7 +62,7 @@ public class DefensiveProgrammingTests
     public void SchemaBase_Should_ThrowMeaningfulException_WhenNullMethodsAggregator()
     {
         // Act & Assert
-        var exception = Assert.ThrowsException<SchemaArgumentException>(() => new TestSchema("test", null));
+        var exception = Assert.Throws<SchemaArgumentException>(() => new TestSchema("test", null));
         Assert.IsTrue(exception.Message.Contains("cannot be null"));
         Assert.IsTrue(exception.Message.Contains("initializing a schema"));
         Assert.AreEqual("methodsAggregator", exception.ParamName);
@@ -75,7 +75,7 @@ public class DefensiveProgrammingTests
         var metadata = new MethodsMetadata();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<SchemaArgumentException>(() => 
+        var exception = Assert.Throws<SchemaArgumentException>(() => 
             metadata.GetMethod(null, new Type[0], null));
         Assert.IsTrue(exception.Message.Contains("cannot be empty"));
         Assert.IsTrue(exception.Message.Contains("resolving a method"));
@@ -89,7 +89,7 @@ public class DefensiveProgrammingTests
         var metadata = new MethodsMetadata();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<SchemaArgumentException>(() => 
+        var exception = Assert.Throws<SchemaArgumentException>(() => 
             metadata.GetMethod("test", null, null));
         Assert.IsTrue(exception.Message.Contains("cannot be null"));
         Assert.IsTrue(exception.Message.Contains("resolving a method"));
@@ -103,7 +103,7 @@ public class DefensiveProgrammingTests
         var visitor = new CloneQueryVisitor();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<VisitorException>(() => visitor.Root);
+        var exception = Assert.Throws<VisitorException>(() => visitor.Root);
         Assert.IsTrue(exception.Message.Contains("Stack underflow"));
         Assert.IsTrue(exception.Message.Contains("CloneQueryVisitor"));
         Assert.AreEqual("CloneQueryVisitor", exception.VisitorName);
@@ -117,7 +117,7 @@ public class DefensiveProgrammingTests
         var nodes = new Stack<Node>();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<VisitorException>(() => visitor.TestSafePop(nodes));
+        var exception = Assert.Throws<VisitorException>(() => visitor.TestSafePop(nodes));
         Assert.IsTrue(exception.Message.Contains("Stack underflow"));
         Assert.IsTrue(exception.Message.Contains("Expected at least 1 item"));
         Assert.IsTrue(exception.Message.Contains("found 0"));
@@ -131,7 +131,7 @@ public class DefensiveProgrammingTests
         var stringNode = new StringNode("test");
 
         // Act & Assert
-        var exception = Assert.ThrowsException<VisitorException>(() => visitor.TestSafeCast<IntegerNode>(stringNode));
+        var exception = Assert.Throws<VisitorException>(() => visitor.TestSafeCast<IntegerNode>(stringNode));
         Assert.IsTrue(exception.Message.Contains("Invalid node type"));
         Assert.IsTrue(exception.Message.Contains("Expected 'IntegerNode'"));
         Assert.IsTrue(exception.Message.Contains("got 'StringNode'"));
@@ -144,7 +144,7 @@ public class DefensiveProgrammingTests
         var visitor = new TestDefensiveVisitor();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<VisitorException>(() => visitor.TestSafeCast<StringNode>(null));
+        var exception = Assert.Throws<VisitorException>(() => visitor.TestSafeCast<StringNode>(null));
         Assert.IsTrue(exception.Message.Contains("Expected 'StringNode' node but received null"));
         Assert.IsTrue(exception.Message.Contains("AST processing error"));
     }
@@ -153,7 +153,7 @@ public class DefensiveProgrammingTests
     public void ToCSharpRewriteTreeVisitor_Should_ThrowMeaningfulException_WhenNullAssemblies()
     {
         // Act & Assert
-        var exception = Assert.ThrowsException<VisitorException>(() => 
+        var exception = Assert.Throws<VisitorException>(() => 
             new ToCSharpRewriteTreeVisitor(null, new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "test"));
         Assert.IsTrue(exception.Message.Contains("cannot be null"));
         Assert.IsTrue(exception.Message.Contains("ToCSharpRewriteTreeVisitor"));
@@ -163,7 +163,7 @@ public class DefensiveProgrammingTests
     public void ToCSharpRewriteTreeVisitor_Should_ThrowMeaningfulException_WhenEmptyAssemblyName()
     {
         // Act & Assert
-        var exception = Assert.ThrowsException<VisitorException>(() => 
+        var exception = Assert.Throws<VisitorException>(() => 
             new ToCSharpRewriteTreeVisitor(new System.Reflection.Assembly[0], new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), ""));
         Assert.IsTrue(exception.Message.Contains("cannot be null or empty"));
         Assert.IsTrue(exception.Message.Contains("assemblyName"));

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1079,7 +1079,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1091,7 +1091,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1103,7 +1103,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1115,7 +1115,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1127,7 +1127,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1139,7 +1139,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1151,7 +1151,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1163,6 +1163,6 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 }

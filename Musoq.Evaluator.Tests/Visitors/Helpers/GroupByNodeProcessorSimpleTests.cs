@@ -13,30 +13,27 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers;
 public class GroupByNodeProcessorSimpleTests
 {
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessGroupByNode_NullNode_ThrowsException()
     {
         var nodes = new Stack<SyntaxNode>();
         var scope = new Scope(null, 0, "test");
-        GroupByNodeProcessor.ProcessGroupByNode(null, nodes, scope);
+        Assert.Throws<ArgumentNullException>(() => GroupByNodeProcessor.ProcessGroupByNode(null, nodes, scope));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessGroupByNode_NullNodes_ThrowsException()
     {
         var scope = new Scope(null, 0, "test");
         // Create a mock GroupByNode - this would be challenging due to the constructor
         // Just test the validation works
-        GroupByNodeProcessor.ProcessGroupByNode(null, null, scope);
+        Assert.Throws<ArgumentNullException>(() => GroupByNodeProcessor.ProcessGroupByNode(null, null, scope));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessGroupByNode_NullScope_ThrowsException()
     {
         var nodes = new Stack<SyntaxNode>();
-        GroupByNodeProcessor.ProcessGroupByNode(null, nodes, null);
+        Assert.Throws<ArgumentNullException>(() => GroupByNodeProcessor.ProcessGroupByNode(null, nodes, null));
     }
 
     [TestMethod]

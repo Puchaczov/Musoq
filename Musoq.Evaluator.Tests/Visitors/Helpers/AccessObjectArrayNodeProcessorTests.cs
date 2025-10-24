@@ -19,7 +19,7 @@ public class AccessObjectArrayNodeProcessorTests
         var nodes = new Stack<SyntaxNode>();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(null, nodes));
     }
 
@@ -30,7 +30,7 @@ public class AccessObjectArrayNodeProcessorTests
         var node = CreateAccessObjectArrayNode("test", 0, typeof(string), isColumnAccess: true);
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, null));
     }
 
@@ -156,7 +156,7 @@ public class AccessObjectArrayNodeProcessorTests
         var nodes = new Stack<SyntaxNode>();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<InvalidOperationException>(() => 
+        var exception = Assert.Throws<InvalidOperationException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
         
         Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
@@ -172,7 +172,7 @@ public class AccessObjectArrayNodeProcessorTests
         nodes.Push(SyntaxFactory.Block()); // Non-expression syntax node
 
         // Act & Assert
-        var exception = Assert.ThrowsException<InvalidOperationException>(() => 
+        var exception = Assert.Throws<InvalidOperationException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
         
         Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
@@ -223,7 +223,7 @@ public class AccessObjectArrayNodeProcessorTests
     public void GetCSharpType_WithNullType_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             AccessObjectArrayNodeProcessor.GetCSharpType(null));
     }
 
@@ -246,7 +246,7 @@ public class AccessObjectArrayNodeProcessorTests
     public void AccessObjectArrayProcessingResult_Constructor_WithNullExpression_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(null, "namespace"));
     }
 
@@ -257,7 +257,7 @@ public class AccessObjectArrayNodeProcessorTests
         var expression = SyntaxFactory.IdentifierName("test");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(expression, null));
     }
 

@@ -193,7 +193,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             (parameters, source) => throw new InvalidOperationException("Function failed")); // Function throws!
         
         // This should propagate the exception
-        Assert.ThrowsException<InvalidOperationException>(() => vm.Run());
+        Assert.Throws<InvalidOperationException>(() => vm.Run());
     }
 
     [TestMethod]

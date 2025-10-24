@@ -183,7 +183,6 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ProcessCaseNode_WithNullNode_ThrowsArgumentNullException()
         {
             // Arrange
@@ -192,11 +191,10 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var caseWhenMethodIndex = 1;
             
             // Act
-            CaseNodeProcessor.ProcessCaseNode(null, nodes, typesToInstantiate, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex);
+            Assert.Throws<ArgumentNullException>(() => CaseNodeProcessor.ProcessCaseNode(null, nodes, typesToInstantiate, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex));
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ProcessCaseNode_WithNullNodes_ThrowsArgumentNullException()
         {
             // Arrange
@@ -206,11 +204,10 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var caseWhenMethodIndex = 1;
             
             // Act
-            CaseNodeProcessor.ProcessCaseNode(caseNode, null, typesToInstantiate, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex);
+            Assert.Throws<ArgumentNullException>(() => CaseNodeProcessor.ProcessCaseNode(caseNode, null, typesToInstantiate, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex));
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ProcessCaseNode_WithNullTypesToInstantiate_ThrowsArgumentNullException()
         {
             // Arrange
@@ -220,7 +217,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var caseWhenMethodIndex = 1;
             
             // Act
-            CaseNodeProcessor.ProcessCaseNode(caseNode, nodes, null, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex);
+            Assert.Throws<ArgumentNullException>(() => CaseNodeProcessor.ProcessCaseNode(caseNode, nodes, null, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex));
         }
 
         [TestMethod]

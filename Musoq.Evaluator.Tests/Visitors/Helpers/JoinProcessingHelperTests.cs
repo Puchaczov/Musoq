@@ -71,7 +71,7 @@ public class JoinProcessingHelperTests
         StatementSyntax GenerateCancellationExpression() => SyntaxFactory.EmptyStatement();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             JoinProcessingHelper.ProcessInnerJoin(
                 null,
                 _ifStatement,
@@ -92,7 +92,7 @@ public class JoinProcessingHelperTests
         var mockJoinNode = CreateMockJoinNode();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             JoinProcessingHelper.ProcessInnerJoin(
                 mockJoinNode,
                 null,
@@ -113,7 +113,7 @@ public class JoinProcessingHelperTests
         var mockJoinNode = CreateMockJoinNode();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             JoinProcessingHelper.ProcessInnerJoin(
                 mockJoinNode,
                 _ifStatement,
@@ -133,7 +133,7 @@ public class JoinProcessingHelperTests
         var mockJoinNode = CreateMockJoinNode();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             JoinProcessingHelper.ProcessInnerJoin(
                 mockJoinNode,
                 _ifStatement,
@@ -153,7 +153,7 @@ public class JoinProcessingHelperTests
         var mockJoinNode = CreateMockJoinNode();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             JoinProcessingHelper.ProcessInnerJoin(
                 mockJoinNode,
                 _ifStatement,

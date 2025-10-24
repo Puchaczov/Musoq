@@ -61,7 +61,7 @@ public class ParserTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
+        Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
 
     [TestMethod]
@@ -72,18 +72,18 @@ public class ParserTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
+        Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
 
     [TestMethod]
-    public void SelectTwoCommas_ShouldFail()
+    public void SelectWithSelectInsideQuery_ShouldFail()
     {
         var query = "select ,, from #some.a()";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
+        Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
 
     [TestMethod]
@@ -94,7 +94,7 @@ public class ParserTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
+        Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
 
     [TestMethod]
@@ -105,18 +105,18 @@ public class ParserTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
+        Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
 
     [TestMethod]
-    public void SelectTypo_ShouldFail()
+    public void SelectWithMissingFrom_ShouldFail()
     {
         var query = "sleect 1 from #some.a() group by 1,";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
+        Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
 
     [TestMethod]
@@ -127,7 +127,7 @@ public class ParserTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        var exc = Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
+        var exc = Assert.Throws<SyntaxException>(() => parser.ComposeAll());
 
         Assert.AreEqual("select 1 form #some.", exc.QueryPart);
     }
@@ -151,7 +151,7 @@ public class ParserTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        Assert.ThrowsException<SyntaxException>(() => parser.ComposeAll());
+        Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
 
     [TestMethod]

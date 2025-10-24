@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
@@ -221,7 +221,7 @@ public class MethodInvocationTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<AliasMissingException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<AliasMissingException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]

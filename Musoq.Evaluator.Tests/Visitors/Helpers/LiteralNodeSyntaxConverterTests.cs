@@ -172,29 +172,26 @@ public class LiteralNodeSyntaxConverterTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ConvertStringNode_WithNullNode_ShouldThrowArgumentNullException()
     {
         // Act
-        LiteralNodeSyntaxConverter.ConvertStringNode(null);
+        Assert.Throws<ArgumentNullException>(() => LiteralNodeSyntaxConverter.ConvertStringNode(null));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ConvertBooleanNode_WithNullGenerator_ShouldThrowArgumentNullException()
     {
         // Arrange
         var booleanNode = new BooleanNode(true);
 
         // Act
-        LiteralNodeSyntaxConverter.ConvertBooleanNode(booleanNode, null);
+        Assert.Throws<ArgumentNullException>(() => LiteralNodeSyntaxConverter.ConvertBooleanNode(booleanNode, null));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ConvertWordNode_WithNullNode_ShouldThrowArgumentNullException()
     {
         // Act
-        LiteralNodeSyntaxConverter.ConvertWordNode(null, _generator);
+        Assert.Throws<ArgumentNullException>(() => LiteralNodeSyntaxConverter.ConvertWordNode(null, _generator));
     }
 }

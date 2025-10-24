@@ -86,7 +86,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var body = SyntaxFactory.Block();
 
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateStandardPrivateMethod(null, body));
         }
 
@@ -97,7 +97,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var body = SyntaxFactory.Block();
 
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateStandardPrivateMethod("", body));
         }
 
@@ -108,7 +108,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var body = SyntaxFactory.Block();
 
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateStandardPrivateMethod("   ", body));
         }
 
@@ -116,7 +116,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreateStandardPrivateMethod_WithNullBody_ThrowsArgumentNullException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentNullException>(() => 
+            Assert.Throws<ArgumentNullException>(() => 
                 MethodDeclarationHelper.CreateStandardPrivateMethod("TestMethod", null));
         }
 
@@ -145,7 +145,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreatePublicProperty_WithNullTypeName_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreatePublicProperty(null, "TestProperty"));
         }
 
@@ -153,7 +153,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreatePublicProperty_WithEmptyTypeName_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreatePublicProperty("", "TestProperty"));
         }
 
@@ -161,7 +161,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreatePublicProperty_WithNullPropertyName_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreatePublicProperty("string", null));
         }
 
@@ -169,7 +169,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreatePublicProperty_WithEmptyPropertyName_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreatePublicProperty("string", ""));
         }
 
@@ -240,7 +240,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreateRunMethod_WithNullMethodCallExpression_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateRunMethod(null));
         }
 
@@ -248,7 +248,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreateRunMethod_WithEmptyMethodCallExpression_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateRunMethod(""));
         }
 
@@ -256,7 +256,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreateRunMethod_WithWhitespaceMethodCallExpression_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateRunMethod("   "));
         }
 

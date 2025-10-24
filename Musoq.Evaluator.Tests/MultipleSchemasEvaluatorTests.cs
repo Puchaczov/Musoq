@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Multi;
 
@@ -142,7 +142,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
     {
         var query = @"select FirstItem from #schema.first() first inner join #schema.second() second on 1 = 1";
         
-        Assert.ThrowsException<AmbiguousColumnException>(() => CreateAndRunVirtualMachine(query, [
+        Assert.Throws<AmbiguousColumnException>(() => CreateAndRunVirtualMachine(query, [
             new()
         ], [
             new()

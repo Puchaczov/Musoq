@@ -99,38 +99,34 @@ public class SyntaxBinaryOperationHelperTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessMultiplyOperation_WithNullNodes_ShouldThrowArgumentNullException()
     {
         // Act
-        SyntaxBinaryOperationHelper.ProcessMultiplyOperation(null, _generator);
+        Assert.Throws<ArgumentNullException>(() => SyntaxBinaryOperationHelper.ProcessMultiplyOperation(null, _generator));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessAddOperation_WithNullGenerator_ShouldThrowArgumentNullException()
     {
         // Act
-        SyntaxBinaryOperationHelper.ProcessAddOperation(_nodes, null);
+        Assert.Throws<ArgumentNullException>(() => SyntaxBinaryOperationHelper.ProcessAddOperation(_nodes, null));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void ProcessDivideOperation_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange - only one node in stack
         _nodes.Push(_generator.LiteralExpression(10));
 
         // Act
-        SyntaxBinaryOperationHelper.ProcessDivideOperation(_nodes, _generator);
+        Assert.Throws<InvalidOperationException>(() => SyntaxBinaryOperationHelper.ProcessDivideOperation(_nodes, _generator));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void ProcessSubtractOperation_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Act
-        SyntaxBinaryOperationHelper.ProcessSubtractOperation(_nodes, _generator);
+        Assert.Throws<InvalidOperationException>(() => SyntaxBinaryOperationHelper.ProcessSubtractOperation(_nodes, _generator));
     }
 
     [TestMethod]

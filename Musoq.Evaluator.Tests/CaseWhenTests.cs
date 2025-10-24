@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -150,6 +150,6 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        Assert.ThrowsException<MethodCallThrownException>(() => vm.Run());
+        Assert.Throws<MethodCallThrownException>(() => vm.Run());
     }
 }

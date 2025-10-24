@@ -115,7 +115,7 @@ public class SelectNodeProcessorTests
         var scope = new Scope(null, 0, "test");
         
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             SelectNodeProcessor.ProcessSelectNode(null!, nodes, scope, MethodAccessType.ResultQuery));
     }
 
@@ -128,7 +128,7 @@ public class SelectNodeProcessorTests
         var scope = new Scope(null, 0, "test");
         
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             SelectNodeProcessor.ProcessSelectNode(selectNode, null!, scope, MethodAccessType.ResultQuery));
     }
 
@@ -141,7 +141,7 @@ public class SelectNodeProcessorTests
         var nodes = new Stack<SyntaxNode>();
         
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             SelectNodeProcessor.ProcessSelectNode(selectNode, nodes, null!, MethodAccessType.ResultQuery));
     }
 

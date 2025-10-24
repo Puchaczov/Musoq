@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -516,7 +516,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass6>().ToArray();
         
-        Assert.ThrowsException<AliasAlreadyUsedException>(() =>
+        Assert.Throws<AliasAlreadyUsedException>(() =>
         {
             var vm = CreateAndRunVirtualMachine(
                 query,

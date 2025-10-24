@@ -25,7 +25,7 @@ public class JoinSourcesTableProcessingHelperTests
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 null,
                 generator,
@@ -48,7 +48,7 @@ public class JoinSourcesTableProcessingHelperTests
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 node,
                 null,
@@ -72,7 +72,7 @@ public class JoinSourcesTableProcessingHelperTests
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 node,
                 generator,
@@ -97,7 +97,7 @@ public class JoinSourcesTableProcessingHelperTests
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentException>(() =>
+        var exception = Assert.Throws<ArgumentException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 node,
                 generator,

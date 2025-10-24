@@ -17,18 +17,16 @@ public class DateTests : LibraryBaseBaseTests
         Assert.AreEqual(9, Library.ExtractFromDate("01/02/2001 00:00:09 +00:00", "second"));
     }
 
-    [ExpectedException(typeof(NotSupportedException))]
     [TestMethod]
     public void ExtractFromDateWrongDateTest()
     {
-        Library.ExtractFromDate("error", "month");
+        Assert.Throws<NotSupportedException>(() => Library.ExtractFromDate("error", "month"));
     }
 
-    [ExpectedException(typeof(NotSupportedException))]
     [TestMethod]
     public void ExtractFromDateWrongPartOfDateTest()
     {
-        Library.ExtractFromDate("01/02/2001 00:00:00 +00:00", "error");
+        Assert.Throws<NotSupportedException>(() => Library.ExtractFromDate("01/02/2001 00:00:00 +00:00", "error"));
     }
 
     [TestMethod]

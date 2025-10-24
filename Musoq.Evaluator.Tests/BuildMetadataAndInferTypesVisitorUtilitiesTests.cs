@@ -105,11 +105,10 @@ public class BuildMetadataAndInferTypesVisitorUtilitiesTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void MakeTypeNullable_NullType_ThrowsArgumentNullException()
     {
         // Act & Assert
-        BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(null);
+        Assert.Throws<ArgumentNullException>(() => BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(null));
     }
 
     [TestMethod]
@@ -139,11 +138,10 @@ public class BuildMetadataAndInferTypesVisitorUtilitiesTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void StripNullable_NullType_ThrowsArgumentNullException()
     {
         // Act & Assert
-        BuildMetadataAndInferTypesVisitorUtilities.StripNullable(null);
+        Assert.Throws<ArgumentNullException>(() => BuildMetadataAndInferTypesVisitorUtilities.StripNullable(null));
     }
 
     [TestMethod]

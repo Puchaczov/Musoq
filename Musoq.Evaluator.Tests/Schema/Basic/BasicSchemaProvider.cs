@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Schema;
 

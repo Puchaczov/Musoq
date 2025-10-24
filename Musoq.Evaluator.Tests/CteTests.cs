@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -166,7 +166,7 @@ public class CteTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
 

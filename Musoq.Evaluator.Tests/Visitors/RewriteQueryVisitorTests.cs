@@ -220,18 +220,16 @@ public class RewriteQueryVisitorTests
     // ============================================
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_StarNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var starNode = new StarNode(new IntegerNode("5"), new IntegerNode("3"));
 
         // Act - calling visit without pushing operands should fail
-        _visitor.Visit(starNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(starNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_AddNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -241,22 +239,20 @@ public class RewriteQueryVisitorTests
         PushNode(new IntegerNode("10"));
 
         // Act
-        _visitor.Visit(addNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(addNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_EqualityNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var equalityNode = new EqualityNode(new IntegerNode("5"), new IntegerNode("5"));
 
         // Act - no operands pushed
-        _visitor.Visit(equalityNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(equalityNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_AndNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -266,22 +262,20 @@ public class RewriteQueryVisitorTests
         PushNode(new BooleanNode(true));
 
         // Act
-        _visitor.Visit(andNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(andNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_FieldNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var fieldNode = new FieldNode(new IdentifierNode("TestField"), 0, "TestField");
 
         // Act - no expression pushed
-        _visitor.Visit(fieldNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(fieldNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_ArgsListNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -291,11 +285,10 @@ public class RewriteQueryVisitorTests
         PushNode(new IntegerNode("1"));
 
         // Act
-        _visitor.Visit(argsListNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(argsListNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_GroupByNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -307,11 +300,10 @@ public class RewriteQueryVisitorTests
         PushNode(field1);
 
         // Act
-        _visitor.Visit(groupByNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(groupByNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_SchemaFromNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -319,11 +311,10 @@ public class RewriteQueryVisitorTests
         var schemaFromNode = new SchemaFromNode("testSchema", "testMethod", argsListNode, "alias", typeof(object), 0);
 
         // Act - no args list pushed
-        _visitor.Visit(schemaFromNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(schemaFromNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
     public void Visit_StarNode_WithNullOperands_ShouldThrowArgumentException()
     {
         // Arrange
@@ -334,7 +325,7 @@ public class RewriteQueryVisitorTests
         PushNode(new IntegerNode("5"));
 
         // Act - should now throw ArgumentException due to defensive programming
-        _visitor.Visit(starNode);
+        Assert.Throws<ArgumentException>(() => _visitor.Visit(starNode));
     }
 
     [TestMethod]
@@ -447,14 +438,13 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_HavingNode_WithEmptyStack_ShouldThrow()
     {
         // Arrange
         var havingNode = new HavingNode(new GreaterNode(new IdentifierNode("count"), new IntegerNode("5")));
 
         // Act - no expression pushed
-        _visitor.Visit(havingNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(havingNode));
     }
 
     [TestMethod]
