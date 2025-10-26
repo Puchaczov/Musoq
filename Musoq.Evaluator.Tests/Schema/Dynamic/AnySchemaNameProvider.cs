@@ -1,23 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Schema;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
-public class AnySchemaNameProvider : ISchemaProvider
+public class AnySchemaNameProvider(
+    IReadOnlyDictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)> schemas,
+    Func<RuntimeContext, SchemaMethodInfo[]> getRawConstructors = null,
+    Func<string, RuntimeContext, SchemaMethodInfo[]> getRawConstructorsByName = null
+)
+    : ISchemaProvider
 {
-    private readonly
-        IReadOnlyDictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)> _schemas;
-    
-    public AnySchemaNameProvider(IReadOnlyDictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)> schemas)
-    {
-        _schemas = schemas;
-    }
-
     public ISchema GetSchema(string schema)
     {
-        var schemaObj = _schemas.Keys.First();
-        return new DynamicSchema(_schemas[schemaObj].Schema, _schemas[schemaObj].Values);
+        var schemaObj = schemas.Keys.First();
+        return new DynamicSchema(
+            schemas[schemaObj].Schema, 
+            schemas[schemaObj].Values,
+            getRawConstructors,
+            getRawConstructorsByName);
     }
 }

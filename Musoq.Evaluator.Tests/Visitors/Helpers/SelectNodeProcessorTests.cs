@@ -82,7 +82,7 @@ public class SelectNodeProcessorTests
         // Assert
         Assert.IsNotNull(result);
         var generatedCode = result.ToFullString();
-        Assert.IsTrue(generatedCode.Contains("testRow"));
+        Assert.Contains("testRow", generatedCode);
     }
 
     [TestMethod]
@@ -104,7 +104,7 @@ public class SelectNodeProcessorTests
         // Assert
         Assert.IsNotNull(result);
         var generatedCode = result.ToFullString();
-        Assert.IsTrue(generatedCode.Contains("score"));
+        Assert.Contains("score", generatedCode);
     }
 
     [TestMethod]
@@ -115,7 +115,7 @@ public class SelectNodeProcessorTests
         var scope = new Scope(null, 0, "test");
         
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             SelectNodeProcessor.ProcessSelectNode(null!, nodes, scope, MethodAccessType.ResultQuery));
     }
 
@@ -128,7 +128,7 @@ public class SelectNodeProcessorTests
         var scope = new Scope(null, 0, "test");
         
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             SelectNodeProcessor.ProcessSelectNode(selectNode, null!, scope, MethodAccessType.ResultQuery));
     }
 
@@ -141,7 +141,7 @@ public class SelectNodeProcessorTests
         var nodes = new Stack<SyntaxNode>();
         
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             SelectNodeProcessor.ProcessSelectNode(selectNode, nodes, null!, MethodAccessType.ResultQuery));
     }
 
@@ -166,9 +166,9 @@ public class SelectNodeProcessorTests
         
         // Verify the generated syntax is valid C#
         var code = result.ToFullString();
-        Assert.IsTrue(code.Contains("var select = "));
-        Assert.IsTrue(code.Contains("resultTable.Add("));
-        Assert.IsTrue(code.Contains("new ObjectsRow("));
-        Assert.IsTrue(code.Contains("score.Contexts"));
+        Assert.Contains("var select = ", code);
+        Assert.Contains("resultTable.Add(", code);
+        Assert.Contains("new ObjectsRow(", code);
+        Assert.Contains("score.Contexts", code);
     }
 }

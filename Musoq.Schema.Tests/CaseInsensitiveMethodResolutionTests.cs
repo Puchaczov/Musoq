@@ -65,14 +65,14 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void MethodNameNormalizer_ShouldThrowOnNull()
     {
-        Assert.ThrowsException<ArgumentNullException>(() => MethodNameNormalizer.Normalize(null));
+        Assert.Throws<ArgumentNullException>(() => MethodNameNormalizer.Normalize(null));
     }
 
     [TestMethod]
     public void MethodNameNormalizer_ShouldThrowOnEmpty()
     {
-        Assert.ThrowsException<ArgumentException>(() => MethodNameNormalizer.Normalize(""));
-        Assert.ThrowsException<ArgumentException>(() => MethodNameNormalizer.Normalize("   "));
+        Assert.Throws<ArgumentException>(() => MethodNameNormalizer.Normalize(""));
+        Assert.Throws<ArgumentException>(() => MethodNameNormalizer.Normalize("   "));
     }
 
     [TestMethod]
@@ -133,7 +133,7 @@ public class CaseInsensitiveMethodResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("MyMethod", method.Name);
-        Assert.AreEqual(1, method.GetParameters().Length);
+        Assert.HasCount(1, method.GetParameters());
         Assert.AreEqual(typeof(int), method.GetParameters()[0].ParameterType);
     }
 

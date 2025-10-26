@@ -92,8 +92,8 @@ public class CteExpressionNodeProcessorTests
         var parameters = method.ParameterList.Parameters;
         
         Assert.AreEqual("ISchemaProvider", parameters[0].Type.ToString());
-        Assert.IsTrue(parameters[1].Type.ToString().Contains("IReadOnlyDictionary"));
-        Assert.IsTrue(parameters[2].Type.ToString().Contains("IReadOnlyDictionary"));
+        Assert.Contains("IReadOnlyDictionary", parameters[1].Type.ToString());
+        Assert.Contains("IReadOnlyDictionary", parameters[2].Type.ToString());
         Assert.AreEqual("ILogger", parameters[3].Type.ToString());
         Assert.AreEqual("CancellationToken", parameters[4].Type.ToString());
     }
@@ -154,7 +154,7 @@ public class CteExpressionNodeProcessorTests
     public void ProcessCteExpressionNode_NullNode_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             CteExpressionNodeProcessor.ProcessCteExpressionNode(null, _methodNames, _nodes));
     }
 
@@ -162,7 +162,7 @@ public class CteExpressionNodeProcessorTests
     public void ProcessCteExpressionNode_NullMethodNames_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, null, _nodes));
     }
 
@@ -170,7 +170,7 @@ public class CteExpressionNodeProcessorTests
     public void ProcessCteExpressionNode_NullNodes_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, null));
     }
 
@@ -212,9 +212,9 @@ public class CteExpressionNodeProcessorTests
 
         // Assert
         // Should pop one method name for result CTE and one for each inner expression
-        Assert.AreEqual(initialMethodCount - 2, _methodNames.Count);
+        Assert.HasCount(initialMethodCount - 2, _methodNames);
         // Should pop one node for each inner expression
-        Assert.AreEqual(initialNodeCount - 1, _nodes.Count);
+        Assert.HasCount(initialNodeCount - 1, _nodes);
     }
 
     [TestMethod]
@@ -227,12 +227,11 @@ public class CteExpressionNodeProcessorTests
         var method = result.Method;
         var syntaxText = method.ToFullString();
         
-        // Should be valid C# syntax without syntax errors
-        Assert.IsTrue(!string.IsNullOrEmpty(syntaxText));
-        Assert.IsTrue(syntaxText.Contains("private"));
-        Assert.IsTrue(syntaxText.Contains("Table"));
-        Assert.IsTrue(syntaxText.Contains("CteResultQuery"));
-        Assert.IsTrue(syntaxText.Contains("ISchemaProvider"));
-        Assert.IsTrue(syntaxText.Contains("return"));
+        Assert.IsFalse(string.IsNullOrEmpty(syntaxText));
+        Assert.Contains("private", syntaxText);
+        Assert.Contains("Table", syntaxText);
+        Assert.Contains("CteResultQuery", syntaxText);
+        Assert.Contains("ISchemaProvider", syntaxText);
+        Assert.Contains("return", syntaxText);
     }
 }

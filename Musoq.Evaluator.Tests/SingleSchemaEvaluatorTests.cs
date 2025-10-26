@@ -23,7 +23,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<SchemaNotFoundException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SchemaNotFoundException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -50,7 +50,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+        Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row.Values[0] == "ABCAACBA"), 
@@ -107,7 +107,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -134,7 +134,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+        Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "12@hostname.com"), "Missing 12@hostname.com");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "david.jones@proseware.com"), "Missing david.jones@proseware.com");
@@ -240,7 +240,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.ThrowsException<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -290,7 +290,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("null", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.AreEqual(null, table[0][0]);
+        Assert.IsNull(table[0][0]);
     }
 
     [TestMethod]
@@ -340,7 +340,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("case when 1 = 2 then test else null end", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.AreEqual(null, table[0][0]);
+        Assert.IsNull(table[0][0]);
     }
 
     [TestMethod]
@@ -368,7 +368,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Population", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (decimal)entry.Values[0] == 99m), "First entry should be 99m");
         Assert.IsTrue(table.Any(entry => (decimal)entry.Values[0] == 101m), "Second entry should be 101m");
@@ -394,7 +394,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABC"), "First entry should be 'ABC'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABCD"), "Second entry should be 'ABCD'");
@@ -419,7 +419,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "A"), "First entry should be 'A'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABC"), "Second entry should be 'ABC'");
@@ -470,7 +470,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABC"), "First entry should be 'ABC'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "CDA"), "Second entry should be 'CDA'");
@@ -614,7 +614,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("SelfString", table.Columns.ElementAt(15).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(15).ColumnType);
 
-        Assert.IsTrue(table.Count == 1, "Table should have 1 entry");
+        Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
         Assert.IsTrue(table.Any(entry => 
             (int)entry.Values[0] == Convert.ToInt32(1) &&
@@ -651,7 +651,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Self.Array[2]", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.All(entry => (int)entry.Values[0] == 2), "Both entries should have value 2");
     }
@@ -707,7 +707,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Inc(Self.Array[2])", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(long), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.All(entry => (long)entry.Values[0] == Convert.ToInt64(3)), "Both entries should have value 3 (as long)");
     }
@@ -724,7 +724,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Second entry should be '005'");
@@ -742,7 +742,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry.Values[0] == "001"), 
@@ -771,7 +771,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "003"), "First entry should be '003'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "004"), "Second entry should be '004'");
@@ -801,7 +801,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
@@ -846,7 +846,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "003"), "Second entry should be '003'");
@@ -1017,7 +1017,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 6, "Table should have 6 entries");
+        Assert.AreEqual(6, table.Count, "Table should have 6 entries");
 
         Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 1), "First entry should be 1");
         Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 2), "Second entry should be 2");
@@ -1158,7 +1158,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.Any(row => (string)row[0] == "A") &&
                       table.Any(row => (string)row[0] == "B"),
@@ -1243,7 +1243,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(true, table[0][0]);
+        Assert.IsTrue((bool?)table[0][0]);
     }
 
     [TestMethod]
@@ -1366,7 +1366,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(0.001m > (decimal)table[0][0] - 7.071m);
+        Assert.IsGreaterThan((decimal)table[0][0] - 7.071m, 0.001m);
     }
 
     [TestMethod]
@@ -1393,7 +1393,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (bool)entry[0] == false), "First entry should be false");
         Assert.IsTrue(table.Any(entry => (bool)entry[0] == true), "Second entry should be true");
@@ -1423,7 +1423,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.Any(row => (decimal)row[0] == 2m) && 
                       table.Any(row => (decimal)row[0] == 1m),
@@ -1459,7 +1459,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.Any(row => 
                 (decimal)row[0] == 2m && 
@@ -1578,7 +1578,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count);
         var result = (string[])table[0].Values[0];
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("123", result[0]);
         Assert.AreEqual("456", result[1]);
     }

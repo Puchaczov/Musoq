@@ -2,39 +2,19 @@
 
 namespace Musoq.Schema.Reflection;
 
-public class ConstructorInfo
+public class ConstructorInfo(
+    System.Reflection.ConstructorInfo originConstructorInfo,
+    bool supportsInterCommunicator,
+    params (string Name, Type Type)[] arguments)
 {
-    public System.Reflection.ConstructorInfo OriginConstructor { get; }
+    public System.Reflection.ConstructorInfo OriginConstructor { get; } = originConstructorInfo;
 
-    public Type OriginType { get; }
+    public (string Name, Type Type)[] Arguments { get; } = arguments;
 
-    public (string Name, Type Type)[] Arguments { get; }
+    public bool SupportsInterCommunicator { get; } = supportsInterCommunicator;
 
-    public bool SupportsInterCommunicator { get; }
-
-    public ConstructorInfo(System.Reflection.ConstructorInfo originConstructorInfo, Type originType, bool supportsInterCommunicator, params (string Name, Type Type)[] arguments)
+    public static ConstructorInfo Empty()
     {
-        OriginConstructor = originConstructorInfo;
-        OriginType = originType;
-        Arguments = arguments;
-        SupportsInterCommunicator = supportsInterCommunicator;
-    }
-
-    public static ConstructorInfo Empty<T>()
-    {
-        return new ConstructorInfo(null, typeof(T), false, []);
-    }
-}
-
-public class SchemaMethodInfo
-{
-    public string MethodName { get; }
-
-    public ConstructorInfo ConstructorInfo { get; }
-
-    public SchemaMethodInfo(string methodName, ConstructorInfo constructorInfo)
-    {
-        MethodName = methodName;
-        ConstructorInfo = constructorInfo;
+        return new ConstructorInfo(null, false);
     }
 }

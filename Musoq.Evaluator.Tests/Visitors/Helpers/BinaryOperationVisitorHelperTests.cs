@@ -23,7 +23,7 @@ public class BinaryOperationVisitorHelperTests
         BinaryOperationVisitorHelper.ProcessStarOperation(nodes);
 
         // Assert
-        Assert.AreEqual(1, nodes.Count);
+        Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(StarNode));
         var starNode = (StarNode)result;
@@ -45,7 +45,7 @@ public class BinaryOperationVisitorHelperTests
         BinaryOperationVisitorHelper.ProcessFSlashOperation(nodes);
 
         // Assert
-        Assert.AreEqual(1, nodes.Count);
+        Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(FSlashNode));
         var fSlashNode = (FSlashNode)result;
@@ -67,7 +67,7 @@ public class BinaryOperationVisitorHelperTests
         BinaryOperationVisitorHelper.ProcessModuloOperation(nodes);
 
         // Assert
-        Assert.AreEqual(1, nodes.Count);
+        Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(ModuloNode));
         var moduloNode = (ModuloNode)result;
@@ -89,7 +89,7 @@ public class BinaryOperationVisitorHelperTests
         BinaryOperationVisitorHelper.ProcessAddOperation(nodes);
 
         // Assert
-        Assert.AreEqual(1, nodes.Count);
+        Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(AddNode));
         var addNode = (AddNode)result;
@@ -111,7 +111,7 @@ public class BinaryOperationVisitorHelperTests
         BinaryOperationVisitorHelper.ProcessHyphenOperation(nodes);
 
         // Assert
-        Assert.AreEqual(1, nodes.Count);
+        Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(HyphenNode));
         var hyphenNode = (HyphenNode)result;
@@ -123,7 +123,7 @@ public class BinaryOperationVisitorHelperTests
     public void ProcessStarOperation_WhenNullStack_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             BinaryOperationVisitorHelper.ProcessStarOperation(null));
     }
 
@@ -135,7 +135,7 @@ public class BinaryOperationVisitorHelperTests
         nodes.Push(new IntegerNode("5")); // Only one node
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() => 
+        Assert.Throws<InvalidOperationException>(() => 
             BinaryOperationVisitorHelper.ProcessStarOperation(nodes));
     }
 }

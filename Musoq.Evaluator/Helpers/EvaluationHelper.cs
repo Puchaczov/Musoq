@@ -54,24 +54,24 @@ public static class EvaluationHelper
         return newTable;
     }
 
-    public static Table GetSpecificSchemaDescriptions(ISchema schema)
+    public static Table GetSpecificSchemaDescriptions(ISchema schema, RuntimeContext runtimeContext)
     {
-        return CreateTableFromConstructors(schema.GetRawConstructors);
+        return CreateTableFromConstructors(() => schema.GetRawConstructors(runtimeContext));
     }
 
-    public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName)
+    public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName, RuntimeContext runtimeContext)
     {
-        return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName));
+        return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName, runtimeContext));
     }
 
     private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
     {
         var maxColumns = 0;
-        var values = new List<List<string>>();
+        var values = new List<List<object>>();
 
         foreach (var constructor in getConstructors())
         {
-            var row = new List<string>();
+            var row = new List<object>();
             values.Add(row);
 
             row.Add(constructor.MethodName);
@@ -162,7 +162,7 @@ public static class EvaluationHelper
     public static Type[] GetNestedTypes(Type type)
     {
         if (type == null)
-            throw new ArgumentNullException(nameof(type), "Type cannot be null");
+            throw new ArgumentNullException(nameof(type), @"Type cannot be null");
             
         if (!type.IsGenericType)
             return [type];

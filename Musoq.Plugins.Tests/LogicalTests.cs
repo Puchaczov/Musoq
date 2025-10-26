@@ -12,8 +12,8 @@ public class LogicalTests : LibraryBaseBaseTests
         Assert.AreEqual("b", Library.Choose(1, "a", "b", "c", "d"));
         Assert.AreEqual("c", Library.Choose(2, "a", "b", "c", "d"));
         Assert.AreEqual("d", Library.Choose(3, "a", "b", "c", "d"));
-        Assert.AreEqual(null, Library.Choose(4, "a", "b", "c", "d"));
-        Assert.AreEqual(null, Library.Choose(3, "a", "b", "c", null));
+        Assert.IsNull(Library.Choose(4, "a", "b", "c", "d"));
+        Assert.IsNull(Library.Choose(3, "a", "b", "c", null));
     }
 
     [TestMethod]
@@ -30,13 +30,13 @@ public class LogicalTests : LibraryBaseBaseTests
         Assert.AreEqual("abc", Library.Coalesce(null, "abc"));
         Assert.AreEqual("abc", Library.Coalesce(null, null, "abc"));
         Assert.AreEqual("abc", Library.Coalesce(null, null, null, "abc"));
-        Assert.AreEqual(null, Library.Coalesce(null, null, null, null));
+        Assert.IsNull(Library.Coalesce(null, null, null, null));
     }
 
     [TestMethod]
     public void MatchTest()
     {
-        Assert.AreEqual(true, Library.Match("\\d+", "9899"));
-        Assert.AreEqual(false, Library.Match("\\d+", string.Empty));
+        Assert.IsTrue(Library.Match("\\d+", "9899"));
+        Assert.IsFalse(Library.Match("\\d+", string.Empty));
     }
 }

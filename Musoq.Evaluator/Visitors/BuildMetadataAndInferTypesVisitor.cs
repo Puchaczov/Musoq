@@ -30,7 +30,6 @@ using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemory
 using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
 using NotSupportedException = System.NotSupportedException;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
-using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -1108,7 +1107,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
                     .ToArray(),
                 environmentVariables,
-                (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes),
+                (aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes),
                 logger
             ),
             _schemaFromArgs.ToArray()) : new DynamicTable([]);

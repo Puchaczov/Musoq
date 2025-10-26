@@ -32,7 +32,7 @@ public class LiteralNodeSyntaxConverterTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("test string"));
+        Assert.Contains("test string", code);
     }
 
     [TestMethod]
@@ -108,7 +108,7 @@ public class LiteralNodeSyntaxConverterTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("true"));
+        Assert.Contains("true", code);
     }
 
     [TestMethod]
@@ -123,7 +123,7 @@ public class LiteralNodeSyntaxConverterTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("false"));
+        Assert.Contains("false", code);
     }
 
     [TestMethod]
@@ -138,7 +138,7 @@ public class LiteralNodeSyntaxConverterTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("sample word"));
+        Assert.Contains("sample word", code);
     }
 
     [TestMethod]
@@ -153,7 +153,7 @@ public class LiteralNodeSyntaxConverterTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("null"));
+        Assert.Contains("null", code);
     }
 
     [TestMethod]
@@ -168,33 +168,30 @@ public class LiteralNodeSyntaxConverterTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("null"));
+        Assert.Contains("null", code);
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ConvertStringNode_WithNullNode_ShouldThrowArgumentNullException()
     {
         // Act
-        LiteralNodeSyntaxConverter.ConvertStringNode(null);
+        Assert.Throws<ArgumentNullException>(() => LiteralNodeSyntaxConverter.ConvertStringNode(null));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ConvertBooleanNode_WithNullGenerator_ShouldThrowArgumentNullException()
     {
         // Arrange
         var booleanNode = new BooleanNode(true);
 
         // Act
-        LiteralNodeSyntaxConverter.ConvertBooleanNode(booleanNode, null);
+        Assert.Throws<ArgumentNullException>(() => LiteralNodeSyntaxConverter.ConvertBooleanNode(booleanNode, null));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ConvertWordNode_WithNullNode_ShouldThrowArgumentNullException()
     {
         // Act
-        LiteralNodeSyntaxConverter.ConvertWordNode(null, _generator);
+        Assert.Throws<ArgumentNullException>(() => LiteralNodeSyntaxConverter.ConvertWordNode(null, _generator));
     }
 }

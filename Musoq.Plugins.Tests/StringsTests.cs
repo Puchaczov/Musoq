@@ -11,12 +11,12 @@ public class StringsTests : LibraryBaseBaseTests
         Assert.AreEqual("lorem", Library.Substring("lorem ipsum dolor", 0, 5));
         Assert.AreEqual("lorem ipsum dolor", Library.Substring("lorem ipsum dolor", 0, 150));
         Assert.AreEqual(string.Empty, Library.Substring("lorem ipsum dolor", 0, 0));
-        Assert.AreEqual(null, Library.Substring(null, 0, 5));
+        Assert.IsNull(Library.Substring(null, 0, 5));
 
         Assert.AreEqual(string.Empty, Library.Substring("lorem ipsum dolor", 0));
         Assert.AreEqual("lorem", Library.Substring("lorem ipsum dolor", 5));
         Assert.AreEqual("lorem ipsum dolor", Library.Substring("lorem ipsum dolor", 150));
-        Assert.AreEqual((string?)null, Library.Substring((string?)null, 150));
+        Assert.IsNull(Library.Substring((string?)null, 150));
     }
 
     [TestMethod]
@@ -30,9 +30,9 @@ public class StringsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ContainsTest()
     {
-        Assert.AreEqual(true, Library.Contains("lorem ipsum dolor", "ipsum"));
-        Assert.AreEqual(true, Library.Contains("lorem ipsum dolor", "IPSUM"));
-        Assert.AreEqual(false, Library.Contains("lorem ipsum dolor", "ratatata"));
+        Assert.IsTrue(Library.Contains("lorem ipsum dolor", "ipsum"));
+        Assert.IsTrue(Library.Contains("lorem ipsum dolor", "IPSUM"));
+        Assert.IsFalse(Library.Contains("lorem ipsum dolor", "ratatata"));
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -123,7 +123,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
     }
 
     [TestMethod]
@@ -137,7 +137,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual("Single line", result[0]);
     }
 
@@ -152,7 +152,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("Line1", result[0]);
         Assert.AreEqual("Line2", result[1]);
         Assert.AreEqual("Line3", result[2]);
@@ -182,7 +182,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -196,7 +196,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("Line1", result[0]);
         Assert.AreEqual("Line2", result[1]);
         Assert.AreEqual("Line3", result[2]);
@@ -226,7 +226,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -240,7 +240,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual("Line1", result[0]);
         Assert.AreEqual("Line2", result[1]);
         Assert.AreEqual("Line3", result[2]);
@@ -259,7 +259,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual("Line1", result[0]);
         Assert.AreEqual("", result[1]);
         Assert.AreEqual("Line3", result[2]);
@@ -280,7 +280,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(expectedCount, result.Length);
+        Assert.HasCount(expectedCount, result);
     }
 
     [TestMethod]
@@ -297,8 +297,8 @@ public class StringsTests : LibraryBaseBaseTests
         // Assert
         Assert.IsNotNull(result1);
         Assert.IsNotNull(result2);
-        Assert.AreEqual(4, result1.Length);
-        Assert.AreEqual(4, result2.Length);
+        Assert.HasCount(4, result1);
+        Assert.HasCount(4, result2);
     }
 
     #region Additional String Methods Tests
@@ -676,7 +676,7 @@ public class StringsTests : LibraryBaseBaseTests
     }
 
     [TestMethod]
-    public void Split_ShouldSplitStringCorrectly()
+    public void Split_WithCustomSeparators_ShouldSplitCorrectly()
     {
         // Arrange
         string input = "hello,world,test";
@@ -686,7 +686,7 @@ public class StringsTests : LibraryBaseBaseTests
         var result = Library.Split(input, separators);
 
         // Assert
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("hello", result[0]);
         Assert.AreEqual("world", result[1]);
         Assert.AreEqual("test", result[2]);
@@ -702,7 +702,7 @@ public class StringsTests : LibraryBaseBaseTests
         var result = Library.ToCharArray(input);
 
         // Assert
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual('h', result[0]);
         Assert.AreEqual('e', result[1]);
         Assert.AreEqual('l', result[2]);
@@ -752,7 +752,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("123", result[0]);
         Assert.AreEqual("456", result[1]);
     }
@@ -769,7 +769,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -826,7 +826,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -841,7 +841,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual("Hello", result[0]);
         Assert.AreEqual("World", result[1]);
         Assert.AreEqual("This", result[2]);
@@ -861,7 +861,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("john@example.com", result[0]);
         Assert.AreEqual("support@test.org", result[1]);
     }
@@ -878,7 +878,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.Length); // Should find "aa" at positions 0 and 2, not overlapping
+        Assert.HasCount(2, result); // Should find "aa" at positions 0 and 2, not overlapping
         Assert.AreEqual("aa", result[0]);
         Assert.AreEqual("aa", result[1]);
     }
@@ -895,7 +895,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("123-456-7890", result[0]);
         Assert.AreEqual("987-654-3210", result[1]);
     }
@@ -912,7 +912,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("$19.99", result[0]);
         Assert.AreEqual("$5.50", result[1]);
         Assert.AreEqual("$1.25", result[2]);

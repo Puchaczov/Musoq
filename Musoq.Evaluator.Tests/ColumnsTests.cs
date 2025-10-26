@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -22,7 +22,7 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
         
-        Assert.ThrowsException<UnknownPropertyException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<UnknownPropertyException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -87,7 +87,7 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
         
-        Assert.ThrowsException<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -102,7 +102,7 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
         
-        Assert.ThrowsException<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -117,7 +117,7 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
         
-        Assert.ThrowsException<ConstructionNotYetSupported>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ConstructionNotYetSupported>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -132,7 +132,7 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
         
-        Assert.ThrowsException<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -147,7 +147,7 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
         
-        Assert.ThrowsException<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]

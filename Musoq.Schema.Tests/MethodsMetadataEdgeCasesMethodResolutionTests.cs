@@ -159,7 +159,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests
         );
 
         var parameters = method.GetParameters();
-        Assert.AreEqual(4, parameters.Length, "Should have all parameters");
+        Assert.HasCount(4, parameters, "Should have all parameters");
         Assert.IsTrue(Attribute.IsDefined(parameters[0], typeof(InjectSpecificSourceAttribute)));
         Assert.IsTrue(Attribute.IsDefined(parameters[1], typeof(InjectGroupAttribute)));
         Assert.IsTrue(Attribute.IsDefined(parameters[2], typeof(InjectQueryStatsAttribute)));
@@ -177,7 +177,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests
         );
 
         var parameters = method.GetParameters();
-        Assert.IsTrue(parameters[^1].GetCustomAttribute<ParamArrayAttribute>() != null, 
+        Assert.IsNotNull(parameters[^1].GetCustomAttribute<ParamArrayAttribute>(), 
             "Last parameter should be params array");
     }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Musoq.Evaluator.Tests.Exceptions;
 

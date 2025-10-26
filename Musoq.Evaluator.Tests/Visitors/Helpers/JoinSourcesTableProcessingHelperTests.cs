@@ -25,7 +25,7 @@ public class JoinSourcesTableProcessingHelperTests
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 null,
                 generator,
@@ -48,7 +48,7 @@ public class JoinSourcesTableProcessingHelperTests
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 node,
                 null,
@@ -72,7 +72,7 @@ public class JoinSourcesTableProcessingHelperTests
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 node,
                 generator,
@@ -97,7 +97,7 @@ public class JoinSourcesTableProcessingHelperTests
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentException>(() =>
+        var exception = Assert.Throws<ArgumentException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 node,
                 generator,
@@ -109,7 +109,7 @@ public class JoinSourcesTableProcessingHelperTests
                 statements => SyntaxFactory.Block(statements),
                 () => SyntaxFactory.EmptyStatement()));
 
-        Assert.IsTrue(exception.Message.Contains("Unsupported join type: 999"));
+        Assert.Contains("Unsupported join type: 999", exception.Message);
     }
 
     [TestMethod]
@@ -138,7 +138,7 @@ public class JoinSourcesTableProcessingHelperTests
         // Assert
         Assert.IsNotNull(result);
         Assert.IsInstanceOfType(result, typeof(BlockSyntax));
-        Assert.IsTrue(result.Statements.Count > 0);
+        Assert.IsGreaterThan(0, result.Statements.Count);
     }
 
     private static JoinSourcesTableFromNode CreateMockJoinNode(JoinType joinType)

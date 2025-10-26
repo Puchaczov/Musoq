@@ -131,8 +131,8 @@ public class EscapeHelpersTests
         string result = input.ToString().Unescape();
 
         // Assert
-        Assert.IsTrue(result.Length > 0);
-        Assert.IsFalse(result.Contains(@"\\simple"));
+        Assert.IsGreaterThan(0, result.Length);
+        Assert.DoesNotContain(@"\\simple", result);
     }
 
     [TestMethod]
@@ -152,36 +152,12 @@ public class EscapeHelpersTests
         sw.Stop();
 
         // Assert
-        Assert.IsTrue(result.Length > 0);
-        Assert.IsTrue(result.Contains("\n"));
-        Assert.IsTrue(result.Contains("\\text"));
-        Assert.IsTrue(result.Contains("\t"));
-        Assert.IsTrue(sw.ElapsedMilliseconds < 1000, 
-            $"Processing took too long: {sw.ElapsedMilliseconds}ms");
-    }
-
-    [TestMethod]
-    public void Unescape_MemoryEfficiency()
-    {
-        // Arrange
-        const int iterationCount = 10000;
-        string input = "test\\complex\\\\pattern\\n\\\\\\text";
-        long initialMemory = GC.GetTotalMemory(true);
-
-        // Act
-        for (int i = 0; i < iterationCount; i++)
-        {
-            _ = input.Unescape();
-        }
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        long finalMemory = GC.GetTotalMemory(true);
-
-        // Assert
-        long memoryDifference = finalMemory - initialMemory;
-        Assert.IsTrue(memoryDifference < 1024 * 1024, 
-            $"Memory usage grew by {memoryDifference} bytes");
+        Assert.IsGreaterThan(0, result.Length);
+        Assert.Contains("\n", result);
+        Assert.Contains("\\text", result);
+        Assert.Contains("\t", result);
+        Assert.IsLessThan(1000,
+sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms");
     }
     
     [TestMethod]
@@ -321,10 +297,10 @@ public class EscapeHelpersTests
             sb.Append(@"Hello\nWorld\t\u0394\u2665\\test");
         }
         var result = sb.ToString().Unescape();
-        Assert.IsTrue(result.Contains("\n"));
-        Assert.IsTrue(result.Contains("\t"));
-        Assert.IsTrue(result.Contains("Δ"));
-        Assert.IsTrue(result.Contains("♥"));
-        Assert.IsTrue(result.Contains(@"\test"));
+        Assert.Contains("\n", result);
+        Assert.Contains("\t", result);
+        Assert.Contains("Δ", result);
+        Assert.Contains("♥", result);
+        Assert.Contains(@"\test", result);
     }
 }

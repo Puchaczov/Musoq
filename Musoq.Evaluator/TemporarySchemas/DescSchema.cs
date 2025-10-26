@@ -29,7 +29,7 @@ public class DescSchema : SchemaBase
 
     public override SchemaMethodInfo[] GetConstructors()
     {
-        var constructors = new List<SchemaMethodInfo> {new(nameof(TableMetadataSource), ConstructorInfo.Empty<TableMetadataSource>())};
+        var constructors = new List<SchemaMethodInfo> {new(nameof(TableMetadataSource), ConstructorInfo.Empty())};
 
         return constructors.ToArray();
     }

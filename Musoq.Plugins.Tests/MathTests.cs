@@ -10,7 +10,7 @@ public class MathTests : LibraryBaseBaseTests
     {
         Assert.AreEqual(112.5734m, Library.Abs(112.5734m));
         Assert.AreEqual(112.5734m, Library.Abs(-112.5734m));
-        Assert.AreEqual(null, Library.Abs((decimal?)null));
+        Assert.IsNull(Library.Abs((decimal?)null));
     }
 
     [TestMethod]
@@ -18,7 +18,7 @@ public class MathTests : LibraryBaseBaseTests
     {
         Assert.AreEqual(112L, Library.Abs(112L));
         Assert.AreEqual(112L, Library.Abs(-112L));
-        Assert.AreEqual(null, Library.Abs((long?)null));
+        Assert.IsNull(Library.Abs((long?)null));
     }
 
     [TestMethod]
@@ -26,7 +26,7 @@ public class MathTests : LibraryBaseBaseTests
     {
         Assert.AreEqual(112, Library.Abs(112));
         Assert.AreEqual(112, Library.Abs(-112));
-        Assert.AreEqual(null, Library.Abs(null));
+        Assert.IsNull(Library.Abs(null));
     }
 
     [TestMethod]
@@ -34,7 +34,7 @@ public class MathTests : LibraryBaseBaseTests
     {
         Assert.AreEqual(113m, Library.Ceil(112.5734m));
         Assert.AreEqual(-112m, Library.Ceil(-112.5734m));
-        Assert.AreEqual(null, Library.Ceil(null));
+        Assert.IsNull(Library.Ceil(null));
     }
 
     [TestMethod]
@@ -42,7 +42,7 @@ public class MathTests : LibraryBaseBaseTests
     {
         Assert.AreEqual(112m, Library.Floor(112.5734m));
         Assert.AreEqual(-113m, Library.Floor(-112.5734m));
-        Assert.AreEqual(null, Library.Floor(null));
+        Assert.IsNull(Library.Floor(null));
     }
 
     [TestMethod]
@@ -51,7 +51,7 @@ public class MathTests : LibraryBaseBaseTests
         Assert.AreEqual(1m, Library.Sign(13m));
         Assert.AreEqual(0m, Library.Sign(0m));
         Assert.AreEqual(-1m, Library.Sign(-13m));
-        Assert.AreEqual(null, Library.Sign((decimal?)null));
+        Assert.IsNull(Library.Sign((decimal?)null));
     }
 
     [TestMethod]
@@ -60,23 +60,23 @@ public class MathTests : LibraryBaseBaseTests
         Assert.AreEqual(1, Library.Sign(13));
         Assert.AreEqual(0, Library.Sign(0));
         Assert.AreEqual(-1, Library.Sign(-13));
-        Assert.AreEqual(null, Library.Sign(null));
+        Assert.IsNull(Library.Sign(null));
     }
 
     [TestMethod]
     public void RoundTest()
     {
         Assert.AreEqual(2.1m, Library.Round(2.1351m, 1));
-        Assert.AreEqual(null, Library.Round(null, 1));
+        Assert.IsNull(Library.Round(null, 1));
     }
 
     [TestMethod]
     public void PercentOfTest()
     {
         Assert.AreEqual(25m, Library.PercentOf(25, 100));
-        Assert.AreEqual(null, Library.PercentOf(null, 100));
-        Assert.AreEqual(null, Library.PercentOf(25, null));
-        Assert.AreEqual(null, Library.PercentOf(null, null));
+        Assert.IsNull(Library.PercentOf(null, 100));
+        Assert.IsNull(Library.PercentOf(25, null));
+        Assert.IsNull(Library.PercentOf(null, null));
     }
 
     [TestMethod]
@@ -101,11 +101,11 @@ public class MathTests : LibraryBaseBaseTests
         Assert.AreEqual(0L, Library.FromHex("0x0"));
         
         // Invalid inputs
-        Assert.AreEqual(null, Library.FromHex(null));
-        Assert.AreEqual(null, Library.FromHex(""));
-        Assert.AreEqual(null, Library.FromHex("   "));
-        Assert.AreEqual(null, Library.FromHex("GG"));
-        Assert.AreEqual(null, Library.FromHex("0xGG"));
+        Assert.IsNull(Library.FromHex(null));
+        Assert.IsNull(Library.FromHex(""));
+        Assert.IsNull(Library.FromHex("   "));
+        Assert.IsNull(Library.FromHex("GG"));
+        Assert.IsNull(Library.FromHex("0xGG"));
     }
 
     [TestMethod]
@@ -126,11 +126,11 @@ public class MathTests : LibraryBaseBaseTests
         Assert.AreEqual(1L, Library.FromBin("1"));
         
         // Invalid inputs
-        Assert.AreEqual(null, Library.FromBin(null));
-        Assert.AreEqual(null, Library.FromBin(""));
-        Assert.AreEqual(null, Library.FromBin("   "));
-        Assert.AreEqual(null, Library.FromBin("102"));
-        Assert.AreEqual(null, Library.FromBin("0b102"));
+        Assert.IsNull(Library.FromBin(null));
+        Assert.IsNull(Library.FromBin(""));
+        Assert.IsNull(Library.FromBin("   "));
+        Assert.IsNull(Library.FromBin("102"));
+        Assert.IsNull(Library.FromBin("0b102"));
     }
 
     [TestMethod]
@@ -151,10 +151,10 @@ public class MathTests : LibraryBaseBaseTests
         Assert.AreEqual(0L, Library.FromOct("0o0"));
         
         // Invalid inputs
-        Assert.AreEqual(null, Library.FromOct(null));
-        Assert.AreEqual(null, Library.FromOct(""));
-        Assert.AreEqual(null, Library.FromOct("   "));
-        Assert.AreEqual(null, Library.FromOct("8"));
-        Assert.AreEqual(null, Library.FromOct("0o8"));
+        Assert.IsNull(Library.FromOct(null));
+        Assert.IsNull(Library.FromOct(""));
+        Assert.IsNull(Library.FromOct("   "));
+        Assert.IsNull(Library.FromOct("8"));
+        Assert.IsNull(Library.FromOct("0o8"));
     }
 }
