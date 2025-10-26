@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -55,7 +55,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.All(row => 
                 new[] { ("KEY_1", "VALUE_1"), ("KEY_2", "VALUE_2") }.Contains(((string)row[0], (string)row[1]))),
@@ -87,7 +87,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry[0] == "KEY_1" && 
@@ -127,7 +127,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry[0] == "KEY_1" && 
@@ -201,7 +201,7 @@ select Key, Value from #EnvironmentVariables.All()";
         
         var table = vm.Run();
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry[0] == "KEY_1" && 

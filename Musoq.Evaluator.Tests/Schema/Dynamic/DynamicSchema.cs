@@ -1,32 +1,35 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
-public class DynamicSchema : SchemaBase
+public class DynamicSchema(IReadOnlyDictionary<string, Type> tableSchema, IEnumerable<dynamic> values, Func<RuntimeContext, SchemaMethodInfo[]> getRawConstructors = null, Func<string, RuntimeContext, SchemaMethodInfo[]> getRawConstructorsByName = null)
+    : SchemaBase(SchemaName, CreateLibrary())
 {
     private const string SchemaName = "Dynamic";
-    private readonly IReadOnlyDictionary<string, Type> _tableSchema;
-    private readonly IEnumerable<dynamic> _values;
 
-    public DynamicSchema(IReadOnlyDictionary<string, Type> tableSchema, IEnumerable<dynamic> values) 
-        : base(SchemaName, CreateLibrary())
-    {
-        _tableSchema = tableSchema;
-        _values = values;
-    }
-    
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
-        return new DynamicTable(_tableSchema);
+        return new DynamicTable(tableSchema);
     }
     
     public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
-        return new DynamicSource(_values);
+        return new DynamicSource(values);
+    }
+
+    public override SchemaMethodInfo[] GetRawConstructors(RuntimeContext runtimeContext)
+    {
+        return getRawConstructors?.Invoke(runtimeContext) ?? base.GetRawConstructors(runtimeContext);
+    }
+
+    public override SchemaMethodInfo[] GetRawConstructors(string methodName, RuntimeContext runtimeContext)
+    {
+        return getRawConstructorsByName?.Invoke(methodName, runtimeContext) ?? base.GetRawConstructors(methodName, runtimeContext);
     }
 
     private static MethodsAggregator CreateLibrary()

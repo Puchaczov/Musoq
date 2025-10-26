@@ -177,13 +177,12 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             
             // Assert
             Assert.IsNotNull(result.RequiredNamespaces);
-            Assert.AreEqual(2, result.RequiredNamespaces.Length);
+            Assert.HasCount(2, result.RequiredNamespaces);
             Assert.IsTrue(result.RequiredNamespaces.Contains(typeof(string).Namespace));
             Assert.IsTrue(result.RequiredNamespaces.Contains(typeof(IObjectResolver).Namespace));
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ProcessCaseNode_WithNullNode_ThrowsArgumentNullException()
         {
             // Arrange
@@ -192,11 +191,10 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var caseWhenMethodIndex = 1;
             
             // Act
-            CaseNodeProcessor.ProcessCaseNode(null, nodes, typesToInstantiate, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex);
+            Assert.Throws<ArgumentNullException>(() => CaseNodeProcessor.ProcessCaseNode(null, nodes, typesToInstantiate, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex));
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ProcessCaseNode_WithNullNodes_ThrowsArgumentNullException()
         {
             // Arrange
@@ -206,11 +204,10 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var caseWhenMethodIndex = 1;
             
             // Act
-            CaseNodeProcessor.ProcessCaseNode(caseNode, null, typesToInstantiate, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex);
+            Assert.Throws<ArgumentNullException>(() => CaseNodeProcessor.ProcessCaseNode(caseNode, null, typesToInstantiate, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex));
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ProcessCaseNode_WithNullTypesToInstantiate_ThrowsArgumentNullException()
         {
             // Arrange
@@ -220,7 +217,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var caseWhenMethodIndex = 1;
             
             // Act
-            CaseNodeProcessor.ProcessCaseNode(caseNode, nodes, null, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex);
+            Assert.Throws<ArgumentNullException>(() => CaseNodeProcessor.ProcessCaseNode(caseNode, nodes, null, MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex));
         }
 
         [TestMethod]

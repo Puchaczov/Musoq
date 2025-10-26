@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
@@ -83,7 +83,7 @@ select [a.City], [a.Country], [a.Population], [b.Country], [b.Money], [b.Month] 
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.IsTrue(table.Count(row => 
                           (string)row.Values[0] == "City1" && 
@@ -172,7 +172,7 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a out
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.IsTrue(table.Count(row => 
                           (string)row.Values[0] == "City1" && 
@@ -319,21 +319,21 @@ select a.Name, b.Value from first a outer apply a.Skills b";
         Assert.AreEqual("b.Value", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.IsTrue(table.Count == 9, "Table should contain 9 rows");
+        Assert.AreEqual(9, table.Count, "Table should contain 9 rows");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "Name1" && 
-                new[] { "Skill1", "Skill2", "Skill3" }.Contains((string)row.Values[1])) == 3,
-            "Expected 3 rows for Name1 with Skills 1-3");
+        Assert.AreEqual(3,
+table.Count(row =>
+                (string)row.Values[0] == "Name1" &&
+                new[] { "Skill1", "Skill2", "Skill3" }.Contains((string)row.Values[1])), "Expected 3 rows for Name1 with Skills 1-3");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "Name2" && 
-                new[] { "Skill4", "Skill5", "Skill6" }.Contains((string)row.Values[1])) == 3,
-            "Expected 3 rows for Name2 with Skills 4-6");
+        Assert.AreEqual(3,
+table.Count(row =>
+                (string)row.Values[0] == "Name2" &&
+                new[] { "Skill4", "Skill5", "Skill6" }.Contains((string)row.Values[1])), "Expected 3 rows for Name2 with Skills 4-6");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "Name3" && 
-                new[] { "Skill7", "Skill8", "Skill9" }.Contains((string)row.Values[1])) == 3,
-            "Expected 3 rows for Name3 with Skills 7-9");
+        Assert.AreEqual(3,
+table.Count(row =>
+                (string)row.Values[0] == "Name3" &&
+                new[] { "Skill7", "Skill8", "Skill9" }.Contains((string)row.Values[1])), "Expected 3 rows for Name3 with Skills 7-9");
     }
 }

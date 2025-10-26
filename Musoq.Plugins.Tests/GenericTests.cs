@@ -16,7 +16,7 @@ public class GenericTests : LibraryBaseBaseTests
         var result = Library.MergeArrays("test1"u8.ToArray());
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual("test1", Encoding.UTF8.GetString(result));
     }
     
@@ -26,7 +26,7 @@ public class GenericTests : LibraryBaseBaseTests
         var result = Library.MergeArrays("test1"u8.ToArray(), "test2"u8.ToArray());
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(10, result.Length);
+        Assert.HasCount(10, result);
         Assert.AreEqual("test1test2", Encoding.UTF8.GetString(result));
     }
     
@@ -36,7 +36,7 @@ public class GenericTests : LibraryBaseBaseTests
         var result = Library.MergeArrays("test1"u8.ToArray(), "test2"u8.ToArray(), "test3"u8.ToArray());
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(15, result.Length);
+        Assert.HasCount(15, result);
         Assert.AreEqual("test1test2test3", Encoding.UTF8.GetString(result));
     }
     
@@ -184,7 +184,7 @@ public class GenericTests : LibraryBaseBaseTests
         
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         CollectionAssert.AreEqual(new[] { "a", "b", "c" }, result);
     }
     

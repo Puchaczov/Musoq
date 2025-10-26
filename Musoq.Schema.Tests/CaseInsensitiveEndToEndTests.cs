@@ -124,13 +124,13 @@ public class CaseInsensitiveEndToEndTests
         var success1 = methodsManager.TryGetMethod("toupper", new[] { typeof(string) }, null, out var method1);
         Assert.IsTrue(success1);
         Assert.AreEqual("ToUpper", method1.Name);
-        Assert.AreEqual(1, method1.GetParameters().Length);
+        Assert.HasCount(1, method1.GetParameters());
 
         // Test two parameter method  
         var success2 = methodsManager.TryGetMethod("format_string", new[] { typeof(string), typeof(string) }, null, out var method2);
         Assert.IsTrue(success2);
         Assert.AreEqual("Format_String", method2.Name);
-        Assert.AreEqual(2, method2.GetParameters().Length);
+        Assert.HasCount(2, method2.GetParameters());
     }
 
     [TestMethod]

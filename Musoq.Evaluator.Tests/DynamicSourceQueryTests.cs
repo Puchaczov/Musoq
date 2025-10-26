@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -55,7 +55,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.All(row => 
                 new[] { (1, "Test1"), (2, "Test2") }.Contains(((int)row[0], (string)row[1]))),

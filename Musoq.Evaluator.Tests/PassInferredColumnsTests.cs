@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -196,7 +196,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         Assert.AreEqual("Age", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+        Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row.Values[0] == "Roland" && 

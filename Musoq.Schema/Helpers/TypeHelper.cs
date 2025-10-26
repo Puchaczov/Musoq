@@ -11,16 +11,6 @@ namespace Musoq.Schema.Helpers;
 public static class TypeHelper
 {
     /// <summary>
-    ///     Gets the typename from type.
-    /// </summary>
-    /// <param name="type">The type.</param>
-    /// <returns>Name of type.</returns>
-    public static string GetTypeName(this Type type)
-    {
-        return GetUnderlyingNullable(type).Name;
-    }
-
-    /// <summary>
     ///     Gets internal type of Nullable or type if not nullable.
     /// </summary>
     /// <param name="type">The type.</param>
@@ -56,10 +46,7 @@ public static class TypeHelper
 
         var isNullableType = Nullable.GetUnderlyingType(type) != null;
 
-        if (isNullableType)
-            return false;
-
-        return true;
+        return !isNullableType;
     }
 
     /// <summary>
@@ -159,6 +146,11 @@ public static class TypeHelper
                 continue;
 
             var property = (PropertyInfo)member;
+            
+            var getMethod = property.GetGetMethod();
+            
+            if (getMethod == null)
+                continue;
 
             Func<TType, object> del;
             if (property.PropertyType.IsValueType)
@@ -167,7 +159,7 @@ public static class TypeHelper
                     [typeof(TType)], typeof(TType).Module);
                 var ilGen = dynMethod.GetILGenerator();
                 ilGen.Emit(OpCodes.Ldarg_0);
-                ilGen.Emit(OpCodes.Callvirt, property.GetGetMethod());
+                ilGen.Emit(OpCodes.Callvirt, getMethod);
                 ilGen.Emit(OpCodes.Box, property.PropertyType);
                 ilGen.Emit(OpCodes.Ret);
 
@@ -175,11 +167,11 @@ public static class TypeHelper
             }
             else
             {
-                del = (Func<TType, object>)Delegate.CreateDelegate(typeof(Func<TType, object>), null, property.GetGetMethod());
+                del = (Func<TType, object>)Delegate.CreateDelegate(typeof(Func<TType, object>), null, getMethod);
             }
 
             nameToIndexMap.Add(property.Name, columnIndex);
-            indexToMethodAccess.Add(columnIndex, (instance) => del(instance));
+            indexToMethodAccess.Add(columnIndex, instance => del(instance));
             columns.Add(new SchemaColumn(property.Name, columnIndex, property.PropertyType));
 
             columnIndex += 1;
@@ -188,7 +180,34 @@ public static class TypeHelper
         return (nameToIndexMap, indexToMethodAccess, columns.ToArray());
     }
 
-    public static (bool SupportsInterCommunicator, (string Name, Type Type)[] Parameters) GetParametersForConstructor(ConstructorInfo constructor)
+    /// <summary>
+    ///     Gets schema method infos for type.
+    /// </summary>
+    /// <param name="typeIdentifier">Type identifier.</param>
+    /// <typeparam name="TType">The type.</typeparam>
+    /// <returns>Array of schema method infos.</returns>
+    public static Reflection.SchemaMethodInfo[] GetSchemaMethodInfosForType<TType>(string typeIdentifier)
+    {
+        return GetConstructorsFor<TType>().Select(constr => new Reflection.SchemaMethodInfo(typeIdentifier, constr)).ToArray();
+    }
+
+    public static Reflection.ConstructorInfo[] GetConstructorsFor<TType>()
+    {
+        var constructors = new List<Reflection.ConstructorInfo>();
+
+        var type = typeof(TType);
+        var allConstructors = type.GetConstructors();
+
+        foreach (var constr in allConstructors)
+        {
+            var paramsInfo = GetParametersForConstructor(constr);
+            constructors.Add(new Reflection.ConstructorInfo(constr, paramsInfo.SupportsInterCommunicator, paramsInfo.Parameters));
+        }
+
+        return constructors.ToArray();
+    }
+
+    private static (bool SupportsInterCommunicator, (string Name, Type Type)[] Parameters) GetParametersForConstructor(ConstructorInfo constructor)
     {
         var parameters = constructor.GetParameters();
         var filteredConstructors = new List<(string Name, Type Type)>();
@@ -203,26 +222,5 @@ public static class TypeHelper
         }
 
         return (supportsInterCommunicator, filteredConstructors.ToArray());
-    }
-
-    public static Reflection.ConstructorInfo[] GetConstructorsFor<TType>()
-    {
-        var constructors = new List<Reflection.ConstructorInfo>();
-
-        var type = typeof(TType);
-        var allConstructors = type.GetConstructors();
-
-        foreach (var constr in allConstructors)
-        {
-            var paramsInfo = GetParametersForConstructor(constr);
-            constructors.Add(new Reflection.ConstructorInfo(constr, type, paramsInfo.SupportsInterCommunicator, paramsInfo.Parameters));
-        }
-
-        return constructors.ToArray();
-    }
-
-    public static Reflection.SchemaMethodInfo[] GetSchemaMethodInfosForType<TType>(string typeIdentifier)
-    {
-        return GetConstructorsFor<TType>().Select(constr => new Reflection.SchemaMethodInfo(typeIdentifier, constr)).ToArray();
     }
 }

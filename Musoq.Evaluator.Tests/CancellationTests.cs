@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CancellationTests : BasicEntityTestBase
 {
-    [ExpectedException(typeof(OperationCanceledException))]
     [TestMethod]
     public void QueryCancellation()
     {
@@ -20,10 +19,9 @@ public class CancellationTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        vm.Run(TokenSource.Token);
+        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
     }
 
-    [ExpectedException(typeof(OperationCanceledException))]
     [TestMethod]
     public void GroupByQueryCancellation()
     {
@@ -39,11 +37,10 @@ public class CancellationTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        _ = vm.Run(TokenSource.Token);
+        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
     }
 
 
-    [ExpectedException(typeof(OperationCanceledException))]
     [TestMethod]
     public void UnionQueryCancellation()
     {
@@ -60,10 +57,9 @@ select Name from #A.Entities() where Name = '002'";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        vm.Run(TokenSource.Token);
+        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
     }
 
-    [ExpectedException(typeof(OperationCanceledException))]
     [TestMethod]
     public void ExceptQueryCancellation()
     {
@@ -94,10 +90,9 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        vm.Run(TokenSource.Token);
+        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
     }
 
-    [ExpectedException(typeof(OperationCanceledException))]
     [TestMethod]
     public void IntersectQueryCancellation()
     {
@@ -112,11 +107,10 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        vm.Run(TokenSource.Token);
+        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
     }
 
 
-    [ExpectedException(typeof(OperationCanceledException))]
     [TestMethod]
     public void UnionAllQueryCancellation()
     {
@@ -129,10 +123,9 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        vm.Run(TokenSource.Token);
+        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
     }
 
-    [ExpectedException(typeof(OperationCanceledException))]
     [TestMethod]
     public void CteQueryCancellation()
     {
@@ -153,6 +146,6 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        vm.Run(TokenSource.Token);
+        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
     }
 }

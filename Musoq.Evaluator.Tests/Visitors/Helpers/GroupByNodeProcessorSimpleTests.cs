@@ -13,30 +13,27 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers;
 public class GroupByNodeProcessorSimpleTests
 {
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessGroupByNode_NullNode_ThrowsException()
     {
         var nodes = new Stack<SyntaxNode>();
         var scope = new Scope(null, 0, "test");
-        GroupByNodeProcessor.ProcessGroupByNode(null, nodes, scope);
+        Assert.Throws<ArgumentNullException>(() => GroupByNodeProcessor.ProcessGroupByNode(null, nodes, scope));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessGroupByNode_NullNodes_ThrowsException()
     {
         var scope = new Scope(null, 0, "test");
         // Create a mock GroupByNode - this would be challenging due to the constructor
         // Just test the validation works
-        GroupByNodeProcessor.ProcessGroupByNode(null, null, scope);
+        Assert.Throws<ArgumentNullException>(() => GroupByNodeProcessor.ProcessGroupByNode(null, null, scope));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessGroupByNode_NullScope_ThrowsException()
     {
         var nodes = new Stack<SyntaxNode>();
-        GroupByNodeProcessor.ProcessGroupByNode(null, nodes, null);
+        Assert.Throws<ArgumentNullException>(() => GroupByNodeProcessor.ProcessGroupByNode(null, nodes, null));
     }
 
     [TestMethod]
@@ -77,7 +74,7 @@ public class GroupByNodeProcessorSimpleTests
         Assert.IsTrue(method.IsPublic);
         
         var parameters = method.GetParameters();
-        Assert.AreEqual(3, parameters.Length);
+        Assert.HasCount(3, parameters);
     }
 
     [TestMethod]
@@ -88,7 +85,7 @@ public class GroupByNodeProcessorSimpleTests
         var methods = type.GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
         
         // Check that private helper methods exist
-        Assert.IsTrue(methods.Length > 1, "Should have multiple helper methods");
+        Assert.IsGreaterThan(1, methods.Length, "Should have multiple helper methods");
     }
 
     [TestMethod]
@@ -100,6 +97,6 @@ public class GroupByNodeProcessorSimpleTests
         
         // This is an indirect test to ensure the class compiled with all required references
         Assert.IsNotNull(assembly);
-        Assert.IsTrue(assembly.GetTypes().Length > 0);
+        Assert.IsNotEmpty(assembly.GetTypes());
     }
 }

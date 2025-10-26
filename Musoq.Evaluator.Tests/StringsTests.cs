@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -231,7 +231,7 @@ public class StringsTests : BasicEntityTestBase
     [DataRow('$')]
     [DataRow(' ')]
     [DataRow('"')]
-    [DataTestMethod]
+    [TestMethod]
     public void WhenSpecialCharacterStartBracketUsedInTextWith_MustNotThrow(char specialCharacter)
     {
         var query = $"select '{specialCharacter}' from #A.entities()";

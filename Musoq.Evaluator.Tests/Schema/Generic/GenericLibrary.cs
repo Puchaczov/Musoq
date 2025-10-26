@@ -1,4 +1,4 @@
-﻿using Musoq.Plugins;
+using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests.Schema.Generic;

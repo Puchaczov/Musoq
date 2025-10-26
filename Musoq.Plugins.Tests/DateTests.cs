@@ -17,18 +17,16 @@ public class DateTests : LibraryBaseBaseTests
         Assert.AreEqual(9, Library.ExtractFromDate("01/02/2001 00:00:09 +00:00", "second"));
     }
 
-    [ExpectedException(typeof(NotSupportedException))]
     [TestMethod]
     public void ExtractFromDateWrongDateTest()
     {
-        Library.ExtractFromDate("error", "month");
+        Assert.Throws<NotSupportedException>(() => Library.ExtractFromDate("error", "month"));
     }
 
-    [ExpectedException(typeof(NotSupportedException))]
     [TestMethod]
     public void ExtractFromDateWrongPartOfDateTest()
     {
-        Library.ExtractFromDate("01/02/2001 00:00:00 +00:00", "error");
+        Assert.Throws<NotSupportedException>(() => Library.ExtractFromDate("01/02/2001 00:00:00 +00:00", "error"));
     }
 
     [TestMethod]
@@ -43,21 +41,21 @@ public class DateTests : LibraryBaseBaseTests
     public void YearTest()
     {
         Assert.AreEqual(2012, Library.Year(DateTimeOffset.Parse("01/01/2012 00:00:00 +00:00")));
-        Assert.AreEqual(null, Library.Year(null));
+        Assert.IsNull(Library.Year(null));
     }
 
     [TestMethod]
     public void MonthTest()
     {
         Assert.AreEqual(2, Library.Month(DateTimeOffset.Parse("01/02/2012 00:00:00 +00:00")));
-        Assert.AreEqual(null, Library.Month(null));
+        Assert.IsNull(Library.Month(null));
     }
 
     [TestMethod]
     public void DayTest()
     {
         Assert.AreEqual(1, Library.Day(DateTimeOffset.Parse("01/02/2012 00:00:00 +00:00")));
-        Assert.AreEqual(null, Library.Day(null));
+        Assert.IsNull(Library.Day(null));
     }
 
     [TestMethod]

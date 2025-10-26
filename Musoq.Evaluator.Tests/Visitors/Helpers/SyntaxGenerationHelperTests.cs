@@ -58,8 +58,8 @@ public class SyntaxGenerationHelperTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("myObject.DoSomething"));
-        Assert.IsTrue(code.Contains("test"));
+        Assert.Contains("myObject.DoSomething", code);
+        Assert.Contains("test", code);
     }
 
     [TestMethod]
@@ -74,8 +74,8 @@ public class SyntaxGenerationHelperTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("calculator.Add"));
-        Assert.IsTrue(code.Contains("42"));
+        Assert.Contains("calculator.Add", code);
+        Assert.Contains("42", code);
     }
 
     [TestMethod]
@@ -90,8 +90,8 @@ public class SyntaxGenerationHelperTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("Helper.Process"));
-        Assert.IsTrue(code.Contains("input"));
+        Assert.Contains("Helper.Process", code);
+        Assert.Contains("input", code);
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public class SyntaxGenerationHelperTests
         // Assert
         Assert.IsNotNull(result);
         var code = result.ToString();
-        Assert.IsTrue(code.Contains("hello world"));
+        Assert.Contains("hello world", code);
     }
 
     [TestMethod]
@@ -194,45 +194,40 @@ public class SyntaxGenerationHelperTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void CreateArgumentList_WithNullExpressions_ShouldThrowArgumentNullException()
     {
         // Act
-        SyntaxGenerationHelper.CreateArgumentList((ExpressionSyntax[])null);
+        Assert.Throws<ArgumentNullException>(() => SyntaxGenerationHelper.CreateArgumentList((ExpressionSyntax[])null));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void CreateMethodInvocation_WithNullTarget_ShouldThrowArgumentNullException()
     {
         // Act
-        SyntaxGenerationHelper.CreateMethodInvocation((ExpressionSyntax)null, "method");
+        Assert.Throws<ArgumentNullException>(() => SyntaxGenerationHelper.CreateMethodInvocation((ExpressionSyntax)null, "method"));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void CreateStringLiteral_WithNullValue_ShouldThrowArgumentNullException()
     {
         // Act
-        SyntaxGenerationHelper.CreateStringLiteral(null);
+        Assert.Throws<ArgumentNullException>(() => SyntaxGenerationHelper.CreateStringLiteral(null));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
     public void CreateIdentifier_WithEmptyString_ShouldThrowArgumentException()
     {
         // Act
-        SyntaxGenerationHelper.CreateIdentifier("");
+        Assert.Throws<ArgumentException>(() => SyntaxGenerationHelper.CreateIdentifier(""));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
     public void CreateMemberAccess_WithEmptyMemberName_ShouldThrowArgumentException()
     {
         // Arrange
         var target = SyntaxFactory.IdentifierName("object");
 
         // Act
-        SyntaxGenerationHelper.CreateMemberAccess(target, "");
+        Assert.Throws<ArgumentException>(() => SyntaxGenerationHelper.CreateMemberAccess(target, ""));
     }
 }

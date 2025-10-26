@@ -21,7 +21,7 @@ public class MethodsMetadataTests
 
         var parameters = method.GetParameters();
         
-        Assert.AreEqual(2, parameters.Length);
+        Assert.HasCount(2, parameters);
         Assert.AreEqual(typeof(TestEntity), parameters[0].ParameterType);
         Assert.AreEqual(typeof(string[]), parameters[1].ParameterType);
     }

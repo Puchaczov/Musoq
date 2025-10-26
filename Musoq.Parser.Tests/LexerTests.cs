@@ -268,7 +268,7 @@ public class LexerTests
             lexer.Next();
         }
         
-        Assert.IsTrue(tokenCount > 0, "Should have tokenized multiple tokens");
+        Assert.IsGreaterThan(0, tokenCount, "Should have tokenized multiple tokens");
     }
     
     [TestMethod]
@@ -287,8 +287,8 @@ public class LexerTests
         }
         sw.Stop();
         
-        Assert.IsTrue(tokenCount > 100, "Should have many tokens");
-        Assert.IsTrue(sw.ElapsedMilliseconds < 100, $"Lexer should be fast but took {sw.ElapsedMilliseconds}ms");
+        Assert.IsGreaterThan(100, tokenCount, "Should have many tokens");
+        Assert.IsLessThan(100, sw.ElapsedMilliseconds, $"Lexer should be fast but took {sw.ElapsedMilliseconds}ms");
     }
     
     [TestMethod]

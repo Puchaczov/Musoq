@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Multi;
@@ -32,7 +32,7 @@ public class AliasTests : MultiSchemaTestBase
     {
         const string query = "select b.ZeroItem from #schema.first() a";
         
-        Assert.ThrowsException<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, [
+        Assert.Throws<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, [
             new()
         ], [
             new()
@@ -210,7 +210,7 @@ cross apply first.Split('') b";
     {
         const string query = "select a.FirstItem from #schema.first() a inner join #schema.second() a on a.FirstItem = a.FirstItem";
         
-        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
             new(),
             new()
         ], [
@@ -228,7 +228,7 @@ cross apply first.Split('') b";
             inner join #schema.second() b on src.FirstItem = b.FirstItem
             inner join #schema.third() b on b.FirstItem = src.FirstItem";
         
-        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
             new(),
             new(),
             new()
@@ -250,7 +250,7 @@ cross apply first.Split('') b";
             from #schema.second() src
             inner join src on src.FirstItem = src.FirstItem";
         
-        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
             new(),
             new()
         ], [
@@ -267,7 +267,7 @@ cross apply first.Split('') b";
             from #schema.first() a 
             cross apply #schema.second() a";
         
-        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
             new(),
             new()
         ], [
@@ -284,7 +284,7 @@ cross apply first.Split('') b";
             from #schema.first() a 
             outer apply #schema.second() a";
         
-        Assert.ThrowsException<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
             new(),
             new()
         ], [

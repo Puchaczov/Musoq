@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Musoq.Evaluator.Tests.Schema.Multi.First;
