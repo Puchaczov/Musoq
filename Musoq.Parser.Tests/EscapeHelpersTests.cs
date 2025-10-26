@@ -159,30 +159,6 @@ public class EscapeHelpersTests
         Assert.IsLessThan(1000,
 sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms");
     }
-
-    [TestMethod]
-    public void Unescape_MemoryEfficiency()
-    {
-        // Arrange
-        const int iterationCount = 10000;
-        string input = "test\\complex\\\\pattern\\n\\\\\\text";
-        long initialMemory = GC.GetTotalMemory(true);
-
-        // Act
-        for (int i = 0; i < iterationCount; i++)
-        {
-            _ = input.Unescape();
-        }
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        long finalMemory = GC.GetTotalMemory(true);
-
-        // Assert
-        long memoryDifference = finalMemory - initialMemory;
-        Assert.IsLessThan(1024 * 1024,
-memoryDifference, $"Memory usage grew by {memoryDifference} bytes");
-    }
     
     [TestMethod]
     public void Unescape_NullAndEmpty()

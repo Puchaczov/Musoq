@@ -183,14 +183,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         switch (node.Type)
         {
+            case DescForType.SpecificConstructor:
+                CreateDescForSpecificConstructor(node);
+                break;
             case DescForType.Constructors:
                 CreateDescForConstructors(node);
                 break;
             case DescForType.Schema:
                 CreateDescForSchema(node);
-                break;
-            case DescForType.SpecificConstructor:
-                CreateDescForSpecificConstructor(node);
                 break;
             case DescForType.None:
                 break;
@@ -249,16 +249,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var b = Nodes.Pop();
         var a = Nodes.Pop();
 
-        // Handle char vs string comparison
         if (IsCharVsStringComparison(node.Left, node.Right, a, b))
         {
-            // Convert string literal to char for comparison
             var convertedComparison = HandleCharStringComparison(node.Left, node.Right, a, b);
             Nodes.Push(convertedComparison);
         }
         else
         {
-            // Use the helper for normal equality operations
             Nodes.Push(a);
             Nodes.Push(b);
             SyntaxBinaryOperationHelper.ProcessValueEqualsOperation(Nodes, Generator);
@@ -301,9 +298,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 SyntaxFactory.Literal(charValue));
             return Generator.ValueEqualsExpression(leftSyntax, charLiteral);
         }
-        else if (leftIsString && IsCharacterAccess(rightNode))
+
+        if (leftIsString && IsCharacterAccess(rightNode))
         {
-            // Left is string, right is char - convert string to char
             var leftWordNode = (WordNode)leftNode;
             var charValue = leftWordNode.Value.Length > 0 ? leftWordNode.Value[0] : '\0';
             var charLiteral = SyntaxFactory.LiteralExpression(
@@ -312,7 +309,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             return Generator.ValueEqualsExpression(charLiteral, rightSyntax);
         }
 
-        // Fallback to standard comparison
         return Generator.ValueEqualsExpression(leftSyntax, rightSyntax);
     }
 
@@ -787,10 +783,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
-        // Create wrappers for the method signatures expected by the helper
-        Func<string, StatementSyntax> getRowsSourceWrapper = alias => GetRowsSourceOrEmpty(alias);
-        Func<StatementSyntax[], BlockSyntax> blockWrapper = statements => Block(statements);
-        Func<StatementSyntax> cancellationWrapper = () => GenerateCancellationExpression();
+        var getRowsSourceWrapper = GetRowsSourceOrEmpty;
+        Func<StatementSyntax[], BlockSyntax> blockWrapper = Block;
+        var cancellationWrapper = GenerateCancellationExpression;
         
         var result = ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
             node, Generator, _scope, _queryAlias, getRowsSourceWrapper, blockWrapper, cancellationWrapper);
@@ -2186,33 +2181,63 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private void CreateDescForSchema(DescNode node)
     {
-        CreateDescMethod(node,
-            SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificSchemaDescriptions))))
-                .WithArgumentList(
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc"))))), false);
+        var originallyInferredColumns = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("Array"),
+                    SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("Empty"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                    SyntaxFactory.IdentifierName("ISchemaColumn"))))))
+            .NormalizeWhitespace();
+
+        var invocation = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificSchemaDescriptions))))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList(
+                    [
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
+                        SyntaxFactory.Argument(CreateRuntimeContext((SchemaFromNode) node.From, originallyInferredColumns))
+                    ])));
+
+        CreateDescMethod(node, invocation, false);
     }
 
     private void CreateDescForConstructors(DescNode node)
     {
-        CreateDescMethod(node,
-            SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetConstructorsForSpecificMethod))))
-                .WithArgumentList(
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
-                            SyntaxHelper.StringLiteralArgument(((SchemaFromNode) node.From).Method)
-                        ]))), false);
+        var originallyInferredColumns = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("Array"),
+                    SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("Empty"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                    SyntaxFactory.IdentifierName("ISchemaColumn"))))))
+            .NormalizeWhitespace();
+
+        var invocation = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetConstructorsForSpecificMethod))))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList(
+                    [
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
+                        SyntaxHelper.StringLiteralArgument(((SchemaFromNode) node.From).Method),
+                        SyntaxFactory.Argument(CreateRuntimeContext((SchemaFromNode) node.From, originallyInferredColumns))
+                    ])));
+
+        CreateDescMethod(node, invocation, false);
     }
 
     private void CreateDescMethod(DescNode node, InvocationExpressionSyntax invocationExpression,
