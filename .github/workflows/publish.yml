@@ -35,4 +35,8 @@ jobs:
         dotnet pack Musoq.Schema/Musoq.Schema.csproj --configuration Release --no-build --output ./nupkgs
     
     - name: Publish to NuGet.org
-      run: dotnet nuget push "./nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_MUSOQ_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      run: |
+        $packages = Get-ChildItem -Path ./nupkgs -Filter *.nupkg
+        foreach ($package in $packages) {
+          dotnet nuget push $package.FullName --api-key ${{ secrets.NUGET_MUSOQ_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        }
