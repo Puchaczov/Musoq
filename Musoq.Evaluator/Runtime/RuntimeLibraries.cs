@@ -25,8 +25,7 @@ public static class RuntimeLibraries
         {
             if (_hasLoadedReferences)
                 return _references;
-
-
+            
             CreateReferences();
             ManualResetEvent.WaitOne();
 
@@ -62,23 +61,27 @@ public static class RuntimeLibraries
                         return;
                     }
 
-                    var tasks = new List<Task<MetadataReference>>();
-
-                    var directories = directory.GetFiles("System*.dll").ToList();
-
-                    var microsoftCSharpFileInfo = new FileInfo(Path.Combine(directory.FullName, "Microsoft.CSharp.dll"));
-
-                    if (microsoftCSharpFileInfo.Exists)
-                        directories.Add(microsoftCSharpFileInfo);
-
-                    foreach (var file in directories)
+                    var essentialAssemblies = new[]
                     {
-                        if (file.Name.Contains("native", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            continue;
-                        }
-                            
-                        tasks.Add(Task.Run<MetadataReference>(() =>
+                        "System.Private.CoreLib.dll",
+                        "System.Runtime.dll",
+                        "System.Collections.dll",
+                        "System.Collections.Concurrent.dll",
+                        "System.Linq.dll",
+                        "System.Threading.Tasks.dll",
+                        "System.Threading.Tasks.Parallel.dll",
+                        "System.Linq.Expressions.dll",
+                        "Microsoft.CSharp.dll"
+                    };
+
+                    var files = essentialAssemblies
+                        .Select(name => new FileInfo(Path.Combine(directory.FullName, name)))
+                        .Where(fi => fi.Exists)
+                        .ToList();
+
+                    var tasks = (from file in files
+                        where !file.Name.Contains("native", StringComparison.InvariantCultureIgnoreCase)
+                        select Task.Run<MetadataReference>(() =>
                         {
                             try
                             {
@@ -95,10 +98,10 @@ public static class RuntimeLibraries
                             }
 
                             return null;
-                        }));
-                    }
+                        })).ToArray();
 
-                    Task.WaitAll(tasks.Cast<Task>().ToArray());
+                    // ReSharper disable once CoVariantArrayConversion
+                    Task.WaitAll(tasks);
 
                     _references = tasks.Where(task => task.Result != null).Select(task => task.Result).ToArray();
                 }

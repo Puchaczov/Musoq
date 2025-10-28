@@ -103,24 +103,23 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         Compilation = CSharpCompilation.Create(assemblyName);
         Compilation = Compilation.AddReferences(RuntimeLibraries.References);
 
-        SafeExecute(() =>
-        {
-            AddReference(typeof(object));
-            AddReference(typeof(CancellationToken));
-            AddReference(typeof(ISchema));
-            AddReference(typeof(LibraryBase));
-            AddReference(typeof(Table));
-        }, "initializing references");
-        AddReference(typeof(SyntaxFactory));
-        AddReference(typeof(ExpandoObject));
-        AddReference(typeof(SchemaFromNode));
-
         var abstractionDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Microsoft.Extensions.Logging.Abstractions.dll");
         
-        AddReference(abstractionDll);
-        AddReference(typeof(ILogger));
-        
-        AddReference(assemblies.ToArray());
+        SafeExecute(() =>
+        {
+            AddReference(
+                typeof(object),
+                typeof(CancellationToken),
+                typeof(ISchema),
+                typeof(LibraryBase),
+                typeof(Table),
+                typeof(SyntaxFactory),
+                typeof(ExpandoObject),
+                typeof(SchemaFromNode),
+                typeof(ILogger));
+            AddReference(abstractionDll);
+            AddReference(assemblies.ToArray());
+        }, "initializing references");
 
         Compilation = Compilation.WithOptions(
             new CSharpCompilationOptions(
@@ -128,9 +127,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 #if DEBUG
                     optimizationLevel: OptimizationLevel.Debug,
 #else
-                        optimizationLevel: OptimizationLevel.Release,
+                    optimizationLevel: OptimizationLevel.Release,
 #endif
-                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default)
+                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
+                    deterministic: true)
                 .WithConcurrentBuild(true)
                 .WithMetadataImportOptions(MetadataImportOptions.Public));
 
@@ -1782,46 +1782,55 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private void AddReference(params Type[] types)
     {
+        var newReferences = new List<MetadataReference>(types.Length);
+        
         foreach (var type in types)
         {
             if (_loadedAssemblies.Contains(type.Assembly.Location)) continue;
 
             _loadedAssemblies.Add(type.Assembly.Location);
+            newReferences.Add(MetadataReference.CreateFromFile(type.Assembly.Location));
+        }
 
-            var reference = MetadataReference.CreateFromFile(type.Assembly.Location);
-            
-            Compilation =
-                Compilation.AddReferences(reference);
+        if (newReferences.Count > 0)
+        {
+            Compilation = Compilation.AddReferences(newReferences);
         }
     }
 
     private void AddReference(params string[] assemblyDllsPaths)
     {
+        var newReferences = new List<MetadataReference>(assemblyDllsPaths.Length);
+        
         foreach (var assemblyDllPath in assemblyDllsPaths)
         {
             if (_loadedAssemblies.Contains(assemblyDllPath)) continue;
 
             _loadedAssemblies.Add(assemblyDllPath);
+            newReferences.Add(MetadataReference.CreateFromFile(assemblyDllPath));
+        }
 
-            var reference = MetadataReference.CreateFromFile(assemblyDllPath);
-            
-            Compilation =
-                Compilation.AddReferences(reference);
+        if (newReferences.Count > 0)
+        {
+            Compilation = Compilation.AddReferences(newReferences);
         }
     }
 
     private void AddReference(params Assembly[] assemblies)
     {
+        var newReferences = new List<MetadataReference>(assemblies.Length);
+        
         foreach (var assembly in assemblies)
         {
             if (_loadedAssemblies.Contains(assembly.Location)) continue;
 
             _loadedAssemblies.Add(assembly.Location);
+            newReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
+        }
 
-            var reference = MetadataReference.CreateFromFile(assembly.Location);
-            
-            Compilation =
-                Compilation.AddReferences(reference);
+        if (newReferences.Count > 0)
+        {
+            Compilation = Compilation.AddReferences(newReferences);
         }
     }
 
