@@ -23,10 +23,13 @@ public static class KeywordRegistry
         HavingToken.TokenText,
         
         // Join keywords
+        "join",  // Generic join keyword
         "inner join",  // InnerJoinToken
         "outer join",  // OuterJoinToken  
         "left join",
         "right join",
+        "left outer join",
+        "right outer join",
         "cross apply",  // CrossApplyToken
         "outer apply",  // OuterApplyToken
         OnToken.TokenText,

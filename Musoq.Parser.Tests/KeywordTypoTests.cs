@@ -24,11 +24,13 @@ public class KeywordTypoTests
         return new List<string>();
     }
 
+    #region Core SQL Statement Keywords
+
     [TestMethod]
     public void TypoInSelect_ShouldSuggestSelect()
     {
         // Common typos for "select" at the beginning of a statement
-        var typos = new[] { "seelct", "selct", "slect", "selec", "selet" };
+        var typos = new[] { "seelct", "selct", "slect", "selec", "selet", "selekt", "sellect" };
 
         foreach (var typo in typos)
         {
@@ -58,7 +60,7 @@ public class KeywordTypoTests
     public void TypoInWith_ShouldSuggestWith()
     {
         // Common typos for "with" at the beginning of a CTE statement
-        var typos = new[] { "wiht", "wih", "wit" };
+        var typos = new[] { "wiht", "wih", "wit", "whit", "wth" };
 
         foreach (var typo in typos)
         {
@@ -86,7 +88,7 @@ public class KeywordTypoTests
     public void TypoInTable_ShouldSuggestTable()
     {
         // Common typos for "table" keyword
-        var typos = new[] { "tabel", "tabl", "tablee" };
+        var typos = new[] { "tabel", "tabl", "tablee", "tbale", "talbe" };
 
         foreach (var typo in typos)
         {
@@ -109,6 +111,38 @@ public class KeywordTypoTests
                 $"Expected 'table' to be suggested for typo '{typo}', but got: {string.Join(", ", suggestions)}");
         }
     }
+
+    [TestMethod]
+    public void TypoInCouple_ShouldSuggestCouple()
+    {
+        // Common typos for "couple" keyword
+        var typos = new[] { "copule", "cuople", "cople" };
+
+        foreach (var typo in typos)
+        {
+            var query = $"{typo} #some.table with table Test as SourceOfTestValues";
+            Exception exception = null;
+            try
+            {
+                var lexer = new Lexer(query, true);
+                var parser = new Parser(lexer);
+                parser.ComposeAll();
+                Assert.Fail($"Expected exception for typo '{typo}'");
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+
+            var suggestions = GetSuggestions(exception);
+            Assert.IsTrue(suggestions.Contains("couple"),
+                $"Expected 'couple' to be suggested for typo '{typo}', but got: {string.Join(", ", suggestions)}");
+        }
+    }
+
+    #endregion
+
+    #region Sort Order Keywords
 
     [TestMethod]
     public void TypoInDesc_ShouldSuggestDesc()
@@ -134,9 +168,63 @@ public class KeywordTypoTests
 
             var suggestions = GetSuggestions(exception);
             Assert.IsTrue(suggestions.Contains("desc") || suggestions.Contains("asc"),
-                $"Expected 'desc' to be suggested for typo '{typo}', but got: {string.Join(", ", suggestions)}");
+                $"Expected 'desc' or 'asc' to be suggested for typo '{typo}', but got: {string.Join(", ", suggestions)}");
         }
     }
+
+    #endregion
+
+    #region Logical and Comparison Keywords (Recognized by Lexer)
+
+    [TestMethod]
+    public void TypoInAnd_ShouldSuggestAnd()
+    {
+        // Test at lexer level with unrecognized token
+        var query = "select 1 from #system.dual() where 1 = 1 annd 2 = 2";
+        Exception exception = null;
+        try
+        {
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+            parser.ComposeAll();
+            Assert.Fail("Expected exception");
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+        }
+
+        var suggestions = GetSuggestions(exception);
+        Assert.IsTrue(suggestions.Contains("and"),
+            $"Expected 'and' to be suggested, but got: {string.Join(", ", suggestions)}");
+    }
+
+    [TestMethod]
+    public void TypoInOr_ShouldSuggestOr()
+    {
+        // Test at lexer level with unrecognized token
+        var query = "select 1 from #system.dual() where 1 = 1 orr 2 = 2";
+        Exception exception = null;
+        try
+        {
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+            parser.ComposeAll();
+            Assert.Fail("Expected exception");
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+        }
+
+        var suggestions = GetSuggestions(exception);
+        Assert.IsTrue(suggestions.Contains("or"),
+            $"Expected 'or' to be suggested, but got: {string.Join(", ", suggestions)}");
+    }
+
+    #endregion
+
+    #region Edge Cases and General Tests
 
     [TestMethod]
     public void CompletelyWrongKeyword_AtStatementStart_ShouldProvideHelpfulError()
@@ -176,6 +264,18 @@ public class KeywordTypoTests
     public void ValidQueryWithJoin_ShouldNotThrowException()
     {
         var query = "select a.col from #system.dual() a inner join #system.dual() b on a.id = b.id";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        // Should not throw
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void ValidQueryWithCaseWhen_ShouldNotThrowException()
+    {
+        var query = "select case when 1 = 1 then 'yes' else 'no' end from #system.dual()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         
@@ -227,4 +327,30 @@ public class KeywordTypoTests
         Assert.IsNotNull(exception.Message);
         Assert.IsTrue(exception is UnknownTokenException || exception is SyntaxException);
     }
+
+    [TestMethod]
+    public void MultipleTyposInQuery_ShouldSuggestForFirst()
+    {
+        // When there are multiple typos, we should get suggestions for the first one encountered
+        var query = "seelct 1 froom #system.dual()";
+        Exception exception = null;
+        try
+        {
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+            parser.ComposeAll();
+            Assert.Fail("Expected exception");
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+        }
+
+        var suggestions = GetSuggestions(exception);
+        // Should suggest 'select' for 'seelct' since that's the first typo
+        Assert.IsTrue(suggestions.Contains("select"),
+            $"Expected 'select' to be suggested for first typo, but got: {string.Join(", ", suggestions)}");
+    }
+
+    #endregion
 }
