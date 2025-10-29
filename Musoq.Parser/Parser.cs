@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Musoq.Parser.Exceptions;
+using Musoq.Parser.Helpers;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -89,7 +90,20 @@ public class Parser
                 return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeCouple()), TokenType.Semicolon);
 
             default:
-                throw new SyntaxException($"Cannot compose statement, {Current.TokenType} is not expected here", _lexer.AlreadyResolvedQueryPart);
+                // If we have an identifier (word), it might be a mistyped keyword
+                var suggestions = new List<string>();
+                if (Current.TokenType == TokenType.Identifier || Current.TokenType == TokenType.Word)
+                {
+                    suggestions.AddRange(StringSimilarity.FindClosestMatches(Current.Value, KeywordRegistry.AllKeywords));
+                }
+                
+                var message = $"Cannot compose statement, {Current.TokenType} is not expected here";
+                if (Current.TokenType == TokenType.Identifier || Current.TokenType == TokenType.Word)
+                {
+                    message += $". Found '{Current.Value}' which is not a recognized keyword";
+                }
+                
+                throw new SyntaxException(message, _lexer.AlreadyResolvedQueryPart, suggestions);
         }
     }
 
