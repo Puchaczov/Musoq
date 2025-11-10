@@ -78,4 +78,28 @@ public class EvaluationHelperTests
 
         Assert.AreEqual("System.SomeType", EvaluationHelper.RemapPrimitiveTypes("System.SomeType"));
     }
+
+    [TestMethod]
+    public void CreateComplexTypeDescription_WithPrimitiveTypeAtRoot_ShouldNotExplorePrimitiveProperties()
+    {
+        // Test that primitive types (like int) don't have their properties explored
+        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("IntValue", typeof(int)).ToArray();
+        
+        // Should only have the root entry
+        Assert.AreEqual(1, typeDescriptions.Length);
+        Assert.AreEqual("IntValue", typeDescriptions[0].FieldName);
+        Assert.AreEqual(typeof(int), typeDescriptions[0].Type);
+    }
+
+    [TestMethod]
+    public void CreateComplexTypeDescription_WithStringAtRoot_ShouldNotExploreStringProperties()
+    {
+        // Test that string type doesn't have its properties explored
+        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("StringValue", typeof(string)).ToArray();
+        
+        // Should only have the root entry, no Chars or Length properties
+        Assert.AreEqual(1, typeDescriptions.Length);
+        Assert.AreEqual("StringValue", typeDescriptions[0].FieldName);
+        Assert.AreEqual(typeof(string), typeDescriptions[0].Type);
+    }
 }
