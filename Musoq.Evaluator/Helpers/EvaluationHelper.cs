@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Xml;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Helpers;
@@ -62,6 +64,138 @@ public static class EvaluationHelper
     public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName, RuntimeContext runtimeContext)
     {
         return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName, runtimeContext));
+    }
+
+    public static Table GetMethodsForSchema(ISchema schema, RuntimeContext runtimeContext)
+    {
+        var libraryMethods = schema.GetAllLibraryMethods();
+
+        var newTable = new Table("desc", [
+            new Column("Method", typeof(string), 0),
+            new Column("Description", typeof(string), 1)
+        ]);
+
+        foreach (var (methodName, methodInfos) in libraryMethods.OrderBy(kvp => kvp.Key))
+        {
+            foreach (var methodInfo in methodInfos)
+            {
+                var signature = CSharpTypeNameHelper.FormatMethodSignature(methodInfo);
+                var description = GetXmlDocumentation(methodInfo);
+                
+                newTable.Add(new ObjectsRow([signature, description]));
+            }
+        }
+
+        return newTable;
+    }
+
+    private static string GetXmlDocumentation(MethodInfo methodInfo)
+    {
+        try
+        {
+            var assembly = methodInfo.DeclaringType?.Assembly;
+            if (assembly == null)
+                return string.Empty;
+
+            var assemblyPath = assembly.Location;
+            if (string.IsNullOrEmpty(assemblyPath))
+                return string.Empty;
+
+            var xmlPath = System.IO.Path.ChangeExtension(assemblyPath, ".xml");
+            if (!System.IO.File.Exists(xmlPath))
+                return string.Empty;
+
+            var xmlDoc = new XmlDocument();
+            xmlDoc.Load(xmlPath);
+
+            var memberName = GetMemberName(methodInfo);
+            var node = xmlDoc.SelectSingleNode($"//member[@name='{memberName}']/summary");
+            
+            if (node == null)
+                return string.Empty;
+
+            var text = node.InnerText.Trim();
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
+            
+            return text;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string GetMemberName(MethodInfo method)
+    {
+        var declaringType = method.DeclaringType;
+        if (declaringType == null)
+            return string.Empty;
+
+        var sb = new StringBuilder();
+        sb.Append("M:");
+        sb.Append(declaringType.FullName);
+        sb.Append('.');
+        sb.Append(method.Name);
+
+        var parameters = method.GetParameters();
+        if (parameters.Length > 0)
+        {
+            sb.Append('(');
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (i > 0)
+                    sb.Append(',');
+                
+                var paramType = parameters[i].ParameterType;
+                sb.Append(GetTypeName(paramType));
+            }
+            sb.Append(')');
+        }
+
+        return sb.ToString();
+    }
+
+    private static string GetTypeName(Type type)
+    {
+        if (type.IsGenericType)
+        {
+            var genericTypeName = type.GetGenericTypeDefinition().FullName;
+            var tickIndex = genericTypeName.IndexOf('`');
+            if (tickIndex > 0)
+                genericTypeName = genericTypeName.Substring(0, tickIndex);
+
+            var genericArgs = type.GetGenericArguments();
+            return $"{genericTypeName}{{{string.Join(",", genericArgs.Select(GetTypeName))}}}";
+        }
+
+        if (type.IsArray)
+        {
+            var elementType = type.GetElementType();
+            return GetTypeName(elementType) + "[]";
+        }
+
+        return type.FullName ?? type.Name;
+    }
+
+    private static string GetReturnTypeName(Type type)
+    {
+        if (type.GetInterfaces().Any(i => i.Name == "ISchemaTable"))
+            return "ISchemaTable";
+        
+        var baseType = type.BaseType;
+        while (baseType != null)
+        {
+            if (baseType.Name == "RowSource")
+                return "RowSource";
+            baseType = baseType.BaseType;
+        }
+        
+        return type.Name;
+    }
+
+    private static string GetMethodDescription(SchemaMethodInfo methodInfo)
+    {
+        return string.Empty;
     }
 
     private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)

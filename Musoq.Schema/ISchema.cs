@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Musoq.Schema.DataSources;
@@ -23,4 +24,6 @@ public interface ISchema
     bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo);
 
     bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo);
+
+    IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods();
 }

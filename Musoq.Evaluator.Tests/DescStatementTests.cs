@@ -519,6 +519,424 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         Assert.AreEqual("System.String", table[1][2], "Name column should be of type System.String");
     }
     
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldReturnMethodsWithDescriptions()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
+        
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods like 'Trim'");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Substring(")), "Should contain library methods like 'Substring'");
+        
+        foreach (var signature in methodSignatures)
+        {
+            Assert.IsTrue(signature.Contains("(") && signature.Contains(")"), 
+                $"Method signature should include parentheses: {signature}");
+            Assert.Contains(" ",
+signature, $"Method signature should include return type and method name: {signature}");
+        }
+        
+        foreach (var row in table)
+        {
+            var description = (string)row[1];
+            Assert.IsNotNull(description, "Description should not be null");
+        }
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldShowMethodSignatures()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        var trimRow = table.FirstOrDefault(row => ((string)row[0]).Contains("Trim("));
+        Assert.IsNotNull(trimRow, "Should have Trim method from library");
+        
+        var methodSignature = (string)trimRow[0];
+        Assert.Contains("Trim(", methodSignature, "Method should contain method signature");
+        Assert.Contains(" ", methodSignature, "Method signature should include return type and method name");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_WithSemicolon_ShouldWork()
+    {
+        var query = "desc functions #A;";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns even with semicolon");
+        Assert.IsGreaterThan(0, table.Count, "Should return methods even with semicolon");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_CaseInsensitive_ShouldWork()
+    {
+        var query = "DESC FUNCTIONS #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.IsGreaterThan(0, table.Count, "DESC FUNCTIONS should be case insensitive");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_EmptySource_ShouldStillReturnMethods()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", []
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.IsGreaterThan(0, table.Count, "Should return library methods even with empty source");
+        Assert.AreEqual(2, table.Columns.Count(), "Should have Method and Description columns");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_MultipleSchemas_OnlyDescribesSpecified()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("testA")
+                ]
+            },
+            {
+                "#B", [
+                    new BasicEntity("testB")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.IsGreaterThan(0, table.Count, "Should return methods");
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_ResultColumns_HaveCorrectTypes()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Method column should be string");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType, "Description column should be string");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_DynamicSchema_ShouldReturnMethods()
+    {
+        var query = "desc functions #dynamic";
+
+        var schema = new Dictionary<string, Type>
+        {
+            { "Id", typeof(int) },
+            { "Name", typeof(string) },
+            { "Value", typeof(decimal) }
+        };
+
+        var values = new List<dynamic>
+        {
+            CreateDynamicObject(1, "First", 10.5m),
+            CreateDynamicObject(2, "Second", 20.5m)
+        };
+
+        var schemaProvider = new Schema.Dynamic.AnySchemaNameProvider(new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
+        {
+            { "dynamic", (schema, values) }
+        }, _ => [
+            new SchemaMethodInfo("method1", ConstructorInfo.Empty()),
+            new SchemaMethodInfo("method2", ConstructorInfo.Empty())
+        ]);
+
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have exactly 2 columns: Method and Description");
+        Assert.IsGreaterThan(0, table.Count, "Should return library methods");
+        
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        
+        // Verify we get library methods (like Trim, Substring, etc.)
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods");
+        
+        // Check descriptions are present
+        foreach (var row in table)
+        {
+            var description = (string)row[1];
+            Assert.IsNotNull(description, "Description should not be null");
+        }
+    }
+    
+    [TestMethod]
+    public void DescFunctionsSchemaMethod_ShouldReturnMethodsWithDescriptions()
+    {
+        var query = "desc functions #A.entities";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one library method");
+        
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
+            "Should contain library methods");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchemaMethodWithParentheses_ShouldReturnMethodsWithDescriptions()
+    {
+        var query = "desc functions #A.entities()";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
+        
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
+            "Should contain library methods");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchemaMethodWithArguments_ShouldReturnMethodsWithDescriptions()
+    {
+        var query = "desc functions #A.entities('filter')";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
+        
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
+            "Should contain library methods");
+    }
+    
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldFormatNullableTypesCorrectly()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        
+        // Verify that nullable types are formatted with ? syntax, not Nullable`1
+        foreach (var signature in methodSignatures)
+        {
+            Assert.IsFalse(signature.Contains("Nullable`1"), 
+                $"Signature should not contain 'Nullable`1', but got: {signature}");
+            Assert.IsFalse(signature.Contains("Nullable<"), 
+                $"Signature should use '?' instead of 'Nullable<', but got: {signature}");
+        }
+        
+        // Find methods with nullable parameters (common in math/aggregation functions)
+        var nullableSignatures = methodSignatures.Where(m => m.Contains("?")).ToList();
+        Assert.IsGreaterThan(0, nullableSignatures.Count, "Should have methods with nullable parameters");
+        
+        // Verify format like "int?" or "decimal?" instead of "Nullable`1"
+        var sampleNullableMethod = nullableSignatures.FirstOrDefault(m => m.Contains("int?") || m.Contains("decimal?"));
+        Assert.IsNotNull(sampleNullableMethod, 
+            "Should have at least one method with properly formatted nullable type (e.g., 'int?' or 'decimal?')");
+    }
+    
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldFormatGenericTypesCorrectly()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        
+        // Verify that generic types don't contain backtick notation
+        foreach (var signature in methodSignatures)
+        {
+            Assert.IsFalse(signature.Contains("`1") || signature.Contains("`2") || signature.Contains("`3"), 
+                $"Signature should not contain backtick notation like `1, but got: {signature}");
+        }
+        
+        // Find generic methods (should have <T> or similar)
+        var genericSignatures = methodSignatures.Where(m => m.Contains("<") && m.Contains(">")).ToList();
+        Assert.IsGreaterThan(0, genericSignatures.Count, "Should have generic methods");
+        
+        // Verify proper generic formatting like "T Method<T>(T value)" or "IEnumerable<T>"
+        // Generic type parameters should be simple identifiers like T, TKey, TValue
+        foreach (var signature in genericSignatures)
+        {
+            // Should not have System. prefix in generic parameters displayed
+            var genericPart = signature.Substring(signature.IndexOf('<'));
+            Assert.IsFalse(genericPart.Contains("System."), 
+                $"Generic parameters should not include System. prefix: {signature}");
+        }
+    }
+    
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldUseCSharpTypeAliases()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        
+        // Verify that C# type aliases are used instead of .NET type names
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("string ")), 
+            "Should use 'string' instead of 'String'");
+        
+        // Verify no .NET type names appear where C# aliases should be used
+        foreach (var signature in methodSignatures)
+        {
+            // These should not appear as they should be replaced with C# aliases
+            Assert.IsFalse(signature.Contains("Int32 "), 
+                $"Should use 'int' instead of 'Int32': {signature}");
+            Assert.IsFalse(signature.Contains("Boolean "), 
+                $"Should use 'bool' instead of 'Boolean': {signature}");
+            Assert.IsFalse(signature.Contains("String "), 
+                $"Should use 'string' instead of 'String': {signature}");
+            Assert.IsFalse(signature.Contains("Decimal "), 
+                $"Should use 'decimal' instead of 'Decimal': {signature}");
+        }
+    }
+    
     private static dynamic CreateDynamicObject(int id, string name, decimal value)
     {
         dynamic obj = new System.Dynamic.ExpandoObject();

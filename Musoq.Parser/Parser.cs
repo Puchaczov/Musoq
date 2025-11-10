@@ -97,6 +97,29 @@ public class Parser
     {
         Consume(Current.TokenType);
 
+        if (Current.TokenType == TokenType.Functions)
+        {
+            Consume(TokenType.Functions);
+            var schemaName = ComposeWord();
+            var schemaToken = Current;
+            
+            if (Current.TokenType == TokenType.Dot)
+            {
+                Consume(TokenType.Dot);
+                
+                if (Current is FunctionToken)
+                {
+                    var accessMethod = ComposeAccessMethod(string.Empty);
+                }
+                else
+                {
+                    ConsumeAndGetToken(TokenType.Property);
+                }
+            }
+            
+            return new DescNode(new SchemaFromNode(schemaName.Value, string.Empty, ArgsListNode.Empty, string.Empty, schemaToken.Span.Start), DescForType.FunctionsForSchema);
+        }
+
         var name = ComposeWord();
         var startToken = Current;
 

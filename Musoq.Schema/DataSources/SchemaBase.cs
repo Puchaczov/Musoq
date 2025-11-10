@@ -174,6 +174,11 @@ public abstract class SchemaBase : ISchema
         return _aggregator.TryResolveRawMethod(method, parameters, out methodInfo);
     }
 
+    public IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods()
+    {
+        return _aggregator.GetAllMethods();
+    }
+
     private bool ParamsMatchConstructor(Reflection.ConstructorInfo constructor, object[] parameters)
     {
         var matchingResult = true;
