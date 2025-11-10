@@ -303,7 +303,7 @@ public class DescParserTests
     [TestMethod]
     public void DescFunctionsSchema_WithWhitespace_ShouldParse()
     {
-        var query = "   desc    methods    #schema   ";
+        var query = "   desc    functions    #schema   ";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -331,7 +331,7 @@ public class DescParserTests
     {
         var query = @"
             desc 
-                methods
+                functions
                     #schema
         ";
 

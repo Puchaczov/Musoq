@@ -9,6 +9,7 @@ using Musoq.Parser.Nodes;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Helpers;
@@ -78,25 +79,10 @@ public static class EvaluationHelper
         {
             foreach (var methodInfo in methodInfos)
             {
-                var returnTypeName = methodInfo.ReturnType.Name;
-                var parameters = methodInfo.GetParameters();
-                
-                var signature = new StringBuilder();
-                signature.Append($"{returnTypeName} {methodName}(");
-                
-                for (int i = 0; i < parameters.Length; i++)
-                {
-                    if (i > 0)
-                        signature.Append(", ");
-                    
-                    signature.Append($"{parameters[i].ParameterType.Name} {parameters[i].Name}");
-                }
-                
-                signature.Append(")");
-                
+                var signature = CSharpTypeNameHelper.FormatMethodSignature(methodInfo);
                 var description = GetXmlDocumentation(methodInfo);
                 
-                newTable.Add(new ObjectsRow([signature.ToString(), description]));
+                newTable.Add(new ObjectsRow([signature, description]));
             }
         }
 

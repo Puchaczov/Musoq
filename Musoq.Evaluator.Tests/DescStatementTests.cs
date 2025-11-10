@@ -542,23 +542,19 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
         
-        // Check that method signatures are in the Method column (library methods like Trim, Substring, etc.)
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         
-        // Verify that we have library methods (these are standard library functions, not schema constructors)
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods like 'Trim'");
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Substring(")), "Should contain library methods like 'Substring'");
         
-        // Verify that signatures include method names with parameters and return types
         foreach (var signature in methodSignatures)
         {
             Assert.IsTrue(signature.Contains("(") && signature.Contains(")"), 
                 $"Method signature should include parentheses: {signature}");
-            Assert.IsTrue(signature.Contains(" "), 
-                $"Method signature should include return type and method name: {signature}");
+            Assert.Contains(" ",
+signature, $"Method signature should include return type and method name: {signature}");
         }
         
-        // Check that descriptions column exists
         foreach (var row in table)
         {
             var description = (string)row[1];
@@ -583,14 +579,12 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        // Find a method row with Trim (a common library method)
         var trimRow = table.FirstOrDefault(row => ((string)row[0]).Contains("Trim("));
         Assert.IsNotNull(trimRow, "Should have Trim method from library");
         
         var methodSignature = (string)trimRow[0];
-        // Method column should contain the full signature with return type
-        Assert.IsTrue(methodSignature.Contains("Trim("), "Method should contain method signature");
-        Assert.IsTrue(methodSignature.Contains(" "), "Method signature should include return type and method name");
+        Assert.Contains("Trim(", methodSignature, "Method should contain method signature");
+        Assert.Contains(" ", methodSignature, "Method signature should include return type and method name");
     }
 
     [TestMethod]
@@ -675,7 +669,6 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        // Should return library methods (same for all schemas)
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns");
     }
@@ -769,7 +762,6 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         
         Assert.IsGreaterThan(0, table.Count, "Should return at least one library method");
         
-        // Verify that method signatures are from library
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
             "Should contain library methods");
@@ -798,7 +790,6 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
         
-        // Verify that method signatures are from library
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
             "Should contain library methods");
@@ -824,10 +815,126 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
         
-        // Arguments should be ignored, same output as desc functions #A
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
             "Should contain library methods");
+    }
+    
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldFormatNullableTypesCorrectly()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        
+        // Verify that nullable types are formatted with ? syntax, not Nullable`1
+        foreach (var signature in methodSignatures)
+        {
+            Assert.IsFalse(signature.Contains("Nullable`1"), 
+                $"Signature should not contain 'Nullable`1', but got: {signature}");
+            Assert.IsFalse(signature.Contains("Nullable<"), 
+                $"Signature should use '?' instead of 'Nullable<', but got: {signature}");
+        }
+        
+        // Find methods with nullable parameters (common in math/aggregation functions)
+        var nullableSignatures = methodSignatures.Where(m => m.Contains("?")).ToList();
+        Assert.IsGreaterThan(0, nullableSignatures.Count, "Should have methods with nullable parameters");
+        
+        // Verify format like "int?" or "decimal?" instead of "Nullable`1"
+        var sampleNullableMethod = nullableSignatures.FirstOrDefault(m => m.Contains("int?") || m.Contains("decimal?"));
+        Assert.IsNotNull(sampleNullableMethod, 
+            "Should have at least one method with properly formatted nullable type (e.g., 'int?' or 'decimal?')");
+    }
+    
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldFormatGenericTypesCorrectly()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        
+        // Verify that generic types don't contain backtick notation
+        foreach (var signature in methodSignatures)
+        {
+            Assert.IsFalse(signature.Contains("`1") || signature.Contains("`2") || signature.Contains("`3"), 
+                $"Signature should not contain backtick notation like `1, but got: {signature}");
+        }
+        
+        // Find generic methods (should have <T> or similar)
+        var genericSignatures = methodSignatures.Where(m => m.Contains("<") && m.Contains(">")).ToList();
+        Assert.IsGreaterThan(0, genericSignatures.Count, "Should have generic methods");
+        
+        // Verify proper generic formatting like "T Method<T>(T value)" or "IEnumerable<T>"
+        // Generic type parameters should be simple identifiers like T, TKey, TValue
+        foreach (var signature in genericSignatures)
+        {
+            // Should not have System. prefix in generic parameters displayed
+            var genericPart = signature.Substring(signature.IndexOf('<'));
+            Assert.IsFalse(genericPart.Contains("System."), 
+                $"Generic parameters should not include System. prefix: {signature}");
+        }
+    }
+    
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldUseCSharpTypeAliases()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        
+        // Verify that C# type aliases are used instead of .NET type names
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("string ")), 
+            "Should use 'string' instead of 'String'");
+        
+        // Verify no .NET type names appear where C# aliases should be used
+        foreach (var signature in methodSignatures)
+        {
+            // These should not appear as they should be replaced with C# aliases
+            Assert.IsFalse(signature.Contains("Int32 "), 
+                $"Should use 'int' instead of 'Int32': {signature}");
+            Assert.IsFalse(signature.Contains("Boolean "), 
+                $"Should use 'bool' instead of 'Boolean': {signature}");
+            Assert.IsFalse(signature.Contains("String "), 
+                $"Should use 'string' instead of 'String': {signature}");
+            Assert.IsFalse(signature.Contains("Decimal "), 
+                $"Should use 'decimal' instead of 'Decimal': {signature}");
+        }
     }
     
     private static dynamic CreateDynamicObject(int id, string name, decimal value)
