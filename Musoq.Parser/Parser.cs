@@ -97,6 +97,15 @@ public class Parser
     {
         Consume(Current.TokenType);
 
+        // Check if this is "desc methods #schema" syntax
+        if (Current.TokenType == TokenType.Methods)
+        {
+            Consume(TokenType.Methods);
+            var schemaName = ComposeWord();
+            var schemaToken = Current;
+            return new DescNode(new SchemaFromNode(schemaName.Value, string.Empty, ArgsListNode.Empty, string.Empty, schemaToken.Span.Start), DescForType.MethodsForSchema);
+        }
+
         var name = ComposeWord();
         var startToken = Current;
 

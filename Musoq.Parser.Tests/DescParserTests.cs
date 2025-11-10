@@ -255,4 +255,122 @@ public class DescParserTests
             // Expected if nested functions are not supported
         }
     }
+
+    [TestMethod]
+    public void DescMethodsSchema_ShouldParse()
+    {
+        var query = "desc methods #schema";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_WithSemicolon_ShouldParse()
+    {
+        var query = "desc methods #schema;";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_CaseInsensitive_ShouldParse()
+    {
+        var query = "DESC METHODS #Schema";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_MixedCase_ShouldParse()
+    {
+        var query = "DeSc MeThOdS #MySchema";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_WithWhitespace_ShouldParse()
+    {
+        var query = "   desc    methods    #schema   ";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_WithComment_ShouldParse()
+    {
+        var query = @"
+            -- This is a comment
+            desc methods #schema
+            -- Another comment
+        ";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_WithMultilineFormat_ShouldParse()
+    {
+        var query = @"
+            desc 
+                methods
+                    #schema
+        ";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_WithComplexSchemaName_ShouldParse()
+    {
+        var query = "desc methods #myComplexSchema123";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethods_WithoutSchema_ShouldFail()
+    {
+        var query = "desc methods";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        Assert.Throws<SyntaxException>(() => parser.ComposeAll());
+    }
+
+    [TestMethod]
+    public void DescMethods_InvalidSchemaName_ShouldFail()
+    {
+        var query = "desc methods schema"; // Missing # prefix
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        Assert.Throws<SyntaxException>(() => parser.ComposeAll());
+    }
 }

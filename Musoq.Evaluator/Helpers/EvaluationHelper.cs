@@ -64,6 +64,51 @@ public static class EvaluationHelper
         return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName, runtimeContext));
     }
 
+    public static Table GetMethodsForSchema(ISchema schema, RuntimeContext runtimeContext)
+    {
+        var constructors = schema.GetRawConstructors(runtimeContext);
+        var methodGroups = constructors.GroupBy(c => c.MethodName).ToList();
+
+        var newTable = new Table("desc", [
+            new Column("Method", typeof(string), 0),
+            new Column("Description", typeof(string), 1)
+        ]);
+
+        foreach (var methodGroup in methodGroups)
+        {
+            var methodName = methodGroup.Key;
+            var overloads = methodGroup.ToList();
+            
+            // Create a description showing all overloads
+            var description = new StringBuilder();
+            
+            for (int i = 0; i < overloads.Count; i++)
+            {
+                var overload = overloads[i];
+                
+                if (i > 0)
+                    description.Append(" | ");
+                
+                description.Append($"{methodName}(");
+                
+                var parameters = overload.ConstructorInfo.Arguments;
+                for (int j = 0; j < parameters.Length; j++)
+                {
+                    if (j > 0)
+                        description.Append(", ");
+                    
+                    description.Append($"{parameters[j].Type.Name} {parameters[j].Name}");
+                }
+                
+                description.Append(")");
+            }
+            
+            newTable.Add(new ObjectsRow([methodName, description.ToString()]));
+        }
+
+        return newTable;
+    }
+
     private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
     {
         var maxColumns = 0;

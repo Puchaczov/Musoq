@@ -519,6 +519,221 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         Assert.AreEqual("System.String", table[1][2], "Name column should be of type System.String");
     }
     
+    [TestMethod]
+    public void DescMethodsSchema_ShouldReturnMethodsWithDescriptions()
+    {
+        var query = "desc methods #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
+        
+        // Check that we have the expected methods
+        var methodNames = table.Select(row => (string)row[0]).ToList();
+        Assert.Contains("empty", methodNames, "Should contain 'empty' method");
+        Assert.Contains("entities", methodNames, "Should contain 'entities' method");
+        
+        // Check that descriptions are populated
+        foreach (var row in table)
+        {
+            var description = (string)row[1];
+            Assert.IsNotNull(description, "Description should not be null");
+            Assert.IsTrue(description.Length > 0, "Description should not be empty");
+        }
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_ShouldShowMethodSignatures()
+    {
+        var query = "desc methods #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        // Find the entities method row
+        var entitiesRow = table.FirstOrDefault(row => (string)row[0] == "entities");
+        Assert.IsNotNull(entitiesRow, "Should have entities method");
+        
+        var description = (string)entitiesRow[1];
+        Assert.IsTrue(description.Contains("entities("), "Description should contain method signature");
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_WithSemicolon_ShouldWork()
+    {
+        var query = "desc methods #A;";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns even with semicolon");
+        Assert.IsGreaterThan(0, table.Count, "Should return methods even with semicolon");
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_CaseInsensitive_ShouldWork()
+    {
+        var query = "DESC METHODS #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.IsGreaterThan(0, table.Count, "DESC METHODS should be case insensitive");
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_EmptySource_ShouldStillReturnMethods()
+    {
+        var query = "desc methods #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", []
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.IsGreaterThan(0, table.Count, "Should return methods even with empty source");
+        Assert.AreEqual(2, table.Columns.Count(), "Should have Method and Description columns");
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_MultipleSchemas_OnlyDescribesSpecified()
+    {
+        var query = "desc methods #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("testA")
+                ]
+            },
+            {
+                "#B", [
+                    new BasicEntity("testB")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        // Should only return methods from schema A
+        Assert.IsGreaterThan(0, table.Count, "Should return methods");
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns");
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_ResultColumns_HaveCorrectTypes()
+    {
+        var query = "desc methods #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Method column should be string");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType, "Description column should be string");
+    }
+
+    [TestMethod]
+    public void DescMethodsSchema_DynamicSchema_ShouldReturnMethods()
+    {
+        var query = "desc methods #dynamic";
+
+        var schema = new Dictionary<string, Type>
+        {
+            { "Id", typeof(int) },
+            { "Name", typeof(string) },
+            { "Value", typeof(decimal) }
+        };
+
+        var values = new List<dynamic>
+        {
+            CreateDynamicObject(1, "First", 10.5m),
+            CreateDynamicObject(2, "Second", 20.5m)
+        };
+
+        var schemaProvider = new Schema.Dynamic.AnySchemaNameProvider(new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
+        {
+            { "dynamic", (schema, values) }
+        }, _ => [
+            new SchemaMethodInfo("method1", ConstructorInfo.Empty()),
+            new SchemaMethodInfo("method2", ConstructorInfo.Empty())
+        ]);
+
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have exactly 2 columns: Method and Description");
+        Assert.AreEqual(2, table.Count, "Should return exactly 2 methods");
+        
+        var methodNames = table.Select(row => (string)row[0]).ToList();
+        
+        Assert.AreEqual("method1", methodNames[0], "Should contain 'method1' as available method");
+        Assert.AreEqual("method2", methodNames[1], "Should contain 'method2' as available method");
+        
+        // Check descriptions are present
+        foreach (var row in table)
+        {
+            var description = (string)row[1];
+            Assert.IsNotNull(description, "Description should not be null");
+        }
+    }
+    
     private static dynamic CreateDynamicObject(int id, string name, decimal value)
     {
         dynamic obj = new System.Dynamic.ExpandoObject();

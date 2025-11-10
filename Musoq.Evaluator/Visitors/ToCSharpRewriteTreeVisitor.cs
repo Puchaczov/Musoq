@@ -192,6 +192,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             case DescForType.Schema:
                 CreateDescForSchema(node);
                 break;
+            case DescForType.MethodsForSchema:
+                CreateDescForMethodsForSchema(node);
+                break;
             case DescForType.None:
                 break;
             default:
@@ -2243,6 +2246,36 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     [
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
                         SyntaxHelper.StringLiteralArgument(((SchemaFromNode) node.From).Method),
+                        SyntaxFactory.Argument(CreateRuntimeContext((SchemaFromNode) node.From, originallyInferredColumns))
+                    ])));
+
+        CreateDescMethod(node, invocation, false);
+    }
+
+    private void CreateDescForMethodsForSchema(DescNode node)
+    {
+        var originallyInferredColumns = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("Array"),
+                    SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("Empty"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                    SyntaxFactory.IdentifierName("ISchemaColumn"))))))
+            .NormalizeWhitespace();
+
+        var invocation = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetMethodsForSchema))))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList(
+                    [
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
                         SyntaxFactory.Argument(CreateRuntimeContext((SchemaFromNode) node.From, originallyInferredColumns))
                     ])));
 
