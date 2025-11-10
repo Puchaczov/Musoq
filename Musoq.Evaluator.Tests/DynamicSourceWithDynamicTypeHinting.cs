@@ -29,7 +29,6 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var table = vm.Run();
         
-        // After fix: primitives and strings are not explored for properties
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Id", table[0][0]);
         Assert.AreEqual("System.Int32", table[0][2]);

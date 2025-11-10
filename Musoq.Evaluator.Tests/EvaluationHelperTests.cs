@@ -35,14 +35,11 @@ public class EvaluationHelperTests
     {
         var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("Test", typeof(TestClass)).ToArray();
 
-        // The root field should always be present
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test" && pair.Type == typeof(TestClass)));
         
-        // Complex types should be present
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.Test" && pair.Type == typeof(TestClass)));
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass" && pair.Type == typeof(TestSubClass)));
         
-        // Primitive types and strings should NOT be present as nested properties
         Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeInt" && pair.Type == typeof(int)));
         Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeString" && pair.Type == typeof(string)));
         Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeObject" && pair.Type == typeof(object)));
@@ -82,11 +79,9 @@ public class EvaluationHelperTests
     [TestMethod]
     public void CreateComplexTypeDescription_WithPrimitiveTypeAtRoot_ShouldNotExplorePrimitiveProperties()
     {
-        // Test that primitive types (like int) don't have their properties explored
         var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("IntValue", typeof(int)).ToArray();
         
-        // Should only have the root entry
-        Assert.AreEqual(1, typeDescriptions.Length);
+        Assert.HasCount(1, typeDescriptions);
         Assert.AreEqual("IntValue", typeDescriptions[0].FieldName);
         Assert.AreEqual(typeof(int), typeDescriptions[0].Type);
     }
@@ -94,11 +89,9 @@ public class EvaluationHelperTests
     [TestMethod]
     public void CreateComplexTypeDescription_WithStringAtRoot_ShouldNotExploreStringProperties()
     {
-        // Test that string type doesn't have its properties explored
         var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("StringValue", typeof(string)).ToArray();
         
-        // Should only have the root entry, no Chars or Length properties
-        Assert.AreEqual(1, typeDescriptions.Length);
+        Assert.HasCount(1, typeDescriptions);
         Assert.AreEqual("StringValue", typeDescriptions[0].FieldName);
         Assert.AreEqual(typeof(string), typeDescriptions[0].Type);
     }
@@ -108,7 +101,7 @@ public class EvaluationHelperTests
     {
         var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("ObjectValue", typeof(object)).ToArray();
         
-        Assert.AreEqual(1, typeDescriptions.Length);
+        Assert.HasCount(1, typeDescriptions);
         Assert.AreEqual("ObjectValue", typeDescriptions[0].FieldName);
         Assert.AreEqual(typeof(object), typeDescriptions[0].Type);
     }

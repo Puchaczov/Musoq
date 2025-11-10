@@ -18,7 +18,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         {
             {
                 0,
-                Array.Empty<EnvironmentVariableEntity>()
+                []
             }
         };
 
@@ -26,7 +26,6 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         
         var table = vm.Run();
         
-        // After fix: string properties are not explored for their properties
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Key", table[0][0]);
         Assert.AreEqual("Value", table[1][0]);

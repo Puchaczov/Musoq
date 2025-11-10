@@ -25,8 +25,6 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var table = vm.Run();
         
-        // After fix: primitives and strings are not explored for properties
-        // We only see the direct properties of the expando object, not their nested properties
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Id", table[0][0]);
         Assert.AreEqual("System.Int32", table[0][2]);
