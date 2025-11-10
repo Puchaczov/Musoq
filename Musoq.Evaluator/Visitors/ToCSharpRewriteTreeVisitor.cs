@@ -192,8 +192,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             case DescForType.Schema:
                 CreateDescForSchema(node);
                 break;
-            case DescForType.MethodsForSchema:
-                CreateDescForMethodsForSchema(node);
+            case DescForType.FunctionsForSchema:
+                CreateDescForFunctionsForSchema(node);
                 break;
             case DescForType.None:
                 break;
@@ -2252,7 +2252,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         CreateDescMethod(node, invocation, false);
     }
 
-    private void CreateDescForMethodsForSchema(DescNode node)
+    private void CreateDescForFunctionsForSchema(DescNode node)
     {
         var originallyInferredColumns = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(

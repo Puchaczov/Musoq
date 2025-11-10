@@ -520,9 +520,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
     
     [TestMethod]
-    public void DescMethodsSchema_ShouldReturnMethodsWithDescriptions()
+    public void DescFunctionsSchema_ShouldReturnMethodsWithDescriptions()
     {
-        var query = "desc methods #A";
+        var query = "desc functions #A";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -567,9 +567,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
 
     [TestMethod]
-    public void DescMethodsSchema_ShouldShowMethodSignatures()
+    public void DescFunctionsSchema_ShouldShowMethodSignatures()
     {
-        var query = "desc methods #A";
+        var query = "desc functions #A";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -594,9 +594,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
 
     [TestMethod]
-    public void DescMethodsSchema_WithSemicolon_ShouldWork()
+    public void DescFunctionsSchema_WithSemicolon_ShouldWork()
     {
-        var query = "desc methods #A;";
+        var query = "desc functions #A;";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -615,9 +615,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
 
     [TestMethod]
-    public void DescMethodsSchema_CaseInsensitive_ShouldWork()
+    public void DescFunctionsSchema_CaseInsensitive_ShouldWork()
     {
-        var query = "DESC METHODS #A";
+        var query = "DESC FUNCTIONS #A";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -631,13 +631,13 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsGreaterThan(0, table.Count, "DESC METHODS should be case insensitive");
+        Assert.IsGreaterThan(0, table.Count, "DESC FUNCTIONS should be case insensitive");
     }
 
     [TestMethod]
-    public void DescMethodsSchema_EmptySource_ShouldStillReturnMethods()
+    public void DescFunctionsSchema_EmptySource_ShouldStillReturnMethods()
     {
-        var query = "desc methods #A";
+        var query = "desc functions #A";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -654,9 +654,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
 
     [TestMethod]
-    public void DescMethodsSchema_MultipleSchemas_OnlyDescribesSpecified()
+    public void DescFunctionsSchema_MultipleSchemas_OnlyDescribesSpecified()
     {
-        var query = "desc methods #A";
+        var query = "desc functions #A";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -681,9 +681,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
 
     [TestMethod]
-    public void DescMethodsSchema_ResultColumns_HaveCorrectTypes()
+    public void DescFunctionsSchema_ResultColumns_HaveCorrectTypes()
     {
-        var query = "desc methods #A";
+        var query = "desc functions #A";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -702,9 +702,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
 
     [TestMethod]
-    public void DescMethodsSchema_DynamicSchema_ShouldReturnMethods()
+    public void DescFunctionsSchema_DynamicSchema_ShouldReturnMethods()
     {
-        var query = "desc methods #dynamic";
+        var query = "desc functions #dynamic";
 
         var schema = new Dictionary<string, Type>
         {
@@ -747,9 +747,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
     
     [TestMethod]
-    public void DescMethodsSchemaMethod_ShouldReturnMethodsWithDescriptions()
+    public void DescFunctionsSchemaMethod_ShouldReturnMethodsWithDescriptions()
     {
-        var query = "desc methods #A.entities";
+        var query = "desc functions #A.entities";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -776,9 +776,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
 
     [TestMethod]
-    public void DescMethodsSchemaMethodWithParentheses_ShouldReturnMethodsWithDescriptions()
+    public void DescFunctionsSchemaMethodWithParentheses_ShouldReturnMethodsWithDescriptions()
     {
-        var query = "desc methods #A.entities()";
+        var query = "desc functions #A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -805,9 +805,9 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
     }
 
     [TestMethod]
-    public void DescMethodsSchemaMethodWithArguments_ShouldReturnMethodsWithDescriptions()
+    public void DescFunctionsSchemaMethodWithArguments_ShouldReturnMethodsWithDescriptions()
     {
-        var query = "desc methods #A.entities('filter')";
+        var query = "desc functions #A.entities('filter')";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -824,7 +824,7 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
         
-        // Arguments should be ignored, same output as desc methods #A
+        // Arguments should be ignored, same output as desc functions #A
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
             "Should contain library methods");

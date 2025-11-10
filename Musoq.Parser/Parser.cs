@@ -97,31 +97,27 @@ public class Parser
     {
         Consume(Current.TokenType);
 
-        // Check if this is "desc methods #schema" syntax
-        if (Current.TokenType == TokenType.Methods)
+        if (Current.TokenType == TokenType.Functions)
         {
-            Consume(TokenType.Methods);
+            Consume(TokenType.Functions);
             var schemaName = ComposeWord();
             var schemaToken = Current;
             
-            // Support "desc methods #schema.method" and "desc methods #schema.method(...)"
             if (Current.TokenType == TokenType.Dot)
             {
                 Consume(TokenType.Dot);
                 
                 if (Current is FunctionToken)
                 {
-                    // "desc methods #schema.method(...)" - consume the method call but ignore it
                     var accessMethod = ComposeAccessMethod(string.Empty);
                 }
                 else
                 {
-                    // "desc methods #schema.method" - consume the method name but ignore it
                     ConsumeAndGetToken(TokenType.Property);
                 }
             }
             
-            return new DescNode(new SchemaFromNode(schemaName.Value, string.Empty, ArgsListNode.Empty, string.Empty, schemaToken.Span.Start), DescForType.MethodsForSchema);
+            return new DescNode(new SchemaFromNode(schemaName.Value, string.Empty, ArgsListNode.Empty, string.Empty, schemaToken.Span.Start), DescForType.FunctionsForSchema);
         }
 
         var name = ComposeWord();

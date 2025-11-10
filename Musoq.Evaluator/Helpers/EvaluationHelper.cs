@@ -78,7 +78,6 @@ public static class EvaluationHelper
         {
             foreach (var methodInfo in methodInfos)
             {
-                // Create method signature with return type
                 var returnTypeName = methodInfo.ReturnType.Name;
                 var parameters = methodInfo.GetParameters();
                 
@@ -95,7 +94,6 @@ public static class EvaluationHelper
                 
                 signature.Append(")");
                 
-                // Get description from XML documentation
                 var description = GetXmlDocumentation(methodInfo);
                 
                 newTable.Add(new ObjectsRow([signature.ToString(), description]));
@@ -109,7 +107,6 @@ public static class EvaluationHelper
     {
         try
         {
-            // Get XML documentation file path
             var assembly = methodInfo.DeclaringType?.Assembly;
             if (assembly == null)
                 return string.Empty;
@@ -122,18 +119,15 @@ public static class EvaluationHelper
             if (!System.IO.File.Exists(xmlPath))
                 return string.Empty;
 
-            // Load XML documentation
             var xmlDoc = new XmlDocument();
             xmlDoc.Load(xmlPath);
 
-            // Build member name (e.g., "M:Namespace.Class.Method(ParamType1,ParamType2)")
             var memberName = GetMemberName(methodInfo);
             var node = xmlDoc.SelectSingleNode($"//member[@name='{memberName}']/summary");
             
             if (node == null)
                 return string.Empty;
 
-            // Clean up the text (remove extra whitespace, newlines)
             var text = node.InnerText.Trim();
             text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
             
@@ -180,7 +174,6 @@ public static class EvaluationHelper
         if (type.IsGenericType)
         {
             var genericTypeName = type.GetGenericTypeDefinition().FullName;
-            // Remove the `1, `2, etc. suffix
             var tickIndex = genericTypeName.IndexOf('`');
             if (tickIndex > 0)
                 genericTypeName = genericTypeName.Substring(0, tickIndex);
@@ -200,11 +193,9 @@ public static class EvaluationHelper
 
     private static string GetReturnTypeName(Type type)
     {
-        // Check if type implements ISchemaTable
         if (type.GetInterfaces().Any(i => i.Name == "ISchemaTable"))
             return "ISchemaTable";
         
-        // Check if type inherits from RowSource
         var baseType = type.BaseType;
         while (baseType != null)
         {
@@ -213,15 +204,11 @@ public static class EvaluationHelper
             baseType = baseType.BaseType;
         }
         
-        // Return the simple type name as fallback
         return type.Name;
     }
 
     private static string GetMethodDescription(SchemaMethodInfo methodInfo)
     {
-        // Try to get XML documentation from the constructor
-        // For now, return empty string as XML doc extraction requires additional setup
-        // This can be enhanced later to read from XML documentation files
         return string.Empty;
     }
 

@@ -257,9 +257,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchema_ShouldParse()
+    public void DescFunctionsSchema_ShouldParse()
     {
-        var query = "desc methods #schema";
+        var query = "desc functions #schema";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -268,9 +268,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchema_WithSemicolon_ShouldParse()
+    public void DescFunctionsSchema_WithSemicolon_ShouldParse()
     {
-        var query = "desc methods #schema;";
+        var query = "desc functions #schema;";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -279,9 +279,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchema_CaseInsensitive_ShouldParse()
+    public void DescFunctionsSchema_CaseInsensitive_ShouldParse()
     {
-        var query = "DESC METHODS #Schema";
+        var query = "DESC FUNCTIONS #Schema";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -290,9 +290,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchema_MixedCase_ShouldParse()
+    public void DescFunctionsSchema_MixedCase_ShouldParse()
     {
-        var query = "DeSc MeThOdS #MySchema";
+        var query = "DeSc FuNcTiOnS #MySchema";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -301,7 +301,7 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchema_WithWhitespace_ShouldParse()
+    public void DescFunctionsSchema_WithWhitespace_ShouldParse()
     {
         var query = "   desc    methods    #schema   ";
 
@@ -312,11 +312,11 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchema_WithComment_ShouldParse()
+    public void DescFunctionsSchema_WithComment_ShouldParse()
     {
         var query = @"
             -- This is a comment
-            desc methods #schema
+            desc functions #schema
             -- Another comment
         ";
 
@@ -327,7 +327,7 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchema_WithMultilineFormat_ShouldParse()
+    public void DescFunctionsSchema_WithMultilineFormat_ShouldParse()
     {
         var query = @"
             desc 
@@ -342,9 +342,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchema_WithComplexSchemaName_ShouldParse()
+    public void DescFunctionsSchema_WithComplexSchemaName_ShouldParse()
     {
-        var query = "desc methods #myComplexSchema123";
+        var query = "desc functions #myComplexSchema123";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -353,9 +353,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethods_WithoutSchema_ShouldFail()
+    public void DescFunctions_WithoutSchema_ShouldFail()
     {
-        var query = "desc methods";
+        var query = "desc functions";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -364,9 +364,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethods_InvalidSchemaName_ShouldFail()
+    public void DescFunctions_InvalidSchemaName_ShouldFail()
     {
-        var query = "desc methods schema"; // Missing # prefix
+        var query = "desc functions schema"; // Missing # prefix
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -375,9 +375,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchemaMethod_ShouldParse()
+    public void DescFunctionsSchemaMethod_ShouldParse()
     {
-        var query = "desc methods #schema.method";
+        var query = "desc functions #schema.method";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -386,9 +386,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchemaMethodWithParentheses_ShouldParse()
+    public void DescFunctionsSchemaMethodWithParentheses_ShouldParse()
     {
-        var query = "desc methods #schema.method()";
+        var query = "desc functions #schema.method()";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -397,9 +397,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchemaMethodWithArguments_ShouldParse()
+    public void DescFunctionsSchemaMethodWithArguments_ShouldParse()
     {
-        var query = "desc methods #schema.method('arg1', 123, true)";
+        var query = "desc functions #schema.method('arg1', 123, true)";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -408,9 +408,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchemaMethodWithSemicolon_ShouldParse()
+    public void DescFunctionsSchemaMethodWithSemicolon_ShouldParse()
     {
-        var query = "desc methods #schema.method();";
+        var query = "desc functions #schema.method();";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -419,9 +419,9 @@ public class DescParserTests
     }
 
     [TestMethod]
-    public void DescMethodsSchemaMethod_CaseInsensitive_ShouldParse()
+    public void DescFunctionsSchemaMethod_CaseInsensitive_ShouldParse()
     {
-        var query = "DESC METHODS #Schema.Method";
+        var query = "DESC FUNCTIONS #Schema.Method";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);

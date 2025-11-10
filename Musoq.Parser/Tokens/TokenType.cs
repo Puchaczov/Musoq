@@ -67,7 +67,7 @@ public enum TokenType : short
     OrderBy,
     Asc,
     Desc,
-    Methods,
+    Functions,
     True,
     False,
     In,

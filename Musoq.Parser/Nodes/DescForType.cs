@@ -6,5 +6,5 @@ public enum DescForType
     SpecificConstructor,
     Constructors,
     Schema,
-    MethodsForSchema
+    FunctionsForSchema
 }
