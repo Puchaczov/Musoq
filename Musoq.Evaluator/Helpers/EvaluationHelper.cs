@@ -134,7 +134,6 @@ public static class EvaluationHelper
                 if (prop.MemberType != MemberTypes.Property)
                     continue;
 
-                // Skip primitive types, string, and object from being added to the output
                 if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object))
                     continue;
 

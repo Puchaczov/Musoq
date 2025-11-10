@@ -102,4 +102,14 @@ public class EvaluationHelperTests
         Assert.AreEqual("StringValue", typeDescriptions[0].FieldName);
         Assert.AreEqual(typeof(string), typeDescriptions[0].Type);
     }
+
+    [TestMethod]
+    public void CreateComplexTypeDescription_WithObjectAtRoot_ShouldIncludeRootColumn()
+    {
+        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("ObjectValue", typeof(object)).ToArray();
+        
+        Assert.AreEqual(1, typeDescriptions.Length);
+        Assert.AreEqual("ObjectValue", typeDescriptions[0].FieldName);
+        Assert.AreEqual(typeof(object), typeDescriptions[0].Type);
+    }
 }
