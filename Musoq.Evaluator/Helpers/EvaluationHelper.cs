@@ -129,9 +129,15 @@ public static class EvaluationHelper
             if(current.Level > 3)
                 continue;
 
+            if (current.Type.IsPrimitive || current.Type == typeof(string) || current.Type == typeof(object))
+                continue;
+
             foreach (var prop in current.Type.GetProperties())
             {
                 if (prop.MemberType != MemberTypes.Property)
+                    continue;
+
+                if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object))
                     continue;
 
                 var complexName = $"{current.FieldName}.{prop.Name}";
@@ -140,10 +146,7 @@ public static class EvaluationHelper
                 if(prop.PropertyType == current.Type)
                     continue;
 
-                if (!(prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object)))
-                {
-                    fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
-                }
+                fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
             }
         }
 
