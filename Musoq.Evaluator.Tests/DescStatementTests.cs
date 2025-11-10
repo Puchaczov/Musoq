@@ -753,6 +753,93 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         }
     }
     
+    [TestMethod]
+    public void DescMethodsSchemaMethod_ShouldReturnMethodsWithDescriptions()
+    {
+        var query = "desc methods #A.entities";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
+        
+        // Verify that method signatures contain return types
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        foreach (var signature in methodSignatures)
+        {
+            Assert.IsTrue(signature.Contains("ISchemaTable") || signature.Contains("RowSource"), 
+                $"Method signature should include return type: {signature}");
+        }
+    }
+
+    [TestMethod]
+    public void DescMethodsSchemaMethodWithParentheses_ShouldReturnMethodsWithDescriptions()
+    {
+        var query = "desc methods #A.entities()";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
+        
+        // Verify that method signatures are present
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("empty(")), "Should contain 'empty' method signature");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("entities(")), "Should contain 'entities' method signature");
+    }
+
+    [TestMethod]
+    public void DescMethodsSchemaMethodWithArguments_ShouldReturnMethodsWithDescriptions()
+    {
+        var query = "desc methods #A.entities('filter')";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run();
+
+        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
+        
+        // Arguments should be ignored, same output as desc methods #A
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("empty(")), "Should contain 'empty' method signature");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("entities(")), "Should contain 'entities' method signature");
+    }
+    
     private static dynamic CreateDynamicObject(int id, string name, decimal value)
     {
         dynamic obj = new System.Dynamic.ExpandoObject();

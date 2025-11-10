@@ -373,4 +373,59 @@ public class DescParserTests
 
         Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
+
+    [TestMethod]
+    public void DescMethodsSchemaMethod_ShouldParse()
+    {
+        var query = "desc methods #schema.method";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchemaMethodWithParentheses_ShouldParse()
+    {
+        var query = "desc methods #schema.method()";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchemaMethodWithArguments_ShouldParse()
+    {
+        var query = "desc methods #schema.method('arg1', 123, true)";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchemaMethodWithSemicolon_ShouldParse()
+    {
+        var query = "desc methods #schema.method();";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescMethodsSchemaMethod_CaseInsensitive_ShouldParse()
+    {
+        var query = "DESC METHODS #Schema.Method";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        
+        parser.ComposeAll();
+    }
 }
