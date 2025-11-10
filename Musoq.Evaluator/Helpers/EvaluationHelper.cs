@@ -129,6 +129,9 @@ public static class EvaluationHelper
             if(current.Level > 3)
                 continue;
 
+            if (current.Type.IsPrimitive || current.Type == typeof(string) || current.Type == typeof(object))
+                continue;
+
             foreach (var prop in current.Type.GetProperties())
             {
                 if (prop.MemberType != MemberTypes.Property)
