@@ -35,13 +35,18 @@ public class EvaluationHelperTests
     {
         var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("Test", typeof(TestClass)).ToArray();
 
+        // The root field should always be present
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test" && pair.Type == typeof(TestClass)));
+        
+        // Complex types should be present
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.Test" && pair.Type == typeof(TestClass)));
-        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeInt" && pair.Type == typeof(int)));
-        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeString" && pair.Type == typeof(string)));
-        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeObject" && pair.Type == typeof(object)));
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass" && pair.Type == typeof(TestSubClass)));
-        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass.SomeInt" && pair.Type == typeof(int)));
+        
+        // Primitive types and strings should NOT be present as nested properties
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeInt" && pair.Type == typeof(int)));
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeString" && pair.Type == typeof(string)));
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeObject" && pair.Type == typeof(object)));
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass.SomeInt" && pair.Type == typeof(int)));
     }
 
     [TestMethod]

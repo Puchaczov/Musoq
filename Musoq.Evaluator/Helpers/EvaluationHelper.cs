@@ -134,16 +134,17 @@ public static class EvaluationHelper
                 if (prop.MemberType != MemberTypes.Property)
                     continue;
 
+                // Skip primitive types, string, and object from being added to the output
+                if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object))
+                    continue;
+
                 var complexName = $"{current.FieldName}.{prop.Name}";
                 output.Add((complexName, prop.PropertyType));
 
                 if(prop.PropertyType == current.Type)
                     continue;
 
-                if (!(prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object)))
-                {
-                    fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
-                }
+                fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
             }
         }
 
