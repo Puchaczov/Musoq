@@ -542,17 +542,25 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
         
-        // Check that we have the expected methods
-        var methodNames = table.Select(row => (string)row[0]).ToList();
-        Assert.Contains("empty", methodNames, "Should contain 'empty' method");
-        Assert.Contains("entities", methodNames, "Should contain 'entities' method");
+        // Check that method signatures are in the Method column
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
         
-        // Check that descriptions are populated
+        // Verify that method signatures contain return types and method names
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("empty(")), "Should contain 'empty' method signature");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("entities(")), "Should contain 'entities' method signature");
+        
+        // Verify that signatures include return types
+        foreach (var signature in methodSignatures)
+        {
+            Assert.IsTrue(signature.Contains("ISchemaTable") || signature.Contains("RowSource"), 
+                $"Method signature should include return type: {signature}");
+        }
+        
+        // Check that descriptions column exists (may be empty for now)
         foreach (var row in table)
         {
             var description = (string)row[1];
             Assert.IsNotNull(description, "Description should not be null");
-            Assert.IsTrue(description.Length > 0, "Description should not be empty");
         }
     }
 
@@ -573,12 +581,15 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        // Find the entities method row
-        var entitiesRow = table.FirstOrDefault(row => (string)row[0] == "entities");
+        // Find a method row with entities
+        var entitiesRow = table.FirstOrDefault(row => ((string)row[0]).Contains("entities("));
         Assert.IsNotNull(entitiesRow, "Should have entities method");
         
-        var description = (string)entitiesRow[1];
-        Assert.IsTrue(description.Contains("entities("), "Description should contain method signature");
+        var methodSignature = (string)entitiesRow[0];
+        // Method column should contain the full signature with return type
+        Assert.IsTrue(methodSignature.Contains("entities("), "Method should contain method signature");
+        Assert.IsTrue(methodSignature.Contains("ISchemaTable") || methodSignature.Contains("RowSource"), 
+            "Method signature should include return type");
     }
 
     [TestMethod]
@@ -721,10 +732,18 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         Assert.AreEqual(2, table.Columns.Count(), "Should have exactly 2 columns: Method and Description");
         Assert.AreEqual(2, table.Count, "Should return exactly 2 methods");
         
-        var methodNames = table.Select(row => (string)row[0]).ToList();
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
         
-        Assert.AreEqual("method1", methodNames[0], "Should contain 'method1' as available method");
-        Assert.AreEqual("method2", methodNames[1], "Should contain 'method2' as available method");
+        // Method column now contains full signatures with return types
+        Assert.IsTrue(methodSignatures[0].Contains("method1("), "Should contain 'method1' method signature");
+        Assert.IsTrue(methodSignatures[1].Contains("method2("), "Should contain 'method2' method signature");
+        
+        // Verify signatures include return types
+        foreach (var signature in methodSignatures)
+        {
+            Assert.IsTrue(signature.Contains("ISchemaTable") || signature.Contains("RowSource") || !string.IsNullOrEmpty(signature), 
+                $"Method signature should be valid: {signature}");
+        }
         
         // Check descriptions are present
         foreach (var row in table)

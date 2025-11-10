@@ -79,34 +79,68 @@ public static class EvaluationHelper
             var methodName = methodGroup.Key;
             var overloads = methodGroup.ToList();
             
-            // Create a description showing all overloads
-            var description = new StringBuilder();
+            // Create method signatures showing all overloads with return types
+            var methodSignatures = new StringBuilder();
             
             for (int i = 0; i < overloads.Count; i++)
             {
                 var overload = overloads[i];
                 
                 if (i > 0)
-                    description.Append(" | ");
+                    methodSignatures.Append(" | ");
                 
-                description.Append($"{methodName}(");
+                // Get return type from the constructor's declaring type
+                var returnType = overload.ConstructorInfo.OriginConstructor?.DeclaringType;
+                var returnTypeName = returnType != null ? GetReturnTypeName(returnType) : "ISchemaTable";
+                
+                methodSignatures.Append($"{returnTypeName} {methodName}(");
                 
                 var parameters = overload.ConstructorInfo.Arguments;
                 for (int j = 0; j < parameters.Length; j++)
                 {
                     if (j > 0)
-                        description.Append(", ");
+                        methodSignatures.Append(", ");
                     
-                    description.Append($"{parameters[j].Type.Name} {parameters[j].Name}");
+                    methodSignatures.Append($"{parameters[j].Type.Name} {parameters[j].Name}");
                 }
                 
-                description.Append(")");
+                methodSignatures.Append(")");
             }
             
-            newTable.Add(new ObjectsRow([methodName, description.ToString()]));
+            // Get description from XML documentation if available
+            var description = GetMethodDescription(overloads[0]);
+            
+            newTable.Add(new ObjectsRow([methodSignatures.ToString(), description]));
         }
 
         return newTable;
+    }
+
+    private static string GetReturnTypeName(Type type)
+    {
+        // Check if type implements ISchemaTable
+        if (type.GetInterfaces().Any(i => i.Name == "ISchemaTable"))
+            return "ISchemaTable";
+        
+        // Check if type inherits from RowSource
+        var baseType = type.BaseType;
+        while (baseType != null)
+        {
+            if (baseType.Name == "RowSource")
+                return "RowSource";
+            baseType = baseType.BaseType;
+        }
+        
+        // Return the simple type name as fallback
+        return type.Name;
+    }
+
+    private static string GetMethodDescription(SchemaMethodInfo methodInfo)
+    {
+        // Try to get XML documentation from the constructor
+        // For now, return empty string as XML doc extraction requires additional setup
+        // This can be enhanced later to read from XML documentation files
+        return string.Empty;
     }
 
     private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
