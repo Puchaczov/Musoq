@@ -542,21 +542,23 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
         
-        // Check that method signatures are in the Method column
+        // Check that method signatures are in the Method column (library methods like Trim, Substring, etc.)
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         
-        // Verify that method signatures contain return types and method names
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("empty(")), "Should contain 'empty' method signature");
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("entities(")), "Should contain 'entities' method signature");
+        // Verify that we have library methods (these are standard library functions, not schema constructors)
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods like 'Trim'");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Substring(")), "Should contain library methods like 'Substring'");
         
-        // Verify that signatures include return types
+        // Verify that signatures include method names with parameters and return types
         foreach (var signature in methodSignatures)
         {
-            Assert.IsTrue(signature.Contains("ISchemaTable") || signature.Contains("RowSource"), 
-                $"Method signature should include return type: {signature}");
+            Assert.IsTrue(signature.Contains("(") && signature.Contains(")"), 
+                $"Method signature should include parentheses: {signature}");
+            Assert.IsTrue(signature.Contains(" "), 
+                $"Method signature should include return type and method name: {signature}");
         }
         
-        // Check that descriptions column exists (may be empty for now)
+        // Check that descriptions column exists
         foreach (var row in table)
         {
             var description = (string)row[1];
@@ -581,15 +583,14 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        // Find a method row with entities
-        var entitiesRow = table.FirstOrDefault(row => ((string)row[0]).Contains("entities("));
-        Assert.IsNotNull(entitiesRow, "Should have entities method");
+        // Find a method row with Trim (a common library method)
+        var trimRow = table.FirstOrDefault(row => ((string)row[0]).Contains("Trim("));
+        Assert.IsNotNull(trimRow, "Should have Trim method from library");
         
-        var methodSignature = (string)entitiesRow[0];
+        var methodSignature = (string)trimRow[0];
         // Method column should contain the full signature with return type
-        Assert.IsTrue(methodSignature.Contains("entities("), "Method should contain method signature");
-        Assert.IsTrue(methodSignature.Contains("ISchemaTable") || methodSignature.Contains("RowSource"), 
-            "Method signature should include return type");
+        Assert.IsTrue(methodSignature.Contains("Trim("), "Method should contain method signature");
+        Assert.IsTrue(methodSignature.Contains(" "), "Method signature should include return type and method name");
     }
 
     [TestMethod]
@@ -648,7 +649,7 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.IsGreaterThan(0, table.Count, "Should return methods even with empty source");
+        Assert.IsGreaterThan(0, table.Count, "Should return library methods even with empty source");
         Assert.AreEqual(2, table.Columns.Count(), "Should have Method and Description columns");
     }
 
@@ -674,7 +675,7 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        // Should only return methods from schema A
+        // Should return library methods (same for all schemas)
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns");
     }
@@ -730,20 +731,12 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Columns.Count(), "Should have exactly 2 columns: Method and Description");
-        Assert.AreEqual(2, table.Count, "Should return exactly 2 methods");
+        Assert.IsGreaterThan(0, table.Count, "Should return library methods");
         
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         
-        // Method column now contains full signatures with return types
-        Assert.IsTrue(methodSignatures[0].Contains("method1("), "Should contain 'method1' method signature");
-        Assert.IsTrue(methodSignatures[1].Contains("method2("), "Should contain 'method2' method signature");
-        
-        // Verify signatures include return types
-        foreach (var signature in methodSignatures)
-        {
-            Assert.IsTrue(signature.Contains("ISchemaTable") || signature.Contains("RowSource") || !string.IsNullOrEmpty(signature), 
-                $"Method signature should be valid: {signature}");
-        }
+        // Verify we get library methods (like Trim, Substring, etc.)
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods");
         
         // Check descriptions are present
         foreach (var row in table)
@@ -774,15 +767,12 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
         
-        Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one library method");
         
-        // Verify that method signatures contain return types
+        // Verify that method signatures are from library
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
-        foreach (var signature in methodSignatures)
-        {
-            Assert.IsTrue(signature.Contains("ISchemaTable") || signature.Contains("RowSource"), 
-                $"Method signature should include return type: {signature}");
-        }
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
+            "Should contain library methods");
     }
 
     [TestMethod]
@@ -808,10 +798,10 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
         
-        // Verify that method signatures are present
+        // Verify that method signatures are from library
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("empty(")), "Should contain 'empty' method signature");
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("entities(")), "Should contain 'entities' method signature");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
+            "Should contain library methods");
     }
 
     [TestMethod]
@@ -836,8 +826,8 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         
         // Arguments should be ignored, same output as desc methods #A
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("empty(")), "Should contain 'empty' method signature");
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("entities(")), "Should contain 'entities' method signature");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")), 
+            "Should contain library methods");
     }
     
     private static dynamic CreateDynamicObject(int id, string name, decimal value)
