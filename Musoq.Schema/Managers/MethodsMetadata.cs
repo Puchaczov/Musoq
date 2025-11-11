@@ -136,7 +136,6 @@ public class MethodsMetadata
     /// <returns>Method that fits requirements.</returns>
     public MethodInfo GetMethod(string name, Type[] methodArgs, Type entityType)
     {
-        // Add defensive programming checks
         if (string.IsNullOrWhiteSpace(name))
             throw SchemaArgumentException.ForEmptyString(nameof(name), "resolving a method");
 
@@ -145,7 +144,6 @@ public class MethodsMetadata
 
         if (!TryGetAnnotatedMethod(name, methodArgs, entityType, out var index, out var actualMethodName))
         {
-            // Get available method signatures for better error message
             var availableSignatures = GetAvailableMethodSignatures(name);
             var providedTypes = methodArgs.Select(arg => arg?.Name ?? "null").ToArray();
             
@@ -288,14 +286,12 @@ public class MethodsMetadata
     /// <returns>True if some method fits, else false.</returns>
     private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index, out string actualMethodName)
     {
-        // First, try exact match
         if (TryGetAnnotatedMethodByExactName(name, methodArgs, entityType, out index))
         {
             actualMethodName = name;
             return true;
         }
         
-        // Then try case-insensitive match
         var normalizedName = MethodNameNormalizer.Normalize(name);
         if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName))
         {
@@ -707,8 +703,7 @@ public class MethodsMetadata
     public IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllMethods()
     {
         return _methods.ToDictionary(
-            kvp => kvp.Key,
-            kvp => (IReadOnlyList<MethodInfo>)kvp.Value.AsReadOnly()
+            kvp => kvp.Key, IReadOnlyList<MethodInfo> (kvp) => kvp.Value.AsReadOnly()
         );
     }
 }

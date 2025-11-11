@@ -68,6 +68,8 @@ public static class EvaluationHelper
 
     public static Table GetMethodsForSchema(ISchema schema, RuntimeContext runtimeContext)
     {
+        runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
+        
         var libraryMethods = schema.GetAllLibraryMethods();
 
         var newTable = new Table("desc", [
@@ -79,6 +81,8 @@ public static class EvaluationHelper
         {
             foreach (var methodInfo in methodInfos)
             {
+                runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
+                
                 var signature = CSharpTypeNameHelper.FormatMethodSignature(methodInfo);
                 var description = GetXmlDocumentation(methodInfo);
                 
@@ -138,19 +142,19 @@ public static class EvaluationHelper
         sb.Append(method.Name);
 
         var parameters = method.GetParameters();
-        if (parameters.Length > 0)
+        if (parameters.Length <= 0) 
+            return sb.ToString();
+        
+        sb.Append('(');
+        for (int i = 0; i < parameters.Length; i++)
         {
-            sb.Append('(');
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                if (i > 0)
-                    sb.Append(',');
+            if (i > 0)
+                sb.Append(',');
                 
-                var paramType = parameters[i].ParameterType;
-                sb.Append(GetTypeName(paramType));
-            }
-            sb.Append(')');
+            var paramType = parameters[i].ParameterType;
+            sb.Append(GetTypeName(paramType));
         }
+        sb.Append(')');
 
         return sb.ToString();
     }
@@ -168,34 +172,12 @@ public static class EvaluationHelper
             return $"{genericTypeName}{{{string.Join(",", genericArgs.Select(GetTypeName))}}}";
         }
 
-        if (type.IsArray)
-        {
-            var elementType = type.GetElementType();
-            return GetTypeName(elementType) + "[]";
-        }
-
-        return type.FullName ?? type.Name;
-    }
-
-    private static string GetReturnTypeName(Type type)
-    {
-        if (type.GetInterfaces().Any(i => i.Name == "ISchemaTable"))
-            return "ISchemaTable";
+        if (!type.IsArray) 
+            return type.FullName ?? type.Name;
         
-        var baseType = type.BaseType;
-        while (baseType != null)
-        {
-            if (baseType.Name == "RowSource")
-                return "RowSource";
-            baseType = baseType.BaseType;
-        }
-        
-        return type.Name;
-    }
+        var elementType = type.GetElementType();
+        return GetTypeName(elementType) + "[]";
 
-    private static string GetMethodDescription(SchemaMethodInfo methodInfo)
-    {
-        return string.Empty;
     }
 
     private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
