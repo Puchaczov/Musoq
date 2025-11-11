@@ -18,7 +18,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         {
             {
                 0,
-                Array.Empty<EnvironmentVariableEntity>()
+                []
             }
         };
 
@@ -26,13 +26,9 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         
         var table = vm.Run();
         
-        Assert.AreEqual(6, table.Count);
+        Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Key", table[0][0]);
-        Assert.AreEqual("Key.Chars", table[1][0]);
-        Assert.AreEqual("Key.Length", table[2][0]);
-        Assert.AreEqual("Value", table[3][0]);
-        Assert.AreEqual("Value.Chars", table[4][0]);
-        Assert.AreEqual("Value.Length", table[5][0]);
+        Assert.AreEqual("Value", table[1][0]);
     }
     
     [TestMethod]

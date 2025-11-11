@@ -699,4 +699,16 @@ public class MethodsMetadata
             return $"{methodName}({string.Join(", ", paramTypes)})";
         }).ToArray();
     }
+
+    /// <summary>
+    /// Gets all registered methods with their metadata.
+    /// </summary>
+    /// <returns>Dictionary of method names to their MethodInfo list.</returns>
+    public IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllMethods()
+    {
+        return _methods.ToDictionary(
+            kvp => kvp.Key,
+            kvp => (IReadOnlyList<MethodInfo>)kvp.Value.AsReadOnly()
+        );
+    }
 }

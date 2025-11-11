@@ -158,6 +158,8 @@ public class Lexer : LexerBase<Token>
                 return TokenType.On;
             case IsToken.TokenText:
                 return TokenType.Is;
+            case FunctionsToken.TokenText:
+                return TokenType.Functions;
             case NullToken.TokenText:
                 return TokenType.Null;
             case TrueToken.TokenText:
@@ -347,6 +349,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
         public static readonly string KAsc = Format(Keyword, AscToken.TokenText);
         public static readonly string KDesc = Format(Keyword, DescToken.TokenText);
+        public static readonly string KFunctions = Format(Keyword, FunctionsToken.TokenText);
         public static readonly string KTrue = Format(Keyword, TrueToken.TokenText);
         public static readonly string KFalse = Format(Keyword, FalseToken.TokenText);
         public static readonly string KIn = Format(Keyword, InToken.TokenText);
@@ -383,6 +386,7 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KComment),
             new(TokenRegexDefinition.KDecimalOrInteger),
             new(TokenRegexDefinition.KDesc),
+            new(TokenRegexDefinition.KFunctions),
             new(TokenRegexDefinition.KAsc),
             new(TokenRegexDefinition.KLike, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KNotLike, RegexOptions.IgnoreCase),
@@ -639,6 +643,8 @@ public class Lexer : LexerBase<Token>
                     new TextSpan(Position, match.Groups[1].Value.Length));
             case TokenType.Is:
                 return new IsToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.Functions:
+                return new FunctionsToken(new TextSpan(Position, tokenText.Length));
             case TokenType.Null:
                 return new NullToken(new TextSpan(Position, tokenText.Length));
             case TokenType.OrderBy:
