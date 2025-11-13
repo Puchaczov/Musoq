@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.RegularExpressions;
+using Musoq.Parser.Helpers;
 
 namespace Musoq.Parser.Lexing;
 
@@ -164,8 +166,12 @@ public abstract class LexerBase<TToken> : ILexer<TToken>
             }
 
             if (matchedDefinition == null)
-                throw new UnknownTokenException(Position, Input[Position],
-                    $"Unrecognized token exception at {Position} for {Input[Position..]}");
+            {
+                var unparsedQuery = Input[Position..];
+                var suggestions = ExtractKeywordSuggestions(unparsedQuery);
+                throw new UnknownTokenException(Position, unparsedQuery, suggestions);
+            }
+                
             var token = GetToken(matchedDefinition, match);
             Position += matchLength;
 
@@ -183,13 +189,40 @@ public abstract class LexerBase<TToken> : ILexer<TToken>
         var match = regex.Match(Input, Position);
             
         if (!match.Success || match.Index - Position != 0)
-            throw new UnknownTokenException(Position, Input[Position],
-                $"Unrecognized token exception at {Position} for {Input[Position..]}");
+        {
+            var unparsedQuery = Input[Position..];
+            var suggestions = ExtractKeywordSuggestions(unparsedQuery);
+            throw new UnknownTokenException(Position, unparsedQuery, suggestions);
+        }
             
         var token = getToken(match.Value);
         Position += match.Length;
             
         return AssignTokenOfType(() => token);
+    }
+
+    /// <summary>
+    /// Extracts potential keyword from the unparsed query and finds similar valid keywords.
+    /// </summary>
+    /// <param name="unparsedQuery">The remaining unparsed query text.</param>
+    /// <returns>A list of keyword suggestions.</returns>
+    private static string[] ExtractKeywordSuggestions(string unparsedQuery)
+    {
+        if (string.IsNullOrWhiteSpace(unparsedQuery))
+            return Array.Empty<string>();
+
+        // Extract the first word-like token (likely the mistyped keyword)
+        var firstToken = new string(unparsedQuery
+            .TrimStart()
+            .TakeWhile(c => char.IsLetterOrDigit(c) || c == '_')
+            .ToArray());
+
+        if (string.IsNullOrEmpty(firstToken))
+            return Array.Empty<string>();
+
+        // Find similar keywords
+        var suggestions = StringSimilarity.FindClosestMatches(firstToken, KeywordRegistry.AllKeywords);
+        return suggestions.ToArray();
     }
 
     #endregion
