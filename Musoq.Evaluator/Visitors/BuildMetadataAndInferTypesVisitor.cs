@@ -175,14 +175,18 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(nodeFactory(left, right));
     }
 
-    private void VisitBinaryOperatorWithDateTimeConversion<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory) where T : Node
     {
-        var right = SafePop(Nodes, "VisitBinaryOperatorWithDateTimeConversion (right)");
-        var left = SafePop(Nodes, "VisitBinaryOperatorWithDateTimeConversion (left)");
+        var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
+        var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
         
         // Check for datetime vs string comparison and transform if needed
         var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
         var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
+        
+        // Check for numeric type conversions (string/object columns vs numeric literals)
+        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight);
+        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft);
         
         Nodes.Push(nodeFactory(transformedLeft, transformedRight));
     }
@@ -252,6 +256,128 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         return accessMethodNode;
     }
 
+    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode)
+    {
+        // Only transform if candidateNode is a string or object type and otherNode is a numeric literal
+        if (!IsStringOrObjectType(candidateNode.ReturnType) || !IsNumericLiteralNode(otherNode, out var targetType))
+            return candidateNode;
+
+        // Determine the most precise numeric type to convert to
+        return CreateNumericConversionNode(candidateNode, targetType, IsObjectType(candidateNode.ReturnType));
+    }
+
+    private bool IsStringOrObjectType(Type type)
+    {
+        return type == typeof(string) || type == typeof(object);
+    }
+
+    private bool IsObjectType(Type type)
+    {
+        return type == typeof(object);
+    }
+
+    private bool IsNumericLiteralNode(Node node, out Type numericType)
+    {
+        switch (node)
+        {
+            case IntegerNode intNode:
+                numericType = intNode.ReturnType; // Could be byte, sbyte, short, ushort, int, uint, long, ulong
+                return true;
+            case DecimalNode:
+                numericType = typeof(decimal);
+                return true;
+            case HexIntegerNode hexNode:
+                numericType = hexNode.ReturnType;
+                return true;
+            case BinaryIntegerNode binNode:
+                numericType = binNode.ReturnType;
+                return true;
+            case OctalIntegerNode octNode:
+                numericType = octNode.ReturnType;
+                return true;
+            default:
+                numericType = null;
+                return false;
+        }
+    }
+
+    private Type GetMostPreciseNumericType(Type type1, Type type2)
+    {
+        // Promotion hierarchy: decimal > double > float > ulong > long > uint > int > ushort > short > byte > sbyte
+        var typeOrder = new Dictionary<Type, int>
+        {
+            { typeof(sbyte), 1 },
+            { typeof(byte), 2 },
+            { typeof(short), 3 },
+            { typeof(ushort), 4 },
+            { typeof(int), 5 },
+            { typeof(uint), 6 },
+            { typeof(long), 7 },
+            { typeof(ulong), 8 },
+            { typeof(float), 9 },
+            { typeof(double), 10 },
+            { typeof(decimal), 11 }
+        };
+
+        var order1 = typeOrder.GetValueOrDefault(type1, 0);
+        var order2 = typeOrder.GetValueOrDefault(type2, 0);
+
+        return order1 > order2 ? type1 : type2;
+    }
+
+    private AccessMethodNode CreateNumericConversionNode(Node sourceNode, Type targetType, bool isObjectType)
+    {
+        string methodName;
+        Type[] parameterTypes;
+
+        // Always use strict conversion methods for both string and object types
+        // The strict methods handle all input types including strings, objects, and numeric types
+        // They reject precision loss and return null on overflow/invalid values
+        
+        // Determine the target type and method name
+        // Promote to the most precise type to avoid data loss
+        if (targetType == typeof(decimal))
+        {
+            methodName = "TryConvertToDecimalStrict";
+            parameterTypes = [sourceNode.ReturnType];
+        }
+        else if (targetType == typeof(long) || targetType == typeof(ulong))
+        {
+            methodName = "TryConvertToInt64Strict";
+            parameterTypes = [sourceNode.ReturnType];
+        }
+        else // int, uint, short, ushort, byte, sbyte
+        {
+            methodName = "TryConvertToInt32Strict";
+            parameterTypes = [sourceNode.ReturnType];
+        }
+
+        // Create function token
+        var functionToken = new FunctionToken(methodName, new TextSpan(0, methodName.Length));
+        
+        // Create arguments list with the source node
+        var args = new ArgsListNode([sourceNode]);
+        
+        // Get the MethodInfo for the conversion function from LibraryBase
+        var libraryBaseType = typeof(LibraryBase);
+        var method = libraryBaseType.GetMethod(methodName, parameterTypes);
+        
+        if (method == null)
+        {
+            throw new InvalidOperationException($"Method {methodName}({sourceNode.ReturnType.Name}) not found in LibraryBase");
+        }
+        
+        // Create AccessMethodNode for the conversion function
+        var accessMethodNode = new AccessMethodNode(
+            functionToken, 
+            args, 
+            ArgsListNode.Empty, 
+            false,
+            method);
+
+        return accessMethodNode;
+    }
+
     public virtual void Visit(DescNode node)
     {
         var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
@@ -307,32 +433,32 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(EqualityNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new EqualityNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new EqualityNode(left, right));
     }
 
     public virtual void Visit(GreaterOrEqualNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new GreaterOrEqualNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right));
     }
 
     public virtual void Visit(LessOrEqualNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new LessOrEqualNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right));
     }
 
     public virtual void Visit(GreaterNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new GreaterNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right));
     }
 
     public virtual void Visit(LessNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new LessNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right));
     }
 
     public virtual void Visit(DiffNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new DiffNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new DiffNode(left, right));
     }
 
     public virtual void Visit(NotNode node)
