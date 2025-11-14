@@ -566,6 +566,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
+        
         Assert.AreEqual("1", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
@@ -581,38 +582,26 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Population", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
 
-        Assert.AreEqual("Self", table.Columns.ElementAt(5).ColumnName);
-        Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(5).ColumnType);
+        Assert.AreEqual("Money", table.Columns.ElementAt(5).ColumnName);
+        Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(5).ColumnType);
 
-        Assert.AreEqual("Money", table.Columns.ElementAt(6).ColumnName);
-        Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(6).ColumnType);
+        Assert.AreEqual("Month", table.Columns.ElementAt(6).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(6).ColumnType);
 
-        Assert.AreEqual("Month", table.Columns.ElementAt(7).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(7).ColumnType);
+        Assert.AreEqual("Time", table.Columns.ElementAt(7).ColumnName);
+        Assert.AreEqual(typeof(DateTime), table.Columns.ElementAt(7).ColumnType);
 
-        Assert.AreEqual("Time", table.Columns.ElementAt(8).ColumnName);
-        Assert.AreEqual(typeof(DateTime), table.Columns.ElementAt(8).ColumnType);
+        Assert.AreEqual("Id", table.Columns.ElementAt(8).ColumnName);
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(8).ColumnType);
 
-        Assert.AreEqual("Id", table.Columns.ElementAt(9).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(9).ColumnType);
+        Assert.AreEqual("NullableValue", table.Columns.ElementAt(9).ColumnName);
+        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(9).ColumnType);
 
-        Assert.AreEqual("NullableValue", table.Columns.ElementAt(10).ColumnName);
-        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(10).ColumnType);
-            
-        Assert.AreEqual("Array", table.Columns.ElementAt(11).ColumnName);
-        Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(11).ColumnType);
-            
-        Assert.AreEqual("Other", table.Columns.ElementAt(12).ColumnName);
-        Assert.AreEqual(typeof(BasicEntity), table.Columns.ElementAt(12).ColumnType);
-            
-        Assert.AreEqual("Dictionary", table.Columns.ElementAt(13).ColumnName);
-        Assert.AreEqual(typeof(Dictionary<string, string>), table.Columns.ElementAt(13).ColumnType);
+        Assert.AreEqual("Name2", table.Columns.ElementAt(10).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(10).ColumnType);
 
-        Assert.AreEqual("Name2", table.Columns.ElementAt(14).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(14).ColumnType);
-
-        Assert.AreEqual("SelfString", table.Columns.ElementAt(15).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(15).ColumnType);
+        Assert.AreEqual("SelfString", table.Columns.ElementAt(11).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(11).ColumnType);
 
         Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
@@ -622,17 +611,13 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             (string)entry.Values[2] == "CRACOV" &&
             (string)entry.Values[3] == "POLAND" &&
             (decimal)entry.Values[4] == 250m &&
-            entry.Values[5] == entity &&
-            (decimal)entry.Values[6] == 1.23m &&
-            (string)entry.Values[7] == "JANUARY" &&
-            (DateTime)entry.Values[8] == DateTime.MaxValue &&
-            (int)entry.Values[9] == 5 &&
-            entry.Values[10] == null &&
-            entry.Values[11] != null &&
-            entry.Values[12] == entity &&
-            entry.Values[13] != null &&
-            (string)entry.Values[14] == "ABBA" &&
-            (string)entry.Values[15] == "TEST STRING"
+            (decimal)entry.Values[5] == 1.23m &&
+            (string)entry.Values[6] == "JANUARY" &&
+            (DateTime)entry.Values[7] == DateTime.MaxValue &&
+            (int)entry.Values[8] == 5 &&
+            entry.Values[9] == null &&
+            (string)entry.Values[10] == "ABBA" &&
+            (string)entry.Values[11] == "TEST STRING"
         ), "Entry should match all specified values");
     }
 

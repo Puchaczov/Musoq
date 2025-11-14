@@ -121,16 +121,34 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
     }
 
     /// <summary>
+    /// Checks if a column should be included when expanding the star (*) operator.
+    /// Filters out arrays and non-primitive types.
+    /// <para>
+    /// In this context, a "primitive type" is defined by the <see cref="IsPrimitiveType"/> method,
+    /// which returns true for .NET primitive types, as well as <see cref="string"/>, <see cref="decimal"/>, and <see cref="DateTime"/>.
+    /// </para>
+    /// </summary>
+    public static bool ShouldIncludeColumnInStarExpansion(Type columnType)
+    {
+        if (columnType == null) return false;
+
+        if (columnType.IsArray)
+            return false;
+
+        var typeToCheck = StripNullable(columnType);
+
+        return IsPrimitiveType(typeToCheck);
+    }
+
+    /// <summary>
     /// Checks if a type is a generic enumerable and returns the element type.
     /// </summary>
     public static bool IsGenericEnumerable(Type type, out Type elementType)
     {
         elementType = null;
     
-        // Check if the type is a generic type
         if (!type.IsGenericType) return false;
             
-        // Get all interfaces implemented by the type
         var interfaces = type.GetInterfaces().Concat([type]);
         
         foreach (var interfaceType in interfaces)

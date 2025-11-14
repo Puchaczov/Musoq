@@ -2051,9 +2051,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         var generatedColumns = GetOrCreateGeneratedColumns(generatedColumnIdentifier);
 
+        var positionCounter = 0;
         for (var i = 0; i < table.Columns.Length; i++)
         {
-            AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], i, generatedColumnIdentifier, generatedColumns);
+            if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i].ColumnType))
+            {
+                AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, generatedColumnIdentifier, generatedColumns);
+            }
         }
 
         UpdateUsedColumns(generatedColumnIdentifier, table);
@@ -2068,9 +2072,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             var generatedColumns = GetOrCreateGeneratedColumns(tableIdentifier);
 
+            var positionCounter = 0;
             for (var i = 0; i < table.Columns.Length; i++)
             {
-                AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], i, tableIdentifier, generatedColumns, isCompoundTable: true);
+                if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i].ColumnType))
+                {
+                    AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, tableIdentifier, generatedColumns, isCompoundTable: true);
+                }
             }
 
             UpdateUsedColumns(tableIdentifier, table);
