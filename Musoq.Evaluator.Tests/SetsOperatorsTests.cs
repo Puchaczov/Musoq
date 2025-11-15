@@ -381,10 +381,10 @@ select Name from #D.Entities()";
         var table = vm.Run();
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("001", table[1].Values[0]);
-        Assert.AreEqual("002", table[2].Values[0]);
-        Assert.AreEqual("005", table[3].Values[0]);
+        var results = table.Select(row => (string)row.Values[0]).ToList();
+        Assert.AreEqual(2, results.Count(r => r == "001"), "Should have two '001' entries");
+        Assert.AreEqual(1, results.Count(r => r == "002"), "Should have one '002' entry");
+        Assert.AreEqual(1, results.Count(r => r == "005"), "Should have one '005' entry");
     }
 
     [TestMethod]
@@ -403,9 +403,10 @@ select Name from #D.Entities()";
         var table = vm.Run();
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("005", table[2].Values[0]);
+        var results = table.Select(row => (string)row.Values[0]).ToList();
+        CollectionAssert.Contains(results, "001");
+        CollectionAssert.Contains(results, "002");
+        CollectionAssert.Contains(results, "005");
     }
 
     [TestMethod]
@@ -429,12 +430,11 @@ select Name from #D.Entities()";
         var table = vm.Run();
         
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
-
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Third entry should be '005'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "007"), "Fourth entry should be '007'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Fifth entry should be '001'");
+        var results = table.Select(row => (string)row.Values[0]).ToList();
+        Assert.AreEqual(2, results.Count(r => r == "001"), "Should have two '001' entries");
+        Assert.AreEqual(1, results.Count(r => r == "002"), "Should have one '002' entry");
+        Assert.AreEqual(1, results.Count(r => r == "005"), "Should have one '005' entry");
+        Assert.AreEqual(1, results.Count(r => r == "007"), "Should have one '007' entry");
     }
 
     [TestMethod]

@@ -320,10 +320,10 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                 index++;
             }
             
-            chunkedSource.Add(new List<IObjectResolver>
-            {
+            chunkedSource.Add(
+            [
                 new DynamicDictionaryResolver(accessMap, indexToNameMap)
-            });
+            ]);
         }
     }
 }

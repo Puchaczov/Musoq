@@ -20,7 +20,7 @@ public class UnknownSchema : SchemaBase
     public UnknownSchema()
         : base(SchemaName, CreateLibrary())
     {
-        _values = new List<dynamic>();
+        _values = [];
     }
     
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)

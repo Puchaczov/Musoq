@@ -38,7 +38,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         item3.Price = "70";
         item3.Name = "PriceTooHigh";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -67,13 +67,13 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         item3.Size = "2500";
         item3.Name = "Large";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
-        var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
-        Assert.AreEqual("Large", results[0]);
-        Assert.AreEqual("Small", results[1]);
+        var results = table.Select(row => row.Values[0]).Cast<string>().ToList();
+        CollectionAssert.Contains(results, "Large");
+        CollectionAssert.Contains(results, "Small");
     }
 
     [TestMethod]
@@ -98,7 +98,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         item3.Size = "2500";
         item3.Name = "TooLarge";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -126,7 +126,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         item2.LongValue = "9223372036854775807";
         item2.Name = "NoMatch";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);

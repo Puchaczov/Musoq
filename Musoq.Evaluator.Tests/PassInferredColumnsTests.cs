@@ -26,10 +26,10 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         second.Country = "USA";
         second.ContactNumber = "987654321";
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
 
         var table = vm.Run();
         
@@ -70,10 +70,10 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         second.Country = "USA";
         second.ContactNumber = "987654321";
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
 
         var table = vm.Run();
         
@@ -118,10 +118,10 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         third.Country = "Poland";
         third.ContactNumber = "31233133";
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second, third
-        });
+        ]);
         
         var table = vm.Run();
         
@@ -183,10 +183,10 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         third.Country = "Poland";
         third.ContactNumber = "31233133";
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second, third
-        });
+        ]);
         
         var table = vm.Run();
         

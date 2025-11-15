@@ -26,7 +26,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item3.Size = "2500";
         item3.Name = "Large";
 
-        return new List<dynamic> { item1, item2, item3 };
+        return [item1, item2, item3];
     }
 
     private static List<dynamic> CreateTestDataWithObjectColumn()
@@ -43,7 +43,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item3.Value = (object)2500;
         item3.Name = "Large";
 
-        return new List<dynamic> { item1, item2, item3 };
+        return [item1, item2, item3];
     }
 
     private static List<dynamic> CreateTestDataWithObjectFloatColumn()
@@ -60,7 +60,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item3.Price = (object)30.00; // Exact value, no precision loss
         item3.Name = "Item C";
 
-        return new List<dynamic> { item1, item2, item3 };
+        return [item1, item2, item3];
     }
 
     #endregion
@@ -235,7 +235,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Count = (object)5;
         item2.Name = "NonZero";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -302,7 +302,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Value = (object)100; // Exact integer
         item2.Name = "Int";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         // Only the exact integer match should be returned (strict mode rejects 100.5)
@@ -451,7 +451,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Size = "2000";
         item2.Name = "Valid";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         // Only valid numeric string should match
@@ -477,7 +477,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Value = (object)2000;
         item2.Name = "Valid";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         // Only non-null value should match
@@ -503,7 +503,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Size = "100";
         item2.Name = "NoMatch";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -528,7 +528,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Size = "20";
         item2.Name = "Large";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         // 0b1111 = 15, so Size > 15 should return "20"
@@ -554,7 +554,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item1.Size = "9223372036854775807";
         item1.Name = "MaxLong";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1 });
+        var vm = CreateAndRunVirtualMachine(query, [item1]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -583,7 +583,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Size = "1500";
         item2.Name = "Valid";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -608,7 +608,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Value = (object)1000.0;
         item2.Name = "Valid";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -633,7 +633,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Value = (object)1000.0;
         item2.Name = "Valid";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -658,7 +658,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Size = "1000";
         item2.Name = "Valid";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -683,7 +683,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Value = (object)1000;
         item2.Name = "Exact";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -708,7 +708,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Value = (object)(-100);
         item2.Name = "Exact";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -729,7 +729,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item1.Size = "-2147483648";
         item1.Name = "MinInt32";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1 });
+        var vm = CreateAndRunVirtualMachine(query, [item1]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -750,7 +750,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item1.Size = "2147483647";
         item1.Name = "MaxInt32";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1 });
+        var vm = CreateAndRunVirtualMachine(query, [item1]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -775,7 +775,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Size = "-0";
         item2.Name = "NegativeZero";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
@@ -799,7 +799,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Value = (object)2147483647.1;
         item2.Name = "WithFraction";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);

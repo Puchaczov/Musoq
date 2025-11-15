@@ -175,7 +175,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(nodeFactory(left, right));
     }
 
-    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, bool isRelationalComparison = false) where T : Node
     {
         var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
         var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
@@ -185,8 +185,8 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
         
         // Check for numeric type conversions (string/object columns vs numeric literals)
-        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight);
-        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft);
+        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison);
+        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison);
         
         Nodes.Push(nodeFactory(transformedLeft, transformedRight));
     }
@@ -256,14 +256,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         return accessMethodNode;
     }
 
-    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode)
+    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison)
     {
         // Only transform if candidateNode is a string or object type and otherNode is a numeric literal
         if (!IsStringOrObjectType(candidateNode.ReturnType) || !IsNumericLiteralNode(otherNode, out var targetType))
             return candidateNode;
 
         // Determine the most precise numeric type to convert to
-        return CreateNumericConversionNode(candidateNode, targetType, IsObjectType(candidateNode.ReturnType));
+        return CreateNumericConversionNode(candidateNode, targetType, IsObjectType(candidateNode.ReturnType), isRelationalComparison);
     }
 
     private bool IsStringOrObjectType(Type type)
@@ -325,30 +325,26 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         return order1 > order2 ? type1 : type2;
     }
 
-    private AccessMethodNode CreateNumericConversionNode(Node sourceNode, Type targetType, bool isObjectType)
+    private AccessMethodNode CreateNumericConversionNode(Node sourceNode, Type targetType, bool isObjectType, bool isRelationalComparison)
     {
         string methodName;
         Type[] parameterTypes;
 
-        // Always use strict conversion methods for both string and object types
-        // The strict methods handle all input types including strings, objects, and numeric types
-        // They reject precision loss and return null on overflow/invalid values
-        
-        // Determine the target type and method name
-        // Promote to the most precise type to avoid data loss
+        var useComparisonMode = isObjectType && isRelationalComparison;
+
         if (targetType == typeof(decimal))
         {
-            methodName = "TryConvertToDecimalStrict";
+            methodName = useComparisonMode ? "TryConvertToDecimalComparison" : "TryConvertToDecimalStrict";
             parameterTypes = [sourceNode.ReturnType];
         }
         else if (targetType == typeof(long) || targetType == typeof(ulong))
         {
-            methodName = "TryConvertToInt64Strict";
+            methodName = useComparisonMode ? "TryConvertToInt64Comparison" : "TryConvertToInt64Strict";
             parameterTypes = [sourceNode.ReturnType];
         }
         else // int, uint, short, ushort, byte, sbyte
         {
-            methodName = "TryConvertToInt32Strict";
+            methodName = useComparisonMode ? "TryConvertToInt32Comparison" : "TryConvertToInt32Strict";
             parameterTypes = [sourceNode.ReturnType];
         }
 
@@ -438,22 +434,22 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(GreaterOrEqualNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right), isRelationalComparison: true);
     }
 
     public virtual void Visit(LessOrEqualNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right), isRelationalComparison: true);
     }
 
     public virtual void Visit(GreaterNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right), isRelationalComparison: true);
     }
 
     public virtual void Visit(LessNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right), isRelationalComparison: true);
     }
 
     public virtual void Visit(DiffNode node)

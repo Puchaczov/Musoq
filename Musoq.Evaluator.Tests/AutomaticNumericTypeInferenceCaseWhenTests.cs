@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema.Unknown;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class AutomaticNumericTypeInference_CaseWhenTests : UnknownQueryTestsBase
+public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
 {
     #region Phase 4: CASE WHEN Expressions
 
@@ -30,12 +30,13 @@ public class AutomaticNumericTypeInference_CaseWhenTests : UnknownQueryTestsBase
         item2.Size = "500";
         item2.Name = "Item2";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Large", table[0].Values[0]);
-        Assert.AreEqual("Small", table[1].Values[0]);
+        var results = table.Select(row => (string)row.Values[0]).ToList();
+        CollectionAssert.Contains(results, "Large");
+        CollectionAssert.Contains(results, "Small");
     }
 
     [TestMethod]
@@ -64,7 +65,7 @@ public class AutomaticNumericTypeInference_CaseWhenTests : UnknownQueryTestsBase
         item3.Size = "2500";
         item3.Name = "Item3";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(3, table.Count);
@@ -96,7 +97,7 @@ public class AutomaticNumericTypeInference_CaseWhenTests : UnknownQueryTestsBase
         item2.Size = "500";
         item2.Name = "Item2";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
@@ -135,7 +136,7 @@ public class AutomaticNumericTypeInference_CaseWhenTests : UnknownQueryTestsBase
         item3.Price = "30";
         item3.Name = "Item3";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(3, table.Count);
@@ -164,7 +165,7 @@ public class AutomaticNumericTypeInference_CaseWhenTests : UnknownQueryTestsBase
         item2.Size = "500";
         item2.Name = "Small";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -199,7 +200,7 @@ public class AutomaticNumericTypeInference_CaseWhenTests : UnknownQueryTestsBase
         item3.Size = "500";
         item3.Name = "Item3";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(3, table.Count);

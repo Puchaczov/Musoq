@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema.Unknown;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class AutomaticNumericTypeInference_AggregateTests : UnknownQueryTestsBase
+public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
 {
     #region Phase 3: Aggregate Functions and GROUP BY
 
@@ -34,7 +34,7 @@ public class AutomaticNumericTypeInference_AggregateTests : UnknownQueryTestsBas
         item3.Category = "B";
         item3.Size = "300";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -63,7 +63,7 @@ public class AutomaticNumericTypeInference_AggregateTests : UnknownQueryTestsBas
         item3.Category = "B";
         item3.Size = "300";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
@@ -95,7 +95,7 @@ public class AutomaticNumericTypeInference_AggregateTests : UnknownQueryTestsBas
         item3.Size = "1500";
         item3.Price = "150";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -124,7 +124,7 @@ public class AutomaticNumericTypeInference_AggregateTests : UnknownQueryTestsBas
         item3.Size = "2000";
         item3.Name = "Large2";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2, item3 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -157,7 +157,7 @@ public class AutomaticNumericTypeInference_AggregateTests : UnknownQueryTestsBas
         item2.Price = "50";
         item2.Quantity = "10";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic> { item1, item2 });
+        var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
