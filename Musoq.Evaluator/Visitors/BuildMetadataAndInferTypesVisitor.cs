@@ -2060,13 +2060,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             if (greatestCommonSubtype.IsAssignableTo(currentType))
             {
+                greatestCommonSubtype = currentType;
                 continue;
             }
 
-            greatestCommonSubtype =
-                currentType.IsAssignableTo(greatestCommonSubtype)
-                    ? currentType
-                    : BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(greatestCommonSubtype, currentType);
+            if (currentType.IsAssignableTo(greatestCommonSubtype))
+            {
+                continue;
+            }
+
+            greatestCommonSubtype = BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(greatestCommonSubtype, currentType);
         }
 
         return greatestCommonSubtype;

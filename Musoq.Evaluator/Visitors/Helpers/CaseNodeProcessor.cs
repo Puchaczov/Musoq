@@ -35,18 +35,14 @@ namespace Musoq.Evaluator.Visitors.Helpers
             if (typesToInstantiate == null)
                 throw new ArgumentNullException(nameof(typesToInstantiate));
 
-            // Build the if-else chain
             var ifStatements = BuildIfElseChain(node, nodes);
             
-            // Chain the if statements together
             var finalIfStatement = ChainIfStatements(ifStatements);
             
-            // Generate method declaration
             var methodName = $"CaseWhen_{caseWhenMethodIndex++}";
             var (parameters, callParameters) = BuildMethodParameters(typesToInstantiate, oldType, queryAlias);
             var method = CreateCaseMethod(methodName, node.ReturnType, parameters, finalIfStatement);
             
-            // Create method invocation
             var methodInvocation = SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray());
             
             return new ProcessCaseNodeResult
@@ -63,9 +59,9 @@ namespace Musoq.Evaluator.Visitors.Helpers
         private static List<IfStatementSyntax> BuildIfElseChain(CaseNode node, Stack<SyntaxNode> nodes)
         {
             var ifStatements = new List<IfStatementSyntax>();
+            var returnTypeIdentifier = SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(node.ReturnType));
             
-            // Process the first when-then pair
-            var then = nodes.Pop();
+            var then = CastToReturnType(nodes.Pop(), returnTypeIdentifier);
             var when = nodes.Pop();
             
             var ifStatement = SyntaxFactory.IfStatement(
@@ -76,10 +72,9 @@ namespace Musoq.Evaluator.Visitors.Helpers
             
             ifStatements.Add(ifStatement);
             
-            // Process remaining when-then pairs
             for (int i = 1; i < node.WhenThenPairs.Length; i++)
             {
-                then = nodes.Pop();
+                then = CastToReturnType(nodes.Pop(), returnTypeIdentifier);
                 when = nodes.Pop();
                 
                 ifStatements.Add(
@@ -90,8 +85,7 @@ namespace Musoq.Evaluator.Visitors.Helpers
                                 SyntaxFactory.ReturnStatement((ExpressionSyntax)then)))));
             }
             
-            // Add the else clause to the last if statement
-            var elseNode = nodes.Pop();
+            var elseNode = CastToReturnType(nodes.Pop(), returnTypeIdentifier);
             ifStatements[^1] = ifStatements[^1].WithElse(
                 SyntaxFactory.ElseClause(
                     SyntaxFactory.Block(
@@ -99,6 +93,14 @@ namespace Musoq.Evaluator.Visitors.Helpers
                             SyntaxFactory.ReturnStatement((ExpressionSyntax)elseNode)))));
             
             return ifStatements;
+        }
+
+        /// <summary>
+        /// Casts an expression to the return type of the CASE expression
+        /// </summary>
+        private static SyntaxNode CastToReturnType(SyntaxNode expression, TypeSyntax returnType)
+        {
+            return SyntaxFactory.CastExpression(returnType, (ExpressionSyntax)expression);
         }
 
         /// <summary>
@@ -111,7 +113,6 @@ namespace Musoq.Evaluator.Visitors.Helpers
             
             IfStatementSyntax newIfStatement = null;
             
-            // Chain from the end backwards
             for (var i = ifStatements.Count - 2; i >= 1; i -= 1)
             {
                 var first = ifStatements[i];
@@ -124,7 +125,6 @@ namespace Musoq.Evaluator.Visitors.Helpers
                 ifStatements.Add(newIfStatement);
             }
             
-            // Handle the final two statements
             if (ifStatements.Count == 2)
             {
                 var first = ifStatements[0];
@@ -153,12 +153,10 @@ namespace Musoq.Evaluator.Visitors.Helpers
             var parameters = new List<ParameterSyntax>();
             var callParameters = new List<ArgumentSyntax>();
             
-            // Add score parameter
             parameters.Add(
                 SyntaxFactory.Parameter(SyntaxFactory.Identifier("score"))
                     .WithType(SyntaxFactory.IdentifierName(nameof(IObjectResolver))));
             
-            // Determine row variable name based on method access type
             var rowVariableName = oldType switch
             {
                 MethodAccessType.TransformingQuery => $"{queryAlias}Row",
@@ -168,7 +166,6 @@ namespace Musoq.Evaluator.Visitors.Helpers
             
             callParameters.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(rowVariableName)));
             
-            // Add instantiated type parameters
             foreach (var variableNameTypePair in typesToInstantiate)
             {
                 parameters.Add(
