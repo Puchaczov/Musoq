@@ -33,11 +33,18 @@ using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOnlyDictionary<string, string[]> columns, ILogger<BuildMetadataAndInferTypesVisitor> logger)
+public class BuildMetadataAndInferTypesVisitor(
+    ISchemaProvider provider, 
+    IReadOnlyDictionary<string, string[]> columns, 
+    ILogger<BuildMetadataAndInferTypesVisitor> logger,
+    ILibraryMethodResolver methodResolver = null)
     : DefensiveVisitorBase, IAwareExpressionVisitor
 {
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
+    
+    private readonly ILibraryMethodResolver _methodResolver = methodResolver ?? new LibraryMethodResolver();
+    private readonly TypeConversionNodeFactory _nodeFactory = new TypeConversionNodeFactory(methodResolver ?? new LibraryMethodResolver());
 
     /// <summary>
     /// Gets the name of this visitor for error reporting.
@@ -175,203 +182,63 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(nodeFactory(left, right));
     }
 
-    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, bool isRelationalComparison = false) where T : Node
+    /// <summary>
+    /// Visits a binary operator node and applies appropriate type conversions.
+    /// Handles three conversion strategies:
+    /// 1. Runtime operators for object types (delegates to runtime conversion methods)
+    /// 2. DateTime string literal conversion (converts string literals to DateTime when comparing with DateTime columns)
+    /// 3. Numeric string/object conversion (converts strings to numbers when used with numeric literals)
+    /// </summary>
+    /// <typeparam name="T">Type of binary operator node to create.</typeparam>
+    /// <param name="nodeFactory">Factory function to create the binary operator node.</param>
+    /// <param name="isRelationalComparison">True for comparison operators (&gt;, &lt;, &gt;=, &lt;=).</param>
+    /// <param name="isArithmeticOperation">True for arithmetic operators (+, -, *, /, %).</param>
+    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, bool isRelationalComparison = false, bool isArithmeticOperation = false) where T : Node
     {
         var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
         var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
         
-        // Check for datetime vs string comparison and transform if needed
+        var leftIsObject = TypeConversionNodeFactory.IsObjectType(left.ReturnType);
+        var rightIsObject = TypeConversionNodeFactory.IsObjectType(right.ReturnType);
+        
+        if (leftIsObject || rightIsObject)
+        {
+            var operatorMethodName = _nodeFactory.GetRuntimeOperatorMethodName(nodeFactory);
+            if (operatorMethodName != null)
+            {
+                var wrappedNode = _nodeFactory.CreateRuntimeOperatorCall(operatorMethodName, left, right);
+                Nodes.Push(wrappedNode);
+                return;
+            }
+        }
+        
         var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
         var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
         
-        // Check for numeric type conversions (string/object columns vs numeric literals)
-        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison);
-        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison);
+        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison, isArithmeticOperation);
+        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison, isArithmeticOperation);
         
         Nodes.Push(nodeFactory(transformedLeft, transformedRight));
     }
 
     private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)
     {
-        // Only transform if candidateNode is a string literal (WordNode) and otherNode is a datetime type
-        if (candidateNode is not WordNode stringNode || !IsDateTimeType(otherNode.ReturnType))
+        if (candidateNode is not WordNode stringNode || !TypeConversionNodeFactory.IsDateTimeType(otherNode.ReturnType))
             return candidateNode;
 
-        // Create AccessMethodNode for the appropriate conversion function
-        return CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
+        return _nodeFactory.CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
     }
 
-    private bool IsDateTimeType(Type type)
+    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison, bool isArithmeticOperation)
     {
-        return type == typeof(DateTime) || type == typeof(DateTime?) ||
-               type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?) ||
-               type == typeof(TimeSpan) || type == typeof(TimeSpan?);
-    }
+        var shouldTransform = (isRelationalComparison || isArithmeticOperation) 
+            ? isArithmeticOperation ? TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType) : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
+            : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType);
 
-    private AccessMethodNode CreateDateTimeConversionNode(Type targetType, string stringValue)
-    {
-        string methodName;
-        
-        if (targetType == typeof(DateTime) || targetType == typeof(DateTime?))
-        {
-            methodName = "ToDateTime";
-        }
-        else if (targetType == typeof(DateTimeOffset) || targetType == typeof(DateTimeOffset?))
-        {
-            methodName = "ToDateTimeOffset";
-        }
-        else if (targetType == typeof(TimeSpan) || targetType == typeof(TimeSpan?))
-        {
-            methodName = "ToTimeSpan";
-        }
-        else
-        {
-            throw new InvalidOperationException($"Unsupported datetime type: {targetType}");
-        }
-
-        // Create function token
-        var functionToken = new FunctionToken(methodName, new TextSpan(0, methodName.Length));
-        
-        // Create arguments list with the string literal
-        var stringLiteralNode = new WordNode(stringValue);
-        var args = new ArgsListNode([stringLiteralNode]);
-        
-        // Get the MethodInfo for the conversion function from LibraryBase
-        var libraryBaseType = typeof(LibraryBase);
-        var method = libraryBaseType.GetMethod(methodName, [typeof(string)]);
-        
-        if (method == null)
-        {
-            throw new InvalidOperationException($"Method {methodName}(string) not found in LibraryBase");
-        }
-        
-        // Create AccessMethodNode for the conversion function
-        var accessMethodNode = new AccessMethodNode(
-            functionToken, 
-            args, 
-            ArgsListNode.Empty, 
-            false,
-            method);
-
-        return accessMethodNode;
-    }
-
-    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison)
-    {
-        // Only transform if candidateNode is a string or object type and otherNode is a numeric literal
-        if (!IsStringOrObjectType(candidateNode.ReturnType) || !IsNumericLiteralNode(otherNode, out var targetType))
+        if (!shouldTransform || !TypeConversionNodeFactory.IsNumericLiteralNode(otherNode, out var targetType))
             return candidateNode;
 
-        // Determine the most precise numeric type to convert to
-        return CreateNumericConversionNode(candidateNode, targetType, IsObjectType(candidateNode.ReturnType), isRelationalComparison);
-    }
-
-    private bool IsStringOrObjectType(Type type)
-    {
-        return type == typeof(string) || type == typeof(object);
-    }
-
-    private bool IsObjectType(Type type)
-    {
-        return type == typeof(object);
-    }
-
-    private bool IsNumericLiteralNode(Node node, out Type numericType)
-    {
-        switch (node)
-        {
-            case IntegerNode intNode:
-                numericType = intNode.ReturnType; // Could be byte, sbyte, short, ushort, int, uint, long, ulong
-                return true;
-            case DecimalNode:
-                numericType = typeof(decimal);
-                return true;
-            case HexIntegerNode hexNode:
-                numericType = hexNode.ReturnType;
-                return true;
-            case BinaryIntegerNode binNode:
-                numericType = binNode.ReturnType;
-                return true;
-            case OctalIntegerNode octNode:
-                numericType = octNode.ReturnType;
-                return true;
-            default:
-                numericType = null;
-                return false;
-        }
-    }
-
-    private Type GetMostPreciseNumericType(Type type1, Type type2)
-    {
-        // Promotion hierarchy: decimal > double > float > ulong > long > uint > int > ushort > short > byte > sbyte
-        var typeOrder = new Dictionary<Type, int>
-        {
-            { typeof(sbyte), 1 },
-            { typeof(byte), 2 },
-            { typeof(short), 3 },
-            { typeof(ushort), 4 },
-            { typeof(int), 5 },
-            { typeof(uint), 6 },
-            { typeof(long), 7 },
-            { typeof(ulong), 8 },
-            { typeof(float), 9 },
-            { typeof(double), 10 },
-            { typeof(decimal), 11 }
-        };
-
-        var order1 = typeOrder.GetValueOrDefault(type1, 0);
-        var order2 = typeOrder.GetValueOrDefault(type2, 0);
-
-        return order1 > order2 ? type1 : type2;
-    }
-
-    private AccessMethodNode CreateNumericConversionNode(Node sourceNode, Type targetType, bool isObjectType, bool isRelationalComparison)
-    {
-        string methodName;
-        Type[] parameterTypes;
-
-        var useComparisonMode = isObjectType && isRelationalComparison;
-
-        if (targetType == typeof(decimal))
-        {
-            methodName = useComparisonMode ? "TryConvertToDecimalComparison" : "TryConvertToDecimalStrict";
-            parameterTypes = [sourceNode.ReturnType];
-        }
-        else if (targetType == typeof(long) || targetType == typeof(ulong))
-        {
-            methodName = useComparisonMode ? "TryConvertToInt64Comparison" : "TryConvertToInt64Strict";
-            parameterTypes = [sourceNode.ReturnType];
-        }
-        else // int, uint, short, ushort, byte, sbyte
-        {
-            methodName = useComparisonMode ? "TryConvertToInt32Comparison" : "TryConvertToInt32Strict";
-            parameterTypes = [sourceNode.ReturnType];
-        }
-
-        // Create function token
-        var functionToken = new FunctionToken(methodName, new TextSpan(0, methodName.Length));
-        
-        // Create arguments list with the source node
-        var args = new ArgsListNode([sourceNode]);
-        
-        // Get the MethodInfo for the conversion function from LibraryBase
-        var libraryBaseType = typeof(LibraryBase);
-        var method = libraryBaseType.GetMethod(methodName, parameterTypes);
-        
-        if (method == null)
-        {
-            throw new InvalidOperationException($"Method {methodName}({sourceNode.ReturnType.Name}) not found in LibraryBase");
-        }
-        
-        // Create AccessMethodNode for the conversion function
-        var accessMethodNode = new AccessMethodNode(
-            functionToken, 
-            args, 
-            ArgsListNode.Empty, 
-            false,
-            method);
-
-        return accessMethodNode;
+        return _nodeFactory.CreateNumericConversionNode(candidateNode, targetType, TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), isRelationalComparison, isArithmeticOperation);
     }
 
     public virtual void Visit(DescNode node)
@@ -382,27 +249,51 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(StarNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new StarNode(left, right), nameof(Visit) + nameof(StarNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new StarNode(left, right), isArithmeticOperation: true);
     }
 
     public virtual void Visit(FSlashNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new FSlashNode(left, right), nameof(Visit) + nameof(FSlashNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new FSlashNode(left, right), isArithmeticOperation: true);
     }
 
     public virtual void Visit(ModuloNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new ModuloNode(left, right), nameof(Visit) + nameof(ModuloNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new ModuloNode(left, right), isArithmeticOperation: true);
     }
 
     public virtual void Visit(AddNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new AddNode(left, right), nameof(Visit) + nameof(AddNode));
+        // Special handling for Add: supports both numeric addition and string concatenation
+        var right = SafePop(Nodes, "Visit(AddNode) right");
+        var left = SafePop(Nodes, "Visit(AddNode) left");
+        
+        // Check if either operand is a string literal (WordNode is used for string literals)
+        var leftIsStringLiteral = left is WordNode;
+        var rightIsStringLiteral = right is WordNode;
+        
+        // If either operand is a string literal, this is string concatenation
+        // Let C# handle object-to-string conversion naturally
+        if (leftIsStringLiteral || rightIsStringLiteral)
+        {
+            // Push back and use no-conversion path for string concatenation
+            Nodes.Push(left);
+            Nodes.Push(right);
+            VisitBinaryOperatorWithSafePop((l, r) => new AddNode(l, r), nameof(Visit) + nameof(AddNode));
+        }
+        else
+        {
+            // Both operands are numeric or object containing numeric values
+            // Apply NumericOnly type conversion (rejects strings, allows boxed numeric types)
+            Nodes.Push(left);
+            Nodes.Push(right);
+            VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), isArithmeticOperation: true);
+        }
     }
 
     public virtual void Visit(HyphenNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new HyphenNode(left, right), nameof(Visit) + nameof(HyphenNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new HyphenNode(left, right), isArithmeticOperation: true);
     }
 
     public virtual void Visit(AndNode node)
@@ -429,7 +320,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(EqualityNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new EqualityNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new EqualityNode(left, right), isRelationalComparison: false);
     }
 
     public virtual void Visit(GreaterOrEqualNode node)
@@ -454,7 +345,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(DiffNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new DiffNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new DiffNode(left, right), isRelationalComparison: false);
     }
 
     public virtual void Visit(NotNode node)
