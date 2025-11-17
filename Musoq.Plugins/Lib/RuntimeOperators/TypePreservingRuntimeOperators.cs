@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Lib.RuntimeOperators;
 /// Runtime operators that preserve operand types using smart type promotion rules.
 /// Priority: decimal > double > long.
 /// </summary>
-public class TypePreservingRuntimeOperators : IRuntimeOperators
+internal class TypePreservingRuntimeOperators : IRuntimeOperators
 {
     private readonly ITypeConverter _numericConverter;
     private readonly ITypeConverter _comparisonConverter;

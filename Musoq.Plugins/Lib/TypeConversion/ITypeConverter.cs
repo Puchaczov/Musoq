@@ -6,7 +6,7 @@ namespace Musoq.Plugins.Lib.TypeConversion;
 /// Interface for type conversion strategies that handle converting object values to specific numeric types.
 /// Supports different conversion modes: strict (no precision loss), comparison (lossy), and numeric-only (reject strings).
 /// </summary>
-public interface ITypeConverter
+internal interface ITypeConverter
 {
     /// <summary>
     /// Attempts to convert a value to Int32 with the converter's specific validation rules.

@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Lib.TypeConversion;
 /// Type converter that rejects any conversions resulting in precision loss.
 /// Used for equality comparisons where exact values matter.
 /// </summary>
-public class StrictTypeConverter : ITypeConverter
+internal class StrictTypeConverter : ITypeConverter
 {
     /// <summary>
     /// Generic helper method for strict type conversions that reject any precision loss.

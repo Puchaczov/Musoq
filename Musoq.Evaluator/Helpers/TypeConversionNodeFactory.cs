@@ -19,7 +19,7 @@ public class TypeConversionNodeFactory
     /// Initializes a new instance of the TypeConversionNodeFactory.
     /// </summary>
     /// <param name="methodResolver">Method resolver for looking up LibraryBase methods.</param>
-    public TypeConversionNodeFactory(ILibraryMethodResolver methodResolver)
+    internal TypeConversionNodeFactory(ILibraryMethodResolver methodResolver)
     {
         _methodResolver = methodResolver ?? throw new ArgumentNullException(nameof(methodResolver));
     }

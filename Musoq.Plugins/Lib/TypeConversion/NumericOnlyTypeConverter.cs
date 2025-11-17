@@ -6,7 +6,7 @@ namespace Musoq.Plugins.Lib.TypeConversion;
 /// Type converter that rejects strings entirely and only accepts boxed numeric types.
 /// Used for arithmetic operations on System.Object columns.
 /// </summary>
-public class NumericOnlyTypeConverter : ITypeConverter
+internal class NumericOnlyTypeConverter : ITypeConverter
 {
     /// <summary>
     /// Generic helper method for numeric-only type conversions that reject strings entirely.

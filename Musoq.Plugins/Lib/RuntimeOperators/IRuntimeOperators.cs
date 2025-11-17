@@ -4,7 +4,7 @@ namespace Musoq.Plugins.Lib.RuntimeOperators;
 /// Interface for runtime operator implementations that handle dynamic type operations on object columns.
 /// Provides arithmetic, comparison, and equality operations with automatic type conversion.
 /// </summary>
-public interface IRuntimeOperators
+internal interface IRuntimeOperators
 {
     /// <summary>
     /// Applies addition operator (left + right) with type-preserving conversion.

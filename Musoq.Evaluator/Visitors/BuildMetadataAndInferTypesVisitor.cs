@@ -33,18 +33,45 @@ using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class BuildMetadataAndInferTypesVisitor(
-    ISchemaProvider provider, 
-    IReadOnlyDictionary<string, string[]> columns, 
-    ILogger<BuildMetadataAndInferTypesVisitor> logger,
-    ILibraryMethodResolver methodResolver = null)
-    : DefensiveVisitorBase, IAwareExpressionVisitor
+public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExpressionVisitor
 {
+    private readonly ISchemaProvider _provider;
+    private readonly IReadOnlyDictionary<string, string[]> _columns;
+    private readonly ILogger<BuildMetadataAndInferTypesVisitor> _logger;
+
+    /// <summary>
+    /// Public constructor for external use (e.g., from Musoq.Converter).
+    /// </summary>
+    public BuildMetadataAndInferTypesVisitor(
+        ISchemaProvider _provider, 
+        IReadOnlyDictionary<string, string[]> _columns, 
+        ILogger<BuildMetadataAndInferTypesVisitor> _logger)
+        : this(_provider, _columns, _logger, null)
+    {
+    }
+
+    /// <summary>
+    /// Internal constructor that allows dependency injection of ILibraryMethodResolver.
+    /// Used for testing and advanced scenarios.
+    /// </summary>
+    internal BuildMetadataAndInferTypesVisitor(
+        ISchemaProvider provider, 
+        IReadOnlyDictionary<string, string[]> columns, 
+        ILogger<BuildMetadataAndInferTypesVisitor> logger,
+        ILibraryMethodResolver methodResolver)
+    {
+        _provider = provider;
+        _columns = columns;
+        _logger = logger;
+        _methodResolver = methodResolver ?? new LibraryMethodResolver();
+        _nodeFactory = new TypeConversionNodeFactory(_methodResolver);
+    }
+    
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
     
-    private readonly ILibraryMethodResolver _methodResolver = methodResolver ?? new LibraryMethodResolver();
-    private readonly TypeConversionNodeFactory _nodeFactory = new TypeConversionNodeFactory(methodResolver ?? new LibraryMethodResolver());
+    private readonly ILibraryMethodResolver _methodResolver;
+    private readonly TypeConversionNodeFactory _nodeFactory;
 
     /// <summary>
     /// Gets the name of this visitor for error reporting.
@@ -186,7 +213,7 @@ public class BuildMetadataAndInferTypesVisitor(
     /// Visits a binary operator node and applies appropriate type conversions.
     /// Handles three conversion strategies:
     /// 1. Runtime operators for object types (delegates to runtime conversion methods)
-    /// 2. DateTime string literal conversion (converts string literals to DateTime when comparing with DateTime columns)
+    /// 2. DateTime string literal conversion (converts string literals to DateTime when comparing with DateTime _columns)
     /// 3. Numeric string/object conversion (converts strings to numbers when used with numeric literals)
     /// </summary>
     /// <typeparam name="T">Type of binary operator node to create.</typeparam>
@@ -1076,7 +1103,7 @@ public class BuildMetadataAndInferTypesVisitor(
 
     public virtual void Visit(SchemaFromNode node)
     {
-        var schema = provider.GetSchema(node.Schema);
+        var schema = _provider.GetSchema(node.Schema);
         const bool hasExternallyProvidedTypes = false;
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
@@ -1098,11 +1125,11 @@ public class BuildMetadataAndInferTypesVisitor(
             node.Method,
             new RuntimeContext(
                 CancellationToken.None,
-                columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
+                _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
                     .ToArray(),
                 environmentVariables,
                 (aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes),
-                logger
+                _logger
             ),
             _schemaFromArgs.ToArray()) : new DynamicTable([]);
 
@@ -1159,7 +1186,7 @@ public class BuildMetadataAndInferTypesVisitor(
 
         if (_aliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
-            schema = provider.GetSchema(schemaFrom.Schema);
+            schema = _provider.GetSchema(schemaFrom.Schema);
             table = GetTableFromSchema(schema, schemaFrom);
         }
         else
@@ -1202,7 +1229,7 @@ public class BuildMetadataAndInferTypesVisitor(
 
         if (_aliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
-            schema = provider.GetSchema(schemaFrom.Schema);
+            schema = _provider.GetSchema(schemaFrom.Schema);
         }
         else
         {
@@ -1233,7 +1260,7 @@ public class BuildMetadataAndInferTypesVisitor(
         var table = _explicitlyDefinedTables[tableName];
         const bool hasExternallyProvidedTypes = true;
 
-        var schema = provider.GetSchema(schemaInfo.Schema);
+        var schema = _provider.GetSchema(schemaInfo.Schema);
 
         AddAssembly(schema.GetType().Assembly);
 
@@ -1256,7 +1283,7 @@ public class BuildMetadataAndInferTypesVisitor(
                 table.Columns,
                 RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode),
                 (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes),
-                logger
+                _logger
             ),
             _schemaFromArgs.ToArray()
         ) ?? table;
@@ -2141,10 +2168,10 @@ public class BuildMetadataAndInferTypesVisitor(
     {
         var runtimeContext = new RuntimeContext(
             CancellationToken.None,
-            columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
+            _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
             RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, schemaFrom),
             (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false),
-            logger
+            _logger
         );
 
         return schema.GetTableByName(schemaFrom.Method, runtimeContext, schemaFrom.Parameters);
@@ -2209,12 +2236,12 @@ public class BuildMetadataAndInferTypesVisitor(
         _cachedSetFields.TryAdd(currentSetOperatorKey, leftFields);
     }
 
-    private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns)
+    private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] _columns)
     {
         var library = new TransitionLibrary();
         var candidates = new StringBuilder();
 
-        var candidatesColumns = columns.Where(
+        var candidatesColumns = _columns.Where(
             col =>
                 library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
                 library.LevenshteinDistance(col.ColumnName, identifier) < 3).ToArray();
@@ -2380,7 +2407,7 @@ public class BuildMetadataAndInferTypesVisitor(
 
     private static ISchemaTable TurnTypeIntoTable(Type type)
     {   
-        var columns = new List<ISchemaColumn>();
+        var _columns = new List<ISchemaColumn>();
 
         Type nestedType;
         if (type.IsArray)
@@ -2408,10 +2435,10 @@ public class BuildMetadataAndInferTypesVisitor(
     
         foreach (var property in nestedType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
-            columns.Add(new SchemaColumn(property.Name, columns.Count, property.PropertyType));
+            _columns.Add(new SchemaColumn(property.Name, _columns.Count, property.PropertyType));
         }
     
-        return new DynamicTable(columns.ToArray(), nestedType);
+        return new DynamicTable(_columns.ToArray(), nestedType);
     }
 
     private static bool IsGenericEnumerable(Type type, out Type elementType)

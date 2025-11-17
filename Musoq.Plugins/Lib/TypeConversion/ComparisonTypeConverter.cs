@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Lib.TypeConversion;
 /// Type converter that allows precision loss but validates range constraints.
 /// Used for comparison operations (&gt;, &lt;, &gt;=, &lt;=) where approximate equality is acceptable.
 /// </summary>
-public class ComparisonTypeConverter : ITypeConverter
+internal class ComparisonTypeConverter : ITypeConverter
 {
     /// <summary>
     /// Generic helper method for comparison-mode type conversions that allow precision loss but validate range constraints.

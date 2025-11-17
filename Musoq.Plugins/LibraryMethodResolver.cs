@@ -7,7 +7,7 @@ namespace Musoq.Plugins;
 /// Default implementation of ILibraryMethodResolver that uses reflection on LibraryBase.
 /// Can be replaced with alternative implementations (e.g., cached, precompiled, mock for testing).
 /// </summary>
-public class LibraryMethodResolver : ILibraryMethodResolver
+internal class LibraryMethodResolver : ILibraryMethodResolver
 {
     private static readonly Type LibraryBaseType = typeof(LibraryBase);
 

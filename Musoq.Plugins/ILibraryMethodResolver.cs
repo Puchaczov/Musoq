@@ -8,7 +8,7 @@ namespace Musoq.Plugins;
 /// Decouples the visitor from direct reflection on LibraryBase type.
 /// Follows Dependency Inversion Principle (DIP) - high-level visitor depends on abstraction, not concrete LibraryBase.
 /// </summary>
-public interface ILibraryMethodResolver
+internal interface ILibraryMethodResolver
 {
     /// <summary>
     /// Resolves a method from LibraryBase by name and parameter types.
