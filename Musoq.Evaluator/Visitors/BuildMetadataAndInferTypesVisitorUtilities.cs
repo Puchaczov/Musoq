@@ -92,20 +92,16 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
         
         try
         {
-            // Arrays are indexable
             if (type.IsArray)
                 return true;
 
-            // Strings are indexable
             if (type == typeof(string))
                 return true;
 
-            // Check for indexer properties
             return type.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
         }
         catch (Exception ex) when (ex is NotSupportedException || ex is TypeLoadException)
         {
-            // If we can't access type properties due to type loading issues, assume not indexable
             return false;
         }
     }
@@ -117,7 +113,7 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
     {
         if (type == null) return false;
         
-        return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime);
+        return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime) || type == typeof(DateTimeOffset);
     }
 
     /// <summary>
@@ -125,7 +121,7 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
     /// Filters out arrays and non-primitive types.
     /// <para>
     /// In this context, a "primitive type" is defined by the <see cref="IsPrimitiveType"/> method,
-    /// which returns true for .NET primitive types, as well as <see cref="string"/>, <see cref="decimal"/>, and <see cref="DateTime"/>.
+    /// which returns true for .NET primitive types, as well as <see cref="string"/>, <see cref="decimal"/>, <see cref="DateTime"/>, and <see cref="DateTimeOffset"/>.
     /// </para>
     /// </summary>
     public static bool ShouldIncludeColumnInStarExpansion(Type columnType)

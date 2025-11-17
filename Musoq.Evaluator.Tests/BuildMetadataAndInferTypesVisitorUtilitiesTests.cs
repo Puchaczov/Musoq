@@ -443,6 +443,32 @@ public class BuildMetadataAndInferTypesVisitorUtilitiesTests
     }
 
     [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_DateTimeOffsetType_ReturnsTrue()
+    {
+        // Arrange
+        var dateTimeOffsetType = typeof(DateTimeOffset);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(dateTimeOffsetType);
+        
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_NullableDateTimeOffsetType_ReturnsTrue()
+    {
+        // Arrange
+        var nullableDateTimeOffsetType = typeof(DateTimeOffset?);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(nullableDateTimeOffsetType);
+        
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
     public void ShouldIncludeColumnInStarExpansion_NullableIntType_ReturnsTrue()
     {
         // Arrange
