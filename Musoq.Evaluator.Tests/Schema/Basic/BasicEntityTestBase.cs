@@ -92,7 +92,7 @@ public class BasicEntityTestBase
     private static IDictionary<string, IEnumerable<T>> CreateMockObjectFor<T>()
     {
         var mock = new Mock<IDictionary<string, IEnumerable<T>>>();
-        mock.Setup(f => f[It.IsAny<string>()]).Returns(new List<T>());
+        mock.Setup(f => f[It.IsAny<string>()]).Returns([]);
             
         return mock.Object;
     }

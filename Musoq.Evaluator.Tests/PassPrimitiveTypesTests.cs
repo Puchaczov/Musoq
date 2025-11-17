@@ -20,7 +20,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     {
         var query = "select 1 from #test.whatever(1, 2d, true, false, 'text')";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<TestEntity>(), (passedParams) =>
+        var vm = CreateAndRunVirtualMachine(query, [], (passedParams) =>
         {
             Assert.AreEqual(1, passedParams[0]);
             Assert.AreEqual(2m, passedParams[1]);
@@ -37,7 +37,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     {
         var query = "select PrimitiveArgumentsMethod(1, 2d, true, false, 'text') from #test.whatever()";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<TestEntity>(), (passedParams) =>
+        var vm = CreateAndRunVirtualMachine(query, [], (passedParams) =>
         {
             Assert.AreEqual(1L, passedParams[0]);
             Assert.AreEqual(2m, passedParams[1]);

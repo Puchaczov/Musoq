@@ -33,11 +33,45 @@ using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOnlyDictionary<string, string[]> columns, ILogger<BuildMetadataAndInferTypesVisitor> logger)
-    : DefensiveVisitorBase, IAwareExpressionVisitor
+public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExpressionVisitor
 {
+    private readonly ISchemaProvider _provider;
+    private readonly IReadOnlyDictionary<string, string[]> _columns;
+    private readonly ILogger<BuildMetadataAndInferTypesVisitor> _logger;
+
+    /// <summary>
+    /// Public constructor for external use (e.g., from Musoq.Converter).
+    /// </summary>
+    public BuildMetadataAndInferTypesVisitor(
+        ISchemaProvider _provider, 
+        IReadOnlyDictionary<string, string[]> _columns, 
+        ILogger<BuildMetadataAndInferTypesVisitor> _logger)
+        : this(_provider, _columns, _logger, null)
+    {
+    }
+
+    /// <summary>
+    /// Internal constructor that allows dependency injection of ILibraryMethodResolver.
+    /// Used for testing and advanced scenarios.
+    /// </summary>
+    internal BuildMetadataAndInferTypesVisitor(
+        ISchemaProvider provider, 
+        IReadOnlyDictionary<string, string[]> columns, 
+        ILogger<BuildMetadataAndInferTypesVisitor> logger,
+        ILibraryMethodResolver methodResolver)
+    {
+        _provider = provider;
+        _columns = columns;
+        _logger = logger;
+        _methodResolver = methodResolver ?? new LibraryMethodResolver();
+        _nodeFactory = new TypeConversionNodeFactory(_methodResolver);
+    }
+    
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
+    
+    private readonly ILibraryMethodResolver _methodResolver;
+    private readonly TypeConversionNodeFactory _nodeFactory;
 
     /// <summary>
     /// Gets the name of this visitor for error reporting.
@@ -175,81 +209,63 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(nodeFactory(left, right));
     }
 
-    private void VisitBinaryOperatorWithDateTimeConversion<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    /// <summary>
+    /// Visits a binary operator node and applies appropriate type conversions.
+    /// Handles three conversion strategies:
+    /// 1. Runtime operators for object types (delegates to runtime conversion methods)
+    /// 2. DateTime string literal conversion (converts string literals to DateTime when comparing with DateTime _columns)
+    /// 3. Numeric string/object conversion (converts strings to numbers when used with numeric literals)
+    /// </summary>
+    /// <typeparam name="T">Type of binary operator node to create.</typeparam>
+    /// <param name="nodeFactory">Factory function to create the binary operator node.</param>
+    /// <param name="isRelationalComparison">True for comparison operators (&gt;, &lt;, &gt;=, &lt;=).</param>
+    /// <param name="isArithmeticOperation">True for arithmetic operators (+, -, *, /, %).</param>
+    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, bool isRelationalComparison = false, bool isArithmeticOperation = false) where T : Node
     {
-        var right = SafePop(Nodes, "VisitBinaryOperatorWithDateTimeConversion (right)");
-        var left = SafePop(Nodes, "VisitBinaryOperatorWithDateTimeConversion (left)");
+        var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
+        var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
         
-        // Check for datetime vs string comparison and transform if needed
+        var leftIsObject = TypeConversionNodeFactory.IsObjectType(left.ReturnType);
+        var rightIsObject = TypeConversionNodeFactory.IsObjectType(right.ReturnType);
+        
+        if (leftIsObject || rightIsObject)
+        {
+            var operatorMethodName = _nodeFactory.GetRuntimeOperatorMethodName(nodeFactory);
+            if (operatorMethodName != null)
+            {
+                var wrappedNode = _nodeFactory.CreateRuntimeOperatorCall(operatorMethodName, left, right);
+                Nodes.Push(wrappedNode);
+                return;
+            }
+        }
+        
         var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
         var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
+        
+        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison, isArithmeticOperation);
+        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison, isArithmeticOperation);
         
         Nodes.Push(nodeFactory(transformedLeft, transformedRight));
     }
 
     private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)
     {
-        // Only transform if candidateNode is a string literal (WordNode) and otherNode is a datetime type
-        if (candidateNode is not WordNode stringNode || !IsDateTimeType(otherNode.ReturnType))
+        if (candidateNode is not WordNode stringNode || !TypeConversionNodeFactory.IsDateTimeType(otherNode.ReturnType))
             return candidateNode;
 
-        // Create AccessMethodNode for the appropriate conversion function
-        return CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
+        return _nodeFactory.CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
     }
 
-    private bool IsDateTimeType(Type type)
+    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison, bool isArithmeticOperation)
     {
-        return type == typeof(DateTime) || type == typeof(DateTime?) ||
-               type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?) ||
-               type == typeof(TimeSpan) || type == typeof(TimeSpan?);
-    }
+        var shouldTransform = (isRelationalComparison || isArithmeticOperation) 
+            ? isArithmeticOperation ? TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType) : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
+            : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType);
 
-    private AccessMethodNode CreateDateTimeConversionNode(Type targetType, string stringValue)
-    {
-        string methodName;
-        
-        if (targetType == typeof(DateTime) || targetType == typeof(DateTime?))
-        {
-            methodName = "ToDateTime";
-        }
-        else if (targetType == typeof(DateTimeOffset) || targetType == typeof(DateTimeOffset?))
-        {
-            methodName = "ToDateTimeOffset";
-        }
-        else if (targetType == typeof(TimeSpan) || targetType == typeof(TimeSpan?))
-        {
-            methodName = "ToTimeSpan";
-        }
-        else
-        {
-            throw new InvalidOperationException($"Unsupported datetime type: {targetType}");
-        }
+        if (!shouldTransform || !TypeConversionNodeFactory.IsNumericLiteralNode(otherNode, out var targetType))
+            return candidateNode;
 
-        // Create function token
-        var functionToken = new FunctionToken(methodName, new TextSpan(0, methodName.Length));
-        
-        // Create arguments list with the string literal
-        var stringLiteralNode = new WordNode(stringValue);
-        var args = new ArgsListNode([stringLiteralNode]);
-        
-        // Get the MethodInfo for the conversion function from LibraryBase
-        var libraryBaseType = typeof(LibraryBase);
-        var method = libraryBaseType.GetMethod(methodName, [typeof(string)]);
-        
-        if (method == null)
-        {
-            throw new InvalidOperationException($"Method {methodName}(string) not found in LibraryBase");
-        }
-        
-        // Create AccessMethodNode for the conversion function
-        var accessMethodNode = new AccessMethodNode(
-            functionToken, 
-            args, 
-            ArgsListNode.Empty, 
-            false,
-            method);
-
-        return accessMethodNode;
+        return _nodeFactory.CreateNumericConversionNode(candidateNode, targetType, TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), isRelationalComparison, isArithmeticOperation);
     }
 
     public virtual void Visit(DescNode node)
@@ -260,27 +276,51 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(StarNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new StarNode(left, right), nameof(Visit) + nameof(StarNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new StarNode(left, right), isArithmeticOperation: true);
     }
 
     public virtual void Visit(FSlashNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new FSlashNode(left, right), nameof(Visit) + nameof(FSlashNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new FSlashNode(left, right), isArithmeticOperation: true);
     }
 
     public virtual void Visit(ModuloNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new ModuloNode(left, right), nameof(Visit) + nameof(ModuloNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new ModuloNode(left, right), isArithmeticOperation: true);
     }
 
     public virtual void Visit(AddNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new AddNode(left, right), nameof(Visit) + nameof(AddNode));
+        // Special handling for Add: supports both numeric addition and string concatenation
+        var right = SafePop(Nodes, "Visit(AddNode) right");
+        var left = SafePop(Nodes, "Visit(AddNode) left");
+        
+        // Check if either operand is a string literal (WordNode is used for string literals)
+        var leftIsStringLiteral = left is WordNode;
+        var rightIsStringLiteral = right is WordNode;
+        
+        // If either operand is a string literal, this is string concatenation
+        // Let C# handle object-to-string conversion naturally
+        if (leftIsStringLiteral || rightIsStringLiteral)
+        {
+            // Push back and use no-conversion path for string concatenation
+            Nodes.Push(left);
+            Nodes.Push(right);
+            VisitBinaryOperatorWithSafePop((l, r) => new AddNode(l, r), nameof(Visit) + nameof(AddNode));
+        }
+        else
+        {
+            // Both operands are numeric or object containing numeric values
+            // Apply NumericOnly type conversion (rejects strings, allows boxed numeric types)
+            Nodes.Push(left);
+            Nodes.Push(right);
+            VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), isArithmeticOperation: true);
+        }
     }
 
     public virtual void Visit(HyphenNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new HyphenNode(left, right), nameof(Visit) + nameof(HyphenNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new HyphenNode(left, right), isArithmeticOperation: true);
     }
 
     public virtual void Visit(AndNode node)
@@ -307,32 +347,32 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(EqualityNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new EqualityNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new EqualityNode(left, right), isRelationalComparison: false);
     }
 
     public virtual void Visit(GreaterOrEqualNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new GreaterOrEqualNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right), isRelationalComparison: true);
     }
 
     public virtual void Visit(LessOrEqualNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new LessOrEqualNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right), isRelationalComparison: true);
     }
 
     public virtual void Visit(GreaterNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new GreaterNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right), isRelationalComparison: true);
     }
 
     public virtual void Visit(LessNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new LessNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right), isRelationalComparison: true);
     }
 
     public virtual void Visit(DiffNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new DiffNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new DiffNode(left, right), isRelationalComparison: false);
     }
 
     public virtual void Visit(NotNode node)
@@ -1063,7 +1103,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public virtual void Visit(SchemaFromNode node)
     {
-        var schema = provider.GetSchema(node.Schema);
+        var schema = _provider.GetSchema(node.Schema);
         const bool hasExternallyProvidedTypes = false;
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
@@ -1085,11 +1125,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             node.Method,
             new RuntimeContext(
                 CancellationToken.None,
-                columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
+                _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
                     .ToArray(),
                 environmentVariables,
                 (aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes),
-                logger
+                _logger
             ),
             _schemaFromArgs.ToArray()) : new DynamicTable([]);
 
@@ -1146,7 +1186,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         if (_aliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
-            schema = provider.GetSchema(schemaFrom.Schema);
+            schema = _provider.GetSchema(schemaFrom.Schema);
             table = GetTableFromSchema(schema, schemaFrom);
         }
         else
@@ -1189,7 +1229,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         if (_aliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
-            schema = provider.GetSchema(schemaFrom.Schema);
+            schema = _provider.GetSchema(schemaFrom.Schema);
         }
         else
         {
@@ -1220,7 +1260,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         var table = _explicitlyDefinedTables[tableName];
         const bool hasExternallyProvidedTypes = true;
 
-        var schema = provider.GetSchema(schemaInfo.Schema);
+        var schema = _provider.GetSchema(schemaInfo.Schema);
 
         AddAssembly(schema.GetType().Assembly);
 
@@ -1243,7 +1283,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 table.Columns,
                 RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode),
                 (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes),
-                logger
+                _logger
             ),
             _schemaFromArgs.ToArray()
         ) ?? table;
@@ -2128,10 +2168,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
         var runtimeContext = new RuntimeContext(
             CancellationToken.None,
-            columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
+            _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
             RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, schemaFrom),
             (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false),
-            logger
+            _logger
         );
 
         return schema.GetTableByName(schemaFrom.Method, runtimeContext, schemaFrom.Parameters);
@@ -2196,12 +2236,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _cachedSetFields.TryAdd(currentSetOperatorKey, leftFields);
     }
 
-    private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns)
+    private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] _columns)
     {
         var library = new TransitionLibrary();
         var candidates = new StringBuilder();
 
-        var candidatesColumns = columns.Where(
+        var candidatesColumns = _columns.Where(
             col =>
                 library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
                 library.LevenshteinDistance(col.ColumnName, identifier) < 3).ToArray();
@@ -2367,7 +2407,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     private static ISchemaTable TurnTypeIntoTable(Type type)
     {   
-        var columns = new List<ISchemaColumn>();
+        var _columns = new List<ISchemaColumn>();
 
         Type nestedType;
         if (type.IsArray)
@@ -2395,10 +2435,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     
         foreach (var property in nestedType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
-            columns.Add(new SchemaColumn(property.Name, columns.Count, property.PropertyType));
+            _columns.Add(new SchemaColumn(property.Name, _columns.Count, property.PropertyType));
         }
     
-        return new DynamicTable(columns.ToArray(), nestedType);
+        return new DynamicTable(_columns.ToArray(), nestedType);
     }
 
     private static bool IsGenericEnumerable(Type type, out Type elementType)

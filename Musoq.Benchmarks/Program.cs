@@ -1,13 +1,11 @@
 ﻿using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Running;
+using Musoq.Benchmarks;
 using Musoq.Benchmarks.Components;
 
 #if DEBUG
-    BenchmarkRunner.Run<ExecutionBenchmark>(
-        new DebugInProcessConfig().AddFilter(
-            new NameFilter(name => name.Contains(nameof(ExecutionBenchmark.ComputeSimpleSelect_WithParallelization_10MbOfData_Profiles))))
-    );
+    BenchmarkRunner.Run<ConversionBenchmark>(new DebugInProcessConfig());
 #else
-    BenchmarkRunner.Run<ExecutionBenchmark>();
+    BenchmarkRunner.Run<ConversionBenchmark>();
 #endif

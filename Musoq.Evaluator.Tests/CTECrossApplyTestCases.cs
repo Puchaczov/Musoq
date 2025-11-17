@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class CTECrossApplyTestCases : GenericEntityTestBase
+public class CteCrossApplyTestCases : GenericEntityTestBase
 {
     [TestMethod]
     public void CTE_WithCrossApply_ShouldNotThrowKeyNotFoundException()

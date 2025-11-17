@@ -1,11 +1,12 @@
 ﻿using BenchmarkDotNet.Attributes;
+using Musoq.Benchmarks.Components;
 using Musoq.Benchmarks.Helpers;
 using Musoq.Benchmarks.Schema.Country;
 using Musoq.Benchmarks.Schema.Profiles;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Tables;
 
-namespace Musoq.Benchmarks.Components;
+namespace Musoq.Benchmarks;
 
 public class ExecutionBenchmark : BenchmarkBase
 {

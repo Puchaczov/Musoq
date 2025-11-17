@@ -148,8 +148,8 @@ public class ArithmeticTests : BasicEntityTestBase
     [TestMethod]
     public void VeryLongArithmeticChain_ShouldEvaluateCorrectly()
     {
-        var expected = System.Linq.Enumerable.Range(1, 50).Sum();
-        var expr = string.Join(" + ", System.Linq.Enumerable.Range(1, 50).Select(i => i.ToString()));
+        var expected = Enumerable.Range(1, 50).Sum();
+        var expr = string.Join(" + ", Enumerable.Range(1, 50).Select(i => i.ToString()));
         TestMethodTemplate(expr, expected);
     }
     
@@ -192,8 +192,8 @@ public class ArithmeticTests : BasicEntityTestBase
     [TestMethod]
     public void ExtremeLongExpression_ShouldEvaluateCorrectly()
     {
-        var expected = System.Linq.Enumerable.Range(1, 100).Sum();
-        var expr = string.Join(" + ", System.Linq.Enumerable.Range(1, 100).Select(i => i.ToString()));
+        var expected = Enumerable.Range(1, 100).Sum();
+        var expr = string.Join(" + ", Enumerable.Range(1, 100).Select(i => i.ToString()));
         TestMethodTemplate(expr, expected);
     }
     

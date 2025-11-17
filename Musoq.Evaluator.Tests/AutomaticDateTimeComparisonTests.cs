@@ -372,10 +372,10 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         second.EventDate = new DateTime(2022, 12, 31);
         second.Name = "Event 2";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
 
         var table = vm.Run();
 
@@ -405,10 +405,10 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         second.EventDate = new DateTime(2024, 1, 5);
         second.Name = "Event 2";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
 
         var table = vm.Run();
 
@@ -876,7 +876,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         ((IDictionary<string, object>)later)[fieldName] = testData.LaterValue;
         ((IDictionary<string, object>)later)["Name"] = "Later Event";
 
-        return new List<dynamic> { earlier, equal, later };
+        return [earlier, equal, later];
     }
 
     #endregion

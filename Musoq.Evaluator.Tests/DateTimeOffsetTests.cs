@@ -25,10 +25,10 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         dynamic second = new ExpandoObject();
         second.Date = new DateTimeOffset(new DateTime(2023, 2, 1));
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
         var table = vm.Run();
         
@@ -55,10 +55,10 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         dynamic second = new ExpandoObject();
         second.Date = new DateTimeOffset(new DateTime(2023, 2, 1));
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
         var table = vm.Run();
         
@@ -84,10 +84,10 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         first.Date1 = new DateTimeOffset(new DateTime(2023, 1, 1));
         first.Date2 = new DateTimeOffset(new DateTime(2023, 1, 1));
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first
-        });
+        ]);
         
         var table = vm.Run();
         
@@ -113,10 +113,10 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         first.Date1 = new DateTimeOffset(new DateTime(2023, 1, 1));
         first.Date2 = new DateTimeOffset(new DateTime(2023, 1, 1));
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first
-        });
+        ]);
         
         var table = vm.Run();
         

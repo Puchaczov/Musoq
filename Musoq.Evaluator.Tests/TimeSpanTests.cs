@@ -27,10 +27,10 @@ public class TimeSpanTests : UnknownQueryTestsBase
         
         second.Period = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
         var table = vm.Run();
         
@@ -59,10 +59,10 @@ public class TimeSpanTests : UnknownQueryTestsBase
         
         second.Period = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
         var table = vm.Run();
         
@@ -91,10 +91,10 @@ public class TimeSpanTests : UnknownQueryTestsBase
         
         second.Period = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
         var table = vm.Run();
         
@@ -121,10 +121,10 @@ public class TimeSpanTests : UnknownQueryTestsBase
         first.Period1 = new TimeSpan(1, 0, 0);
         first.Period2 = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first
-        });
+        ]);
         
         var table = vm.Run();
         
@@ -152,10 +152,10 @@ public class TimeSpanTests : UnknownQueryTestsBase
         first.Period1 = new TimeSpan(3, 0, 0);
         first.Period2 = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first
-        });
+        ]);
         
         var table = vm.Run();
         
