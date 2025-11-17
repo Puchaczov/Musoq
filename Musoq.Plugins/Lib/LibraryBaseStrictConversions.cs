@@ -148,7 +148,7 @@ public partial class LibraryBase
     /// - Values outside the Int32 range (int.MinValue to int.MaxValue)
     /// - Strings that cannot be parsed as valid Int32 values
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public int? TryConvertToInt32Strict(object? value)
     {
         return StrictConverter.TryConvertToInt32(value);
@@ -165,7 +165,7 @@ public partial class LibraryBase
     /// - Values outside the Int64 range (long.MinValue to long.MaxValue)
     /// - Strings that cannot be parsed as valid Int64 values
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public long? TryConvertToInt64Strict(object? value)
     {
         return StrictConverter.TryConvertToInt64(value);
@@ -183,7 +183,7 @@ public partial class LibraryBase
     /// - Strings that cannot be parsed as valid Decimal values
     /// Decimal has a larger range and precision than Int32/Int64 for fractional values.
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public decimal? TryConvertToDecimalStrict(object? value)
     {
         return StrictConverter.TryConvertToDecimal(value);
@@ -204,7 +204,7 @@ public partial class LibraryBase
     /// - Comparing floating-point values to integers (e.g., 3.0 == 3)
     /// - Range checks that tolerate fractional truncation
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public int? TryConvertToInt32Comparison(object? value)
     {
         return ComparisonConverter.TryConvertToInt32(value);
@@ -221,7 +221,7 @@ public partial class LibraryBase
     /// - Comparing floating-point values to long integers
     /// - Range checks that tolerate fractional truncation
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public long? TryConvertToInt64Comparison(object? value)
     {
         return ComparisonConverter.TryConvertToInt64(value);
@@ -237,7 +237,7 @@ public partial class LibraryBase
     /// Decimal has a very large range, so most numeric values can be converted successfully.
     /// Useful for comparison operations where high precision is needed but some loss is acceptable.
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public decimal? TryConvertToDecimalComparison(object? value)
     {
         return ComparisonConverter.TryConvertToDecimal(value);
@@ -259,7 +259,7 @@ public partial class LibraryBase
     /// Returns Decimal to support all numeric types and enable compile-time operator usage.
     /// Rejects strings, booleans, and other non-numeric types.
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public decimal? TryConvertNumericOnly(object? value)
     {
         if (value == null)
@@ -391,7 +391,7 @@ public partial class LibraryBase
     /// This method is used for arithmetic operations on System.Object columns.
     /// It rejects string values and only accepts boxed numeric types (int, long, double, etc.).
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public int? TryConvertToInt32NumericOnly(object? value)
     {
         return TryConvertToIntegralTypeNumericOnly<int>(
@@ -422,7 +422,7 @@ public partial class LibraryBase
     /// This method is used for arithmetic operations on System.Object columns.
     /// It rejects string values and only accepts boxed numeric types (int, long, double, etc.).
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public long? TryConvertToInt64NumericOnly(object? value)
     {
         return TryConvertToIntegralTypeNumericOnly<long>(
@@ -449,7 +449,7 @@ public partial class LibraryBase
     /// This method is used for arithmetic operations on System.Object columns.
     /// It rejects string values and only accepts boxed numeric types (int, long, double, etc.).
     /// </remarks>
-    [BindableMethod]
+    [BindableMethod(true)]
     public decimal? TryConvertToDecimalNumericOnly(object? value)
     {
         return TryConvertToIntegralTypeNumericOnly<decimal>(
@@ -479,7 +479,7 @@ public partial class LibraryBase
     /// <param name="left">Left operand (boxed numeric type).</param>
     /// <param name="right">Right operand (boxed numeric type).</param>
     /// <returns>Sum of the operands in the appropriate numeric type, or null if conversion fails or operands are invalid.</returns>
-    [BindableMethod]
+    [BindableMethod(true)]
     public object? InternalApplyAddOperator(object? left, object? right)
     {
         return RuntimeOperators.Add(left, right);
@@ -493,7 +493,7 @@ public partial class LibraryBase
     /// <param name="left">Left operand (boxed numeric type).</param>
     /// <param name="right">Right operand (boxed numeric type).</param>
     /// <returns>Difference of the operands in the appropriate numeric type, or null if conversion fails or operands are invalid.</returns>
-    [BindableMethod]
+    [BindableMethod(true)]
     public object? InternalApplySubtractOperator(object? left, object? right)
     {
         return RuntimeOperators.Subtract(left, right);
@@ -507,7 +507,7 @@ public partial class LibraryBase
     /// <param name="left">Left operand (boxed numeric type).</param>
     /// <param name="right">Right operand (boxed numeric type).</param>
     /// <returns>Product of the operands in the appropriate numeric type, or null if conversion fails or operands are invalid.</returns>
-    [BindableMethod]
+    [BindableMethod(true)]
     public object? InternalApplyMultiplyOperator(object? left, object? right)
     {
         return RuntimeOperators.Multiply(left, right);
@@ -521,7 +521,7 @@ public partial class LibraryBase
     /// <param name="left">Left operand (boxed numeric type).</param>
     /// <param name="right">Right operand (boxed numeric type).</param>
     /// <returns>Quotient of the operands in the appropriate numeric type, or null if conversion fails or operands are invalid.</returns>
-    [BindableMethod]
+    [BindableMethod(true)]
     public object? InternalApplyDivideOperator(object? left, object? right)
     {
         return RuntimeOperators.Divide(left, right);
@@ -535,7 +535,7 @@ public partial class LibraryBase
     /// <param name="left">Left operand (boxed numeric type).</param>
     /// <param name="right">Right operand (boxed numeric type).</param>
     /// <returns>Remainder of the operands in the appropriate numeric type, or null if conversion fails or operands are invalid.</returns>
-    [BindableMethod]
+    [BindableMethod(true)]
     public object? InternalApplyModuloOperator(object? left, object? right)
     {
         return RuntimeOperators.Modulo(left, right);
@@ -633,7 +633,7 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value to convert (must be boxed numeric type, not string).</param>
     /// <returns>Converted double value, or null if conversion fails or value is invalid.</returns>
-    [BindableMethod]
+    [BindableMethod(true)]
     public double? TryConvertToDoubleNumericOnly(object? value)
     {
         if (value == null)
@@ -663,7 +663,7 @@ public partial class LibraryBase
     /// <summary>
     /// Runtime greater than operator that handles object &gt; object with automatic type conversion.
     /// </summary>
-    [BindableMethod]
+    [BindableMethod(true)]
     public bool? InternalGreaterThanOperator(object? left, object? right)
     {
         return RuntimeOperators.GreaterThan(left, right);
@@ -672,7 +672,7 @@ public partial class LibraryBase
     /// <summary>
     /// Runtime less than operator that handles object &lt; object with automatic type conversion.
     /// </summary>
-    [BindableMethod]
+    [BindableMethod(true)]
     public bool? InternalLessThanOperator(object? left, object? right)
     {
         return RuntimeOperators.LessThan(left, right);
@@ -681,7 +681,7 @@ public partial class LibraryBase
     /// <summary>
     /// Runtime greater than or equal operator that handles object &gt;= object with automatic type conversion.
     /// </summary>
-    [BindableMethod]
+    [BindableMethod(true)]
     public bool? InternalGreaterThanOrEqualOperator(object? left, object? right)
     {
         return RuntimeOperators.GreaterThanOrEqual(left, right);
@@ -690,7 +690,7 @@ public partial class LibraryBase
     /// <summary>
     /// Runtime less than or equal operator that handles object &lt;= object with automatic type conversion.
     /// </summary>
-    [BindableMethod]
+    [BindableMethod(true)]
     public bool? InternalLessThanOrEqualOperator(object? left, object? right)
     {
         return RuntimeOperators.LessThanOrEqual(left, right);
@@ -701,7 +701,7 @@ public partial class LibraryBase
     /// For strings, tries numeric conversion first. If both convert successfully, compares numerically.
     /// Otherwise compares as strings.
     /// </summary>
-    [BindableMethod]
+    [BindableMethod(true)]
     public bool? InternalEqualOperator(object? left, object? right)
     {
         return RuntimeOperators.Equal(left, right);
@@ -712,7 +712,7 @@ public partial class LibraryBase
     /// For strings, tries numeric conversion first. If both convert successfully, compares numerically.
     /// Otherwise compares as strings.
     /// </summary>
-    [BindableMethod]
+    [BindableMethod(true)]
     public bool? InternalNotEqualOperator(object? left, object? right)
     {
         return RuntimeOperators.NotEqual(left, right);

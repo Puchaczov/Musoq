@@ -27,7 +27,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
@@ -51,7 +51,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count, "Should return exactly one method name");
@@ -73,7 +73,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count(), "Should have 3 columns: Name, Index, Type");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -104,7 +104,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsTrue(table.Any(row => 
             (string)row[0] == "Name" && ((string)row[2]).Contains("String")), 
@@ -138,7 +138,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         foreach (var row in table)
         {
@@ -175,7 +175,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var columnNames = table.Select(row => (string)row[0]).ToList();
         
@@ -206,7 +206,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var nullableValueRow = table.FirstOrDefault(row => (string)row[0] == "NullableValue");
         Assert.IsNotNull(nullableValueRow, "Should have NullableValue column");
@@ -231,7 +231,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsGreaterThan(0, table.Count, "Should return columns even with semicolon");
     }
@@ -256,7 +256,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         // Should only return methods from schema A
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
@@ -276,7 +276,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsGreaterThan(0, table.Count, "Should return schema even with empty source");
         Assert.AreEqual(3, table.Columns.Count(), "Should have Name, Index, and Type columns");
@@ -297,7 +297,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Name column should be string");
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType, "Index column should be int");
@@ -319,7 +319,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var arrayRow = table.FirstOrDefault(row => (string)row[0] == "Array");
         if (arrayRow != null)
@@ -345,7 +345,7 @@ public class DescStatementTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var selfRow = table.FirstOrDefault(row => (string)row[0] == "Self");
         Assert.IsNotNull(selfRow, "Should have Self column");
@@ -370,7 +370,7 @@ typeName, $"Self column should show BasicEntity type, but got: {typeName}");
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var dictRow = table.FirstOrDefault(row => (string)row[0] == "Dictionary");
         if (dictRow != null)
@@ -397,7 +397,7 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsGreaterThan(0, table.Count, "DESC keyword should be case insensitive");
     }
@@ -429,7 +429,7 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         ]);
 
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
         Assert.AreEqual(2, table.Count, "Should return exactly 2 methods");
@@ -461,7 +461,7 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         ]);
 
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Columns.Count(), "Should have exactly 4 column");
         Assert.AreEqual(2, table.Count, "Should return exactly 2 method overloads");
@@ -501,7 +501,7 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         ]);
 
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count(), "Should have 3 columns: Name, Index, Type");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -534,7 +534,7 @@ typeName, $"Dictionary column should show Dictionary type, but got: {typeName}")
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
         Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
@@ -577,7 +577,7 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var trimRow = table.FirstOrDefault(row => ((string)row[0]).Contains("Trim("));
         Assert.IsNotNull(trimRow, "Should have Trim method from library");
@@ -602,7 +602,7 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns even with semicolon");
         Assert.IsGreaterThan(0, table.Count, "Should return methods even with semicolon");
@@ -623,7 +623,7 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsGreaterThan(0, table.Count, "DESC FUNCTIONS should be case insensitive");
     }
@@ -641,7 +641,7 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsGreaterThan(0, table.Count, "Should return library methods even with empty source");
         Assert.AreEqual(2, table.Columns.Count(), "Should have Method and Description columns");
@@ -667,7 +667,7 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns");
@@ -688,10 +688,67 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Method column should be string");
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType, "Description column should be string");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldNotShowInternalMethods()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.InternalApplyAddOperator))), $"Should not show {nameof(Plugins.LibraryBase.InternalApplyAddOperator)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.InternalApplySubtractOperator))), $"Should not show {nameof(Plugins.LibraryBase.InternalApplySubtractOperator)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.InternalApplyMultiplyOperator))), $"Should not show {nameof(Plugins.LibraryBase.InternalApplyMultiplyOperator)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.InternalApplyDivideOperator))), $"Should not show {nameof(Plugins.LibraryBase.InternalApplyDivideOperator)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.InternalApplyModuloOperator))), $"Should not show {nameof(Plugins.LibraryBase.InternalApplyModuloOperator)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.InternalGreaterThanOperator))), $"Should not show {nameof(Plugins.LibraryBase.InternalGreaterThanOperator)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.InternalLessThanOperator))), $"Should not show {nameof(Plugins.LibraryBase.InternalLessThanOperator)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.InternalEqualOperator))), $"Should not show {nameof(Plugins.LibraryBase.InternalEqualOperator)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.InternalNotEqualOperator))), $"Should not show {nameof(Plugins.LibraryBase.InternalNotEqualOperator)}");
+        
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToInt32Strict))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToInt32Strict)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToInt64Strict))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToInt64Strict)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToDecimalStrict))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToDecimalStrict)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToInt32Comparison))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToInt32Comparison)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToInt64Comparison))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToInt64Comparison)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToDecimalComparison))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToDecimalComparison)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertNumericOnly))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertNumericOnly)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToInt32NumericOnly))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToInt32NumericOnly)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToInt64NumericOnly))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToInt64NumericOnly)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToDecimalNumericOnly))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToDecimalNumericOnly)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.TryConvertToDoubleNumericOnly))), $"Should not show {nameof(Plugins.LibraryBase.TryConvertToDoubleNumericOnly)}");
+        
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.Trim) + "(")), $"Should still show public methods like {nameof(Plugins.LibraryBase.Trim)}");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.Substring) + "(")), $"Should still show public methods like {nameof(Plugins.LibraryBase.Substring)}");
+        
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.SetAggregateValues))), $"Should not show aggregation set methods like {nameof(Plugins.LibraryBase.SetAggregateValues)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.SetMax))), $"Should not show aggregation set methods like {nameof(Plugins.LibraryBase.SetMax)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.SetMin))), $"Should not show aggregation set methods like {nameof(Plugins.LibraryBase.SetMin)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.SetCount))), $"Should not show aggregation set methods like {nameof(Plugins.LibraryBase.SetCount)}");
+        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(Plugins.LibraryBase.SetAvg))), $"Should not show aggregation set methods like {nameof(Plugins.LibraryBase.SetAvg)}");
+        
+        var maxMethod = methodSignatures.FirstOrDefault(m => m.Contains(nameof(Plugins.LibraryBase.Max) + "("));
+        if (maxMethod != null)
+        {
+            Assert.DoesNotContain("Group group", maxMethod, $"Should not show injected Group parameter: {maxMethod}");
+        }
     }
 
     [TestMethod]
@@ -721,7 +778,7 @@ signature, $"Method signature should include return type and method name: {signa
         ]);
 
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count(), "Should have exactly 2 columns: Method and Description");
         Assert.IsGreaterThan(0, table.Count, "Should return library methods");
@@ -754,7 +811,7 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
         Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
@@ -782,7 +839,7 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
         Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
@@ -810,7 +867,7 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
@@ -835,24 +892,21 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         
-        // Verify that nullable types are formatted with ? syntax, not Nullable`1
         foreach (var signature in methodSignatures)
         {
-            Assert.IsFalse(signature.Contains("Nullable`1"), 
-                $"Signature should not contain 'Nullable`1', but got: {signature}");
-            Assert.IsFalse(signature.Contains("Nullable<"), 
-                $"Signature should use '?' instead of 'Nullable<', but got: {signature}");
+            Assert.DoesNotContain("Nullable`1",
+signature, $"Signature should not contain 'Nullable`1', but got: {signature}");
+            Assert.DoesNotContain("Nullable<",
+signature, $"Signature should use '?' instead of 'Nullable<', but got: {signature}");
         }
         
-        // Find methods with nullable parameters (common in math/aggregation functions)
         var nullableSignatures = methodSignatures.Where(m => m.Contains("?")).ToList();
         Assert.IsGreaterThan(0, nullableSignatures.Count, "Should have methods with nullable parameters");
         
-        // Verify format like "int?" or "decimal?" instead of "Nullable`1"
         var sampleNullableMethod = nullableSignatures.FirstOrDefault(m => m.Contains("int?") || m.Contains("decimal?"));
         Assert.IsNotNull(sampleNullableMethod, 
             "Should have at least one method with properly formatted nullable type (e.g., 'int?' or 'decimal?')");
@@ -873,29 +927,24 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         
-        // Verify that generic types don't contain backtick notation
         foreach (var signature in methodSignatures)
         {
             Assert.IsFalse(signature.Contains("`1") || signature.Contains("`2") || signature.Contains("`3"), 
                 $"Signature should not contain backtick notation like `1, but got: {signature}");
         }
         
-        // Find generic methods (should have <T> or similar)
         var genericSignatures = methodSignatures.Where(m => m.Contains("<") && m.Contains(">")).ToList();
         Assert.IsGreaterThan(0, genericSignatures.Count, "Should have generic methods");
         
-        // Verify proper generic formatting like "T Method<T>(T value)" or "IEnumerable<T>"
-        // Generic type parameters should be simple identifiers like T, TKey, TValue
         foreach (var signature in genericSignatures)
         {
-            // Should not have System. prefix in generic parameters displayed
             var genericPart = signature.Substring(signature.IndexOf('<'));
-            Assert.IsFalse(genericPart.Contains("System."), 
-                $"Generic parameters should not include System. prefix: {signature}");
+            Assert.DoesNotContain("System.",
+genericPart, $"Generic parameters should not include System. prefix: {signature}");
         }
     }
     
@@ -914,26 +963,23 @@ signature, $"Method signature should include return type and method name: {signa
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         
-        // Verify that C# type aliases are used instead of .NET type names
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("string ")), 
             "Should use 'string' instead of 'String'");
         
-        // Verify no .NET type names appear where C# aliases should be used
         foreach (var signature in methodSignatures)
         {
-            // These should not appear as they should be replaced with C# aliases
-            Assert.IsFalse(signature.Contains("Int32 "), 
-                $"Should use 'int' instead of 'Int32': {signature}");
-            Assert.IsFalse(signature.Contains("Boolean "), 
-                $"Should use 'bool' instead of 'Boolean': {signature}");
-            Assert.IsFalse(signature.Contains("String "), 
-                $"Should use 'string' instead of 'String': {signature}");
-            Assert.IsFalse(signature.Contains("Decimal "), 
-                $"Should use 'decimal' instead of 'Decimal': {signature}");
+            Assert.DoesNotContain("Int32 ",
+signature, $"Should use 'int' instead of 'Int32': {signature}");
+            Assert.DoesNotContain("Boolean ",
+signature, $"Should use 'bool' instead of 'Boolean': {signature}");
+            Assert.DoesNotContain("String ",
+signature, $"Should use 'string' instead of 'String': {signature}");
+            Assert.DoesNotContain("Decimal ",
+signature, $"Should use 'decimal' instead of 'Decimal': {signature}");
         }
     }
     
@@ -947,5 +993,7 @@ signature, $"Method signature should include return type and method name: {signa
     }
     
     private record TypeWithConstructor(int Id, string Name, decimal Value);
+
+    public TestContext TestContext { get; set; }
 }
 

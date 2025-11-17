@@ -274,7 +274,7 @@ public class LexerTests
     [TestMethod]
     public void VeryLongArithmeticChain_ShouldTokenizeQuickly()
     {
-        var numbers = string.Join(" + ", System.Linq.Enumerable.Range(1, 50).Select(i => i.ToString()));
+        var numbers = string.Join(" + ", Enumerable.Range(1, 50).Select(i => i.ToString()));
         var query = $"select {numbers} from #a.b()";
         var lexer = new Lexer(query, true);
         

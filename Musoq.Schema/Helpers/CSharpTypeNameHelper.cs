@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Musoq.Schema.Helpers;
@@ -75,7 +76,7 @@ public static class CSharpTypeNameHelper
         return type.Name;
     }
 
-    public static string FormatMethodSignature(System.Reflection.MethodInfo methodInfo, bool includeNamespace = false)
+    public static string FormatMethodSignature(MethodInfo methodInfo, bool includeNamespace = false)
     {
         if (methodInfo == null)
             throw new ArgumentNullException(nameof(methodInfo));
@@ -103,12 +104,17 @@ public static class CSharpTypeNameHelper
             signature.Append($"{returnTypeName} {methodName}(");
         }
         
+        var paramIndex = 0;
         for (int i = 0; i < parameters.Length; i++)
         {
-            if (i > 0)
+            if (parameters[i].GetCustomAttribute<Plugins.Attributes.InjectTypeAttribute>() != null)
+                continue;
+            
+            if (paramIndex > 0)
                 signature.Append(", ");
             
             signature.Append($"{GetCSharpTypeName(parameters[i].ParameterType)} {parameters[i].Name}");
+            paramIndex++;
         }
         
         signature.Append(")");

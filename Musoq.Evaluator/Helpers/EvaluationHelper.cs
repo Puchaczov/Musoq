@@ -83,6 +83,13 @@ public static class EvaluationHelper
             {
                 runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
                 
+                var bindableAttr = methodInfo.GetCustomAttribute<Plugins.Attributes.BindableMethodAttribute>();
+                if (bindableAttr?.IsInternal == true)
+                    continue;
+                
+                if (methodInfo.GetCustomAttribute<Plugins.Attributes.AggregationSetMethodAttribute>() != null)
+                    continue;
+                
                 var signature = CSharpTypeNameHelper.FormatMethodSignature(methodInfo);
                 var description = GetXmlDocumentation(methodInfo);
                 

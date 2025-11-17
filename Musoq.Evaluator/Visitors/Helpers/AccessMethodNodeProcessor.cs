@@ -170,7 +170,7 @@ public static class AccessMethodNodeProcessor
         MethodAccessType type,
         bool isInsideJoinOrApply,
         List<ArgumentSyntax> args,
-        System.Reflection.ParameterInfo parameterInfo)
+        ParameterInfo parameterInfo)
     {
         if (node.CanSkipInjectSource)
             return;

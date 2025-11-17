@@ -490,7 +490,7 @@ public class ParserTests
     [TestMethod]
     public void VeryLongArithmeticChain_ShouldParseQuickly()
     {
-        var numbers = string.Join(" + ", System.Linq.Enumerable.Range(1, 50).Select(i => i.ToString()));
+        var numbers = string.Join(" + ", Enumerable.Range(1, 50).Select(i => i.ToString()));
         var query = $"select {numbers} from #a.b()";
         
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -543,7 +543,7 @@ public class ParserTests
     [TestMethod]
     public void ExtremeLongExpression_ShouldParseInReasonableTime()
     {
-        var numbers = string.Join(" + ", System.Linq.Enumerable.Range(1, 100).Select(i => i.ToString()));
+        var numbers = string.Join(" + ", Enumerable.Range(1, 100).Select(i => i.ToString()));
         var query = $"select {numbers} from #a.b()";
         
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -571,7 +571,7 @@ public class ParserTests
     [TestMethod]
     public void CombinedArithmeticAndParentheses_StressTest()
     {
-        var innerExpr = string.Join(" + ", System.Linq.Enumerable.Range(1, 20).Select(i => i.ToString()));
+        var innerExpr = string.Join(" + ", Enumerable.Range(1, 20).Select(i => i.ToString()));
         var query = $"select ((({innerExpr}))) * 2 + ((({innerExpr}))) from #a.b()";
         
         var sw = System.Diagnostics.Stopwatch.StartNew();
