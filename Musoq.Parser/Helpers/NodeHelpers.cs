@@ -128,36 +128,7 @@ public static class NodeHelpers
             {(typeof(decimal), typeof(long)), typeof(decimal)},
             {(typeof(decimal), typeof(ulong)), typeof(decimal)},
             {(typeof(decimal), typeof(decimal)), typeof(decimal)},
-                
-            {(typeof(object), typeof(object)), typeof(object)},
             
-            // Object combined with numeric types - return object to allow runtime resolution
-            {(typeof(object), typeof(byte)), typeof(object)},
-            {(typeof(object), typeof(sbyte)), typeof(object)},
-            {(typeof(object), typeof(short)), typeof(object)},
-            {(typeof(object), typeof(ushort)), typeof(object)},
-            {(typeof(object), typeof(int)), typeof(object)},
-            {(typeof(object), typeof(uint)), typeof(object)},
-            {(typeof(object), typeof(long)), typeof(object)},
-            {(typeof(object), typeof(ulong)), typeof(object)},
-            {(typeof(object), typeof(float)), typeof(object)},
-            {(typeof(object), typeof(double)), typeof(object)},
-            {(typeof(object), typeof(decimal)), typeof(object)},
-            
-            // Numeric types combined with object - return object for symmetry
-            {(typeof(byte), typeof(object)), typeof(object)},
-            {(typeof(sbyte), typeof(object)), typeof(object)},
-            {(typeof(short), typeof(object)), typeof(object)},
-            {(typeof(ushort), typeof(object)), typeof(object)},
-            {(typeof(int), typeof(object)), typeof(object)},
-            {(typeof(uint), typeof(object)), typeof(object)},
-            {(typeof(long), typeof(object)), typeof(object)},
-            {(typeof(ulong), typeof(object)), typeof(object)},
-            {(typeof(float), typeof(object)), typeof(object)},
-            {(typeof(double), typeof(object)), typeof(object)},
-            {(typeof(decimal), typeof(object)), typeof(object)},
-            
-            // Object combined with string - return object to support string concatenation
             {(typeof(object), typeof(string)), typeof(object)},
             {(typeof(string), typeof(object)), typeof(object)},
             
