@@ -80,23 +80,27 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private MethodAccessType _type;
     private bool _isInsideJoinOrApply;
     private bool _isResultParallelizationImpossible;
+    private readonly CompilationOptions _compilationOptions;
 
     public ToCSharpRewriteTreeVisitor(
         IEnumerable<Assembly> assemblies,
         IDictionary<string, int[]> setOperatorFieldIndexes,
         IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
-        string assemblyName)
+        string assemblyName,
+        CompilationOptions compilationOptions)
     {
         // Validate constructor parameters
         ValidateConstructorParameter(nameof(assemblies), assemblies);
         ValidateConstructorParameter(nameof(setOperatorFieldIndexes), setOperatorFieldIndexes);
         ValidateConstructorParameter(nameof(inferredColumns), inferredColumns);
         ValidateStringParameter(nameof(assemblyName), assemblyName, "constructor");
+        ValidateConstructorParameter(nameof(compilationOptions), compilationOptions);
 
         _setOperatorFieldIndexes = setOperatorFieldIndexes;
         InferredColumns = inferredColumns;
         Workspace = new AdhocWorkspace();
         Nodes = new Stack<SyntaxNode>();
+        _compilationOptions = compilationOptions;
 
         Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
@@ -877,7 +881,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             _emptyBlock, 
             GetRowsSourceOrEmpty, 
             Block, 
-            GenerateCancellationExpression);
+            GenerateCancellationExpression,
+            _compilationOptions);
     }
 
     public void Visit(ApplySourcesTableFromNode node)

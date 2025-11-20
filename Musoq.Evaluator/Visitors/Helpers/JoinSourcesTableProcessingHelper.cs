@@ -46,7 +46,8 @@ public static class JoinSourcesTableProcessingHelper
         BlockSyntax emptyBlock,
         Func<string, StatementSyntax> getRowsSourceOrEmpty,
         Func<StatementSyntax[], BlockSyntax> block,
-        Func<StatementSyntax> generateCancellationExpression)
+        Func<StatementSyntax> generateCancellationExpression,
+        CompilationOptions compilationOptions = null)
     {
         // Validate parameters
         ValidateParameter(nameof(node), node);
@@ -61,6 +62,14 @@ public static class JoinSourcesTableProcessingHelper
 
         var computingBlock = SyntaxFactory.Block();
         
+        if (node.JoinType == JoinType.Inner && compilationOptions?.UseHashJoin == true)
+        {
+            if (TryGetHashJoinKeys(node, out var leftKey, out var rightKey, out var keyType))
+            {
+                return ProcessHashJoin(node, generator, scope, queryAlias, leftKey, rightKey, keyType, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
+            }
+        }
+        
         switch (node.JoinType)
         {
             case JoinType.Inner:
@@ -71,6 +80,18 @@ public static class JoinSourcesTableProcessingHelper
                 
             case JoinType.OuterRight:
                 return ProcessOuterRightJoin(node, generator, scope, queryAlias, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
+                
+            case JoinType.Hash:
+                // This case might be unreachable if we handle it above, but good to keep for explicit JoinType.Hash
+                // However, we need keys for ProcessHashJoin.
+                // If JoinType is explicitly Hash, we assume keys are extractable or we fallback?
+                // For now, let's try to extract keys.
+                if (TryGetHashJoinKeys(node, out var leftKey, out var rightKey, out var keyType))
+                {
+                    return ProcessHashJoin(node, generator, scope, queryAlias, leftKey, rightKey, keyType, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
+                }
+                // Fallback to Inner if keys cannot be extracted (should not happen for valid Hash Join)
+                return ProcessInnerJoin(node, generator, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
                 
             default:
                 throw new ArgumentException($"Unsupported join type: {node.JoinType}");
@@ -261,6 +282,185 @@ public static class JoinSourcesTableProcessingHelper
                 ])));
     }
 
+    public static BlockSyntax ProcessHashJoin(
+        JoinSourcesTableFromNode node,
+        SyntaxGenerator generator,
+        Scope scope,
+        string queryAlias,
+        ExpressionSyntax leftKey,
+        ExpressionSyntax rightKey,
+        Type keyType,
+        BlockSyntax emptyBlock,
+        Func<string, StatementSyntax> getRowsSourceOrEmpty,
+        Func<StatementSyntax[], BlockSyntax> block,
+        Func<StatementSyntax> generateCancellationExpression)
+    {
+        var computingBlock = SyntaxFactory.Block();
+        
+        var keyTypeName = EvaluationHelper.GetCastableType(keyType);
+        var dictionaryType = SyntaxFactory.ParseTypeName($"System.Collections.Generic.Dictionary<{keyTypeName}, System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>>");
+        
+        var dictionaryName = $"{node.Second.Alias}Hashed";
+        var dictionaryCreation = SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.VariableDeclarator(
+                        SyntaxFactory.Identifier(dictionaryName),
+                        null,
+                        SyntaxFactory.EqualsValueClause(
+                            SyntaxFactory.ObjectCreationExpression(dictionaryType)
+                                .WithArgumentList(SyntaxFactory.ArgumentList())
+                        )
+                    )
+                )
+            )
+        );
+
+        // Build Phase (Right Table)
+        var buildPhase = block([
+            getRowsSourceOrEmpty(node.Second.Alias),
+            SyntaxFactory.ForEachStatement(
+                SyntaxFactory.IdentifierName("var"),
+                SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
+                SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
+                block([
+                    generateCancellationExpression(),
+                    SyntaxFactory.LocalDeclarationStatement(
+                        SyntaxFactory.VariableDeclaration(
+                            SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.VariableDeclarator(
+                                    SyntaxFactory.Identifier("key"),
+                                    null,
+                                    SyntaxFactory.EqualsValueClause(rightKey)
+                                )
+                            )
+                        )
+                    ),
+                    SyntaxFactory.IfStatement(
+                        SyntaxFactory.PrefixUnaryExpression(
+                            SyntaxKind.LogicalNotExpression,
+                            SyntaxFactory.InvocationExpression(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName(dictionaryName),
+                                    SyntaxFactory.IdentifierName("ContainsKey")
+                                ),
+                                SyntaxFactory.ArgumentList(
+                                    SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key"))
+                                    )
+                                )
+                            )
+                        ),
+                        SyntaxFactory.Block(
+                            SyntaxFactory.ExpressionStatement(
+                                SyntaxFactory.AssignmentExpression(
+                                    SyntaxKind.SimpleAssignmentExpression,
+                                    SyntaxFactory.ElementAccessExpression(
+                                        SyntaxFactory.IdentifierName(dictionaryName),
+                                        SyntaxFactory.BracketedArgumentList(
+                                            SyntaxFactory.SingletonSeparatedList(
+                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key"))
+                                            )
+                                        )
+                                    ),
+                                    SyntaxFactory.ObjectCreationExpression(
+                                        SyntaxFactory.ParseTypeName("System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>")
+                                    ).WithArgumentList(SyntaxFactory.ArgumentList())
+                                )
+                            )
+                        )
+                    ),
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.ElementAccessExpression(
+                                    SyntaxFactory.IdentifierName(dictionaryName),
+                                    SyntaxFactory.BracketedArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key"))
+                                        )
+                                    )
+                                ),
+                                SyntaxFactory.IdentifierName("Add")
+                            ),
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName($"{node.Second.Alias}Row"))
+                                )
+                            )
+                        )
+                    )
+                ])
+            )
+        ]);
+
+        // Probe Phase (Left Table)
+        var probePhase = block([
+            getRowsSourceOrEmpty(node.First.Alias),
+            SyntaxFactory.ForEachStatement(
+                SyntaxFactory.IdentifierName("var"),
+                SyntaxFactory.Identifier($"{node.First.Alias}Row"),
+                SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
+                block([
+                    generateCancellationExpression(),
+                    SyntaxFactory.LocalDeclarationStatement(
+                        SyntaxFactory.VariableDeclaration(
+                            SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.VariableDeclarator(
+                                    SyntaxFactory.Identifier("key"),
+                                    null,
+                                    SyntaxFactory.EqualsValueClause(leftKey)
+                                )
+                            )
+                        )
+                    ),
+                    SyntaxFactory.IfStatement(
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName(dictionaryName),
+                                SyntaxFactory.IdentifierName("TryGetValue")
+                            ),
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(new [] {
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key")),
+                                    SyntaxFactory.Argument(
+                                        null,
+                                        SyntaxFactory.Token(SyntaxKind.OutKeyword),
+                                        SyntaxFactory.DeclarationExpression(
+                                            SyntaxFactory.IdentifierName("var"),
+                                            SyntaxFactory.SingleVariableDesignation(
+                                                SyntaxFactory.Identifier("matches")
+                                            )
+                                        )
+                                    )
+                                })
+                            )
+                        ),
+                        block([
+                            SyntaxFactory.ForEachStatement(
+                                SyntaxFactory.IdentifierName("var"),
+                                SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
+                                SyntaxFactory.IdentifierName("matches"),
+                                block([
+                                    generateCancellationExpression(),
+                                    emptyBlock
+                                ])
+                            )
+                        ])
+                    )
+                ])
+            )
+        ]);
+
+        return computingBlock.AddStatements(dictionaryCreation, buildPhase, probePhase);
+    }
+
     private static (ArrayTypeSyntax arrayType, VariableDeclarationSyntax rewriteSelect, InvocationExpressionSyntax invocation) 
         CreateSelectAndInvocationForOuterLeft(
             List<ExpressionSyntax> expressions, 
@@ -371,6 +571,78 @@ public static class JoinSourcesTableProcessingHelper
             ]);
 
         return (arrayType, rewriteSelect, invocation);
+    }
+
+    private static bool TryGetHashJoinKeys(
+        JoinSourcesTableFromNode node, 
+        out ExpressionSyntax leftKey, 
+        out ExpressionSyntax rightKey, 
+        out Type keyType)
+    {
+        leftKey = null;
+        rightKey = null;
+        keyType = null;
+
+        if (node.Expression is EqualityNode binary)
+        {
+            if (binary.Left is AccessColumnNode leftCol && binary.Right is AccessColumnNode rightCol)
+            {
+                AccessColumnNode firstCol = null;
+                AccessColumnNode secondCol = null;
+                
+                if (leftCol.Alias == node.First.Alias && rightCol.Alias == node.Second.Alias)
+                {
+                    firstCol = leftCol;
+                    secondCol = rightCol;
+                }
+                else if (leftCol.Alias == node.Second.Alias && rightCol.Alias == node.First.Alias)
+                {
+                    firstCol = rightCol;
+                    secondCol = leftCol;
+                }
+                
+                if (firstCol != null && secondCol != null)
+                {
+                    if (firstCol.ReturnType == secondCol.ReturnType)
+                    {
+                        keyType = firstCol.ReturnType;
+                        
+                        leftKey = CreateColumnAccessExpression(node.First.Alias, firstCol.Name, firstCol.ReturnType);
+                        rightKey = CreateColumnAccessExpression(node.Second.Alias, secondCol.Name, secondCol.ReturnType);
+                        
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    private static ExpressionSyntax CreateColumnAccessExpression(string alias, string columnName, Type type)
+    {
+        var rowVar = SyntaxFactory.IdentifierName($"{alias}Row");
+        var indexer = SyntaxFactory.ElementAccessExpression(
+            rowVar,
+            SyntaxFactory.BracketedArgumentList(
+                SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.StringLiteralExpression,
+                            SyntaxFactory.Literal(columnName)
+                        )
+                    )
+                )
+            )
+        );
+        
+        var castType = EvaluationHelper.GetCastableType(type);
+        var castExpression = SyntaxFactory.CastExpression(
+            SyntaxFactory.ParseTypeName(castType),
+            indexer
+        );
+        
+        return castExpression;
     }
 
     private static void ValidateParameter<T>(string parameterName, T parameter) where T : class

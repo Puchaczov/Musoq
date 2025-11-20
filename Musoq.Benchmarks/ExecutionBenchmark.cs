@@ -14,6 +14,8 @@ public class ExecutionBenchmark : BenchmarkBase
     private readonly CompiledQuery _queryForComputeCountriesWithoutParallelization;
     private readonly CompiledQuery _queryForComputeProfilesWithParallelization;
     private readonly CompiledQuery _queryForComputeProfilesWithoutParallelization;
+    private readonly CompiledQuery _queryForJoinWithHashJoin;
+    private readonly CompiledQuery _queryForJoinWithoutHashJoin;
     
     public ExecutionBenchmark()
     {
@@ -21,6 +23,8 @@ public class ExecutionBenchmark : BenchmarkBase
         _queryForComputeCountriesWithoutParallelization = CreateCompiledQueryWithOptions(new CompilationOptions(ParallelizationMode.None));
         _queryForComputeProfilesWithParallelization = ComputeProfilesWithOptions(new CompilationOptions(ParallelizationMode.Full));
         _queryForComputeProfilesWithoutParallelization = ComputeProfilesWithOptions(new CompilationOptions(ParallelizationMode.None));
+        _queryForJoinWithHashJoin = ComputeJoinWithOptions(new CompilationOptions(useHashJoin: true));
+        _queryForJoinWithoutHashJoin = ComputeJoinWithOptions(new CompilationOptions(useHashJoin: false));
     }
 
     // [Benchmark]
@@ -45,6 +49,18 @@ public class ExecutionBenchmark : BenchmarkBase
     public Table ComputeSimpleSelect_WithoutParallelization_10MbOfData_Profiles()
     {
         return _queryForComputeProfilesWithoutParallelization.Run();
+    }
+
+    [Benchmark]
+    public Table ComputeJoin_WithHashJoin_1000Rows()
+    {
+        return _queryForJoinWithHashJoin.Run();
+    }
+
+    [Benchmark]
+    public Table ComputeJoin_WithoutHashJoin_1000Rows()
+    {
+        return _queryForJoinWithoutHashJoin.Run();
     }
     
     [GlobalCleanup]
@@ -73,6 +89,20 @@ public class ExecutionBenchmark : BenchmarkBase
         var sources = new Dictionary<string, IEnumerable<ProfileEntity>>
         {
             {"#A", data}
+        };
+        
+        return CreateForProfilesWithOptions(script, sources, compilationOptions);
+    }
+
+    private CompiledQuery ComputeJoinWithOptions(CompilationOptions compilationOptions)
+    {
+        const string script = "select a.FirstName, b.LastName from #A.Entities() a inner join #B.Entities() b on a.Animal = b.Animal";
+        var contentPath = Path.Combine(AppContext.BaseDirectory, "Data", "profiles.csv");
+        var data = DataHelpers.ReadProfiles(contentPath).Take(1000).ToList();
+        var sources = new Dictionary<string, IEnumerable<ProfileEntity>>
+        {
+            {"#A", data},
+            {"#B", data}
         };
         
         return CreateForProfilesWithOptions(script, sources, compilationOptions);

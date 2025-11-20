@@ -5,7 +5,7 @@ using Musoq.Benchmarks;
 using Musoq.Benchmarks.Components;
 
 #if DEBUG
-    BenchmarkRunner.Run<ConversionBenchmark>(new DebugInProcessConfig());
+    BenchmarkRunner.Run<JoinBenchmark>(new DebugInProcessConfig());
 #else
-    BenchmarkRunner.Run<ConversionBenchmark>();
+    BenchmarkRunner.Run<JoinBenchmark>();
 #endif
