@@ -36,23 +36,18 @@ public class LargeDataJoinTests : MultiSchemaTestBase
         const int size = 10000;
         const string query = "select first.FirstItem, second.FirstItem from #schema.first() first left outer join #schema.second() second on first.FirstItem = second.FirstItem";
         
-        // First has 0..9999
         var first = Enumerable.Range(0, size).Select(i => new FirstEntity { FirstItem = i.ToString() }).ToArray();
-        // Second has 5000..14999 (overlap is 5000..9999)
         var second = Enumerable.Range(size / 2, size).Select(i => new SecondEntity { FirstItem = i.ToString() }).ToArray();
         
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
         
         var table = vm.Run();
         
-        // Left join should return all rows from 'first' (size)
         Assert.AreEqual(size, table.Count);
         
-        // Check a matched row
         var matchedRow = table.Single(r => (string)r[0] == (size - 1).ToString());
         Assert.AreEqual((size - 1).ToString(), matchedRow[1]);
 
-        // Check an unmatched row
         var unmatchedRow = table.Single(r => (string)r[0] == "0");
         Assert.IsNull(unmatchedRow[1]);
     }
@@ -63,23 +58,18 @@ public class LargeDataJoinTests : MultiSchemaTestBase
         const int size = 10000;
         const string query = "select first.FirstItem, second.FirstItem from #schema.first() first right outer join #schema.second() second on first.FirstItem = second.FirstItem";
         
-        // First has 0..9999
         var first = Enumerable.Range(0, size).Select(i => new FirstEntity { FirstItem = i.ToString() }).ToArray();
-        // Second has 5000..14999 (overlap is 5000..9999)
         var second = Enumerable.Range(size / 2, size).Select(i => new SecondEntity { FirstItem = i.ToString() }).ToArray();
         
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
         
         var table = vm.Run();
         
-        // Right join should return all rows from 'second' (size)
         Assert.AreEqual(size, table.Count);
         
-        // Check a matched row (e.g. 5000)
         var matchedRow = table.Single(r => (string)r[1] == (size / 2).ToString());
         Assert.AreEqual((size / 2).ToString(), matchedRow[0]);
 
-        // Check an unmatched row (e.g. 14999)
         var unmatchedRow = table.Single(r => (string)r[1] == (size + size / 2 - 1).ToString());
         Assert.IsNull(unmatchedRow[0]);
     }

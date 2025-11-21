@@ -16,7 +16,6 @@ public class HashJoinCompositeKeysTests : BasicEntityTestBase
     [TestMethod]
     public void InnerJoin_WithCompositeKey_ShouldUseHashJoin()
     {
-        // Join on Country AND City
         const string query = @"
 select 
     a.Name, 
@@ -43,13 +42,11 @@ on a.Country = b.Country AND a.City = b.City";
             }
         };
 
-        // Enable Hash Join
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count, "Should have 2 matches");
         
-        // Verify matches
         var rows = table.OrderBy(r => r[0]).ToList();
         
         Assert.AreEqual("Alice", rows[0][0]);
@@ -92,11 +89,9 @@ on a.Country = b.Country AND a.City = b.City";
         
         var rows = table.OrderBy(r => r[0]).ToList();
         
-        // Bob has no match
         Assert.AreEqual("Bob", rows[0][0]);
         Assert.IsNull(rows[0][1]);
         
-        // John has match
         Assert.AreEqual("John", rows[1][0]);
         Assert.AreEqual("Doe", rows[1][1]);
     }
@@ -134,11 +129,9 @@ on a.Country = b.Country AND a.City = b.City";
         
         var rows = table.OrderBy(r => r[1]).ToList();
         
-        // John matches Doe
         Assert.AreEqual("John", rows[0][0]);
         Assert.AreEqual("Doe", rows[0][1]);
         
-        // Pierre has no match
         Assert.IsNull(rows[1][0]);
         Assert.AreEqual("Pierre", rows[1][1]);
     }
@@ -146,8 +139,6 @@ on a.Country = b.Country AND a.City = b.City";
     [TestMethod]
     public void InnerJoin_WithNullsInCompositeKey_ShouldNotMatch()
     {
-        // Join on Country AND City. One side has (USA, null), other has (USA, null).
-        // In SQL, null != null, so they should NOT match.
         const string query = @"
 select 
     a.Name, 

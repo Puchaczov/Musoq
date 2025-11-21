@@ -90,7 +90,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         string assemblyName,
         CompilationOptions compilationOptions)
     {
-        // Validate constructor parameters
         ValidateConstructorParameter(nameof(assemblies), assemblies);
         ValidateConstructorParameter(nameof(setOperatorFieldIndexes), setOperatorFieldIndexes);
         ValidateConstructorParameter(nameof(inferredColumns), inferredColumns);
@@ -272,7 +271,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private bool IsCharVsStringComparison(Node leftNode, Node rightNode, SyntaxNode leftSyntax, SyntaxNode rightSyntax)
     {
-        // Check if we have a character access node compared with a string literal
         var leftIsChar = IsCharacterAccess(leftNode);
         var rightIsChar = IsCharacterAccess(rightNode);
         var leftIsString = leftNode is WordNode;
@@ -283,7 +281,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private bool IsCharacterAccess(Node node)
     {
-        // Check if this is a character access from a string column
         if (node is AccessObjectArrayNode arrayNode)
         {
             return arrayNode.IsColumnAccess && arrayNode.ColumnType == typeof(string);
@@ -293,13 +290,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private SyntaxNode HandleCharStringComparison(Node leftNode, Node rightNode, SyntaxNode leftSyntax, SyntaxNode rightSyntax)
     {
-        // Determine which side is the character and which is the string
         var leftIsChar = IsCharacterAccess(leftNode);
         var leftIsString = leftNode is WordNode leftWord;
         
         if (leftIsChar && rightNode is WordNode rightWord)
         {
-            // Left is char, right is string - convert string to char
             var charValue = rightWord.Value.Length > 0 ? rightWord.Value[0] : '\0';
             var charLiteral = SyntaxFactory.LiteralExpression(
                 SyntaxKind.CharacterLiteralExpression,

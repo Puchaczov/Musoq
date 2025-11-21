@@ -50,7 +50,6 @@ public static class JoinSourcesTableProcessingHelper
         Func<StatementSyntax> generateCancellationExpression,
         CompilationOptions compilationOptions = null)
     {
-        // Validate parameters
         ValidateParameter(nameof(node), node);
         ValidateParameter(nameof(generator), generator);
         ValidateParameter(nameof(scope), scope);
@@ -84,15 +83,10 @@ public static class JoinSourcesTableProcessingHelper
                 return ProcessOuterRightJoin(node, generator, scope, queryAlias, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
                 
             case JoinType.Hash:
-                // This case might be unreachable if we handle it above, but good to keep for explicit JoinType.Hash
-                // However, we need keys for ProcessHashJoin.
-                // If JoinType is explicitly Hash, we assume keys are extractable or we fallback?
-                // For now, let's try to extract keys.
                 if (TryGetHashJoinKeys(node, out var leftKey, out var rightKey, out var keyType))
                 {
                     return ProcessHashJoin(node, generator, scope, queryAlias, leftKey, rightKey, keyType, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
                 }
-                // Fallback to Inner if keys cannot be extracted (should not happen for valid Hash Join)
                 return ProcessInnerJoin(node, generator, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
                 
             default:
@@ -145,7 +139,6 @@ public static class JoinSourcesTableProcessingHelper
         var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
         var expressions = new List<ExpressionSyntax>();
 
-        // Create expressions for first table columns
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
         {
             expressions.Add(
@@ -158,7 +151,6 @@ public static class JoinSourcesTableProcessingHelper
                                     column.ColumnName))))));
         }
 
-        // Create null expressions for second table columns
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
         {
             expressions.Add(
@@ -222,7 +214,6 @@ public static class JoinSourcesTableProcessingHelper
         var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
         var expressions = new List<ExpressionSyntax>();
 
-        // Create null expressions for first table columns
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
         {
             expressions.Add(
@@ -232,7 +223,6 @@ public static class JoinSourcesTableProcessingHelper
                     (LiteralExpressionSyntax)generator.NullLiteralExpression()));
         }
 
-        // Create expressions for second table columns
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
         {
             expressions.Add(
@@ -337,7 +327,6 @@ public static class JoinSourcesTableProcessingHelper
             )
         );
 
-        // Build Phase
         var buildPhaseStatements = new List<StatementSyntax>
         {
             generateCancellationExpression()
@@ -476,14 +465,12 @@ public static class JoinSourcesTableProcessingHelper
             SyntaxFactory.Block(buildPhaseStatements)
         );
 
-        // Prepare Outer Join Fallback Logic
         StatementSyntax outerJoinFallback = SyntaxFactory.Block();
         if (node.JoinType == JoinType.OuterLeft)
         {
             var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
             var expressions = new List<ExpressionSyntax>();
 
-            // Create expressions for first table columns (Probe Side)
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
             {
                 expressions.Add(
@@ -496,7 +483,6 @@ public static class JoinSourcesTableProcessingHelper
                                         column.ColumnName))))));
             }
 
-            // Create null expressions for second table columns (Build Side)
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
             {
                 expressions.Add(
@@ -517,7 +503,6 @@ public static class JoinSourcesTableProcessingHelper
             var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
             var expressions = new List<ExpressionSyntax>();
 
-            // Create null expressions for first table columns (Build Side - which is Left in Right Outer Join)
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
             {
                 expressions.Add(
@@ -527,7 +512,6 @@ public static class JoinSourcesTableProcessingHelper
                         (LiteralExpressionSyntax)generator.NullLiteralExpression()));
             }
 
-            // Create expressions for second table columns (Probe Side - which is Right in Right Outer Join)
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
             {
                 expressions.Add(
@@ -547,7 +531,6 @@ public static class JoinSourcesTableProcessingHelper
             );
         }
 
-        // Probe Phase
         var probePhaseStatements = new List<StatementSyntax>
         {
             generateCancellationExpression()
@@ -683,7 +666,6 @@ public static class JoinSourcesTableProcessingHelper
         }
         else
         {
-            // Inner Join
             var matchLoop = SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier(matchVarName),

@@ -39,7 +39,6 @@ public static class SelectNodeProcessor
         MethodAccessType type,
         string rowClassName = null)
     {
-        // Validate parameters
         if (node == null)
             throw new ArgumentNullException(nameof(node));
         if (nodes == null)

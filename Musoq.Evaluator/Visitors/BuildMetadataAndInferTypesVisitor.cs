@@ -291,27 +291,20 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public virtual void Visit(AddNode node)
     {
-        // Special handling for Add: supports both numeric addition and string concatenation
         var right = SafePop(Nodes, "Visit(AddNode) right");
         var left = SafePop(Nodes, "Visit(AddNode) left");
         
-        // Check if either operand is a string literal (WordNode is used for string literals)
         var leftIsStringLiteral = left is WordNode;
         var rightIsStringLiteral = right is WordNode;
         
-        // If either operand is a string literal, this is string concatenation
-        // Let C# handle object-to-string conversion naturally
         if (leftIsStringLiteral || rightIsStringLiteral)
         {
-            // Push back and use no-conversion path for string concatenation
             Nodes.Push(left);
             Nodes.Push(right);
             VisitBinaryOperatorWithSafePop((l, r) => new AddNode(l, r), nameof(Visit) + nameof(AddNode));
         }
         else
         {
-            // Both operands are numeric or object containing numeric values
-            // Apply NumericOnly type conversion (rejects strings, allows boxed numeric types)
             Nodes.Push(left);
             Nodes.Push(right);
             VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), isArithmeticOperation: true);
@@ -937,7 +930,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             }
             catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
             {
-                // Fallback to default type if property access fails
                 type = _theMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject);
             }
             Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, type)));
@@ -971,7 +963,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var exp = SafePop(Nodes, nameof(Visit) + nameof(DotNode) + " (expression)");
         var root = SafePop(Nodes, nameof(Visit) + nameof(DotNode) + " (root)");
 
-        // Validate that both nodes have proper return types
         if (root?.ReturnType == null)
         {
             throw VisitorException.CreateForProcessingFailure(
@@ -980,17 +971,14 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 "Root node has no return type for dot access");
         }
 
-        // Handle aliased character access patterns (e.g., f.Name[0])
-        // Only transform if this is likely string character access, not property access
         if (root is AccessColumnNode accessColumnNode && exp is AccessObjectArrayNode arrayNode2 && !arrayNode2.IsColumnAccess)
         {
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(accessColumnNode.Alias);
             if (tableSymbol != null)
             {
                 var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
-                if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))  // Only indexable column types
+                if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))
                 {
-                    // Transform to column access with alias
                     var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);
                     Nodes.Push(columnAccessArrayNode);
                     return;
@@ -1735,19 +1723,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var groupArgs = new List<Type> { typeof(string) };
         groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
 
-        // Try aggregation method first
         if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), context.EntityType, out var method))
         {
             return (method, false);
         }
 
-        // Try regular method
         if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), context.EntityType, out method))
         {
             return (method, false);
         }
 
-        // Try raw method
         if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
         {
             return (method, true);
@@ -1882,8 +1867,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         AddAssembly(method.DeclaringType.Assembly);
         AddAssembly(method.ReturnType.Assembly);
 
-        // Note: The original node's method is updated through the accessMethod parameter
-        // which should contain the resolved method information
         Nodes.Push(accessMethod);
     }
 
@@ -2424,7 +2407,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
         else if (IsGenericEnumerable(type, out nestedType))
         {
-            // nestedType is already set by the IsGenericEnumerable method
         }
         else
         {
@@ -2453,10 +2435,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         elementType = null;
     
-        // Check if the type is a generic type
         if (!type.IsGenericType) return false;
             
-        // Get all interfaces implemented by the type
         var interfaces = type.GetInterfaces().Concat([type]);
         
         foreach (var interfaceType in interfaces)
@@ -2599,7 +2579,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             scope = scope.Parent;
         }
         
-        // If not found in any scope, fall back to current scope behavior for error consistency
         return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
     }
 }

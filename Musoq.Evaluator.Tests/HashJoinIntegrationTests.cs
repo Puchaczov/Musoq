@@ -16,24 +16,20 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
     [TestMethod]
     public void LeftOuterJoin_WithHashJoinEnabled_ShouldUseHashJoin()
     {
-        // Left join where right side has no match
         const string query = "select first.FirstItem, second.FirstItem from #schema.first() first left outer join #schema.second() second on first.FirstItem = second.FirstItem";
         
         var first = new[] { new FirstEntity { FirstItem = "1" }, new FirstEntity { FirstItem = "2" } };
         var second = new[] { new SecondEntity { FirstItem = "1" }, new SecondEntity { FirstItem = "3" } };
         
-        // Hash Join is enabled by default, but we pass it explicitly to be sure
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
         
         var table = vm.Run();
         
         Assert.AreEqual(2, table.Count);
         
-        // Row 1: Match "1" == "1"
         Assert.AreEqual("1", table[0][0]);
         Assert.AreEqual("1", table[0][1]);
         
-        // Row 2: No match for "2", so second column should be null (or default)
         Assert.AreEqual("2", table[1][0]);
         Assert.IsNull(table[1][1]);
     }
@@ -41,7 +37,6 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
     [TestMethod]
     public void RightOuterJoin_WithHashJoinEnabled_ShouldUseHashJoin()
     {
-        // Right join where left side has no match
         const string query = "select first.FirstItem, second.FirstItem from #schema.first() first right outer join #schema.second() second on first.FirstItem = second.FirstItem";
         
         var first = new[] { new FirstEntity { FirstItem = "1" }, new FirstEntity { FirstItem = "2" } };
@@ -53,11 +48,9 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
         
         Assert.AreEqual(2, table.Count);
         
-        // Row 1: Match "1" == "1"
         Assert.AreEqual("1", table[0][0]);
         Assert.AreEqual("1", table[0][1]);
         
-        // Row 2: No match for "3" in first, so first column should be null
         Assert.IsNull(table[1][0]);
         Assert.AreEqual("3", table[1][1]);
     }
@@ -70,7 +63,6 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
         var first = new[] { new FirstEntity { FirstItem = "1" }, new FirstEntity { FirstItem = "2" } };
         var second = new[] { new SecondEntity { FirstItem = "1" }, new SecondEntity { FirstItem = "3" } };
         
-        // Explicitly DISABLE Hash Join
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: false));
         
         var table = vm.Run();
