@@ -140,7 +140,7 @@ public class RewriteQueryVisitorTests
         // Arrange
         var arg1 = new IntegerNode("1");
         var arg2 = new StringNode("test");
-        var argsListNode = new ArgsListNode(new Node[] { arg1, arg2 });
+        var argsListNode = new ArgsListNode([arg1, arg2]);
 
         // Push arguments in reverse order (as expected by visitor)
         PushNode(arg2);
@@ -159,7 +159,7 @@ public class RewriteQueryVisitorTests
         // Arrange
         var field1 = new FieldNode(new IdentifierNode("Field1"), 0, "Field1");
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
-        var groupByNode = new GroupByNode(new[] { field1, field2 }, null);
+        var groupByNode = new GroupByNode([field1, field2], null);
 
         // Push fields in reverse order
         PushNode(field2);
@@ -202,7 +202,7 @@ public class RewriteQueryVisitorTests
     public void Visit_SchemaFromNode_ShouldProcessCorrectly()
     {
         // Arrange
-        var argsListNode = new ArgsListNode(new Node[0]);
+        var argsListNode = new ArgsListNode([]);
         var schemaFromNode = new SchemaFromNode("testSchema", "testMethod", argsListNode, "alias", typeof(object), 0);
 
         // Push args list
@@ -279,7 +279,7 @@ public class RewriteQueryVisitorTests
     public void Visit_ArgsListNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        var argsListNode = new ArgsListNode(new Node[] { new IntegerNode("1"), new StringNode("test") });
+        var argsListNode = new ArgsListNode([new IntegerNode("1"), new StringNode("test")]);
 
         // Push only one argument when two are expected
         PushNode(new IntegerNode("1"));
@@ -294,7 +294,7 @@ public class RewriteQueryVisitorTests
         // Arrange
         var field1 = new FieldNode(new IdentifierNode("Field1"), 0, "Field1");
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
-        var groupByNode = new GroupByNode(new FieldNode[] { field1, field2 }, null);
+        var groupByNode = new GroupByNode([field1, field2], null);
 
         // Push only one field when two are expected
         PushNode(field1);
@@ -307,7 +307,7 @@ public class RewriteQueryVisitorTests
     public void Visit_SchemaFromNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        var argsListNode = new ArgsListNode(new Node[0]);
+        var argsListNode = new ArgsListNode([]);
         var schemaFromNode = new SchemaFromNode("testSchema", "testMethod", argsListNode, "alias", typeof(object), 0);
 
         // Act - no args list pushed
@@ -402,8 +402,8 @@ public class RewriteQueryVisitorTests
     public void Visit_JoinFromNode_ShouldProcessCorrectly()
     {
         // Arrange
-        var leftFrom = new SchemaFromNode("leftSchema", "leftMethod", new ArgsListNode(new Node[0]), "left", typeof(object), 0);
-        var rightFrom = new SchemaFromNode("rightSchema", "rightMethod", new ArgsListNode(new Node[0]), "right", typeof(object), 1);
+        var leftFrom = new SchemaFromNode("leftSchema", "leftMethod", new ArgsListNode([]), "left", typeof(object), 0);
+        var rightFrom = new SchemaFromNode("rightSchema", "rightMethod", new ArgsListNode([]), "right", typeof(object), 1);
         var joinExpression = new EqualityNode(new IdentifierNode("left.id"), new IdentifierNode("right.id"));
         var joinNode = new JoinFromNode(leftFrom, rightFrom, joinExpression, JoinType.Inner, typeof(object));
 
@@ -452,7 +452,7 @@ public class RewriteQueryVisitorTests
         // Arrange
         var field1 = new FieldNode(new IdentifierNode("Field1"), 0, "Field1");
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
-        var createTableNode = new CreateTransformationTableNode("TestTable", new string[0], new FieldNode[] { field1, field2 }, false);
+        var createTableNode = new CreateTransformationTableNode("TestTable", [], [field1, field2], false);
 
         // Push fields in reverse order
         PushNode(field2);
@@ -535,8 +535,7 @@ ex.Message, $"Error message should be informative: {ex.Message}");
     [TestMethod]
     public void Null_Operand_Prevention_ShouldProvideInformativeErrors()
     {
-        // Test that we get informative error messages for null operand scenarios
-        var operations = new Action[]
+        var operations = new[]
         {
             () => {
                 PushNode(new IntegerNode("1"));

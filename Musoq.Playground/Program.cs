@@ -26,11 +26,9 @@ namespace Musoq.Playground
             var script = @"
                 select 
                     a.Name, 
-                    b.Country,
-                    c.City
+                    b.Country
                 from #test.entities() a
-                inner join #test.entities() b on a.Id = b.Id
-                inner join #test.entities() c on b.Id = c.Id";
+                left outer join #test.entities() b on a.Id = b.Id";
 
             var schemaProvider = new MySchemaProvider(new List<MyEntity>());
             
@@ -65,11 +63,9 @@ namespace Musoq.Playground
             var script = @"
                 select 
                     a.Name, 
-                    b.Country,
-                    c.City
+                    b.Country
                 from #test.entities() a
-                inner join #test.entities() b on a.Id = b.Id
-                inner join #test.entities() c on b.Id = c.Id";
+                left outer join #test.entities() b on a.Id = b.Id";
 
             var entities = Enumerable.Range(0, 100).Select(i => new MyEntity 
             { 

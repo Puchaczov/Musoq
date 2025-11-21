@@ -23,8 +23,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         public string StringEqual { get; set; }
     }
 
-    private static readonly DateTimeTypeTestData[] DateTimeTypes = new[]
-    {
+    private static readonly DateTimeTypeTestData[] DateTimeTypes =
+    [
         new DateTimeTypeTestData
         {
             TypeName = "System.DateTime",
@@ -85,7 +85,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             StringLater = "03:00:00",
             StringEqual = "02:00:00"
         }
-    };
+    ];
 
     private struct OperatorTestData
     {

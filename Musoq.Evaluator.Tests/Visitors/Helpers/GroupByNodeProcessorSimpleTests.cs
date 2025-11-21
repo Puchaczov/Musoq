@@ -42,7 +42,7 @@ public class GroupByNodeProcessorSimpleTests
         // This test verifies the helper class compiles and can be called
         // More complete testing would require actual instances which are complex to create
         var scope = new Scope(null, 0, "test");
-        var fieldsNamesSymbol = new FieldsNamesSymbol(new[] { "field1" });
+        var fieldsNamesSymbol = new FieldsNamesSymbol(["field1"]);
         scope.ScopeSymbolTable.AddSymbol("groupFields", fieldsNamesSymbol);
         
         // This is a basic smoke test to ensure the class exists and methods are accessible

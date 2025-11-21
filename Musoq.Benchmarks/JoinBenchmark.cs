@@ -16,19 +16,44 @@ namespace Musoq.Benchmarks
         private CompiledQuery _query = null!;
         private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
 
+        [Params(100, 1000, 10000)]
+        public int RowsCount { get; set; }
+
+        [Params(JoinType.Inner, JoinType.Left, JoinType.Right)]
+        public JoinType Type { get; set; }
+
+        public enum JoinType
+        {
+            Inner,
+            Left,
+            Right
+        }
+
         [GlobalSetup]
         public void Setup()
         {
-            var script = @"
+            string joinClause = "";
+            switch (Type)
+            {
+                case JoinType.Inner:
+                    joinClause = "inner join";
+                    break;
+                case JoinType.Left:
+                    joinClause = "left outer join";
+                    break;
+                case JoinType.Right:
+                    joinClause = "right outer join";
+                    break;
+            }
+
+            var script = $@"
                 select 
                     a.Name, 
-                    b.Country,
-                    c.City
+                    b.Country
                 from #test.entities() a
-                inner join #test.entities() b on a.Id = b.Id
-                inner join #test.entities() c on b.Id = c.Id";
+                {joinClause} #test.entities() b on a.Id = b.Id";
 
-            var entities = Enumerable.Range(0, 100).Select(i => new MyEntity 
+            var entities = Enumerable.Range(0, RowsCount).Select(i => new MyEntity 
             { 
                 Id = i, 
                 Name = $"Name{i}", 

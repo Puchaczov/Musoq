@@ -1675,6 +1675,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var methodContext = ResolveMethodContext(node, args);
         var (method, canSkipInjectSource) = ResolveMethod(node, args, methodContext);
         
+        if (node.Name == "Sum" || node.Name == "Count")
+        {
+            System.Console.WriteLine($"Resolving {node.Name}. ArgTypes: {string.Join(", ", args.Args.Select(a => a.ReturnType.Name))}. Method ReturnType: {method.ReturnType.Name}");
+        }
+        
         method = ProcessGenericMethodIfNeeded(method, args, methodContext.EntityType);
         
         var accessMethod = CreateAccessMethod(node, args, method, methodContext, canSkipInjectSource, func);

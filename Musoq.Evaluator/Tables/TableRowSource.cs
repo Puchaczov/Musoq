@@ -26,7 +26,7 @@ public class TableRowSource : RowSource
     public override IEnumerable<IObjectResolver> Rows => _discardedContext ? RowsWithDiscardedContexts : RowsWithContexts;
     
     private IEnumerable<IObjectResolver> RowsWithContexts =>
-        _table.Select(row => new RowResolver((ObjectsRow)row, _columnToIndexMap));
+        _table.Select(row => new RowResolver(row, _columnToIndexMap));
     
     private IEnumerable<IObjectResolver> RowsWithDiscardedContexts =>
         _table.Select(row => new RowResolver(new ObjectsRow(row.Values, DiscardedContexts), _columnToIndexMap));

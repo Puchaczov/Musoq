@@ -32,7 +32,7 @@ public class BuildMetadataAndInferTypesVisitorTests
             },
             new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
             {
-                {0, Array.Empty<EnvironmentVariableEntity>()},
+                {0, []},
                 {1, [new ("KEY_1", "VALUE_1")]}
             }, logger.Object);
         

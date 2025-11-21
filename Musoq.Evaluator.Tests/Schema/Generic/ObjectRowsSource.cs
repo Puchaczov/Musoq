@@ -6,5 +6,5 @@ namespace Musoq.Evaluator.Tests.Schema.Generic;
 
 public class ObjectRowsSource(IEnumerable<IObjectResolver> rows) : RowSource
 {
-    public override IEnumerable<IObjectResolver> Rows { get; } = rows ?? Enumerable.Empty<IObjectResolver>();
+    public override IEnumerable<IObjectResolver> Rows { get; } = rows ?? [];
 }

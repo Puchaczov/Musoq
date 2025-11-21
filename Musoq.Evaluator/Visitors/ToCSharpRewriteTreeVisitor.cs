@@ -57,6 +57,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private readonly List<string> _namespaces = [];
     private readonly IDictionary<string, int[]> _setOperatorFieldIndexes;
+    private int _rowClassCounter;
 
     private readonly Dictionary<string, Type> _typesToInstantiate = new();
     private BlockSyntax _emptyBlock;
@@ -673,7 +674,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(SelectNode node)
     {
-        _selectBlock = SelectNodeProcessor.ProcessSelectNode(node, Nodes, _scope, _type);
+        var className = $"{_queryAlias}Row{_rowClassCounter++}";
+        var rowClass = GenerateRowClass(className, node, _scope);
+        _members.Add(rowClass);
+
+        _selectBlock = SelectNodeProcessor.ProcessSelectNode(node, Nodes, _scope, _type, className);
     }
 
     public void Visit(GroupSelectNode node)
@@ -2490,5 +2495,208 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {
         return SyntaxFactory.Block(statements.Where(f => f is not EmptyStatementSyntax));
+    }
+
+    private MemberDeclarationSyntax GenerateRowClass(string className, SelectNode node, Scope scope)
+    {
+        var fields = new List<MemberDeclarationSyntax>();
+        var constructorParams = new List<ParameterSyntax>();
+        var constructorBody = new List<StatementSyntax>();
+        var indexerCases = new List<SwitchExpressionArmSyntax>();
+        var valuesInit = new List<ExpressionSyntax>();
+
+        var contexts = scope[MetaAttributes.Contexts].Split(',');
+        var contextParams = new List<ParameterSyntax>();
+        var contextExprs = new List<ExpressionSyntax>();
+
+        for (var i = 0; i < node.Fields.Length; i++)
+        {
+            var fieldName = $"Item{i}";
+            var type = node.Fields[i].Expression.ReturnType;
+            
+            var typeSyntax = SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(type));
+
+            fields.Add(SyntaxFactory.FieldDeclaration(
+                SyntaxFactory.VariableDeclaration(typeSyntax)
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(fieldName))))
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))));
+
+            var paramName = $"item{i}";
+            constructorParams.Add(SyntaxFactory.Parameter(SyntaxFactory.Identifier(paramName))
+                .WithType(typeSyntax));
+
+            constructorBody.Add(SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName(fieldName),
+                    SyntaxFactory.IdentifierName(paramName))));
+
+            indexerCases.Add(SyntaxFactory.SwitchExpressionArm(
+                SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))),
+                SyntaxFactory.IdentifierName(fieldName)));
+
+            valuesInit.Add(SyntaxFactory.IdentifierName(fieldName));
+        }
+
+        fields.Add(SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))),
+            "Contexts")
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
+            .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))))));
+
+        for (var i = 0; i < contexts.Length; i++)
+        {
+            var paramName = $"context{i}";
+            contextParams.Add(SyntaxFactory.Parameter(SyntaxFactory.Identifier(paramName))
+                .WithType(SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression()))))));
+            
+            contextExprs.Add(SyntaxFactory.IdentifierName(paramName));
+        }
+        
+        constructorParams.AddRange(contextParams);
+
+        var contextBody = new List<StatementSyntax>();
+        
+        contextBody.Add(SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+            .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.VariableDeclarator("size")
+                .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))))
+            ))
+        ));
+
+        for (var i = 0; i < contexts.Length; i++)
+        {
+            var paramName = $"context{i}";
+            
+            var ifStmt = SyntaxFactory.IfStatement(
+                SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                SyntaxFactory.ExpressionStatement(
+                    SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, SyntaxFactory.IdentifierName("size"), 
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.IdentifierName("Length")))
+                ),
+                SyntaxFactory.ElseClause(
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, SyntaxFactory.IdentifierName("size"), 
+                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)))
+                    )
+                )
+            );
+            contextBody.Add(ifStmt);
+        }
+
+        contextBody.Add(SyntaxFactory.ExpressionStatement(
+            SyntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                SyntaxFactory.IdentifierName("Contexts"),
+                SyntaxFactory.ArrayCreationExpression(
+                    SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.IdentifierName("size"))))))
+            )
+        ));
+
+        contextBody.Add(SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+            .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.VariableDeclarator("offset")
+                .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))))
+            ))
+        ));
+        
+        for (var i = 0; i < contexts.Length; i++)
+        {
+            var paramName = $"context{i}";
+            
+            var ifStmt = SyntaxFactory.IfStatement(
+                SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                SyntaxFactory.Block(
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.ParseTypeName("System.Array"), SyntaxFactory.IdentifierName("Copy")),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new [] {
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(paramName)),
+                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("Contexts")),
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("offset")),
+                                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.IdentifierName("Length")))
+                            }))
+                        )
+                    ),
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, SyntaxFactory.IdentifierName("offset"), 
+                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.IdentifierName("Length")))
+                    )
+                ),
+                SyntaxFactory.ElseClause(
+                    SyntaxFactory.Block(
+                        SyntaxFactory.ExpressionStatement(
+                            SyntaxFactory.AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("Contexts"), SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                                    SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("offset"))
+                                )))),
+                                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                            )
+                        )
+                    )
+                )
+            );
+            contextBody.Add(ifStmt);
+        }
+        
+        constructorBody.AddRange(contextBody);
+
+        var constructor = SyntaxFactory.ConstructorDeclaration(className)
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(constructorParams)))
+            .WithBody(SyntaxFactory.Block(constructorBody));
+
+        var indexerBody = SyntaxFactory.Block();
+
+        for (var i = 0; i < node.Fields.Length; i++)
+        {
+            indexerBody = indexerBody.AddStatements(
+                SyntaxFactory.IfStatement(
+                    SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, SyntaxFactory.IdentifierName("index"), SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))),
+                    SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName($"Item{i}"))
+                )
+            );
+        }
+
+        indexerBody = indexerBody.AddStatements(
+            SyntaxFactory.ThrowStatement(SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName("IndexOutOfRangeException")).WithArgumentList(SyntaxFactory.ArgumentList()))
+        );
+
+        var indexer = SyntaxFactory.IndexerDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
+            .WithParameterList(SyntaxFactory.BracketedParameterList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier("index")).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
+            .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(
+                SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                    .WithBody(indexerBody)
+            )));
+
+        var countProp = SyntaxFactory.PropertyDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)), "Count")
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
+            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(node.Fields.Length))))
+            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+
+        var valuesProp = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))),
+            "Values")
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
+            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(
+                SyntaxFactory.ArrayCreationExpression(
+                    SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))),
+                    SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(valuesInit))
+                )
+            ))
+            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+
+        return SyntaxFactory.ClassDeclaration(className)
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+            .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
+                SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("Row")))))
+            .WithMembers(SyntaxFactory.List(fields.Concat(new MemberDeclarationSyntax[] { constructor, indexer, countProp, valuesProp })));
     }
 }

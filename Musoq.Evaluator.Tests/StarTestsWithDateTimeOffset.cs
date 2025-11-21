@@ -20,7 +20,7 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
                              "  UpdatedAt 'System.Nullable`1[System.DateTimeOffset]'" +
                              "};" +
                              "couple #test.whatever with table Dates as Dates; " +
-                             "select * from Dates()";
+                             "select * from Dates() order by Id";
 
         dynamic first = new ExpandoObject();
         first.Id = 1;
