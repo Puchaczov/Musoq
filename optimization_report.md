@@ -78,8 +78,34 @@ We will address these issues in the following order to maximize impact.
 **Memory**:
 *   **100 Rows Join**: **1.53 MB** allocated. (Previous Nested Loop was 2.24 MB).
 
-### Generated Code Example
-Below is the full C# code generated for the query:
+### Step 4: Improve Code Readability (Completed)
+**Goal**: Make generated code easier to debug and read.
+**Strategy**:
+*   Use C# aliases (`int`, `string`) instead of CLR types (`System.Int32`, `System.String`).
+*   Remove redundant casts (e.g., `(string)((string)val)` -> `(string)val`).
+*   Simplify generic type names.
+**Status**: Implemented.
+**Impact**: Generated code is significantly cleaner and easier to read for developers debugging the query engine.
+
+### Step 5: Simplify Context Initialization (Completed)
+**Goal**: Reduce boilerplate code in generated Row constructors.
+**Strategy**:
+*   Introduce `EvaluationHelper.FlattenContexts` helper method.
+*   Replace verbose array copying logic with a single method call.
+*   Add comments to generated fields indicating their original column names.
+**Status**: Implemented.
+**Impact**: Row constructors are now concise, and fields are self-documenting.
+
+### Step 6: Improve Code Formatting (Completed)
+**Goal**: Ensure generated code is properly formatted, especially for complex blocks like `Parallel.ForEach`.
+**Strategy**:
+*   Configure Roslyn `Formatter` to use proper indentation and newlines for control blocks and lambdas.
+*   Pass the configured `OptionSet` to `Formatter.Format`.
+**Status**: Implemented.
+**Impact**: Generated code now follows standard C# formatting conventions, making it much easier to read.
+
+### Generated Code Example (Final)
+Below is the full C# code generated for the query (after all improvements):
 ```sql
 select 
     a.Name, 
@@ -114,49 +140,20 @@ namespace Query.Compiled_0
 
         public class abRow0 : Row
         {
-            public System.String Item0;
-            public System.Int32 Item1;
-            public System.String Item2;
-            public System.Int32 Item3;
+            public string Item0; // a.Name
+            public int Item1; // a.Id
+            public string Item2; // b.Country
+            public int Item3; // b.Id
 
             public override object[] Contexts { get; }
 
-            public abRow0(System.String item0, System.Int32 item1, System.String item2, System.Int32 item3, object[] context0, object[] context1)
+            public abRow0(string item0, int item1, string item2, int item3, object[] context0, object[] context1)
             {
                 Item0 = item0;
                 Item1 = item1;
                 Item2 = item2;
                 Item3 = item3;
-                int size = 0;
-                if (context0 != null)
-                    size += context0.Length;
-                else
-                    size += 1;
-                if (context1 != null)
-                    size += context1.Length;
-                else
-                    size += 1;
-                Contexts = new object[size];
-                int offset = 0;
-                if (context0 != null)
-                {
-                    System.Array.Copy(context0, 0, Contexts, offset, context0.Length);
-                    offset += context0.Length;
-                }
-                else
-                {
-                    Contexts[offset++] = null;
-                }
-
-                if (context1 != null)
-                {
-                    System.Array.Copy(context1, 0, Contexts, offset, context1.Length);
-                    offset += context1.Length;
-                }
-                else
-                {
-                    Contexts[offset++] = null;
-                }
+                Contexts = EvaluationHelper.FlattenContexts(context0, context1);
             }
 
             public override object this[int index]
@@ -182,16 +179,16 @@ namespace Query.Compiled_0
 
         public class abcRow1 : Row
         {
-            public System.String Item0;
-            public System.Int32 Item1;
-            public System.String Item2;
-            public System.Int32 Item3;
-            public System.String Item4;
-            public System.Int32 Item5;
+            public string Item0;
+            public int Item1;
+            public string Item2;
+            public int Item3;
+            public string Item4;
+            public int Item5;
 
             public override object[] Contexts { get; }
 
-            public abcRow1(System.String item0, System.Int32 item1, System.String item2, System.Int32 item3, System.String item4, System.Int32 item5, object[] context0, object[] context1)
+            public abcRow1(string item0, int item1, string item2, int item3, string item4, int item5, object[] context0, object[] context1)
             {
                 Item0 = item0;
                 Item1 = item1;
@@ -199,36 +196,7 @@ namespace Query.Compiled_0
                 Item3 = item3;
                 Item4 = item4;
                 Item5 = item5;
-                int size = 0;
-                if (context0 != null)
-                    size += context0.Length;
-                else
-                    size += 1;
-                if (context1 != null)
-                    size += context1.Length;
-                else
-                    size += 1;
-                Contexts = new object[size];
-                int offset = 0;
-                if (context0 != null)
-                {
-                    System.Array.Copy(context0, 0, Contexts, offset, context0.Length);
-                    offset += context0.Length;
-                }
-                else
-                {
-                    Contexts[offset++] = null;
-                }
-
-                if (context1 != null)
-                {
-                    System.Array.Copy(context1, 0, Contexts, offset, context1.Length);
-                    offset += context1.Length;
-                }
-                else
-                {
-                    Contexts[offset++] = null;
-                }
+                Contexts = EvaluationHelper.FlattenContexts(context0, context1);
             }
 
             public override object this[int index]
@@ -258,33 +226,18 @@ namespace Query.Compiled_0
 
         public class abcRow2 : Row
         {
-            public System.String Item0;
-            public System.String Item1;
-            public System.String Item2;
+            public string Item0;
+            public string Item1;
+            public string Item2;
 
             public override object[] Contexts { get; }
 
-            public abcRow2(System.String item0, System.String item1, System.String item2, object[] context0)
+            public abcRow2(string item0, string item1, string item2, object[] context0)
             {
                 Item0 = item0;
                 Item1 = item1;
                 Item2 = item2;
-                int size = 0;
-                if (context0 != null)
-                    size += context0.Length;
-                else
-                    size += 1;
-                Contexts = new object[size];
-                int offset = 0;
-                if (context0 != null)
-                {
-                    System.Array.Copy(context0, 0, Contexts, offset, context0.Length);
-                    offset += context0.Length;
-                }
-                else
-                {
-                    Contexts[offset++] = null;
-                }
+                Contexts = EvaluationHelper.FlattenContexts(context0);
             }
 
             public override object this[int index]
@@ -309,21 +262,39 @@ namespace Query.Compiled_0
         private Table ComputeTable_abc_0_0(ISchemaProvider provider, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables, IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode, bool HasExternallyProvidedTypes)> queriesInformation, ILogger logger, CancellationToken token)
         {
             var stats = new AmendableQueryStats();
-            var abTransitionTable = new Table("ab", new Column[] { new Column(@"a.Name", typeof(System.String), 0), new Column(@"a.Id", typeof(System.Int32), 1), new Column(@"b.Country", typeof(System.String), 2), new Column(@"b.Id", typeof(System.Int32), 3) });
-            var aInferredInfoTable = new ISchemaColumn[] { new Column("Name", typeof(System.String), 0), new Column("Country", typeof(System.String), 1), new Column("City", typeof(System.String), 2), new Column("Id", typeof(System.Int32), 3) };
-            var a = provider.GetSchema("#test");
-            var bInferredInfoTable = new ISchemaColumn[] { new Column("Name", typeof(System.String), 0), new Column("Country", typeof(System.String), 1), new Column("City", typeof(System.String), 2), new Column("Id", typeof(System.Int32), 3) };
-            var b = provider.GetSchema("#test");
-            var bHashed = new System.Collections.Generic.Dictionary<System.Int32, System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>>();
+            var abTransitionTable = new Table("ab", new Column[]
             {
-                var bRows = b.GetRowSource("entities", new RuntimeContext(token, bInferredInfoTable, positionalEnvironmentVariables[1], queriesInformation["b:1"], logger), new Object[] { });
+                new Column(@"a.Name", typeof(string), 0),
+                new Column(@"a.Id", typeof(int), 1),
+                new Column(@"b.Country", typeof(string), 2),
+                new Column(@"b.Id", typeof(int), 3)
+            });
+            var aInferredInfoTable = new ISchemaColumn[]
+            {
+                new Column("Name", typeof(string), 0),
+                new Column("Country", typeof(string), 1),
+                new Column("City", typeof(string), 2),
+                new Column("Id", typeof(int), 3)
+            };
+            var a = provider.GetSchema("#test");
+            var bInferredInfoTable = new ISchemaColumn[]
+            {
+                new Column("Name", typeof(string), 0),
+                new Column("Country", typeof(string), 1),
+                new Column("City", typeof(string), 2),
+                new Column("Id", typeof(int), 3)
+            };
+            var b = provider.GetSchema("#test");
+            var bHashed = new Dictionary<int, List<Musoq.Schema.DataSources.IObjectResolver>>();
+            {
+                var bRows = b.GetRowSource("entities", new RuntimeContext(token, bInferredInfoTable, positionalEnvironmentVariables[1], queriesInformation["b:1"], logger), new object[] { });
                 foreach (var bRow in bRows.Rows)
                 {
                     token.ThrowIfCancellationRequested();
-                    var key = (System.Int32)bRow["Id"];
+                    var key = (int)bRow["Id"];
                     if (!bHashed.ContainsKey(key))
                     {
-                        bHashed[key] = new System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>();
+                        bHashed[key] = new List<Musoq.Schema.DataSources.IObjectResolver>();
                     }
 
                     bHashed[key].Add(bRow);
@@ -331,44 +302,86 @@ namespace Query.Compiled_0
             }
 
             {
-                var aRows = a.GetRowSource("entities", new RuntimeContext(token, aInferredInfoTable, positionalEnvironmentVariables[0], queriesInformation["a:1"], logger), new Object[] { });
+                var aRows = a.GetRowSource("entities", new RuntimeContext(token, aInferredInfoTable, positionalEnvironmentVariables[0], queriesInformation["a:1"], logger), new object[] { });
                 foreach (var aRow in aRows.Rows)
                 {
                     token.ThrowIfCancellationRequested();
-                    var key = (System.Int32)aRow["Id"];
+                    var key = (int)aRow["Id"];
                     if (bHashed.TryGetValue(key, out var matches))
                     {
                         foreach (var bRow in matches)
                         {
                             token.ThrowIfCancellationRequested();
-                            abTransitionTable.Add(new abRow0((System.String)((System.String)(aRow[@"Name"])), (System.Int32)((System.Int32)(aRow[@"Id"])), (System.String)((System.String)(bRow[@"Country"])), (System.Int32)((System.Int32)(bRow[@"Id"])), aRow.Contexts, bRow.Contexts));
+                            abTransitionTable.Add(new abRow0(
+                                (string)(aRow[@"Name"]), 
+                                (int)(aRow[@"Id"]), 
+                                (string)(bRow[@"Country"]), 
+                                (int)(bRow[@"Id"]), 
+                                aRow.Contexts, 
+                                bRow.Contexts));
                         }
                     }
                 }
             }
 
-            var abcTransitionTable = new Table("abc", new Column[] { new Column(@"a.Name", typeof(System.String), 0), new Column(@"a.Id", typeof(System.Int32), 1), new Column(@"b.Country", typeof(System.String), 2), new Column(@"b.Id", typeof(System.Int32), 3), new Column(@"c.City", typeof(System.String), 4), new Column(@"c.Id", typeof(System.Int32), 5) });
-            var cInferredInfoTable = new ISchemaColumn[] { new Column("Name", typeof(System.String), 0), new Column("Country", typeof(System.String), 1), new Column("City", typeof(System.String), 2), new Column("Id", typeof(System.Int32), 3) };
+            var abcTransitionTable = new Table("abc", new Column[]
+            {
+                new Column(@"a.Name", typeof(string), 0),
+                new Column(@"a.Id", typeof(int), 1),
+                new Column(@"b.Country", typeof(string), 2),
+                new Column(@"b.Id", typeof(int), 3),
+                new Column(@"c.City", typeof(string), 4),
+                new Column(@"c.Id", typeof(int), 5)
+            });
+            var cInferredInfoTable = new ISchemaColumn[]
+            {
+                new Column("Name", typeof(string), 0),
+                new Column("Country", typeof(string), 1),
+                new Column("City", typeof(string), 2),
+                new Column("Id", typeof(int), 3)
+            };
             var c = provider.GetSchema("#test");
             foreach (var abRow in EvaluationHelper.ConvertTableToSource(abTransitionTable, false).Rows)
             {
-                var cRows = c.GetRowSource("entities", new RuntimeContext(token, cInferredInfoTable, positionalEnvironmentVariables[2], queriesInformation["c:1"], logger), new Object[] { });
+                var cRows = c.GetRowSource("entities", new RuntimeContext(token, cInferredInfoTable, positionalEnvironmentVariables[2], queriesInformation["c:1"], logger), new object[] { });
                 foreach (var cRow in cRows.Rows)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (!(((System.Int32)(abRow[@"b.Id"])) == ((System.Int32)(cRow[@"Id"]))))
+                    if (!(((int)(abRow[@"b.Id"])) == ((int)(cRow[@"Id"]))))
                     {
                         continue;
                     }
 
-                    abcTransitionTable.Add(new abcRow1((System.String)((System.String)(abRow[@"a.Name"])), (System.Int32)((System.Int32)(abRow[@"a.Id"])), (System.String)((System.String)(abRow[@"b.Country"])), (System.Int32)((System.Int32)(abRow[@"b.Id"])), (System.String)((System.String)(cRow[@"City"])), (System.Int32)((System.Int32)(cRow[@"Id"])), abRow.Contexts, cRow.Contexts));
+                    abcTransitionTable.Add(new abcRow1(
+                        (string)(abRow[@"a.Name"]), 
+                        (int)(abRow[@"a.Id"]), 
+                        (string)(abRow[@"b.Country"]), 
+                        (int)(abRow[@"b.Id"]), 
+                        (string)(cRow[@"City"]), 
+                        (int)(cRow[@"Id"]), 
+                        abRow.Contexts, 
+                        cRow.Contexts));
                 }
             }
 
-            var abcScore = new Table("abcScore", new Column[] { new Column(@"a.Name", typeof(System.String), 0), new Column(@"b.Country", typeof(System.String), 1), new Column(@"c.City", typeof(System.String), 2) });
+            var abcScore = new Table("abcScore", new Column[]
+            {
+                new Column(@"a.Name", typeof(string), 0),
+                new Column(@"b.Country", typeof(string), 1),
+                new Column(@"c.City", typeof(string), 2)
+            });
             try
             {
-                Parallel.ForEach(EvaluationHelper.ConvertTableToSource(abcTransitionTable, false).Rows, (score) => { token.ThrowIfCancellationRequested(); var currentRowStats = stats.IncrementRowNumber(); abcScore.Add(new abcRow2((System.String)((System.String)(score[@"a.Name"])), (System.String)((System.String)(score[@"b.Country"])), (System.String)((System.String)(score[@"c.City"])), score.Contexts)); });
+                Parallel.ForEach(EvaluationHelper.ConvertTableToSource(abcTransitionTable, false).Rows, (score) =>
+                {
+                    token.ThrowIfCancellationRequested();
+                    var currentRowStats = stats.IncrementRowNumber();
+                    abcScore.Add(new abcRow2(
+                        (string)(score[@"a.Name"]), 
+                        (string)(score[@"b.Country"]), 
+                        (string)(score[@"c.City"]), 
+                        score.Contexts));
+                });
             }
             catch (AggregateException ex)
             {

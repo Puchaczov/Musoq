@@ -412,6 +412,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         var expression = Nodes.Pop();
 
+        if (expression is CastExpressionSyntax castExpression && castExpression.Type.ToString() == typeIdentifier.ToString())
+        {
+            Nodes.Push(expression);
+            return;
+        }
+
         var castedExpression = Generator.CastExpression(typeIdentifier, expression);
         Nodes.Push(castedExpression);
     }
@@ -1451,9 +1457,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         var options = Workspace.Options;
         options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInMethods, true);
-        options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInProperties, true);
+        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInProperties, true);
+        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, true);
+        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, true);
+        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, true);
 
-        var formatted = Formatter.Format(compilationUnit, Workspace);
+        var formatted = Formatter.Format(compilationUnit, Workspace, options);
 
         Compilation = Compilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(formatted.ToFullString(),
             new CSharpParseOptions(LanguageVersion.CSharp8), null, Encoding.ASCII));
@@ -2520,7 +2529,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 SyntaxFactory.VariableDeclaration(typeSyntax)
                     .WithVariables(SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(fieldName))))
-                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))));
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .WithTrailingTrivia(SyntaxFactory.Comment($"// {node.Fields[i].FieldName.Replace("\n", "\\n").Replace("\r", "\\r")}")));
 
             var paramName = $"item{i}";
             constructorParams.Add(SyntaxFactory.Parameter(SyntaxFactory.Identifier(paramName))
@@ -2558,95 +2568,22 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         var contextBody = new List<StatementSyntax>();
         
-        contextBody.Add(SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
-            .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.VariableDeclarator("size")
-                .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))))
-            ))
-        ));
-
-        for (var i = 0; i < contexts.Length; i++)
-        {
-            var paramName = $"context{i}";
-            
-            var ifStmt = SyntaxFactory.IfStatement(
-                SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                SyntaxFactory.ExpressionStatement(
-                    SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, SyntaxFactory.IdentifierName("size"), 
-                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.IdentifierName("Length")))
-                ),
-                SyntaxFactory.ElseClause(
-                    SyntaxFactory.ExpressionStatement(
-                        SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, SyntaxFactory.IdentifierName("size"), 
-                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)))
-                    )
-                )
-            );
-            contextBody.Add(ifStmt);
-        }
+        var flattenContextsInvocation = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.FlattenContexts))),
+            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                contextExprs.Select(SyntaxFactory.Argument)
+            )));
 
         contextBody.Add(SyntaxFactory.ExpressionStatement(
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 SyntaxFactory.IdentifierName("Contexts"),
-                SyntaxFactory.ArrayCreationExpression(
-                    SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.IdentifierName("size"))))))
-            )
-        ));
+                flattenContextsInvocation)));
 
-        contextBody.Add(SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
-            .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.VariableDeclarator("offset")
-                .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))))
-            ))
-        ));
-        
-        for (var i = 0; i < contexts.Length; i++)
-        {
-            var paramName = $"context{i}";
-            
-            var ifStmt = SyntaxFactory.IfStatement(
-                SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                SyntaxFactory.Block(
-                    SyntaxFactory.ExpressionStatement(
-                        SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.ParseTypeName("System.Array"), SyntaxFactory.IdentifierName("Copy")),
-                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new [] {
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(paramName)),
-                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("Contexts")),
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("offset")),
-                                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.IdentifierName("Length")))
-                            }))
-                        )
-                    ),
-                    SyntaxFactory.ExpressionStatement(
-                        SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, SyntaxFactory.IdentifierName("offset"), 
-                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(paramName), SyntaxFactory.IdentifierName("Length")))
-                    )
-                ),
-                SyntaxFactory.ElseClause(
-                    SyntaxFactory.Block(
-                        SyntaxFactory.ExpressionStatement(
-                            SyntaxFactory.AssignmentExpression(
-                                SyntaxKind.SimpleAssignmentExpression,
-                                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("Contexts"), SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
-                                    SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("offset"))
-                                )))),
-                                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
-                            )
-                        )
-                    )
-                )
-            );
-            contextBody.Add(ifStmt);
-        }
-        
-        constructorBody.AddRange(contextBody);
-
-        var constructor = SyntaxFactory.ConstructorDeclaration(className)
+        constructorBody.AddRange(contextBody);        var constructor = SyntaxFactory.ConstructorDeclaration(className)
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(constructorParams)))
             .WithBody(SyntaxFactory.Block(constructorBody));

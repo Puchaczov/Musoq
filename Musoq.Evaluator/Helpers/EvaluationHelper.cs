@@ -278,7 +278,25 @@ public static class EvaluationHelper
 
     public static string GetCastableType(Type type)
     {
-        if (type is NullNode.NullType) return "System.Object";
+        if (type is NullNode.NullType) return "object";
+        
+        if (type == typeof(string)) return "string";
+        if (type == typeof(int)) return "int";
+        if (type == typeof(long)) return "long";
+        if (type == typeof(short)) return "short";
+        if (type == typeof(byte)) return "byte";
+        if (type == typeof(ulong)) return "ulong";
+        if (type == typeof(uint)) return "uint";
+        if (type == typeof(ushort)) return "ushort";
+        if (type == typeof(sbyte)) return "sbyte";
+        if (type == typeof(bool)) return "bool";
+        if (type == typeof(decimal)) return "decimal";
+        if (type == typeof(double)) return "double";
+        if (type == typeof(float)) return "float";
+        if (type == typeof(char)) return "char";
+        if (type == typeof(object)) return "object";
+        if (type == typeof(void)) return "void";
+
         if (type.IsGenericType) return GetFriendlyTypeName(type);
         if (type.IsNested) return $"{GetCastableType(type.DeclaringType)}.{type.Name}";
 
@@ -315,7 +333,7 @@ public static class EvaluationHelper
     {
         if (type.IsGenericParameter) return type.Name;
 
-        if (!type.IsGenericType) return ReplacePlusWithDotForNestedClasses(type.FullName);
+        if (!type.IsGenericType) return GetCastableType(type);
 
         var builder = new StringBuilder();
         var name = type.Name;
@@ -325,8 +343,8 @@ public static class EvaluationHelper
         var first = true;
         foreach (var arg in type.GetGenericArguments())
         {
-            if (!first) builder.Append(',');
-            builder.Append(GetFriendlyTypeName(arg));
+            if (!first) builder.Append(", ");
+            builder.Append(GetCastableType(arg));
             first = false;
         }
 
@@ -459,5 +477,34 @@ public static class EvaluationHelper
         {
             return false;
         }
+    }
+
+    public static object[] FlattenContexts(params object[][] contexts)
+    {
+        var size = 0;
+        for (var i = 0; i < contexts.Length; i++)
+        {
+            if (contexts[i] != null)
+                size += contexts[i].Length;
+            else
+                size += 1;
+        }
+
+        var result = new object[size];
+        var offset = 0;
+        for (var i = 0; i < contexts.Length; i++)
+        {
+            if (contexts[i] != null)
+            {
+                Array.Copy(contexts[i], 0, result, offset, contexts[i].Length);
+                offset += contexts[i].Length;
+            }
+            else
+            {
+                result[offset++] = null;
+            }
+        }
+
+        return result;
     }
 }

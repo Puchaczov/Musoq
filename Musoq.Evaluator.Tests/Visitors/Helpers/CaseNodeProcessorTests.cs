@@ -151,9 +151,9 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             
             // Assert
             Assert.IsNotNull(result.Method);
-            var returnType = result.Method.ReturnType as IdentifierNameSyntax;
+            var returnType = result.Method.ReturnType;
             Assert.IsNotNull(returnType);
-            Assert.AreEqual("System.Int32", returnType.Identifier.ValueText);
+            Assert.AreEqual("int", returnType.ToString());
         }
 
         [TestMethod]
