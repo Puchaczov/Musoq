@@ -14,6 +14,8 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
 
     public abstract object[] Values { get; }
 
+    public virtual object[] Contexts => null;
+
     public bool Equals(Row other)
     {
         if (other == null)

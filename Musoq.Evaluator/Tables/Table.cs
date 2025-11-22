@@ -57,8 +57,10 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
                 var t1 = value[i].GetType();
                 var t2 = _columnsByIndex[i].ColumnType;
                 if (!t2.IsAssignableFrom(t1))
+                {
                     throw new NotSupportedException(
                         $"({nameof(Add)}) Mismatched types. {t2.Name} is not assignable from {t1.Name}");
+                }
             }
 
             Rows.Add(value);

@@ -22,13 +22,13 @@ inner join #C.entities() population on 1 = 1";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             },
             {
-                "#B", Array.Empty<BasicEntity>()
+                "#B", []
             },
             {
-                "#C", Array.Empty<BasicEntity>()
+                "#C", []
             }
         };
 

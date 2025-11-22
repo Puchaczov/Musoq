@@ -18,7 +18,7 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
@@ -83,7 +83,7 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
@@ -98,7 +98,7 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
@@ -113,7 +113,7 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
@@ -128,7 +128,7 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
@@ -143,7 +143,7 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         

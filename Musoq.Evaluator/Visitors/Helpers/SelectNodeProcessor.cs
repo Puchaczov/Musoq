@@ -36,9 +36,9 @@ public static class SelectNodeProcessor
         SelectNode node, 
         Stack<SyntaxNode> nodes, 
         Scope scope, 
-        MethodAccessType type)
+        MethodAccessType type,
+        string rowClassName = null)
     {
-        // Validate parameters
         if (node == null)
             throw new ArgumentNullException(nameof(node));
         if (nodes == null)
@@ -48,35 +48,13 @@ public static class SelectNodeProcessor
 
         var scoreTable = scope[MetaAttributes.SelectIntoVariableName];
 
-        var variableNameKeyword = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, "select",
-            SyntaxTriviaList.Create(SyntaxHelper.WhiteSpace));
         var syntaxList = new ExpressionSyntax[node.Fields.Length];
 
         for (var i = 0; i < node.Fields.Length; i++)
             syntaxList[node.Fields.Length - 1 - i] = (ExpressionSyntax) nodes.Pop();
 
-        var array = SyntaxHelper.CreateArrayOfObjects(syntaxList.ToArray());
-        var equalsClause = SyntaxFactory.EqualsValueClause(
-            SyntaxFactory.Token(SyntaxKind.EqualsToken).WithTrailingTrivia(SyntaxHelper.WhiteSpace), array);
-
-        var variableDecl = SyntaxFactory.VariableDeclarator(variableNameKeyword, null, equalsClause);
-        var list = SyntaxFactory.SeparatedList(new List<VariableDeclaratorSyntax>
-        {
-            variableDecl
-        });
-
-        var variableDeclaration =
-            SyntaxFactory.VariableDeclaration(
-                SyntaxFactory.IdentifierName("var").WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                list);
-
         var contexts = scope[MetaAttributes.Contexts].Split(',');
-
-        var contextsExpressions = new List<ArgumentSyntax>
-        {
-            SyntaxFactory.Argument(
-                SyntaxFactory.IdentifierName(variableNameKeyword.Text))
-        };
+        var contextsExpressions = new List<ArgumentSyntax>();
 
         foreach (var context in contexts)
         {
@@ -90,28 +68,77 @@ public static class SelectNodeProcessor
                         SyntaxFactory.IdentifierName($"{nameof(IObjectResolver.Contexts)}"))));
         }
 
-        var invocation = SyntaxHelper.CreateMethodInvocation(
-            scoreTable,
-            nameof(Table.Add),
-            [
+        if (rowClassName != null)
+        {
+            var args = new List<ArgumentSyntax>();
+            foreach (var expr in syntaxList)
+                args.Add(SyntaxFactory.Argument(expr));
+            
+            args.AddRange(contextsExpressions);
+
+            var invocation = SyntaxHelper.CreateMethodInvocation(
+                scoreTable,
+                nameof(Table.Add),
+                [
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.ObjectCreationExpression(
+                            SyntaxFactory.ParseTypeName(rowClassName),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(args)),
+                            null)
+                    )
+                ]);
+
+            return SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(invocation));
+        }
+        else
+        {
+            var variableNameKeyword = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, "select",
+                SyntaxTriviaList.Create(SyntaxHelper.WhiteSpace));
+
+            var array = SyntaxHelper.CreateArrayOfObjects(syntaxList.ToArray());
+            var equalsClause = SyntaxFactory.EqualsValueClause(
+                SyntaxFactory.Token(SyntaxKind.EqualsToken).WithTrailingTrivia(SyntaxHelper.WhiteSpace), array);
+
+            var variableDecl = SyntaxFactory.VariableDeclarator(variableNameKeyword, null, equalsClause);
+            var list = SyntaxFactory.SeparatedList(new List<VariableDeclaratorSyntax>
+            {
+                variableDecl
+            });
+
+            var variableDeclaration =
+                SyntaxFactory.VariableDeclaration(
+                    SyntaxFactory.IdentifierName("var").WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                    list);
+
+            var args = new List<ArgumentSyntax>
+            {
                 SyntaxFactory.Argument(
-                    SyntaxFactory.ObjectCreationExpression(
-                        SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList(
-                                contextsExpressions.ToArray())
-                        ),
-                        SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
-                )
-            ]);
+                    SyntaxFactory.IdentifierName(variableNameKeyword.Text))
+            };
+            args.AddRange(contextsExpressions);
 
-        var a1 = SyntaxFactory.LocalDeclarationStatement(variableDeclaration)
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-        var a2 = SyntaxFactory.ExpressionStatement(invocation)
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+            var invocation = SyntaxHelper.CreateMethodInvocation(
+                scoreTable,
+                nameof(Table.Add),
+                [
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.ObjectCreationExpression(
+                            SyntaxFactory.Token(SyntaxKind.NewKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                            SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(args.ToArray())
+                            ),
+                            SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
+                    )
+                ]);
 
-        return SyntaxFactory.Block(a1, a2);
+            var a1 = SyntaxFactory.LocalDeclarationStatement(variableDeclaration)
+                .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+            var a2 = SyntaxFactory.ExpressionStatement(invocation)
+                .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+
+            return SyntaxFactory.Block(a1, a2);
+        }
     }
 
     /// <summary>

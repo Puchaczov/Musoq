@@ -159,7 +159,7 @@ select Key, Value from #EnvironmentVariables.All()";
         {
             {
                 "#A",
-                Array.Empty<BasicEntity>()
+                []
             }
         };
         
@@ -178,7 +178,7 @@ select Key, Value from #EnvironmentVariables.All()";
         {
             {
                 0,
-                Array.Empty<EnvironmentVariableEntity>()
+                []
             },
             {
                 1,

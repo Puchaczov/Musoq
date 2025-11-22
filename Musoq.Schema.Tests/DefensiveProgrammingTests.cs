@@ -1,5 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Exceptions;
@@ -154,7 +155,7 @@ public class DefensiveProgrammingTests
     {
         // Act & Assert
         var exception = Assert.Throws<VisitorException>(() => 
-            new ToCSharpRewriteTreeVisitor(null, new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "test"));
+            new ToCSharpRewriteTreeVisitor(null, new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "test", new CompilationOptions()));
         Assert.Contains("cannot be null", exception.Message);
         Assert.Contains("ToCSharpRewriteTreeVisitor", exception.Message);
     }
@@ -164,7 +165,7 @@ public class DefensiveProgrammingTests
     {
         // Act & Assert
         var exception = Assert.Throws<VisitorException>(() => 
-            new ToCSharpRewriteTreeVisitor(new System.Reflection.Assembly[0], new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), ""));
+            new ToCSharpRewriteTreeVisitor(new System.Reflection.Assembly[0], new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "", new CompilationOptions()));
         Assert.Contains("cannot be null or empty", exception.Message);
         Assert.Contains("assemblyName", exception.Message);
     }

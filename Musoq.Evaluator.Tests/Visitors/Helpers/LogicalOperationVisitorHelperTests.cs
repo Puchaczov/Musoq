@@ -80,7 +80,7 @@ public class LogicalOperationVisitorHelperTests
         // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new StringNode("Hello World");
-        var rightNode = new ArgsListNode(new Node[] { new StringNode("World") });
+        var rightNode = new ArgsListNode([new StringNode("World")]);
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
@@ -122,12 +122,11 @@ public class LogicalOperationVisitorHelperTests
         // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
-        var argsNode = new ArgsListNode(new Node[]
-        {
+        var argsNode = new ArgsListNode([
             new IntegerNode("1"),
             new IntegerNode("2"),
             new IntegerNode("3")
-        });
+        ]);
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
@@ -205,10 +204,9 @@ public class LogicalOperationVisitorHelperTests
         // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
-        var argsNode = new ArgsListNode(new Node[]
-        {
+        var argsNode = new ArgsListNode([
             new IntegerNode("42")
-        });
+        ]);
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
@@ -229,7 +227,7 @@ public class LogicalOperationVisitorHelperTests
         // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
-        var argsNode = new ArgsListNode(Array.Empty<Node>());
+        var argsNode = new ArgsListNode([]);
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
