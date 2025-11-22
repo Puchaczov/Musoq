@@ -479,6 +479,11 @@ public static class EvaluationHelper
         }
     }
 
+    /// <summary>
+    /// Flattens multiple context arrays into a single array, handling null contexts by inserting a null value.
+    /// </summary>
+    /// <param name="contexts">The context arrays to flatten.</param>
+    /// <returns>A single flattened array containing all context objects from the input arrays, with nulls for any null context arrays.</returns>
     public static object[] FlattenContexts(params object[][] contexts)
     {
         var size = 0;
