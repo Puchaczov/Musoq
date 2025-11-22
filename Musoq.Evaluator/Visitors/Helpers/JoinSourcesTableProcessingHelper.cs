@@ -63,12 +63,10 @@ public static class JoinSourcesTableProcessingHelper
         var computingBlock = SyntaxFactory.Block();
         
         if (compilationOptions?.UseHashJoin == true && 
-            (node.JoinType == JoinType.Inner || node.JoinType == JoinType.OuterLeft || node.JoinType == JoinType.OuterRight))
+            (node.JoinType == JoinType.Inner || node.JoinType == JoinType.OuterLeft || node.JoinType == JoinType.OuterRight) &&
+            TryGetHashJoinKeys(node, out var leftKeys, out var rightKeys, out var keyTypes))
         {
-            if (TryGetHashJoinKeys(node, out var leftKeys, out var rightKeys, out var keyTypes))
-            {
-                return ProcessHashJoin(node, generator, scope, queryAlias, leftKeys, rightKeys, keyTypes, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
-            }
+            return ProcessHashJoin(node, generator, scope, queryAlias, leftKeys, rightKeys, keyTypes, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
         }
         
         switch (node.JoinType)
@@ -367,19 +365,13 @@ public static class JoinSourcesTableProcessingHelper
             }
         }
 
-        ExpressionSyntax buildKeyExpr;
-        if (buildKeyVars.Count == 1)
-        {
-            buildKeyExpr = SyntaxFactory.IdentifierName(buildKeyVars[0]);
-        }
-        else
-        {
-            buildKeyExpr = SyntaxFactory.TupleExpression(
+        ExpressionSyntax buildKeyExpr = buildKeyVars.Count == 1
+            ? SyntaxFactory.IdentifierName(buildKeyVars[0])
+            : SyntaxFactory.TupleExpression(
                 SyntaxFactory.SeparatedList(
                     buildKeyVars.Select(v => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(v)))
                 )
             );
-        }
 
         buildPhaseStatements.Add(
             SyntaxFactory.LocalDeclarationStatement(
@@ -492,7 +484,7 @@ public static class JoinSourcesTableProcessingHelper
                         (LiteralExpressionSyntax)generator.NullLiteralExpression()));
             }
 
-            var (arrayType, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, node.First.Alias);
+            var (_, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, node.First.Alias);
             outerJoinFallback = SyntaxFactory.Block(
                 SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
                 SyntaxFactory.ExpressionStatement(invocation)
@@ -524,7 +516,7 @@ public static class JoinSourcesTableProcessingHelper
                                         column.ColumnName))))));
             }
 
-            var (arrayType, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterRight(expressions, generator, scope, node.Second.Alias);
+            var (_, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterRight(expressions, generator, scope, node.Second.Alias);
             outerJoinFallback = SyntaxFactory.Block(
                 SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
                 SyntaxFactory.ExpressionStatement(invocation)
@@ -557,19 +549,13 @@ public static class JoinSourcesTableProcessingHelper
             );
         }
 
-        ExpressionSyntax probeKeyExpr;
-        if (probeKeyVars.Count == 1)
-        {
-            probeKeyExpr = SyntaxFactory.IdentifierName(probeKeyVars[0]);
-        }
-        else
-        {
-            probeKeyExpr = SyntaxFactory.TupleExpression(
+        var probeKeyExpr = (ExpressionSyntax)(probeKeyVars.Count == 1
+            ? SyntaxFactory.IdentifierName(probeKeyVars[0])
+            : SyntaxFactory.TupleExpression(
                 SyntaxFactory.SeparatedList(
                     probeKeyVars.Select(v => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(v)))
                 )
-            );
-        }
+            ));
 
         probePhaseStatements.Add(
             SyntaxFactory.LocalDeclarationStatement(
@@ -911,15 +897,9 @@ public static class JoinSourcesTableProcessingHelper
 
                     if (type1Underlying == type2Underlying)
                     {
-                        Type keyType;
-                        if (type1 != type2)
-                        {
-                             keyType = typeof(Nullable<>).MakeGenericType(type1Underlying);
-                        }
-                        else
-                        {
-                             keyType = type1;
-                        }
+                        Type keyType = type1 != type2
+                            ? typeof(Nullable<>).MakeGenericType(type1Underlying)
+                            : type1;
                         
                         leftKeys.Add(CreateColumnAccessExpression(node.First.Alias, firstCol.Name, keyType));
                         rightKeys.Add(CreateColumnAccessExpression(node.Second.Alias, secondCol.Name, keyType));

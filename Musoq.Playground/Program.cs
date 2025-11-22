@@ -42,7 +42,7 @@ namespace Musoq.Playground
 
                 foreach (var tree in buildItems.Compilation.SyntaxTrees)
                 {
-                    Console.WriteLine(tree.ToString());
+                    Console.WriteLine(tree);
                 }
             }
             catch (Exception ex)

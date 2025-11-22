@@ -2506,7 +2506,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var fields = new List<MemberDeclarationSyntax>();
         var constructorParams = new List<ParameterSyntax>();
         var constructorBody = new List<StatementSyntax>();
-        var indexerCases = new List<SwitchExpressionArmSyntax>();
         var valuesInit = new List<ExpressionSyntax>();
 
         var contexts = scope[MetaAttributes.Contexts].Split(',');
@@ -2536,10 +2535,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                     SyntaxKind.SimpleAssignmentExpression,
                     SyntaxFactory.IdentifierName(fieldName),
                     SyntaxFactory.IdentifierName(paramName))));
-
-            indexerCases.Add(SyntaxFactory.SwitchExpressionArm(
-                SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))),
-                SyntaxFactory.IdentifierName(fieldName)));
 
             valuesInit.Add(SyntaxFactory.IdentifierName(fieldName));
         }
@@ -2578,7 +2573,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 SyntaxFactory.IdentifierName("Contexts"),
                 flattenContextsInvocation)));
 
-        constructorBody.AddRange(contextBody);        var constructor = SyntaxFactory.ConstructorDeclaration(className)
+        constructorBody.AddRange(contextBody);
+        
+        var constructor = SyntaxFactory.ConstructorDeclaration(className)
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(constructorParams)))
             .WithBody(SyntaxFactory.Block(constructorBody));
