@@ -1,22 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Extensions.Logging;
+using BenchmarkDotNet.Attributes;
+using Musoq.Benchmarks.Components;
 using Musoq.Converter;
-using Musoq.Converter.Build;
+using Musoq.Evaluator;
+using Musoq.Evaluator.Tables;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 using Musoq.Plugins;
-using Musoq.Evaluator;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Musoq.Playground
+namespace Musoq.Benchmarks
 {
-    public class Program
+    [MemoryDiagnoser]
+    public class NonEquiJoinBenchmark
     {
-        public static void Main(string[] args)
+        private CompiledQuery _query = null!;
+        private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
+
+        [Params(1000, 2000)]
+        public int RowsCount { get; set; }
+
+        [Params(true, false)]
+        public bool UseSortMergeJoin { get; set; }
+
+        [GlobalSetup]
+        public void Setup()
         {
             var script = @"
                 select 
@@ -24,7 +34,7 @@ namespace Musoq.Playground
                 from #test.entities() a
                 inner join #test.entities() b on a.Population > b.Population";
 
-            var entities = Enumerable.Range(0, 10).Select(i => new NonEquiEntity 
+            var entities = Enumerable.Range(0, RowsCount).Select(i => new NonEquiEntity 
             { 
                 Id = i, 
                 Name = $"Name{i}", 
@@ -33,34 +43,18 @@ namespace Musoq.Playground
 
             var schemaProvider = new NonEquiSchemaProvider(entities);
             
-            try 
-            {
-                var items = new BuildItems
-                {
-                    SchemaProvider = schemaProvider,
-                    RawQuery = script,
-                    AssemblyName = Guid.NewGuid().ToString(),
-                    CreateBuildMetadataAndInferTypesVisitor = null,
-                    CompilationOptions = new CompilationOptions(useSortMergeJoin: true)
-                };
+            _query = InstanceCreator.CompileForExecution(
+                script, 
+                Guid.NewGuid().ToString(), 
+                schemaProvider, 
+                _loggerResolver,
+                new CompilationOptions(useSortMergeJoin: UseSortMergeJoin));
+        }
 
-                Musoq.Evaluator.Runtime.RuntimeLibraries.CreateReferences();
-
-                var chain = new CreateTree(
-                    new TransformTree(
-                        new TurnQueryIntoRunnableCode(null), new MyLoggerResolver()));
-
-                chain.Build(items);
-
-                foreach (var tree in items.Compilation.SyntaxTrees)
-                {
-                    Console.WriteLine(tree);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
+        [Benchmark]
+        public Table RunQuery()
+        {
+            return _query.Run();
         }
     }
 
@@ -124,8 +118,6 @@ namespace Musoq.Playground
         }
     }
 
-    public class Library : LibraryBase {}
-
     public class NonEquiTable : ISchemaTable
     {
         public ISchemaColumn[] Columns => new ISchemaColumn[]
@@ -147,19 +139,4 @@ namespace Musoq.Playground
 
         public SchemaTableMetadata Metadata { get; } = new SchemaTableMetadata(typeof(NonEquiEntity));
     }
-
-    public class MyLoggerResolver : ILoggerResolver
-    {
-        public ILogger ResolveLogger() => new NoOpLogger();
-        public ILogger<T> ResolveLogger<T>() => new NoOpLogger<T>();
-    }
-
-    public class NoOpLogger : ILogger
-    {
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) {}
-        public bool IsEnabled(LogLevel logLevel) => false;
-        public IDisposable BeginScope<TState>(TState state) => null;
-    }
-
-    public class NoOpLogger<T> : NoOpLogger, ILogger<T> {}
 }

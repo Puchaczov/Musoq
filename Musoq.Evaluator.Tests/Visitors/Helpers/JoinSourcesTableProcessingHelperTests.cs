@@ -35,7 +35,8 @@ public class JoinSourcesTableProcessingHelperTests
                 emptyBlock,
                 _ => SyntaxFactory.EmptyStatement(),
                 statements => SyntaxFactory.Block(statements),
-                () => SyntaxFactory.EmptyStatement()));
+                () => SyntaxFactory.EmptyStatement(),
+                _ => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
     }
 
     [TestMethod]
@@ -58,7 +59,8 @@ public class JoinSourcesTableProcessingHelperTests
                 emptyBlock,
                 _ => SyntaxFactory.EmptyStatement(),
                 statements => SyntaxFactory.Block(statements),
-                () => SyntaxFactory.EmptyStatement()));
+                () => SyntaxFactory.EmptyStatement(),
+                _ => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
     }
 
     [TestMethod]
@@ -82,7 +84,8 @@ public class JoinSourcesTableProcessingHelperTests
                 emptyBlock,
                 _ => SyntaxFactory.EmptyStatement(),
                 statements => SyntaxFactory.Block(statements),
-                () => SyntaxFactory.EmptyStatement()));
+                () => SyntaxFactory.EmptyStatement(),
+                _ => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
     }
 
     [TestMethod]
@@ -107,7 +110,8 @@ public class JoinSourcesTableProcessingHelperTests
                 emptyBlock,
                 _ => SyntaxFactory.EmptyStatement(),
                 statements => SyntaxFactory.Block(statements),
-                () => SyntaxFactory.EmptyStatement()));
+                () => SyntaxFactory.EmptyStatement(),
+                _ => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
 
         Assert.Contains("Unsupported join type: 999", exception.Message);
     }
@@ -133,7 +137,8 @@ public class JoinSourcesTableProcessingHelperTests
             emptyBlock,
             _ => SyntaxFactory.EmptyStatement(),
             statements => SyntaxFactory.Block(statements),
-            () => SyntaxFactory.EmptyStatement());
+            () => SyntaxFactory.EmptyStatement(),
+            _ => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
 
         // Assert
         Assert.IsNotNull(result);

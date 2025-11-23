@@ -888,6 +888,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             GetRowsSourceOrEmpty, 
             Block, 
             GenerateCancellationExpression,
+            n => {
+                var traverser = new ToCSharpRewriteTreeTraverseVisitor(this, new ScopeWalker(_scope), _compilationOptions);
+                n.Accept(traverser);
+                return (ExpressionSyntax)Nodes.Pop();
+            },
             _compilationOptions);
     }
 

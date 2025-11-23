@@ -116,6 +116,26 @@ public partial class LibraryBase
         => (int?)value?.DayOfWeek;
 
     /// <summary>
+    /// Adds days to the date
+    /// </summary>
+    /// <param name="date">The date</param>
+    /// <param name="days">The days to add</param>
+    /// <returns>Date with added days</returns>
+    [BindableMethod]
+    public DateTime? AddDays(DateTime? date, int days)
+        => date?.AddDays(days);
+
+    /// <summary>
+    /// Adds days to the date
+    /// </summary>
+    /// <param name="date">The date</param>
+    /// <param name="days">The days to add</param>
+    /// <returns>Date with added days</returns>
+    [BindableMethod]
+    public DateTimeOffset? AddDays(DateTimeOffset? date, int days)
+        => date?.AddDays(days);
+
+    /// <summary>
     /// Extracts time from DateTimeOffset
     /// </summary>
     /// <param name="dateTimeOffset">The value</param>

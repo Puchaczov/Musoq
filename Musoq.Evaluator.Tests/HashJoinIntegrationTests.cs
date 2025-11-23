@@ -16,7 +16,7 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
     [TestMethod]
     public void LeftOuterJoin_WithHashJoinEnabled_ShouldUseHashJoin()
     {
-        const string query = "select first.FirstItem, second.FirstItem from #schema.first() first left outer join #schema.second() second on first.FirstItem = second.FirstItem";
+        const string query = "select first.FirstItem, second.FirstItem from #schema.first() first left outer join #schema.second() second on first.FirstItem = second.FirstItem order by first.FirstItem";
         
         var first = new[] { new FirstEntity { FirstItem = "1" }, new FirstEntity { FirstItem = "2" } };
         var second = new[] { new SecondEntity { FirstItem = "1" }, new SecondEntity { FirstItem = "3" } };
@@ -37,7 +37,7 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
     [TestMethod]
     public void RightOuterJoin_WithHashJoinEnabled_ShouldUseHashJoin()
     {
-        const string query = "select first.FirstItem, second.FirstItem from #schema.first() first right outer join #schema.second() second on first.FirstItem = second.FirstItem";
+        const string query = "select first.FirstItem, second.FirstItem from #schema.first() first right outer join #schema.second() second on first.FirstItem = second.FirstItem order by second.FirstItem";
         
         var first = new[] { new FirstEntity { FirstItem = "1" }, new FirstEntity { FirstItem = "2" } };
         var second = new[] { new SecondEntity { FirstItem = "1" }, new SecondEntity { FirstItem = "3" } };
