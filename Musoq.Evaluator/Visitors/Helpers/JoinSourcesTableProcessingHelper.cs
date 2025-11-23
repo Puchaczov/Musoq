@@ -1010,8 +1010,17 @@ public static class JoinSourcesTableProcessingHelper
     {
         var computingBlock = SyntaxFactory.Block();
         
-        var probeAlias = node.First.Alias; // Outer
-        var buildAlias = node.Second.Alias; // Inner
+        var isRightJoin = node.JoinType == JoinType.OuterRight;
+        var probeAlias = isRightJoin ? node.Second.Alias : node.First.Alias; // Outer
+        var buildAlias = isRightJoin ? node.First.Alias : node.Second.Alias; // Inner
+        
+        var buildKeyExpr = isRightJoin ? leftKey : rightKey;
+        var probeKeyExpr = isRightJoin ? rightKey : leftKey;
+        
+        if (isRightJoin)
+        {
+            comparisonKind = SwapComparisonKind(comparisonKind);
+        }
         
         var innerRowsVar = $"{buildAlias}RowsArray";
         var innerKeysVar = $"{buildAlias}KeysArray";
@@ -1096,7 +1105,7 @@ public static class JoinSourcesTableProcessingHelper
                                 SyntaxFactory.IdentifierName(innerKeysVar),
                                 SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
                             ),
-                            ReplaceIdentifier(rightKey, $"{buildAlias}Row", "r") // We need to extract key from innerRowsArray[i]
+                            ReplaceIdentifier(buildKeyExpr, $"{buildAlias}Row", "r") // We need to extract key from innerRowsArray[i]
                         )
                     )
                 )
@@ -1270,7 +1279,7 @@ public static class JoinSourcesTableProcessingHelper
                                 SyntaxFactory.IdentifierName(outerKeysVar),
                                 SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
                             ),
-                            ReplaceIdentifier(leftKey, $"{probeAlias}Row", "r")
+                            ReplaceIdentifier(probeKeyExpr, $"{probeAlias}Row", "r")
                         )
                     )
                 )
@@ -1359,6 +1368,76 @@ public static class JoinSourcesTableProcessingHelper
         // Rewrite ifStatement to use resultBag instead of queryAlias table
         var rewriter = new TableAddRewriter(queryAlias, "resultBag");
         var rewrittenIf = rewriter.Visit(ifStatement);
+
+        StatementSyntax outerJoinFallback = SyntaxFactory.Block();
+        if (node.JoinType == JoinType.OuterLeft)
+        {
+            var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
+            var expressions = new List<ExpressionSyntax>();
+
+            foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
+            {
+                expressions.Add(
+                    SyntaxFactory.ElementAccessExpression(
+                        SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
+                        SyntaxFactory.BracketedArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(
+                                    (LiteralExpressionSyntax)generator.LiteralExpression(
+                                        column.ColumnName))))));
+            }
+
+            foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
+            {
+                expressions.Add(
+                    SyntaxFactory.CastExpression(
+                        SyntaxFactory.IdentifierName(
+                            EvaluationHelper.GetCastableType(column.ColumnType)),
+                        (LiteralExpressionSyntax)generator.NullLiteralExpression()));
+            }
+
+            var (_, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, node.First.Alias);
+            outerJoinFallback = SyntaxFactory.Block(
+                SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
+                SyntaxFactory.ExpressionStatement(invocation)
+            );
+            
+            outerJoinFallback = (StatementSyntax)rewriter.Visit(outerJoinFallback);
+        }
+        else if (node.JoinType == JoinType.OuterRight)
+        {
+            var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
+            var expressions = new List<ExpressionSyntax>();
+
+            foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
+            {
+                expressions.Add(
+                    SyntaxFactory.CastExpression(
+                        SyntaxFactory.IdentifierName(
+                            EvaluationHelper.GetCastableType(column.ColumnType)),
+                        (LiteralExpressionSyntax)generator.NullLiteralExpression()));
+            }
+
+            foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
+            {
+                expressions.Add(
+                    SyntaxFactory.ElementAccessExpression(
+                        SyntaxFactory.IdentifierName($"{node.Second.Alias}Row"),
+                        SyntaxFactory.BracketedArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(
+                                    (LiteralExpressionSyntax)generator.LiteralExpression(
+                                        column.ColumnName))))));
+            }
+
+            var (_, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterRight(expressions, generator, scope, node.Second.Alias);
+            outerJoinFallback = SyntaxFactory.Block(
+                SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
+                SyntaxFactory.ExpressionStatement(invocation)
+            );
+            
+            outerJoinFallback = (StatementSyntax)rewriter.Visit(outerJoinFallback);
+        }
         
         var parallelLoop = SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(
@@ -1428,6 +1507,12 @@ public static class JoinSourcesTableProcessingHelper
                             // Loop over range
                             SyntaxFactory.ForStatement(
                                 SyntaxFactory.Block(
+                                    SyntaxFactory.LocalDeclarationStatement(
+                                        SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)))
+                                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.VariableDeclarator("joined").WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))
+                                        ))
+                                    ),
                                     // Advance limit
                                     SyntaxFactory.WhileStatement(
                                         SyntaxFactory.BinaryExpression(
@@ -1457,6 +1542,13 @@ public static class JoinSourcesTableProcessingHelper
                                     // Emit Loop
                                     SyntaxFactory.ForStatement(
                                         SyntaxFactory.Block(
+                                            SyntaxFactory.ExpressionStatement(
+                                                SyntaxFactory.AssignmentExpression(
+                                                    SyntaxKind.SimpleAssignmentExpression,
+                                                    SyntaxFactory.IdentifierName("joined"),
+                                                    SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                                                )
+                                            ),
                                             SyntaxFactory.LocalDeclarationStatement(
                                                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                                                 .WithVariables(SyntaxFactory.SingletonSeparatedList(
@@ -1498,7 +1590,27 @@ public static class JoinSourcesTableProcessingHelper
                                             SyntaxFactory.IdentifierName("limit")
                                         )
                                     )
-                                    .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("j"))))
+                                    .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("j")))),
+
+                                    (node.JoinType == JoinType.OuterLeft || node.JoinType == JoinType.OuterRight) ? 
+                                    (StatementSyntax)SyntaxFactory.IfStatement(
+                                        SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, SyntaxFactory.IdentifierName("joined")),
+                                        SyntaxFactory.Block(
+                                            SyntaxFactory.LocalDeclarationStatement(
+                                                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                                                .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.VariableDeclarator($"{probeAlias}Row")
+                                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                                        SyntaxFactory.ElementAccessExpression(
+                                                            SyntaxFactory.IdentifierName(outerRowsVar),
+                                                            SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
+                                                        )
+                                                    ))
+                                                ))
+                                            ),
+                                            outerJoinFallback
+                                        )
+                                    ) : SyntaxFactory.EmptyStatement()
                                 )
                             )
                             .WithDeclaration(
@@ -1540,6 +1652,38 @@ public static class JoinSourcesTableProcessingHelper
         );
 
         return computingBlock;
+    }
+
+    private static StatementSyntax StripGuardClauses(StatementSyntax statement)
+    {
+        if (statement is BlockSyntax block)
+        {
+            var newStatements = block.Statements.Where(s => !IsGuardClause(s));
+            return SyntaxFactory.Block(newStatements);
+        }
+        return statement;
+    }
+
+    private static bool IsGuardClause(StatementSyntax s)
+    {
+        if (s is IfStatementSyntax ifStmt)
+        {
+            if (ifStmt.Statement is BlockSyntax b && b.Statements.Any(st => st is ContinueStatementSyntax))
+                return true;
+            if (ifStmt.Statement is ContinueStatementSyntax)
+                return true;
+        }
+        return false;
+    }
+
+    private static string GenerateRowResolverCreation(Scope scope, string alias)
+    {
+        var columns = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias).GetColumns(alias);
+        var mapCreation = "new System.Collections.Generic.Dictionary<string, int> { " + 
+            string.Join(", ", columns.Select((c, i) => $"{{\"{c.ColumnName}\", {i}}}")) + 
+            " }";
+        
+        return $"(Musoq.Schema.DataSources.IObjectResolver)new Musoq.Evaluator.Tables.RowResolver(new Musoq.Evaluator.Tables.ObjectsRow(new object[{columns.Length}]), {mapCreation})";
     }
 
     private static ExpressionSyntax ReplaceIdentifier(ExpressionSyntax expression, string oldName, string newName)
@@ -1787,5 +1931,17 @@ public static class JoinSourcesTableProcessingHelper
         genericTypeName = genericTypeName.Substring(0, genericTypeName.IndexOf('`'));
         var genericArgs = string.Join(",", type.GetGenericArguments().Select(GetTypeName));
         return $"{genericTypeName}<{genericArgs}>";
+    }
+
+    private static SyntaxKind SwapComparisonKind(SyntaxKind kind)
+    {
+        switch (kind)
+        {
+            case SyntaxKind.GreaterThanExpression: return SyntaxKind.LessThanExpression;
+            case SyntaxKind.GreaterThanOrEqualExpression: return SyntaxKind.LessThanOrEqualExpression;
+            case SyntaxKind.LessThanExpression: return SyntaxKind.GreaterThanExpression;
+            case SyntaxKind.LessThanOrEqualExpression: return SyntaxKind.GreaterThanOrEqualExpression;
+            default: return kind;
+        }
     }
 }
