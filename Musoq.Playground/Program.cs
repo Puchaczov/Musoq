@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Musoq.Converter;
+using Musoq.Converter.Build;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
@@ -17,30 +18,41 @@ namespace Musoq.Playground
     {
         public static void Main(string[] args)
         {
-            if (args.Length > 0 && args[0] == "benchmark")
-            {
-                BenchmarkRunner.Run<QueryBenchmark>();
-                return;
-            }
-
             var script = @"
                 select 
-                    a.Name, 
-                    b.Country
+                    1
                 from #test.entities() a
-                left outer join #test.entities() b on a.Id = b.Id";
+                inner join #test.entities() b on a.Population > b.Population";
 
-            var schemaProvider = new MySchemaProvider(new List<MyEntity>());
+            var entities = Enumerable.Range(0, 10).Select(i => new NonEquiEntity 
+            { 
+                Id = i, 
+                Name = $"Name{i}", 
+                Population = i
+            }).ToList();
+
+            var schemaProvider = new NonEquiSchemaProvider(entities);
             
             try 
             {
-                var buildItems = InstanceCreator.CreateForAnalyze(
-                    script, 
-                    Guid.NewGuid().ToString(), 
-                    schemaProvider, 
-                    new MyLoggerResolver());
+                var items = new BuildItems
+                {
+                    SchemaProvider = schemaProvider,
+                    RawQuery = script,
+                    AssemblyName = Guid.NewGuid().ToString(),
+                    CreateBuildMetadataAndInferTypesVisitor = null,
+                    CompilationOptions = new CompilationOptions(useSortMergeJoin: true)
+                };
 
-                foreach (var tree in buildItems.Compilation.SyntaxTrees)
+                Musoq.Evaluator.Runtime.RuntimeLibraries.CreateReferences();
+
+                var chain = new CreateTree(
+                    new TransformTree(
+                        new TurnQueryIntoRunnableCode(null), new MyLoggerResolver()));
+
+                chain.Build(items);
+
+                foreach (var tree in items.Compilation.SyntaxTrees)
                 {
                     Console.WriteLine(tree);
                 }
@@ -52,103 +64,57 @@ namespace Musoq.Playground
         }
     }
 
-    [MemoryDiagnoser]
-    public class QueryBenchmark
+    public class NonEquiEntity
     {
-        private CompiledQuery _query;
-        
-        [GlobalSetup]
-        public void Setup()
-        {
-            var script = @"
-                select 
-                    a.Name, 
-                    b.Country
-                from #test.entities() a
-                left outer join #test.entities() b on a.Id = b.Id";
-
-            var entities = Enumerable.Range(0, 100).Select(i => new MyEntity 
-            { 
-                Id = i, 
-                Name = $"Name{i}", 
-                Country = $"Country{i}", 
-                City = $"City{i}" 
-            }).ToList();
-
-            var schemaProvider = new MySchemaProvider(entities);
-            
-            _query = InstanceCreator.CompileForExecution(
-                script, 
-                Guid.NewGuid().ToString(), 
-                schemaProvider, 
-                new MyLoggerResolver());
-        }
-
-        [Benchmark]
-        public void RunQuery()
-        {
-            _query.Run();
-        }
-    }
-
-    public class Library : LibraryBase
-    {
-    }
-
-    public class MyEntity
-    {
-        public string Name { get; set; }
-        public string Country { get; set; }
-        public string City { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int Population { get; set; }
         public int Id { get; set; }
     }
 
-    public class MySchemaProvider : ISchemaProvider
+    public class NonEquiSchemaProvider : ISchemaProvider
     {
-        private readonly IEnumerable<MyEntity> _entities;
+        private readonly IEnumerable<NonEquiEntity> _entities;
 
-        public MySchemaProvider(IEnumerable<MyEntity> entities)
+        public NonEquiSchemaProvider(IEnumerable<NonEquiEntity> entities)
         {
             _entities = entities;
         }
 
         public ISchema GetSchema(string schema)
         {
-            return new MySchema(_entities);
+            return new NonEquiSchema(_entities);
         }
     }
 
-    public class MySchema : SchemaBase
+    public class NonEquiSchema : SchemaBase
     {
-        private readonly IEnumerable<MyEntity> _entities;
+        private readonly IEnumerable<NonEquiEntity> _entities;
 
-        public MySchema(IEnumerable<MyEntity> entities) : base("test", CreateLibrary())
+        public NonEquiSchema(IEnumerable<NonEquiEntity> entities) : base("test", CreateLibrary())
         {
             _entities = entities;
         }
-        
+
         public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
-             return new MyTable();
+            return new NonEquiTable();
         }
 
         public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
-            return new EntitySource<MyEntity>(_entities, new Dictionary<string, int>
+            return new EntitySource<NonEquiEntity>(_entities, new Dictionary<string, int>
             {
-                {nameof(MyEntity.Name), 0},
-                {nameof(MyEntity.Country), 1},
-                {nameof(MyEntity.City), 2},
-                {nameof(MyEntity.Id), 3},
-            }, new Dictionary<int, Func<MyEntity, object>>
+                { nameof(NonEquiEntity.Id), 0 },
+                { nameof(NonEquiEntity.Name), 1 },
+                { nameof(NonEquiEntity.Population), 2 }
+            }, new Dictionary<int, Func<NonEquiEntity, object>>
             {
-                {0, e => e.Name},
-                {1, e => e.Country},
-                {2, e => e.City},
-                {3, e => e.Id},
+                { 0, e => e.Id },
+                { 1, e => e.Name },
+                { 2, e => e.Population }
             });
         }
-        
+
         private static MethodsAggregator CreateLibrary()
         {
             var methodManager = new MethodsManager();
@@ -157,61 +123,43 @@ namespace Musoq.Playground
             return new MethodsAggregator(methodManager);
         }
     }
-    
-    public class MyTable : ISchemaTable
+
+    public class Library : LibraryBase {}
+
+    public class NonEquiTable : ISchemaTable
     {
         public ISchemaColumn[] Columns => new ISchemaColumn[]
         {
-            new SchemaColumn(nameof(MyEntity.Name), 0, typeof(string)),
-            new SchemaColumn(nameof(MyEntity.Country), 1, typeof(string)),
-            new SchemaColumn(nameof(MyEntity.City), 2, typeof(string)),
-            new SchemaColumn(nameof(MyEntity.Id), 3, typeof(int)),
+            new SchemaColumn(nameof(NonEquiEntity.Id), 0, typeof(int)),
+            new SchemaColumn(nameof(NonEquiEntity.Name), 1, typeof(string)),
+            new SchemaColumn(nameof(NonEquiEntity.Population), 2, typeof(int))
         };
 
         public ISchemaColumn GetColumnByName(string name)
         {
-            return Columns.First(c => c.ColumnName == name);
+            return Columns.Single(c => c.ColumnName == name);
         }
-        
+
         public ISchemaColumn[] GetColumnsByName(string name)
         {
             return Columns.Where(c => c.ColumnName == name).ToArray();
         }
 
-        public SchemaTableMetadata Metadata { get; } = new SchemaTableMetadata(typeof(MyEntity));
+        public SchemaTableMetadata Metadata { get; } = new SchemaTableMetadata(typeof(NonEquiEntity));
     }
 
     public class MyLoggerResolver : ILoggerResolver
     {
-        public ILogger ResolveLogger()
-        {
-            return new NoOpLogger();
-        }
-
-        public ILogger<T> ResolveLogger<T>()
-        {
-            return new NoOpLogger<T>();
-        }
+        public ILogger ResolveLogger() => new NoOpLogger();
+        public ILogger<T> ResolveLogger<T>() => new NoOpLogger<T>();
     }
 
     public class NoOpLogger : ILogger
     {
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-        }
-
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return false;
-        }
-
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            return null;
-        }
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) {}
+        public bool IsEnabled(LogLevel logLevel) => false;
+        public IDisposable BeginScope<TState>(TState state) => null;
     }
 
-    public class NoOpLogger<T> : NoOpLogger, ILogger<T>
-    {
-    }
+    public class NoOpLogger<T> : NoOpLogger, ILogger<T> {}
 }

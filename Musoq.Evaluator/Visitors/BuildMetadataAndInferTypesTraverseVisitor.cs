@@ -142,8 +142,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             self = self.Root as DotNode;
         }
 
-        var ident = (IdentifierNode) theMostOuter.Root;
-        if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
+        var ident = theMostOuter.Root as IdentifierNode;
+        if (ident != null && node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
         {
             if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
             {
@@ -162,25 +162,31 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
                 }
             }
             
-            IdentifierNode column;
+            IdentifierNode column = null;
             if (theMostOuter.Expression is DotNode dotNode)
             {
-                column = (IdentifierNode) dotNode.Root;
+                column = dotNode.Root as IdentifierNode;
             }
             else
             {
-                column = (IdentifierNode) theMostOuter.Expression;
+                column = theMostOuter.Expression as IdentifierNode;
             }
 
-            Visit(new AccessColumnNode(column.Name, ident.Name, TextSpan.Empty));
-            return;
+            if (column != null)
+            {
+                Visit(new AccessColumnNode(column.Name, ident.Name, TextSpan.Empty));
+                return;
+            }
         }
 
         var setTheMostInnerIdentifier = false;
         if (_theMostInnerIdentifier is null)
         {
-            _theMostInnerIdentifier = (IdentifierNode)node.Expression;
-            setTheMostInnerIdentifier = true;
+            _theMostInnerIdentifier = node.Expression as IdentifierNode;
+            if (_theMostInnerIdentifier != null)
+            {
+                setTheMostInnerIdentifier = true;
+            }
         }
 
         if (_theMostInnerIdentifier is not null && setTheMostInnerIdentifier)

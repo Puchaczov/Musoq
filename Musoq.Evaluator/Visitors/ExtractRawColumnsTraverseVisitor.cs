@@ -133,21 +133,24 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
             self = self.Root as DotNode;
         }
 
-        var ident = (IdentifierNode) theMostOuter.Root;
-        if (node == theMostOuter)
+        var ident = theMostOuter.Root as IdentifierNode;
+        if (ident != null && node == theMostOuter)
         {
             IdentifierNode column;
             if (theMostOuter.Expression is DotNode dotNode)
             {
-                column = (IdentifierNode) dotNode.Root;
+                column = dotNode.Root as IdentifierNode;
             }
             else
             {
-                column = (IdentifierNode) theMostOuter.Expression;
+                column = theMostOuter.Expression as IdentifierNode;
             }
 
-            Visit(new AccessColumnNode(column.Name, ident.Name, TextSpan.Empty));
-            return;
+            if (column != null)
+            {
+                Visit(new AccessColumnNode(column.Name, ident.Name, TextSpan.Empty));
+                return;
+            }
         }
 
         self = node;

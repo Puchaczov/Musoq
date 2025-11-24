@@ -67,6 +67,35 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
         }
     }
 
+    public void AddRange(IEnumerable<Row> values)
+    {
+        lock (_guard)
+        {
+            foreach (var value in values)
+            {
+                if (value.Count != _columnsByIndex.Count)
+                    throw new NotSupportedException(
+                        $"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
+
+                for (var i = 0; i < value.Count; i++)
+                {
+                    if (value[i] == null)
+                        continue;
+
+                    var t1 = value[i].GetType();
+                    var t2 = _columnsByIndex[i].ColumnType;
+                    if (!t2.IsAssignableFrom(t1))
+                    {
+                        throw new NotSupportedException(
+                            $"({nameof(Add)}) Mismatched types. {t2.Name} is not assignable from {t1.Name}");
+                    }
+                }
+
+                Rows.Add(value);
+            }
+        }
+    }
+
     private void AddColumns(params Column[] columns)
     {
         foreach (var column in columns)
