@@ -10,6 +10,7 @@ using Musoq.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Benchmarks.Schema;
 
 namespace Musoq.Benchmarks
 {
@@ -28,9 +29,6 @@ namespace Musoq.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            // Setup data for Hash Join Complex Expression.
-            // Query: a.Population = b.Population + 1
-            
             var entitiesA = Enumerable.Range(0, RowsCount).Select(i => new NonEquiEntity 
             { 
                 Id = i, 

@@ -31,12 +31,6 @@ public class TurnQueryIntoRunnableCode(BuildChain successor) : BuildChain(succes
                     items.DllFile = null;
                     items.PdbFile = null;
 
-                    // Dump source code
-                    foreach (var tree in items.Compilation.SyntaxTrees)
-                    {
-                        // File.WriteAllText("d:\\repos\\Musoq-2\\generated_code_error.cs", tree.ToString());
-                    }
-
                     throw new CompilationException(all.ToString());
                 }
             }

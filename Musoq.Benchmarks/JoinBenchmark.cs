@@ -75,9 +75,8 @@ namespace Musoq.Benchmarks
         {
             return _query.Run();
         }
-    }
 
-    public class MyEntity
+    private class MyEntity
     {
         public string Name { get; set; } = string.Empty;
         public string Country { get; set; } = string.Empty;
@@ -85,7 +84,7 @@ namespace Musoq.Benchmarks
         public int Id { get; set; }
     }
 
-    public class MySchemaProvider : ISchemaProvider
+    private class MySchemaProvider : ISchemaProvider
     {
         private readonly IEnumerable<MyEntity> _entities;
 
@@ -100,7 +99,7 @@ namespace Musoq.Benchmarks
         }
     }
 
-    public class MySchema : SchemaBase
+    private class MySchema : SchemaBase
     {
         private readonly IEnumerable<MyEntity> _entities;
 
@@ -140,7 +139,7 @@ namespace Musoq.Benchmarks
         }
     }
     
-    public class MyTable : ISchemaTable
+    private class MyTable : ISchemaTable
     {
         public ISchemaColumn[] Columns => new ISchemaColumn[]
         {
@@ -163,7 +162,8 @@ namespace Musoq.Benchmarks
         public SchemaTableMetadata Metadata { get; } = new SchemaTableMetadata(typeof(MyEntity));
     }
 
-    public class Library : LibraryBase
+    private class Library : LibraryBase
     {
+    }
     }
 }

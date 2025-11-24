@@ -275,49 +275,6 @@ inner join #B.entities() b on a.Time > b.Time";
             Assert.AreEqual("B1", table[0][1]);
         }
 
-        /*
-        [TestMethod]
-        public void StringComparisonTest()
-        {
-            // String comparison using > is not directly supported in C# for strings, 
-            // and Musoq might be generating direct C# code.
-            // We use CompareTo() which returns an int.
-            // However, this currently fails with InvalidCastException in ExtractRawColumnsTraverseVisitor
-            // because it doesn't expect a method call in the ON clause in this way.
-            var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on a.Name.CompareTo(b.Name) > 0";
-
-            var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                {
-                    "#A", [
-                        new BasicEntity { Name = "C" }
-                    ]
-                },
-                {
-                    "#B", [
-                        new BasicEntity { Name = "A" },
-                        new BasicEntity { Name = "B" },
-                        new BasicEntity { Name = "D" }
-                    ]
-                }
-            };
-
-            // "C" > "A" -> Match
-            // "C" > "B" -> Match
-            // "C" > "D" -> No Match
-
-            var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
-
-            Assert.AreEqual(2, table.Count);
-        }
-        */
-
         [TestMethod]
         public void MixedEquiAndNonEquiTest()
         {
@@ -424,7 +381,6 @@ left join #B.entities() b on a.Population > b.Population";
 
             Assert.AreEqual(2, table.Count);
             
-            // Order is not guaranteed, so we check existence
             var rows = table.Select(r => (string)r[0]).ToList();
             CollectionAssert.Contains(rows, "A1");
             CollectionAssert.Contains(rows, "A2");

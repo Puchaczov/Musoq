@@ -90,13 +90,6 @@ public static class JoinSourcesTableProcessingHelper
             case JoinType.OuterRight:
                 return ProcessOuterRightJoin(node, generator, scope, queryAlias, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
                 
-            case JoinType.Hash:
-                if (TryGetHashJoinKeys(node, scope, nodeTranslator, out var leftKey, out var rightKey, out var keyType))
-                {
-                    return ProcessHashJoin(node, generator, scope, queryAlias, leftKey, rightKey, keyType, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
-                }
-                return ProcessInnerJoin(node, generator, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
-                
             default:
                 throw new ArgumentException($"Unsupported join type: {node.JoinType}");
         }
@@ -1030,13 +1023,7 @@ public static class JoinSourcesTableProcessingHelper
         var rowType = SyntaxFactory.ParseTypeName("Musoq.Schema.DataSources.IObjectResolver");
         var keyTypeSyntax = EvaluationHelper.GetCastableType(keyType);
         
-        // 1. Materialize Inner Table (Build Side) to Array
-        // var innerRowsArray = source.ToArray();
-        
-        // First, get the source variable declaration
         computingBlock = computingBlock.AddStatements(getRowsSourceOrEmpty(buildAlias));
-        
-        // Now convert to array: var innerRowsArray = buildAliasRows.Rows.ToArray();
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(
@@ -1067,11 +1054,6 @@ public static class JoinSourcesTableProcessingHelper
                 )
             )
         );
-        
-        // Extract Keys: var innerKeysArray = new KeyType[innerRowsArray.Length];
-
-        // Extract Keys: var innerKeysArray = new KeyType[innerRowsArray.Length];
-        // for(int i=0; i<innerRowsArray.Length; i++) innerKeysArray[i] = row[key];
         
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.LocalDeclarationStatement(
@@ -1105,7 +1087,7 @@ public static class JoinSourcesTableProcessingHelper
                                 SyntaxFactory.IdentifierName(innerKeysVar),
                                 SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
                             ),
-                            ReplaceIdentifier(buildKeyExpr, $"{buildAlias}Row", "r") // We need to extract key from innerRowsArray[i]
+                            ReplaceIdentifier(buildKeyExpr, $"{buildAlias}Row", "r")
                         )
                     )
                 )
@@ -1125,11 +1107,6 @@ public static class JoinSourcesTableProcessingHelper
             )
             .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("i"))))
         );
-        
-        // Fix key extraction: ReplaceIdentifier expects a variable name.
-        // We need to declare 'var r = innerRowsArray[i];' inside the loop.
-        // Actually, we can just inline it? No, ReplaceIdentifier works on IdentifierName.
-        // Let's add 'var r = innerRowsArray[i];' at start of the loop.
         
         var keyExtractionLoop = (ForStatementSyntax)computingBlock.Statements.Last();
         var loopBlock = (BlockSyntax)keyExtractionLoop.Statement;
@@ -1153,7 +1130,6 @@ public static class JoinSourcesTableProcessingHelper
         );
         computingBlock = computingBlock.ReplaceNode(keyExtractionLoop, keyExtractionLoop.WithStatement(newLoopBlock));
 
-        // Sort Inner: Array.Sort(innerKeysArray, innerRowsArray);
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.InvocationExpression(
@@ -1170,9 +1146,6 @@ public static class JoinSourcesTableProcessingHelper
             )
         );
         
-        // Reverse if needed (for Descending sort)
-        // If Outer > Inner, we want Inner Ascending. (Default)
-        // If Outer < Inner, we want Inner Descending.
         bool sortAscending = comparisonKind == SyntaxKind.GreaterThanExpression || comparisonKind == SyntaxKind.GreaterThanOrEqualExpression;
         
         if (!sortAscending)
@@ -1201,7 +1174,6 @@ public static class JoinSourcesTableProcessingHelper
              );
         }
 
-        // 2. Materialize Outer (Probe Side) to Array
         computingBlock = computingBlock.AddStatements(getRowsSourceOrEmpty(probeAlias));
 
         computingBlock = computingBlock.AddStatements(
@@ -1234,7 +1206,6 @@ public static class JoinSourcesTableProcessingHelper
                 )
             ));
         
-        // Extract Outer Keys
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
@@ -1300,7 +1271,6 @@ public static class JoinSourcesTableProcessingHelper
             .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("i"))))
         );
 
-        // Sort Outer
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.InvocationExpression(
@@ -1343,11 +1313,9 @@ public static class JoinSourcesTableProcessingHelper
              );
         }
 
-        // 3. Parallel Join
         
         var rowTypeConcrete = SyntaxFactory.ParseTypeName("Musoq.Evaluator.Tables.Row");
 
-        // var resultBag = new ConcurrentBag<Row>();
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
@@ -1365,7 +1333,6 @@ public static class JoinSourcesTableProcessingHelper
             )
         );
 
-        // Rewrite ifStatement to use resultBag instead of queryAlias table
         var rewriter = new TableAddRewriter(queryAlias, "resultBag");
         var rewrittenIf = rewriter.Visit(ifStatement);
 
@@ -1504,7 +1471,6 @@ public static class JoinSourcesTableProcessingHelper
                                 )
                             ),
                             
-                            // Loop over range
                             SyntaxFactory.ForStatement(
                                 SyntaxFactory.Block(
                                     SyntaxFactory.LocalDeclarationStatement(
@@ -1513,7 +1479,6 @@ public static class JoinSourcesTableProcessingHelper
                                             SyntaxFactory.VariableDeclarator("joined").WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))
                                         ))
                                     ),
-                                    // Advance limit
                                     SyntaxFactory.WhileStatement(
                                         SyntaxFactory.BinaryExpression(
                                             SyntaxKind.LogicalAndExpression,
@@ -1539,7 +1504,6 @@ public static class JoinSourcesTableProcessingHelper
                                         )
                                     ),
                                     
-                                    // Emit Loop
                                     SyntaxFactory.ForStatement(
                                         SyntaxFactory.Block(
                                             SyntaxFactory.ExpressionStatement(
@@ -1637,7 +1601,6 @@ public static class JoinSourcesTableProcessingHelper
 
         computingBlock = computingBlock.AddStatements(SyntaxFactory.ExpressionStatement(parallelLoop));
         
-        // Merge results
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.InvocationExpression(
