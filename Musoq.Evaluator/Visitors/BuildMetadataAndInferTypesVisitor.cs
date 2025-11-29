@@ -138,7 +138,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public virtual IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables =>
         InternalPositionalEnvironmentVariables;
 
-    public List<Assembly> Assemblies { get; } = [];
+    public List<Assembly> Assemblies { get; } = new(8);
 
     public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
@@ -1667,7 +1667,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         
         var accessMethod = CreateAccessMethod(node, args, method, methodContext, canSkipInjectSource, func);
         
-        node.ChangeMethod(method); // Update the original node with resolved method
+        node.ChangeMethod(method);
         FinalizeMethodVisit(method, accessMethod);
     }
 
@@ -1710,25 +1710,34 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return new MethodResolutionContext(alias, tableSymbol, schemaTablePair, entityType);
     }
 
-    /// <summary>
-    /// Attempts to resolve the method from the schema using different resolution strategies.
-    /// </summary>
     private (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(AccessMethodNode node, ArgsListNode args, MethodResolutionContext context)
     {
-        var groupArgs = new List<Type> { typeof(string) };
-        groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
+        var argCount = args.Args.Length;
+        var argTypes = new Type[argCount];
+        
+        for (var i = 0; i < argCount; i++)
+        {
+            argTypes[i] = args.Args[i].ReturnType;
+        }
+        var groupArgCount = argCount > 0 ? argCount : 1;
+        var groupArgTypes = new Type[groupArgCount];
+        groupArgTypes[0] = typeof(string);
+        for (var i = 1; i < argCount; i++)
+        {
+            groupArgTypes[i] = argTypes[i];
+        }
 
-        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), context.EntityType, out var method))
+        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgTypes, context.EntityType, out var method))
         {
             return (method, false);
         }
 
-        if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), context.EntityType, out method))
+        if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, argTypes, context.EntityType, out method))
         {
             return (method, false);
         }
 
-        if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
+        if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, argTypes, out method))
         {
             return (method, true);
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -86,6 +87,163 @@ public class ConvertingTests : LibraryBaseBaseTests
     {
         Assert.AreEqual("100", Library.ToBin(4));
     }
+
+    #region Base64 Tests
+
+    [TestMethod]
+    public void ToBase64_FromBytes_ShouldReturnBase64String()
+    {
+        var bytes = Encoding.UTF8.GetBytes("Hello");
+        var result = Library.ToBase64(bytes);
+        
+        Assert.AreEqual("SGVsbG8=", result);
+    }
+
+    [TestMethod]
+    public void ToBase64_FromNullBytes_ShouldReturnNull()
+    {
+        var result = Library.ToBase64((byte[]?)null);
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void ToBase64_FromBytesWithOffsetAndLength_ShouldReturnBase64String()
+    {
+        var bytes = Encoding.UTF8.GetBytes("Hello World");
+        var result = Library.ToBase64(bytes, 0, 5);
+        
+        Assert.AreEqual("SGVsbG8=", result);
+    }
+
+    [TestMethod]
+    public void ToBase64_FromNullBytesWithOffsetAndLength_ShouldReturnNull()
+    {
+        var result = Library.ToBase64((byte[]?)null, 0, 5);
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void ToBase64_FromString_ShouldReturnBase64String()
+    {
+        var result = Library.ToBase64("Hello");
+        
+        Assert.AreEqual("SGVsbG8=", result);
+    }
+
+    [TestMethod]
+    public void ToBase64_FromNullString_ShouldReturnNull()
+    {
+        var result = Library.ToBase64((string?)null);
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void ToBase64_FromStringWithEncoding_ShouldReturnBase64String()
+    {
+        var result = Library.ToBase64("Hello", "UTF-8");
+        
+        Assert.AreEqual("SGVsbG8=", result);
+    }
+
+    [TestMethod]
+    public void ToBase64_FromNullStringWithEncoding_ShouldReturnNull()
+    {
+        var result = Library.ToBase64((string?)null, "UTF-8");
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void FromBase64_ShouldReturnBytes()
+    {
+        var result = Library.FromBase64("SGVsbG8=");
+        
+        Assert.IsNotNull(result);
+        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result));
+    }
+
+    [TestMethod]
+    public void FromBase64_WhenNull_ShouldReturnNull()
+    {
+        var result = Library.FromBase64(null);
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void FromBase64_WhenEmpty_ShouldReturnNull()
+    {
+        var result = Library.FromBase64(string.Empty);
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void FromBase64ToString_ShouldReturnDecodedString()
+    {
+        var result = Library.FromBase64ToString("SGVsbG8=");
+        
+        Assert.AreEqual("Hello", result);
+    }
+
+    [TestMethod]
+    public void FromBase64ToString_WhenNull_ShouldReturnNull()
+    {
+        var result = Library.FromBase64ToString(null);
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void FromBase64ToString_WhenEmpty_ShouldReturnNull()
+    {
+        var result = Library.FromBase64ToString(string.Empty);
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void FromBase64ToString_WithEncoding_ShouldReturnDecodedString()
+    {
+        var result = Library.FromBase64ToString("SGVsbG8=", "UTF-8");
+        
+        Assert.AreEqual("Hello", result);
+    }
+
+    [TestMethod]
+    public void FromBase64ToString_WithEncodingWhenNull_ShouldReturnNull()
+    {
+        var result = Library.FromBase64ToString(null, "UTF-8");
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void Base64RoundTrip_String_ShouldPreserveContent()
+    {
+        const string original = "Hello, World! 日本語 🌍";
+        
+        var encoded = Library.ToBase64(original);
+        var decoded = Library.FromBase64ToString(encoded);
+        
+        Assert.AreEqual(original, decoded);
+    }
+
+    [TestMethod]
+    public void Base64RoundTrip_Bytes_ShouldPreserveContent()
+    {
+        var original = new byte[] { 0x00, 0x01, 0x02, 0xFF, 0xFE };
+        
+        var encoded = Library.ToBase64(original);
+        var decoded = Library.FromBase64(encoded);
+        
+        CollectionAssert.AreEqual(original, decoded);
+    }
+
+    #endregion
 
     private class TestToStringClass
     {

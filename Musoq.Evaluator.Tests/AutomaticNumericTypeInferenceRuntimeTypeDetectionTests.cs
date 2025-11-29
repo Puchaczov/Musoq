@@ -34,7 +34,7 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         item3.Name = "Large";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -65,7 +65,7 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         item3.Name = "Large";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -96,7 +96,7 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         item3.Name = "Item C";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -127,7 +127,7 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         item3.Name = "Item C";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Item B", table[0].Values[0]);
@@ -164,7 +164,7 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         item5.Name = "Decimal450";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3, item4, item5]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         // All except Byte50 should match (Value > 100)
         Assert.AreEqual(4, table.Count);
@@ -198,7 +198,7 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         item3.Name = "Large";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -229,11 +229,13 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         item3.Name = "Large";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Medium", table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 
     #endregion
 }

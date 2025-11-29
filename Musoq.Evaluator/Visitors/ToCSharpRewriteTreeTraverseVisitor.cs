@@ -405,6 +405,8 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         
         _visitor.SetQueryIdentifier(node.From.Alias);
 
+        _visitor.InitializeCseForQuery(node);
+
         node.From.Accept(this);
         node.Where?.Accept(this);
         node.Select.Accept(this);
@@ -597,6 +599,9 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
 
         _visitor.SetMethodAccessType(MethodAccessType.TransformingQuery);
         _visitor.SetQueryIdentifier(node.From.Alias);
+        
+        _visitor.InitializeCseForQuery(node);
+
         node.Refresh?.Accept(this);
         node.From.Accept(this);
         node.Where?.Accept(this);
@@ -744,6 +749,8 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     public void Visit(CaseNode node)
     {
         var oldMethodAccessType = _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
+        
+        _visitor.SetCaseWhenContext(true);
          
         node.Else.Accept(this);
 
@@ -753,6 +760,8 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             node.WhenThenPairs[i].Then.Accept(this);
         }
 
+        _visitor.SetCaseWhenContext(false);
+        
         node.Accept(_visitor);
 
         _visitor.SetMethodAccessType(oldMethodAccessType);

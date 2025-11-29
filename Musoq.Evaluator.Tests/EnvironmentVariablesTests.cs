@@ -24,7 +24,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Key", table[0][0]);
@@ -49,7 +49,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
@@ -81,7 +81,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -121,7 +121,7 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
@@ -195,7 +195,7 @@ select Key, Value from #EnvironmentVariables.All()";
             environmentVariablesEntitiesSource,
             environmentVariablesSource);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -209,4 +209,6 @@ select Key, Value from #EnvironmentVariables.All()";
             (string)entry[1] == "VALUE_2"
         ), "Second entry should be KEY_2, VALUE_2");
     }
+
+    public TestContext TestContext { get; set; }
 }

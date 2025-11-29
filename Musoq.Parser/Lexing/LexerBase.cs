@@ -51,12 +51,12 @@ public abstract class LexerBase<TToken> : ILexer<TToken>
     {
         public TokenDefinition(string pattern)
         {
-            Regex = new Regex(pattern);
+            Regex = new Regex(pattern, RegexOptions.Compiled);
         }
 
         public TokenDefinition(string pattern, RegexOptions options)
         {
-            Regex = new Regex(pattern, options);
+            Regex = new Regex(pattern, options | RegexOptions.Compiled);
         }
 
         public Regex Regex { get; }

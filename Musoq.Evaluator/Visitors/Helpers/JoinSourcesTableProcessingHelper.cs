@@ -421,7 +421,7 @@ public static class JoinSourcesTableProcessingHelper
                                 )
                             ),
                             SyntaxFactory.ObjectCreationExpression(
-                                SyntaxFactory.ParseTypeName("System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>")
+                                SyntaxHelper.ListOfIObjectResolverTypeSyntax
                             ).WithArgumentList(SyntaxFactory.ArgumentList())
                         )
                     )
@@ -750,7 +750,7 @@ public static class JoinSourcesTableProcessingHelper
                     SyntaxFactory.ObjectCreationExpression(
                         SyntaxFactory.Token(SyntaxKind.NewKeyword)
                             .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                        SyntaxHelper.ObjectsRowTypeSyntax,
                         SyntaxFactory.ArgumentList(
                             SyntaxFactory.SeparatedList(
                             [
@@ -806,7 +806,7 @@ public static class JoinSourcesTableProcessingHelper
                     SyntaxFactory.ObjectCreationExpression(
                         SyntaxFactory.Token(SyntaxKind.NewKeyword)
                             .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                        SyntaxHelper.ObjectsRowTypeSyntax,
                         SyntaxFactory.ArgumentList(
                             SyntaxFactory.SeparatedList(
                             [
@@ -1020,7 +1020,7 @@ public static class JoinSourcesTableProcessingHelper
         var outerRowsVar = $"{probeAlias}RowsArray";
         var outerKeysVar = $"{probeAlias}KeysArray";
         
-        var rowType = SyntaxFactory.ParseTypeName("Musoq.Schema.DataSources.IObjectResolver");
+        var rowType = SyntaxHelper.IObjectResolverTypeSyntax;
         var keyTypeSyntax = EvaluationHelper.GetCastableType(keyType);
         
         computingBlock = computingBlock.AddStatements(getRowsSourceOrEmpty(buildAlias));
@@ -1314,7 +1314,7 @@ public static class JoinSourcesTableProcessingHelper
         }
 
         
-        var rowTypeConcrete = SyntaxFactory.ParseTypeName("Musoq.Evaluator.Tables.Row");
+        var rowTypeConcrete = SyntaxHelper.RowConcreteTypeSyntax;
 
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.LocalDeclarationStatement(
@@ -1835,7 +1835,7 @@ public static class JoinSourcesTableProcessingHelper
         var rowVar = SyntaxFactory.IdentifierName($"{alias}Row");
         var indexLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index));
         
-        var iObjectResolverType = SyntaxFactory.ParseTypeName("Musoq.Schema.DataSources.IObjectResolver");
+        var iObjectResolverType = SyntaxHelper.IObjectResolverTypeSyntax;
         
         var castToResolver = SyntaxFactory.CastExpression(iObjectResolverType, rowVar);
         var accessResolver = SyntaxFactory.ElementAccessExpression(

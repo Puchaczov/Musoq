@@ -23,7 +23,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Id", table[0][0]);
@@ -45,7 +45,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -69,7 +69,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Complex", table[0][0]);
@@ -92,7 +92,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
@@ -118,7 +118,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
@@ -144,7 +144,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
@@ -172,7 +172,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
@@ -201,7 +201,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -251,7 +251,7 @@ inner join #location.all() location on weather.Location = location.Name
             ("#location", locationSource, locationSchema)
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         
@@ -278,7 +278,7 @@ inner join #location.all() location on weather.Location = location.Name
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -288,4 +288,6 @@ inner join #location.all() location on weather.Location = location.Name
         Assert.AreEqual("case", table[0][0]);
         Assert.AreEqual("end", table[0][1]);
     }
+
+    public TestContext TestContext { get; set; }
 }

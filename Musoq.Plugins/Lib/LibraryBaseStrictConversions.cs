@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using Musoq.Plugins.Attributes;
 using Musoq.Plugins.Lib.TypeConversion;
 using Musoq.Plugins.Lib.RuntimeOperators;
@@ -14,10 +13,10 @@ public partial class LibraryBase
     /// Type converters and runtime operators following SOLID principles.
     /// These are initialized as static singletons but can be replaced for testing.
     /// </summary>
-    private static readonly ITypeConverter StrictConverter = new StrictTypeConverter();
-    private static readonly ITypeConverter ComparisonConverter = new ComparisonTypeConverter();
-    private static readonly ITypeConverter NumericOnlyConverter = new NumericOnlyTypeConverter();
-    private static readonly IRuntimeOperators RuntimeOperators = new TypePreservingRuntimeOperators(
+    private static readonly StrictTypeConverter StrictConverter = new();
+    private static readonly ComparisonTypeConverter ComparisonConverter = new();
+    private static readonly NumericOnlyTypeConverter NumericOnlyConverter = new();
+    private static readonly TypePreservingRuntimeOperators RuntimeOperators = new(
         NumericOnlyConverter,
         ComparisonConverter,
         StrictConverter);
@@ -25,117 +24,6 @@ public partial class LibraryBase
     #endregion
 
     #region Strict Conversions (Reject Precision Loss)
-
-    /// <summary>
-    /// Generic helper method for strict type conversions that reject any precision loss.
-    /// </summary>
-    /// <typeparam name="T">The target numeric type (int, long, or decimal).</typeparam>
-    /// <param name="value">The value to convert.</param>
-    /// <param name="converter">Function to perform the conversion to type T.</param>
-    /// <param name="precisionCheck">Function to validate that the conversion preserves precision.</param>
-    /// <returns>The converted value if successful and no precision is lost; otherwise, null.</returns>
-    private T? TryConvertToIntegralTypeStrict<T>(object? value, Func<object, T> converter, Func<T, T, bool> precisionCheck) where T : struct
-    {
-        if (value == null)
-            return null;
-
-        try
-        {
-            switch (value)
-            {
-                case T directValue:
-                    return directValue;
-                
-                case byte byteValue:
-                    return converter(byteValue);
-                
-                case sbyte sbyteValue:
-                    return converter(sbyteValue);
-                
-                case short shortValue:
-                    return converter(shortValue);
-                
-                case ushort ushortValue:
-                    return converter(ushortValue);
-                
-                case int intValue:
-                    return converter(intValue);
-                
-                case uint uintValue:
-                    var uintResult = converter(uintValue);
-                    return precisionCheck(uintResult, default) ? uintResult : (T?)null;
-                
-                case long longValue:
-                    var longResult = converter(longValue);
-                    return precisionCheck(longResult, default) ? longResult : (T?)null;
-                
-                case ulong ulongValue:
-                    var ulongResult = converter(ulongValue);
-                    return precisionCheck(ulongResult, default) ? ulongResult : (T?)null;
-                
-                case float floatValue:
-                    if (float.IsNaN(floatValue) || float.IsInfinity(floatValue))
-                        return null;
-                    
-                    var resultFromFloat = converter(floatValue);
-                    if (!precisionCheck(resultFromFloat, default))
-                        return null;
-                    
-                    var floatBack = Convert.ToSingle(resultFromFloat);
-                    if (Math.Abs(floatValue - floatBack) > float.Epsilon)
-                        return null;
-                    return resultFromFloat;
-                
-                case double doubleValue:
-                    if (double.IsNaN(doubleValue) || double.IsInfinity(doubleValue))
-                        return null;
-                    
-                    var resultFromDouble = converter(doubleValue);
-                    if (!precisionCheck(resultFromDouble, default))
-                        return null;
-                    
-                    var doubleBack = Convert.ToDouble(resultFromDouble);
-                    if (Math.Abs(doubleValue - doubleBack) > double.Epsilon)
-                        return null;
-                    return resultFromDouble;
-                
-                case decimal decimalValue:
-                    var resultFromDecimal = converter(decimalValue);
-                    if (!precisionCheck(resultFromDecimal, default))
-                        return null;
-                    
-                    var decimalBack = Convert.ToDecimal(resultFromDecimal);
-                    if (decimalValue != decimalBack)
-                        return null;
-                    return resultFromDecimal;
-                
-                case string stringValue:
-                    if (typeof(T) == typeof(int) && int.TryParse(stringValue, out var parsedInt))
-                        return (T)(object)parsedInt;
-                    if (typeof(T) == typeof(long) && long.TryParse(stringValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedLong))
-                        return (T)(object)parsedLong;
-                    if (typeof(T) == typeof(decimal) && decimal.TryParse(stringValue, out var parsedDecimal))
-                        return (T)(object)parsedDecimal;
-                    return null;
-                
-                case bool boolValue:
-                    if (typeof(T) == typeof(int))
-                        return (T)(object)(boolValue ? 1 : 0);
-                    if (typeof(T) == typeof(long))
-                        return (T)(object)(boolValue ? 1L : 0L);
-                    if (typeof(T) == typeof(decimal))
-                        return (T)(object)(boolValue ? 1m : 0m);
-                    return null;
-                
-                default:
-                    return converter(value);
-            }
-        }
-        catch
-        {
-            return null;
-        }
-    }
 
     /// <summary>
     /// Attempts to convert a value to Int32 with strict validation, rejecting any conversions that would lose precision.
@@ -265,23 +153,16 @@ public partial class LibraryBase
         if (value == null)
             return null;
 
-        // Try Int32 first (most common case) - convert to decimal
         var int32Result = TryConvertToInt32NumericOnly(value);
         if (int32Result.HasValue)
-            return (decimal)int32Result.Value;
+            return int32Result.Value;
 
-        // Try Int64 for larger integers - convert to decimal
         var int64Result = TryConvertToInt64NumericOnly(value);
         if (int64Result.HasValue)
-            return (decimal)int64Result.Value;
+            return int64Result.Value;
 
-        // Fall back to Decimal for fractional values
         var decimalResult = TryConvertToDecimalNumericOnly(value);
-        if (decimalResult.HasValue)
-            return decimalResult.Value;
-
-        // All conversions failed
-        return null;
+        return decimalResult;
     }
 
     /// <summary>
@@ -325,15 +206,15 @@ public partial class LibraryBase
                 
                 case uint uintValue:
                     var uintResult = converter(uintValue);
-                    return precisionCheck(uintResult, default) ? uintResult : (T?)null;
+                    return precisionCheck(uintResult, default) ? uintResult : null;
                 
                 case long longValue:
                     var longResult = converter(longValue);
-                    return precisionCheck(longResult, default) ? longResult : (T?)null;
+                    return precisionCheck(longResult, default) ? longResult : null;
                 
                 case ulong ulongValue:
                     var ulongResult = converter(ulongValue);
-                    return precisionCheck(ulongResult, default) ? ulongResult : (T?)null;
+                    return precisionCheck(ulongResult, default) ? ulongResult : null;
                 
                 case float floatValue:
                     if (float.IsNaN(floatValue) || float.IsInfinity(floatValue))
@@ -371,7 +252,6 @@ public partial class LibraryBase
                         return null;
                     return resultFromDecimal;
                 
-                // Reject strings, booleans, and other non-numeric types
                 default:
                     return null;
             }
@@ -394,22 +274,21 @@ public partial class LibraryBase
     [BindableMethod(true)]
     public int? TryConvertToInt32NumericOnly(object? value)
     {
-        return TryConvertToIntegralTypeNumericOnly<int>(
+        return TryConvertToIntegralTypeNumericOnly(
             value,
             obj =>
             {
                 try { return Convert.ToInt32(obj); }
                 catch { return 0; }
             },
-            (result, _) =>
+            (_, _) =>
             {
-                if (value is uint uintValue && uintValue > int.MaxValue)
-                    return false;
-                if (value is long longValue && (longValue < int.MinValue || longValue > int.MaxValue))
-                    return false;
-                if (value is ulong ulongValue && ulongValue > int.MaxValue)
-                    return false;
-                return true;
+                return value switch
+                {
+                    uint and > int.MaxValue or long and (< int.MinValue or > int.MaxValue)
+                        or ulong and > int.MaxValue => false,
+                    _ => true
+                };
             });
     }
 
@@ -425,16 +304,16 @@ public partial class LibraryBase
     [BindableMethod(true)]
     public long? TryConvertToInt64NumericOnly(object? value)
     {
-        return TryConvertToIntegralTypeNumericOnly<long>(
+        return TryConvertToIntegralTypeNumericOnly(
             value,
             obj =>
             {
                 try { return Convert.ToInt64(obj); }
                 catch { return 0L; }
             },
-            (result, _) =>
+            (_, _) =>
             {
-                if (value is ulong ulongValue && ulongValue > long.MaxValue)
+                if (value is ulong and > long.MaxValue)
                     return false;
                 return true;
             });
@@ -452,7 +331,7 @@ public partial class LibraryBase
     [BindableMethod(true)]
     public decimal? TryConvertToDecimalNumericOnly(object? value)
     {
-        return TryConvertToIntegralTypeNumericOnly<decimal>(
+        return TryConvertToIntegralTypeNumericOnly(
             value,
             obj =>
             {
@@ -464,7 +343,7 @@ public partial class LibraryBase
                 }
                 catch { return 0m; }
             },
-            (result, _) => true);
+            (_, _) => true);
     }
 
     #endregion
@@ -539,92 +418,6 @@ public partial class LibraryBase
     public object? InternalApplyModuloOperator(object? left, object? right)
     {
         return RuntimeOperators.Modulo(left, right);
-    }
-
-    /// <summary>
-    /// Helper method that applies arithmetic operations with type-preserving conversion rules.
-    /// Type selection priority: decimal > double > long (promotes to wider type when mixing types).
-    /// Rejects string operands for arithmetic operations.
-    /// </summary>
-    /// <param name="left">Left operand (boxed numeric type).</param>
-    /// <param name="right">Right operand (boxed numeric type).</param>
-    /// <param name="longOp">Function to execute when both operands are integer types.</param>
-    /// <param name="doubleOp">Function to execute when operands contain float or double types.</param>
-    /// <param name="decimalOp">Function to execute when operands contain decimal type.</param>
-    /// <returns>Result of the operation in the appropriate numeric type, or null if conversion fails.</returns>
-    private object? ApplyArithmeticOperator(object? left, object? right, 
-        Func<long, long, long> longOp, 
-        Func<double, double, double> doubleOp,
-        Func<decimal, decimal, decimal> decimalOp)
-    {
-        if (left == null || right == null)
-            return null;
-
-        if (left is string || right is string)
-            return null;
-
-        var targetType = DetermineArithmeticTargetType(left, right);
-
-        return targetType switch
-        {
-            ArithmeticType.Long => ConvertAndApply(left, right, longOp, TryConvertToInt64NumericOnly),
-            ArithmeticType.Double => ConvertAndApply(left, right, doubleOp, TryConvertToDoubleNumericOnly),
-            ArithmeticType.Decimal => ConvertAndApply(left, right, decimalOp, TryConvertToDecimalNumericOnly),
-            _ => null
-        };
-    }
-
-    /// <summary>
-    /// Enumeration of supported arithmetic target types for type-preserving operations.
-    /// Priority order: Decimal (highest precision) > Double (floating-point) > Long (integer default).
-    /// </summary>
-    private enum ArithmeticType
-    {
-        /// <summary>Integer arithmetic using 64-bit signed integer (for byte, short, int, long types).</summary>
-        Long,
-        /// <summary>Floating-point arithmetic using double precision (for float, double types).</summary>
-        Double,
-        /// <summary>High-precision decimal arithmetic (for decimal type or financial calculations).</summary>
-        Decimal
-    }
-
-    /// <summary>
-    /// Determines the target arithmetic type for an operation based on operand types.
-    /// Uses type promotion rules: decimal > double > long.
-    /// </summary>
-    /// <param name="left">Left operand.</param>
-    /// <param name="right">Right operand.</param>
-    /// <returns>The target arithmetic type to use for the operation.</returns>
-    private ArithmeticType DetermineArithmeticTargetType(object left, object right)
-    {
-        if (left is decimal || right is decimal)
-            return ArithmeticType.Decimal;
-        
-        if (left is double || right is double || left is float || right is float)
-            return ArithmeticType.Double;
-        
-        return ArithmeticType.Long;
-    }
-
-    /// <summary>
-    /// Generic helper that converts both operands to the target type and applies the operation.
-    /// Returns null if either operand fails conversion.
-    /// </summary>
-    /// <typeparam name="T">Target numeric type (long, double, or decimal).</typeparam>
-    /// <param name="left">Left operand.</param>
-    /// <param name="right">Right operand.</param>
-    /// <param name="operation">Operation to apply after conversion.</param>
-    /// <param name="converter">Converter function to transform objects to target type.</param>
-    /// <returns>Result of the operation, or null if conversion fails.</returns>
-    private T? ConvertAndApply<T>(object? left, object? right, Func<T, T, T> operation, Func<object?, T?> converter) where T : struct
-    {
-        var leftConverted = converter(left);
-        var rightConverted = converter(right);
-
-        if (!leftConverted.HasValue || !rightConverted.HasValue)
-            return null;
-
-        return operation(leftConverted.Value, rightConverted.Value);
     }
 
     /// <summary>

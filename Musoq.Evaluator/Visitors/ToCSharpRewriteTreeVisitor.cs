@@ -43,19 +43,19 @@ namespace Musoq.Evaluator.Visitors;
 
 public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTranslationExpressionVisitor
 {
-
-    /// <summary>
-    /// Gets the name of this visitor for error reporting.
-    /// </summary>
     protected override string VisitorName => nameof(ToCSharpRewriteTreeVisitor);
 
+    private static readonly MethodInfo LikeMethod = typeof(Operators).GetMethod(nameof(Operators.Like));
+    private static readonly MethodInfo RLikeMethod = typeof(Operators).GetMethod(nameof(Operators.RLike));
+    private static readonly MethodInfo ContainsMethod = typeof(Operators).GetMethod(nameof(Operators.Contains));
+
     private readonly Dictionary<string, int> _inMemoryTableIndexes = new();
-    private readonly List<string> _loadedAssemblies = [];
+    private readonly List<string> _loadedAssemblies = new(20);
 
     private readonly List<SyntaxNode> _members = [];
     private readonly Stack<string> _methodNames = new();
 
-    private readonly List<string> _namespaces = [];
+    private readonly List<string> _namespaces = new(16);
     private readonly IDictionary<string, int[]> _setOperatorFieldIndexes;
     private int _rowClassCounter;
 
@@ -82,6 +82,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private bool _isInsideJoinOrApply;
     private bool _isResultParallelizationImpossible;
     private readonly CompilationOptions _compilationOptions;
+    
+    private readonly Dictionary<string, int> _cseSlotMap = new();
+    private readonly HashSet<string> _cseComputedInCurrentRow = [];
+    private readonly HashSet<string> _nonDeterministicFunctions;
 
     public ToCSharpRewriteTreeVisitor(
         IEnumerable<Assembly> assemblies,
@@ -98,14 +102,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         _setOperatorFieldIndexes = setOperatorFieldIndexes;
         InferredColumns = inferredColumns;
-        Workspace = new AdhocWorkspace();
+        Workspace = RoslynSharedFactory.Workspace;
         Nodes = new Stack<SyntaxNode>();
         _compilationOptions = compilationOptions;
 
-        Generator = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
-
-        Compilation = CSharpCompilation.Create(assemblyName);
-        Compilation = Compilation.AddReferences(RuntimeLibraries.References);
+        Generator = RoslynSharedFactory.Generator;
+        Compilation = RoslynSharedFactory.CreateCompilation(assemblyName);
 
         var abstractionDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Microsoft.Extensions.Logging.Abstractions.dll");
         
@@ -125,19 +127,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             AddReference(assemblies.ToArray());
         }, "initializing references");
 
-        Compilation = Compilation.WithOptions(
-            new CSharpCompilationOptions(
-                    OutputKind.DynamicallyLinkedLibrary,
-#if DEBUG
-                    optimizationLevel: OptimizationLevel.Debug,
-#else
-                    optimizationLevel: OptimizationLevel.Release,
-#endif
-                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
-                    deterministic: true)
-                .WithConcurrentBuild(true)
-                .WithMetadataImportOptions(MetadataImportOptions.Public));
-
         AccessToClassPath = $"{Namespace}.{ClassName}";
 
         AddNamespace("System");
@@ -154,12 +143,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         AddNamespace("Musoq.Evaluator.Tables");
         AddNamespace("Musoq.Evaluator.Helpers");
         AddNamespace("System.Dynamic");
+        
+        _nonDeterministicFunctions = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
     }
 
-    public string Namespace { get; } =
+    private string Namespace { get; } =
         $"{Resources.Compilation.NamespaceConstantPart}_{StringHelpers.GenerateNamespaceIdentifier()}";
 
-    public string ClassName => "CompiledQuery";
+    private static string ClassName => "CompiledQuery";
 
     public string AccessToClassPath { get; }
 
@@ -176,6 +167,40 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private List<Stack<SyntaxNode>> NullSuspiciousNodes { get; } = [];
 
     private IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
+
+    private readonly List<(string VariableName, Type VariableType, string ExpressionId)> _cseVariableDeclarations = [];
+    private readonly Dictionary<string, string> _cseExpressionToVariable = new();
+    private int _cseVariableCounter;
+    private bool _isInsideCaseWhen;
+    
+    public void SetCaseWhenContext(bool isInside)
+    {
+        _isInsideCaseWhen = isInside;
+    }
+
+    public void InitializeCseForQuery(Node queryNode)
+    {
+        _cseSlotMap.Clear();
+        _cseComputedInCurrentRow.Clear();
+        _cseVariableDeclarations.Clear();
+        _cseExpressionToVariable.Clear();
+        _cseVariableCounter = 0;
+
+        if (!_compilationOptions.UseCommonSubexpressionElimination)
+        {
+            return;
+        }
+
+        var cseAnalysisVisitor = new CommonSubexpressionAnalysisVisitor(_nonDeterministicFunctions);
+        var cseAnalysisTraverser = new CommonSubexpressionAnalysisTraverseVisitor(cseAnalysisVisitor);
+        queryNode.Accept(cseAnalysisTraverser);
+        
+        var slotMap = cseAnalysisVisitor.GetCacheSlotMap();
+        foreach (var kvp in slotMap)
+        {
+            _cseSlotMap[kvp.Key] = kvp.Value;
+        }
+    }
 
     public void Visit(Node node)
     {
@@ -360,7 +385,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         Visit(new AccessMethodNode(
             new FunctionToken(nameof(Operators.Like), TextSpan.Empty),
             new ArgsListNode([node.Left, node.Right]), null, false,
-            typeof(Operators).GetMethod(nameof(Operators.Like))));
+            LikeMethod));
     }
 
     public void Visit(RLikeNode node)
@@ -377,7 +402,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         Visit(new AccessMethodNode(
             new FunctionToken(nameof(Operators.RLike), TextSpan.Empty),
             new ArgsListNode([node.Left, node.Right]), null, false,
-            typeof(Operators).GetMethod(nameof(Operators.RLike))));
+            RLikeMethod));
     }
 
     public void Visit(InNode node)
@@ -511,7 +536,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         Visit(new AccessMethodNode(
             new FunctionToken(nameof(Operators.Contains), TextSpan.Empty),
             new ArgsListNode([node.Left, node.Right]), null, false,
-            typeof(Operators).GetMethod(nameof(Operators.Contains))));
+            ContainsMethod));
     }
 
     public void Visit(AccessMethodNode node)
@@ -528,7 +553,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             NullSuspiciousNodes,
             AddNamespace);
 
-        Nodes.Push(accessMethodExpr);
+        var resultExpr = ApplyCseIfNeeded(node.Id, accessMethodExpr, node.ReturnType);
+        
+        Nodes.Push(resultExpr);
     }
 
     public void Visit(AccessRawIdentifierNode node)
@@ -747,7 +774,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void Visit(TakeNode node)
     {
-        var identifier = "tookAmount";
+        const string identifier = "tookAmount";
 
         var take = SyntaxFactory.LocalDeclarationStatement(
             SyntaxHelper.CreateAssignment(identifier, (ExpressionSyntax) Generator.LiteralExpression(0)));
@@ -975,7 +1002,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                             SyntaxFactory.ObjectCreationExpression(
                                 SyntaxFactory.Token(SyntaxKind.NewKeyword)
                                     .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                                SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                                SyntaxHelper.ObjectsRowTypeSyntax,
                                 SyntaxFactory.ArgumentList(
                                     SyntaxFactory.SeparatedList(
                                     [
@@ -1271,6 +1298,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         var block = (BlockSyntax) Nodes.Pop();
 
+        var cseDeclarations = GenerateCseVariableDeclarations().ToArray();
+        if (cseDeclarations.Length > 0)
+        {
+            block = SyntaxFactory.Block(cseDeclarations.Concat(block.Statements));
+        }
+
         block = block.AddStatements(GenerateCancellationExpression());
 
         if (where != null)
@@ -1308,6 +1341,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var where = node.Where != null ? Nodes.Pop() as StatementSyntax : null;
 
         var block = (BlockSyntax) Nodes.Pop();
+
+        var cseDeclarations = GenerateCseVariableDeclarations().ToArray();
+        if (cseDeclarations.Length > 0)
+        {
+            block = SyntaxFactory.Block(cseDeclarations.Concat(block.Statements));
+        }
 
         if (node.GroupBy != null)
         {
@@ -1811,7 +1850,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             if (_loadedAssemblies.Contains(type.Assembly.Location)) continue;
 
             _loadedAssemblies.Add(type.Assembly.Location);
-            newReferences.Add(MetadataReference.CreateFromFile(type.Assembly.Location));
+            newReferences.Add(MetadataReferenceCache.GetOrCreate(type.Assembly.Location));
         }
 
         if (newReferences.Count > 0)
@@ -1829,7 +1868,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             if (_loadedAssemblies.Contains(assemblyDllPath)) continue;
 
             _loadedAssemblies.Add(assemblyDllPath);
-            newReferences.Add(MetadataReference.CreateFromFile(assemblyDllPath));
+            newReferences.Add(MetadataReferenceCache.GetOrCreate(assemblyDllPath));
         }
 
         if (newReferences.Count > 0)
@@ -1847,7 +1886,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             if (_loadedAssemblies.Contains(assembly.Location)) continue;
 
             _loadedAssemblies.Add(assembly.Location);
-            newReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
+            newReferences.Add(MetadataReferenceCache.GetOrCreate(assembly.Location));
         }
 
         if (newReferences.Count > 0)
@@ -2129,7 +2168,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     public void Visit(CaseNode node)
     {
         var result = CaseNodeProcessor.ProcessCaseNode(
-            node, Nodes, _typesToInstantiate, _oldType, _queryAlias, ref _caseWhenMethodIndex);
+            node, Nodes, _typesToInstantiate, _oldType, _queryAlias, ref _caseWhenMethodIndex,
+            _cseVariableDeclarations);
         
         foreach (var ns in result.RequiredNamespaces)
         {
@@ -2368,7 +2408,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             ]);
         }
 
-        var methodName = "GetTableDesc";
+        const string methodName = "GetTableDesc";
 
         var method = SyntaxFactory.MethodDeclaration(
             [],
@@ -2545,7 +2585,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
 
         fields.Add(SyntaxFactory.PropertyDeclaration(
-            SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))),
+            SyntaxHelper.ObjectArrayTypeSyntax,
             "Contexts")
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
             .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))))));
@@ -2554,7 +2594,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         {
             var paramName = $"context{i}";
             contextParams.Add(SyntaxFactory.Parameter(SyntaxFactory.Identifier(paramName))
-                .WithType(SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression()))))));
+                .WithType(SyntaxHelper.ObjectArrayTypeSyntax));
             
             contextExprs.Add(SyntaxFactory.IdentifierName(paramName));
         }
@@ -2598,7 +2638,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         }
 
         indexerBody = indexerBody.AddStatements(
-            SyntaxFactory.ThrowStatement(SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName("IndexOutOfRangeException")).WithArgumentList(SyntaxFactory.ArgumentList()))
+            SyntaxFactory.ThrowStatement(SyntaxFactory.ObjectCreationExpression(SyntaxHelper.IndexOutOfRangeExceptionTypeSyntax).WithArgumentList(SyntaxFactory.ArgumentList()))
         );
 
         var indexer = SyntaxFactory.IndexerDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
@@ -2616,12 +2656,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         var valuesProp = SyntaxFactory.PropertyDeclaration(
-            SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))),
+            SyntaxHelper.ObjectArrayTypeSyntax,
             "Values")
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
             .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(
                 SyntaxFactory.ArrayCreationExpression(
-                    SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName("object"), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))),
+                    SyntaxHelper.ObjectArrayTypeSyntax,
                     SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(valuesInit))
                 )
             ))
@@ -2630,7 +2670,89 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         return SyntaxFactory.ClassDeclaration(className)
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
-                SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("Row")))))
-            .WithMembers(SyntaxFactory.List(fields.Concat(new MemberDeclarationSyntax[] { constructor, indexer, countProp, valuesProp })));
+                SyntaxFactory.SimpleBaseType(SyntaxHelper.RowTypeSyntax))))
+            .WithMembers(SyntaxFactory.List(fields.Concat([constructor, indexer, countProp, valuesProp])));
+    }
+
+    private SyntaxNode ApplyCseIfNeeded(string expressionId, SyntaxNode expression, Type expressionType)
+    {
+        if (_isInsideCaseWhen && _cseExpressionToVariable.TryGetValue(expressionId, out var cseParamName))
+        {
+            return SyntaxFactory.IdentifierName(cseParamName);
+        }
+        
+        if (!_cseSlotMap.TryGetValue(expressionId, out var slotIndex))
+        {
+            return expression;
+        }
+
+        if (!_cseExpressionToVariable.TryGetValue(expressionId, out var variableName))
+        {
+            variableName = $"_cse{_cseVariableCounter++}";
+            _cseExpressionToVariable[expressionId] = variableName;
+            _cseVariableDeclarations.Add((variableName, expressionType, expressionId));
+        }
+
+        var variableIdentifier = SyntaxFactory.IdentifierName(variableName);
+
+        if (!_cseComputedInCurrentRow.Add(expressionId))
+        {
+            return variableIdentifier;
+        }
+
+        return SyntaxFactory.ParenthesizedExpression(
+            SyntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                variableIdentifier,
+                (ExpressionSyntax)expression));
+    }
+    
+    private IEnumerable<StatementSyntax> GenerateCseVariableDeclarations()
+    {
+        foreach (var (variableName, variableType, _) in _cseVariableDeclarations)
+        {
+            var typeSyntax = SyntaxFactory.ParseTypeName(GetTypeName(variableType));
+            
+            var declaration = SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(typeSyntax)
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(variableName)
+                                .WithInitializer(
+                                    SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.DefaultExpression(typeSyntax))))));
+            
+            yield return declaration;
+        }
+    }
+
+    private static string GetTypeName(Type type)
+    {
+        if (type == typeof(int)) return "int";
+        if (type == typeof(long)) return "long";
+        if (type == typeof(double)) return "double";
+        if (type == typeof(float)) return "float";
+        if (type == typeof(decimal)) return "decimal";
+        if (type == typeof(string)) return "string";
+        if (type == typeof(bool)) return "bool";
+        if (type == typeof(byte)) return "byte";
+        if (type == typeof(short)) return "short";
+        if (type == typeof(char)) return "char";
+        if (type == typeof(object)) return "object";
+        
+        var underlyingType = Nullable.GetUnderlyingType(type);
+        if (underlyingType != null)
+        {
+            return GetTypeName(underlyingType) + "?";
+        }
+
+        if (!type.IsGenericType) 
+            return type.FullName ?? type.Name;
+        
+        var genericTypeName = type.GetGenericTypeDefinition().FullName!;
+        genericTypeName = genericTypeName[..genericTypeName.IndexOf('`')];
+        var genericArgs = string.Join(", ", type.GetGenericArguments().Select(GetTypeName));
+        return $"{genericTypeName}<{genericArgs}>";
+
     }
 }

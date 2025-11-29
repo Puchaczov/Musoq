@@ -38,7 +38,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -87,7 +87,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
@@ -152,7 +152,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("s2.Name", table.Columns.ElementAt(0).ColumnName);
@@ -187,7 +187,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                              "select Parameter0, Parameter1 from SourceOfDummyRows(true, 'test');";
 
         var vm = CreateAndRunVirtualMachine(query, null, new ParametersSchemaProvider());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -224,7 +224,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         second.Text = "test2";
 
         var vm = CreateAndRunVirtualMachine(query, null, new UnknownSchemaProvider([first, second]));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Text", table.Columns.ElementAt(0).ColumnName);
@@ -326,4 +326,6 @@ public class CouplingSyntaxTests : BasicEntityTestBase
             ]);
         }
     }
+
+    public TestContext TestContext { get; set; }
 }

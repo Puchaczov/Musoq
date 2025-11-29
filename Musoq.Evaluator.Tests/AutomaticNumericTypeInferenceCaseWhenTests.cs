@@ -31,7 +31,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         item2.Name = "Item2";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => (string)row.Values[0]).ToList();
@@ -66,7 +66,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         item3.Name = "Item3";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         // Results may not be in order, so check the collection
@@ -98,7 +98,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         item2.Name = "Item2";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => (string)row.Values[0]).ToList();
@@ -137,7 +137,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         item3.Name = "Item3";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         var results = table.Select(row => (string)row.Values[0]).ToList();
@@ -166,7 +166,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         item2.Name = "Small";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Large", table[0].Values[0]);
@@ -201,7 +201,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         item3.Name = "Item3";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         var results = table.Select(row => (string)row.Values[0]).ToList();
@@ -209,6 +209,8 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         CollectionAssert.Contains(results, "Large");
         CollectionAssert.Contains(results, "Small");
     }
+
+    public TestContext TestContext { get; set; }
 
     #endregion
 }

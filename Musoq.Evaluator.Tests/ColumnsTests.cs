@@ -41,7 +41,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Name", table.Columns.ElementAt(0).ColumnName);
@@ -66,7 +66,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Self.Name", table.Columns.ElementAt(0).ColumnName);
@@ -166,7 +166,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Name[0]", table.Columns.ElementAt(0).ColumnName);
@@ -191,7 +191,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Self.Name[0]", table.Columns.ElementAt(0).ColumnName);
@@ -216,7 +216,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Dictionary[AA]", table.Columns.ElementAt(0).ColumnName);
@@ -225,4 +225,6 @@ public class ColumnsTests : BasicEntityTestBase
         
         Assert.AreEqual("BB", table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 }

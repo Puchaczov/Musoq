@@ -25,7 +25,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("cracow", table[0].Values[0]);
@@ -49,7 +49,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("czestochowa", table[0].Values[0]);
@@ -73,7 +73,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("czestochowa", table[0].Values[0]);
@@ -97,7 +97,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("cracow", table[0].Values[0]);
@@ -121,7 +121,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("czestochowa", table[0].Values[0]);
@@ -146,7 +146,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
         Assert.AreEqual("cracow-10", table[0].Values[0]);
@@ -172,7 +172,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("cracow", table[0].Values[0]);
@@ -197,7 +197,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("katowice", table[0].Values[0]);
@@ -222,7 +222,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
         Assert.AreEqual("katowice", table[0].Values[0]);
@@ -252,7 +252,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
         Assert.AreEqual("katowice", table[0].Values[0]);
@@ -282,7 +282,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("czestochowa", table[0].Values[0]);
@@ -308,7 +308,7 @@ public class OrderByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("katowice", table[0].Values[0]);
@@ -337,7 +337,7 @@ public class OrderByTests : BasicEntityTestBase
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(5, table.Count);
         Assert.AreEqual(400m, table[0].Values[0]);
@@ -367,7 +367,7 @@ public class OrderByTests : BasicEntityTestBase
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(5, table.Count);
         Assert.AreEqual(-10m, table[0].Values[0]);
@@ -397,7 +397,7 @@ public class OrderByTests : BasicEntityTestBase
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();Assert.AreEqual(5, table.Count, "Table should have 5 entries");
+        var table = vm.Run(TestContext.CancellationToken);Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry.Values[0] == "glasgow"), 
@@ -436,7 +436,7 @@ public class OrderByTests : BasicEntityTestBase
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
@@ -466,7 +466,7 @@ public class OrderByTests : BasicEntityTestBase
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
@@ -497,7 +497,7 @@ public class OrderByTests : BasicEntityTestBase
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
@@ -531,7 +531,7 @@ table.Count(row =>
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();Assert.AreEqual(5, table.Count, "Table should have 5 entries");
+        var table = vm.Run(TestContext.CancellationToken);Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry.Values[0] == "czestochowa" && 
@@ -579,7 +579,7 @@ table.Count(row =>
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(5, table.Count);
         Assert.AreEqual("glasgow", table[0].Values[0]);
@@ -609,7 +609,7 @@ table.Count(row =>
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(5, table.Count);
         Assert.AreEqual("czestochowa", table[0].Values[0]);
@@ -639,7 +639,7 @@ table.Count(row =>
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(5, table.Count);
         Assert.AreEqual("glasgow", table[0].Values[0]);
@@ -669,7 +669,7 @@ table.Count(row =>
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(5, table.Count);
         Assert.AreEqual("czestochowa", table[0].Values[0]);
@@ -698,7 +698,7 @@ table.Count(row =>
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(4, table.Count);
         Assert.AreEqual("glasgow", table[0].Values[0]);
@@ -726,7 +726,7 @@ table.Count(row =>
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(4, table.Count);
         Assert.AreEqual("czestochowa", table[0].Values[0]);
@@ -754,7 +754,7 @@ table.Count(row =>
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(4, table.Count);
         Assert.AreEqual("cracow", table[0].Values[0]);
@@ -782,7 +782,7 @@ table.Count(row =>
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(4, table.Count);
         Assert.AreEqual("katowice", table[0].Values[0]);
@@ -811,7 +811,7 @@ table.Count(row =>
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         
@@ -838,7 +838,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count);
         // Non-null values should come first in descending order, nulls at the end
@@ -866,7 +866,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count);
         Assert.AreEqual(100m, table[0].Values[1]);
@@ -895,7 +895,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count);
         Assert.AreEqual("Zulu", table[0].Values[0]);
@@ -928,7 +928,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Count);
         Assert.AreEqual(date4, table[0].Values[1]);
@@ -958,7 +958,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("katowice", table[0].Values[0]);
@@ -989,7 +989,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Count);
         // Should be sorted descending
@@ -1020,7 +1020,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("Poland", table[0].Values[0]);
@@ -1050,7 +1050,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual(400m, table[0].Values[1]);
@@ -1076,7 +1076,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual(300m, table[0].Values[1]);
@@ -1102,7 +1102,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual(600m, table[0].Values[1]);
@@ -1128,7 +1128,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Count);
         // Should be sorted by uppercase version
@@ -1154,7 +1154,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(0, table.Count);
     }
@@ -1174,7 +1174,7 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(100m, table[0].Values[1]);
@@ -1197,11 +1197,13 @@ table.Count(row =>
         };
         
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual(200m, table[0].Values[1]);
         Assert.AreEqual(200m, table[1].Values[1]);
         Assert.AreEqual(200m, table[2].Values[1]);
     }
+
+    public TestContext TestContext { get; set; }
 }

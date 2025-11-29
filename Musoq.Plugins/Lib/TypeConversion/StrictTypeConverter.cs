@@ -7,11 +7,8 @@ namespace Musoq.Plugins.Lib.TypeConversion;
 /// Type converter that rejects any conversions resulting in precision loss.
 /// Used for equality comparisons where exact values matter.
 /// </summary>
-internal class StrictTypeConverter : ITypeConverter
+internal class StrictTypeConverter
 {
-    /// <summary>
-    /// Generic helper method for strict type conversions that reject any precision loss.
-    /// </summary>
     private T? TryConvertToIntegralTypeStrict<T>(object? value, Func<object, T> converter, Func<T, T, bool> precisionCheck) where T : struct
     {
         if (value == null)
@@ -41,15 +38,15 @@ internal class StrictTypeConverter : ITypeConverter
                 
                 case uint uintValue:
                     var uintResult = converter(uintValue);
-                    return precisionCheck(uintResult, default) ? uintResult : (T?)null;
+                    return precisionCheck(uintResult, default) ? uintResult : null;
                 
                 case long longValue:
                     var longResult = converter(longValue);
-                    return precisionCheck(longResult, default) ? longResult : (T?)null;
+                    return precisionCheck(longResult, default) ? longResult : null;
                 
                 case ulong ulongValue:
                     var ulongResult = converter(ulongValue);
-                    return precisionCheck(ulongResult, default) ? ulongResult : (T?)null;
+                    return precisionCheck(ulongResult, default) ? ulongResult : null;
                 
                 case float floatValue:
                     if (float.IsNaN(floatValue) || float.IsInfinity(floatValue))
@@ -115,50 +112,47 @@ internal class StrictTypeConverter : ITypeConverter
         }
     }
 
-    /// <inheritdoc />
     public int? TryConvertToInt32(object? value)
     {
-        return TryConvertToIntegralTypeStrict<int>(
+        return TryConvertToIntegralTypeStrict(
             value,
             obj =>
             {
                 try { return Convert.ToInt32(obj); }
                 catch { return 0; }
             },
-            (result, _) =>
+            (_, _) =>
             {
-                if (value is uint uintValue && uintValue > int.MaxValue)
+                if (value is uint and > int.MaxValue)
                     return false;
-                if (value is long longValue && (longValue < int.MinValue || longValue > int.MaxValue))
+                if (value is long and (< int.MinValue or > int.MaxValue))
                     return false;
-                if (value is ulong ulongValue && ulongValue > int.MaxValue)
+                if (value is ulong and > int.MaxValue)
                     return false;
                 return true;
             });
     }
 
-    /// <inheritdoc />
     public long? TryConvertToInt64(object? value)
     {
-        return TryConvertToIntegralTypeStrict<long>(
+        return TryConvertToIntegralTypeStrict(
             value,
             obj =>
             {
                 try { return Convert.ToInt64(obj); }
                 catch { return 0L; }
             },
-            (result, _) =>
+            (_, _) =>
             {
-                if (value is ulong ulongValue && ulongValue > long.MaxValue)
+                if (value is ulong and > long.MaxValue)
                     return false;
                 return true;
             });
     }
 
-    /// <inheritdoc />
     public decimal? TryConvertToDecimal(object? value)
     {
-        return TryConvertToIntegralTypeStrict<decimal>(
+        return TryConvertToIntegralTypeStrict(
             value,
             obj =>
             {
@@ -172,10 +166,9 @@ internal class StrictTypeConverter : ITypeConverter
                 }
                 catch { return 0m; }
             },
-            (result, _) => true);
+            (_, _) => true);
     }
 
-    /// <inheritdoc />
     public double? TryConvertToDouble(object? value)
     {
         if (value == null)

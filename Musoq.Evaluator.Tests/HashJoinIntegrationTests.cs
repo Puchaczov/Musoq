@@ -23,7 +23,7 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
         
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count);
         
@@ -44,7 +44,7 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
         
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count);
         
@@ -65,7 +65,7 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
         
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: false));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("1", table[0][0]);
@@ -94,4 +94,6 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
             LoggerResolver,
             options);
     }
+
+    public TestContext TestContext { get; set; }
 }

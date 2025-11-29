@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
@@ -11,6 +11,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(string? value)
     {
         if (value == null)
@@ -28,6 +29,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(byte? value)
     {
         if (value == null)
@@ -42,6 +44,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(sbyte? value)
     {
         if (value == null)
@@ -56,6 +59,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(short? value)
     {
         if (value == null)
@@ -70,6 +74,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(ushort? value)
     {
         if (value == null)
@@ -84,6 +89,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(int? value)
     {
         if (value == null)
@@ -98,6 +104,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(uint? value)
     {
         if (value == null)
@@ -112,6 +119,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(long? value)
     {
         if (value == null)
@@ -126,6 +134,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(ulong? value)
     {
         if (value == null)
@@ -140,6 +149,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(float? value)
     {
         return value;
@@ -151,6 +161,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public float? ToFloat(decimal? value)
     {
         if (value == null)

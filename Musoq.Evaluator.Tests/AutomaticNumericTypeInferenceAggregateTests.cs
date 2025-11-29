@@ -35,7 +35,7 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         item3.Size = "300";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("A", table[0].Values[0]);
@@ -64,7 +64,7 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         item3.Size = "300";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
     }
@@ -96,7 +96,7 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         item3.Price = "150";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("A", table[0].Values[0]);
@@ -125,7 +125,7 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         item3.Name = "Large2";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(2, table[0].Values[0]);
@@ -158,11 +158,13 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         item2.Quantity = "10";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("A", table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 
     #endregion
 }

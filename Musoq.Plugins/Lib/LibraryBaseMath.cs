@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Plugins.Attributes;
@@ -15,6 +15,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Absolute value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public decimal? Abs(decimal? value)
     {
         if (!value.HasValue)
@@ -29,6 +30,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Absolute value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public long? Abs(long? value)
     {
         if (!value.HasValue)
@@ -43,6 +45,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Absolute value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public int? Abs(int? value)
     {
         if (!value.HasValue)
@@ -57,6 +60,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Ceiling value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public decimal? Ceil(decimal? value)
     {
         if (!value.HasValue)
@@ -71,6 +75,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Floor value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public decimal? Floor(decimal? value)
     {
         if (!value.HasValue)
@@ -85,6 +90,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Is less, equal or greater value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public decimal? Sign(decimal? value)
     {
         if (!value.HasValue)
@@ -104,6 +110,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Is less, equal or greater value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public long? Sign(long? value)
     {
         if (!value.HasValue)
@@ -124,6 +131,7 @@ public partial class LibraryBase
     /// <param name="precision">The precision</param>
     /// <returns>Is less, equal or greater value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public decimal? Round(decimal? value, int precision)
     {
         if (!value.HasValue)
@@ -139,6 +147,7 @@ public partial class LibraryBase
     /// <param name="max">The max</param>
     /// <returns>Percentage of a given value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public decimal? PercentOf(decimal? value, decimal? max)
     {
         if (!value.HasValue)
@@ -155,6 +164,8 @@ public partial class LibraryBase
     /// </summary>
     /// <returns>Random integer</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    [NonDeterministic]
     public int Rand()
         => _rand.Next();
 
@@ -165,6 +176,8 @@ public partial class LibraryBase
     /// <param name="max">The max</param>
     /// <returns>Random value between min and max</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    [NonDeterministic]
     public int? Rand(int? min, int? max)
     {
         if (min == null || max == null)
@@ -180,6 +193,7 @@ public partial class LibraryBase
     /// <param name="y">The y</param>
     /// <returns>Power of two values</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public double? Pow(decimal? x, decimal? y)
     {
         if (x == null || y == null)
@@ -195,6 +209,7 @@ public partial class LibraryBase
     /// <param name="y">The y</param>
     /// <returns>Power of two values</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public double? Pow(double? x, double? y)
     {
         if (x == null || y == null)
@@ -209,6 +224,7 @@ public partial class LibraryBase
     /// <param name="x">The x</param>
     /// <returns>Sqrt of a value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public double? Sqrt(decimal? x)
     {
         if (x == null)
@@ -223,6 +239,7 @@ public partial class LibraryBase
     /// <param name="x">The x</param>
     /// <returns>Sqrt of a value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public double? Sqrt(double? x)
     {
         if (x == null)
@@ -237,6 +254,7 @@ public partial class LibraryBase
     /// <param name="x">The x</param>
     /// <returns>Sqrt of a value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public double? Sqrt(long? x)
     {
         if (x == null)
@@ -253,6 +271,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Percent rank of a given value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public double? PercentRank<T>(IEnumerable<T>? window, T? value)
         where T : IComparable<T>
     {
@@ -272,6 +291,7 @@ public partial class LibraryBase
     /// <param name="value">The value to calculate the logarithm for.</param>
     /// <returns>The logarithm of the value.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
     public static double? Log(decimal? @base, decimal? value)
     {
         if (!@base.HasValue || !value.HasValue || @base <= 0 || @base == 1 || value <= 0)
@@ -355,5 +375,311 @@ public partial class LibraryBase
             return null;
 
         return (float)Math.Cos(value.Value);
+    }
+
+    /// <summary>
+    /// Calculates tangent of a value.
+    /// </summary>
+    /// <param name="value">The value in radians.</param>
+    /// <returns>Tangent of a value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static decimal? Tan(decimal? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        return (decimal)Math.Tan((double)value);
+    }
+
+    /// <summary>
+    /// Calculates tangent of a value.
+    /// </summary>
+    /// <param name="value">The value in radians.</param>
+    /// <returns>Tangent of a value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static double? Tan(double? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        return Math.Tan(value.Value);
+    }
+
+    /// <summary>
+    /// Calculates e raised to the specified power.
+    /// </summary>
+    /// <param name="value">The exponent.</param>
+    /// <returns>e raised to the power of value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static decimal? Exp(decimal? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        return (decimal)Math.Exp((double)value);
+    }
+
+    /// <summary>
+    /// Calculates e raised to the specified power.
+    /// </summary>
+    /// <param name="value">The exponent.</param>
+    /// <returns>e raised to the power of value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static double? Exp(double? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        return Math.Exp(value.Value);
+    }
+
+    /// <summary>
+    /// Calculates the natural logarithm (base e) of a value.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>Natural logarithm of a value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static decimal? Ln(decimal? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        return (decimal)Math.Log((double)value);
+    }
+
+    /// <summary>
+    /// Calculates the natural logarithm (base e) of a value.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>Natural logarithm of a value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static double? Ln(double? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        return Math.Log(value.Value);
+    }
+
+    /// <summary>
+    /// Clamps a value to be within the specified range.
+    /// </summary>
+    /// <param name="value">The value to clamp.</param>
+    /// <param name="min">The minimum value.</param>
+    /// <param name="max">The maximum value.</param>
+    /// <returns>The clamped value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static int? Clamp(int? value, int? min, int? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return Math.Clamp(value.Value, min.Value, max.Value);
+    }
+
+    /// <summary>
+    /// Clamps a value to be within the specified range.
+    /// </summary>
+    /// <param name="value">The value to clamp.</param>
+    /// <param name="min">The minimum value.</param>
+    /// <param name="max">The maximum value.</param>
+    /// <returns>The clamped value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static long? Clamp(long? value, long? min, long? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return Math.Clamp(value.Value, min.Value, max.Value);
+    }
+
+    /// <summary>
+    /// Clamps a value to be within the specified range.
+    /// </summary>
+    /// <param name="value">The value to clamp.</param>
+    /// <param name="min">The minimum value.</param>
+    /// <param name="max">The maximum value.</param>
+    /// <returns>The clamped value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static decimal? Clamp(decimal? value, decimal? min, decimal? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return Math.Clamp(value.Value, min.Value, max.Value);
+    }
+
+    /// <summary>
+    /// Clamps a value to be within the specified range.
+    /// </summary>
+    /// <param name="value">The value to clamp.</param>
+    /// <param name="min">The minimum value.</param>
+    /// <param name="max">The maximum value.</param>
+    /// <returns>The clamped value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static double? Clamp(double? value, double? min, double? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return Math.Clamp(value.Value, min.Value, max.Value);
+    }
+
+    /// <summary>
+    /// Calculates the logarithm of a value with the specified base.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="baseValue">The base of the logarithm.</param>
+    /// <returns>Logarithm of the value with the specified base.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static double? LogBase(double? value, double? baseValue)
+    {
+        if (!value.HasValue || !baseValue.HasValue)
+            return null;
+
+        return Math.Log(value.Value, baseValue.Value);
+    }
+
+    /// <summary>
+    /// Calculates the base-10 logarithm of a value.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>Base-10 logarithm of a value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static double? Log10(double? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        return Math.Log10(value.Value);
+    }
+
+    /// <summary>
+    /// Calculates the base-2 logarithm of a value.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>Base-2 logarithm of a value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static double? Log2(double? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        return Math.Log2(value.Value);
+    }
+
+    /// <summary>
+    /// Checks if an integer value is between the specified minimum and maximum (inclusive).
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <param name="min">The minimum value (inclusive).</param>
+    /// <param name="max">The maximum value (inclusive).</param>
+    /// <returns>True if value is between min and max; otherwise false.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static bool? IsBetween(int? value, int? min, int? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return value.Value >= min.Value && value.Value <= max.Value;
+    }
+
+    /// <summary>
+    /// Checks if a long value is between the specified minimum and maximum (inclusive).
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <param name="min">The minimum value (inclusive).</param>
+    /// <param name="max">The maximum value (inclusive).</param>
+    /// <returns>True if value is between min and max; otherwise false.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static bool? IsBetween(long? value, long? min, long? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return value.Value >= min.Value && value.Value <= max.Value;
+    }
+
+    /// <summary>
+    /// Checks if a decimal value is between the specified minimum and maximum (inclusive).
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <param name="min">The minimum value (inclusive).</param>
+    /// <param name="max">The maximum value (inclusive).</param>
+    /// <returns>True if value is between min and max; otherwise false.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static bool? IsBetween(decimal? value, decimal? min, decimal? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return value.Value >= min.Value && value.Value <= max.Value;
+    }
+
+    /// <summary>
+    /// Checks if a double value is between the specified minimum and maximum (inclusive).
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <param name="min">The minimum value (inclusive).</param>
+    /// <param name="max">The maximum value (inclusive).</param>
+    /// <returns>True if value is between min and max; otherwise false.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static bool? IsBetween(double? value, double? min, double? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return value.Value >= min.Value && value.Value <= max.Value;
+    }
+
+    /// <summary>
+    /// Checks if an integer value is between the specified minimum and maximum (exclusive).
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <param name="min">The minimum value (exclusive).</param>
+    /// <param name="max">The maximum value (exclusive).</param>
+    /// <returns>True if value is strictly between min and max; otherwise false.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static bool? IsBetweenExclusive(int? value, int? min, int? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return value.Value > min.Value && value.Value < max.Value;
+    }
+
+    /// <summary>
+    /// Checks if a decimal value is between the specified minimum and maximum (exclusive).
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <param name="min">The minimum value (exclusive).</param>
+    /// <param name="max">The maximum value (exclusive).</param>
+    /// <returns>True if value is strictly between min and max; otherwise false.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public static bool? IsBetweenExclusive(decimal? value, decimal? min, decimal? max)
+    {
+        if (!value.HasValue || !min.HasValue || !max.HasValue)
+            return null;
+
+        return value.Value > min.Value && value.Value < max.Value;
     }
 }

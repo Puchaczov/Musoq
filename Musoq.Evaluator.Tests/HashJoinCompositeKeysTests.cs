@@ -43,7 +43,7 @@ on a.Country = b.Country AND a.City = b.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 matches");
         
@@ -83,7 +83,7 @@ on a.Country = b.Country AND a.City = b.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         
@@ -123,7 +123,7 @@ on a.Country = b.Country AND a.City = b.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         
@@ -162,7 +162,7 @@ on a.Country = b.Country AND a.City = b.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(0, table.Count, "Should have 0 matches because NULL != NULL");
     }
@@ -195,7 +195,7 @@ on a.Country = b.Country AND a.City = b.City AND a.Month = b.Month";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("John", table[0][0]);
@@ -226,7 +226,7 @@ on a.Country = b.Country AND a.City = b.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("John", table[0][0]);
@@ -260,7 +260,7 @@ on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("BigCity", table[0][0]);
@@ -279,4 +279,6 @@ on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population";
             LoggerResolver,
             options);
     }
+
+    public TestContext TestContext { get; set; }
 }

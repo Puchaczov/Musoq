@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using Musoq.Plugins.Attributes;
 using Musoq.Plugins.Helpers;
 
@@ -12,6 +12,7 @@ public partial class LibraryBase
     /// <param name="content">The content string</param>
     /// <returns>The sha256 value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Cryptography)]
     public string? Md5(string? content)
     {
         return content == null ? null : HashHelper.ComputeHash(content, MD5.Create);
@@ -23,6 +24,7 @@ public partial class LibraryBase
     /// <param name="content">The content string</param>
     /// <returns>The sha256 value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Cryptography)]
     public string? Md5(byte[]? content)
     {
         return content == null ? null : HashHelper.ComputeHash(content, MD5.Create);
@@ -34,6 +36,7 @@ public partial class LibraryBase
     /// <param name="content">The content string</param>
     /// <returns>The sha1 value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Cryptography)]
     public string? Sha1(string? content)
     {
         return content == null ? null : HashHelper.ComputeHash(content, SHA1.Create);
@@ -45,6 +48,7 @@ public partial class LibraryBase
     /// <param name="content">The content string</param>
     /// <returns>The sha1 value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Cryptography)]
     public string? Sha1(byte[]? content)
     {
         return content == null ? null : HashHelper.ComputeHash(content, SHA1.Create);
@@ -56,6 +60,7 @@ public partial class LibraryBase
     /// <param name="content">The content string</param>
     /// <returns>The sha256 value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Cryptography)]
     public string? Sha256(string? content)
     {
         return content == null ? null : HashHelper.ComputeHash(content, SHA256.Create);
@@ -67,6 +72,7 @@ public partial class LibraryBase
     /// <param name="content">The content string</param>
     /// <returns>The sha256 value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Cryptography)]
     public string? Sha256(byte[]? content)
     {
         return content == null ? null : HashHelper.ComputeHash(content, SHA256.Create);
@@ -78,6 +84,7 @@ public partial class LibraryBase
     /// <param name="content">The content string</param>
     /// <returns>The sha256 value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Cryptography)]
     public string? Sha512(string? content)
     {
         return content == null ? null : HashHelper.ComputeHash(content, SHA512.Create);
@@ -89,6 +96,7 @@ public partial class LibraryBase
     /// <param name="content">The content string</param>
     /// <returns>The sha256 value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Cryptography)]
     public string? Sha512(byte[]? content)
     {
         return content == null ? null : HashHelper.ComputeHash(content, SHA512.Create);

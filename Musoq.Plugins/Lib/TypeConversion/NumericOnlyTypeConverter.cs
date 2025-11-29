@@ -6,11 +6,8 @@ namespace Musoq.Plugins.Lib.TypeConversion;
 /// Type converter that rejects strings entirely and only accepts boxed numeric types.
 /// Used for arithmetic operations on System.Object columns.
 /// </summary>
-internal class NumericOnlyTypeConverter : ITypeConverter
+internal class NumericOnlyTypeConverter
 {
-    /// <summary>
-    /// Generic helper method for numeric-only type conversions that reject strings entirely.
-    /// </summary>
     private T? TryConvertToIntegralTypeNumericOnly<T>(object? value, Func<object, T> converter, Func<T, T, bool> precisionCheck) where T : struct
     {
         if (value == null)
@@ -40,15 +37,15 @@ internal class NumericOnlyTypeConverter : ITypeConverter
                 
                 case uint uintValue:
                     var uintResult = converter(uintValue);
-                    return precisionCheck(uintResult, default) ? uintResult : (T?)null;
+                    return precisionCheck(uintResult, default) ? uintResult : null;
                 
                 case long longValue:
                     var longResult = converter(longValue);
-                    return precisionCheck(longResult, default) ? longResult : (T?)null;
+                    return precisionCheck(longResult, default) ? longResult : null;
                 
                 case ulong ulongValue:
                     var ulongResult = converter(ulongValue);
-                    return precisionCheck(ulongResult, default) ? ulongResult : (T?)null;
+                    return precisionCheck(ulongResult, default) ? ulongResult : null;
                 
                 case float floatValue:
                     if (float.IsNaN(floatValue) || float.IsInfinity(floatValue))
@@ -99,47 +96,45 @@ internal class NumericOnlyTypeConverter : ITypeConverter
     /// <inheritdoc />
     public int? TryConvertToInt32(object? value)
     {
-        return TryConvertToIntegralTypeNumericOnly<int>(
+        return TryConvertToIntegralTypeNumericOnly(
             value,
             obj =>
             {
                 try { return Convert.ToInt32(obj); }
                 catch { return 0; }
             },
-            (result, _) =>
+            (_, _) =>
             {
-                if (value is uint uintValue && uintValue > int.MaxValue)
+                if (value is uint and > int.MaxValue)
                     return false;
-                if (value is long longValue && (longValue < int.MinValue || longValue > int.MaxValue))
+                if (value is long and (< int.MinValue or > int.MaxValue))
                     return false;
-                if (value is ulong ulongValue && ulongValue > int.MaxValue)
+                if (value is ulong and > int.MaxValue)
                     return false;
                 return true;
             });
     }
 
-    /// <inheritdoc />
     public long? TryConvertToInt64(object? value)
     {
-        return TryConvertToIntegralTypeNumericOnly<long>(
+        return TryConvertToIntegralTypeNumericOnly(
             value,
             obj =>
             {
                 try { return Convert.ToInt64(obj); }
                 catch { return 0L; }
             },
-            (result, _) =>
+            (_, _) =>
             {
-                if (value is ulong ulongValue && ulongValue > long.MaxValue)
+                if (value is ulong and > long.MaxValue)
                     return false;
                 return true;
             });
     }
 
-    /// <inheritdoc />
     public decimal? TryConvertToDecimal(object? value)
     {
-        return TryConvertToIntegralTypeNumericOnly<decimal>(
+        return TryConvertToIntegralTypeNumericOnly(
             value,
             obj =>
             {
@@ -151,10 +146,9 @@ internal class NumericOnlyTypeConverter : ITypeConverter
                 }
                 catch { return 0m; }
             },
-            (result, _) => true);
+            (_, _) => true);
     }
 
-    /// <inheritdoc />
     public double? TryConvertToDouble(object? value)
     {
         if (value == null)

@@ -1,4 +1,4 @@
-﻿using Musoq.Plugins.Attributes;
+using Musoq.Plugins.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,6 +13,7 @@ public partial class LibraryBase
     /// <param name="content">The string</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(string? content)
     {
         if (content == null)
@@ -29,6 +30,7 @@ public partial class LibraryBase
     /// <param name="offset">The offset of substring</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(string? content, int length, int offset)
     {
         if (content == null)
@@ -43,6 +45,7 @@ public partial class LibraryBase
     /// <param name="character">The character to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(char? character)
     {
         if (character == null)
@@ -57,6 +60,7 @@ public partial class LibraryBase
     /// <param name="bit">The boolean to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(bool? bit)
     {
         if (bit == null)
@@ -71,6 +75,7 @@ public partial class LibraryBase
     /// <param name="value">The long to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(long? value)
     {
         if (value == null)
@@ -85,6 +90,7 @@ public partial class LibraryBase
     /// <param name="value">The int to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(int? value)
     {
         if (value == null)
@@ -99,6 +105,7 @@ public partial class LibraryBase
     /// <param name="value">The short to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(short? value)
     {
         if (value == null)
@@ -113,6 +120,7 @@ public partial class LibraryBase
     /// <param name="value">The ulong to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(ulong? value)
     {
         if (value == null)
@@ -127,6 +135,7 @@ public partial class LibraryBase
     /// <param name="value">The ushort to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(ushort? value)
     {
         if (value == null)
@@ -141,6 +150,7 @@ public partial class LibraryBase
     /// <param name="value">The uint to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(uint? value)
     {
         if (value == null)
@@ -155,6 +165,7 @@ public partial class LibraryBase
     /// <param name="value">The decimal to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(decimal? value)
     {
         if (value == null)
@@ -174,6 +185,7 @@ public partial class LibraryBase
     /// <param name="value">The double to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(double? value)
     {
         if (value == null)
@@ -188,6 +200,7 @@ public partial class LibraryBase
     /// <param name="value">The float to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(float? value)
     {
         if (value == null)

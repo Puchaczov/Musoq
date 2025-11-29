@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
@@ -17,6 +17,7 @@ public partial class LibraryBase : UserMethodsLibrary
     /// <param name="info" injectedByRuntime="true">The queryStats object</param>
     /// <returns>The row number</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public int RowNumber([InjectQueryStats] QueryStats info)
     {
         return info.RowNumber;
@@ -28,6 +29,7 @@ public partial class LibraryBase : UserMethodsLibrary
     /// <param name="obj">Object of unknown type that the typename have to be retrieved</param>
     /// <returns>The typename value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public string? GetTypeName(object? obj)
     {
         return obj?.GetType().FullName;

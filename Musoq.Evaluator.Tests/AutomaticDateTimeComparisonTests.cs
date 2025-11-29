@@ -212,7 +212,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "select Name from Events() where EventDate <> '2023-01-01'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -232,7 +232,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "select Name from Events() where EventDate > '2023-01-01'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -252,7 +252,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "select Name from Events() where EventDate < '2023-06-15'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count); // Should match both "Earlier Event" and "Equal Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -272,7 +272,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "select Name from Events() where EventDate >= '2023-03-15'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -292,7 +292,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "select Name from Events() where EventDate <= '2023-03-15'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count); // Should match both "Earlier Event" and "Equal Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -331,7 +331,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "select Name from Events() where Duration >= '02:00:00'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, "Duration"));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -377,7 +377,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             first, second
         ]);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -410,7 +410,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             first, second
         ]);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -440,7 +440,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         
@@ -472,7 +472,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         
@@ -499,7 +499,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, "Duration"));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         
@@ -531,7 +531,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         
@@ -560,7 +560,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             try
             {
                 var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-                var table = vm.Run();
+                var table = vm.Run(TestContext.CancellationToken);
                 
                 Assert.IsNotNull(table, $"Table should not be null for operator {op}");
                 Assert.AreEqual(3, table.Count, $"Should return 3 rows for operator {op}");
@@ -595,7 +595,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         
@@ -628,7 +628,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             try
             {
                 var vm = CreateAndRunVirtualMachine(query, CreateTestData(dateTimeType, fieldName));
-                var table = vm.Run();
+                var table = vm.Run(TestContext.CancellationToken);
                 
                 Assert.IsNotNull(table, $"Table should not be null for type {dateTimeType.TypeName}");
                 Assert.AreEqual(3, table.Count, $"Should return 3 rows for type {dateTimeType.TypeName}");
@@ -663,7 +663,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                              "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         
@@ -862,6 +862,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         return [earlier, equal, later];
     }
+
+    public TestContext TestContext { get; set; }
 
     #endregion
 }

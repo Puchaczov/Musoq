@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Musoq.Plugins.Attributes;
 using Musoq.Plugins.Helpers;
 
@@ -13,6 +13,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type of object. </typeparam>
     /// <returns>Json representation of object.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Json)]
     public string? ToJson<T>(T? obj)
     {
         return obj == null ? null : JsonSerializer.Serialize(obj);
@@ -25,6 +26,7 @@ public partial class LibraryBase
     /// <param name="path">Path to value. </param>
     /// <returns>Value from json by path.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Json)]
     public string[] ExtractFromJsonToArray(string? json, string? path)
     {
         if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(path))
@@ -40,6 +42,7 @@ public partial class LibraryBase
     /// <param name="path">Path to value. </param>
     /// <returns>Value from json by path.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Json)]
     public string? ExtractFromJson(string? json, string? path)
     {
         if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(path))

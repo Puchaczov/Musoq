@@ -225,7 +225,7 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
                     SyntaxFactory.ObjectCreationExpression(
                         SyntaxFactory.Token(SyntaxKind.NewKeyword)
                             .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                        SyntaxHelper.ObjectsRowTypeSyntax,
                         SyntaxFactory.ArgumentList(
                             SyntaxFactory.SeparatedList(
                             [

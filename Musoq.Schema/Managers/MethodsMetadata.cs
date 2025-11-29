@@ -10,6 +10,75 @@ using Musoq.Schema.Helpers;
 
 namespace Musoq.Schema.Managers;
 
+internal readonly struct ParameterMetadataInfo
+{
+    public readonly ParameterInfo[] Parameters;
+    public readonly int OptionalParametersCount;
+    public readonly int NotAnnotatedParametersCount;
+    public readonly ParameterInfo[] ParamsParameters;
+    public readonly int ParametersToInject;
+    public readonly InjectTypeAttribute[] InjectTypeAttributes;
+    
+    public ParameterMetadataInfo(ParameterInfo[] parameters)
+    {
+        Parameters = parameters;
+        OptionalParametersCount = CountOptional(parameters);
+        NotAnnotatedParametersCount = CountWithoutInjectType(parameters);
+        ParamsParameters = GetParamsParameters(parameters);
+        ParametersToInject = parameters.Length - NotAnnotatedParametersCount;
+        InjectTypeAttributes = GetInjectTypeAttributes(parameters);
+    }
+    
+    private static int CountOptional(ParameterInfo[] parameters)
+    {
+        var count = 0;
+        for (var i = 0; i < parameters.Length; i++)
+        {
+            if (parameters[i].IsOptional)
+                count++;
+        }
+        return count;
+    }
+    
+    private static int CountWithoutInjectType(ParameterInfo[] parameters)
+    {
+        var count = 0;
+        for (var i = 0; i < parameters.Length; i++)
+        {
+            if (parameters[i].GetCustomAttribute<InjectTypeAttribute>() == null)
+                count++;
+        }
+        return count;
+    }
+    
+    private static ParameterInfo[] GetParamsParameters(ParameterInfo[] parameters)
+    {
+        foreach (var parameter in parameters)
+        {
+            var attrs = parameter.GetCustomAttributes();
+            
+            if (attrs.Any(attr => attr.GetType().IsAssignableTo(typeof(ParamArrayAttribute))))
+            {
+                return [parameter];
+            }
+        }
+
+        return [];
+    }
+    
+    private static InjectTypeAttribute[] GetInjectTypeAttributes(ParameterInfo[] parameters)
+    {
+        var result = new List<InjectTypeAttribute>();
+        foreach (var parameter in parameters)
+        {
+            var attrs = parameter.GetCustomAttributes();
+            
+            result.AddRange(attrs.Where(attr => attr.GetType().IsAssignableTo(typeof(InjectTypeAttribute))).Cast<InjectTypeAttribute>());
+        }
+        return result.Count > 0 ? result.ToArray() : [];
+    }
+}
+
 public class MethodsMetadata
 {
     private static readonly Dictionary<Type, Type[]> TypeCompatibilityTable = new()
@@ -117,6 +186,10 @@ public class MethodsMetadata
     
     private readonly Dictionary<string, List<MethodInfo>> _methods;
     private readonly Dictionary<string, string> _normalizedToOriginalMethodNames;
+    
+    private readonly Dictionary<MethodInfo, ParameterMetadataInfo> _parameterMetadataCache = new();
+
+    private readonly Dictionary<(string Name, MethodInfo Method), int> _methodIndexCache = new();
 
     /// <summary>
     ///     Initialize object.
@@ -125,6 +198,32 @@ public class MethodsMetadata
     {
         _methods = new Dictionary<string, List<MethodInfo>>();
         _normalizedToOriginalMethodNames = new Dictionary<string, string>();
+    }
+    
+    private ParameterMetadataInfo GetCachedParameterMetadata(MethodInfo method)
+    {
+        if (_parameterMetadataCache.TryGetValue(method, out var cached))
+            return cached;
+        
+        var parameters = method.GetParameters();
+        var metadata = new ParameterMetadataInfo(parameters);
+        _parameterMetadataCache[method] = metadata;
+        return metadata;
+    }
+    
+    private ParameterInfo[] GetCachedParameters(MethodInfo method)
+    {
+        return GetCachedParameterMetadata(method).Parameters;
+    }
+    
+    /// <summary>
+    /// Gets the cached index for a method, avoiding O(N) IndexOf() lookups.
+    /// </summary>
+    private int GetCachedMethodIndex(string name, MethodInfo method)
+    {
+        return _methodIndexCache.TryGetValue((name, method), out var index) 
+            ? index 
+            : _methods[name].IndexOf(method); // Fallback for safety
     }
 
     /// <summary>
@@ -182,7 +281,7 @@ public class MethodsMetadata
     /// <returns>True if some method fits, else false.</returns>
     public bool TryGetRawMethod(string name, Type[] methodArgs, out MethodInfo result)
     {
-        if (!TryGetRawMethod(name, methodArgs, out int index, out var actualMethodName))
+        if (!TryGetRawMethod(name, methodArgs, out var index, out var actualMethodName))
         {
             result = null;
             return false;
@@ -248,7 +347,7 @@ public class MethodsMetadata
         for (var i = 0; i < methods.Count; ++i)
         {
             var method = methods[i];
-            var parameters = method.GetParameters();
+            var parameters = GetCachedParameters(method);
 
             if (parameters.Length != methodArgs.Length)
                 continue;
@@ -318,18 +417,31 @@ public class MethodsMetadata
             return false;
         }
 
-        var closestMethods = methods.OrderBy(MeasureHowCloseTheMethodIsAgainstTheArguments).ToList();
-        var matchingMethodsIndexes = new List<(int Index, MethodInfo Method)>();
-
-        for (int i = 0, j = closestMethods.Count; i < j; ++i)
+        var methodCount = methods.Count;
+        Span<(int Score, int Index)> scoredMethods = methodCount <= 32 
+            ? stackalloc (int, int)[methodCount] 
+            : new (int, int)[methodCount];
+        
+        for (var i = 0; i < methodCount; i++)
         {
-            var methodInfo = closestMethods[i];
-            var parameters = methodInfo.GetParameters();
-            var optionalParametersCount = parameters.CountOptionalParameters();
-            var allParameters = parameters.Length;
-            var notAnnotatedParametersCount = parameters.CountWithoutParametersAnnotatedBy<InjectTypeAttribute>();
-            var paramsParameter = parameters.GetParametersWithAttribute<ParamArrayAttribute>();
-            var parametersToInject = allParameters - notAnnotatedParametersCount;
+            scoredMethods[i] = (MeasureHowCloseTheMethodIsAgainstTheArguments(methods[i]), i);
+        }
+        
+        scoredMethods.Sort((a, b) => a.Score.CompareTo(b.Score));
+        
+        MethodInfo firstMatchMethod = null;
+        MethodInfo secondMatchMethod = null;
+
+        for (var i = 0; i < methodCount; i++)
+        {
+            var methodOriginalIndex = scoredMethods[i].Index;
+            var methodInfo = methods[methodOriginalIndex];
+            var metadata = GetCachedParameterMetadata(methodInfo);
+            var parameters = metadata.Parameters;
+            var optionalParametersCount = metadata.OptionalParametersCount;
+            var notAnnotatedParametersCount = metadata.NotAnnotatedParametersCount;
+            var paramsParameter = metadata.ParamsParameters;
+            var parametersToInject = metadata.ParametersToInject;
 
             //Wrong amount of argument's. That's not our function.
             if (!paramsParameter.HasParameters() &&
@@ -371,10 +483,11 @@ public class MethodsMetadata
 
             if (paramsParameter.HasParameters() && methodArgs.Count > notAnnotatedParametersCount - 1)
             {
-                var paramsParameters = methodArgs.Skip(notAnnotatedParametersCount - 1).ToArray();
-                var commonType = paramsParameters.Length == 1
-                    ? paramsParameters[0]
-                    : FindCommonBaseType(paramsParameters);
+                var paramsStartIndex = notAnnotatedParametersCount - 1;
+                var paramsCount = methodArgs.Count - paramsStartIndex;
+                var commonType = paramsCount == 1
+                    ? methodArgs[paramsStartIndex]
+                    : FindCommonBaseType(methodArgs, paramsStartIndex);
                 var arrayType = commonType.MakeArrayType();
                 var paramType = parameters[^1].ParameterType;
                 hasMatchedArgTypes = paramType.GetUnderlyingNullable() == arrayType ||
@@ -411,31 +524,29 @@ public class MethodsMetadata
 
             breakAll:
 
-            index = _methods[name].IndexOf(methodInfo);
-            matchingMethodsIndexes.Add((index, methodInfo));
-        }
-
-        switch (matchingMethodsIndexes.Count)
-        {
-            case 0:
-                index = -1;
-                return false;
-            case > 1:
+            if (firstMatchMethod == null)
             {
-                var orderedMatchingMethods = matchingMethodsIndexes
-                    .Select(f => f.Method)
-                    .OrderBy(MeasureHowCloseTheMethodIsAgainstTheArguments);
-                index = _methods[name].IndexOf(orderedMatchingMethods.First());
-                return true;
+                firstMatchMethod = methodInfo;
+            }
+            else if (secondMatchMethod == null)
+            {
+                secondMatchMethod = methodInfo;
             }
         }
 
-        index = matchingMethodsIndexes[0].Index;
+        if (firstMatchMethod == null)
+        {
+            index = -1;
+            return false;
+        }
+
+
+        index = GetCachedMethodIndex(name, firstMatchMethod);
         return true;
 
         int MeasureHowCloseTheMethodIsAgainstTheArguments(MethodInfo registeredMethod)
         {
-            var parameters = registeredMethod.GetParameters();
+            var parameters = GetCachedParameters(registeredMethod);
             var howClosePassedTypesAre = 0;
 
             if (parameters.Length < methodArgs.Count) return int.MaxValue;
@@ -446,7 +557,7 @@ public class MethodsMetadata
                 var arg = methodArgs[i].GetUnderlyingNullable();
 
                 if (param == arg)
-                    howClosePassedTypesAre += 0; //I will leave it for clarity.
+                    howClosePassedTypesAre += 0;
                 else if (param.IsAssignableFrom(arg))
                     howClosePassedTypesAre += GetInheritanceDepth(arg, param);
                 else if (CanImplicitlyConvert(arg, param))
@@ -477,14 +588,6 @@ public class MethodsMetadata
         }
     }
 
-    /// <summary>
-    ///     Determine if there is more or equal values to pass to function that required parameters
-    ///     and less or equal parameters than function definition has.
-    /// </summary>
-    /// <param name="methodArgs">Passed arguments to function.</param>
-    /// <param name="parametersCount">All parameters count.</param>
-    /// <param name="optionalParametersCount">Optional parameters count.</param>
-    /// <returns></returns>
     private static bool CanUseSomeArgumentsAsDefaultParameters(IReadOnlyCollection<Type> methodArgs,
         int parametersCount, int optionalParametersCount)
     {
@@ -505,16 +608,23 @@ public class MethodsMetadata
 
     private void RegisterMethod(string name, MethodInfo methodInfo)
     {
+        int index;
         if (_methods.TryGetValue(name, out var method))
-            method.Add(methodInfo);
-        else
-            _methods.Add(name, [methodInfo]);
-            
-        // Also register by normalized name for case-insensitive lookup
-        var normalizedName = MethodNameNormalizer.Normalize(name);
-        if (normalizedName != name) // Only if normalized differs from original
         {
-            // Store the mapping from normalized name to the first original name we encounter
+            index = method.Count;
+            method.Add(methodInfo);
+        }
+        else
+        {
+            index = 0;
+            _methods.Add(name, [methodInfo]);
+        }
+        
+        _methodIndexCache[(name, methodInfo)] = index;
+            
+        var normalizedName = MethodNameNormalizer.Normalize(name);
+        if (normalizedName != name)
+        {
             if (!_normalizedToOriginalMethodNames.ContainsKey(normalizedName))
             {
                 _normalizedToOriginalMethodNames[normalizedName] = name;
@@ -541,14 +651,9 @@ public class MethodsMetadata
         return entityType.IsAssignableTo(injectTypeAttribute.InjectType);
     }
 
-    private static InjectTypeAttribute[] GetInjectTypeAttribute(MethodInfo methodInfo)
+    private InjectTypeAttribute[] GetInjectTypeAttribute(MethodInfo methodInfo)
     {
-        return methodInfo
-            .GetParameters()
-            .SelectMany(f => f.GetCustomAttributes())
-            .Where(f => f.GetType().IsAssignableTo(typeof(InjectTypeAttribute)))
-            .Cast<InjectTypeAttribute>()
-            .ToArray();
+        return GetCachedParameterMetadata(methodInfo).InjectTypeAttributes;
     }
 
     private static bool IsTypePossibleToConvert(Type to, Type from)
@@ -564,7 +669,6 @@ public class MethodsMetadata
     {
         if (from.FullName != typeof(NullNode.NullType).FullName)
             return false;
-        //when it's nullable value type or generic parameter or reference type, we can safely pass null as the compiler will match the method we chose.
         return to.IsGenericType && to.GetGenericTypeDefinition() == typeof(Nullable<>)
                || to.IsGenericParameter
                || !to.IsValueType;
@@ -620,6 +724,29 @@ public class MethodsMetadata
         var commonBaseTypes = GetTypeHierarchy(types[0]);
 
         for (var i = 1; i < types.Length; i++)
+        {
+            var currentHierarchy = GetTypeHierarchy(types[i]);
+            commonBaseTypes.IntersectWith(currentHierarchy);
+
+            if (commonBaseTypes.Count == 1 && commonBaseTypes.Single() == typeof(object))
+                return typeof(object);
+        }
+
+        return FindMostSpecificType(commonBaseTypes);
+    }
+    
+    private static Type FindCommonBaseType(IReadOnlyList<Type> types, int startIndex)
+    {
+        var count = types.Count - startIndex;
+        if (count <= 0)
+            return typeof(object);
+
+        if (count == 1)
+            return types[startIndex];
+
+        var commonBaseTypes = GetTypeHierarchy(types[startIndex]);
+
+        for (var i = startIndex + 1; i < types.Count; i++)
         {
             var currentHierarchy = GetTypeHierarchy(types[i]);
             commonBaseTypes.IntersectWith(currentHierarchy);
@@ -690,7 +817,7 @@ public class MethodsMetadata
 
         return methods.Select(m =>
         {
-            var parameters = m.GetParameters();
+            var parameters = GetCachedParameters(m);
             var paramTypes = parameters.Select(p => p.ParameterType.Name).ToArray();
             return $"{methodName}({string.Join(", ", paramTypes)})";
         }).ToArray();

@@ -35,7 +35,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -61,7 +61,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -90,7 +90,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -122,7 +122,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -153,7 +153,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -180,7 +180,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
@@ -228,7 +228,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -264,4 +264,6 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
                 $"Word '{word}' should appear {words.Length} times in second column");
         }
     }
+
+    public TestContext TestContext { get; set; }
 }

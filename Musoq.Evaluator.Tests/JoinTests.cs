@@ -33,7 +33,7 @@ inner join #C.entities() population on 1 = 1";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(0, table.Count);
     }
@@ -80,7 +80,7 @@ inner join #C.entities() population on cities.City = population.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count());
 
@@ -170,7 +170,7 @@ inner join #C.entities() population on cities.City = population.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count());
 
@@ -253,7 +253,7 @@ inner join #C.entities() population on cities.City = population.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count());
 
@@ -331,7 +331,7 @@ group by cities.Country";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
 
@@ -385,7 +385,7 @@ order by cities.GetTypeName(cities.Country)";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         
@@ -427,7 +427,7 @@ order by cities.GetTypeName(cities.Country)";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
     }
 
     [TestMethod]
@@ -475,7 +475,7 @@ inner join #C.entities() population on cities.City = population.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count());
 
@@ -540,7 +540,7 @@ inner join #C.entities() population on cities.City = population.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count());
 
@@ -617,7 +617,7 @@ inner join #C.entities() population on cities.City = population.City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count());
 
@@ -698,7 +698,7 @@ select p.Id, x.Id from p inner join x on p.Country = x.Country";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.IsTrue(table.Count == 5 && table.Columns.Count() == 2, "Table should contain 5 rows and 2 columns");
 
@@ -732,7 +732,7 @@ select p.Id, x.Id from p p inner join x on p.Country = x.Country";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
         Assert.AreEqual(2, table.Columns.Count(), "Table should have 2 columns");
@@ -778,7 +778,7 @@ select p.Country, x.Country from p inner join x on p.Country = x.Country where p
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(2, table.Columns.Count());
@@ -816,7 +816,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(2, table.Columns.Count());
@@ -846,7 +846,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(2, table.Columns.Count());
@@ -886,7 +886,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(3, table.Columns.Count());
@@ -938,7 +938,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(3, table.Columns.Count());
@@ -991,7 +991,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(3, table.Columns.Count());
@@ -1046,7 +1046,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(2, table.Columns.Count());
@@ -1093,7 +1093,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(3, table.Columns.Count());
@@ -1156,7 +1156,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1m, table[0][0]);
@@ -1196,7 +1196,7 @@ left outer join #C.entities() c on 1 = 1";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1m, table[0][0]);
@@ -1243,7 +1243,7 @@ left outer join #D.entities() d on 1 = 1";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1m, table[0][0]);
@@ -1280,7 +1280,7 @@ left outer join #D.entities() d on 1 = 1";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1m, table[0][0]);
@@ -1316,7 +1316,7 @@ left outer join #D.entities() d on 1 = 1";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1m, table[0][0]);
@@ -1357,7 +1357,7 @@ from #A.entities() a inner join #B.entities() b on 1 = 1 inner join #C.entities(
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1m, table[0][0]);
@@ -1407,7 +1407,7 @@ inner join #C.entities() population on cities.GetCity() = population.GetCity()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.IsTrue(table.Count == 5 && table.Columns.Count() == 3, "Table should contain 5 rows and 3 columns");
 
@@ -1460,7 +1460,7 @@ inner join #A.entities() cities on countries.Country = cities.Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -1500,7 +1500,7 @@ inner join #A.entities() t2 on t.Trim(t.Country) = t2.Trim(t2.Country)
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -1546,7 +1546,7 @@ select * from third
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -1598,7 +1598,7 @@ select * from third
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -1620,4 +1620,6 @@ select * from third
                 (string) row[1] == "Germany"),
             "Expected row with Germany in both columns");
     }
+
+    public TestContext TestContext { get; set; }
 }

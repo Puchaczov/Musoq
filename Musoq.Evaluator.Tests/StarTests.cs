@@ -26,7 +26,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
@@ -53,7 +53,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(18, table.Columns.Count());
@@ -86,7 +86,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(11, table.Columns.Count());
@@ -115,7 +115,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(0, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
@@ -135,7 +135,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(0, table.Count);
         Assert.AreEqual(18, table.Columns.Count());
@@ -155,7 +155,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(0, table.Count);
         Assert.AreEqual(10, table.Columns.Count());
@@ -185,7 +185,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(18, table.Columns.Count());
@@ -218,7 +218,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(18, table.Columns.Count());
@@ -251,7 +251,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
@@ -284,7 +284,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
@@ -318,7 +318,7 @@ public class StarTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(20, table.Columns.Count());
@@ -359,7 +359,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
@@ -386,7 +386,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
@@ -413,7 +413,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
@@ -440,7 +440,7 @@ public class StarTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
@@ -448,4 +448,6 @@ public class StarTests : BasicEntityTestBase
         Assert.AreEqual("p.a.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
+
+    public TestContext TestContext { get; set; }
 }

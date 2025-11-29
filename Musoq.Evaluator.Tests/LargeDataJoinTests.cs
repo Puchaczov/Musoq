@@ -25,7 +25,7 @@ public class LargeDataJoinTests : MultiSchemaTestBase
         
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(size, table.Count);
     }
@@ -41,7 +41,7 @@ public class LargeDataJoinTests : MultiSchemaTestBase
         
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(size, table.Count);
         
@@ -63,7 +63,7 @@ public class LargeDataJoinTests : MultiSchemaTestBase
         
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(size, table.Count);
         
@@ -96,4 +96,6 @@ public class LargeDataJoinTests : MultiSchemaTestBase
             LoggerResolver,
             options);
     }
+
+    public TestContext TestContext { get; set; }
 }

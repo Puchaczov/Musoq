@@ -39,7 +39,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         item3.Name = "PriceTooHigh";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Match", table[0].Values[0]);
@@ -68,7 +68,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         item3.Name = "Large";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().ToList();
@@ -99,7 +99,7 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         item3.Name = "TooLarge";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("InRange", table[0].Values[0]);
@@ -127,11 +127,13 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         item2.Name = "NoMatch";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Match", table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 
     #endregion
 }

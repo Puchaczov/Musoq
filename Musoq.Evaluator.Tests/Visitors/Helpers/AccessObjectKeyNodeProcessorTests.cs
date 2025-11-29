@@ -249,8 +249,10 @@ public class AccessObjectKeyNodeProcessorTests
 
         // Assert
         var syntaxTree = SyntaxFactory.SyntaxTree(result.Expression);
-        var diagnostics = syntaxTree.GetDiagnostics();
+        var diagnostics = syntaxTree.GetDiagnostics(TestContext.CancellationToken);
         
         Assert.AreEqual(0, diagnostics.Count(d => d.Severity == DiagnosticSeverity.Error));
     }
+
+    public TestContext TestContext { get; set; }
 }

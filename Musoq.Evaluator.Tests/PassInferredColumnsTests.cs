@@ -31,7 +31,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
             first, second
         ]);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -75,7 +75,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
             first, second
         ]);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -123,7 +123,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
             first, second, third
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("p1.Name", table.Columns.ElementAt(0).ColumnName);
@@ -188,7 +188,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
             first, second, third
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -213,4 +213,6 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
                 (int)row.Values[1] == 22),
             "Row with John age 22 not found");
     }
+
+    public TestContext TestContext { get; set; }
 }

@@ -41,7 +41,7 @@ inner join #B.entities() b on a.Population > b.Population";
             // A2 (200) > B2 (150) -> Match
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(3, table.Count);
         }
@@ -86,7 +86,7 @@ inner join #C.entities() c on b.Population > c.Population";
             // A1(300) > B2(400) -> No Match
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("A1", table[0][0]);
@@ -123,7 +123,7 @@ inner join #B.entities() b on a.Population < b.Population";
             // A1 (100) < B2 (150) -> Match
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("A1", table[0][0]);
@@ -161,7 +161,7 @@ inner join #B.entities() b on a.Population >= b.Population";
             // A1 (100) >= B3 (150) -> No Match
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
         }
@@ -197,7 +197,7 @@ inner join #B.entities() b on a.Population <= b.Population";
             // A1 (100) <= B3 (150) -> Match
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
         }
@@ -231,7 +231,7 @@ inner join #B.entities() b on a.Population <> b.Population";
             // A1 (100) <> B2 (50) -> Match
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("A1", table[0][0]);
@@ -268,7 +268,7 @@ inner join #B.entities() b on a.Time > b.Time";
             // A1 (Now) > B2 (Tomorrow) -> No Match
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("A1", table[0][0]);
@@ -311,7 +311,7 @@ inner join #B.entities() b on a.Country = b.Country AND a.Population > b.Populat
             // A2 (DE, 100) vs B3 (DE, 50) -> Match (Country match, 100 > 50)
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
         }
@@ -343,7 +343,7 @@ inner join #B.entities() b on (a.Population > b.Population OR a.Money > b.Money)
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
         }
@@ -377,7 +377,7 @@ left join #B.entities() b on a.Population > b.Population";
             // A2 (10) > B1 (50) -> No Match -> (A2, null)
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
             
@@ -418,11 +418,13 @@ inner join #A.entities() b on a.Population > b.Population";
             // Low (50) > Low (50) -> No
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("High", table[0][0]);
             Assert.AreEqual("Low", table[0][1]);
         }
+
+        public TestContext TestContext { get; set; }
     }
 }

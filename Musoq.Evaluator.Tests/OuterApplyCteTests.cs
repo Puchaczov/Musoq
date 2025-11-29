@@ -67,7 +67,7 @@ select [a.City], [a.Country], [a.Population], [b.Country], [b.Money], [b.Month] 
             null,
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(6, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -156,7 +156,7 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a out
             null,
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(6, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -229,7 +229,7 @@ select [a.Name], [b.Value] from p";
             query, 
             firstSource);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -309,7 +309,7 @@ select a.Name, b.Value from first a outer apply a.Skills b";
             query, 
             firstSource);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -336,4 +336,6 @@ table.Count(row =>
                 (string)row.Values[0] == "Name3" &&
                 new[] { "Skill7", "Skill8", "Skill9" }.Contains((string)row.Values[1])), "Expected 3 rows for Name3 with Skills 7-9");
     }
+
+    public TestContext TestContext { get; set; }
 }

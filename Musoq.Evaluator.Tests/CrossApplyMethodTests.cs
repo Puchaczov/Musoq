@@ -42,7 +42,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -66,7 +66,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -105,7 +105,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -173,7 +173,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -246,7 +246,7 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -309,7 +309,7 @@ actual.Character,
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -365,7 +365,7 @@ firstWord,
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -394,7 +394,7 @@ firstWord,
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -432,7 +432,7 @@ firstWord,
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
@@ -458,4 +458,6 @@ firstWord,
             (int)row[0] == 10 && 
             (int)row[1] == 1));
     }
+
+    public TestContext TestContext { get; set; }
 }

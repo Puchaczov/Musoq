@@ -32,7 +32,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
             first, second
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("SumTimeSpan(Period)", table.Columns.ElementAt(0).ColumnName);
@@ -64,7 +64,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
             first, second
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("MinTimeSpan(Period)", table.Columns.ElementAt(0).ColumnName);
@@ -96,7 +96,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
             first, second
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("MaxTimeSpan(Period)", table.Columns.ElementAt(0).ColumnName);
@@ -126,7 +126,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
             first
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("AddTimeSpans(Period1, Period2)", table.Columns.ElementAt(0).ColumnName);
@@ -157,7 +157,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
             first
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("SubtractTimeSpans(Period1, Period2)", table.Columns.ElementAt(0).ColumnName);
@@ -167,4 +167,6 @@ public class TimeSpanTests : UnknownQueryTestsBase
         
         Assert.AreEqual(TimeSpan.FromHours(1), table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 }

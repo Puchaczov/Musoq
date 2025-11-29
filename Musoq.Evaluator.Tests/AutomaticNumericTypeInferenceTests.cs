@@ -78,7 +78,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Size > 1000";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -97,7 +97,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Size < 1000";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Small", table[0].Values[0]);
@@ -114,7 +114,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Size = 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Medium", table[0].Values[0]);
@@ -131,7 +131,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Size <> 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -150,7 +150,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Size >= 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -169,7 +169,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Size <= 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -192,7 +192,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Value > 1000";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -211,7 +211,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Value = 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Medium", table[0].Values[0]);
@@ -236,7 +236,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "NonZero";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Zero", table[0].Values[0]);
@@ -257,7 +257,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Price < 19.99";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectFloatColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         // Price 19.99 is stored as double, comparison should work
         Assert.AreEqual(0, table.Count); // No items less than 19.99
@@ -274,7 +274,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Price = 30.00";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectFloatColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Item C", table[0].Values[0]);
@@ -303,7 +303,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Int";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         // Only the exact integer match should be returned (strict mode rejects 100.5)
         Assert.AreEqual(1, table.Count);
@@ -321,7 +321,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Price >= 19.99";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectFloatColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         // Decimal comparison should work with floats
         Assert.AreEqual(3, table.Count);
@@ -342,7 +342,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where 1000 < Size";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
@@ -361,7 +361,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where 1500 = Value";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Medium", table[0].Values[0]);
@@ -386,7 +386,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "from Items()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
 
@@ -418,7 +418,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "from Items()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectColumn());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
 
@@ -452,7 +452,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Valid";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         // Only valid numeric string should match
         Assert.AreEqual(1, table.Count);
@@ -478,7 +478,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Valid";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         // Only non-null value should match
         Assert.AreEqual(1, table.Count);
@@ -504,7 +504,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "NoMatch";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Match", table[0].Values[0]);
@@ -529,7 +529,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Large";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         // 0b1111 = 15, so Size > 15 should return "20"
         Assert.AreEqual(1, table.Count);
@@ -555,7 +555,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item1.Name = "MaxLong";
 
         var vm = CreateAndRunVirtualMachine(query, [item1]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("MaxLong", table[0].Values[0]);
@@ -584,7 +584,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Valid";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].Values[0]);
@@ -609,7 +609,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Valid";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].Values[0]);
@@ -634,7 +634,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Valid";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].Values[0]);
@@ -659,7 +659,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Valid";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].Values[0]);
@@ -684,7 +684,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Exact";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Exact", table[0].Values[0]);
@@ -709,7 +709,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Exact";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Exact", table[0].Values[0]);
@@ -730,7 +730,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item1.Name = "MinInt32";
 
         var vm = CreateAndRunVirtualMachine(query, [item1]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("MinInt32", table[0].Values[0]);
@@ -751,7 +751,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item1.Name = "MaxInt32";
 
         var vm = CreateAndRunVirtualMachine(query, [item1]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("MaxInt32", table[0].Values[0]);
@@ -776,7 +776,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "NegativeZero";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
     }
@@ -800,11 +800,13 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "WithFraction";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Exact", table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 
     #endregion
 }

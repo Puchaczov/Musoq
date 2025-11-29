@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using Musoq.Plugins.Attributes;
 
@@ -12,6 +12,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to DateTime value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public DateTime? ToDateTime(string value) => ToDateTime(value, CultureInfo.CurrentCulture.Name);
 
     /// <summary>
@@ -21,6 +22,7 @@ public partial class LibraryBase
     /// <param name="culture">The culture</param>
     /// <returns>Converted to DateTime value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public DateTime? ToDateTime(string value, string culture)
     {
         if (string.IsNullOrEmpty(value))
@@ -39,6 +41,7 @@ public partial class LibraryBase
     /// <param name="date2">The second DateTime value</param>
     /// <returns>The difference between the two DateTime values as a TimeSpan</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public TimeSpan? SubtractDates(DateTime? date1, DateTime? date2)
     {
         if (date1.HasValue && date2.HasValue)

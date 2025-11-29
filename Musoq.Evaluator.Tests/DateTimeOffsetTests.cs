@@ -30,7 +30,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
             first, second
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("MinDateTimeOffset(Date)", table.Columns.ElementAt(0).ColumnName);
@@ -60,7 +60,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
             first, second
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("MaxDateTimeOffset(Date)", table.Columns.ElementAt(0).ColumnName);
@@ -89,7 +89,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
             first
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("SubtractDateTimeOffsets(Date1, Date2)", table.Columns.ElementAt(0).ColumnName);
@@ -118,7 +118,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
             first
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Date1 - Date2", table.Columns.ElementAt(0).ColumnName);
@@ -127,4 +127,6 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(TimeSpan.Zero, table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 }

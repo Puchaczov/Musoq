@@ -91,7 +91,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -120,7 +120,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -163,7 +163,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -214,7 +214,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -254,7 +254,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -310,7 +310,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -376,7 +376,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -442,7 +442,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         // Verify column structure - this remains ordered as SQL column order matters
         Assert.AreEqual(2, table.Columns.Count());
@@ -521,7 +521,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         
@@ -561,7 +561,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         
@@ -574,4 +574,6 @@ table.Count(row =>
 table.Count(row =>
                 (int)row.Values[0] == 2), "Expected row with value 2");
     }
+
+    public TestContext TestContext { get; set; }
 }
