@@ -7,14 +7,9 @@ using Musoq.Evaluator.Tables;
 namespace Musoq.Evaluator;
 
 [DebuggerStepThrough]
-public class CompiledQuery
+public class CompiledQuery(IRunnable runnable)
 {
-    private readonly IRunnable _runnable;
-
-    public CompiledQuery(IRunnable runnable)
-    {
-        _runnable = runnable ?? throw QueryExecutionException.ForNullRunnable();
-    }
+    private readonly IRunnable _runnable = runnable ?? throw QueryExecutionException.ForNullRunnable();
 
     public Table Run()
     {

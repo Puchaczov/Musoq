@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -38,7 +38,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -87,7 +87,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
@@ -152,12 +152,12 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("s2.Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry.Values[0] == "ABCAACBA"), 
@@ -187,7 +187,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                              "select Parameter0, Parameter1 from SourceOfDummyRows(true, 'test');";
 
         var vm = CreateAndRunVirtualMachine(query, null, new ParametersSchemaProvider());
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -198,7 +198,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(true, table[0].Values[0]);
+        Assert.IsTrue((bool?)table[0].Values[0]);
         Assert.AreEqual("test", table[0].Values[1]);
     }
 
@@ -224,7 +224,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         second.Text = "test2";
 
         var vm = CreateAndRunVirtualMachine(query, null, new UnknownSchemaProvider([first, second]));
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Text", table.Columns.ElementAt(0).ColumnName);
@@ -320,10 +320,12 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                 index++;
             }
             
-            chunkedSource.Add(new List<IObjectResolver>
-            {
+            chunkedSource.Add(
+            [
                 new DynamicDictionaryResolver(accessMap, indexToNameMap)
-            });
+            ]);
         }
     }
+
+    public TestContext TestContext { get; set; }
 }

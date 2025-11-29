@@ -105,11 +105,10 @@ public class BuildMetadataAndInferTypesVisitorUtilitiesTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void MakeTypeNullable_NullType_ThrowsArgumentNullException()
     {
         // Act & Assert
-        BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(null);
+        Assert.Throws<ArgumentNullException>(() => BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(null));
     }
 
     [TestMethod]
@@ -139,11 +138,10 @@ public class BuildMetadataAndInferTypesVisitorUtilitiesTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void StripNullable_NullType_ThrowsArgumentNullException()
     {
         // Act & Assert
-        BuildMetadataAndInferTypesVisitorUtilities.StripNullable(null);
+        Assert.Throws<ArgumentNullException>(() => BuildMetadataAndInferTypesVisitorUtilities.StripNullable(null));
     }
 
     [TestMethod]
@@ -387,8 +385,164 @@ public class BuildMetadataAndInferTypesVisitorUtilitiesTests
         var result = BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes(queryNode, keys);
         
         // Assert
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual(0, result[0]); // Field1 is at index 0
         Assert.AreEqual(2, result[1]); // Field3 is at index 2
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_PrimitiveType_ReturnsTrue()
+    {
+        // Arrange
+        var intType = typeof(int);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(intType);
+        
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_StringType_ReturnsTrue()
+    {
+        // Arrange
+        var stringType = typeof(string);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(stringType);
+        
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_DecimalType_ReturnsTrue()
+    {
+        // Arrange
+        var decimalType = typeof(decimal);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(decimalType);
+        
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_DateTimeType_ReturnsTrue()
+    {
+        // Arrange
+        var dateTimeType = typeof(DateTime);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(dateTimeType);
+        
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_DateTimeOffsetType_ReturnsTrue()
+    {
+        // Arrange
+        var dateTimeOffsetType = typeof(DateTimeOffset);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(dateTimeOffsetType);
+        
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_NullableDateTimeOffsetType_ReturnsTrue()
+    {
+        // Arrange
+        var nullableDateTimeOffsetType = typeof(DateTimeOffset?);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(nullableDateTimeOffsetType);
+        
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_NullableIntType_ReturnsTrue()
+    {
+        // Arrange
+        var nullableIntType = typeof(int?);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(nullableIntType);
+        
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_ArrayType_ReturnsFalse()
+    {
+        // Arrange
+        var arrayType = typeof(int[]);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(arrayType);
+        
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_ObjectType_ReturnsFalse()
+    {
+        // Arrange
+        var objectType = typeof(object);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(objectType);
+        
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_ListType_ReturnsFalse()
+    {
+        // Arrange
+        var listType = typeof(List<string>);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(listType);
+        
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_DictionaryType_ReturnsFalse()
+    {
+        // Arrange
+        var dictionaryType = typeof(Dictionary<string, string>);
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(dictionaryType);
+        
+        // Assert
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void ShouldIncludeColumnInStarExpansion_NullType_ReturnsFalse()
+    {
+        // Arrange
+        Type nullType = null;
+        
+        // Act
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(nullType);
+        
+        // Assert
+        Assert.IsFalse(result);
     }
 }

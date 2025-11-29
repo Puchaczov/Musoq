@@ -35,7 +35,7 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         queryTree = rewriter.RootScript;
 
-        var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadata.Assemblies, metadata.SetOperatorFieldPositions, metadata.InferredColumns, items.AssemblyName);
+        var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadata.Assemblies, metadata.SetOperatorFieldPositions, metadata.InferredColumns, items.AssemblyName, items.CompilationOptions);
         var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, new ScopeWalker(metadataTraverser.Scope), items.CompilationOptions);
 
         queryTree.Accept(csharpRewriteTraverser);

@@ -36,7 +36,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, byte? value, int parent = 0)
     {
         SetSum(group, name, value, parent);
@@ -53,7 +53,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, sbyte? value, int parent = 0)
     {
         SetSum(group, name, value, parent);
@@ -70,7 +70,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, short? value, int parent = 0)
     {
         SetSum(group, name, value, parent);
@@ -87,7 +87,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, ushort? value, int parent = 0)
     {
         SetSum(group, name, value, parent);
@@ -104,7 +104,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, int? value, int parent = 0)
     {
         SetSum(group, name, value, parent);
@@ -121,7 +121,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, uint? value, int parent = 0)
     {
         SetSum(group, name, value, parent);
@@ -138,7 +138,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, long? value, int parent = 0)
     {
         SetSum(group, name, value, parent);
@@ -155,7 +155,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, ulong? value, int parent = 0)
     {
         SetSum(group, name, value, parent);
@@ -172,7 +172,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, float? value, int parent = 0)
     {
         //convert value to decimal
@@ -190,7 +190,7 @@ public partial class LibraryBase
     /// <param name="value">The value to set</param>
     /// <param name="parent">Which group should be used to retrieve value</param>
     /// <returns>Aggregated value</returns>
-    [AggregationGetMethod]
+    [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, double? value, int parent = 0)
     {
         //convert value to decimal

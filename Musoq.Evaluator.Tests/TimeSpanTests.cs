@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -27,12 +27,12 @@ public class TimeSpanTests : UnknownQueryTestsBase
         
         second.Period = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("SumTimeSpan(Period)", table.Columns.ElementAt(0).ColumnName);
@@ -59,12 +59,12 @@ public class TimeSpanTests : UnknownQueryTestsBase
         
         second.Period = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("MinTimeSpan(Period)", table.Columns.ElementAt(0).ColumnName);
@@ -91,12 +91,12 @@ public class TimeSpanTests : UnknownQueryTestsBase
         
         second.Period = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("MaxTimeSpan(Period)", table.Columns.ElementAt(0).ColumnName);
@@ -121,12 +121,12 @@ public class TimeSpanTests : UnknownQueryTestsBase
         first.Period1 = new TimeSpan(1, 0, 0);
         first.Period2 = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("AddTimeSpans(Period1, Period2)", table.Columns.ElementAt(0).ColumnName);
@@ -152,12 +152,12 @@ public class TimeSpanTests : UnknownQueryTestsBase
         first.Period1 = new TimeSpan(3, 0, 0);
         first.Period2 = new TimeSpan(2, 0, 0);
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("SubtractTimeSpans(Period1, Period2)", table.Columns.ElementAt(0).ColumnName);
@@ -167,4 +167,6 @@ public class TimeSpanTests : UnknownQueryTestsBase
         
         Assert.AreEqual(TimeSpan.FromHours(1), table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 }

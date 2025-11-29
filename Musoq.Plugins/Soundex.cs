@@ -16,7 +16,7 @@ namespace Musoq.Plugins;
 /// <summary>
 /// Provides functionality to retrieve a soundex code for a given word.
 /// </summary>
-internal sealed class Soundex
+internal sealed partial class Soundex
 {
     /// <summary>
     /// Returns the soundex code for a specified word.
@@ -31,9 +31,8 @@ internal sealed class Soundex
         var previousWasHorW = false;
 
         // Upper case all letters in word and remove any punctuation
-        word = Regex.Replace(
+        word = PunctuationRegex().Replace(
             word == null ? string.Empty : word.ToUpper(),
-            @"[^\w\s]",
             string.Empty);
 
         if (string.IsNullOrEmpty(word))
@@ -85,4 +84,7 @@ internal sealed class Soundex
 
         return '0'; // i.e. letter is [AEIOUWYH]
     }
+    
+    [GeneratedRegex(@"[^\w\s]")]
+    private static partial Regex PunctuationRegex();
 }

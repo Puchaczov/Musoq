@@ -26,7 +26,7 @@ public class AccessMethodNodeProcessorTests
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
                 null,
                 generator,
@@ -52,7 +52,7 @@ public class AccessMethodNodeProcessorTests
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
                 null, // This should cause ArgumentNullException before generator
                 null,
@@ -77,7 +77,7 @@ public class AccessMethodNodeProcessorTests
         var nullSuspiciousNodes = new List<Stack<SyntaxNode>>();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
                 null, // This should cause ArgumentNullException before nodes
                 generator,
@@ -104,7 +104,7 @@ public class AccessMethodNodeProcessorTests
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
                 null, // This should cause ArgumentNullException before statements
                 generator,
@@ -131,7 +131,7 @@ public class AccessMethodNodeProcessorTests
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
                 null, // This should cause ArgumentNullException before typesToInstantiate
                 generator,
@@ -159,7 +159,7 @@ public class AccessMethodNodeProcessorTests
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
                 null, // This should cause ArgumentNullException before addNamespaceAction
                 generator,

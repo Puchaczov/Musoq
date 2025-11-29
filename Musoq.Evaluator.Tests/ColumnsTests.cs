@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,11 +18,11 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
-        Assert.ThrowsException<UnknownPropertyException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<UnknownPropertyException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -41,7 +41,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Name", table.Columns.ElementAt(0).ColumnName);
@@ -66,7 +66,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Self.Name", table.Columns.ElementAt(0).ColumnName);
@@ -83,11 +83,11 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
-        Assert.ThrowsException<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -98,11 +98,11 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
-        Assert.ThrowsException<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -113,11 +113,11 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
-        Assert.ThrowsException<ConstructionNotYetSupported>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ConstructionNotYetSupported>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -128,11 +128,11 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
-        Assert.ThrowsException<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -143,11 +143,11 @@ public class ColumnsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", Array.Empty<BasicEntity>()
+                "#A", []
             }
         };
         
-        Assert.ThrowsException<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -166,7 +166,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Name[0]", table.Columns.ElementAt(0).ColumnName);
@@ -191,7 +191,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Self.Name[0]", table.Columns.ElementAt(0).ColumnName);
@@ -216,7 +216,7 @@ public class ColumnsTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Dictionary[AA]", table.Columns.ElementAt(0).ColumnName);
@@ -225,4 +225,6 @@ public class ColumnsTests : BasicEntityTestBase
         
         Assert.AreEqual("BB", table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 }

@@ -267,7 +267,6 @@ namespace Musoq.Evaluator.Tests
             catch
             {
                 // Expected behavior for division by zero
-                Assert.IsTrue(true);
             }
         }
         
@@ -375,27 +374,24 @@ namespace Musoq.Evaluator.Tests
 
         // Overflow Protection Tests
         [TestMethod]
-        [ExpectedException(typeof(AstValidationException))]
         public void HexadecimalOverflow_TooLargeForLong()
         {
             // This hex value is too large for long (more than 16 hex digits)
-            TestMethodTemplate("0xFFFFFFFFFFFFFFFF1", 0L);
+            Assert.Throws<AstValidationException>(() => TestMethodTemplate("0xFFFFFFFFFFFFFFFF1", 0L));
         }
 
         [TestMethod]
-        [ExpectedException(typeof(AstValidationException))]
         public void BinaryOverflow_TooLargeForLong()
         {
             // This binary value has 65 bits (too large for 64-bit long)
-            TestMethodTemplate("0b11111111111111111111111111111111111111111111111111111111111111111", 0L);
+            Assert.Throws<AstValidationException>(() => TestMethodTemplate("0b11111111111111111111111111111111111111111111111111111111111111111", 0L));
         }
 
         [TestMethod]
-        [ExpectedException(typeof(AstValidationException))]
         public void OctalOverflow_TooLargeForLong()
         {
             // This octal value is too large for long (more than 21 octal digits)
-            TestMethodTemplate("0o7777777777777777777777", 0L);
+            Assert.Throws<AstValidationException>(() => TestMethodTemplate("0o7777777777777777777777", 0L));
         }
 
         [TestMethod]

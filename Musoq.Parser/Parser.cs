@@ -14,6 +14,8 @@ public class Parser
 {
     private readonly Lexer _lexer;
     
+    private static readonly Regex ColumnRegex = new(Lexer.TokenRegexDefinition.KColumn, RegexOptions.Compiled);
+    
     public Parser(Lexer lexer)
     {
         _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer), "Lexer cannot be null. Please provide a valid lexer instance.");
@@ -96,6 +98,29 @@ public class Parser
     private Node ComposeDesc()
     {
         Consume(Current.TokenType);
+
+        if (Current.TokenType == TokenType.Functions)
+        {
+            Consume(TokenType.Functions);
+            var schemaName = ComposeWord();
+            var schemaToken = Current;
+            
+            if (Current.TokenType == TokenType.Dot)
+            {
+                Consume(TokenType.Dot);
+                
+                if (Current is FunctionToken)
+                {
+                    var accessMethod = ComposeAccessMethod(string.Empty);
+                }
+                else
+                {
+                    ConsumeAndGetToken(TokenType.Property);
+                }
+            }
+            
+            return new DescNode(new SchemaFromNode(schemaName.Value, string.Empty, ArgsListNode.Empty, string.Empty, schemaToken.Span.Start), DescForType.FunctionsForSchema);
+        }
 
         var name = ComposeWord();
         var startToken = Current;
@@ -840,7 +865,7 @@ public class Parser
             throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
             
         _hasReplacedToken = false;
-        _lexer.NextOf(new Regex(Lexer.TokenRegexDefinition.KColumn), value => new ColumnToken(value, new TextSpan(_lexer.Position, _lexer.Position + value.Length)));
+        _lexer.NextOf(ColumnRegex, value => new ColumnToken(value, new TextSpan(_lexer.Position, _lexer.Position + value.Length)));
     }
 
     private ArgsListNode ComposeArgs()

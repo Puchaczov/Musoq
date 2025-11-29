@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Linq;
 
 namespace Musoq.Schema.Helpers;
 
@@ -7,6 +9,8 @@ namespace Musoq.Schema.Helpers;
 /// </summary>
 public static class MethodNameNormalizer
 {
+    private static readonly ConcurrentDictionary<string, string> NormalizedNameCache = new(StringComparer.Ordinal);
+    
     /// <summary>
     /// Normalizes a method name by converting to lowercase and removing underscores.
     /// This enables case-insensitive method resolution where MyMethod, mymethod, 
@@ -23,7 +27,15 @@ public static class MethodNameNormalizer
         
         if (string.IsNullOrWhiteSpace(methodName))
             throw new ArgumentException("Method name cannot be empty or whitespace.", nameof(methodName));
+        
+        return NormalizedNameCache.GetOrAdd(methodName, static name => 
+        {
+            var needsNormalization = name.Any(c => c is '_' or >= 'A' and <= 'Z');
+
+            if (!needsNormalization)
+                return name;
             
-        return methodName.ToLowerInvariant().Replace("_", "");
+            return name.ToLowerInvariant().Replace("_", "");
+        });
     }
 }

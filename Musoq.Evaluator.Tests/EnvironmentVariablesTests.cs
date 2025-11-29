@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,21 +18,17 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         {
             {
                 0,
-                Array.Empty<EnvironmentVariableEntity>()
+                []
             }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.AreEqual(6, table.Count);
+        Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Key", table[0][0]);
-        Assert.AreEqual("Key.Chars", table[1][0]);
-        Assert.AreEqual("Key.Length", table[2][0]);
-        Assert.AreEqual("Value", table[3][0]);
-        Assert.AreEqual("Value.Chars", table[4][0]);
-        Assert.AreEqual("Value.Length", table[5][0]);
+        Assert.AreEqual("Value", table[1][0]);
     }
     
     [TestMethod]
@@ -53,9 +49,9 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.All(row => 
                 new[] { ("KEY_1", "VALUE_1"), ("KEY_2", "VALUE_2") }.Contains(((string)row[0], (string)row[1]))),
@@ -85,9 +81,9 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry[0] == "KEY_1" && 
@@ -125,9 +121,9 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry[0] == "KEY_1" && 
@@ -163,7 +159,7 @@ select Key, Value from #EnvironmentVariables.All()";
         {
             {
                 "#A",
-                Array.Empty<BasicEntity>()
+                []
             }
         };
         
@@ -182,7 +178,7 @@ select Key, Value from #EnvironmentVariables.All()";
         {
             {
                 0,
-                Array.Empty<EnvironmentVariableEntity>()
+                []
             },
             {
                 1,
@@ -199,9 +195,9 @@ select Key, Value from #EnvironmentVariables.All()";
             environmentVariablesEntitiesSource,
             environmentVariablesSource);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry[0] == "KEY_1" && 
@@ -213,4 +209,6 @@ select Key, Value from #EnvironmentVariables.All()";
             (string)entry[1] == "VALUE_2"
         ), "Second entry should be KEY_2, VALUE_2");
     }
+
+    public TestContext TestContext { get; set; }
 }

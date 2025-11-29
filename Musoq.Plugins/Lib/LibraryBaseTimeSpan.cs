@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Musoq.Plugins.Attributes;
 
@@ -12,6 +12,7 @@ public partial class LibraryBase
     /// <param name="timeSpans">Time spans that should be added</param>
     /// <returns>Sum of time spans</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.TimeSpan)]
     public TimeSpan? AddTimeSpans(params TimeSpan?[] timeSpans)
     {
         var firstNonNull = timeSpans.Select((value, index) => new {TimeSpan = value, Index = index})
@@ -37,6 +38,7 @@ public partial class LibraryBase
     /// <param name="timeSpans">Time spans that should be subtracted</param>
     /// <returns>Subtracted time spans</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.TimeSpan)]
     public TimeSpan? SubtractTimeSpans(params TimeSpan?[] timeSpans)
     {
         var firstNonNull = timeSpans.Select((value, index) => new {TimeSpan = value, Index = index})
@@ -62,6 +64,7 @@ public partial class LibraryBase
     /// <param name="timeSpan">String that should be converted</param>
     /// <returns>Time span</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.TimeSpan)]
     public TimeSpan? FromString(string timeSpan)
     {
         if (TimeSpan.TryParse(timeSpan, out var result))

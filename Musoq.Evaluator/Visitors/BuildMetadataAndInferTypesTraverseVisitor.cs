@@ -20,119 +20,119 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
     public Scope Scope { get; private set; } = new(null, -1, "Root");
 
-    public void Visit(SelectNode node)
+    public virtual void Visit(SelectNode node)
     {
         foreach (var field in node.Fields)
             field.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(GroupSelectNode node)
+    public virtual void Visit(GroupSelectNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(StringNode node)
+    public virtual void Visit(StringNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(IntegerNode node)
+    public virtual void Visit(IntegerNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(HexIntegerNode node)
+    public virtual void Visit(HexIntegerNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(BinaryIntegerNode node)
+    public virtual void Visit(BinaryIntegerNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(OctalIntegerNode node)
+    public virtual void Visit(OctalIntegerNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(BooleanNode node)
+    public virtual void Visit(BooleanNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(WordNode node)
+    public virtual void Visit(WordNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(NullNode node)
+    public virtual void Visit(NullNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(ContainsNode node)
+    public virtual void Visit(ContainsNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(AccessMethodNode node)
+    public virtual void Visit(AccessMethodNode node)
     {
         node.Arguments.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(AccessRawIdentifierNode node)
+    public virtual void Visit(AccessRawIdentifierNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(IsNullNode node)
+    public virtual void Visit(IsNullNode node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(AccessRefreshAggregationScoreNode node)
+    public virtual void Visit(AccessRefreshAggregationScoreNode node)
     {
         node.Arguments.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(AccessColumnNode node)
+    public virtual void Visit(AccessColumnNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(AllColumnsNode node)
+    public virtual void Visit(AllColumnsNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(IdentifierNode node)
+    public virtual void Visit(IdentifierNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(AccessObjectArrayNode node)
+    public virtual void Visit(AccessObjectArrayNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(AccessObjectKeyNode node)
+    public virtual void Visit(AccessObjectKeyNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(PropertyValueNode node)
+    public virtual void Visit(PropertyValueNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(DotNode node)
+    public virtual void Visit(DotNode node)
     {
         var self = node;
         var theMostOuter = self;
@@ -142,19 +142,16 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             self = self.Root as DotNode;
         }
 
-        var ident = (IdentifierNode) theMostOuter.Root;
-        if (node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
+        var ident = theMostOuter.Root as IdentifierNode;
+        if (ident != null && node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
         {
-            // Check for aliased indexed access pattern: f.Name[0], f.Data[2], etc.
             if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
             {
-                // Get column type for proper type inference
                 var tableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(ident.Name);
                 var columnInfo = tableSymbol?.GetColumnByAliasAndName(ident.Name, arrayNode.ObjectName);
                 
                 if (columnInfo != null)
                 {
-                    // Transform to enhanced AccessObjectArrayNode with column type information
                     var enhancedArrayNode = new AccessObjectArrayNode(
                         arrayNode.Token, 
                         columnInfo.ColumnType, 
@@ -165,25 +162,31 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
                 }
             }
             
-            IdentifierNode column;
+            IdentifierNode column = null;
             if (theMostOuter.Expression is DotNode dotNode)
             {
-                column = (IdentifierNode) dotNode.Root;
+                column = dotNode.Root as IdentifierNode;
             }
             else
             {
-                column = (IdentifierNode) theMostOuter.Expression;
+                column = theMostOuter.Expression as IdentifierNode;
             }
 
-            Visit(new AccessColumnNode(column.Name, ident.Name, TextSpan.Empty));
-            return;
+            if (column != null)
+            {
+                Visit(new AccessColumnNode(column.Name, ident.Name, TextSpan.Empty));
+                return;
+            }
         }
 
         var setTheMostInnerIdentifier = false;
         if (_theMostInnerIdentifier is null)
         {
-            _theMostInnerIdentifier = (IdentifierNode)node.Expression;
-            setTheMostInnerIdentifier = true;
+            _theMostInnerIdentifier = node.Expression as IdentifierNode;
+            if (_theMostInnerIdentifier != null)
+            {
+                setTheMostInnerIdentifier = true;
+            }
         }
 
         if (_theMostInnerIdentifier is not null && setTheMostInnerIdentifier)
@@ -209,7 +212,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         }
     }
 
-    public void Visit(AccessCallChainNode node)
+    public virtual void Visit(AccessCallChainNode node)
     {
         node.Accept(_visitor);
     }
@@ -220,7 +223,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(GroupByNode node)
+    public virtual void Visit(GroupByNode node)
     {
         foreach (var field in node.Fields)
             field.Accept(this);
@@ -229,43 +232,43 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(HavingNode node)
+    public virtual void Visit(HavingNode node)
     {
         SetQueryPart(QueryPart.Having);
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(SkipNode node)
+    public virtual void Visit(SkipNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(TakeNode node)
+    public virtual void Visit(TakeNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(JoinInMemoryWithSourceTableFromNode node)
+    public virtual void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
         node.SourceTable.Accept(this);
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+    public virtual void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
         node.SourceTable.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(SchemaFromNode node)
+    public virtual void Visit(SchemaFromNode node)
     {
         node.Parameters.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(JoinSourcesTableFromNode node)
+    public virtual void Visit(JoinSourcesTableFromNode node)
     {
         node.Expression.Accept(this);
         node.First.Accept(this);
@@ -274,7 +277,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(ApplySourcesTableFromNode node)
+    public virtual void Visit(ApplySourcesTableFromNode node)
     {
         node.First.Accept(this);
         node.Second.Accept(this);
@@ -282,12 +285,12 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(InMemoryTableFromNode node)
+    public virtual void Visit(InMemoryTableFromNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(JoinFromNode node)
+    public virtual void Visit(JoinFromNode node)
     {
         var joins = new Stack<JoinFromNode>();
 
@@ -363,7 +366,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         }
     }
 
-    public void Visit(ApplyFromNode node)
+    public virtual void Visit(ApplyFromNode node)
     {
         var applies = new Stack<ApplyFromNode>();
 
@@ -430,24 +433,24 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         }
     }
 
-    public void Visit(ExpressionFromNode node)
+    public virtual void Visit(ExpressionFromNode node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(AccessMethodFromNode node)
+    public virtual void Visit(AccessMethodFromNode node)
     {
         node.AccessMethod.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(PropertyFromNode node)
+    public virtual void Visit(PropertyFromNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(CreateTransformationTableNode node)
+    public virtual void Visit(CreateTransformationTableNode node)
     {
         foreach (var item in node.Fields)
             item.Accept(this);
@@ -455,34 +458,34 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(RenameTableNode node)
+    public virtual void Visit(RenameTableNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(TranslatedSetTreeNode node)
+    public virtual void Visit(TranslatedSetTreeNode node)
     {
         foreach (var item in node.Nodes)
             item.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(IntoNode node)
+    public virtual void Visit(IntoNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(QueryScope node)
+    public virtual void Visit(QueryScope node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(ShouldBePresentInTheTable node)
+    public virtual void Visit(ShouldBePresentInTheTable node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(TranslatedSetOperatorNode node)
+    public virtual void Visit(TranslatedSetOperatorNode node)
     {
         foreach (var item in node.CreateTableNodes)
             item.Accept(_visitor);
@@ -492,7 +495,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(QueryNode node)
+    public virtual void Visit(QueryNode node)
     {
         LoadQueryScope();
             
@@ -517,138 +520,138 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         EndQueryScope();
     }
 
-    public void Visit(OrNode node)
+    public virtual void Visit(OrNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(ShortCircuitingNodeLeft node)
+    public virtual void Visit(ShortCircuitingNodeLeft node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(ShortCircuitingNodeRight node)
+    public virtual void Visit(ShortCircuitingNodeRight node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(HyphenNode node)
+    public virtual void Visit(HyphenNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(AndNode node)
+    public virtual void Visit(AndNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(EqualityNode node)
+    public virtual void Visit(EqualityNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(GreaterOrEqualNode node)
+    public virtual void Visit(GreaterOrEqualNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(LessOrEqualNode node)
+    public virtual void Visit(LessOrEqualNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(GreaterNode node)
+    public virtual void Visit(GreaterNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(LessNode node)
+    public virtual void Visit(LessNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(DiffNode node)
+    public virtual void Visit(DiffNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(NotNode node)
+    public virtual void Visit(NotNode node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(LikeNode node)
+    public virtual void Visit(LikeNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(RLikeNode node)
+    public virtual void Visit(RLikeNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(InNode node)
+    public virtual void Visit(InNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(FieldNode node)
+    public virtual void Visit(FieldNode node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(FieldOrderedNode node)
+    public virtual void Visit(FieldOrderedNode node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(ArgsListNode node)
+    public virtual void Visit(ArgsListNode node)
     {
         foreach (var item in node.Args)
             item.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(DecimalNode node)
+    public virtual void Visit(DecimalNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(Node node)
+    public virtual void Visit(Node node)
     {
         throw new NotSupportedException("Node cannot be visited.");
     }
 
-    public void Visit(DescNode node)
+    public virtual void Visit(DescNode node)
     {
         LoadScope("Desc");
         node.From.Accept(this);
@@ -656,69 +659,69 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         RestoreScope();
     }
 
-    public void Visit(StarNode node)
+    public virtual void Visit(StarNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(FSlashNode node)
+    public virtual void Visit(FSlashNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(ModuloNode node)
+    public virtual void Visit(ModuloNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(AddNode node)
+    public virtual void Visit(AddNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(InternalQueryNode node)
+    public virtual void Visit(InternalQueryNode node)
     {
     }
 
-    public void Visit(RootNode node)
+    public virtual void Visit(RootNode node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(SingleSetNode node)
+    public virtual void Visit(SingleSetNode node)
     {
         node.Query.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(UnionNode node)
+    public virtual void Visit(UnionNode node)
     {
         LoadScope("Union");
         TraverseSetOperator(node);
     }
 
-    public void Visit(UnionAllNode node)
+    public virtual void Visit(UnionAllNode node)
     {
         LoadScope("UnionAll");
         TraverseSetOperator(node);
     }
 
-    public void Visit(ExceptNode node)
+    public virtual void Visit(ExceptNode node)
     {
         LoadScope("Except");
         TraverseSetOperator(node);
     }
 
-    public void Visit(RefreshNode node)
+    public virtual void Visit(RefreshNode node)
     {
         foreach (var item in node.Nodes)
             item.Accept(this);
@@ -726,25 +729,25 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(IntersectNode node)
+    public virtual void Visit(IntersectNode node)
     {
         LoadScope("Intersect");
         TraverseSetOperator(node);
     }
 
-    public void Visit(PutTrueNode node)
+    public virtual void Visit(PutTrueNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(MultiStatementNode node)
+    public virtual void Visit(MultiStatementNode node)
     {
         foreach (var cNode in node.Nodes)
             cNode.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(CteExpressionNode node)
+    public virtual void Visit(CteExpressionNode node)
     {
         LoadScope("CTE");
         foreach (var exp in node.InnerExpression)
@@ -756,7 +759,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         RestoreScope();
     }
 
-    public void Visit(CteInnerExpressionNode node)
+    public virtual void Visit(CteInnerExpressionNode node)
     {
         LoadScope("CTE Inner Expression");
         _visitor.InnerCteBegins();
@@ -766,13 +769,13 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         RestoreScope();
     }
 
-    public void Visit(JoinNode node)
+    public virtual void Visit(JoinNode node)
     {
         node.Join.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(ApplyNode node)
+    public virtual void Visit(ApplyNode node)
     {
         node.Apply.Accept(this);
         node.Accept(_visitor);
@@ -804,7 +807,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         _visitor.SetScope(Scope);
     }
 
-    public void Visit(OrderByNode node)
+    public virtual void Visit(OrderByNode node)
     {
         foreach (var field in node.Fields)
             field.Accept(this);
@@ -820,33 +823,33 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         RestoreScope();
     }
 
-    public void SetQueryPart(QueryPart part)
+    public virtual void SetQueryPart(QueryPart part)
     {
         _visitor.SetQueryPart(part);
     }
 
-    public void Visit(CreateTableNode node)
+    public virtual void Visit(CreateTableNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(CoupleNode node)
+    public virtual void Visit(CoupleNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(SchemaMethodFromNode node)
+    public virtual void Visit(SchemaMethodFromNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void Visit(AliasedFromNode node)
+    public virtual void Visit(AliasedFromNode node)
     {
         node.Args.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(StatementsArrayNode node)
+    public virtual void Visit(StatementsArrayNode node)
     {
         foreach (var statement in node.Statements)
             statement.Accept(this);
@@ -854,13 +857,13 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(StatementNode node)
+    public virtual void Visit(StatementNode node)
     {
         node.Node.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(CaseNode node)
+    public virtual void Visit(CaseNode node)
     {   
         node.Else.Accept(this);
             
@@ -873,35 +876,35 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(WhenNode node)
+    public virtual void Visit(WhenNode node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(ThenNode node)
+    public virtual void Visit(ThenNode node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(ElseNode node)
+    public virtual void Visit(ElseNode node)
     {
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
 
-    public void Visit(FieldLinkNode node)
+    public virtual void Visit(FieldLinkNode node)
     {
         node.Accept(_visitor);
     }
 
-    public void QueryBegins()
+    public virtual void QueryBegins()
     {
         _visitor.QueryBegins();
     }
 
-    public void QueryEnds()
+    public virtual void QueryEnds()
     {
         _visitor.QueryEnds();
     }

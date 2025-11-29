@@ -3,7 +3,7 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tables;
 
-public class RowResolver(ObjectsRow row, IDictionary<string, int> nameToIndexMap) : IObjectResolver
+public class RowResolver(Row row, IDictionary<string, int> nameToIndexMap) : IObjectResolver
 {
     public object[] Contexts => row.Contexts;
 

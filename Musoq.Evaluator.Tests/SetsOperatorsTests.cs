@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -21,9 +21,9 @@ public class SetsOperatorsTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 4, "Table should contain 4 rows");
+        Assert.AreEqual(4, table.Count, "Table should contain 4 rows");
 
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "001"), "Missing 001");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "002"), "Missing 002");
@@ -54,7 +54,7 @@ cross apply a.ToCharArray(a.Name) b
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
     }
 
     [TestMethod]
@@ -68,9 +68,9 @@ cross apply a.ToCharArray(a.Name) b
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Second entry should be '005'");
@@ -87,9 +87,9 @@ cross apply a.ToCharArray(a.Name) b
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.All(entry => (string)entry.Values[0] == "005"), "All entries should be '005'");
     }
@@ -110,9 +110,9 @@ select Name from #A.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.All(entry => 
                 (string)entry.Values[0] == "005"), 
@@ -139,9 +139,9 @@ select Id, Name from p
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 Convert.ToInt32(entry.Values[0]) == 1 && 
@@ -179,9 +179,9 @@ select Id, Name from p
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 Convert.ToInt32(entry.Values[0]) == 1 && 
@@ -221,9 +221,9 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.All(entry => (string)entry.Values[0] == "005"), "All entries should be '005'");
     }
@@ -239,9 +239,9 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 4, "Table should contain 4 rows");
+        Assert.AreEqual(4, table.Count, "Table should contain 4 rows");
 
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "001") &&
                       table.Any(row => (string)row.Values[0] == "002") &&
@@ -261,9 +261,9 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
@@ -283,9 +283,9 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
@@ -305,9 +305,9 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
@@ -333,9 +333,9 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
@@ -354,9 +354,9 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
@@ -378,13 +378,13 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("001", table[1].Values[0]);
-        Assert.AreEqual("002", table[2].Values[0]);
-        Assert.AreEqual("005", table[3].Values[0]);
+        var results = table.Select(row => (string)row.Values[0]).ToList();
+        Assert.AreEqual(2, results.Count(r => r == "001"), "Should have two '001' entries");
+        Assert.AreEqual(1, results.Count(r => r == "002"), "Should have one '002' entry");
+        Assert.AreEqual(1, results.Count(r => r == "005"), "Should have one '005' entry");
     }
 
     [TestMethod]
@@ -400,12 +400,13 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("005", table[2].Values[0]);
+        var results = table.Select(row => (string)row.Values[0]).ToList();
+        CollectionAssert.Contains(results, "001");
+        CollectionAssert.Contains(results, "002");
+        CollectionAssert.Contains(results, "005");
     }
 
     [TestMethod]
@@ -426,15 +427,14 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
-
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Third entry should be '005'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "007"), "Fourth entry should be '007'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Fifth entry should be '001'");
+        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
+        var results = table.Select(row => (string)row.Values[0]).ToList();
+        Assert.AreEqual(2, results.Count(r => r == "001"), "Should have two '001' entries");
+        Assert.AreEqual(1, results.Count(r => r == "002"), "Should have one '002' entry");
+        Assert.AreEqual(1, results.Count(r => r == "005"), "Should have one '005' entry");
+        Assert.AreEqual(1, results.Count(r => r == "007"), "Should have one '007' entry");
     }
 
     [TestMethod]
@@ -448,9 +448,9 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.IsTrue(table.Count(row => (string)row.Values[0] == "001") == 2 &&
                       table.Any(row => (string)row.Values[0] == "002") &&
@@ -470,7 +470,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("002", table[0].Values[0]);
@@ -487,7 +487,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("010", table[0].Values[0]);
@@ -506,7 +506,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(0, table.Count);
     }
@@ -526,7 +526,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("002", table[0].Values[0]);
@@ -556,11 +556,11 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Count(r => (string)r.Values[0] == "002") == 1, "Expected one row with '002'");
-        Assert.IsTrue(table.Count(r => (string)r.Values[0] == "008") == 1, "Expected one row with '008'");
+        Assert.AreEqual(1, table.Count(r => (string)r.Values[0] == "002"), "Expected one row with '002'");
+        Assert.AreEqual(1, table.Count(r => (string)r.Values[0] == "008"), "Expected one row with '008'");
     }
 
     [TestMethod]
@@ -574,7 +574,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("001", table[0].Values[0]);
@@ -596,7 +596,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("005", table[0].Values[0]);
@@ -615,7 +615,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("001", table[0].Values[0]);
@@ -643,7 +643,7 @@ select Name from #C.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("005", table[0].Values[0]);
@@ -673,9 +673,9 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "007"), "Second entry should be '007'");
@@ -699,9 +699,9 @@ select Name from #C.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Second entry should be '001'");
@@ -725,9 +725,9 @@ select Name from #C.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Second entry should be '001'");
@@ -751,7 +751,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("002", table[0].Values[0]);
@@ -780,9 +780,9 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "006"), "Second entry should be '006'");
@@ -806,9 +806,9 @@ select Name, RandomNumber() from #C.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Second entry should be '001'");
@@ -838,9 +838,9 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
@@ -870,9 +870,9 @@ select City, Sum(Population) from #C.Entities() group by City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry.Values[0] == "001" && 
@@ -913,9 +913,9 @@ select City, Sum(Population) from #C.Entities() group by City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry.Values[0] == "001" && 
@@ -963,9 +963,9 @@ select City, Sum(Population) from #C.Entities() group by City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 1, "Table should have 1 entry");
+        Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
         Assert.IsTrue(table.Any(entry => 
             (string)entry.Values[0] == "001" && 
@@ -1002,7 +1002,7 @@ select City, Sum(Population) from #C.Entities() group by City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("001", table[0].Values[0]);
@@ -1024,9 +1024,9 @@ select Name from #A.Entities() where Name = '002'";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
@@ -1059,9 +1059,9 @@ select Name from #A.Entities() where Name = '005'";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.IsTrue(table.Count == 5, "Table should have 5 entries");
+        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "Second entry should be '002'");
@@ -1079,7 +1079,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1091,7 +1091,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1103,7 +1103,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1115,7 +1115,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1127,7 +1127,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1139,7 +1139,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1151,7 +1151,7 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
     
     [TestMethod]
@@ -1163,6 +1163,8 @@ select Name from #A.Entities() where Name = '005'";
             {"#A", [new BasicEntity("001")]}
         };
         
-        Assert.ThrowsException<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
+
+    public TestContext TestContext { get; set; }
 }

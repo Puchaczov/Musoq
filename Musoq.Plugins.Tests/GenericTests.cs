@@ -16,7 +16,7 @@ public class GenericTests : LibraryBaseBaseTests
         var result = Library.MergeArrays("test1"u8.ToArray());
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual("test1", Encoding.UTF8.GetString(result));
     }
     
@@ -26,7 +26,7 @@ public class GenericTests : LibraryBaseBaseTests
         var result = Library.MergeArrays("test1"u8.ToArray(), "test2"u8.ToArray());
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(10, result.Length);
+        Assert.HasCount(10, result);
         Assert.AreEqual("test1test2", Encoding.UTF8.GetString(result));
     }
     
@@ -36,7 +36,7 @@ public class GenericTests : LibraryBaseBaseTests
         var result = Library.MergeArrays("test1"u8.ToArray(), "test2"u8.ToArray(), "test3"u8.ToArray());
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(15, result.Length);
+        Assert.HasCount(15, result);
         Assert.AreEqual("test1test2test3", Encoding.UTF8.GetString(result));
     }
     
@@ -184,7 +184,7 @@ public class GenericTests : LibraryBaseBaseTests
         
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         CollectionAssert.AreEqual(new[] { "a", "b", "c" }, result);
     }
     
@@ -530,5 +530,147 @@ public class GenericTests : LibraryBaseBaseTests
         Assert.IsNull(result);
     }
     
+    #endregion
+
+    #region NullIf Tests
+
+    [TestMethod]
+    public void NullIf_WhenValuesEqual_ReturnsNull()
+    {
+        Assert.IsNull(Library.NullIf("test", "test"));
+    }
+
+    [TestMethod]
+    public void NullIf_WhenValuesNotEqual_ReturnsFirstValue()
+    {
+        Assert.AreEqual("test", Library.NullIf("test", "other"));
+    }
+
+    [TestMethod]
+    public void NullIf_WhenFirstValueNull_ReturnsDefault()
+    {
+        Assert.IsNull(Library.NullIf<string>(null, "test"));
+    }
+
+    [TestMethod]
+    public void NullIf_WhenSecondValueNull_ReturnsFirstValue()
+    {
+        Assert.AreEqual("test", Library.NullIf<string>("test", null));
+    }
+
+    [TestMethod]
+    public void NullIf_WhenBothNull_ReturnsDefault()
+    {
+        Assert.IsNull(Library.NullIf<string>(null, null));
+    }
+
+    [TestMethod]
+    public void NullIf_WithIntegers_WhenEqual_ReturnsDefault()
+    {
+        // For value types, default is 0 not null
+        Assert.AreEqual(0, Library.NullIf(5, 5));
+    }
+
+    [TestMethod]
+    public void NullIf_WithIntegers_WhenNotEqual_ReturnsFirstValue()
+    {
+        Assert.AreEqual(5, Library.NullIf(5, 10));
+    }
+
+    #endregion
+
+    #region IfNull Tests
+
+    [TestMethod]
+    public void IfNull_WhenFirstValueNotNull_ReturnsFirstValue()
+    {
+        Assert.AreEqual("test", Library.IfNull("test", "default"));
+    }
+
+    [TestMethod]
+    public void IfNull_WhenFirstValueNull_ReturnsSecondValue()
+    {
+        Assert.AreEqual("default", Library.IfNull<string>(null, "default"));
+    }
+
+    [TestMethod]
+    public void IfNull_WhenBothNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.IfNull<string>(null, null));
+    }
+
+    [TestMethod]
+    public void IfNull_WithIntegers_WhenNotNull_ReturnsFirstValue()
+    {
+        Assert.AreEqual(5, Library.IfNull<int?>(5, 10));
+    }
+
+    [TestMethod]
+    public void IfNull_WithIntegers_WhenNull_ReturnsSecondValue()
+    {
+        Assert.AreEqual(10, Library.IfNull<int?>(null, 10));
+    }
+
+    #endregion
+
+    #region DefaultIfNull Tests
+
+    [TestMethod]
+    public void DefaultIfNull_WhenValueNotNull_ReturnsValue()
+    {
+        Assert.AreEqual("test", Library.DefaultIfNull<string>("test"));
+    }
+
+    [TestMethod]
+    public void DefaultIfNull_WhenValueNull_ReturnsDefault()
+    {
+        Assert.IsNull(Library.DefaultIfNull<string>(null));
+    }
+
+    [TestMethod]
+    public void DefaultIfNull_WithInteger_WhenNull_ReturnsNull()
+    {
+        // default(int?) is null, not 0
+        Assert.IsNull(Library.DefaultIfNull<int?>(null));
+    }
+
+    #endregion
+
+    #region IsNull Tests
+
+    [TestMethod]
+    public void IsNull_WhenValueNull_ReturnsTrue()
+    {
+        Assert.IsTrue(Library.IsNull<string>(null));
+    }
+
+    [TestMethod]
+    public void IsNull_WhenValueNotNull_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsNull("test"));
+    }
+
+    [TestMethod]
+    public void IsNull_WithInteger_WhenNull_ReturnsTrue()
+    {
+        Assert.IsTrue(Library.IsNull<int?>(null));
+    }
+
+    #endregion
+
+    #region IsNotNull Tests
+
+    [TestMethod]
+    public void IsNotNull_WhenValueNotNull_ReturnsTrue()
+    {
+        Assert.IsTrue(Library.IsNotNull("test"));
+    }
+
+    [TestMethod]
+    public void IsNotNull_WhenValueNull_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsNotNull<string>(null));
+    }
+
     #endregion
 }

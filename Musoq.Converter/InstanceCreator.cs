@@ -114,6 +114,8 @@ public static class InstanceCreator
             compiled = false;
         }
 
+
+
         IRunnable runnable;
         if (compiled && !Debugger.IsAttached)
         {

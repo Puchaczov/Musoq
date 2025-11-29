@@ -140,7 +140,7 @@ public class RewriteQueryVisitorTests
         // Arrange
         var arg1 = new IntegerNode("1");
         var arg2 = new StringNode("test");
-        var argsListNode = new ArgsListNode(new Node[] { arg1, arg2 });
+        var argsListNode = new ArgsListNode([arg1, arg2]);
 
         // Push arguments in reverse order (as expected by visitor)
         PushNode(arg2);
@@ -159,7 +159,7 @@ public class RewriteQueryVisitorTests
         // Arrange
         var field1 = new FieldNode(new IdentifierNode("Field1"), 0, "Field1");
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
-        var groupByNode = new GroupByNode(new[] { field1, field2 }, null);
+        var groupByNode = new GroupByNode([field1, field2], null);
 
         // Push fields in reverse order
         PushNode(field2);
@@ -202,7 +202,7 @@ public class RewriteQueryVisitorTests
     public void Visit_SchemaFromNode_ShouldProcessCorrectly()
     {
         // Arrange
-        var argsListNode = new ArgsListNode(new Node[0]);
+        var argsListNode = new ArgsListNode([]);
         var schemaFromNode = new SchemaFromNode("testSchema", "testMethod", argsListNode, "alias", typeof(object), 0);
 
         // Push args list
@@ -220,18 +220,16 @@ public class RewriteQueryVisitorTests
     // ============================================
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_StarNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var starNode = new StarNode(new IntegerNode("5"), new IntegerNode("3"));
 
         // Act - calling visit without pushing operands should fail
-        _visitor.Visit(starNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(starNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_AddNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -241,22 +239,20 @@ public class RewriteQueryVisitorTests
         PushNode(new IntegerNode("10"));
 
         // Act
-        _visitor.Visit(addNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(addNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_EqualityNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var equalityNode = new EqualityNode(new IntegerNode("5"), new IntegerNode("5"));
 
         // Act - no operands pushed
-        _visitor.Visit(equalityNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(equalityNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_AndNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -266,64 +262,59 @@ public class RewriteQueryVisitorTests
         PushNode(new BooleanNode(true));
 
         // Act
-        _visitor.Visit(andNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(andNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_FieldNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var fieldNode = new FieldNode(new IdentifierNode("TestField"), 0, "TestField");
 
         // Act - no expression pushed
-        _visitor.Visit(fieldNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(fieldNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_ArgsListNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        var argsListNode = new ArgsListNode(new Node[] { new IntegerNode("1"), new StringNode("test") });
+        var argsListNode = new ArgsListNode([new IntegerNode("1"), new StringNode("test")]);
 
         // Push only one argument when two are expected
         PushNode(new IntegerNode("1"));
 
         // Act
-        _visitor.Visit(argsListNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(argsListNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_GroupByNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var field1 = new FieldNode(new IdentifierNode("Field1"), 0, "Field1");
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
-        var groupByNode = new GroupByNode(new FieldNode[] { field1, field2 }, null);
+        var groupByNode = new GroupByNode([field1, field2], null);
 
         // Push only one field when two are expected
         PushNode(field1);
 
         // Act
-        _visitor.Visit(groupByNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(groupByNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_SchemaFromNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        var argsListNode = new ArgsListNode(new Node[0]);
+        var argsListNode = new ArgsListNode([]);
         var schemaFromNode = new SchemaFromNode("testSchema", "testMethod", argsListNode, "alias", typeof(object), 0);
 
         // Act - no args list pushed
-        _visitor.Visit(schemaFromNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(schemaFromNode));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
     public void Visit_StarNode_WithNullOperands_ShouldThrowArgumentException()
     {
         // Arrange
@@ -334,7 +325,7 @@ public class RewriteQueryVisitorTests
         PushNode(new IntegerNode("5"));
 
         // Act - should now throw ArgumentException due to defensive programming
-        _visitor.Visit(starNode);
+        Assert.Throws<ArgumentException>(() => _visitor.Visit(starNode));
     }
 
     [TestMethod]
@@ -379,7 +370,6 @@ public class RewriteQueryVisitorTests
 
         // Assert - setting null scope shouldn't throw immediately
         // but might cause issues during actual visitor operations
-        Assert.IsTrue(true, "SetScope with null should not throw immediately");
     }
 
     // ============================================
@@ -412,8 +402,8 @@ public class RewriteQueryVisitorTests
     public void Visit_JoinFromNode_ShouldProcessCorrectly()
     {
         // Arrange
-        var leftFrom = new SchemaFromNode("leftSchema", "leftMethod", new ArgsListNode(new Node[0]), "left", typeof(object), 0);
-        var rightFrom = new SchemaFromNode("rightSchema", "rightMethod", new ArgsListNode(new Node[0]), "right", typeof(object), 1);
+        var leftFrom = new SchemaFromNode("leftSchema", "leftMethod", new ArgsListNode([]), "left", typeof(object), 0);
+        var rightFrom = new SchemaFromNode("rightSchema", "rightMethod", new ArgsListNode([]), "right", typeof(object), 1);
         var joinExpression = new EqualityNode(new IdentifierNode("left.id"), new IdentifierNode("right.id"));
         var joinNode = new JoinFromNode(leftFrom, rightFrom, joinExpression, JoinType.Inner, typeof(object));
 
@@ -447,14 +437,13 @@ public class RewriteQueryVisitorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Visit_HavingNode_WithEmptyStack_ShouldThrow()
     {
         // Arrange
         var havingNode = new HavingNode(new GreaterNode(new IdentifierNode("count"), new IntegerNode("5")));
 
         // Act - no expression pushed
-        _visitor.Visit(havingNode);
+        Assert.Throws<InvalidOperationException>(() => _visitor.Visit(havingNode));
     }
 
     [TestMethod]
@@ -463,7 +452,7 @@ public class RewriteQueryVisitorTests
         // Arrange
         var field1 = new FieldNode(new IdentifierNode("Field1"), 0, "Field1");
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
-        var createTableNode = new CreateTransformationTableNode("TestTable", new string[0], new FieldNode[] { field1, field2 }, false);
+        var createTableNode = new CreateTransformationTableNode("TestTable", [], [field1, field2], false);
 
         // Push fields in reverse order
         PushNode(field2);
@@ -537,8 +526,8 @@ public class RewriteQueryVisitorTests
             }
             catch (InvalidOperationException ex)
             {
-                Assert.IsTrue(ex.Message.Contains("Stack must contain at least"), 
-                    $"Error message should be informative: {ex.Message}");
+                Assert.Contains("Stack must contain at least",
+ex.Message, $"Error message should be informative: {ex.Message}");
             }
         }
     }
@@ -546,8 +535,7 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Null_Operand_Prevention_ShouldProvideInformativeErrors()
     {
-        // Test that we get informative error messages for null operand scenarios
-        var operations = new Action[]
+        var operations = new[]
         {
             () => {
                 PushNode(new IntegerNode("1"));
@@ -570,8 +558,8 @@ public class RewriteQueryVisitorTests
             }
             catch (ArgumentException ex)
             {
-                Assert.IsTrue(ex.Message.Contains("operand cannot be null"), 
-                    $"Error message should be informative: {ex.Message}");
+                Assert.Contains("operand cannot be null",
+ex.Message, $"Error message should be informative: {ex.Message}");
             }
 
             // Clear the stack for next test

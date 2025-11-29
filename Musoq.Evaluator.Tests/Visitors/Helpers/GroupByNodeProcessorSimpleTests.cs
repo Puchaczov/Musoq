@@ -13,42 +13,34 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers;
 public class GroupByNodeProcessorSimpleTests
 {
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessGroupByNode_NullNode_ThrowsException()
     {
         var nodes = new Stack<SyntaxNode>();
         var scope = new Scope(null, 0, "test");
-        GroupByNodeProcessor.ProcessGroupByNode(null, nodes, scope);
+        Assert.Throws<ArgumentNullException>(() => GroupByNodeProcessor.ProcessGroupByNode(null, nodes, scope));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessGroupByNode_NullNodes_ThrowsException()
     {
         var scope = new Scope(null, 0, "test");
-        // Create a mock GroupByNode - this would be challenging due to the constructor
-        // Just test the validation works
-        GroupByNodeProcessor.ProcessGroupByNode(null, null, scope);
+        Assert.Throws<ArgumentNullException>(() => GroupByNodeProcessor.ProcessGroupByNode(null, null, scope));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessGroupByNode_NullScope_ThrowsException()
     {
         var nodes = new Stack<SyntaxNode>();
-        GroupByNodeProcessor.ProcessGroupByNode(null, nodes, null);
+        Assert.Throws<ArgumentNullException>(() => GroupByNodeProcessor.ProcessGroupByNode(null, nodes, null));
     }
 
     [TestMethod]
     public void ProcessGroupByNode_HelperExists_NoException()
     {
-        // This test verifies the helper class compiles and can be called
-        // More complete testing would require actual instances which are complex to create
         var scope = new Scope(null, 0, "test");
-        var fieldsNamesSymbol = new FieldsNamesSymbol(new[] { "field1" });
+        var fieldsNamesSymbol = new FieldsNamesSymbol(["field1"]);
         scope.ScopeSymbolTable.AddSymbol("groupFields", fieldsNamesSymbol);
         
-        // This is a basic smoke test to ensure the class exists and methods are accessible
         Assert.IsNotNull(typeof(GroupByNodeProcessor));
         Assert.IsTrue(typeof(GroupByNodeProcessor).IsClass);
         Assert.IsTrue(typeof(GroupByNodeProcessor).IsAbstract && typeof(GroupByNodeProcessor).IsSealed); // Static class check
@@ -57,7 +49,6 @@ public class GroupByNodeProcessorSimpleTests
     [TestMethod]
     public void GroupByProcessingResult_PropertiesExist()
     {
-        // Test that the result class has the expected properties
         var resultType = typeof(GroupByNodeProcessor.GroupByProcessingResult);
         
         Assert.IsNotNull(resultType.GetProperty("GroupKeys"));
@@ -69,7 +60,6 @@ public class GroupByNodeProcessorSimpleTests
     [TestMethod]
     public void GroupByNodeProcessor_HasProcessMethod()
     {
-        // Test that the main process method exists with correct signature
         var method = typeof(GroupByNodeProcessor).GetMethod("ProcessGroupByNode");
         
         Assert.IsNotNull(method);
@@ -77,29 +67,25 @@ public class GroupByNodeProcessorSimpleTests
         Assert.IsTrue(method.IsPublic);
         
         var parameters = method.GetParameters();
-        Assert.AreEqual(3, parameters.Length);
+        Assert.HasCount(3, parameters);
     }
 
     [TestMethod]
     public void GroupByNodeProcessor_HasValidationMethods()
     {
-        // Test that helper methods exist (they are private but we can verify they compile)
         var type = typeof(GroupByNodeProcessor);
         var methods = type.GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
         
-        // Check that private helper methods exist
-        Assert.IsTrue(methods.Length > 1, "Should have multiple helper methods");
+        Assert.IsGreaterThan(1, methods.Length, "Should have multiple helper methods");
     }
 
     [TestMethod]
     public void GroupByNodeProcessor_UsesCorrectNamespaces()
     {
-        // Test that the class properly references required namespaces
         var type = typeof(GroupByNodeProcessor);
         var assembly = type.Assembly;
         
-        // This is an indirect test to ensure the class compiled with all required references
         Assert.IsNotNull(assembly);
-        Assert.IsTrue(assembly.GetTypes().Length > 0);
+        Assert.IsNotEmpty(assembly.GetTypes());
     }
 }

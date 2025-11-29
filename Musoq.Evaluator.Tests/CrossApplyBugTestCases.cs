@@ -55,7 +55,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
                     Equals(f["FilterKey"], filterKey)).ToArray());
             });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         // Should handle null parameters gracefully
         Assert.IsNotNull(table);
@@ -93,7 +93,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
                     (string)f["FilterKey"] == filterKey).ToArray());
             });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         // Should only return 1 row (where Key = "Valid")
         Assert.AreEqual(1, table.Count);
@@ -133,7 +133,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
                     Equals(f["FilterKey"], filterKey)).ToArray());
             });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         // Should handle multiple parameters gracefully
         Assert.IsNotNull(table);
@@ -163,7 +163,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             null,
             (parameters, source) => new ObjectRowsSource(null)); // This creates a source with null Rows!
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         // After the fix, this should handle null gracefully and return empty result
         Assert.IsNotNull(table);
@@ -193,7 +193,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             (parameters, source) => throw new InvalidOperationException("Function failed")); // Function throws!
         
         // This should propagate the exception
-        Assert.ThrowsException<InvalidOperationException>(() => vm.Run());
+        Assert.Throws<InvalidOperationException>(() => vm.Run(TestContext.CancellationToken));
     }
 
     [TestMethod]
@@ -233,10 +233,12 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
                     Equals(f["FilterKey"], param)).ToArray());
             });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         // Should handle type conversion gracefully
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
     }
+
+    public TestContext TestContext { get; set; }
 }

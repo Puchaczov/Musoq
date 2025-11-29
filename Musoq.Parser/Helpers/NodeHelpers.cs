@@ -128,8 +128,10 @@ public static class NodeHelpers
             {(typeof(decimal), typeof(long)), typeof(decimal)},
             {(typeof(decimal), typeof(ulong)), typeof(decimal)},
             {(typeof(decimal), typeof(decimal)), typeof(decimal)},
-                
-            {(typeof(object), typeof(object)), typeof(object)},
+            
+            {(typeof(object), typeof(string)), typeof(object)},
+            {(typeof(string), typeof(object)), typeof(object)},
+            
             {(typeof(string), typeof(string)), typeof(string)},
             {(typeof(bool), typeof(bool)), typeof(bool)},
                 

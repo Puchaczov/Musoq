@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,7 +32,7 @@ public class BuildMetadataAndInferTypesVisitorTests
             },
             new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
             {
-                {0, Array.Empty<EnvironmentVariableEntity>()},
+                {0, []},
                 {1, [new ("KEY_1", "VALUE_1")]}
             }, logger.Object);
         
@@ -42,14 +42,14 @@ public class BuildMetadataAndInferTypesVisitorTests
 
         var positionalEnvironmentVariables = visitor.PositionalEnvironmentVariables;
         
-        Assert.AreEqual(2, positionalEnvironmentVariables.Count);
+        Assert.HasCount(2, positionalEnvironmentVariables);
         
-        Assert.AreEqual(0, positionalEnvironmentVariables[0].Count);
-        Assert.AreEqual(1, positionalEnvironmentVariables[1].Count);
+        Assert.IsEmpty(positionalEnvironmentVariables[0]);
+        Assert.HasCount(1, positionalEnvironmentVariables[1]);
         
         Assert.AreEqual("VALUE_1", positionalEnvironmentVariables[1]["KEY_1"]);
         
-        Assert.AreEqual(1, visitor.PassedSchemaArguments.Count);
+        Assert.HasCount(1, visitor.PassedSchemaArguments);
         
         Assert.AreEqual(typeof(string), visitor.PassedSchemaArguments[0]);
     }

@@ -41,7 +41,7 @@ public class MethodsMetadataGenericResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("GenericMethod1", method.Name);
-        Assert.AreEqual(1, method.GetParameters().Length);
+        Assert.HasCount(1, method.GetParameters());
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ public class MethodsMetadataGenericResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("GenericMethod2", method.Name);
-        Assert.AreEqual(1, method.GetParameters().Length);
+        Assert.HasCount(1, method.GetParameters());
     }
 
     [TestMethod]
@@ -73,7 +73,7 @@ public class MethodsMetadataGenericResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("GenericMethod3", method.Name);
-        Assert.AreEqual(1, method.GetParameters().Length);
+        Assert.HasCount(1, method.GetParameters());
     }
 
     private class TestMethodsMetadata : MethodsMetadata

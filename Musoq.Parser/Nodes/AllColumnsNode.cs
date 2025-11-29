@@ -8,7 +8,7 @@ public class AllColumnsNode(string alias = null) : Node
 
     public override Type ReturnType => typeof(object[]);
 
-    public override string Id => $"{nameof(AllColumnsNode)}*";
+    public override string Id => $"{nameof(AllColumnsNode)}{Alias ?? string.Empty}*";
 
     public override void Accept(IExpressionVisitor visitor)
     {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
@@ -11,6 +11,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Int64 value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(string? value)
     {
         if (long.TryParse(value, out var number))
@@ -25,6 +26,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(byte? value)
     {
         return value;
@@ -36,6 +38,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(sbyte? value)
     {
         return value;
@@ -47,6 +50,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(short? value)
     {
         return value;
@@ -58,6 +62,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(ushort? value)
     {
         return value;
@@ -69,6 +74,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(int? value)
     {
         return value;
@@ -80,6 +86,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(uint? value)
     {
         return value;
@@ -91,6 +98,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(long? value)
     {
         return value;
@@ -102,6 +110,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(ulong? value)
     {
         return (long?)value;
@@ -113,6 +122,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(float? value)
     {
         return (long?)value;
@@ -124,6 +134,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(double? value)
     {
         return (long?)value;
@@ -135,6 +146,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(decimal? value)
     {
         if (value == null)
@@ -149,6 +161,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(object? value)
     {
         if (value == null)

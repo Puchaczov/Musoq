@@ -38,7 +38,7 @@ public class BasicMethodResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("NoParameters", method.Name);
-        Assert.AreEqual(0, method.GetParameters().Length);
+        Assert.IsEmpty(method.GetParameters());
     }
 
     [TestMethod]
@@ -51,7 +51,7 @@ public class BasicMethodResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("SingleParameter", method.Name);
-        Assert.AreEqual(1, method.GetParameters().Length);
+        Assert.HasCount(1, method.GetParameters());
         Assert.AreEqual(typeof(int), method.GetParameters()[0].ParameterType);
     }
 
@@ -65,7 +65,7 @@ public class BasicMethodResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("TwoParameters", method.Name);
-        Assert.AreEqual(2, method.GetParameters().Length);
+        Assert.HasCount(2, method.GetParameters());
         Assert.AreEqual(typeof(int), method.GetParameters()[0].ParameterType);
         Assert.AreEqual(typeof(string), method.GetParameters()[1].ParameterType);
     }
@@ -80,7 +80,7 @@ public class BasicMethodResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("Overloaded", method.Name);
-        Assert.AreEqual(1, method.GetParameters().Length);
+        Assert.HasCount(1, method.GetParameters());
         Assert.AreEqual(typeof(int), method.GetParameters()[0].ParameterType);
     }
 
@@ -94,7 +94,7 @@ public class BasicMethodResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("Overloaded", method.Name);
-        Assert.AreEqual(1, method.GetParameters().Length);
+        Assert.HasCount(1, method.GetParameters());
         Assert.AreEqual(typeof(string), method.GetParameters()[0].ParameterType);
     }
 

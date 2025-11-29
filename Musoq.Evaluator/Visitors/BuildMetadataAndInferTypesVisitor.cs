@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -30,15 +30,48 @@ using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemory
 using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
 using NotSupportedException = System.NotSupportedException;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
-using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOnlyDictionary<string, string[]> columns, ILogger<BuildMetadataAndInferTypesVisitor> logger)
-    : DefensiveVisitorBase, IAwareExpressionVisitor
+public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExpressionVisitor
 {
+    private readonly ISchemaProvider _provider;
+    private readonly IReadOnlyDictionary<string, string[]> _columns;
+    private readonly ILogger<BuildMetadataAndInferTypesVisitor> _logger;
+
+    /// <summary>
+    /// Public constructor for external use (e.g., from Musoq.Converter).
+    /// </summary>
+    public BuildMetadataAndInferTypesVisitor(
+        ISchemaProvider _provider, 
+        IReadOnlyDictionary<string, string[]> _columns, 
+        ILogger<BuildMetadataAndInferTypesVisitor> _logger)
+        : this(_provider, _columns, _logger, null)
+    {
+    }
+
+    /// <summary>
+    /// Internal constructor that allows dependency injection of ILibraryMethodResolver.
+    /// Used for testing and advanced scenarios.
+    /// </summary>
+    internal BuildMetadataAndInferTypesVisitor(
+        ISchemaProvider provider, 
+        IReadOnlyDictionary<string, string[]> columns, 
+        ILogger<BuildMetadataAndInferTypesVisitor> logger,
+        ILibraryMethodResolver methodResolver)
+    {
+        _provider = provider;
+        _columns = columns;
+        _logger = logger;
+        _methodResolver = methodResolver ?? new LibraryMethodResolver();
+        _nodeFactory = new TypeConversionNodeFactory(_methodResolver);
+    }
+    
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
+    
+    private readonly ILibraryMethodResolver _methodResolver;
+    private readonly TypeConversionNodeFactory _nodeFactory;
 
     /// <summary>
     /// Gets the name of this visitor for error reporting.
@@ -105,7 +138,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     public virtual IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables =>
         InternalPositionalEnvironmentVariables;
 
-    public List<Assembly> Assemblies { get; } = [];
+    public List<Assembly> Assemblies { get; } = new(8);
 
     public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
@@ -151,7 +184,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     public RootNode Root => (RootNode) Nodes.Peek();
 
-    public void Visit(Node node)
+    public virtual void Visit(Node node)
     {
     }
 
@@ -176,183 +209,182 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(nodeFactory(left, right));
     }
 
-    private void VisitBinaryOperatorWithDateTimeConversion<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    /// <summary>
+    /// Visits a binary operator node and applies appropriate type conversions.
+    /// Handles three conversion strategies:
+    /// 1. Runtime operators for object types (delegates to runtime conversion methods)
+    /// 2. DateTime string literal conversion (converts string literals to DateTime when comparing with DateTime _columns)
+    /// 3. Numeric string/object conversion (converts strings to numbers when used with numeric literals)
+    /// </summary>
+    /// <typeparam name="T">Type of binary operator node to create.</typeparam>
+    /// <param name="nodeFactory">Factory function to create the binary operator node.</param>
+    /// <param name="isRelationalComparison">True for comparison operators (&gt;, &lt;, &gt;=, &lt;=).</param>
+    /// <param name="isArithmeticOperation">True for arithmetic operators (+, -, *, /, %).</param>
+    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, bool isRelationalComparison = false, bool isArithmeticOperation = false) where T : Node
     {
-        var right = SafePop(Nodes, "VisitBinaryOperatorWithDateTimeConversion (right)");
-        var left = SafePop(Nodes, "VisitBinaryOperatorWithDateTimeConversion (left)");
+        var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
+        var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
         
-        // Check for datetime vs string comparison and transform if needed
+        var leftIsObject = TypeConversionNodeFactory.IsObjectType(left.ReturnType);
+        var rightIsObject = TypeConversionNodeFactory.IsObjectType(right.ReturnType);
+        
+        if (leftIsObject || rightIsObject)
+        {
+            var operatorMethodName = _nodeFactory.GetRuntimeOperatorMethodName(nodeFactory);
+            if (operatorMethodName != null)
+            {
+                var wrappedNode = _nodeFactory.CreateRuntimeOperatorCall(operatorMethodName, left, right);
+                Nodes.Push(wrappedNode);
+                return;
+            }
+        }
+        
         var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
         var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
+        
+        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison, isArithmeticOperation);
+        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison, isArithmeticOperation);
         
         Nodes.Push(nodeFactory(transformedLeft, transformedRight));
     }
 
     private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)
     {
-        // Only transform if candidateNode is a string literal (WordNode) and otherNode is a datetime type
-        if (candidateNode is not WordNode stringNode || !IsDateTimeType(otherNode.ReturnType))
+        if (candidateNode is not WordNode stringNode || !TypeConversionNodeFactory.IsDateTimeType(otherNode.ReturnType))
             return candidateNode;
 
-        // Create AccessMethodNode for the appropriate conversion function
-        return CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
+        return _nodeFactory.CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
     }
 
-    private bool IsDateTimeType(Type type)
+    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison, bool isArithmeticOperation)
     {
-        return type == typeof(DateTime) || type == typeof(DateTime?) ||
-               type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?) ||
-               type == typeof(TimeSpan) || type == typeof(TimeSpan?);
+        var shouldTransform = (isRelationalComparison || isArithmeticOperation) 
+            ? isArithmeticOperation ? TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType) : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
+            : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType);
+
+        if (!shouldTransform || !TypeConversionNodeFactory.IsNumericLiteralNode(otherNode, out var targetType))
+            return candidateNode;
+
+        return _nodeFactory.CreateNumericConversionNode(candidateNode, targetType, TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), isRelationalComparison, isArithmeticOperation);
     }
 
-    private AccessMethodNode CreateDateTimeConversionNode(Type targetType, string stringValue)
-    {
-        string methodName;
-        
-        if (targetType == typeof(DateTime) || targetType == typeof(DateTime?))
-        {
-            methodName = "ToDateTime";
-        }
-        else if (targetType == typeof(DateTimeOffset) || targetType == typeof(DateTimeOffset?))
-        {
-            methodName = "ToDateTimeOffset";
-        }
-        else if (targetType == typeof(TimeSpan) || targetType == typeof(TimeSpan?))
-        {
-            methodName = "ToTimeSpan";
-        }
-        else
-        {
-            throw new InvalidOperationException($"Unsupported datetime type: {targetType}");
-        }
-
-        // Create function token
-        var functionToken = new FunctionToken(methodName, new TextSpan(0, methodName.Length));
-        
-        // Create arguments list with the string literal
-        var stringLiteralNode = new WordNode(stringValue);
-        var args = new ArgsListNode([stringLiteralNode]);
-        
-        // Get the MethodInfo for the conversion function from LibraryBase
-        var libraryBaseType = typeof(LibraryBase);
-        var method = libraryBaseType.GetMethod(methodName, [typeof(string)]);
-        
-        if (method == null)
-        {
-            throw new InvalidOperationException($"Method {methodName}(string) not found in LibraryBase");
-        }
-        
-        // Create AccessMethodNode for the conversion function
-        var accessMethodNode = new AccessMethodNode(
-            functionToken, 
-            args, 
-            ArgsListNode.Empty, 
-            false,
-            method);
-
-        return accessMethodNode;
-    }
-
-    public void Visit(DescNode node)
+    public virtual void Visit(DescNode node)
     {
         var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
         Nodes.Push(new DescNode(fromNode, node.Type));
     }
 
-    public void Visit(StarNode node)
+    public virtual void Visit(StarNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new StarNode(left, right), nameof(Visit) + nameof(StarNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new StarNode(left, right), isArithmeticOperation: true);
     }
 
-    public void Visit(FSlashNode node)
+    public virtual void Visit(FSlashNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new FSlashNode(left, right), nameof(Visit) + nameof(FSlashNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new FSlashNode(left, right), isArithmeticOperation: true);
     }
 
-    public void Visit(ModuloNode node)
+    public virtual void Visit(ModuloNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new ModuloNode(left, right), nameof(Visit) + nameof(ModuloNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new ModuloNode(left, right), isArithmeticOperation: true);
     }
 
-    public void Visit(AddNode node)
+    public virtual void Visit(AddNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new AddNode(left, right), nameof(Visit) + nameof(AddNode));
+        var right = SafePop(Nodes, "Visit(AddNode) right");
+        var left = SafePop(Nodes, "Visit(AddNode) left");
+        
+        var leftIsStringLiteral = left is WordNode;
+        var rightIsStringLiteral = right is WordNode;
+        
+        if (leftIsStringLiteral || rightIsStringLiteral)
+        {
+            Nodes.Push(left);
+            Nodes.Push(right);
+            VisitBinaryOperatorWithSafePop((l, r) => new AddNode(l, r), nameof(Visit) + nameof(AddNode));
+        }
+        else
+        {
+            Nodes.Push(left);
+            Nodes.Push(right);
+            VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), isArithmeticOperation: true);
+        }
     }
 
-    public void Visit(HyphenNode node)
+    public virtual void Visit(HyphenNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new HyphenNode(left, right), nameof(Visit) + nameof(HyphenNode));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new HyphenNode(left, right), isArithmeticOperation: true);
     }
 
-    public void Visit(AndNode node)
+    public virtual void Visit(AndNode node)
     {
         VisitBinaryOperatorWithSafePop((left, right) => new AndNode(left, right), nameof(Visit) + nameof(AndNode));
     }
 
-    public void Visit(OrNode node)
+    public virtual void Visit(OrNode node)
     {
         VisitBinaryOperatorWithSafePop((left, right) => new OrNode(left, right), nameof(Visit) + nameof(OrNode));
     }
 
-    public void Visit(ShortCircuitingNodeLeft node)
+    public virtual void Visit(ShortCircuitingNodeLeft node)
     {
         var childNode = SafePop(Nodes, nameof(Visit) + nameof(ShortCircuitingNodeLeft));
         Nodes.Push(new ShortCircuitingNodeLeft(childNode, node.UsedFor));
     }
 
-    public void Visit(ShortCircuitingNodeRight node)
+    public virtual void Visit(ShortCircuitingNodeRight node)
     {
         var childNode = SafePop(Nodes, nameof(Visit) + nameof(ShortCircuitingNodeRight));
         Nodes.Push(new ShortCircuitingNodeRight(childNode, node.UsedFor));
     }
 
-    public void Visit(EqualityNode node)
+    public virtual void Visit(EqualityNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new EqualityNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new EqualityNode(left, right), isRelationalComparison: false);
     }
 
-    public void Visit(GreaterOrEqualNode node)
+    public virtual void Visit(GreaterOrEqualNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new GreaterOrEqualNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right), isRelationalComparison: true);
     }
 
-    public void Visit(LessOrEqualNode node)
+    public virtual void Visit(LessOrEqualNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new LessOrEqualNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right), isRelationalComparison: true);
     }
 
-    public void Visit(GreaterNode node)
+    public virtual void Visit(GreaterNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new GreaterNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right), isRelationalComparison: true);
     }
 
-    public void Visit(LessNode node)
+    public virtual void Visit(LessNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new LessNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right), isRelationalComparison: true);
     }
 
-    public void Visit(DiffNode node)
+    public virtual void Visit(DiffNode node)
     {
-        VisitBinaryOperatorWithDateTimeConversion((left, right) => new DiffNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new DiffNode(left, right), isRelationalComparison: false);
     }
 
-    public void Visit(NotNode node)
+    public virtual void Visit(NotNode node)
     {
         var operand = SafePop(Nodes, nameof(Visit) + nameof(NotNode));
         Nodes.Push(new NotNode(operand));
     }
 
-    public void Visit(LikeNode node)
+    public virtual void Visit(LikeNode node)
     {
         VisitBinaryOperatorWithDirectPop((left, right) => new LikeNode(left, right));
     }
 
-    public void Visit(RLikeNode node)
+    public virtual void Visit(RLikeNode node)
     {
         VisitBinaryOperatorWithDirectPop((left, right) => new RLikeNode(left, right));
     }
 
-    public void Visit(InNode node)
+    public virtual void Visit(InNode node)
     {
         var right = SafePop(Nodes, nameof(Visit) + nameof(InNode) + " (right)");
         var left = SafePop(Nodes, nameof(Visit) + nameof(InNode) + " (left)");
@@ -365,88 +397,88 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new FieldNode(expression, node.FieldOrder, node.FieldName));
     }
 
-    public void Visit(FieldOrderedNode node)
+    public virtual void Visit(FieldOrderedNode node)
     {
         var expression = SafePop(Nodes, nameof(Visit) + nameof(FieldOrderedNode));
         Nodes.Push(new FieldOrderedNode(expression, node.FieldOrder, node.FieldName, node.Order));
     }
 
-    public void Visit(SelectNode node)
+    public virtual void Visit(SelectNode node)
     {
         var fields = CreateFields(node.Fields);
 
         Nodes.Push(new SelectNode(fields.ToArray()));
     }
 
-    public void Visit(GroupSelectNode node)
+    public virtual void Visit(GroupSelectNode node)
     {
         var fields = CreateFields(node.Fields);
 
         Nodes.Push(new GroupSelectNode(fields.ToArray()));
     }
 
-    public void Visit(StringNode node)
+    public virtual void Visit(StringNode node)
     {
         AddAssembly(typeof(string).Assembly);
         Nodes.Push(new StringNode(node.Value));
         _schemaFromArgs.Add(node.Value);
     }
 
-    public void Visit(DecimalNode node)
+    public virtual void Visit(DecimalNode node)
     {
         AddAssembly(typeof(decimal).Assembly);
         Nodes.Push(new DecimalNode(node.Value));
         _schemaFromArgs.Add(node.Value);
     }
 
-    public void Visit(IntegerNode node)
+    public virtual void Visit(IntegerNode node)
     {
         AddAssembly(typeof(int).Assembly);
         Nodes.Push(new IntegerNode(node.ObjValue));
         _schemaFromArgs.Add(node.ObjValue);
     }
 
-    public void Visit(HexIntegerNode node)
+    public virtual void Visit(HexIntegerNode node)
     {
         AddAssembly(typeof(long).Assembly);
         Nodes.Push(new HexIntegerNode(node.ObjValue));
         _schemaFromArgs.Add(node.ObjValue);
     }
 
-    public void Visit(BinaryIntegerNode node)
+    public virtual void Visit(BinaryIntegerNode node)
     {
         AddAssembly(typeof(long).Assembly);
         Nodes.Push(new BinaryIntegerNode(node.ObjValue));
         _schemaFromArgs.Add(node.ObjValue);
     }
 
-    public void Visit(OctalIntegerNode node)
+    public virtual void Visit(OctalIntegerNode node)
     {
         AddAssembly(typeof(long).Assembly);
         Nodes.Push(new OctalIntegerNode(node.ObjValue));
         _schemaFromArgs.Add(node.ObjValue);
     }
 
-    public void Visit(BooleanNode node)
+    public virtual void Visit(BooleanNode node)
     {
         AddAssembly(typeof(bool).Assembly);
         Nodes.Push(new BooleanNode(node.Value));
         _schemaFromArgs.Add(node.Value);
     }
 
-    public void Visit(WordNode node)
+    public virtual void Visit(WordNode node)
     {
         AddAssembly(typeof(string).Assembly);
         Nodes.Push(new WordNode(node.Value));
         _schemaFromArgs.Add(node.Value);
     }
 
-    public void Visit(NullNode node)
+    public virtual void Visit(NullNode node)
     {
         Nodes.Push(new NullNode(node.ReturnType));
     }
 
-    public void Visit(ContainsNode node)
+    public virtual void Visit(ContainsNode node)
     {
         var right = SafePop(Nodes, nameof(Visit) + nameof(ContainsNode) + " (right)");
         var left = SafePop(Nodes, nameof(Visit) + nameof(ContainsNode) + " (left)");
@@ -460,18 +492,18 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 new AccessMethodNode(token, modifiedNode as ArgsListNode, exArgs, canSkipInjectSource, arg3, alias));
     }
 
-    public void Visit(AccessRawIdentifierNode node)
+    public virtual void Visit(AccessRawIdentifierNode node)
     {
         Nodes.Push(new AccessRawIdentifierNode(node.Name, node.ReturnType));
     }
 
-    public void Visit(IsNullNode node)
+    public virtual void Visit(IsNullNode node)
     {
         var operand = SafePop(Nodes, nameof(Visit) + nameof(IsNullNode));
         Nodes.Push(new IsNullNode(operand, node.IsNegated));
     }
 
-    public void Visit(AccessRefreshAggregationScoreNode node)
+    public virtual void Visit(AccessRefreshAggregationScoreNode node)
     {
         VisitAccessMethod(node,
             (token, node1, exArgs, arg3, alias, _) =>
@@ -479,7 +511,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                     arg3, alias));
     }
 
-    public void Visit(AccessColumnNode node)
+    public virtual void Visit(AccessColumnNode node)
     {
         try
         {
@@ -563,7 +595,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
     }
 
-    public void Visit(AllColumnsNode node)
+    public virtual void Visit(AllColumnsNode node)
     {
         var identifier = _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
@@ -581,7 +613,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(node);
     }
 
-    public void Visit(IdentifierNode node)
+    public virtual void Visit(IdentifierNode node)
     {
         if (node.Name != _identifier && _queryPart != QueryPart.From)
         {
@@ -598,12 +630,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new IdentifierNode(node.Name));
     }
 
-    public void Visit(AccessObjectArrayNode node)
+    public virtual void Visit(AccessObjectArrayNode node)
     {
-        // Handle column-based indexed access (new functionality)
         if (node.IsColumnAccess)
         {
-            // Validate that the column exists
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(
                 string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias);
             
@@ -621,45 +651,30 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 throw new UnknownPropertyException($"Column {node.ObjectName} could not be found.");
             }
 
-            // Column indexed access - push the node as-is with proper return type
             Nodes.Push(node);
             return;
         }
 
-        // Check for property access context first
         var parentNode = Nodes.Count > 0 ? Nodes.Peek() : null;
         var parentNodeType = parentNode?.ReturnType;
         
-        // For property access, we need to ensure the parent context is actually meaningful
-        // and not just a result from previous SELECT field processing
         bool hasValidParentContext = parentNode != null && parentNodeType != null &&
                                     !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
-                                    parentNodeType.Name != "RowSource" && // RowSource indicates table context, not object property access
-                                    !BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(parentNodeType); // Primitive types (char, int, etc.) are not valid for property access
+                                    parentNodeType.Name != "RowSource" &&
+                                    !BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(parentNodeType);
         
-        if (hasValidParentContext)
+        if (!hasValidParentContext)
         {
-            // This is property access - continue with property access logic below
-        }
-        else
-        {
-            // Only check for column access when there's no valid parent context
             var currentTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-            if (currentTableSymbol != null)
+            var column = currentTableSymbol?.GetColumnByAliasAndName(_identifier, node.ObjectName);
+            if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))
             {
-                var column = currentTableSymbol.GetColumnByAliasAndName(_identifier, node.ObjectName);
-                if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))  // Only indexable column types
-                {
-                    // Transform to column access
-                    var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
-                    Nodes.Push(columnAccessNode);
-                    return;
-                }
+                var columnAccessNode = new AccessObjectArrayNode(node.Token, column.ColumnType);
+                Nodes.Push(columnAccessNode);
+                return;
             }
         }
 
-        // Handle property-based access (original functionality)
-        // Note: parentNode and parentNodeType are already set above
         if (parentNodeType != null && parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
             var typeHintingAttributes =
@@ -696,12 +711,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (isNotRoot && parentNodeType != null)
             {
-                PropertyInfo propertyAccess = null;
+                PropertyInfo propertyAccess;
                 try
                 {
                     propertyAccess = parentNodeType.GetProperty(node.Name);
                 }
-                catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
+                catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
                 {
                     throw new ObjectIsNotAnArrayException(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
@@ -728,7 +743,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             if (parentNodeType != null)
             {
-                PropertyInfo property = null;
+                PropertyInfo property;
                 try
                 {
                     property = parentNodeType.GetProperty(node.Name);
@@ -757,14 +772,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             }
             else
             {
-                // If parentNodeType is null, we might be in a root context
-                // Try to create a generic AccessObjectArrayNode
                 throw new UnknownPropertyException($"Could not resolve array access for {node.ObjectName}[{node.Token.Index}]");
             }
         }
     }
 
-    public void Visit(AccessObjectKeyNode node)
+    public virtual void Visit(AccessObjectKeyNode node)
     {
         if (node.DestinationKind == AccessObjectKeyNode.Destination.Variable)
         {
@@ -873,7 +886,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
     }
 
-    public void Visit(PropertyValueNode node)
+    public virtual void Visit(PropertyValueNode node)
     {
         var parentNode = SafePeek(Nodes, nameof(Visit) + nameof(PropertyValueNode));
         if (parentNode?.ReturnType == null)
@@ -917,7 +930,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             }
             catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
             {
-                // Fallback to default type if property access fails
                 type = _theMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject);
             }
             Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, type)));
@@ -946,12 +958,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
     }
 
-    public void Visit(DotNode node)
+    public virtual void Visit(DotNode node)
     {
         var exp = SafePop(Nodes, nameof(Visit) + nameof(DotNode) + " (expression)");
         var root = SafePop(Nodes, nameof(Visit) + nameof(DotNode) + " (root)");
 
-        // Validate that both nodes have proper return types
         if (root?.ReturnType == null)
         {
             throw VisitorException.CreateForProcessingFailure(
@@ -960,17 +971,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 "Root node has no return type for dot access");
         }
 
-        // Handle aliased character access patterns (e.g., f.Name[0])
-        // Only transform if this is likely string character access, not property access
         if (root is AccessColumnNode accessColumnNode && exp is AccessObjectArrayNode arrayNode2 && !arrayNode2.IsColumnAccess)
         {
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(accessColumnNode.Alias);
             if (tableSymbol != null)
             {
                 var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
-                if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))  // Only indexable column types
+                if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))
                 {
-                    // Transform to column access with alias
                     var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);
                     Nodes.Push(columnAccessArrayNode);
                     return;
@@ -1013,7 +1021,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             : new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props, node.Alias));
     }
 
-    public void Visit(ArgsListNode node)
+    public virtual void Visit(ArgsListNode node)
     {
         var args = new Node[node.Args.Length];
 
@@ -1023,7 +1031,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new ArgsListNode(args));
     }
 
-    public void Visit(WhereNode node)
+    public virtual void Visit(WhereNode node)
     {
         var hasProcessedQueryId = _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
         var identifier = hasProcessedQueryId
@@ -1047,7 +1055,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(rewrittenWhereNode);
     }
 
-    public void Visit(GroupByNode node)
+    public virtual void Visit(GroupByNode node)
     {
         var having = Nodes.Peek() as HavingNode;
 
@@ -1066,24 +1074,24 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new GroupByNode(fields, having));
     }
 
-    public void Visit(HavingNode node)
+    public virtual void Visit(HavingNode node)
     {
         Nodes.Push(new HavingNode(Nodes.Pop()));
     }
 
-    public void Visit(SkipNode node)
+    public virtual void Visit(SkipNode node)
     {
         Nodes.Push(new SkipNode((IntegerNode) node.Expression));
     }
 
-    public void Visit(TakeNode node)
+    public virtual void Visit(TakeNode node)
     {
         Nodes.Push(new TakeNode((IntegerNode) node.Expression));
     }
 
-    public void Visit(SchemaFromNode node)
+    public virtual void Visit(SchemaFromNode node)
     {
-        var schema = provider.GetSchema(node.Schema);
+        var schema = _provider.GetSchema(node.Schema);
         const bool hasExternallyProvidedTypes = false;
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
@@ -1105,11 +1113,11 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             node.Method,
             new RuntimeContext(
                 CancellationToken.None,
-                columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
+                _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
                     .ToArray(),
                 environmentVariables,
-                (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes),
-                logger
+                (aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes),
+                _logger
             ),
             _schemaFromArgs.ToArray()) : new DynamicTable([]);
 
@@ -1153,20 +1161,20 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         return false;
     }
 
-    public void Visit(SchemaMethodFromNode node)
+    public virtual void Visit(SchemaMethodFromNode node)
     {
         _usedSchemasQuantity += 1;
         Nodes.Push(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
     }
 
-    public void Visit(PropertyFromNode node)
+    public virtual void Visit(PropertyFromNode node)
     {
         ISchemaTable table;
         ISchema schema;
 
         if (_aliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
-            schema = provider.GetSchema(schemaFrom.Schema);
+            schema = _provider.GetSchema(schemaFrom.Schema);
             table = GetTableFromSchema(schema, schemaFrom);
         }
         else
@@ -1202,14 +1210,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         );
     }
 
-    public void Visit(AccessMethodFromNode node)
+    public virtual void Visit(AccessMethodFromNode node)
     {
         ISchemaTable table;
         ISchema schema;
 
         if (_aliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
-            schema = provider.GetSchema(schemaFrom.Schema);
+            schema = _provider.GetSchema(schemaFrom.Schema);
         }
         else
         {
@@ -1233,14 +1241,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             accessMethodNode.ReturnType));
     }
 
-    public void Visit(AliasedFromNode node)
+    public virtual void Visit(AliasedFromNode node)
     {
         var schemaInfo = _explicitlyUsedAliases[node.Identifier];
         var tableName = _explicitlyCoupledTablesWithAliases[node.Identifier];
         var table = _explicitlyDefinedTables[tableName];
         const bool hasExternallyProvidedTypes = true;
 
-        var schema = provider.GetSchema(schemaInfo.Schema);
+        var schema = _provider.GetSchema(schemaInfo.Schema);
 
         AddAssembly(schema.GetType().Assembly);
 
@@ -1263,7 +1271,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
                 table.Columns,
                 RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode),
                 (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes),
-                logger
+                _logger
             ),
             _schemaFromArgs.ToArray()
         ) ?? table;
@@ -1294,7 +1302,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(aliasedSchemaFromNode);
     }
 
-    public void Visit(JoinSourcesTableFromNode node)
+    public virtual void Visit(JoinSourcesTableFromNode node)
     {
         var exp = Nodes.Pop();
         var b = (FromNode) Nodes.Pop();
@@ -1303,7 +1311,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new Parser.JoinSourcesTableFromNode(a, b, exp, node.JoinType));
     }
 
-    public void Visit(ApplySourcesTableFromNode node)
+    public virtual void Visit(ApplySourcesTableFromNode node)
     {
         var b = (FromNode) Nodes.Pop();
         var a = (FromNode) Nodes.Pop();
@@ -1311,7 +1319,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new Parser.ApplySourcesTableFromNode(a, b, node.ApplyType));
     }
 
-    public void Visit(InMemoryTableFromNode node)
+    public virtual void Visit(InMemoryTableFromNode node)
     {
         _queryAlias = string.IsNullOrEmpty(node.Alias) ? node.VariableName : node.Alias;
         _generatedAliases.Add(_queryAlias);
@@ -1346,7 +1354,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, _queryAlias));
     }
 
-    public void Visit(JoinFromNode node)
+    public virtual void Visit(JoinFromNode node)
     {
         var expression = Nodes.Pop();
         var joinedTable = (FromNode) Nodes.Pop();
@@ -1357,7 +1365,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(joinedFrom);
     }
 
-    public void Visit(ApplyFromNode node)
+    public virtual void Visit(ApplyFromNode node)
     {
         var appliedTable = (FromNode) Nodes.Pop();
         var source = (FromNode) Nodes.Pop();
@@ -1367,7 +1375,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(appliedFrom);
     }
 
-    public void Visit(ExpressionFromNode node)
+    public virtual void Visit(ExpressionFromNode node)
     {
         var from = (FromNode) Nodes.Pop();
         _identifier = from.Alias;
@@ -1384,41 +1392,41 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
     }
 
-    public void Visit(CreateTransformationTableNode node)
+    public virtual void Visit(CreateTransformationTableNode node)
     {
         var fields = CreateFields(node.Fields);
 
         Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, fields, node.ForGrouping));
     }
 
-    public void Visit(RenameTableNode node)
+    public virtual void Visit(RenameTableNode node)
     {
         Nodes.Push(new RenameTableNode(node.TableSourceName, node.TableDestinationName));
     }
 
-    public void Visit(TranslatedSetTreeNode node)
+    public virtual void Visit(TranslatedSetTreeNode node)
     {
     }
 
-    public void Visit(IntoNode node)
+    public virtual void Visit(IntoNode node)
     {
         Nodes.Push(new IntoNode(node.Name));
     }
 
-    public void Visit(QueryScope node)
+    public virtual void Visit(QueryScope node)
     {
     }
 
-    public void Visit(ShouldBePresentInTheTable node)
+    public virtual void Visit(ShouldBePresentInTheTable node)
     {
         Nodes.Push(new ShouldBePresentInTheTable(node.Table, node.ExpectedResult, node.Keys));
     }
 
-    public void Visit(TranslatedSetOperatorNode node)
+    public virtual void Visit(TranslatedSetOperatorNode node)
     {
     }
 
-    public void Visit(QueryNode node)
+    public virtual void Visit(QueryNode node)
     {
         var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
@@ -1455,7 +1463,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _usedSchemasQuantity = 0;
     }
 
-    public void Visit(JoinInMemoryWithSourceTableFromNode node)
+    public virtual void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
         var exp = Nodes.Pop();
         var from = (FromNode) Nodes.Pop();
@@ -1463,57 +1471,57 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
     }
 
-    public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+    public virtual void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
         var from = (FromNode) Nodes.Pop();
         Nodes.Push(
             new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType));
     }
 
-    public void Visit(InternalQueryNode node)
+    public virtual void Visit(InternalQueryNode node)
     {
         throw new NotSupportedException("Internal Query Node is not supported here");
     }
 
-    public void Visit(RootNode node)
+    public virtual void Visit(RootNode node)
     {
         Nodes.Push(new RootNode(Nodes.Pop()));
     }
 
-    public void Visit(SingleSetNode node)
+    public virtual void Visit(SingleSetNode node)
     {
     }
 
-    public void Visit(RefreshNode node)
+    public virtual void Visit(RefreshNode node)
     {
     }
 
-    public void Visit(UnionNode node)
+    public virtual void Visit(UnionNode node)
     {
         VisitSetOperationNode(node, "Union");
     }
 
-    public void Visit(UnionAllNode node)
+    public virtual void Visit(UnionAllNode node)
     {
         VisitSetOperationNode(node, "UnionAll");
     }
 
-    public void Visit(ExceptNode node)
+    public virtual void Visit(ExceptNode node)
     {
         VisitSetOperationNode(node, "Except");
     }
 
-    public void Visit(IntersectNode node)
+    public virtual void Visit(IntersectNode node)
     {
         VisitSetOperationNode(node, "Intersect");
     }
 
-    public void Visit(PutTrueNode node)
+    public virtual void Visit(PutTrueNode node)
     {
         Nodes.Push(new PutTrueNode());
     }
 
-    public void Visit(MultiStatementNode node)
+    public virtual void Visit(MultiStatementNode node)
     {
         var items = new Node[node.Nodes.Length];
 
@@ -1523,7 +1531,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new MultiStatementNode(items, node.ReturnType));
     }
 
-    public void Visit(CteExpressionNode node)
+    public virtual void Visit(CteExpressionNode node)
     {
         var sets = new CteInnerExpressionNode[node.InnerExpression.Length];
 
@@ -1535,7 +1543,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new CteExpressionNode(sets, set));
     }
 
-    public void Visit(CteInnerExpressionNode node)
+    public virtual void Visit(CteInnerExpressionNode node)
     {
         var set = Nodes.Pop();
 
@@ -1552,13 +1560,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new CteInnerExpressionNode(set, node.Name));
     }
 
-    public void Visit(JoinNode node)
+    public virtual void Visit(JoinNode node)
     {
         _identifier = node.Alias;
         Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode) Nodes.Pop()));
     }
 
-    public void Visit(ApplyNode node)
+    public virtual void Visit(ApplyNode node)
     {
         _identifier = node.Alias;
         Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode) Nodes.Pop()));
@@ -1659,7 +1667,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         
         var accessMethod = CreateAccessMethod(node, args, method, methodContext, canSkipInjectSource, func);
         
-        node.ChangeMethod(method); // Update the original node with resolved method
+        node.ChangeMethod(method);
         FinalizeMethodVisit(method, accessMethod);
     }
 
@@ -1702,28 +1710,34 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         return new MethodResolutionContext(alias, tableSymbol, schemaTablePair, entityType);
     }
 
-    /// <summary>
-    /// Attempts to resolve the method from the schema using different resolution strategies.
-    /// </summary>
     private (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(AccessMethodNode node, ArgsListNode args, MethodResolutionContext context)
     {
-        var groupArgs = new List<Type> { typeof(string) };
-        groupArgs.AddRange(args.Args.Skip(1).Select(f => f.ReturnType));
+        var argCount = args.Args.Length;
+        var argTypes = new Type[argCount];
+        
+        for (var i = 0; i < argCount; i++)
+        {
+            argTypes[i] = args.Args[i].ReturnType;
+        }
+        var groupArgCount = argCount > 0 ? argCount : 1;
+        var groupArgTypes = new Type[groupArgCount];
+        groupArgTypes[0] = typeof(string);
+        for (var i = 1; i < argCount; i++)
+        {
+            groupArgTypes[i] = argTypes[i];
+        }
 
-        // Try aggregation method first
-        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgs.ToArray(), context.EntityType, out var method))
+        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgTypes, context.EntityType, out var method))
         {
             return (method, false);
         }
 
-        // Try regular method
-        if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), context.EntityType, out method))
+        if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, argTypes, context.EntityType, out method))
         {
             return (method, false);
         }
 
-        // Try raw method
-        if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, args.Args.Select(f => f.ReturnType).ToArray(), out method))
+        if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, argTypes, out method))
         {
             return (method, true);
         }
@@ -1857,12 +1871,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         AddAssembly(method.DeclaringType.Assembly);
         AddAssembly(method.ReturnType.Assembly);
 
-        // Note: The original node's method is updated through the accessMethod parameter
-        // which should contain the resolved method information
         Nodes.Push(accessMethod);
     }
 
-    public void Visit(OrderByNode node)
+    public virtual void Visit(OrderByNode node)
     {
         var fields = new FieldOrderedNode[node.Fields.Length];
 
@@ -1872,7 +1884,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new OrderByNode(fields));
     }
 
-    public void Visit(CreateTableNode node)
+    public virtual void Visit(CreateTableNode node)
     {
         var tableColumns = new List<ISchemaColumn>();
 
@@ -1896,14 +1908,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new CreateTableNode(node.Name, node.TableTypePairs));
     }
 
-    public void Visit(CoupleNode node)
+    public virtual void Visit(CoupleNode node)
     {
         _explicitlyCoupledTablesWithAliases.Add(node.MappedSchemaName, node.TableName);
         _explicitlyUsedAliases.Add(node.MappedSchemaName, node.SchemaMethodNode);
         Nodes.Push(new CoupleNode(node.SchemaMethodNode, node.TableName, node.MappedSchemaName));
     }
 
-    public void Visit(StatementsArrayNode node)
+    public virtual void Visit(StatementsArrayNode node)
     {
         var statements = new StatementNode[node.Statements.Length];
         for (var i = 0; i < node.Statements.Length; ++i)
@@ -1914,12 +1926,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(new StatementsArrayNode(statements));
     }
 
-    public void Visit(StatementNode node)
+    public virtual void Visit(StatementNode node)
     {
         Nodes.Push(new StatementNode(Nodes.Pop()));
     }
 
-    public void Visit(CaseNode node)
+    public virtual void Visit(CaseNode node)
     {
         var whenThenPairs = new List<(Node When, Node Then)>();
 
@@ -1961,14 +1973,14 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _nullSuspiciousTypes.Clear();
     }
 
-    public void Visit(WhenNode node)
+    public virtual void Visit(WhenNode node)
     {
         var newNode = new WhenNode(Nodes.Pop());
 
         Nodes.Push(newNode);
     }
 
-    public void Visit(ThenNode node)
+    public virtual void Visit(ThenNode node)
     {
         var newNode = new ThenNode(Nodes.Pop());
 
@@ -1977,7 +1989,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(newNode);
     }
 
-    public void Visit(ElseNode node)
+    public virtual void Visit(ElseNode node)
     {
         var newNode = new ElseNode(Nodes.Pop());
 
@@ -1986,7 +1998,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         Nodes.Push(newNode);
     }
 
-    public void Visit(FieldLinkNode node)
+    public virtual void Visit(FieldLinkNode node)
     {
         var index = node.Index - 1;
 
@@ -2040,13 +2052,16 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         {
             if (greatestCommonSubtype.IsAssignableTo(currentType))
             {
+                greatestCommonSubtype = currentType;
                 continue;
             }
 
-            greatestCommonSubtype =
-                currentType.IsAssignableTo(greatestCommonSubtype)
-                    ? currentType
-                    : BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(greatestCommonSubtype, currentType);
+            if (currentType.IsAssignableTo(greatestCommonSubtype))
+            {
+                continue;
+            }
+
+            greatestCommonSubtype = BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(greatestCommonSubtype, currentType);
         }
 
         return greatestCommonSubtype;
@@ -2071,9 +2086,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
         var generatedColumns = GetOrCreateGeneratedColumns(generatedColumnIdentifier);
 
+        var positionCounter = 0;
         for (var i = 0; i < table.Columns.Length; i++)
         {
-            AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], i, generatedColumnIdentifier, generatedColumns);
+            if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i].ColumnType))
+            {
+                AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, generatedColumnIdentifier, generatedColumns);
+            }
         }
 
         UpdateUsedColumns(generatedColumnIdentifier, table);
@@ -2088,9 +2107,13 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
             var generatedColumns = GetOrCreateGeneratedColumns(tableIdentifier);
 
+            var positionCounter = 0;
             for (var i = 0; i < table.Columns.Length; i++)
             {
-                AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], i, tableIdentifier, generatedColumns, isCompoundTable: true);
+                if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i].ColumnType))
+                {
+                    AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, tableIdentifier, generatedColumns, isCompoundTable: true);
+                }
             }
 
             UpdateUsedColumns(tableIdentifier, table);
@@ -2140,10 +2163,10 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     {
         var runtimeContext = new RuntimeContext(
             CancellationToken.None,
-            columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
+            _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
             RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, schemaFrom),
             (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false),
-            logger
+            _logger
         );
 
         return schema.GetTableByName(schemaFrom.Method, runtimeContext, schemaFrom.Parameters);
@@ -2208,12 +2231,12 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         _cachedSetFields.TryAdd(currentSetOperatorKey, leftFields);
     }
 
-    private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns)
+    private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] _columns)
     {
         var library = new TransitionLibrary();
         var candidates = new StringBuilder();
 
-        var candidatesColumns = columns.Where(
+        var candidatesColumns = _columns.Where(
             col =>
                 library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
                 library.LevenshteinDistance(col.ColumnName, identifier) < 3).ToArray();
@@ -2379,7 +2402,7 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
 
     private static ISchemaTable TurnTypeIntoTable(Type type)
     {   
-        var columns = new List<ISchemaColumn>();
+        var _columns = new List<ISchemaColumn>();
 
         Type nestedType;
         if (type.IsArray)
@@ -2388,7 +2411,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
         }
         else if (IsGenericEnumerable(type, out nestedType))
         {
-            // nestedType is already set by the IsGenericEnumerable method
         }
         else
         {
@@ -2407,20 +2429,18 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
     
         foreach (var property in nestedType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
-            columns.Add(new SchemaColumn(property.Name, columns.Count, property.PropertyType));
+            _columns.Add(new SchemaColumn(property.Name, _columns.Count, property.PropertyType));
         }
     
-        return new DynamicTable(columns.ToArray(), nestedType);
+        return new DynamicTable(_columns.ToArray(), nestedType);
     }
 
     private static bool IsGenericEnumerable(Type type, out Type elementType)
     {
         elementType = null;
     
-        // Check if the type is a generic type
         if (!type.IsGenericType) return false;
             
-        // Get all interfaces implemented by the type
         var interfaces = type.GetInterfaces().Concat([type]);
         
         foreach (var interfaceType in interfaces)
@@ -2563,7 +2583,6 @@ public class BuildMetadataAndInferTypesVisitor(ISchemaProvider provider, IReadOn
             scope = scope.Parent;
         }
         
-        // If not found in any scope, fall back to current scope behavior for error consistency
         return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
     }
 }

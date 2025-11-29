@@ -14,7 +14,7 @@ public class HashFunctionsTests : LibraryBaseBaseTests
     [TestMethod]
     public void Md5NullTest()
     {
-        Assert.AreEqual((string?)null, Library.Md5((string?)null));
+        Assert.IsNull(Library.Md5((string?)null));
     }
 
     [TestMethod]
@@ -26,7 +26,7 @@ public class HashFunctionsTests : LibraryBaseBaseTests
     [TestMethod]
     public void Sha1NullTest()
     {
-        Assert.AreEqual((string?)null, Library.Sha1((string?)null));
+        Assert.IsNull(Library.Sha1((string?)null));
     }
         
     [TestMethod]
@@ -38,7 +38,7 @@ public class HashFunctionsTests : LibraryBaseBaseTests
     [TestMethod]
     public void Sha256NullTest()
     {
-        Assert.AreEqual((string?)null, Library.Sha256((string?)null));
+        Assert.IsNull(Library.Sha256((string?)null));
     }
 
     [TestMethod]
@@ -50,6 +50,6 @@ public class HashFunctionsTests : LibraryBaseBaseTests
     [TestMethod]
     public void Sha512NullTest()
     {
-        Assert.AreEqual((string?)null, Library.Sha512((string?)null));
+        Assert.IsNull(Library.Sha512((string?)null));
     }
 }

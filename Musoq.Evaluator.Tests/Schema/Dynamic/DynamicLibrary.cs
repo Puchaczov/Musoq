@@ -1,4 +1,4 @@
-﻿using System.Dynamic;
+using System.Dynamic;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 

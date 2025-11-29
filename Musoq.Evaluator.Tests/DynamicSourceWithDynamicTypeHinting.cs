@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -27,15 +27,13 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
             {"Name", typeof(string)},
         });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.AreEqual(4, table.Count);
+        Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Id", table[0][0]);
         Assert.AreEqual("System.Int32", table[0][2]);
         Assert.AreEqual("Name", table[1][0]);
         Assert.AreEqual("System.String", table[1][2]);
-        Assert.AreEqual("Name.Chars", table[2][0]);
-        Assert.AreEqual("System.Char", table[2][2]);
     }
     
     [TestMethod]
@@ -55,13 +53,13 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
             {"Name", typeof(string)},
         });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => 
                 (int)entry[0] == 1 && 
@@ -88,7 +86,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
             {"Complex", typeof(ComplexExpandoType)}
         });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Complex", table[0][0]);
@@ -111,7 +109,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -137,7 +135,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(short), table.Columns.ElementAt(0).ColumnType);
@@ -165,7 +163,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -194,7 +192,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -218,11 +216,11 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(true, table[0][0]);
+        Assert.IsTrue((bool?)table[0][0]);
     }
 
     private ExpandoObject CreateExpandoObject(ComplexType complexType)
@@ -352,4 +350,6 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
             return base.TryGetMember(binder, out result);
         }
     }
+
+    public TestContext TestContext { get; set; }
 }

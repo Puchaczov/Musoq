@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Plugins;
@@ -60,6 +60,7 @@ public class Library : LibraryBase
     }
 
     [BindableMethod]
+    [NonDeterministic]
     public int RandomNumber()
     {
         return _random.Next(0, 100);
@@ -90,6 +91,42 @@ public class Library : LibraryBase
     }
 
     [BindableMethod]
+    public int Inc(int number)
+    {
+        return number + 1;
+    }
+
+    [BindableMethod]
+    public double Inc(double number)
+    {
+        return number + 1;
+    }
+
+    [BindableMethod]
+    public float Inc(float number)
+    {
+        return number + 1;
+    }
+
+    [BindableMethod]
+    public decimal? Inc(decimal? number)
+    {
+        return number.HasValue ? number.Value + 1 : null;
+    }
+
+    [BindableMethod]
+    public int? Inc(int? number)
+    {
+        return number.HasValue ? number.Value + 1 : null;
+    }
+
+    [BindableMethod]
+    public long? Inc(long? number)
+    {
+        return number.HasValue ? number.Value + 1 : null;
+    }
+
+    [BindableMethod]
     public BasicEntity NothingToDo(BasicEntity entity)
     {
         return entity;
@@ -111,8 +148,8 @@ public class Library : LibraryBase
     {
         Assert.AreEqual(1L, a);
         Assert.AreEqual(2m, b);
-        Assert.AreEqual(true, tr);
-        Assert.AreEqual(false, fl);
+        Assert.IsTrue(tr);
+        Assert.IsFalse(fl);
         Assert.AreEqual("text", text);
         return 1;
     }

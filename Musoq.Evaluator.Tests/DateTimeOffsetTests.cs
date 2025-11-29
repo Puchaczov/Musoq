@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -25,12 +25,12 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         dynamic second = new ExpandoObject();
         second.Date = new DateTimeOffset(new DateTime(2023, 2, 1));
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("MinDateTimeOffset(Date)", table.Columns.ElementAt(0).ColumnName);
@@ -55,12 +55,12 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         dynamic second = new ExpandoObject();
         second.Date = new DateTimeOffset(new DateTime(2023, 2, 1));
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("MaxDateTimeOffset(Date)", table.Columns.ElementAt(0).ColumnName);
@@ -84,12 +84,12 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         first.Date1 = new DateTimeOffset(new DateTime(2023, 1, 1));
         first.Date2 = new DateTimeOffset(new DateTime(2023, 1, 1));
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("SubtractDateTimeOffsets(Date1, Date2)", table.Columns.ElementAt(0).ColumnName);
@@ -113,12 +113,12 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         first.Date1 = new DateTimeOffset(new DateTime(2023, 1, 1));
         first.Date2 = new DateTimeOffset(new DateTime(2023, 1, 1));
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Date1 - Date2", table.Columns.ElementAt(0).ColumnName);
@@ -127,4 +127,6 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(TimeSpan.Zero, table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 }

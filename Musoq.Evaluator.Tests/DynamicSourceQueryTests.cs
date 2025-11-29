@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -23,17 +23,13 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
-        Assert.AreEqual(4, table.Count);
+        Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Id", table[0][0]);
         Assert.AreEqual("System.Int32", table[0][2]);
         Assert.AreEqual("Name", table[1][0]);
         Assert.AreEqual("System.String", table[1][2]);
-        Assert.AreEqual("Name.Chars", table[2][0]);
-        Assert.AreEqual("System.Char", table[2][2]);
-        Assert.AreEqual("Name.Length", table[3][0]);
-        Assert.AreEqual("System.Int32", table[3][2]);
     }
     
     [TestMethod]
@@ -49,13 +45,13 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should contain 2 rows");
+        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.All(row => 
                 new[] { (1, "Test1"), (2, "Test2") }.Contains(((int)row[0], (string)row[1]))),
@@ -73,7 +69,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Complex", table[0][0]);
@@ -96,7 +92,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
@@ -122,7 +118,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
@@ -148,7 +144,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
@@ -176,7 +172,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
@@ -205,7 +201,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -255,7 +251,7 @@ inner join #location.all() location on weather.Location = location.Name
             ("#location", locationSource, locationSchema)
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         
@@ -282,7 +278,7 @@ inner join #location.all() location on weather.Location = location.Name
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -292,4 +288,6 @@ inner join #location.all() location on weather.Location = location.Name
         Assert.AreEqual("case", table[0][0]);
         Assert.AreEqual("end", table[0][1]);
     }
+
+    public TestContext TestContext { get; set; }
 }

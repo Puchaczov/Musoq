@@ -134,7 +134,6 @@ public class AccessObjectKeyNodeProcessorTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessAccessObjectKeyNode_NullNode_ThrowsArgumentNullException()
     {
         // Arrange
@@ -142,25 +141,23 @@ public class AccessObjectKeyNodeProcessorTests
         _nodes.Push(expression);
 
         // Act
-        AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(null!, _nodes);
+        Assert.Throws<ArgumentNullException>(() => AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(null!, _nodes));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ProcessAccessObjectKeyNode_NullNodes_ThrowsArgumentNullException()
     {
         // Act
-        AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, null!);
+        Assert.Throws<ArgumentNullException>(() => AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, null!));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void ProcessAccessObjectKeyNode_EmptyNodesStack_ThrowsInvalidOperationException()
     {
         // Arrange - empty stack
 
         // Act
-        AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, _nodes);
+        Assert.Throws<InvalidOperationException>(() => AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, _nodes));
     }
 
     [TestMethod]
@@ -192,7 +189,7 @@ public class AccessObjectKeyNodeProcessorTests
         var result = AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, _nodes);
 
         // Assert
-        Assert.AreEqual(initialCount - 1, _nodes.Count);
+        Assert.HasCount(initialCount - 1, _nodes);
         Assert.AreEqual(expression1, _nodes.Peek()); // expression2 should have been popped
     }
 
@@ -252,8 +249,10 @@ public class AccessObjectKeyNodeProcessorTests
 
         // Assert
         var syntaxTree = SyntaxFactory.SyntaxTree(result.Expression);
-        var diagnostics = syntaxTree.GetDiagnostics();
+        var diagnostics = syntaxTree.GetDiagnostics(TestContext.CancellationToken);
         
         Assert.AreEqual(0, diagnostics.Count(d => d.Severity == DiagnosticSeverity.Error));
     }
+
+    public TestContext TestContext { get; set; }
 }

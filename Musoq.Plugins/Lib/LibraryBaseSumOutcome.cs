@@ -37,7 +37,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, byte? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
 
     /// <summary>
     /// Sets the value of the group.
@@ -48,7 +48,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, sbyte? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
 
     /// <summary>
     /// Sets the value of the group.
@@ -59,7 +59,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, short? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
 
     /// <summary>
     /// Sets the value of the group.
@@ -70,7 +70,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, ushort? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
         
         
 
@@ -83,7 +83,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, int? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
 
     /// <summary>
     /// Sets the value of the group.
@@ -94,7 +94,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, uint? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
         
     /// <summary>
     /// Sets the value of the group.
@@ -105,7 +105,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, long? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
 
     /// <summary>
     /// Sets the value of the group.
@@ -116,7 +116,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, ulong? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
 
     /// <summary>
     /// Sets the value of the group.
@@ -127,7 +127,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, float? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
 
     /// <summary>
     /// Sets the value of the group.
@@ -138,7 +138,7 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumOutcome([InjectGroup] Group group, string name, double? number, int parent = 0)
-        => SetSumOutcome(group, name, number == null ? (decimal?)null : Convert.ToDecimal(number.Value), parent);
+        => SetSumOutcome(group, name, number == null ? null : Convert.ToDecimal(number.Value), parent);
 
     /// <summary>
     /// Sets the value of the group.

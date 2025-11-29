@@ -21,7 +21,7 @@ public class ApplyInMemoryWithSourceTableNodeProcessorTests
         var scope = new Scope(null, 1, "test");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
                 null, generator, scope, "testQuery",
                 alias => null, statements => null, () => null));
@@ -36,7 +36,7 @@ public class ApplyInMemoryWithSourceTableNodeProcessorTests
         var scope = new Scope(null, 1, "test");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.Throws<ArgumentNullException>(() =>
             ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
                 node, null, scope, "testQuery",
                 alias => null, statements => null, () => null));
@@ -53,7 +53,7 @@ public class ApplyInMemoryWithSourceTableNodeProcessorTests
         var scope = new Scope(null, 1, "test");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
+        Assert.Throws<ArgumentException>(() =>
             ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
                 node, generator, scope, "",
                 alias => null, statements => null, () => null));
@@ -70,7 +70,7 @@ public class ApplyInMemoryWithSourceTableNodeProcessorTests
         var scope = new Scope(null, 1, "test");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
+        Assert.Throws<ArgumentException>(() =>
             ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
                 node, generator, scope, "testQuery",
                 alias => null, statements => null, () => null));

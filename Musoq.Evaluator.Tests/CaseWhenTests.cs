@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -23,7 +23,7 @@ public class CaseWhenTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0].Values[0]);
@@ -44,7 +44,7 @@ public class CaseWhenTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(0, table[0].Values[0]);
@@ -65,7 +65,7 @@ public class CaseWhenTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0].Values[0]);
@@ -86,7 +86,7 @@ public class CaseWhenTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("TEST", table[0].Values[0]);
@@ -107,7 +107,7 @@ public class CaseWhenTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("TEST", table[0].Values[0]);
@@ -128,7 +128,7 @@ public class CaseWhenTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("TEST", table[0].Values[0]);
@@ -150,6 +150,8 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        Assert.ThrowsException<MethodCallThrownException>(() => vm.Run());
+        Assert.Throws<MethodCallThrownException>(() => vm.Run(TestContext.CancellationToken));
     }
+
+    public TestContext TestContext { get; set; }
 }

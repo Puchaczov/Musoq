@@ -19,7 +19,7 @@ public class AccessObjectArrayNodeProcessorTests
         var nodes = new Stack<SyntaxNode>();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(null, nodes));
     }
 
@@ -30,7 +30,7 @@ public class AccessObjectArrayNodeProcessorTests
         var node = CreateAccessObjectArrayNode("test", 0, typeof(string), isColumnAccess: true);
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, null));
     }
 
@@ -51,8 +51,8 @@ public class AccessObjectArrayNodeProcessorTests
         
         var expressionString = result.Expression.ToString();
         Console.WriteLine($"Expression: {expressionString}");
-        Assert.IsTrue(expressionString.Contains("SafeArrayAccess.GetStringCharacter"));
-        Assert.IsTrue(expressionString.Contains("2"));
+        Assert.Contains("SafeArrayAccess.GetStringCharacter", expressionString);
+        Assert.Contains("2", expressionString);
     }
 
     [TestMethod]
@@ -72,8 +72,8 @@ public class AccessObjectArrayNodeProcessorTests
         var expressionString = result.Expression.ToString();
         Console.WriteLine($"Expression: {expressionString}");
         // Update assertions based on actual output
-        Assert.IsTrue(expressionString.Contains("SafeArrayAccess.GetArrayElement"));
-        Assert.IsTrue(expressionString.Contains("1"));
+        Assert.Contains("SafeArrayAccess.GetArrayElement", expressionString);
+        Assert.Contains("1", expressionString);
     }
 
     [TestMethod]
@@ -90,8 +90,8 @@ public class AccessObjectArrayNodeProcessorTests
         Assert.IsNotNull(result);
         var expressionString = result.Expression.ToString();
         Console.WriteLine($"Expression: {expressionString}");
-        Assert.IsTrue(expressionString.Contains("SafeArrayAccess.GetArrayElement"));
-        Assert.IsTrue(expressionString.Contains("3"));
+        Assert.Contains("SafeArrayAccess.GetArrayElement", expressionString);
+        Assert.Contains("3", expressionString);
     }
 
     [TestMethod]
@@ -108,8 +108,8 @@ public class AccessObjectArrayNodeProcessorTests
         Assert.IsNotNull(result);
         var expressionString = result.Expression.ToString();
         Console.WriteLine($"Expression: {expressionString}");
-        Assert.IsTrue(expressionString.Contains("SafeArrayAccess.GetArrayElement"));
-        Assert.IsTrue(expressionString.Contains("0"));
+        Assert.Contains("SafeArrayAccess.GetArrayElement", expressionString);
+        Assert.Contains("0", expressionString);
     }
 
     [TestMethod]
@@ -127,7 +127,7 @@ public class AccessObjectArrayNodeProcessorTests
         var expressionString = result.Expression.ToString();
         Console.WriteLine($"Expression: {expressionString}");
         // For non-array types, we expect direct element access
-        Assert.IsTrue(expressionString.Contains("[5]"));
+        Assert.Contains("[5]", expressionString);
     }
 
     [TestMethod]
@@ -144,8 +144,8 @@ public class AccessObjectArrayNodeProcessorTests
         // Assert
         Assert.IsNotNull(result);
         var expressionString = result.Expression.ToString();
-        Assert.IsTrue(expressionString.Contains("(parentObject).Property[1]"));
-        Assert.AreEqual(0, nodes.Count); // Should have popped the expression
+        Assert.Contains("(parentObject).Property[1]", expressionString);
+        Assert.IsEmpty(nodes); // Should have popped the expression
     }
 
     [TestMethod]
@@ -156,11 +156,11 @@ public class AccessObjectArrayNodeProcessorTests
         var nodes = new Stack<SyntaxNode>();
 
         // Act & Assert
-        var exception = Assert.ThrowsException<InvalidOperationException>(() => 
+        var exception = Assert.Throws<InvalidOperationException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
         
-        Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
-        Assert.IsTrue(exception.Message.Contains("no parent expression available"));
+        Assert.Contains("Cannot generate code for array access", exception.Message);
+        Assert.Contains("no parent expression available", exception.Message);
     }
 
     [TestMethod]
@@ -172,10 +172,10 @@ public class AccessObjectArrayNodeProcessorTests
         nodes.Push(SyntaxFactory.Block()); // Non-expression syntax node
 
         // Act & Assert
-        var exception = Assert.ThrowsException<InvalidOperationException>(() => 
+        var exception = Assert.Throws<InvalidOperationException>(() => 
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
         
-        Assert.IsTrue(exception.Message.Contains("Cannot generate code for array access"));
+        Assert.Contains("Cannot generate code for array access", exception.Message);
     }
 
     [TestMethod]
@@ -223,7 +223,7 @@ public class AccessObjectArrayNodeProcessorTests
     public void GetCSharpType_WithNullType_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             AccessObjectArrayNodeProcessor.GetCSharpType(null));
     }
 
@@ -246,7 +246,7 @@ public class AccessObjectArrayNodeProcessorTests
     public void AccessObjectArrayProcessingResult_Constructor_WithNullExpression_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(null, "namespace"));
     }
 
@@ -257,7 +257,7 @@ public class AccessObjectArrayNodeProcessorTests
         var expression = SyntaxFactory.IdentifierName("test");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() => 
             new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(expression, null));
     }
 

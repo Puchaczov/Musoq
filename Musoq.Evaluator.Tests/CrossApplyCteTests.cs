@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -73,7 +73,7 @@ select [a.City], [a.Country], [a.Population], [b.Country], [b.Money], [b.Month] 
             null,
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(6, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -89,23 +89,23 @@ select [a.City], [a.Country], [a.Population], [b.Country], [b.Money], [b.Month] 
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "City1" && 
+        Assert.AreEqual(2,
+table.Count(row =>
+                (string)row.Values[0] == "City1" &&
                 (string)row.Values[1] == "Country1" &&
                 (int)row.Values[2] == 100 &&
                 (string)row.Values[3] == "Country1" &&
-                ((decimal)row.Values[4] == 1000m || (decimal)row.Values[4] == 2000m)) == 2,
-            "Expected data for City1 not found");
+                ((decimal)row.Values[4] == 1000m || (decimal)row.Values[4] == 2000m)), "Expected data for City1 not found");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "City2" && 
+        Assert.AreEqual(2,
+table.Count(row =>
+                (string)row.Values[0] == "City2" &&
                 (string)row.Values[1] == "Country1" &&
                 (int)row.Values[2] == 200 &&
                 (string)row.Values[3] == "Country1" &&
-                ((decimal)row.Values[4] == 1000m || (decimal)row.Values[4] == 2000m)) == 2,
-            "Expected data for City2 not found");
+                ((decimal)row.Values[4] == 1000m || (decimal)row.Values[4] == 2000m)), "Expected data for City2 not found");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row.Values[0] == "City3" && 
@@ -152,7 +152,7 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a cro
             null,
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(6, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -168,47 +168,47 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a cro
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
         
-        Assert.IsTrue(table.Count == 5, "Table should contain 5 rows");
+        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "City1" && 
-                (string)row.Values[1] == "Country1" && 
-                (int)row.Values[2] == 100 && 
-                (string)row.Values[3] == "Country1" && 
-                (decimal)row.Values[4] == 1000m) == 1, 
-            "Missing City1/Country1/100/Country1/1000 row");
+        Assert.AreEqual(1,
+table.Count(row =>
+                (string)row.Values[0] == "City1" &&
+                (string)row.Values[1] == "Country1" &&
+                (int)row.Values[2] == 100 &&
+                (string)row.Values[3] == "Country1" &&
+                (decimal)row.Values[4] == 1000m), "Missing City1/Country1/100/Country1/1000 row");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "City1" && 
-                (string)row.Values[1] == "Country1" && 
-                (int)row.Values[2] == 100 && 
-                (string)row.Values[3] == "Country1" && 
-                (decimal)row.Values[4] == 2000m) == 1,
-            "Missing City1/Country1/100/Country1/2000 row");
+        Assert.AreEqual(1,
+table.Count(row =>
+                (string)row.Values[0] == "City1" &&
+                (string)row.Values[1] == "Country1" &&
+                (int)row.Values[2] == 100 &&
+                (string)row.Values[3] == "Country1" &&
+                (decimal)row.Values[4] == 2000m), "Missing City1/Country1/100/Country1/2000 row");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "City2" && 
-                (string)row.Values[1] == "Country1" && 
-                (int)row.Values[2] == 200 && 
-                (string)row.Values[3] == "Country1" && 
-                (decimal)row.Values[4] == 1000m) == 1,
-            "Missing City2/Country1/200/Country1/1000 row");
+        Assert.AreEqual(1,
+table.Count(row =>
+                (string)row.Values[0] == "City2" &&
+                (string)row.Values[1] == "Country1" &&
+                (int)row.Values[2] == 200 &&
+                (string)row.Values[3] == "Country1" &&
+                (decimal)row.Values[4] == 1000m), "Missing City2/Country1/200/Country1/1000 row");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "City2" && 
-                (string)row.Values[1] == "Country1" && 
-                (int)row.Values[2] == 200 && 
-                (string)row.Values[3] == "Country1" && 
-                (decimal)row.Values[4] == 2000m) == 1,
-            "Missing City2/Country1/200/Country1/2000 row");
+        Assert.AreEqual(1,
+table.Count(row =>
+                (string)row.Values[0] == "City2" &&
+                (string)row.Values[1] == "Country1" &&
+                (int)row.Values[2] == 200 &&
+                (string)row.Values[3] == "Country1" &&
+                (decimal)row.Values[4] == 2000m), "Missing City2/Country1/200/Country1/2000 row");
 
-        Assert.IsTrue(table.Count(row => 
-                (string)row.Values[0] == "City3" && 
-                (string)row.Values[1] == "Country2" && 
-                (int)row.Values[2] == 300 && 
-                (string)row.Values[3] == "Country2" && 
-                (decimal)row.Values[4] == 3000m) == 1,
-            "Missing City3/Country2/300/Country2/3000 row");
+        Assert.AreEqual(1,
+table.Count(row =>
+                (string)row.Values[0] == "City3" &&
+                (string)row.Values[1] == "Country2" &&
+                (int)row.Values[2] == 300 &&
+                (string)row.Values[3] == "Country2" &&
+                (decimal)row.Values[4] == 3000m), "Missing City3/Country2/300/Country2/3000 row");
     }
     
     [TestMethod]
@@ -231,7 +231,7 @@ select [a.Name], [b.Value] from p";
             query, 
             firstSource);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -301,7 +301,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             query, 
             firstSource);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -310,7 +310,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
         
         Assert.AreEqual("b.Value", table.Columns.ElementAt(1).ColumnName);
         
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);Assert.IsTrue(table.Count == 9, "Table should contain 9 rows");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);Assert.AreEqual(9, table.Count, "Table should contain 9 rows");
 
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name1" && (string)row.Values[1] == "Skill1"), "Missing Name1/Skill1 row");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name1" && (string)row.Values[1] == "Skill2"), "Missing Name1/Skill2 row");
@@ -358,7 +358,7 @@ select a.Name, b.Value from first a cross apply a.Skills b";
 
         try
         {
-            vm.Run();
+            vm.Run(TestContext.CancellationToken);
         }
         catch (Exception)
         {
@@ -387,9 +387,9 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             query, 
             firstSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
-        Assert.IsTrue(table.Count == 6, "Table should contain 3 rows");
+        Assert.AreEqual(6, table.Count, "Table should contain 3 rows");
             
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"), "Missing Skill1/one row");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"), "Missing Skill1/two row");
@@ -422,9 +422,9 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             query, 
             firstSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
-        Assert.IsTrue(table.Count == 6, "Table should contain 3 rows");
+        Assert.AreEqual(6, table.Count, "Table should contain 3 rows");
             
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"), "Missing Skill1/one row");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"), "Missing Skill1/two row");
@@ -457,9 +457,9 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             query, 
             firstSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
-        Assert.IsTrue(table.Count == 6, "Table should contain 3 rows");
+        Assert.AreEqual(6, table.Count, "Table should contain 3 rows");
             
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"), "Missing Skill1/one row");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"), "Missing Skill1/two row");
@@ -492,9 +492,9 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             query, 
             firstSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
-        Assert.IsTrue(table.Count == 6, "Table should contain 3 rows");
+        Assert.AreEqual(6, table.Count, "Table should contain 3 rows");
             
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"), "Missing Skill1/one row");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"), "Missing Skill1/two row");
@@ -505,4 +505,6 @@ select a.Name, b.Value from first a cross apply a.Skills b";
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "one"), "Missing Skill3/one row");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "two"), "Missing Skill3/two row");
     }
+
+    public TestContext TestContext { get; set; }
 }

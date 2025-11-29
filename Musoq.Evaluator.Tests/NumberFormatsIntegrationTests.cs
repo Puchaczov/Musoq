@@ -24,7 +24,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(255L, result[0][0]);
@@ -47,7 +47,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
         }
         
@@ -65,7 +65,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(530L, result[0][0]); // (255 + 10) * 2 = 530
         }
@@ -88,7 +88,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual("Large", result[0][0]);
         }
@@ -108,7 +108,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(1020L, result[0][0]);
             Assert.AreEqual(494L, result[0][1]); // (255 * 2) - (64 / 4) = 510 - 16 = 494
@@ -128,7 +128,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(8L, result[0][0]); // ((255 + 1) * 2) / (63 + 1) = 512 / 64 = 8
         }
@@ -155,7 +155,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual("Odd in range", result[0][0]); // 255 % 2 = 1 (odd)
         }
@@ -176,7 +176,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(2508L, result[0][0]); // (255*8) + (15*6) + (63*6) = 2040 + 90 + 378 = 2508
         }
@@ -197,7 +197,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(65535L, result[0][0]);
             Assert.AreEqual(65535L, result[0][1]);
@@ -219,7 +219,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual("Equal", result[0][0]);
             Assert.AreEqual("Equal", result[0][1]);
@@ -240,7 +240,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(239L, result[0][0]); // Abs(16 - 255) = 239
             Assert.AreEqual(15L, result[0][1]); // 255 % 16 = 15
@@ -257,7 +257,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(261L, result[0][0]); // 255 + (2 * 3) = 261
             Assert.AreEqual(771L, result[0][1]); // (255 + 2) * 3 = 771
@@ -276,7 +276,7 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(255L, result[0][0]);
         }
@@ -292,12 +292,14 @@ namespace Musoq.Evaluator.Tests
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var result = vm.Run();
+            var result = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(256L, result[0][0]); // 255 + 1
             Assert.AreEqual(84L, result[0][1]);  // 100 - 16
             Assert.AreEqual(50L, result[0][2]);  // 10 * 5
             Assert.AreEqual(125L, result[0][3]); // 1000 / 8
         }
+
+        public TestContext TestContext { get; set; }
     }
 }

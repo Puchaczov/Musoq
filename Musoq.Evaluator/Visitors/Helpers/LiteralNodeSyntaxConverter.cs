@@ -25,10 +25,9 @@ public static class LiteralNodeSyntaxConverter
         if (node == null)
             throw new ArgumentNullException(nameof(node));
 
-        return SyntaxFactory.LiteralExpression(
-            SyntaxKind.StringLiteralExpression,
-            SyntaxFactory.Literal(
-                $"@\"{EscapeQuoteString(node.Value, '\'')}\"", node.Value));
+        var escaped = SymbolDisplay.FormatLiteral(node.Value, true);
+        var token = SyntaxFactory.Literal(escaped, node.Value);
+        return SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, token);
     }
 
     /// <summary>
@@ -229,29 +228,5 @@ public static class LiteralNodeSyntaxConverter
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Escapes quote strings for C# string literals.
-    /// </summary>
-    /// <param name="text">The text to escape.</param>
-    /// <param name="escapingCharacter">The character to use for escaping.</param>
-    /// <returns>The escaped text.</returns>
-    private static string EscapeQuoteString(string text, char escapingCharacter)
-    {
-        if (text == null)
-            return string.Empty;
-
-        var builder = new System.Text.StringBuilder(text.Length);
-
-        foreach (var c in text)
-        {
-            if (c == '"')
-                builder.Append(escapingCharacter);
-
-            builder.Append(c);
-        }
-
-        return builder.ToString();
     }
 }

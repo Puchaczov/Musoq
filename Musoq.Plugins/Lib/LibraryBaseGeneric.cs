@@ -1,5 +1,6 @@
-﻿using Musoq.Plugins.Attributes;
+using Musoq.Plugins.Attributes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,6 +9,8 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
+    private static readonly ConcurrentDictionary<string, Regex> MatchRegexCache = new();
+    
     /// <summary>
     /// Skips elements from the beginning of the sequence.
     /// </summary>
@@ -16,6 +19,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Elements without the skipped ones</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public IEnumerable<T>? Skip<T>(IEnumerable<T>? values, int skipCount)
     {
         if (values == null)
@@ -32,6 +36,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Only taken ones elements</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public IEnumerable<T>? Take<T>(IEnumerable<T>? values, int takeCount)
     {
         if (values == null)
@@ -49,6 +54,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Skipped and taken elements</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public IEnumerable<T>? SkipAndTake<T>(IEnumerable<T>? values, int skipCount, int takeCount)
     {
         if (values == null)
@@ -64,6 +70,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Array of specific type</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T[]? EnumerableToArray<T>(IEnumerable<T>? values)
     {
         if (values == null)
@@ -79,6 +86,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Array of specific type</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T[]? MergeArrays<T>(params T[][]? values)
     {
         if (values == null)
@@ -102,6 +110,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Longest common subsequence of two sequences</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public IEnumerable<T>? LongestCommonSequence<T>(IEnumerable<T>? source, IEnumerable<T>? pattern)
         where T : IEquatable<T>
     {
@@ -155,6 +164,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Element of a given index</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T? GetElementAtOrDefault<T>(IEnumerable<T>? enumerable, int? index)
     {
         if (enumerable == null)
@@ -173,6 +183,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Length of sequence</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public int? Length<T>(IEnumerable<T>? enumerable)
     {
         if (enumerable == null)
@@ -188,6 +199,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Length of sequence</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public int? Length<T>(T[]? array)
     {
         return array?.Length;
@@ -201,6 +213,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Value of specified index</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T? Choose<T>(int index, params T[] values)
     {
         if (values.Length <= index)
@@ -218,6 +231,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>Value a or b</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T If<T>(bool expressionResult, T a, T b)
     {
         if (expressionResult)
@@ -233,12 +247,16 @@ public partial class LibraryBase
     /// <param name="content">The content</param>
     /// <returns>True if matches, otherwise false</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public bool? Match(string? regex, string? content)
     {
         if (regex == null || content == null)
             return null;
 
-        return Regex.IsMatch(content, regex);
+        var compiledRegex = MatchRegexCache.GetOrAdd(regex, pattern => 
+            new Regex(pattern, RegexOptions.Compiled));
+        
+        return compiledRegex.IsMatch(content);
     }
         
     /// <summary>
@@ -247,6 +265,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public byte? Coalesce(params byte?[] array)
         => Coalesce<byte?>(array);
         
@@ -256,6 +275,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public sbyte? Coalesce(params sbyte?[] array)
         => Coalesce<sbyte?>(array);
         
@@ -265,6 +285,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public short? Coalesce(params short?[] array)
         => Coalesce<short?>(array);
         
@@ -274,6 +295,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public ushort? Coalesce(params ushort?[] array)
         => Coalesce<ushort?>(array);
         
@@ -283,6 +305,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public int? Coalesce(params int?[] array)
         => Coalesce<int?>(array);
         
@@ -292,6 +315,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public decimal? Coalesce(params uint?[] array)
         => Coalesce<uint?>(array);
         
@@ -301,6 +325,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public decimal? Coalesce(params long?[] array)
         => Coalesce<long?>(array);
         
@@ -310,6 +335,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public decimal? Coalesce(params ulong?[] array)
         => Coalesce<ulong?>(array);
         
@@ -319,6 +345,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public decimal? Coalesce(params decimal?[] array)
         => Coalesce<decimal?>(array);
         
@@ -328,6 +355,7 @@ public partial class LibraryBase
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T? Coalesce<T>(params T[] array)
     {
         foreach (var obj in array)
@@ -346,6 +374,7 @@ public partial class LibraryBase
     /// <param name="values">The collection to remove duplicate elements from.</param>
     /// <returns>An IEnumerable&lt;T&gt; that contains distinct elements from the input sequence.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public IEnumerable<T>? Distinct<T>(IEnumerable<T>? values)
     {
         return values?.Distinct();
@@ -358,6 +387,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>The first element of a sequence, or a default value if the sequence contains no elements.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T? FirstOrDefault<T>(IEnumerable<T>? values)
     {
         if (values == null)
@@ -373,6 +403,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>The last element of a sequence, or a default value if the sequence contains no elements.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T? LastOrDefault<T>(IEnumerable<T>? values)
     {
         if (values == null)
@@ -389,6 +420,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>The element at a specified index in a sequence or a default value if the index is out of range.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T? NthOrDefault<T>(IEnumerable<T>? values, int index)
     {
         if (values == null)
@@ -405,6 +437,7 @@ public partial class LibraryBase
     /// <typeparam name="T">Type</typeparam>
     /// <returns>The element at a specified index from the end of a sequence or a default value if the index is out of range.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
     public T? NthFromEndOrDefault<T>(IEnumerable<T>? values, int index)
     {
         if (values == null)
@@ -415,5 +448,80 @@ public partial class LibraryBase
             T[] array => array.ElementAtOrDefault(array.Length - index - 1),
             _ => values.Reverse().ElementAtOrDefault(index)
         }; 
+    }
+
+    /// <summary>
+    /// Returns null if the two values are equal, otherwise returns the first value.
+    /// Useful for replacing specific values with null in queries.
+    /// </summary>
+    /// <param name="value">The value to check</param>
+    /// <param name="compareValue">The value to compare against</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>Null if values are equal, otherwise the first value</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
+    public T? NullIf<T>(T? value, T? compareValue)
+    {
+        if (value == null && compareValue == null)
+            return default;
+
+        if (value == null || compareValue == null)
+            return value;
+
+        return EqualityComparer<T>.Default.Equals(value, compareValue) ? default : value;
+    }
+
+    /// <summary>
+    /// Returns the first value if it is not null, otherwise returns the second value.
+    /// SQL-style IFNULL/ISNULL function.
+    /// </summary>
+    /// <param name="value">The value to check for null</param>
+    /// <param name="defaultValue">The value to return if the first is null</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>The first value if not null, otherwise the second value</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
+    public T? IfNull<T>(T? value, T? defaultValue)
+    {
+        return value ?? defaultValue;
+    }
+
+    /// <summary>
+    /// Returns the default value of a type if the value is null, otherwise returns the value.
+    /// </summary>
+    /// <param name="value">The value to check for null</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>The value if not null, otherwise default(T)</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
+    public T? DefaultIfNull<T>(T? value)
+    {
+        return value ?? default;
+    }
+
+    /// <summary>
+    /// Determines whether the value is null.
+    /// </summary>
+    /// <param name="value">The value to check</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>True if the value is null, otherwise false</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
+    public bool IsNull<T>(T? value)
+    {
+        return value == null;
+    }
+
+    /// <summary>
+    /// Determines whether the value is not null.
+    /// </summary>
+    /// <param name="value">The value to check</param>
+    /// <typeparam name="T">Type</typeparam>
+    /// <returns>True if the value is not null, otherwise false</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
+    public bool IsNotNull<T>(T? value)
+    {
+        return value != null;
     }
 }

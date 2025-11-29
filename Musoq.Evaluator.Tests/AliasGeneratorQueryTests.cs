@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -18,8 +18,8 @@ public class AliasGeneratorQueryTests : BasicEntityTestBase
         var firstFromNodes = firstBuild.UsedColumns.Keys.ToArray();
         var secondFromNodes = secondBuild.UsedColumns.Keys.ToArray();
         
-        Assert.AreEqual(1, firstFromNodes.Length);
-        Assert.AreEqual(1, secondFromNodes.Length);
+        Assert.HasCount(1, firstFromNodes);
+        Assert.HasCount(1, secondFromNodes);
         
         Assert.AreEqual(firstFromNodes[0].Alias, secondFromNodes[0].Alias);
     }

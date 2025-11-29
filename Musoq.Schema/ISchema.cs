@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Musoq.Schema.DataSources;
@@ -14,13 +15,9 @@ public interface ISchema
 
     RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters);
 
-    SchemaMethodInfo[] GetConstructors(string methodName);
+    SchemaMethodInfo[] GetRawConstructors(RuntimeContext runtimeContext);
 
-    SchemaMethodInfo[] GetConstructors();
-
-    SchemaMethodInfo[] GetRawConstructors();
-
-    SchemaMethodInfo[] GetRawConstructors(string methodName);
+    SchemaMethodInfo[] GetRawConstructors(string methodName, RuntimeContext runtimeContext);
 
     bool TryResolveMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo);
 
@@ -28,14 +25,5 @@ public interface ISchema
 
     bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo);
 
-    static virtual Task LoadRequiredDependenciesAsync()
-    {
-        // The default implementation does nothing and it is intended as most of the schemas won't require any additional dependencies.
-        return Task.CompletedTask;
-    }
-    
-    static virtual void LoadRequiredDependencies()
-    {
-        // The default implementation does nothing and it is intended as most of the schemas won't require any additional dependencies.
-    }
+    IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods();
 }

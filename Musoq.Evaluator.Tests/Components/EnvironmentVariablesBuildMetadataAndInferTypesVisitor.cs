@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
@@ -16,7 +16,7 @@ public class EnvironmentVariablesBuildMetadataAndInferTypesVisitor(
     ILogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor> logger)
     : BuildMetadataAndInferTypesVisitor(provider, columns, logger)
 {
-    public List<Type> PassedSchemaArguments { get; private set; } = new();
+    public List<Type> PassedSchemaArguments { get; private set; } = [];
     
     protected override IReadOnlyDictionary<string, string> RetrieveEnvironmentVariables(uint position, SchemaFromNode node)
     {

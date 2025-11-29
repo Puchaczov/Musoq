@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
@@ -35,7 +35,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -43,7 +43,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         
         Assert.AreEqual(1, table.Count);
         
-        Assert.AreEqual(null, table[0][0]);
+        Assert.IsNull(table[0][0]);
     }
     
     [TestMethod]
@@ -61,13 +61,13 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 8, "Table should contain 8 rows");
+        Assert.AreEqual(8, table.Count, "Table should contain 8 rows");
 
         var expectedStrings = new[] {"Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."};
         foreach (var expected in expectedStrings) {
@@ -90,13 +90,13 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 7, "Table should contain 7 rows");
+        Assert.AreEqual(7, table.Count, "Table should contain 7 rows");
 
         Assert.IsTrue(table.Any(row => (string)row[0] == "ipsum"), "Missing ipsum");
         Assert.IsTrue(table.Any(row => (string)row[0] == "dolor"), "Missing dolor");
@@ -122,13 +122,13 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 6, "Table should contain 6 rows");
+        Assert.AreEqual(6, table.Count, "Table should contain 6 rows");
 
         Assert.IsTrue(table.Any(row => (string)row[0] == "ipsum"), "Missing ipsum");
         Assert.IsTrue(table.Any(row => (string)row[0] == "dolor"), "Missing dolor");
@@ -153,13 +153,13 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         
-        Assert.IsTrue(table.Count == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "consectetur"), "First entry should be 'consectetur'");
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "adipiscing"), "Second entry should be 'adipiscing'");
@@ -180,7 +180,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
@@ -188,7 +188,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("b.Count(b.Length(b.Value))", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.IsTrue(table.Count == 4, "Table should have 4 entries");
+        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(row => 
             (int)row[0] == 5 && 
@@ -228,7 +228,7 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -264,4 +264,6 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
                 $"Word '{word}' should appear {words.Length} times in second column");
         }
     }
+
+    public TestContext TestContext { get; set; }
 }

@@ -11,23 +11,23 @@ public abstract class IndexedList<TKey, TValue>
     protected readonly Dictionary<TKey, List<int>> Indexes = new();
     protected internal readonly List<TValue> Rows = [];
 
-    public TValue this[int index] => Rows[index];
+    public virtual TValue this[int index] => Rows[index];
 
-    public int Count => Rows.Count;
+    public virtual int Count => Rows.Count;
 
-    public IEnumerable<TValue> this[TKey key] => Indexes[key].Select(f => Rows[f]);
+    public virtual IEnumerable<TValue> this[TKey key] => Indexes[key].Select(f => Rows[f]);
 
-    public bool Contains(TValue value)
+    public virtual bool Contains(TValue value)
     {
         return Rows.Contains(value);
     }
 
-    public bool Contains(TValue value, Func<TValue, TValue, bool> comparer)
+    public virtual bool Contains(TValue value, Func<TValue, TValue, bool> comparer)
     {
         return Rows.Any(row => comparer(row, value));
     }
 
-    public bool Contains(TKey key, TValue value)
+    public virtual bool Contains(TKey key, TValue value)
     {
         if (Indexes.TryGetValue(key, out var values))
             foreach (var index in values)
@@ -36,12 +36,12 @@ public abstract class IndexedList<TKey, TValue>
         return false;
     }
 
-    public bool ContainsKey(TKey key)
+    public virtual bool ContainsKey(TKey key)
     {
         return Indexes.ContainsKey(key);
     }
 
-    public bool TryGetIndexedValues(TKey key, out IReadOnlyList<TValue> values)
+    public virtual bool TryGetIndexedValues(TKey key, out IReadOnlyList<TValue> values)
     {
         if (Indexes.TryGetValue(key, out var matchedIndexes))
         {

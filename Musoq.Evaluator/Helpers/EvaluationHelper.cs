@@ -1,19 +1,23 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Xml;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Helpers;
 using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Helpers;
 
 public static class EvaluationHelper
 {
+    private static readonly ConcurrentDictionary<Type, string> CastableTypeCache = new();
     public static RowSource ConvertEnumerableToSource<T>(IEnumerable<T> enumerable)
     {
         if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
@@ -54,24 +58,145 @@ public static class EvaluationHelper
         return newTable;
     }
 
-    public static Table GetSpecificSchemaDescriptions(ISchema schema)
+    public static Table GetSpecificSchemaDescriptions(ISchema schema, RuntimeContext runtimeContext)
     {
-        return CreateTableFromConstructors(schema.GetRawConstructors);
+        return CreateTableFromConstructors(() => schema.GetRawConstructors(runtimeContext));
     }
 
-    public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName)
+    public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName, RuntimeContext runtimeContext)
     {
-        return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName));
+        return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName, runtimeContext));
+    }
+
+    public static Table GetMethodsForSchema(ISchema schema, RuntimeContext runtimeContext)
+    {
+        runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
+        
+        var libraryMethods = schema.GetAllLibraryMethods();
+
+        var newTable = new Table("desc", [
+            new Column("Method", typeof(string), 0),
+            new Column("Description", typeof(string), 1)
+        ]);
+
+        foreach (var (methodName, methodInfos) in libraryMethods.OrderBy(kvp => kvp.Key))
+        {
+            foreach (var methodInfo in methodInfos)
+            {
+                runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
+                
+                var bindableAttr = methodInfo.GetCustomAttribute<Plugins.Attributes.BindableMethodAttribute>();
+                if (bindableAttr?.IsInternal == true)
+                    continue;
+                
+                if (methodInfo.GetCustomAttribute<Plugins.Attributes.AggregationSetMethodAttribute>() != null)
+                    continue;
+                
+                var signature = CSharpTypeNameHelper.FormatMethodSignature(methodInfo);
+                var description = GetXmlDocumentation(methodInfo);
+                
+                newTable.Add(new ObjectsRow([signature, description]));
+            }
+        }
+
+        return newTable;
+    }
+
+    private static string GetXmlDocumentation(MethodInfo methodInfo)
+    {
+        try
+        {
+            var assembly = methodInfo.DeclaringType?.Assembly;
+            if (assembly == null)
+                return string.Empty;
+
+            var assemblyPath = assembly.Location;
+            if (string.IsNullOrEmpty(assemblyPath))
+                return string.Empty;
+
+            var xmlPath = System.IO.Path.ChangeExtension(assemblyPath, ".xml");
+            if (!System.IO.File.Exists(xmlPath))
+                return string.Empty;
+
+            var xmlDoc = new XmlDocument();
+            xmlDoc.Load(xmlPath);
+
+            var memberName = GetMemberName(methodInfo);
+            var node = xmlDoc.SelectSingleNode($"//member[@name='{memberName}']/summary");
+            
+            if (node == null)
+                return string.Empty;
+
+            var text = node.InnerText.Trim();
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
+            
+            return text;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string GetMemberName(MethodInfo method)
+    {
+        var declaringType = method.DeclaringType;
+        if (declaringType == null)
+            return string.Empty;
+
+        var sb = new StringBuilder();
+        sb.Append("M:");
+        sb.Append(declaringType.FullName);
+        sb.Append('.');
+        sb.Append(method.Name);
+
+        var parameters = method.GetParameters();
+        if (parameters.Length <= 0) 
+            return sb.ToString();
+        
+        sb.Append('(');
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (i > 0)
+                sb.Append(',');
+                
+            var paramType = parameters[i].ParameterType;
+            sb.Append(GetTypeName(paramType));
+        }
+        sb.Append(')');
+
+        return sb.ToString();
+    }
+
+    private static string GetTypeName(Type type)
+    {
+        if (type.IsGenericType)
+        {
+            var genericTypeName = type.GetGenericTypeDefinition().FullName;
+            var tickIndex = genericTypeName.IndexOf('`');
+            if (tickIndex > 0)
+                genericTypeName = genericTypeName.Substring(0, tickIndex);
+
+            var genericArgs = type.GetGenericArguments();
+            return $"{genericTypeName}{{{string.Join(",", genericArgs.Select(GetTypeName))}}}";
+        }
+
+        if (!type.IsArray) 
+            return type.FullName ?? type.Name;
+        
+        var elementType = type.GetElementType();
+        return GetTypeName(elementType) + "[]";
+
     }
 
     private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
     {
         var maxColumns = 0;
-        var values = new List<List<string>>();
+        var values = new List<List<object>>();
 
         foreach (var constructor in getConstructors())
         {
-            var row = new List<string>();
+            var row = new List<object>();
             values.Add(row);
 
             row.Add(constructor.MethodName);
@@ -129,9 +254,15 @@ public static class EvaluationHelper
             if(current.Level > 3)
                 continue;
 
+            if (current.Type.IsPrimitive || current.Type == typeof(string) || current.Type == typeof(object))
+                continue;
+
             foreach (var prop in current.Type.GetProperties())
             {
                 if (prop.MemberType != MemberTypes.Property)
+                    continue;
+
+                if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object))
                     continue;
 
                 var complexName = $"{current.FieldName}.{prop.Name}";
@@ -140,10 +271,7 @@ public static class EvaluationHelper
                 if(prop.PropertyType == current.Type)
                     continue;
 
-                if (!(prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object)))
-                {
-                    fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
-                }
+                fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
             }
         }
 
@@ -152,7 +280,32 @@ public static class EvaluationHelper
 
     public static string GetCastableType(Type type)
     {
-        if (type is NullNode.NullType) return "System.Object";
+        if (type is NullNode.NullType) return "object";
+        
+        // Fast path for common primitive types (no cache lookup needed)
+        if (type == typeof(string)) return "string";
+        if (type == typeof(int)) return "int";
+        if (type == typeof(long)) return "long";
+        if (type == typeof(short)) return "short";
+        if (type == typeof(byte)) return "byte";
+        if (type == typeof(ulong)) return "ulong";
+        if (type == typeof(uint)) return "uint";
+        if (type == typeof(ushort)) return "ushort";
+        if (type == typeof(sbyte)) return "sbyte";
+        if (type == typeof(bool)) return "bool";
+        if (type == typeof(decimal)) return "decimal";
+        if (type == typeof(double)) return "double";
+        if (type == typeof(float)) return "float";
+        if (type == typeof(char)) return "char";
+        if (type == typeof(object)) return "object";
+        if (type == typeof(void)) return "void";
+
+        // Use cache for more complex types
+        return CastableTypeCache.GetOrAdd(type, ComputeCastableType);
+    }
+    
+    private static string ComputeCastableType(Type type)
+    {
         if (type.IsGenericType) return GetFriendlyTypeName(type);
         if (type.IsNested) return $"{GetCastableType(type.DeclaringType)}.{type.Name}";
 
@@ -162,7 +315,7 @@ public static class EvaluationHelper
     public static Type[] GetNestedTypes(Type type)
     {
         if (type == null)
-            throw new ArgumentNullException(nameof(type), "Type cannot be null");
+            throw new ArgumentNullException(nameof(type), @"Type cannot be null");
             
         if (!type.IsGenericType)
             return [type];
@@ -189,7 +342,7 @@ public static class EvaluationHelper
     {
         if (type.IsGenericParameter) return type.Name;
 
-        if (!type.IsGenericType) return ReplacePlusWithDotForNestedClasses(type.FullName);
+        if (!type.IsGenericType) return GetCastableType(type);
 
         var builder = new StringBuilder();
         var name = type.Name;
@@ -199,8 +352,8 @@ public static class EvaluationHelper
         var first = true;
         foreach (var arg in type.GetGenericArguments())
         {
-            if (!first) builder.Append(',');
-            builder.Append(GetFriendlyTypeName(arg));
+            if (!first) builder.Append(", ");
+            builder.Append(GetCastableType(arg));
             first = false;
         }
 
@@ -333,5 +486,39 @@ public static class EvaluationHelper
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// Flattens multiple context arrays into a single array, handling null contexts by inserting a null value.
+    /// </summary>
+    /// <param name="contexts">The context arrays to flatten.</param>
+    /// <returns>A single flattened array containing all context objects from the input arrays, with nulls for any null context arrays.</returns>
+    public static object[] FlattenContexts(params object[][] contexts)
+    {
+        var size = 0;
+        for (var i = 0; i < contexts.Length; i++)
+        {
+            if (contexts[i] != null)
+                size += contexts[i].Length;
+            else
+                size += 1;
+        }
+
+        var result = new object[size];
+        var offset = 0;
+        for (var i = 0; i < contexts.Length; i++)
+        {
+            if (contexts[i] != null)
+            {
+                Array.Copy(contexts[i], 0, result, offset, contexts[i].Length);
+                offset += contexts[i].Length;
+            }
+            else
+            {
+                result[offset++] = null;
+            }
+        }
+
+        return result;
     }
 }

@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class CTECrossApplyTestCases : GenericEntityTestBase
+public class CteCrossApplyTestCases : GenericEntityTestBase
 {
     [TestMethod]
     public void CTE_WithCrossApply_ShouldNotThrowKeyNotFoundException()
@@ -21,7 +21,7 @@ public class CTECrossApplyTestCases : GenericEntityTestBase
         
         var firstSource = new object[1] { new object() };
         var vm = CreateAndRunVirtualMachine(query, firstSource);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.IsNotNull(table);
         Assert.AreEqual(2, table.Columns.Count());
@@ -57,7 +57,7 @@ public class CTECrossApplyTestCases : GenericEntityTestBase
         
         var firstSource = new object[1] { new { } };
         var vm = CreateAndRunVirtualMachine(query, firstSource);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.IsNotNull(table);
         Assert.AreEqual(2, table.Columns.Count());
@@ -74,4 +74,6 @@ public class CTECrossApplyTestCases : GenericEntityTestBase
             (string)row[0] == "Hello World" && 
             (string)row[1] == "World"));
     }
+
+    public TestContext TestContext { get; set; }
 }

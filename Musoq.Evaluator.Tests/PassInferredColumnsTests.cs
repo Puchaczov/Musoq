@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,12 +26,12 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         second.Country = "USA";
         second.ContactNumber = "987654321";
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -70,12 +70,12 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         second.Country = "USA";
         second.ContactNumber = "987654321";
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second
-        });
+        ]);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -118,12 +118,12 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         third.Country = "Poland";
         third.ContactNumber = "31233133";
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second, third
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("p1.Name", table.Columns.ElementAt(0).ColumnName);
@@ -183,12 +183,12 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         third.Country = "Poland";
         third.ContactNumber = "31233133";
         
-        var vm = CreateAndRunVirtualMachine(query, new List<dynamic>()
-        {
+        var vm = CreateAndRunVirtualMachine(query,
+        [
             first, second, third
-        });
+        ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -196,7 +196,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         Assert.AreEqual("Age", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(1).ColumnType);
         
-        Assert.IsTrue(table.Count == 3, "Table should contain 3 rows");
+        Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row => 
                 (string)row.Values[0] == "Roland" && 
@@ -213,4 +213,6 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
                 (int)row.Values[1] == 22),
             "Row with John age 22 not found");
     }
+
+    public TestContext TestContext { get; set; }
 }

@@ -45,5 +45,5 @@ public class ObjectsRow : Row
 
     public override object[] Values => _values;
 
-    public object[] Contexts { get; }
+    public override object[] Contexts { get; }
 }

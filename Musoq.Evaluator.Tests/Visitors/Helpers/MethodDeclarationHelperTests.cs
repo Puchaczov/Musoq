@@ -43,19 +43,19 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var parameters = parameterList.Parameters.ToArray();
             
             // Check provider parameter type
-            Assert.IsTrue(parameters[0].Type.ToString().Contains("ISchemaProvider"));
+            Assert.Contains("ISchemaProvider", parameters[0].Type.ToString());
             
             // Check positionalEnvironmentVariables parameter type
-            Assert.IsTrue(parameters[1].Type.ToString().Contains("IReadOnlyDictionary"));
+            Assert.Contains("IReadOnlyDictionary", parameters[1].Type.ToString());
             
             // Check queriesInformation parameter type
-            Assert.IsTrue(parameters[2].Type.ToString().Contains("IReadOnlyDictionary"));
+            Assert.Contains("IReadOnlyDictionary", parameters[2].Type.ToString());
             
             // Check logger parameter type
-            Assert.IsTrue(parameters[3].Type.ToString().Contains("ILogger"));
+            Assert.Contains("ILogger", parameters[3].Type.ToString());
             
             // Check token parameter type
-            Assert.IsTrue(parameters[4].Type.ToString().Contains("CancellationToken"));
+            Assert.Contains("CancellationToken", parameters[4].Type.ToString());
         }
 
         [TestMethod]
@@ -73,7 +73,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             Assert.AreEqual(methodName, method.Identifier.ValueText);
             Assert.AreEqual(1, method.Modifiers.Count);
             Assert.IsTrue(method.Modifiers[0].IsKind(SyntaxKind.PrivateKeyword));
-            Assert.IsTrue(method.ReturnType.ToString().Contains("Table"));
+            Assert.Contains("Table", method.ReturnType.ToString());
             Assert.AreEqual(5, method.ParameterList.Parameters.Count);
             Assert.IsNotNull(method.Body);
             Assert.AreEqual(0, method.Body.Statements.Count); // Empty block should have 0 statements
@@ -86,7 +86,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var body = SyntaxFactory.Block();
 
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateStandardPrivateMethod(null, body));
         }
 
@@ -97,7 +97,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var body = SyntaxFactory.Block();
 
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateStandardPrivateMethod("", body));
         }
 
@@ -108,7 +108,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             var body = SyntaxFactory.Block();
 
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateStandardPrivateMethod("   ", body));
         }
 
@@ -116,7 +116,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreateStandardPrivateMethod_WithNullBody_ThrowsArgumentNullException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentNullException>(() => 
+            Assert.Throws<ArgumentNullException>(() => 
                 MethodDeclarationHelper.CreateStandardPrivateMethod("TestMethod", null));
         }
 
@@ -133,7 +133,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             // Assert
             Assert.IsNotNull(property);
             Assert.AreEqual(propertyName, property.Identifier.ValueText);
-            Assert.IsTrue(property.Type.ToString().Contains(typeName));
+            Assert.Contains(typeName, property.Type.ToString());
             Assert.AreEqual(1, property.Modifiers.Count);
             Assert.IsTrue(property.Modifiers[0].IsKind(SyntaxKind.PublicKeyword));
             Assert.AreEqual(2, property.AccessorList.Accessors.Count);
@@ -145,7 +145,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreatePublicProperty_WithNullTypeName_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreatePublicProperty(null, "TestProperty"));
         }
 
@@ -153,7 +153,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreatePublicProperty_WithEmptyTypeName_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreatePublicProperty("", "TestProperty"));
         }
 
@@ -161,7 +161,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreatePublicProperty_WithNullPropertyName_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreatePublicProperty("string", null));
         }
 
@@ -169,7 +169,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreatePublicProperty_WithEmptyPropertyName_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreatePublicProperty("string", ""));
         }
 
@@ -182,9 +182,9 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             // Assert
             Assert.IsNotNull(property);
             Assert.AreEqual("PositionalEnvironmentVariables", property.Identifier.ValueText);
-            Assert.IsTrue(property.Type.ToString().Contains("IReadOnlyDictionary"));
-            Assert.IsTrue(property.Type.ToString().Contains("uint"));
-            Assert.IsTrue(property.Type.ToString().Contains("string"));
+            Assert.Contains("IReadOnlyDictionary", property.Type.ToString());
+            Assert.Contains("uint", property.Type.ToString());
+            Assert.Contains("string", property.Type.ToString());
             Assert.AreEqual(1, property.Modifiers.Count);
             Assert.IsTrue(property.Modifiers[0].IsKind(SyntaxKind.PublicKeyword));
             Assert.AreEqual(2, property.AccessorList.Accessors.Count);
@@ -199,13 +199,13 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             // Assert
             Assert.IsNotNull(property);
             Assert.AreEqual("QueriesInformation", property.Identifier.ValueText);
-            Assert.IsTrue(property.Type.ToString().Contains("IReadOnlyDictionary"));
-            Assert.IsTrue(property.Type.ToString().Contains("string"));
-            Assert.IsTrue(property.Type.ToString().Contains("SchemaFromNode"));
-            Assert.IsTrue(property.Type.ToString().Contains("IReadOnlyCollection"));
-            Assert.IsTrue(property.Type.ToString().Contains("ISchemaColumn"));
-            Assert.IsTrue(property.Type.ToString().Contains("WhereNode"));
-            Assert.IsTrue(property.Type.ToString().Contains("bool"));
+            Assert.Contains("IReadOnlyDictionary", property.Type.ToString());
+            Assert.Contains("string", property.Type.ToString());
+            Assert.Contains("SchemaFromNode", property.Type.ToString());
+            Assert.Contains("IReadOnlyCollection", property.Type.ToString());
+            Assert.Contains("ISchemaColumn", property.Type.ToString());
+            Assert.Contains("WhereNode", property.Type.ToString());
+            Assert.Contains("bool", property.Type.ToString());
             Assert.AreEqual(1, property.Modifiers.Count);
             Assert.IsTrue(property.Modifiers[0].IsKind(SyntaxKind.PublicKeyword));
             Assert.AreEqual(2, property.AccessorList.Accessors.Count);
@@ -225,22 +225,22 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             Assert.AreEqual("Run", method.Identifier.ValueText);
             Assert.AreEqual(1, method.Modifiers.Count);
             Assert.IsTrue(method.Modifiers[0].IsKind(SyntaxKind.PublicKeyword));
-            Assert.IsTrue(method.ReturnType.ToString().Contains("Table"));
+            Assert.Contains("Table", method.ReturnType.ToString());
             Assert.AreEqual(1, method.ParameterList.Parameters.Count);
             Assert.AreEqual("token", method.ParameterList.Parameters[0].Identifier.ValueText);
-            Assert.IsTrue(method.ParameterList.Parameters[0].Type.ToString().Contains("CancellationToken"));
+            Assert.Contains("CancellationToken", method.ParameterList.Parameters[0].Type.ToString());
             
             // Check method body contains the return statement
             var bodyText = method.Body.ToString();
-            Assert.IsTrue(bodyText.Contains("return"));
-            Assert.IsTrue(bodyText.Contains(methodCallExpression));
+            Assert.Contains("return", bodyText);
+            Assert.Contains(methodCallExpression, bodyText);
         }
 
         [TestMethod]
         public void CreateRunMethod_WithNullMethodCallExpression_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateRunMethod(null));
         }
 
@@ -248,7 +248,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreateRunMethod_WithEmptyMethodCallExpression_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateRunMethod(""));
         }
 
@@ -256,7 +256,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
         public void CreateRunMethod_WithWhitespaceMethodCallExpression_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() => 
                 MethodDeclarationHelper.CreateRunMethod("   "));
         }
 
@@ -274,8 +274,8 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers
             
             var queriesParam = parameterList.Parameters[2];
             // Note: Parameter and property may have slight formatting differences, so check key components
-            Assert.IsTrue(queriesParam.Type.ToString().Contains("IReadOnlyDictionary"));
-            Assert.IsTrue(queriesProperty.Type.ToString().Contains("IReadOnlyDictionary"));
+            Assert.Contains("IReadOnlyDictionary", queriesParam.Type.ToString());
+            Assert.Contains("IReadOnlyDictionary", queriesProperty.Type.ToString());
         }
 
         [TestMethod]

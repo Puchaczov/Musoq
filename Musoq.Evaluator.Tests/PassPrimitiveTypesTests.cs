@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,16 +20,16 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     {
         var query = "select 1 from #test.whatever(1, 2d, true, false, 'text')";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<TestEntity>(), (passedParams) =>
+        var vm = CreateAndRunVirtualMachine(query, [], (passedParams) =>
         {
             Assert.AreEqual(1, passedParams[0]);
             Assert.AreEqual(2m, passedParams[1]);
-            Assert.AreEqual(true, passedParams[2]);
-            Assert.AreEqual(false, passedParams[3]);
+            Assert.IsTrue((bool?)passedParams[2]);
+            Assert.IsFalse((bool?)passedParams[3]);
             Assert.AreEqual("text", passedParams[4]);
         }, WhenCheckedParameters.OnSchemaTableOrRowSourceGet);
 
-        vm.Run();
+        vm.Run(TestContext.CancellationToken);
     }
 
     [TestMethod]
@@ -37,16 +37,16 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     {
         var query = "select PrimitiveArgumentsMethod(1, 2d, true, false, 'text') from #test.whatever()";
 
-        var vm = CreateAndRunVirtualMachine(query, new List<TestEntity>(), (passedParams) =>
+        var vm = CreateAndRunVirtualMachine(query, [], (passedParams) =>
         {
             Assert.AreEqual(1L, passedParams[0]);
             Assert.AreEqual(2m, passedParams[1]);
-            Assert.AreEqual(true, passedParams[2]);
-            Assert.AreEqual(false, passedParams[3]);
+            Assert.IsTrue((bool?)passedParams[2]);
+            Assert.IsFalse((bool?)passedParams[3]);
             Assert.AreEqual("text", passedParams[4]);
         }, WhenCheckedParameters.OnMethodCall);
 
-        vm.Run();
+        vm.Run(TestContext.CancellationToken);
     }
 
     private enum WhenCheckedParameters
@@ -131,4 +131,6 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
             
         return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked), LoggerResolver);
     }
+
+    public TestContext TestContext { get; set; }
 }

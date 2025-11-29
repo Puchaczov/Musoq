@@ -26,7 +26,8 @@ namespace Musoq.Evaluator.Visitors.Helpers
             Dictionary<string, Type> typesToInstantiate,
             MethodAccessType oldType,
             string queryAlias,
-            ref int caseWhenMethodIndex)
+            ref int caseWhenMethodIndex,
+            IReadOnlyList<(string VariableName, Type VariableType, string ExpressionId)> cseVariables = null)
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
@@ -35,18 +36,14 @@ namespace Musoq.Evaluator.Visitors.Helpers
             if (typesToInstantiate == null)
                 throw new ArgumentNullException(nameof(typesToInstantiate));
 
-            // Build the if-else chain
             var ifStatements = BuildIfElseChain(node, nodes);
             
-            // Chain the if statements together
             var finalIfStatement = ChainIfStatements(ifStatements);
             
-            // Generate method declaration
             var methodName = $"CaseWhen_{caseWhenMethodIndex++}";
-            var (parameters, callParameters) = BuildMethodParameters(typesToInstantiate, oldType, queryAlias);
+            var (parameters, callParameters) = BuildMethodParameters(typesToInstantiate, oldType, queryAlias, cseVariables);
             var method = CreateCaseMethod(methodName, node.ReturnType, parameters, finalIfStatement);
             
-            // Create method invocation
             var methodInvocation = SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray());
             
             return new ProcessCaseNodeResult
@@ -57,15 +54,12 @@ namespace Musoq.Evaluator.Visitors.Helpers
             };
         }
 
-        /// <summary>
-        /// Builds the initial if-else chain from when-then pairs
-        /// </summary>
         private static List<IfStatementSyntax> BuildIfElseChain(CaseNode node, Stack<SyntaxNode> nodes)
         {
             var ifStatements = new List<IfStatementSyntax>();
+            var returnTypeIdentifier = SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(node.ReturnType));
             
-            // Process the first when-then pair
-            var then = nodes.Pop();
+            var then = CastToReturnType(nodes.Pop(), returnTypeIdentifier);
             var when = nodes.Pop();
             
             var ifStatement = SyntaxFactory.IfStatement(
@@ -76,10 +70,9 @@ namespace Musoq.Evaluator.Visitors.Helpers
             
             ifStatements.Add(ifStatement);
             
-            // Process remaining when-then pairs
             for (int i = 1; i < node.WhenThenPairs.Length; i++)
             {
-                then = nodes.Pop();
+                then = CastToReturnType(nodes.Pop(), returnTypeIdentifier);
                 when = nodes.Pop();
                 
                 ifStatements.Add(
@@ -90,8 +83,7 @@ namespace Musoq.Evaluator.Visitors.Helpers
                                 SyntaxFactory.ReturnStatement((ExpressionSyntax)then)))));
             }
             
-            // Add the else clause to the last if statement
-            var elseNode = nodes.Pop();
+            var elseNode = CastToReturnType(nodes.Pop(), returnTypeIdentifier);
             ifStatements[^1] = ifStatements[^1].WithElse(
                 SyntaxFactory.ElseClause(
                     SyntaxFactory.Block(
@@ -101,9 +93,11 @@ namespace Musoq.Evaluator.Visitors.Helpers
             return ifStatements;
         }
 
-        /// <summary>
-        /// Chains multiple if statements into a nested if-else structure
-        /// </summary>
+        private static SyntaxNode CastToReturnType(SyntaxNode expression, TypeSyntax returnType)
+        {
+            return SyntaxFactory.CastExpression(returnType, (ExpressionSyntax)expression);
+        }
+
         private static IfStatementSyntax ChainIfStatements(List<IfStatementSyntax> ifStatements)
         {
             if (ifStatements.Count == 1)
@@ -111,7 +105,6 @@ namespace Musoq.Evaluator.Visitors.Helpers
             
             IfStatementSyntax newIfStatement = null;
             
-            // Chain from the end backwards
             for (var i = ifStatements.Count - 2; i >= 1; i -= 1)
             {
                 var first = ifStatements[i];
@@ -124,7 +117,6 @@ namespace Musoq.Evaluator.Visitors.Helpers
                 ifStatements.Add(newIfStatement);
             }
             
-            // Handle the final two statements
             if (ifStatements.Count == 2)
             {
                 var first = ifStatements[0];
@@ -144,21 +136,20 @@ namespace Musoq.Evaluator.Visitors.Helpers
             return newIfStatement ?? throw new InvalidOperationException("Failed to chain if statements");
         }
 
-        /// <summary>
-        /// Builds method parameters and call arguments for the case method
-        /// </summary>
-        private static (List<ParameterSyntax> parameters, List<ArgumentSyntax> callParameters) 
-            BuildMethodParameters(Dictionary<string, Type> typesToInstantiate, MethodAccessType oldType, string queryAlias)
+        private static (List<ParameterSyntax> parameters, List<ArgumentSyntax> callParameters) BuildMethodParameters(
+            Dictionary<string, Type> typesToInstantiate,
+            MethodAccessType oldType,
+            string queryAlias,
+            IReadOnlyList<(string VariableName, Type VariableType, string ExpressionId)> cseVariables
+        )
         {
             var parameters = new List<ParameterSyntax>();
             var callParameters = new List<ArgumentSyntax>();
             
-            // Add score parameter
             parameters.Add(
                 SyntaxFactory.Parameter(SyntaxFactory.Identifier("score"))
                     .WithType(SyntaxFactory.IdentifierName(nameof(IObjectResolver))));
             
-            // Determine row variable name based on method access type
             var rowVariableName = oldType switch
             {
                 MethodAccessType.TransformingQuery => $"{queryAlias}Row",
@@ -168,7 +159,6 @@ namespace Musoq.Evaluator.Visitors.Helpers
             
             callParameters.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(rowVariableName)));
             
-            // Add instantiated type parameters
             foreach (var variableNameTypePair in typesToInstantiate)
             {
                 parameters.Add(
@@ -178,13 +168,33 @@ namespace Musoq.Evaluator.Visitors.Helpers
                 callParameters.Add(
                     SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableNameTypePair.Key)));
             }
+
+            if (cseVariables == null) 
+                return (parameters, callParameters);
             
+            foreach (var (variableName, variableType, _) in cseVariables)
+            {
+                parameters.Add(
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier(variableName))
+                        .WithType(SyntaxFactory.IdentifierName(GetTypeName(variableType))));
+                    
+                callParameters.Add(
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableName)));
+            }
+
             return (parameters, callParameters);
         }
+        
+        private static string GetTypeName(Type type)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return $"{type.GetGenericArguments()[0].Name}?";
+            }
+            
+            return type.Name;
+        }
 
-        /// <summary>
-        /// Creates the method declaration for the case logic
-        /// </summary>
         private static MethodDeclarationSyntax CreateCaseMethod(
             string methodName, 
             Type returnType, 
@@ -199,26 +209,26 @@ namespace Musoq.Evaluator.Visitors.Helpers
                 .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.ToArray())))
                 .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(ifStatement)));
         }
-    }
 
-    /// <summary>
-    /// Result of processing a CaseNode
-    /// </summary>
-    public class ProcessCaseNodeResult
-    {
         /// <summary>
-        /// The generated method declaration
+        /// Result of processing a CaseNode
         /// </summary>
-        public MethodDeclarationSyntax Method { get; set; }
+        public class ProcessCaseNodeResult
+        {
+            /// <summary>
+            /// The generated method declaration
+            /// </summary>
+            public MethodDeclarationSyntax Method { get; init; }
         
-        /// <summary>
-        /// The method invocation syntax to replace the case node
-        /// </summary>
-        public InvocationExpressionSyntax MethodInvocation { get; set; }
+            /// <summary>
+            /// The method invocation syntax to replace the case node
+            /// </summary>
+            public InvocationExpressionSyntax MethodInvocation { get; init; }
         
-        /// <summary>
-        /// Required namespaces to be added
-        /// </summary>
-        public string[] RequiredNamespaces { get; set; }
+            /// <summary>
+            /// Required namespaces to be added
+            /// </summary>
+            public string[] RequiredNamespaces { get; init; }
+        }
     }
 }

@@ -16,10 +16,9 @@ public abstract class SchemaBase : ISchema
     private const string TablePart = "_table";
 
     private readonly MethodsAggregator _aggregator;
-
-    private IDictionary<string, Reflection.ConstructorInfo[]> Constructors { get; } = new Dictionary<string, Reflection.ConstructorInfo[]>();
+    
     private List<SchemaMethodInfo> ConstructorsMethods { get; } = [];
-    private IDictionary<string, object[]> AdditionalArguments { get; } = new Dictionary<string, object[]>();
+    private Dictionary<string, object[]> AdditionalArguments { get; } = new();
 
     protected SchemaBase(string name, MethodsAggregator methodsAggregator)
     {
@@ -29,11 +28,19 @@ public abstract class SchemaBase : ISchema
         Name = name;
         _aggregator = methodsAggregator ?? throw SchemaArgumentException.ForNullArgument(nameof(methodsAggregator), "initializing a schema");
 
-        AddSource<SingleRowSource>("empty");
         AddTable<SingleRowSchemaTable>("empty");
+        AddSource<SingleRowSource>("empty");
     }
 
     public string Name { get; }
+
+    public void AddTable<TType>(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw SchemaArgumentException.ForEmptyString(nameof(name), "adding a table");
+
+        AddToConstructors<TType>($"{name.ToLowerInvariant()}{TablePart}");
+    }
 
     public void AddSource<TType>(string name, params object[] args)
     {
@@ -43,14 +50,6 @@ public abstract class SchemaBase : ISchema
         var sourceName = $"{name.ToLowerInvariant()}{SourcePart}";
         AddToConstructors<TType>(sourceName);
         AdditionalArguments.Add(sourceName, args ?? []);
-    }
-
-    public void AddTable<TType>(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw SchemaArgumentException.ForEmptyString(nameof(name), "adding a table");
-
-        AddToConstructors<TType>($"{name.ToLowerInvariant()}{TablePart}");
     }
 
     public virtual ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
@@ -72,7 +71,7 @@ public abstract class SchemaBase : ISchema
 
         if (!TryMatchConstructorWithParams(methods, parameters ?? [], out var constructorInfo))
         {
-            var availableSignatures = methods.Select(m => GetMethodSignature(m)).ToArray();
+            var availableSignatures = methods.Select(GetMethodSignature).ToArray();
             var providedTypes = parameters?.Select(p => p?.GetType().Name ?? "null").ToArray() ?? [];
             throw MethodResolutionException.ForUnresolvedMethod(name, providedTypes, availableSignatures);
         }
@@ -109,7 +108,7 @@ public abstract class SchemaBase : ISchema
 
         if (!TryMatchConstructorWithParams(methods, parameters ?? [], out var constructorInfo))
         {
-            var availableSignatures = methods.Select(m => GetMethodSignature(m)).ToArray();
+            var availableSignatures = methods.Select(GetMethodSignature).ToArray();
             var providedTypes = parameters?.Select(p => p?.GetType().Name ?? "null").ToArray() ?? [];
             throw MethodResolutionException.ForUnresolvedMethod(name, providedTypes, availableSignatures);
         }
@@ -137,8 +136,10 @@ public abstract class SchemaBase : ISchema
         return ConstructorsMethods.ToArray();
     }
 
-    public SchemaMethodInfo[] GetRawConstructors()
+    public virtual SchemaMethodInfo[] GetRawConstructors(RuntimeContext runtimeContext)
     {
+        runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
+        
         return ConstructorsMethods
             .Where(cm => cm.MethodName.Contains(TablePart))
             .Select(cm => {
@@ -148,9 +149,9 @@ public abstract class SchemaBase : ISchema
             }).ToArray();
     }
 
-    public SchemaMethodInfo[] GetRawConstructors(string methodName)
+    public virtual SchemaMethodInfo[] GetRawConstructors(string methodName, RuntimeContext runtimeContext)
     {
-        return GetRawConstructors().Where(constr => constr.MethodName == methodName).ToArray();
+        return GetRawConstructors(runtimeContext).Where(constr => constr.MethodName == methodName).ToArray();
     }
 
     public bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
@@ -173,6 +174,11 @@ public abstract class SchemaBase : ISchema
         return _aggregator.TryResolveRawMethod(method, parameters, out methodInfo);
     }
 
+    public IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods()
+    {
+        return _aggregator.GetAllMethods();
+    }
+
     private bool ParamsMatchConstructor(Reflection.ConstructorInfo constructor, object[] parameters)
     {
         var matchingResult = true;
@@ -193,11 +199,11 @@ public abstract class SchemaBase : ISchema
     {
         foreach(var constructor in constructors)
         {
-            if(ParamsMatchConstructor(constructor, parameters))
-            {
-                foundedConstructor = constructor;
-                return true;
-            }
+            if (!ParamsMatchConstructor(constructor, parameters)) 
+                continue;
+            
+            foundedConstructor = constructor;
+            return true;
         }
 
         foundedConstructor = null;
@@ -210,19 +216,13 @@ public abstract class SchemaBase : ISchema
             .GetSchemaMethodInfosForType<TType>(name);
 
         ConstructorsMethods.AddRange(schemaMethodInfos);
-
-        var schemaMethods = schemaMethodInfos
-            .Select(schemaMethod => schemaMethod.ConstructorInfo)
-            .ToArray();
-
-        Constructors.Add(name, schemaMethods);
     }
 
     private string GetAvailableTableNames()
     {
         var tableNames = ConstructorsMethods
             .Where(cm => cm.MethodName.Contains(TablePart))
-            .Select(cm => cm.MethodName.Replace(TablePart, ""))
+            .Select(cm => cm.MethodName.Replace(TablePart, string.Empty))
             .Distinct()
             .ToArray();
 
@@ -233,7 +233,7 @@ public abstract class SchemaBase : ISchema
     {
         var sourceNames = ConstructorsMethods
             .Where(cm => cm.MethodName.Contains(SourcePart))
-            .Select(cm => cm.MethodName.Replace(SourcePart, ""))
+            .Select(cm => cm.MethodName.Replace(SourcePart, string.Empty))
             .Distinct()
             .ToArray();
 

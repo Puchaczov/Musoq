@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -14,12 +14,12 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(1, buildItems.UsedWhereNodes);
 
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
 
         Assert.IsNotNull(firstWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         
@@ -33,12 +33,12 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(1, buildItems.UsedWhereNodes);
 
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
 
         Assert.IsNotNull(firstWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         
@@ -52,12 +52,12 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(1, buildItems.UsedWhereNodes);
 
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
 
         Assert.IsNotNull(firstWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         
@@ -71,12 +71,12 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(1, buildItems.UsedWhereNodes);
 
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
 
         Assert.IsNotNull(firstWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         
@@ -90,12 +90,12 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(1, buildItems.UsedWhereNodes);
 
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
 
         Assert.IsNotNull(firstWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         
@@ -109,12 +109,12 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(1, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(1, buildItems.UsedWhereNodes);
 
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
 
         Assert.IsNotNull(firstWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         
@@ -128,15 +128,15 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(2, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(2, buildItems.UsedWhereNodes);
 
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
         var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
 
         Assert.IsNotNull(firstWhereNodePair);
         Assert.IsNotNull(secondWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
-        Assert.AreEqual(1, secondWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
+        Assert.HasCount(1, secondWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
@@ -152,15 +152,15 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(2, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(2, buildItems.UsedWhereNodes);
 
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
         var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
 
         Assert.IsNotNull(firstWhereNodePair);
         Assert.IsNotNull(secondWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
-        Assert.AreEqual(1, secondWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
+        Assert.HasCount(1, secondWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
@@ -176,7 +176,7 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(3, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(3, buildItems.UsedWhereNodes);
         
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
         var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
@@ -185,9 +185,9 @@ public class RewriteWhereExpressionToPassItToDataSourceTests : BasicEntityTestBa
         Assert.IsNotNull(firstWhereNodePair);
         Assert.IsNotNull(secondWhereNodePair);
         Assert.IsNotNull(thirdWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
-        Assert.AreEqual(1, secondWhereNodePair.Length);
-        Assert.AreEqual(1, thirdWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
+        Assert.HasCount(1, secondWhereNodePair);
+        Assert.HasCount(1, thirdWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
@@ -209,7 +209,7 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
         
-        Assert.AreEqual(3, buildItems.UsedWhereNodes.Count);
+        Assert.HasCount(3, buildItems.UsedWhereNodes);
         
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "x").ToArray();
         var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
@@ -218,9 +218,9 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
         Assert.IsNotNull(firstWhereNodePair);
         Assert.IsNotNull(secondWhereNodePair);
         Assert.IsNotNull(thirdWhereNodePair);
-        Assert.AreEqual(1, firstWhereNodePair.Length);
-        Assert.AreEqual(1, secondWhereNodePair.Length);
-        Assert.AreEqual(1, thirdWhereNodePair.Length);
+        Assert.HasCount(1, firstWhereNodePair);
+        Assert.HasCount(1, secondWhereNodePair);
+        Assert.HasCount(1, thirdWhereNodePair);
         
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;

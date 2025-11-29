@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -27,7 +27,7 @@ public class ComparisonTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
@@ -55,12 +55,12 @@ public class ComparisonTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
-        Assert.IsTrue(table.Count() == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count(), "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "WARSAW"), "First entry should be 'WARSAW'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "CZESTOCHOWA"), "Second entry should be 'CZESTOCHOWA'");
@@ -85,7 +85,7 @@ public class ComparisonTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
@@ -114,12 +114,12 @@ public class ComparisonTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
         
-        Assert.IsTrue(table.Count() == 2, "Table should have 2 entries");
+        Assert.AreEqual(2, table.Count(), "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "BERLIN"), "Second entry should be 'BERLIN'");
@@ -145,15 +145,17 @@ public class ComparisonTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
         
-        Assert.IsTrue(table.Count() == 3, "Table should have 3 entries");
+        Assert.AreEqual(3, table.Count(), "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "BERLIN"), "Second entry should be 'BERLIN'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "MUNICH"), "Third entry should be 'MUNICH'");
     }
+
+    public TestContext TestContext { get; set; }
 }

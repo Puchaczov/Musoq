@@ -11,12 +11,12 @@ public class StringsTests : LibraryBaseBaseTests
         Assert.AreEqual("lorem", Library.Substring("lorem ipsum dolor", 0, 5));
         Assert.AreEqual("lorem ipsum dolor", Library.Substring("lorem ipsum dolor", 0, 150));
         Assert.AreEqual(string.Empty, Library.Substring("lorem ipsum dolor", 0, 0));
-        Assert.AreEqual(null, Library.Substring(null, 0, 5));
+        Assert.IsNull(Library.Substring(null, 0, 5));
 
         Assert.AreEqual(string.Empty, Library.Substring("lorem ipsum dolor", 0));
         Assert.AreEqual("lorem", Library.Substring("lorem ipsum dolor", 5));
         Assert.AreEqual("lorem ipsum dolor", Library.Substring("lorem ipsum dolor", 150));
-        Assert.AreEqual((string?)null, Library.Substring((string?)null, 150));
+        Assert.IsNull(Library.Substring((string?)null, 150));
     }
 
     [TestMethod]
@@ -30,9 +30,9 @@ public class StringsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ContainsTest()
     {
-        Assert.AreEqual(true, Library.Contains("lorem ipsum dolor", "ipsum"));
-        Assert.AreEqual(true, Library.Contains("lorem ipsum dolor", "IPSUM"));
-        Assert.AreEqual(false, Library.Contains("lorem ipsum dolor", "ratatata"));
+        Assert.IsTrue(Library.Contains("lorem ipsum dolor", "ipsum"));
+        Assert.IsTrue(Library.Contains("lorem ipsum dolor", "IPSUM"));
+        Assert.IsFalse(Library.Contains("lorem ipsum dolor", "ratatata"));
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -123,7 +123,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
     }
 
     [TestMethod]
@@ -137,7 +137,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual("Single line", result[0]);
     }
 
@@ -152,7 +152,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("Line1", result[0]);
         Assert.AreEqual("Line2", result[1]);
         Assert.AreEqual("Line3", result[2]);
@@ -182,7 +182,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -196,7 +196,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("Line1", result[0]);
         Assert.AreEqual("Line2", result[1]);
         Assert.AreEqual("Line3", result[2]);
@@ -226,7 +226,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -240,7 +240,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual("Line1", result[0]);
         Assert.AreEqual("Line2", result[1]);
         Assert.AreEqual("Line3", result[2]);
@@ -259,7 +259,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual("Line1", result[0]);
         Assert.AreEqual("", result[1]);
         Assert.AreEqual("Line3", result[2]);
@@ -280,7 +280,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(expectedCount, result.Length);
+        Assert.HasCount(expectedCount, result);
     }
 
     [TestMethod]
@@ -297,8 +297,8 @@ public class StringsTests : LibraryBaseBaseTests
         // Assert
         Assert.IsNotNull(result1);
         Assert.IsNotNull(result2);
-        Assert.AreEqual(4, result1.Length);
-        Assert.AreEqual(4, result2.Length);
+        Assert.HasCount(4, result1);
+        Assert.HasCount(4, result2);
     }
 
     #region Additional String Methods Tests
@@ -676,7 +676,7 @@ public class StringsTests : LibraryBaseBaseTests
     }
 
     [TestMethod]
-    public void Split_ShouldSplitStringCorrectly()
+    public void Split_WithCustomSeparators_ShouldSplitCorrectly()
     {
         // Arrange
         string input = "hello,world,test";
@@ -686,7 +686,7 @@ public class StringsTests : LibraryBaseBaseTests
         var result = Library.Split(input, separators);
 
         // Assert
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("hello", result[0]);
         Assert.AreEqual("world", result[1]);
         Assert.AreEqual("test", result[2]);
@@ -702,7 +702,7 @@ public class StringsTests : LibraryBaseBaseTests
         var result = Library.ToCharArray(input);
 
         // Assert
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual('h', result[0]);
         Assert.AreEqual('e', result[1]);
         Assert.AreEqual('l', result[2]);
@@ -752,7 +752,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("123", result[0]);
         Assert.AreEqual("456", result[1]);
     }
@@ -769,7 +769,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -826,7 +826,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -841,7 +841,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual("Hello", result[0]);
         Assert.AreEqual("World", result[1]);
         Assert.AreEqual("This", result[2]);
@@ -861,7 +861,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("john@example.com", result[0]);
         Assert.AreEqual("support@test.org", result[1]);
     }
@@ -878,7 +878,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.Length); // Should find "aa" at positions 0 and 2, not overlapping
+        Assert.HasCount(2, result); // Should find "aa" at positions 0 and 2, not overlapping
         Assert.AreEqual("aa", result[0]);
         Assert.AreEqual("aa", result[1]);
     }
@@ -895,7 +895,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("123-456-7890", result[0]);
         Assert.AreEqual("987-654-3210", result[1]);
     }
@@ -912,13 +912,951 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("$19.99", result[0]);
         Assert.AreEqual("$5.50", result[1]);
         Assert.AreEqual("$1.25", result[2]);
     }
 
     #endregion
+
+    #endregion
+
+    #region Html Encoding Tests
+
+    [TestMethod]
+    public void HtmlEncode_WhenSpecialCharacters_ShouldEncodeCorrectly()
+    {
+        var result = Library.HtmlEncode("<script>alert('test')</script>");
+        
+        Assert.AreEqual("&lt;script&gt;alert(&#39;test&#39;)&lt;/script&gt;", result);
+    }
+
+    [TestMethod]
+    public void HtmlEncode_WhenNull_ShouldReturnNull()
+    {
+        var result = Library.HtmlEncode(null);
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void HtmlEncode_WhenAmpersand_ShouldEncode()
+    {
+        var result = Library.HtmlEncode("Tom & Jerry");
+        
+        Assert.AreEqual("Tom &amp; Jerry", result);
+    }
+
+    [TestMethod]
+    public void HtmlDecode_WhenEncodedCharacters_ShouldDecodeCorrectly()
+    {
+        var result = Library.HtmlDecode("&lt;script&gt;alert(&#39;test&#39;)&lt;/script&gt;");
+        
+        Assert.AreEqual("<script>alert('test')</script>", result);
+    }
+
+    [TestMethod]
+    public void HtmlDecode_WhenNull_ShouldReturnNull()
+    {
+        var result = Library.HtmlDecode(null);
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void HtmlDecode_WhenAmpersand_ShouldDecode()
+    {
+        var result = Library.HtmlDecode("Tom &amp; Jerry");
+        
+        Assert.AreEqual("Tom & Jerry", result);
+    }
+
+    [TestMethod]
+    public void HtmlRoundTrip_ShouldPreserveContent()
+    {
+        const string original = "<div class=\"test\">Hello & Goodbye</div>";
+        
+        var encoded = Library.HtmlEncode(original);
+        var decoded = Library.HtmlDecode(encoded);
+        
+        Assert.AreEqual(original, decoded);
+    }
+
+    #endregion
+
+    #region ExtractBetween Tests
+
+    [TestMethod]
+    public void ExtractBetween_WhenDelimitersFound_ShouldReturnContent()
+    {
+        var result = Library.ExtractBetween("Hello [World] Test", "[", "]");
+        
+        Assert.AreEqual("World", result);
+    }
+
+    [TestMethod]
+    public void ExtractBetween_WithXmlTags_ShouldReturnContent()
+    {
+        var result = Library.ExtractBetween("<tag>content</tag>", "<tag>", "</tag>");
+        
+        Assert.AreEqual("content", result);
+    }
+
+    [TestMethod]
+    public void ExtractBetween_WhenStartDelimiterNotFound_ShouldReturnNull()
+    {
+        var result = Library.ExtractBetween("Hello World Test", "[", "]");
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void ExtractBetween_WhenEndDelimiterNotFound_ShouldReturnNull()
+    {
+        var result = Library.ExtractBetween("Hello [World Test", "[", "]");
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void ExtractBetween_WhenNull_ShouldReturnNull()
+    {
+        Assert.IsNull(Library.ExtractBetween(null, "[", "]"));
+        Assert.IsNull(Library.ExtractBetween("test", null, "]"));
+        Assert.IsNull(Library.ExtractBetween("test", "[", null));
+    }
+
+    [TestMethod]
+    public void ExtractBetween_WhenEmpty_ShouldReturnNull()
+    {
+        Assert.IsNull(Library.ExtractBetween("", "[", "]"));
+        Assert.IsNull(Library.ExtractBetween("test", "", "]"));
+        Assert.IsNull(Library.ExtractBetween("test", "[", ""));
+    }
+
+    [TestMethod]
+    public void ExtractBetween_WithMultipleOccurrences_ShouldReturnFirst()
+    {
+        var result = Library.ExtractBetween("[first] and [second]", "[", "]");
+        
+        Assert.AreEqual("first", result);
+    }
+
+    [TestMethod]
+    public void ExtractBetween_WithEmptyContent_ShouldReturnEmptyString()
+    {
+        var result = Library.ExtractBetween("Hello [] Test", "[", "]");
+        
+        Assert.AreEqual("", result);
+    }
+
+    [TestMethod]
+    public void ExtractBetweenAll_ShouldReturnAllMatches()
+    {
+        var result = Library.ExtractBetweenAll("[first] and [second] and [third]", "[", "]");
+        
+        Assert.HasCount(3, result);
+        Assert.AreEqual("first", result[0]);
+        Assert.AreEqual("second", result[1]);
+        Assert.AreEqual("third", result[2]);
+    }
+
+    [TestMethod]
+    public void ExtractBetweenAll_WhenNoMatches_ShouldReturnEmptyArray()
+    {
+        var result = Library.ExtractBetweenAll("Hello World", "[", "]");
+        
+        Assert.HasCount(0, result);
+    }
+
+    [TestMethod]
+    public void ExtractBetweenAll_WhenNull_ShouldReturnEmptyArray()
+    {
+        var result = Library.ExtractBetweenAll(null, "[", "]");
+        
+        Assert.HasCount(0, result);
+    }
+
+    [TestMethod]
+    public void ExtractBetweenIncluding_ShouldIncludeDelimiters()
+    {
+        var result = Library.ExtractBetweenIncluding("Hello [World] Test", "[", "]");
+        
+        Assert.AreEqual("[World]", result);
+    }
+
+    [TestMethod]
+    public void ExtractBetweenIncluding_WithXmlTags_ShouldIncludeTags()
+    {
+        var result = Library.ExtractBetweenIncluding("prefix<tag>content</tag>suffix", "<tag>", "</tag>");
+        
+        Assert.AreEqual("<tag>content</tag>", result);
+    }
+
+    [TestMethod]
+    public void ExtractBetweenIncluding_WhenNotFound_ShouldReturnNull()
+    {
+        var result = Library.ExtractBetweenIncluding("Hello World", "[", "]");
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void ExtractAfter_ShouldReturnTextAfterDelimiter()
+    {
+        var result = Library.ExtractAfter("Hello World Test", "World");
+        
+        Assert.AreEqual(" Test", result);
+    }
+
+    [TestMethod]
+    public void ExtractAfter_IncludingDelimiter_ShouldIncludeDelimiter()
+    {
+        var result = Library.ExtractAfter("Hello World Test", "World", true);
+        
+        Assert.AreEqual("World Test", result);
+    }
+
+    [TestMethod]
+    public void ExtractAfter_WhenNotFound_ShouldReturnNull()
+    {
+        var result = Library.ExtractAfter("Hello World Test", "XYZ");
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void ExtractAfter_WhenNull_ShouldReturnNull()
+    {
+        Assert.IsNull(Library.ExtractAfter(null, "test"));
+        Assert.IsNull(Library.ExtractAfter("test", null));
+    }
+
+    [TestMethod]
+    public void ExtractBefore_ShouldReturnTextBeforeDelimiter()
+    {
+        var result = Library.ExtractBefore("Hello World Test", "World");
+        
+        Assert.AreEqual("Hello ", result);
+    }
+
+    [TestMethod]
+    public void ExtractBefore_IncludingDelimiter_ShouldIncludeDelimiter()
+    {
+        var result = Library.ExtractBefore("Hello World Test", "World", true);
+        
+        Assert.AreEqual("Hello World", result);
+    }
+
+    [TestMethod]
+    public void ExtractBefore_WhenNotFound_ShouldReturnNull()
+    {
+        var result = Library.ExtractBefore("Hello World Test", "XYZ");
+        
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void ExtractBefore_WhenNull_ShouldReturnNull()
+    {
+        Assert.IsNull(Library.ExtractBefore(null, "test"));
+        Assert.IsNull(Library.ExtractBefore("test", null));
+    }
+
+    [TestMethod]
+    public void ExtractBetween_RealWorldXmlExample()
+    {
+        var xml = "<?xml version=\"1.0\"?><data><value>12345</value></data>";
+        
+        var result = Library.ExtractBetween(xml, "<value>", "</value>");
+        
+        Assert.AreEqual("12345", result);
+    }
+
+    [TestMethod]
+    public void ExtractBetween_RealWorldJsonExample()
+    {
+        var json = "{\"name\": \"John\", \"age\": 30}";
+        
+        var result = Library.ExtractBetween(json, "\"name\": \"", "\"");
+        
+        Assert.AreEqual("John", result);
+    }
+
+    #endregion
+
+    #region IsNumeric Tests
+
+    [TestMethod]
+    public void IsNumeric_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.IsNumeric(null));
+    }
+
+    [TestMethod]
+    public void IsNumeric_WhenEmpty_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsNumeric(string.Empty));
+    }
+
+    [TestMethod]
+    public void IsNumeric_WhenAllDigits_ReturnsTrue()
+    {
+        Assert.IsTrue(Library.IsNumeric("12345"));
+    }
+
+    [TestMethod]
+    public void IsNumeric_WhenContainsLetters_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsNumeric("123a45"));
+    }
+
+    [TestMethod]
+    public void IsNumeric_WhenContainsSpecialChars_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsNumeric("123-45"));
+    }
+
+    [TestMethod]
+    public void IsNumeric_WhenDecimal_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsNumeric("123.45"));
+    }
+
+    #endregion
+
+    #region IsAlpha Tests
+
+    [TestMethod]
+    public void IsAlpha_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.IsAlpha(null));
+    }
+
+    [TestMethod]
+    public void IsAlpha_WhenEmpty_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsAlpha(string.Empty));
+    }
+
+    [TestMethod]
+    public void IsAlpha_WhenAllLetters_ReturnsTrue()
+    {
+        Assert.IsTrue(Library.IsAlpha("HelloWorld"));
+    }
+
+    [TestMethod]
+    public void IsAlpha_WhenContainsDigits_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsAlpha("Hello123"));
+    }
+
+    [TestMethod]
+    public void IsAlpha_WhenContainsSpaces_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsAlpha("Hello World"));
+    }
+
+    #endregion
+
+    #region IsAlphaNumeric Tests
+
+    [TestMethod]
+    public void IsAlphaNumeric_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.IsAlphaNumeric(null));
+    }
+
+    [TestMethod]
+    public void IsAlphaNumeric_WhenEmpty_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsAlphaNumeric(string.Empty));
+    }
+
+    [TestMethod]
+    public void IsAlphaNumeric_WhenAllLetters_ReturnsTrue()
+    {
+        Assert.IsTrue(Library.IsAlphaNumeric("HelloWorld"));
+    }
+
+    [TestMethod]
+    public void IsAlphaNumeric_WhenAllDigits_ReturnsTrue()
+    {
+        Assert.IsTrue(Library.IsAlphaNumeric("12345"));
+    }
+
+    [TestMethod]
+    public void IsAlphaNumeric_WhenMixed_ReturnsTrue()
+    {
+        Assert.IsTrue(Library.IsAlphaNumeric("Hello123"));
+    }
+
+    [TestMethod]
+    public void IsAlphaNumeric_WhenContainsSpaces_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsAlphaNumeric("Hello 123"));
+    }
+
+    [TestMethod]
+    public void IsAlphaNumeric_WhenContainsSpecialChars_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsAlphaNumeric("Hello@123"));
+    }
+
+    #endregion
+
+    #region CountOccurrences Tests
+
+    [TestMethod]
+    public void CountOccurrences_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.CountOccurrences(null, "test"));
+        Assert.IsNull(Library.CountOccurrences("test", null));
+    }
+
+    [TestMethod]
+    public void CountOccurrences_WhenSubstringEmpty_ReturnsZero()
+    {
+        Assert.AreEqual(0, Library.CountOccurrences("Hello World", string.Empty));
+    }
+
+    [TestMethod]
+    public void CountOccurrences_WhenSingleOccurrence_ReturnsOne()
+    {
+        Assert.AreEqual(1, Library.CountOccurrences("Hello World", "World"));
+    }
+
+    [TestMethod]
+    public void CountOccurrences_WhenMultipleOccurrences_ReturnsCount()
+    {
+        Assert.AreEqual(3, Library.CountOccurrences("ababab", "ab"));
+    }
+
+    [TestMethod]
+    public void CountOccurrences_WhenNoOccurrences_ReturnsZero()
+    {
+        Assert.AreEqual(0, Library.CountOccurrences("Hello World", "xyz"));
+    }
+
+    [TestMethod]
+    public void CountOccurrences_WhenSingleChar_CountsCorrectly()
+    {
+        Assert.AreEqual(3, Library.CountOccurrences("aaa", "a"));
+    }
+
+    #endregion
+
+    #region RemoveWhitespace Tests
+
+    [TestMethod]
+    public void RemoveWhitespace_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.RemoveWhitespace(null));
+    }
+
+    [TestMethod]
+    public void RemoveWhitespace_WhenNoWhitespace_ReturnsSame()
+    {
+        Assert.AreEqual("HelloWorld", Library.RemoveWhitespace("HelloWorld"));
+    }
+
+    [TestMethod]
+    public void RemoveWhitespace_WithSpaces_RemovesThem()
+    {
+        Assert.AreEqual("HelloWorld", Library.RemoveWhitespace("Hello World"));
+    }
+
+    [TestMethod]
+    public void RemoveWhitespace_WithTabs_RemovesThem()
+    {
+        Assert.AreEqual("HelloWorld", Library.RemoveWhitespace("Hello\tWorld"));
+    }
+
+    [TestMethod]
+    public void RemoveWhitespace_WithNewlines_RemovesThem()
+    {
+        Assert.AreEqual("HelloWorld", Library.RemoveWhitespace("Hello\nWorld"));
+    }
+
+    [TestMethod]
+    public void RemoveWhitespace_WithMixed_RemovesAll()
+    {
+        Assert.AreEqual("HelloWorld", Library.RemoveWhitespace("  Hello \t World \n "));
+    }
+
+    #endregion
+
+    #region Truncate Tests
+
+    [TestMethod]
+    public void Truncate_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Truncate(null, 10));
+    }
+
+    [TestMethod]
+    public void Truncate_WhenShorterThanMax_ReturnsSame()
+    {
+        Assert.AreEqual("Hello", Library.Truncate("Hello", 10));
+    }
+
+    [TestMethod]
+    public void Truncate_WhenExactLength_ReturnsSame()
+    {
+        Assert.AreEqual("Hello", Library.Truncate("Hello", 5));
+    }
+
+    [TestMethod]
+    public void Truncate_WhenLonger_TruncatesWithEllipsis()
+    {
+        Assert.AreEqual("Hel...", Library.Truncate("Hello World", 6));
+    }
+
+    [TestMethod]
+    public void Truncate_WhenMaxLengthZero_ReturnsEmpty()
+    {
+        Assert.AreEqual(string.Empty, Library.Truncate("Hello", 0));
+    }
+
+    [TestMethod]
+    public void Truncate_WithCustomEllipsis_UsesIt()
+    {
+        Assert.AreEqual("Hell…", Library.Truncate("Hello World", 5, "…"));
+    }
+
+    [TestMethod]
+    public void Truncate_WhenMaxSmallerThanEllipsis_JustTruncates()
+    {
+        Assert.AreEqual("He", Library.Truncate("Hello", 2));
+    }
+
+    #endregion
+
+    #region Capitalize Tests
+
+    [TestMethod]
+    public void Capitalize_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Capitalize(null));
+    }
+
+    [TestMethod]
+    public void Capitalize_WhenEmpty_ReturnsEmpty()
+    {
+        Assert.AreEqual(string.Empty, Library.Capitalize(string.Empty));
+    }
+
+    [TestMethod]
+    public void Capitalize_WhenSingleChar_Capitalizes()
+    {
+        Assert.AreEqual("A", Library.Capitalize("a"));
+    }
+
+    [TestMethod]
+    public void Capitalize_WhenLowercase_CapitalizesFirst()
+    {
+        Assert.AreEqual("Hello", Library.Capitalize("hello"));
+    }
+
+    [TestMethod]
+    public void Capitalize_WhenAlreadyCapitalized_ReturnsSame()
+    {
+        Assert.AreEqual("Hello", Library.Capitalize("Hello"));
+    }
+
+    #endregion
+
+    #region Repeat Tests
+
+    [TestMethod]
+    public void Repeat_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Repeat(null, 3));
+    }
+
+    [TestMethod]
+    public void Repeat_WhenZeroCount_ReturnsEmpty()
+    {
+        Assert.AreEqual(string.Empty, Library.Repeat("test", 0));
+    }
+
+    [TestMethod]
+    public void Repeat_WhenCountOne_ReturnsSame()
+    {
+        Assert.AreEqual("test", Library.Repeat("test", 1));
+    }
+
+    [TestMethod]
+    public void Repeat_WithoutSeparator_Concatenates()
+    {
+        Assert.AreEqual("aaa", Library.Repeat("a", 3));
+    }
+
+    [TestMethod]
+    public void Repeat_WithSeparator_JoinsThem()
+    {
+        Assert.AreEqual("a-a-a", Library.Repeat("a", 3, "-"));
+    }
+
+    #endregion
+
+    #region Wrap Tests
+
+    [TestMethod]
+    public void Wrap_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Wrap(null, "[", "]"));
+    }
+
+    [TestMethod]
+    public void Wrap_WithBothPrefixAndSuffix_Wraps()
+    {
+        Assert.AreEqual("[test]", Library.Wrap("test", "[", "]"));
+    }
+
+    [TestMethod]
+    public void Wrap_WithNullPrefix_UsesEmpty()
+    {
+        Assert.AreEqual("test]", Library.Wrap("test", null, "]"));
+    }
+
+    [TestMethod]
+    public void Wrap_WithNullSuffix_UsesEmpty()
+    {
+        Assert.AreEqual("[test", Library.Wrap("test", "[", null));
+    }
+
+    #endregion
+
+    #region RemovePrefix Tests
+
+    [TestMethod]
+    public void RemovePrefix_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.RemovePrefix(null, "test"));
+    }
+
+    [TestMethod]
+    public void RemovePrefix_WhenPrefixNull_ReturnsSame()
+    {
+        Assert.AreEqual("test", Library.RemovePrefix("test", null));
+    }
+
+    [TestMethod]
+    public void RemovePrefix_WhenHasPrefix_RemovesIt()
+    {
+        Assert.AreEqual("World", Library.RemovePrefix("HelloWorld", "Hello"));
+    }
+
+    [TestMethod]
+    public void RemovePrefix_WhenNoPrefix_ReturnsSame()
+    {
+        Assert.AreEqual("HelloWorld", Library.RemovePrefix("HelloWorld", "Test"));
+    }
+
+    #endregion
+
+    #region RemoveSuffix Tests
+
+    [TestMethod]
+    public void RemoveSuffix_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.RemoveSuffix(null, "test"));
+    }
+
+    [TestMethod]
+    public void RemoveSuffix_WhenSuffixNull_ReturnsSame()
+    {
+        Assert.AreEqual("test", Library.RemoveSuffix("test", null));
+    }
+
+    [TestMethod]
+    public void RemoveSuffix_WhenHasSuffix_RemovesIt()
+    {
+        Assert.AreEqual("Hello", Library.RemoveSuffix("HelloWorld", "World"));
+    }
+
+    [TestMethod]
+    public void RemoveSuffix_WhenNoSuffix_ReturnsSame()
+    {
+        Assert.AreEqual("HelloWorld", Library.RemoveSuffix("HelloWorld", "Test"));
+    }
+
+    #endregion
+
+    #region Case Conversion Tests
+
+    [TestMethod]
+    public void ToSnakeCase_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToSnakeCase(null));
+    }
+
+    [TestMethod]
+    public void ToSnakeCase_WhenCamelCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("hello_world", Library.ToSnakeCase("helloWorld"));
+    }
+
+    [TestMethod]
+    public void ToSnakeCase_WhenPascalCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("hello_world", Library.ToSnakeCase("HelloWorld"));
+    }
+
+    [TestMethod]
+    public void ToSnakeCase_WhenMultipleUppercase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("my_api_response", Library.ToSnakeCase("MyAPIResponse"));
+    }
+
+    [TestMethod]
+    public void ToKebabCase_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToKebabCase(null));
+    }
+
+    [TestMethod]
+    public void ToKebabCase_WhenCamelCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("hello-world", Library.ToKebabCase("helloWorld"));
+    }
+
+    [TestMethod]
+    public void ToKebabCase_WhenPascalCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("hello-world", Library.ToKebabCase("HelloWorld"));
+    }
+
+    [TestMethod]
+    public void ToCamelCase_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToCamelCase(null));
+    }
+
+    [TestMethod]
+    public void ToCamelCase_WhenSnakeCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("helloWorld", Library.ToCamelCase("hello_world"));
+    }
+
+    [TestMethod]
+    public void ToCamelCase_WhenKebabCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("helloWorld", Library.ToCamelCase("hello-world"));
+    }
+
+    [TestMethod]
+    public void ToCamelCase_WhenPascalCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("helloWorld", Library.ToCamelCase("HelloWorld"));
+    }
+
+    [TestMethod]
+    public void ToPascalCase_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToPascalCase(null));
+    }
+
+    [TestMethod]
+    public void ToPascalCase_WhenSnakeCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("HelloWorld", Library.ToPascalCase("hello_world"));
+    }
+
+    [TestMethod]
+    public void ToPascalCase_WhenKebabCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("HelloWorld", Library.ToPascalCase("hello-world"));
+    }
+
+    [TestMethod]
+    public void ToPascalCase_WhenCamelCase_ConvertsCorrectly()
+    {
+        Assert.AreEqual("HelloWorld", Library.ToPascalCase("helloWorld"));
+    }
+
+    #endregion
+
+    #region Text Analysis Tests
+
+    [TestMethod]
+    public void WordCount_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.WordCount(null));
+    }
+
+    [TestMethod]
+    public void WordCount_WhenEmpty_ReturnsZero()
+    {
+        Assert.AreEqual(0, Library.WordCount(""));
+    }
+
+    [TestMethod]
+    public void WordCount_WhenSingleWord_ReturnsOne()
+    {
+        Assert.AreEqual(1, Library.WordCount("Hello"));
+    }
+
+    [TestMethod]
+    public void WordCount_WhenMultipleWords_ReturnsCorrectCount()
+    {
+        Assert.AreEqual(5, Library.WordCount("Hello world this is test"));
+    }
+
+    [TestMethod]
+    public void WordCount_WhenMultipleSpaces_ReturnsCorrectCount()
+    {
+        Assert.AreEqual(3, Library.WordCount("Hello   world   test"));
+    }
+
+    [TestMethod]
+    public void LineCount_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.LineCount(null));
+    }
+
+    [TestMethod]
+    public void LineCount_WhenEmpty_ReturnsZero()
+    {
+        Assert.AreEqual(0, Library.LineCount(""));
+    }
+
+    [TestMethod]
+    public void LineCount_WhenSingleLine_ReturnsOne()
+    {
+        Assert.AreEqual(1, Library.LineCount("Hello World"));
+    }
+
+    [TestMethod]
+    public void LineCount_WhenMultipleLines_ReturnsCorrectCount()
+    {
+        Assert.AreEqual(3, Library.LineCount("Line 1\nLine 2\nLine 3"));
+    }
+
+    [TestMethod]
+    public void LineCount_WhenWindowsLineEndings_ReturnsCorrectCount()
+    {
+        Assert.AreEqual(3, Library.LineCount("Line 1\r\nLine 2\r\nLine 3"));
+    }
+
+    [TestMethod]
+    public void SentenceCount_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.SentenceCount(null));
+    }
+
+    [TestMethod]
+    public void SentenceCount_WhenEmpty_ReturnsZero()
+    {
+        Assert.AreEqual(0, Library.SentenceCount(""));
+    }
+
+    [TestMethod]
+    public void SentenceCount_WhenSingleSentence_ReturnsOne()
+    {
+        Assert.AreEqual(1, Library.SentenceCount("Hello World."));
+    }
+
+    [TestMethod]
+    public void SentenceCount_WhenMultipleSentences_ReturnsCorrectCount()
+    {
+        Assert.AreEqual(3, Library.SentenceCount("Hello. How are you? I am fine!"));
+    }
+
+    #endregion
+
+    #region Regex Tests
+
+    [TestMethod]
+    public void RegexExtract_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.RegexExtract(null, @"\d+"));
+    }
+
+    [TestMethod]
+    public void RegexExtract_WhenPatternNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.RegexExtract("test123", null));
+    }
+
+    [TestMethod]
+    public void RegexExtract_WhenMatch_ReturnsFirstMatch()
+    {
+        Assert.AreEqual("123", Library.RegexExtract("abc123def456", @"\d+"));
+    }
+
+    [TestMethod]
+    public void RegexExtract_WhenNoMatch_ReturnsNull()
+    {
+        Assert.IsNull(Library.RegexExtract("abcdef", @"\d+"));
+    }
+
+    [TestMethod]
+    public void RegexExtractAll_WhenNull_ReturnsEmpty()
+    {
+        var result = Library.RegexExtractAll(null, @"\d+");
+        Assert.IsEmpty(result);
+    }
+
+    [TestMethod]
+    public void RegexExtractAll_WhenPatternNull_ReturnsEmpty()
+    {
+        var result = Library.RegexExtractAll("test123", null);
+        Assert.IsEmpty(result);
+    }
+
+    [TestMethod]
+    public void RegexExtractAll_WhenMatches_ReturnsAllMatches()
+    {
+        var result = Library.RegexExtractAll("abc123def456ghi789", @"\d+");
+        CollectionAssert.AreEqual(new[] { "123", "456", "789" }, result);
+    }
+
+    [TestMethod]
+    public void RegexExtractAll_WhenNoMatch_ReturnsEmpty()
+    {
+        var result = Library.RegexExtractAll("abcdef", @"\d+");
+        Assert.IsEmpty(result);
+    }
+
+    [TestMethod]
+    public void RegexExtractAll_WithGroupIndex_ReturnsCorrectGroup()
+    {
+        var result = Library.RegexExtractAll("a1b2c3", @"(\d)", 1);
+        CollectionAssert.AreEqual(new[] { "1", "2", "3" }, result);
+    }
+
+    [TestMethod]
+    public void IsMatch_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.IsMatch(null, @"\d+"));
+    }
+
+    [TestMethod]
+    public void IsMatch_WhenPatternNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.IsMatch("test123", null));
+    }
+
+    [TestMethod]
+    public void IsMatch_WhenMatches_ReturnsTrue()
+    {
+        Assert.IsTrue(Library.IsMatch("abc123", @"\d+"));
+    }
+
+    [TestMethod]
+    public void IsMatch_WhenNoMatch_ReturnsFalse()
+    {
+        Assert.IsFalse(Library.IsMatch("abcdef", @"\d+"));
+    }
+
+    [TestMethod]
+    public void IsMatch_WithComplexPattern_MatchesCorrectly()
+    {
+        Assert.IsTrue(Library.IsMatch("test@example.com", @"^[\w\.-]+@[\w\.-]+\.\w+$"));
+    }
 
     #endregion
 }

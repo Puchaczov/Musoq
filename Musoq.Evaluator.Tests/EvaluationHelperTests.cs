@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Helpers;
 
@@ -36,12 +36,14 @@ public class EvaluationHelperTests
         var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("Test", typeof(TestClass)).ToArray();
 
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test" && pair.Type == typeof(TestClass)));
+        
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.Test" && pair.Type == typeof(TestClass)));
-        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeInt" && pair.Type == typeof(int)));
-        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeString" && pair.Type == typeof(string)));
-        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeObject" && pair.Type == typeof(object)));
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass" && pair.Type == typeof(TestSubClass)));
-        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass.SomeInt" && pair.Type == typeof(int)));
+        
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeInt" && pair.Type == typeof(int)));
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeString" && pair.Type == typeof(string)));
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeObject" && pair.Type == typeof(object)));
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass.SomeInt" && pair.Type == typeof(int)));
     }
 
     [TestMethod]
@@ -72,5 +74,35 @@ public class EvaluationHelperTests
         Assert.AreEqual("System.Guid", EvaluationHelper.RemapPrimitiveTypes("guid"));
 
         Assert.AreEqual("System.SomeType", EvaluationHelper.RemapPrimitiveTypes("System.SomeType"));
+    }
+
+    [TestMethod]
+    public void CreateComplexTypeDescription_WithPrimitiveTypeAtRoot_ShouldNotExplorePrimitiveProperties()
+    {
+        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("IntValue", typeof(int)).ToArray();
+        
+        Assert.HasCount(1, typeDescriptions);
+        Assert.AreEqual("IntValue", typeDescriptions[0].FieldName);
+        Assert.AreEqual(typeof(int), typeDescriptions[0].Type);
+    }
+
+    [TestMethod]
+    public void CreateComplexTypeDescription_WithStringAtRoot_ShouldNotExploreStringProperties()
+    {
+        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("StringValue", typeof(string)).ToArray();
+        
+        Assert.HasCount(1, typeDescriptions);
+        Assert.AreEqual("StringValue", typeDescriptions[0].FieldName);
+        Assert.AreEqual(typeof(string), typeDescriptions[0].Type);
+    }
+
+    [TestMethod]
+    public void CreateComplexTypeDescription_WithObjectAtRoot_ShouldIncludeRootColumn()
+    {
+        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("ObjectValue", typeof(object)).ToArray();
+        
+        Assert.HasCount(1, typeDescriptions);
+        Assert.AreEqual("ObjectValue", typeDescriptions[0].FieldName);
+        Assert.AreEqual(typeof(object), typeDescriptions[0].Type);
     }
 }

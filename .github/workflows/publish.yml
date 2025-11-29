@@ -2,32 +2,41 @@ name: Publish
 
 on:
   workflow_dispatch:
-    
   workflow_run:
     workflows: ["CI"]
     types:
-    - completed
+      - completed
 
 jobs:
   publish:
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: windows-latest
+    
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
     - name: Build
-      run: dotnet build --configuration Release
-    - name: Publish
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Pack specific projects
       run: |
-        $scriptLocationDirectory=(Get-Location).ToString()
-        $scriptLocationFilePath=[System.IO.Path]::Combine($scriptLocationDirectory, "Publish.Nuget.ps1")
-        $nugetExecutable=[System.IO.Path]::Combine($scriptLocationDirectory, "nuget", "nuget.exe")
-        $projects = @('Musoq.Converter', 'Musoq.Evaluator', 'Musoq.Parser', 'Musoq.Plugins', 'Musoq.Schema')
-        
-        foreach ($project in $projects) {
-          pushd
-          cd "./$project/bin/Release"
-          Invoke-Expression "$scriptLocationFilePath $nugetExecutable $project '${{ secrets.nuget_musoq_key }}'"
-          popd
+        dotnet pack Musoq.Converter/Musoq.Converter.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack Musoq.Evaluator/Musoq.Evaluator.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack Musoq.Parser/Musoq.Parser.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack Musoq.Plugins/Musoq.Plugins.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack Musoq.Schema/Musoq.Schema.csproj --configuration Release --no-build --output ./nupkgs
+    
+    - name: Publish to NuGet.org
+      run: |
+        $packages = Get-ChildItem -Path ./nupkgs -Filter *.nupkg
+        foreach ($package in $packages) {
+          dotnet nuget push $package.FullName --api-key ${{ secrets.NUGET_MUSOQ_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
         }

@@ -19,7 +19,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(2, (int)table[0].Values[0]);
@@ -35,7 +35,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         // For int array out of bounds, should return default(int) = 0
@@ -52,7 +52,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         // For negative index -1, should return last element of array [0, 1, 2] = 2
@@ -69,7 +69,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual('d', (char)table[0].Values[0]);
@@ -85,7 +85,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         // For char out of bounds, should return default(char) = '\0'
@@ -102,7 +102,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         // For null string access, should return default(char) = '\0'
@@ -119,7 +119,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("B", (string)table[0].Values[0]);
@@ -135,7 +135,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         // For invalid dictionary key, should return null for reference types
@@ -152,7 +152,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         // For empty string access, should return default(char) = '\0'
@@ -171,7 +171,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         // For out of bounds array access, should return default(int) = 0
@@ -188,7 +188,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         // For aliased character access out of bounds, should return default(char) = '\0'
@@ -205,7 +205,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         
@@ -228,7 +228,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         
@@ -251,7 +251,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         
@@ -269,7 +269,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         
@@ -277,4 +277,6 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         Assert.AreEqual('d', (char)table[0].Values[0]); // Name[-1] = last character = 'd'
         Assert.AreEqual('i', (char)table[0].Values[1]); // Name[-2] = second to last = 'i'
     }
+
+    public TestContext TestContext { get; set; }
 }

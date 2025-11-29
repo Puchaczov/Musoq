@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -20,7 +20,7 @@ public class UnknownSchema : SchemaBase
     public UnknownSchema()
         : base(SchemaName, CreateLibrary())
     {
-        _values = new List<dynamic>();
+        _values = [];
     }
     
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)

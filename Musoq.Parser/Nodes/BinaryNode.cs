@@ -6,6 +6,7 @@ namespace Musoq.Parser.Nodes;
 public abstract class BinaryNode : Node
 {
     private readonly Node[] _nodes;
+    private Type _returnType;
 
     protected BinaryNode(Node left, Node right)
     {
@@ -16,7 +17,7 @@ public abstract class BinaryNode : Node
 
     public Node Right => _nodes[1];
 
-    public override Type ReturnType => IsNullOrVoid(Left.ReturnType) || IsNullOrVoid(Right.ReturnType)
+    public override Type ReturnType => _returnType ??= IsNullOrVoid(Left.ReturnType) || IsNullOrVoid(Right.ReturnType)
         ? typeof(void)
         : NodeHelpers.GetReturnTypeMap(Left.ReturnType, Right.ReturnType);
 
