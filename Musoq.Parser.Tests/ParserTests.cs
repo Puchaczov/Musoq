@@ -774,4 +774,20 @@ public class ParserTests
 
         Assert.IsNotNull(result);
     }
+
+    [TestMethod]
+    public void WhenTwoCommentsWithEmptyLineThenQuery_ShouldParse()
+    {
+        var query = """
+                    --comment 1
+                    --comment 2
+
+                    select 1 from #some.a()
+                    """;
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        parser.ComposeAll();
+    }
 }
