@@ -1568,5 +1568,100 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("456", result[1]);
     }
 
+    [TestMethod]
+    public void WhenTwoCommentsWithEmptyLineThenQuery_ShouldEvaluate()
+    {
+        var query = """
+                    --comment 1
+                    --comment 2
+
+                    select Name from #A.Entities()
+                    """;
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [new BasicEntity("Test")]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("Test", table[0][0]);
+    }
+
+    [TestMethod]
+    public void WhenMultipleCommentsWithEmptyLinesThenQuery_ShouldEvaluate()
+    {
+        var query = """
+                    --comment 1
+                    --comment 2
+                    --comment 3
+
+
+                    select Name from #A.Entities() where Name = 'Test'
+                    """;
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [new BasicEntity("Test"), new BasicEntity("Other")]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("Test", table[0][0]);
+    }
+
+    [TestMethod]
+    public void WhenMultiLineCommentWithEmptyLineThenQuery_ShouldEvaluate()
+    {
+        var query = """
+                    /* multi-line comment
+                       spanning multiple lines */
+
+                    select Name from #A.Entities()
+                    """;
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [new BasicEntity("Test")]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("Test", table[0][0]);
+    }
+
+    [TestMethod]
+    public void WhenMixedCommentsWithEmptyLinesThenQuery_ShouldEvaluate()
+    {
+        var query = """
+                    --single line comment
+                    /* multi-line
+                       comment */
+
+                    select Name from #A.Entities()
+                    """;
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [new BasicEntity("Test")]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("Test", table[0][0]);
+    }
+
     public TestContext TestContext { get; set; }
 }

@@ -790,4 +790,72 @@ public class ParserTests
 
         parser.ComposeAll();
     }
+
+    [TestMethod]
+    public void WhenThreeCommentsWithEmptyLinesThenQuery_ShouldParse()
+    {
+        var query = """
+                    --comment 1
+                    --comment 2
+                    --comment 3
+
+
+                    select 1 from #some.a()
+                    """;
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void WhenEmptyLineBetweenCommentsThenQuery_ShouldParse()
+    {
+        var query = """
+                    --comment 1
+
+                    --comment 2
+
+                    select 1 from #some.a()
+                    """;
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void WhenMultiLineCommentWithEmptyLineThenQuery_ShouldParse()
+    {
+        var query = """
+                    /* comment 1
+                       comment 2 */
+
+                    select 1 from #some.a()
+                    """;
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void WhenMixedCommentsWithEmptyLinesThenQuery_ShouldParse()
+    {
+        var query = """
+                    --single line comment
+                    /* multi-line
+                       comment */
+
+                    select 1 from #some.a()
+                    """;
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        parser.ComposeAll();
+    }
 }
