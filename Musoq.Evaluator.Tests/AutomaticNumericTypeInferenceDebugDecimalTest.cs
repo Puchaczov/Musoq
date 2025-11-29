@@ -23,7 +23,7 @@ public class AutomaticNumericTypeInferenceDebugDecimalTest : UnknownQueryTestsBa
         item1.Name = "Match";
 
         var vm = CreateAndRunVirtualMachine(query, [item1]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, $"Expected 1 match but got {table.Count}");
         Assert.AreEqual("Match", table[0].Values[0]);
@@ -44,7 +44,7 @@ public class AutomaticNumericTypeInferenceDebugDecimalTest : UnknownQueryTestsBa
         item1.Name = "Match";
 
         var vm = CreateAndRunVirtualMachine(query, [item1]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Match", table[0].Values[0]);
@@ -65,9 +65,11 @@ public class AutomaticNumericTypeInferenceDebugDecimalTest : UnknownQueryTestsBa
         item1.Name = "Match";
 
         var vm = CreateAndRunVirtualMachine(query, [item1]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Match", table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 }

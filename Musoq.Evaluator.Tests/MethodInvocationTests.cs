@@ -28,7 +28,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
@@ -56,7 +56,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
@@ -84,7 +84,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
@@ -112,7 +112,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
@@ -140,7 +140,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
@@ -168,7 +168,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
@@ -196,7 +196,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
@@ -252,7 +252,7 @@ public class MethodInvocationTests : BasicEntityTestBase
         
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Count);
         Assert.AreEqual("TEST", table[0].Values[0]);
@@ -260,4 +260,6 @@ public class MethodInvocationTests : BasicEntityTestBase
         Assert.AreEqual("TEST", table[2].Values[0]);
         Assert.AreEqual("TEST", table[3].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 }

@@ -18,7 +18,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         
@@ -36,7 +36,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         
@@ -54,7 +54,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         
@@ -72,7 +72,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         
@@ -90,7 +90,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         
@@ -106,7 +106,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
             new()
         ], []);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
     }
@@ -120,7 +120,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
             new()
         ], []);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         
@@ -148,4 +148,6 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
             new()
         ]));
     }
+
+    public TestContext TestContext { get; set; }
 }

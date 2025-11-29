@@ -9,9 +9,9 @@ namespace Musoq.Plugins.Lib.RuntimeOperators;
 /// </summary>
 internal class TypePreservingRuntimeOperators : IRuntimeOperators
 {
-    private readonly ITypeConverter _numericConverter;
-    private readonly ITypeConverter _comparisonConverter;
-    private readonly ITypeConverter _strictConverter;
+    private readonly NumericOnlyTypeConverter _numericConverter;
+    private readonly ComparisonTypeConverter _comparisonConverter;
+    private readonly StrictTypeConverter _strictConverter;
 
     /// <summary>
     /// Initializes a new instance of the TypePreservingRuntimeOperators class.
@@ -20,9 +20,9 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     /// <param name="comparisonConverter">Converter for comparison operations (lossy mode).</param>
     /// <param name="strictConverter">Converter for equality operations (strict mode).</param>
     public TypePreservingRuntimeOperators(
-        ITypeConverter numericConverter,
-        ITypeConverter comparisonConverter,
-        ITypeConverter strictConverter)
+        NumericOnlyTypeConverter numericConverter,
+        ComparisonTypeConverter comparisonConverter,
+        StrictTypeConverter strictConverter)
     {
         _numericConverter = numericConverter ?? throw new ArgumentNullException(nameof(numericConverter));
         _comparisonConverter = comparisonConverter ?? throw new ArgumentNullException(nameof(comparisonConverter));

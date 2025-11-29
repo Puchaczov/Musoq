@@ -115,7 +115,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -141,7 +141,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -197,7 +197,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -253,7 +253,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -301,7 +301,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -367,7 +367,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
@@ -470,7 +470,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("d.Value", table.Columns.ElementAt(0).ColumnName);
@@ -523,7 +523,7 @@ table.Count(row =>
                 firstSource
             );
             
-            vm.Run();
+            vm.Run(TestContext.CancellationToken);
         });
     }
     
@@ -552,7 +552,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         
@@ -585,7 +585,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         
@@ -622,7 +622,7 @@ table.Count(row =>
             firstSource
         );
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         
@@ -630,4 +630,6 @@ table.Count(row =>
         
         Assert.AreEqual("System.Int32", table[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 }

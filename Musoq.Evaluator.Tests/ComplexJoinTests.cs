@@ -58,7 +58,7 @@ inner join #B.entities() b on a.Id = b.Id + 1";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(3, table.Count);
             
@@ -108,7 +108,7 @@ inner join #B.entities() b on a.Name = b.Name + '_Suffix'";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
             
@@ -156,7 +156,7 @@ inner join #B.entities() b on a.Population > b.Population + 100";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(3, table.Count);
             
@@ -207,7 +207,7 @@ inner join #B.entities() b on a.Time > b.AddDays(b.Time, 1)";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
             
@@ -252,7 +252,7 @@ inner join #B.entities() b on a.Id = b.Id + 1 AND a.Name = b.Name";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual(2, table[0][0]);
@@ -291,7 +291,7 @@ inner join #B.entities() b on a.Id + 1 = b.Id";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
             
@@ -336,7 +336,7 @@ inner join #B.entities() b on a.Id + 1 = b.Id - 1";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
             
@@ -379,7 +379,7 @@ inner join #B.entities() b on a.Population - 50 > b.Population";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count);
             
@@ -417,12 +417,14 @@ inner join #B.entities() b on a.Population / 2 > b.Population * 2";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count);
             
             Assert.AreEqual(500m, table[0][0]);
             Assert.AreEqual(100m, table[0][1]);
         }
+
+        public TestContext TestContext { get; set; }
     }
 }

@@ -14,6 +14,8 @@ public class Parser
 {
     private readonly Lexer _lexer;
     
+    private static readonly Regex ColumnRegex = new(Lexer.TokenRegexDefinition.KColumn, RegexOptions.Compiled);
+    
     public Parser(Lexer lexer)
     {
         _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer), "Lexer cannot be null. Please provide a valid lexer instance.");
@@ -863,7 +865,7 @@ public class Parser
             throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
             
         _hasReplacedToken = false;
-        _lexer.NextOf(new Regex(Lexer.TokenRegexDefinition.KColumn), value => new ColumnToken(value, new TextSpan(_lexer.Position, _lexer.Position + value.Length)));
+        _lexer.NextOf(ColumnRegex, value => new ColumnToken(value, new TextSpan(_lexer.Position, _lexer.Position + value.Length)));
     }
 
     private ArgsListNode ComposeArgs()

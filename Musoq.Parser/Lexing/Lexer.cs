@@ -13,12 +13,18 @@ public class Lexer : LexerBase<Token>
 {
     private readonly bool _skipWhiteSpaces;
 
-    private readonly Regex[] _decimalCandidates =
+    private static readonly Regex[] DecimalCandidates =
     [
-        new(TokenRegexDefinition.KDecimalWithDot),
-        new(TokenRegexDefinition.KDecimalWithSuffix),
-        new(TokenRegexDefinition.KDecimalWithDotAndSuffix)
+        new(TokenRegexDefinition.KDecimalWithDot, RegexOptions.Compiled),
+        new(TokenRegexDefinition.KDecimalWithSuffix, RegexOptions.Compiled),
+        new(TokenRegexDefinition.KDecimalWithDotAndSuffix, RegexOptions.Compiled)
     ];
+    
+    private static readonly Regex HexIntegerRegex = new(TokenRegexDefinition.KHexadecimalInteger, RegexOptions.Compiled);
+    private static readonly Regex BinaryIntegerRegex = new(TokenRegexDefinition.KBinaryInteger, RegexOptions.Compiled);
+    private static readonly Regex OctalIntegerRegex = new(TokenRegexDefinition.KOctalInteger, RegexOptions.Compiled);
+    private static readonly Regex SignedIntegerRegex = new(TokenRegexDefinition.KSignedInteger, RegexOptions.Compiled);
+    private static readonly Regex UnsignedIntegerRegex = new(TokenRegexDefinition.KUnsignedInteger, RegexOptions.Compiled);
         
     private readonly List<Token> _alreadyResolvedTokens = [];
 
@@ -237,29 +243,22 @@ public class Lexer : LexerBase<Token>
         if (regex != TokenRegexDefinition.KDecimalOrInteger) 
             return TokenType.Word;
             
-        if (_decimalCandidates.Any(decimalCandidate => decimalCandidate.IsMatch(tokenText)))
+        if (DecimalCandidates.Any(decimalCandidate => decimalCandidate.IsMatch(tokenText)))
             return TokenType.Decimal;
 
-        var regexHexInteger = new Regex(TokenRegexDefinition.KHexadecimalInteger);
-        if (regexHexInteger.IsMatch(tokenText))
+        if (HexIntegerRegex.IsMatch(tokenText))
             return TokenType.HexadecimalInteger;
 
-        var regexBinaryInteger = new Regex(TokenRegexDefinition.KBinaryInteger);
-        if (regexBinaryInteger.IsMatch(tokenText))
+        if (BinaryIntegerRegex.IsMatch(tokenText))
             return TokenType.BinaryInteger;
 
-        var regexOctalInteger = new Regex(TokenRegexDefinition.KOctalInteger);
-        if (regexOctalInteger.IsMatch(tokenText))
+        if (OctalIntegerRegex.IsMatch(tokenText))
             return TokenType.OctalInteger;
                 
-        var regexSignedInteger = new Regex(TokenRegexDefinition.KSignedInteger);
-                
-        if (regexSignedInteger.IsMatch(tokenText))
+        if (SignedIntegerRegex.IsMatch(tokenText))
             return TokenType.Integer;
             
-        var regexUnsignedInteger = new Regex(TokenRegexDefinition.KUnsignedInteger);
-            
-        if (regexUnsignedInteger.IsMatch(tokenText))
+        if (UnsignedIntegerRegex.IsMatch(tokenText))
             return TokenType.Integer;
 
         throw new NotSupportedException($"Token {tokenText} is not supported.");
@@ -381,7 +380,7 @@ public class Lexer : LexerBase<Token>
         /// <summary>
         ///     All supported by language keyword.
         /// </summary>
-        public static TokenDefinition[] General =>
+        public static TokenDefinition[] General { get; } =
         [
             new(TokenRegexDefinition.KComment),
             new(TokenRegexDefinition.KDecimalOrInteger),

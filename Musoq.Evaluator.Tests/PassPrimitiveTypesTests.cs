@@ -29,7 +29,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
             Assert.AreEqual("text", passedParams[4]);
         }, WhenCheckedParameters.OnSchemaTableOrRowSourceGet);
 
-        vm.Run();
+        vm.Run(TestContext.CancellationToken);
     }
 
     [TestMethod]
@@ -46,7 +46,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
             Assert.AreEqual("text", passedParams[4]);
         }, WhenCheckedParameters.OnMethodCall);
 
-        vm.Run();
+        vm.Run(TestContext.CancellationToken);
     }
 
     private enum WhenCheckedParameters
@@ -131,4 +131,6 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
             
         return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked), LoggerResolver);
     }
+
+    public TestContext TestContext { get; set; }
 }

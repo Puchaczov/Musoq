@@ -7,8 +7,8 @@ public class IsNullNode : Node
     public IsNullNode(Node expression, bool isNegated)
     {
         IsNegated = isNegated;
-        Id = $"{nameof(IsNullNode)}{isNegated}";
         Expression = expression;
+        Id = $"{nameof(IsNullNode)}{expression.Id}{isNegated}";
     }
 
     public Node Expression { get; }

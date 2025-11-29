@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
@@ -11,6 +11,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public char? ToChar(string? value)
     {
         if (value == null)
@@ -28,6 +29,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public char? ToChar(int? value)
     {
         if (value == null)
@@ -42,6 +44,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public char? ToChar(short? value)
     {
         if (value == null)
@@ -56,6 +59,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public char? ToChar(byte? value)
     {
         if (value == null)
@@ -70,6 +74,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public char? ToChar(object? value)
     {
         if (value == null)

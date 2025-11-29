@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using Musoq.Plugins.Attributes;
 
@@ -12,6 +12,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to TimeSpan value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public TimeSpan? ToTimeSpan(string value) => ToTimeSpan(value, CultureInfo.CurrentCulture.Name);
 
     /// <summary>
@@ -21,6 +22,7 @@ public partial class LibraryBase
     /// <param name="culture">The culture</param>
     /// <returns>Converted to TimeSpan value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public TimeSpan? ToTimeSpan(string value, string culture)
     {
         if (string.IsNullOrEmpty(value))

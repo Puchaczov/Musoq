@@ -59,7 +59,7 @@ public class OuterApplyTests : GenericEntityTestBase
             null,
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(6, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -131,7 +131,7 @@ public class OuterApplyTests : GenericEntityTestBase
             null,
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -183,7 +183,7 @@ table.Count(row =>
             null,
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -238,7 +238,7 @@ table.Count(row =>
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray()),
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -299,7 +299,7 @@ table.Count(row =>
             null,
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Country", table.Columns.ElementAt(0).ColumnName);
@@ -359,7 +359,7 @@ table.Count(row =>
             null,
             (parameters, source) => new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -390,4 +390,6 @@ table.Count(row =>
             row[3] == null
         ), "Expected combination (City3, Country3, null, null) not found");
     }
+
+    public TestContext TestContext { get; set; }
 }

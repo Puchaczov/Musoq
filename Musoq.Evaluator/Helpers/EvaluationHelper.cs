@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,6 +17,7 @@ namespace Musoq.Evaluator.Helpers;
 
 public static class EvaluationHelper
 {
+    private static readonly ConcurrentDictionary<Type, string> CastableTypeCache = new();
     public static RowSource ConvertEnumerableToSource<T>(IEnumerable<T> enumerable)
     {
         if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
@@ -280,6 +282,7 @@ public static class EvaluationHelper
     {
         if (type is NullNode.NullType) return "object";
         
+        // Fast path for common primitive types (no cache lookup needed)
         if (type == typeof(string)) return "string";
         if (type == typeof(int)) return "int";
         if (type == typeof(long)) return "long";
@@ -297,6 +300,12 @@ public static class EvaluationHelper
         if (type == typeof(object)) return "object";
         if (type == typeof(void)) return "void";
 
+        // Use cache for more complex types
+        return CastableTypeCache.GetOrAdd(type, ComputeCastableType);
+    }
+    
+    private static string ComputeCastableType(Type type)
+    {
         if (type.IsGenericType) return GetFriendlyTypeName(type);
         if (type.IsNested) return $"{GetCastableType(type.DeclaringType)}.{type.Name}";
 

@@ -35,7 +35,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         item3.Name = "UnderflowAge";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "One row with Age=100 should match");
         Assert.AreEqual("ValidAge", table[0].Values[0]);
@@ -64,7 +64,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         item3.Name = "Normal";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Only the max valid long value should match");
         Assert.AreEqual("MaxLong", table[0].Values[0]);
@@ -93,7 +93,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         item3.Name = "DecimalWhole";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Only the whole number should match");
         Assert.AreEqual("WholeNumber", table[0].Values[0]);
@@ -122,7 +122,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         item3.Name = "InvalidPrice";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "ValidPrice with 100.50 should match");
         Assert.AreEqual("ValidPrice", table[0].Values[0]);
@@ -171,7 +171,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         items.Add(item6);
 
         var vm = CreateAndRunVirtualMachine(query, items);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Only 2 valid rows above threshold should match");
         var names = table.Select(row => (string)row[0]).ToList();
@@ -202,7 +202,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         item3.Name = "TooLarge";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Only exact integer match should succeed");
         Assert.AreEqual("Match", table[0].Values[0]);
@@ -227,7 +227,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         item2.Name = "Overflow";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count, "Only MaxValue should match");
         Assert.AreEqual("MaxValue", table[0].Values[0]);
@@ -248,11 +248,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         item4.Name = "Underflow";
 
         var vm2 = CreateAndRunVirtualMachine(query2, [item3, item4]);
-        var table2 = vm2.Run();
+        var table2 = vm2.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table2.Count, "Only MinValue should match");
         Assert.AreEqual("MinValue", table2[0].Values[0]);
     }
+
+    public TestContext TestContext { get; set; }
 
     #endregion
 }

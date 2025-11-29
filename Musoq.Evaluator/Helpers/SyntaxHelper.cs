@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -10,6 +11,28 @@ namespace Musoq.Evaluator.Helpers;
 
 public static class SyntaxHelper
 {
+    private static readonly ConcurrentDictionary<string, TypeSyntax> TypeSyntaxCache = new();
+    
+    public static readonly TypeSyntax ObjectTypeSyntax = SyntaxFactory.ParseTypeName("object");
+    public static readonly TypeSyntax RowTypeSyntax = SyntaxFactory.ParseTypeName("Row");
+    public static readonly TypeSyntax ObjectsRowTypeSyntax = SyntaxFactory.ParseTypeName("ObjectsRow");
+    public static readonly TypeSyntax IndexOutOfRangeExceptionTypeSyntax = SyntaxFactory.ParseTypeName("IndexOutOfRangeException");
+    public static readonly TypeSyntax IObjectResolverTypeSyntax = SyntaxFactory.ParseTypeName("Musoq.Schema.DataSources.IObjectResolver");
+    public static readonly TypeSyntax RowConcreteTypeSyntax = SyntaxFactory.ParseTypeName("Musoq.Evaluator.Tables.Row");
+    public static readonly TypeSyntax ListOfIObjectResolverTypeSyntax = SyntaxFactory.ParseTypeName("System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>");
+    
+    public static readonly ArrayTypeSyntax ObjectArrayTypeSyntax = SyntaxFactory.ArrayType(
+        ObjectTypeSyntax, 
+        SyntaxFactory.SingletonList(
+            SyntaxFactory.ArrayRankSpecifier(
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                    SyntaxFactory.OmittedArraySizeExpression()))));
+    
+    public static TypeSyntax GetCachedTypeSyntax(string typeName)
+    {
+        return TypeSyntaxCache.GetOrAdd(typeName, static t => SyntaxFactory.ParseTypeName(t));
+    }
+    
     public static SyntaxTrivia WhiteSpace => SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
     public static InvocationExpressionSyntax CreateMethodInvocation(string variableName, string methodName,
@@ -86,7 +109,7 @@ public static class SyntaxHelper
     public static ObjectCreationExpressionSyntax CreateObjectOf(string typeName, ArgumentListSyntax args,
         InitializerExpressionSyntax initializer = null)
     {
-        return CreateObjectOf(SyntaxFactory.ParseTypeName(typeName), args, initializer);
+        return CreateObjectOf(GetCachedTypeSyntax(typeName), args, initializer);
     }
 
     private static ObjectCreationExpressionSyntax CreateObjectOf(TypeSyntax type,

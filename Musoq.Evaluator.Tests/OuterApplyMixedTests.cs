@@ -83,7 +83,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
                 new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray())
         );
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -183,7 +183,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
                 new ObjectRowsSource(source.Rows.Where(f => (string) f["Department"] == (string) parameters[0])
                     .ToArray()));
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(5, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
@@ -275,7 +275,7 @@ table.Count(row =>
 
         var vm = CreateAndRunVirtualMachine(query, firstSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
@@ -339,7 +339,7 @@ table.Count(row =>
 
         var vm = CreateAndRunVirtualMachine(query, firstSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
@@ -398,7 +398,7 @@ table.Count(row =>
 
         var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
@@ -474,7 +474,7 @@ table.Count(row =>
 
         var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
@@ -504,4 +504,6 @@ table.Count(row =>
                 (string)row[1] == "Johnson" &&
                 new[] { "Communication", "Negotiation" }.Contains((string)row[2])), "Expected 2 rows for Alice Johnson with Communication and Negotiation skills");
     }
+
+    public TestContext TestContext { get; set; }
 }

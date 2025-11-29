@@ -58,7 +58,7 @@ inner join #B.entities() b on a.Id = b.Id";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count);
             Assert.AreEqual("A1", table[0][0]);
@@ -100,7 +100,7 @@ inner join #B.entities() b on a.Population > b.Population";
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(3, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
             
@@ -145,7 +145,7 @@ inner join #B.entities() b on a.Population < b.Population";
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
             Assert.AreEqual("A1", table[0][0]);
@@ -186,7 +186,7 @@ inner join #B.entities() b on a.Population >= b.Population";
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
             
@@ -229,7 +229,7 @@ inner join #B.entities() b on a.Population <= b.Population";
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
             
@@ -272,7 +272,7 @@ inner join #B.entities() b on a.Id = b.Id AND a.Population > b.Population";
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(1, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
             Assert.AreEqual("A1", table[0][0]);
@@ -305,7 +305,7 @@ left join #B.entities() b on a.Id = b.Id";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
             
@@ -342,7 +342,7 @@ right join #B.entities() b on a.Id = b.Id";
             };
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions());
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count);
             
@@ -388,7 +388,7 @@ inner join #B.entities() b on a.Id <> b.Id";
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
             
@@ -431,7 +431,7 @@ inner join #B.entities() b on a.Id = b.Id OR a.Population = b.Population";
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
             
@@ -472,7 +472,7 @@ inner join #B.entities() b on a.Id = b.Id AND (a.Population > b.Population OR a.
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
             
@@ -480,5 +480,7 @@ inner join #B.entities() b on a.Id = b.Id AND (a.Population > b.Population OR a.
             Assert.AreEqual("A1-B1", rows[0]);
             Assert.AreEqual("SameName-SameName", rows[1]);
         }
+
+        public TestContext TestContext { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using Musoq.Plugins.Attributes;
 
@@ -12,6 +12,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(string? value)
     {
         if (value == null)
@@ -30,6 +31,7 @@ public partial class LibraryBase
     /// <param name="culture">The culture</param>
     /// <returns>Converted to decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(string value, string culture)
     {
         if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.GetCultureInfo(culture), out var result))
@@ -44,6 +46,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(byte? value)
     {
         return value;
@@ -55,6 +58,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(sbyte? value)
     {
         return value;
@@ -66,6 +70,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(short? value)
     {
         return value;
@@ -77,6 +82,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(ushort? value)
     {
         return value;
@@ -88,6 +94,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(long? value)
     {
         return value;
@@ -99,6 +106,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(ulong? value)
     {
         return value;
@@ -110,6 +118,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(float? value)
     {
         return (decimal?)value;
@@ -121,6 +130,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(double? value)
     {
         if (value == null)
@@ -135,6 +145,7 @@ public partial class LibraryBase
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
     public decimal? ToDecimal(object? value)
     {
         if (value == null)

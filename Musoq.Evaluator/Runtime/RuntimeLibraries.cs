@@ -79,31 +79,29 @@ public static class RuntimeLibraries
                         .Where(fi => fi.Exists)
                         .ToList();
 
-                    var tasks = (from file in files
-                        where !file.Name.Contains("native", StringComparison.InvariantCultureIgnoreCase)
-                        select Task.Run<MetadataReference>(() =>
+                    var references = new List<MetadataReference>(files.Count);
+                    
+                    foreach (var file in files)
+                    {
+                        if (file.Name.Contains("native", StringComparison.InvariantCultureIgnoreCase))
+                            continue;
+                            
+                        try
                         {
-                            try
-                            {
-                                return MetadataReference.CreateFromFile(file.FullName);
-                            }
-                            catch (FileNotFoundException)
-                            {
-                            }
-                            catch (BadImageFormatException)
-                            {
-                            }
-                            catch (FileLoadException)
-                            {
-                            }
+                            references.Add(MetadataReferenceCache.GetOrCreate(file.FullName));
+                        }
+                        catch (FileNotFoundException)
+                        {
+                        }
+                        catch (BadImageFormatException)
+                        {
+                        }
+                        catch (FileLoadException)
+                        {
+                        }
+                    }
 
-                            return null;
-                        })).ToArray();
-
-                    // ReSharper disable once CoVariantArrayConversion
-                    Task.WaitAll(tasks);
-
-                    _references = tasks.Where(task => task.Result != null).Select(task => task.Result).ToArray();
+                    _references = references.ToArray();
                 }
                 finally
                 {

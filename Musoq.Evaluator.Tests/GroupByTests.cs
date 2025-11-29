@@ -25,7 +25,7 @@ public class GroupByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual(Convert.ToDecimal(700), table[0].Values[0]);
@@ -53,7 +53,7 @@ public class GroupByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(Convert.ToDecimal(700), table[0].Values[0]);
@@ -81,7 +81,7 @@ public class GroupByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -123,7 +123,7 @@ public class GroupByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -180,7 +180,7 @@ public class GroupByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -213,7 +213,7 @@ public class GroupByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -248,7 +248,7 @@ public class GroupByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -280,7 +280,7 @@ public class GroupByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
@@ -325,7 +325,7 @@ public class GroupByTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
@@ -379,7 +379,7 @@ table.Count(row =>
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Substring(Name, 0, 2)", table.Columns.ElementAt(0).ColumnName);
@@ -425,7 +425,7 @@ table.Count(row =>
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -480,7 +480,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
@@ -529,7 +529,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
@@ -599,7 +599,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Window(Population)", table.Columns.ElementAt(0).ColumnName);
@@ -635,7 +635,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Window(Population)", table.Columns.ElementAt(0).ColumnName);
@@ -680,7 +680,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
@@ -736,7 +736,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
@@ -773,7 +773,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
@@ -804,7 +804,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
@@ -833,7 +833,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
@@ -884,7 +884,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
@@ -917,7 +917,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(0).ColumnName);
@@ -944,7 +944,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("jan", table[0].Values[0]);
@@ -966,7 +966,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("jan", table[0].Values[0]);
@@ -989,7 +989,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -1023,7 +1023,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
@@ -1051,7 +1051,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsTrue(table.Any(entry => 
                 (string)entry[0] == "jan"), 
@@ -1085,7 +1085,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var column = table.Columns.ElementAt(0);
         Assert.AreEqual("::1", column.ColumnName);
@@ -1125,7 +1125,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         var column = table.Columns.ElementAt(0);
         Assert.AreEqual("firstColumn", column.ColumnName);
@@ -1186,7 +1186,7 @@ group by countries.GetCountry()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -1230,7 +1230,7 @@ group by a.Country";
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
             
         Assert.AreEqual("Poland", table[0][0]);
         Assert.AreEqual("Warsaw,Gdansk", table[0][1]);
@@ -1265,7 +1265,7 @@ group by a.Country";
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual("Poland", table[0][0]);
         Assert.AreEqual("Gdansk", table[0][1]);
@@ -1294,7 +1294,7 @@ group by a.Country";
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -1332,7 +1332,7 @@ group by a.Country";
             
         var vm = CreateAndRunVirtualMachine(query, sources);
             
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
             
@@ -1346,4 +1346,6 @@ group by a.Country";
             (string)entry[1] == "B"
         ), "Second entry should be Brazil with 'B'");
     }
+
+    public TestContext TestContext { get; set; }
 }

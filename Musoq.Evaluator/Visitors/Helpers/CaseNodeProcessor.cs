@@ -26,7 +26,8 @@ namespace Musoq.Evaluator.Visitors.Helpers
             Dictionary<string, Type> typesToInstantiate,
             MethodAccessType oldType,
             string queryAlias,
-            ref int caseWhenMethodIndex)
+            ref int caseWhenMethodIndex,
+            IReadOnlyList<(string VariableName, Type VariableType, string ExpressionId)> cseVariables = null)
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
@@ -40,7 +41,7 @@ namespace Musoq.Evaluator.Visitors.Helpers
             var finalIfStatement = ChainIfStatements(ifStatements);
             
             var methodName = $"CaseWhen_{caseWhenMethodIndex++}";
-            var (parameters, callParameters) = BuildMethodParameters(typesToInstantiate, oldType, queryAlias);
+            var (parameters, callParameters) = BuildMethodParameters(typesToInstantiate, oldType, queryAlias, cseVariables);
             var method = CreateCaseMethod(methodName, node.ReturnType, parameters, finalIfStatement);
             
             var methodInvocation = SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray());
@@ -53,9 +54,6 @@ namespace Musoq.Evaluator.Visitors.Helpers
             };
         }
 
-        /// <summary>
-        /// Builds the initial if-else chain from when-then pairs
-        /// </summary>
         private static List<IfStatementSyntax> BuildIfElseChain(CaseNode node, Stack<SyntaxNode> nodes)
         {
             var ifStatements = new List<IfStatementSyntax>();
@@ -95,17 +93,11 @@ namespace Musoq.Evaluator.Visitors.Helpers
             return ifStatements;
         }
 
-        /// <summary>
-        /// Casts an expression to the return type of the CASE expression
-        /// </summary>
         private static SyntaxNode CastToReturnType(SyntaxNode expression, TypeSyntax returnType)
         {
             return SyntaxFactory.CastExpression(returnType, (ExpressionSyntax)expression);
         }
 
-        /// <summary>
-        /// Chains multiple if statements into a nested if-else structure
-        /// </summary>
         private static IfStatementSyntax ChainIfStatements(List<IfStatementSyntax> ifStatements)
         {
             if (ifStatements.Count == 1)
@@ -144,11 +136,12 @@ namespace Musoq.Evaluator.Visitors.Helpers
             return newIfStatement ?? throw new InvalidOperationException("Failed to chain if statements");
         }
 
-        /// <summary>
-        /// Builds method parameters and call arguments for the case method
-        /// </summary>
-        private static (List<ParameterSyntax> parameters, List<ArgumentSyntax> callParameters) 
-            BuildMethodParameters(Dictionary<string, Type> typesToInstantiate, MethodAccessType oldType, string queryAlias)
+        private static (List<ParameterSyntax> parameters, List<ArgumentSyntax> callParameters) BuildMethodParameters(
+            Dictionary<string, Type> typesToInstantiate,
+            MethodAccessType oldType,
+            string queryAlias,
+            IReadOnlyList<(string VariableName, Type VariableType, string ExpressionId)> cseVariables
+        )
         {
             var parameters = new List<ParameterSyntax>();
             var callParameters = new List<ArgumentSyntax>();
@@ -175,13 +168,33 @@ namespace Musoq.Evaluator.Visitors.Helpers
                 callParameters.Add(
                     SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableNameTypePair.Key)));
             }
+
+            if (cseVariables == null) 
+                return (parameters, callParameters);
             
+            foreach (var (variableName, variableType, _) in cseVariables)
+            {
+                parameters.Add(
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier(variableName))
+                        .WithType(SyntaxFactory.IdentifierName(GetTypeName(variableType))));
+                    
+                callParameters.Add(
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableName)));
+            }
+
             return (parameters, callParameters);
         }
+        
+        private static string GetTypeName(Type type)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return $"{type.GetGenericArguments()[0].Name}?";
+            }
+            
+            return type.Name;
+        }
 
-        /// <summary>
-        /// Creates the method declaration for the case logic
-        /// </summary>
         private static MethodDeclarationSyntax CreateCaseMethod(
             string methodName, 
             Type returnType, 
@@ -196,26 +209,26 @@ namespace Musoq.Evaluator.Visitors.Helpers
                 .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.ToArray())))
                 .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(ifStatement)));
         }
-    }
 
-    /// <summary>
-    /// Result of processing a CaseNode
-    /// </summary>
-    public class ProcessCaseNodeResult
-    {
         /// <summary>
-        /// The generated method declaration
+        /// Result of processing a CaseNode
         /// </summary>
-        public MethodDeclarationSyntax Method { get; set; }
+        public class ProcessCaseNodeResult
+        {
+            /// <summary>
+            /// The generated method declaration
+            /// </summary>
+            public MethodDeclarationSyntax Method { get; init; }
         
-        /// <summary>
-        /// The method invocation syntax to replace the case node
-        /// </summary>
-        public InvocationExpressionSyntax MethodInvocation { get; set; }
+            /// <summary>
+            /// The method invocation syntax to replace the case node
+            /// </summary>
+            public InvocationExpressionSyntax MethodInvocation { get; init; }
         
-        /// <summary>
-        /// Required namespaces to be added
-        /// </summary>
-        public string[] RequiredNamespaces { get; set; }
+            /// <summary>
+            /// Required namespaces to be added
+            /// </summary>
+            public string[] RequiredNamespaces { get; init; }
+        }
     }
 }

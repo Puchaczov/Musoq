@@ -40,7 +40,7 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
             first, second
         ]);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(2, table.Count);
@@ -71,4 +71,6 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
         Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 2, 1)), table[1].Values[createdAtIndex]);
         Assert.IsNull(table[1].Values[updatedAtIndex]);
     }
+
+    public TestContext TestContext { get; set; }
 }

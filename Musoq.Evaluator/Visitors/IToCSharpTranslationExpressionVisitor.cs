@@ -1,4 +1,6 @@
-﻿namespace Musoq.Evaluator.Visitors;
+﻿using Musoq.Parser.Nodes;
+
+namespace Musoq.Evaluator.Visitors;
 
 public interface IToCSharpTranslationExpressionVisitor : IScopeAwareExpressionVisitor
 {
@@ -15,4 +17,8 @@ public interface IToCSharpTranslationExpressionVisitor : IScopeAwareExpressionVi
     void AddNullSuspiciousSection();
         
     void RemoveNullSuspiciousSection();
+    
+    void InitializeCseForQuery(Node queryNode);
+    
+    void SetCaseWhenContext(bool isInside);
 }

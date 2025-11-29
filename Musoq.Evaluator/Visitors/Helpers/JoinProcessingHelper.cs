@@ -320,7 +320,7 @@ public static class JoinProcessingHelper
                     SyntaxFactory.ObjectCreationExpression(
                         SyntaxFactory.Token(SyntaxKind.NewKeyword)
                             .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                        SyntaxHelper.ObjectsRowTypeSyntax,
                         SyntaxFactory.ArgumentList(
                             SyntaxFactory.SeparatedList(
                             [
@@ -355,7 +355,7 @@ public static class JoinProcessingHelper
                     SyntaxFactory.ObjectCreationExpression(
                         SyntaxFactory.Token(SyntaxKind.NewKeyword)
                             .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.ParseTypeName(nameof(ObjectsRow)),
+                        SyntaxHelper.ObjectsRowTypeSyntax,
                         SyntaxFactory.ArgumentList(
                             SyntaxFactory.SeparatedList(
                             [

@@ -55,7 +55,7 @@ left join #B.entities() b on a.Population > b.Population";
             // Expected: 2 rows.
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count, "SortMergeJoin Left Join failed");
             
@@ -100,7 +100,7 @@ right join #B.entities() b on a.Population > b.Population";
             // 2. null, B2
             
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
-            var table = vm.Run();
+            var table = vm.Run(TestContext.CancellationToken);
 
             Assert.AreEqual(2, table.Count, "SortMergeJoin Right Join failed");
             
@@ -111,5 +111,7 @@ right join #B.entities() b on a.Population > b.Population";
             Assert.IsNull(rows[1][0]);
             Assert.AreEqual("B2", rows[1][1]);
         }
+
+        public TestContext TestContext { get; set; }
     }
 }

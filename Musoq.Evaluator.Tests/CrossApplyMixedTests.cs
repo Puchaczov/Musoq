@@ -84,7 +84,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
                 new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray())
         );
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Columns.Count());
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
@@ -188,7 +188,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
                 new ObjectRowsSource(source.Rows.Where(f => (string) f["Department"] == (string) parameters[0])
                     .ToArray()));
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(5, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
@@ -332,7 +332,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, firstSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
@@ -401,7 +401,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, firstSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
@@ -462,7 +462,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
@@ -533,7 +533,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
 
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
@@ -605,7 +605,7 @@ table.Count(row =>
         
         var vm = CreateAndRunVirtualMachine<SpecialCaseEmptyType, SpecialCaseLibrary1>(query, [new SpecialCaseEmptyType()]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -632,6 +632,8 @@ table.Count(row =>
             query,
             firstSource);
         
-        vm.Run();
+        vm.Run(TestContext.CancellationToken);
     }
+
+    public TestContext TestContext { get; set; }
 }

@@ -7,11 +7,8 @@ namespace Musoq.Plugins.Lib.TypeConversion;
 /// Type converter that allows precision loss but validates range constraints.
 /// Used for comparison operations (&gt;, &lt;, &gt;=, &lt;=) where approximate equality is acceptable.
 /// </summary>
-internal class ComparisonTypeConverter : ITypeConverter
+internal class ComparisonTypeConverter
 {
-    /// <summary>
-    /// Generic helper method for comparison-mode type conversions that allow precision loss but validate range constraints.
-    /// </summary>
     private T? TryConvertToIntegralTypeComparison<T>(object? value, Func<object, T> converter, Func<T, bool> rangeCheck) where T : struct
     {
         if (value == null)
@@ -41,31 +38,31 @@ internal class ComparisonTypeConverter : ITypeConverter
                 
                 case uint uintValue:
                     var uintResult = converter(uintValue);
-                    return rangeCheck(uintResult) ? uintResult : (T?)null;
+                    return rangeCheck(uintResult) ? uintResult : null;
                 
                 case long longValue:
                     var longResult = converter(longValue);
-                    return rangeCheck(longResult) ? longResult : (T?)null;
+                    return rangeCheck(longResult) ? longResult : null;
                 
                 case ulong ulongValue:
                     var ulongResult = converter(ulongValue);
-                    return rangeCheck(ulongResult) ? ulongResult : (T?)null;
+                    return rangeCheck(ulongResult) ? ulongResult : null;
                 
                 case float floatValue:
                     if (float.IsNaN(floatValue) || float.IsInfinity(floatValue))
                         return null;
                     var floatResult = converter(floatValue);
-                    return rangeCheck(floatResult) ? floatResult : (T?)null;
+                    return rangeCheck(floatResult) ? floatResult : null;
                 
                 case double doubleValue:
                     if (double.IsNaN(doubleValue) || double.IsInfinity(doubleValue))
                         return null;
                     var doubleResult = converter(doubleValue);
-                    return rangeCheck(doubleResult) ? doubleResult : (T?)null;
+                    return rangeCheck(doubleResult) ? doubleResult : null;
                 
                 case decimal decimalValue:
                     var decimalResult = converter(decimalValue);
-                    return rangeCheck(decimalResult) ? decimalResult : (T?)null;
+                    return rangeCheck(decimalResult) ? decimalResult : null;
                 
                 case string stringValue:
                     if (typeof(T) == typeof(int) && int.TryParse(stringValue, out var parsedInt))
@@ -98,26 +95,26 @@ internal class ComparisonTypeConverter : ITypeConverter
     /// <inheritdoc />
     public int? TryConvertToInt32(object? value)
     {
-        return TryConvertToIntegralTypeComparison<int>(
+        return TryConvertToIntegralTypeComparison(
             value,
             obj =>
             {
                 try { return Convert.ToInt32(obj); }
                 catch { return 0; }
             },
-            result =>
+            _ =>
             {
-                if (value is uint uintValue && uintValue > int.MaxValue)
+                if (value is uint and > int.MaxValue)
                     return false;
-                if (value is long longValue && (longValue < int.MinValue || longValue > int.MaxValue))
+                if (value is long and (< int.MinValue or > int.MaxValue))
                     return false;
-                if (value is ulong ulongValue && ulongValue > int.MaxValue)
+                if (value is ulong and > int.MaxValue)
                     return false;
-                if (value is float floatValue && (floatValue < int.MinValue || floatValue > int.MaxValue))
+                if (value is float and (< int.MinValue or > int.MaxValue))
                     return false;
-                if (value is double doubleValue && (doubleValue < int.MinValue || doubleValue > int.MaxValue))
+                if (value is double and (< int.MinValue or > int.MaxValue))
                     return false;
-                if (value is decimal decimalValue && (decimalValue < int.MinValue || decimalValue > int.MaxValue))
+                if (value is decimal and (< int.MinValue or > int.MaxValue))
                     return false;
                 return true;
             });
@@ -126,22 +123,22 @@ internal class ComparisonTypeConverter : ITypeConverter
     /// <inheritdoc />
     public long? TryConvertToInt64(object? value)
     {
-        return TryConvertToIntegralTypeComparison<long>(
+        return TryConvertToIntegralTypeComparison(
             value,
             obj =>
             {
                 try { return Convert.ToInt64(obj); }
                 catch { return 0L; }
             },
-            result =>
+            _ =>
             {
-                if (value is ulong ulongValue && ulongValue > long.MaxValue)
+                if (value is ulong and > long.MaxValue)
                     return false;
-                if (value is float floatValue && (floatValue < long.MinValue || floatValue > long.MaxValue))
+                if (value is float and (< long.MinValue or > long.MaxValue))
                     return false;
-                if (value is double doubleValue && (doubleValue < long.MinValue || doubleValue > long.MaxValue))
+                if (value is double and (< long.MinValue or > long.MaxValue))
                     return false;
-                if (value is decimal decimalValue && (decimalValue < long.MinValue || decimalValue > long.MaxValue))
+                if (value is decimal and (< long.MinValue or > long.MaxValue))
                     return false;
                 return true;
             });
@@ -150,7 +147,7 @@ internal class ComparisonTypeConverter : ITypeConverter
     /// <inheritdoc />
     public decimal? TryConvertToDecimal(object? value)
     {
-        return TryConvertToIntegralTypeComparison<decimal>(
+        return TryConvertToIntegralTypeComparison(
             value,
             obj =>
             {
@@ -164,7 +161,7 @@ internal class ComparisonTypeConverter : ITypeConverter
                 }
                 catch { return 0m; }
             },
-            result => true);
+            _ => true);
     }
 
     /// <inheritdoc />

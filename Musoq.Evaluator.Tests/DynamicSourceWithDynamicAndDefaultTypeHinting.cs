@@ -26,7 +26,7 @@ public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBa
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -73,4 +73,6 @@ public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBa
             return false;
         }
     }
+
+    public TestContext TestContext { get; set; }
 }

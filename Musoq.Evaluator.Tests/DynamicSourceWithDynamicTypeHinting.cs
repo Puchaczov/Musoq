@@ -27,7 +27,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
             {"Name", typeof(string)},
         });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Id", table[0][0]);
@@ -53,7 +53,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
             {"Name", typeof(string)},
         });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -86,7 +86,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
             {"Complex", typeof(ComplexExpandoType)}
         });
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Complex", table[0][0]);
@@ -109,7 +109,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -135,7 +135,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(short), table.Columns.ElementAt(0).ColumnType);
@@ -163,7 +163,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -192,7 +192,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
@@ -216,7 +216,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
@@ -350,4 +350,6 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
             return base.TryGetMember(binder, out result);
         }
     }
+
+    public TestContext TestContext { get; set; }
 }

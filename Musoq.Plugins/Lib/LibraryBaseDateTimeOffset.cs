@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using Musoq.Plugins.Attributes;
 
@@ -12,6 +12,7 @@ public partial class LibraryBase
     /// <param name="value">The value to convert.</param>
     /// <returns>The converted DateTimeOffset value, or null if the conversion fails.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.DateTime)]
     public DateTimeOffset? ToDateTimeOffset(string value) => ToDateTimeOffset(value, CultureInfo.CurrentCulture.Name);
 
     /// <summary>
@@ -21,6 +22,7 @@ public partial class LibraryBase
     /// <param name="culture">The culture to use for conversion.</param>
     /// <returns>The converted DateTimeOffset value, or null if the conversion fails.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.DateTime)]
     public DateTimeOffset? ToDateTimeOffset(string value, string culture)
     {
         if (string.IsNullOrEmpty(value))
@@ -39,6 +41,7 @@ public partial class LibraryBase
     /// <param name="second">The second DateTimeOffset.</param>
     /// <returns>The result of the subtraction, or null if either of the values is null.</returns>
     [BindableMethod]
+    [MethodCategory(MethodCategories.DateTime)]
     public TimeSpan? SubtractDateTimeOffsets(DateTimeOffset? first, DateTimeOffset? second)
     {
         if (first is null || second is null)

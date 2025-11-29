@@ -20,7 +20,7 @@ public class AliasTests : MultiSchemaTestBase
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         
@@ -51,7 +51,7 @@ public class AliasTests : MultiSchemaTestBase
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -79,7 +79,7 @@ select [first.FirstItem], [second.FirstItem] from p";
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -108,7 +108,7 @@ select p.[first.FirstItem], p.[second.FirstItem] from p";
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -138,7 +138,7 @@ select q.FirstItem, q.SecondItem from q";
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -169,7 +169,7 @@ select q.[p.first.FirstItem], q.[p.second.FirstItem] from q";
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Columns.Count());
         
@@ -198,7 +198,7 @@ cross apply first.Split('') b";
             new()
         ]);
         
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         
@@ -292,4 +292,6 @@ cross apply first.Split('') b";
             new()
         ]));
     }
+
+    public TestContext TestContext { get; set; }
 }

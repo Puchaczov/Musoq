@@ -60,6 +60,7 @@ public class Library : LibraryBase
     }
 
     [BindableMethod]
+    [NonDeterministic]
     public int RandomNumber()
     {
         return _random.Next(0, 100);
@@ -87,6 +88,42 @@ public class Library : LibraryBase
     public long Inc(long number)
     {
         return number + 1;
+    }
+
+    [BindableMethod]
+    public int Inc(int number)
+    {
+        return number + 1;
+    }
+
+    [BindableMethod]
+    public double Inc(double number)
+    {
+        return number + 1;
+    }
+
+    [BindableMethod]
+    public float Inc(float number)
+    {
+        return number + 1;
+    }
+
+    [BindableMethod]
+    public decimal? Inc(decimal? number)
+    {
+        return number.HasValue ? number.Value + 1 : null;
+    }
+
+    [BindableMethod]
+    public int? Inc(int? number)
+    {
+        return number.HasValue ? number.Value + 1 : null;
+    }
+
+    [BindableMethod]
+    public long? Inc(long? number)
+    {
+        return number.HasValue ? number.Value + 1 : null;
     }
 
     [BindableMethod]

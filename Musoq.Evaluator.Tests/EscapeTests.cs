@@ -15,7 +15,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(@"\", table[0].Values[0]);
@@ -28,7 +28,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(@"\\", table[0].Values[0]);
@@ -41,7 +41,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("'", table[0].Values[0]);
@@ -54,7 +54,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("\n", table[0].Values[0]);
@@ -67,7 +67,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("\t", table[0].Values[0]);
@@ -80,7 +80,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("\r", table[0].Values[0]);
@@ -93,7 +93,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("A", table[0].Values[0]);
@@ -106,7 +106,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("A", table[0].Values[0]);
@@ -119,7 +119,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Hello\nWorld\tΔ\\test", table[0].Values[0]);
@@ -132,7 +132,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(@"\test\", table[0].Values[0]);
@@ -145,7 +145,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(@"\\\\", table[0].Values[0]);
@@ -158,7 +158,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("\0\b\f\u001B", table[0].Values[0]);
@@ -171,7 +171,7 @@ public class EscapeTests : BasicEntityTestBase
         
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("\\z\\y\\x", table[0].Values[0]);
@@ -185,7 +185,7 @@ public class EscapeTests : BasicEntityTestBase
     
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
     
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(@"\'", table[0].Values[0]);
@@ -199,7 +199,7 @@ public class EscapeTests : BasicEntityTestBase
     
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
     
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("\\u123", table[0].Values[0]);
@@ -212,7 +212,7 @@ public class EscapeTests : BasicEntityTestBase
     
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
     
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual(@"\", table[0].Values[0]);
@@ -227,7 +227,7 @@ public class EscapeTests : BasicEntityTestBase
     
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
     
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("\\\nA", table[0].Values[0]);
@@ -241,7 +241,7 @@ public class EscapeTests : BasicEntityTestBase
     
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
     
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("\u0001\uFFFF\u0000", table[0].Values[0]);
@@ -255,7 +255,7 @@ public class EscapeTests : BasicEntityTestBase
     
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
     
         Assert.AreEqual(1, table.Columns.Count());
     }
@@ -271,4 +271,6 @@ public class EscapeTests : BasicEntityTestBase
             }
         };
     }
+
+    public TestContext TestContext { get; set; }
 }

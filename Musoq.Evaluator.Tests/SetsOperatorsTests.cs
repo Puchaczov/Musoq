@@ -21,7 +21,7 @@ public class SetsOperatorsTests : BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Count, "Table should contain 4 rows");
 
@@ -54,7 +54,7 @@ cross apply a.ToCharArray(a.Name) b
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
     }
 
     [TestMethod]
@@ -68,7 +68,7 @@ cross apply a.ToCharArray(a.Name) b
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -87,7 +87,7 @@ cross apply a.ToCharArray(a.Name) b
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -110,7 +110,7 @@ select Name from #A.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
@@ -139,7 +139,7 @@ select Id, Name from p
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
@@ -179,7 +179,7 @@ select Id, Name from p
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
@@ -221,7 +221,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
@@ -239,7 +239,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Count, "Table should contain 4 rows");
 
@@ -261,7 +261,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
@@ -283,7 +283,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
@@ -305,7 +305,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
@@ -333,7 +333,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
@@ -354,7 +354,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
@@ -378,7 +378,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
         var results = table.Select(row => (string)row.Values[0]).ToList();
@@ -400,7 +400,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
         var results = table.Select(row => (string)row.Values[0]).ToList();
@@ -427,7 +427,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
         var results = table.Select(row => (string)row.Values[0]).ToList();
@@ -448,7 +448,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
@@ -470,7 +470,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("002", table[0].Values[0]);
@@ -487,7 +487,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("010", table[0].Values[0]);
@@ -506,7 +506,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(0, table.Count);
     }
@@ -526,7 +526,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("002", table[0].Values[0]);
@@ -556,7 +556,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(1, table.Count(r => (string)r.Values[0] == "002"), "Expected one row with '002'");
@@ -574,7 +574,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("001", table[0].Values[0]);
@@ -596,7 +596,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("005", table[0].Values[0]);
@@ -615,7 +615,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("001", table[0].Values[0]);
@@ -643,7 +643,7 @@ select Name from #C.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("005", table[0].Values[0]);
@@ -673,7 +673,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -699,7 +699,7 @@ select Name from #C.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -725,7 +725,7 @@ select Name from #C.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -751,7 +751,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("002", table[0].Values[0]);
@@ -780,7 +780,7 @@ select Name from #C.Entities() skip 3";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -806,7 +806,7 @@ select Name, RandomNumber() from #C.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -838,7 +838,7 @@ select Name from #D.Entities()";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
@@ -870,7 +870,7 @@ select City, Sum(Population) from #C.Entities() group by City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
@@ -913,7 +913,7 @@ select City, Sum(Population) from #C.Entities() group by City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
@@ -963,7 +963,7 @@ select City, Sum(Population) from #C.Entities() group by City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
@@ -1002,7 +1002,7 @@ select City, Sum(Population) from #C.Entities() group by City";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("001", table[0].Values[0]);
@@ -1024,7 +1024,7 @@ select Name from #A.Entities() where Name = '002'";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
@@ -1059,7 +1059,7 @@ select Name from #A.Entities() where Name = '005'";
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
+        var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
@@ -1165,4 +1165,6 @@ select Name from #A.Entities() where Name = '005'";
         
         Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
+
+    public TestContext TestContext { get; set; }
 }
