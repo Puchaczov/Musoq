@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Musoq.Evaluator;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
@@ -35,7 +36,7 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         queryTree = rewriter.RootScript;
 
-        var csharpRewriter = new ToCSharpRewriteTreeVisitor(metadata.Assemblies, metadata.SetOperatorFieldPositions, metadata.InferredColumns, items.AssemblyName, items.CompilationOptions);
+        var csharpRewriter = CreateCSharpRewriter(metadata, items);
         var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, new ScopeWalker(metadataTraverser.Scope), items.CompilationOptions);
 
         queryTree.Accept(csharpRewriteTraverser);
@@ -48,6 +49,18 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
         items.PositionalEnvironmentVariables = metadata.PositionalEnvironmentVariables;
 
         Successor?.Build(items);
+    }
+
+    private static IToCSharpTranslationExpressionVisitor CreateCSharpRewriter(
+        BuildMetadataAndInferTypesVisitor metadata,
+        BuildItems items)
+    {
+        return new ToCSharpRewriteTreeVisitor(
+            metadata.Assemblies,
+            metadata.SetOperatorFieldPositions,
+            metadata.InferredColumns,
+            items.AssemblyName,
+            items.CompilationOptions);
     }
 
     private static IReadOnlyDictionary<SchemaFromNode, WhereNode> RewriteWhereNodes(IReadOnlyDictionary<SchemaFromNode, WhereNode> whereNodes)

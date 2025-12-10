@@ -7,7 +7,11 @@
 /// <param name="useHashJoin">Whether hash join optimization should be used for eligible joins. Defaults to true.</param>
 /// <param name="useSortMergeJoin">Whether sort merge join optimization should be used for eligible joins. Defaults to true.</param>
 /// <param name="useCommonSubexpressionElimination">Whether common subexpression elimination (CSE) optimization should be used. Defaults to true.</param>
-public class CompilationOptions(ParallelizationMode? parallelizationMode = null, bool useHashJoin = true, bool useSortMergeJoin = true, bool useCommonSubexpressionElimination = true)
+public class CompilationOptions(
+    ParallelizationMode? parallelizationMode = null, 
+    bool useHashJoin = true, 
+    bool useSortMergeJoin = true, 
+    bool useCommonSubexpressionElimination = true)
 {
     /// <summary>
     /// Gets the parallelization mode for query execution.

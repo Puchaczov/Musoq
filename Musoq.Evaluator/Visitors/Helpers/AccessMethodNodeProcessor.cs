@@ -13,7 +13,6 @@ using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
-using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 

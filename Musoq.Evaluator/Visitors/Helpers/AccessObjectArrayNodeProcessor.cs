@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Utils;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
@@ -131,13 +129,12 @@ public static class AccessObjectArrayNodeProcessor
                 SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
                 SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetStringCharacter))))
             .WithArgumentList(SyntaxFactory.ArgumentList(
-                SyntaxFactory.SeparatedList(new[]
-                {
+                SyntaxFactory.SeparatedList([
                     SyntaxFactory.Argument(columnAccess),
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
                         SyntaxKind.NumericLiteralExpression,
                         SyntaxFactory.Literal(index)))
-                })));
+                ])));
     }
 
     /// <summary>
@@ -154,13 +151,12 @@ public static class AccessObjectArrayNodeProcessor
                         SyntaxFactory.SingletonSeparatedList(
                             GetCSharpType(elementType))))))
             .WithArgumentList(SyntaxFactory.ArgumentList(
-                SyntaxFactory.SeparatedList(new[]
-                {
+                SyntaxFactory.SeparatedList([
                     SyntaxFactory.Argument(columnAccess),
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
                         SyntaxKind.NumericLiteralExpression,
                         SyntaxFactory.Literal(index)))
-                })));
+                ])));
     }
 
     /// <summary>

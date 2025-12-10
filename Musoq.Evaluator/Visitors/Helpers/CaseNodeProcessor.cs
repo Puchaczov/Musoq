@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Utils;
 using Musoq.Parser.Nodes;
-using Musoq.Plugins;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors.Helpers
@@ -50,7 +47,7 @@ namespace Musoq.Evaluator.Visitors.Helpers
             {
                 Method = method,
                 MethodInvocation = methodInvocation,
-                RequiredNamespaces = new[] { node.ReturnType.Namespace, typeof(IObjectResolver).Namespace }
+                RequiredNamespaces = [node.ReturnType.Namespace, typeof(IObjectResolver).Namespace]
             };
         }
 

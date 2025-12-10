@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
 /// <summary>
 /// Base class for visitors that provides defensive programming utilities and safe operations.
+/// Inherits from NoOpExpressionVisitor to provide default empty implementations for all Visit methods.
 /// </summary>
-public abstract class DefensiveVisitorBase
+public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
 {
     /// <summary>
     /// Gets the name of this visitor for error reporting.

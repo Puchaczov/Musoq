@@ -208,6 +208,20 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
+    /// Processes a logical NOT operation.
+    /// </summary>
+    /// <param name="nodes">The syntax node stack.</param>
+    /// <param name="generator">The syntax generator.</param>
+    /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    public static void ProcessLogicalNotOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
+    {
+        ValidateUnaryOperation(nodes, generator);
+        var operand = nodes.Pop();
+        nodes.Push(generator.LogicalNotExpression(operand));
+    }
+
+    /// <summary>
     /// Validates that the stack and generator are not null and stack has at least 2 nodes for binary operations.
     /// </summary>
     /// <param name="nodes">The syntax node stack to validate.</param>
@@ -224,5 +238,24 @@ public static class SyntaxBinaryOperationHelper
             
         if (nodes.Count < 2)
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
+    }
+
+    /// <summary>
+    /// Validates that the stack and generator are not null and stack has at least 1 node for unary operations.
+    /// </summary>
+    /// <param name="nodes">The syntax node stack to validate.</param>
+    /// <param name="generator">The syntax generator to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    private static void ValidateUnaryOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
+    {
+        if (nodes == null)
+            throw new ArgumentNullException(nameof(nodes));
+            
+        if (generator == null)
+            throw new ArgumentNullException(nameof(generator));
+            
+        if (nodes.Count < 1)
+            throw new InvalidOperationException("Stack must contain at least 1 node for unary operation");
     }
 }
