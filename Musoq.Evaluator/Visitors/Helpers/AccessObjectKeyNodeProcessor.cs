@@ -48,15 +48,14 @@ public static class AccessObjectKeyNodeProcessor
                 SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
                 SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
             .WithArgumentList(SyntaxFactory.ArgumentList(
-                SyntaxFactory.SeparatedList(new[]
-                {
+                SyntaxFactory.SeparatedList([
                     SyntaxFactory.Argument(memberAccess),
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
                         SyntaxKind.StringLiteralExpression,
                         SyntaxFactory.Literal(node.Token.Key))),
                     SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(
                         SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))
-                })));
+                ])));
 
         return new ProcessingResult
         {

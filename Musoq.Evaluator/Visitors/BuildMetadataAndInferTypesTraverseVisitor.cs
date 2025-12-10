@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;

@@ -47,6 +47,20 @@ public class BasicEntityTestBase
             LoggerResolver);
     }
 
+    protected CompiledQuery CreateAndRunVirtualMachine<T>(
+        string script,
+        IDictionary<string, IEnumerable<T>> sources,
+        CompilationOptions compilationOptions)
+        where T : BasicEntity
+    {
+        return InstanceCreator.CompileForExecution(
+            script, 
+            Guid.NewGuid().ToString(), 
+            new BasicSchemaProvider<T>(sources),
+            LoggerResolver,
+            compilationOptions);
+    }
+
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null,

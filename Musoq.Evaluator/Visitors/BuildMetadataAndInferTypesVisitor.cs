@@ -1270,7 +1270,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 CancellationToken.None,
                 table.Columns,
                 RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode),
-                (aliasedSchemaFromNode, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, hasExternallyProvidedTypes),
+                (aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes),
                 _logger
             ),
             _schemaFromArgs.ToArray()
@@ -2165,7 +2165,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             CancellationToken.None,
             _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
             RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, schemaFrom),
-            (schemaFrom, Array.Empty<ISchemaColumn>(), AllTrueWhereNode, false),
+            (schemaFrom, [], AllTrueWhereNode, false),
             _logger
         );
 

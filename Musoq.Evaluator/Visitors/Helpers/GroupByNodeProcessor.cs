@@ -10,7 +10,6 @@ using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
-using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
 

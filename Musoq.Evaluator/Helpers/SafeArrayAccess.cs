@@ -184,7 +184,7 @@ namespace Musoq.Evaluator.Helpers
                 {
                     try
                     {
-                        return indexerProperty.GetValue(indexable, new[] { index });
+                        return indexerProperty.GetValue(indexable, [index]);
                     }
                     catch (System.Reflection.TargetInvocationException ex)
                     {

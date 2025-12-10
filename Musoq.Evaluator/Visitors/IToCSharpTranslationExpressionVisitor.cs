@@ -1,9 +1,14 @@
-﻿using Musoq.Parser.Nodes;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
 public interface IToCSharpTranslationExpressionVisitor : IScopeAwareExpressionVisitor
 {
+    CSharpCompilation Compilation { get; }
+    
+    string AccessToClassPath { get; }
+    
     void SetQueryIdentifier(string identifier);
 
     MethodAccessType SetMethodAccessType(MethodAccessType type);

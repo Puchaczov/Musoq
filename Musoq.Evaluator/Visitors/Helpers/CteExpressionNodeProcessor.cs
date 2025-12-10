@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Helpers;
-using Musoq.Evaluator.Utils;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
 

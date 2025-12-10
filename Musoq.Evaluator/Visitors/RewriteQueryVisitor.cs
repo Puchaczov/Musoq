@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Evaluator.Visitors.Helpers;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
-using Musoq.Plugins.Attributes;
 using AccessMethodFromNode = Musoq.Parser.Nodes.From.AccessMethodFromNode;
 using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
 using ApplyFromNode = Musoq.Parser.Nodes.From.ApplyFromNode;
@@ -470,7 +466,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 
             node.Accept(extractAccessedColumnsTraverseVisitor);
 
-            foreach (var refreshMethod in usedRefreshMethods ?? Array.Empty<AccessMethodNode>())
+            foreach (var refreshMethod in usedRefreshMethods ?? [])
             {
                 refreshMethod.Accept(extractAccessedColumnsTraverseVisitor);
             }
@@ -600,7 +596,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 scopeJoinedQuery = _scope.AddScope("Query");
 
                 accessColumns = extractAccessedColumnsVisitor.GetForAliases(left.CompoundTables);
-                IEnumerable<KeyValuePair<string, string[]>> limitColumnsKeyValuePair = Array.Empty<KeyValuePair<string, string[]>>();
+                IEnumerable<KeyValuePair<string, string[]>> limitColumnsKeyValuePair = [];
 
                 foreach (var compoundTable in left.CompoundTables)
                 {
@@ -646,7 +642,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                     
                 targetSymbolTable = (TableSymbol)_scope.ScopeSymbolTable.GetSymbol(targetTableName);
 
-                IEnumerable<KeyValuePair<string, string[]>> pairs = Array.Empty<KeyValuePair<string, string[]>>();
+                IEnumerable<KeyValuePair<string, string[]>> pairs = [];
                 for (var index = 0; index < targetSymbolTable.CompoundTables.Length - 1; index++)
                 {
                     var compoundTable = targetSymbolTable.CompoundTables[index];

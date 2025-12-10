@@ -12,9 +12,7 @@ using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
-using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
 
@@ -622,8 +620,7 @@ public static class JoinSourcesTableProcessingHelper
                     ),
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new[]
-                            {
+                            [
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.DeclarationExpression(
@@ -633,7 +630,7 @@ public static class JoinSourcesTableProcessingHelper
                                         )
                                     )
                                 ).WithRefOrOutKeyword(SyntaxFactory.Token(SyntaxKind.OutKeyword))
-                            }
+                            ]
                         )
                     )
                 ),
@@ -674,8 +671,7 @@ public static class JoinSourcesTableProcessingHelper
                     ),
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList(
-                            new[]
-                            {
+                            [
                                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key")),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.DeclarationExpression(
@@ -685,7 +681,7 @@ public static class JoinSourcesTableProcessingHelper
                                         )
                                     )
                                 ).WithRefOrOutKeyword(SyntaxFactory.Token(SyntaxKind.OutKeyword))
-                            }
+                            ]
                         )
                     )
                 ),
@@ -835,9 +831,9 @@ public static class JoinSourcesTableProcessingHelper
         out List<ExpressionSyntax> rightKeys, 
         out List<Type> keyTypes)
     {
-        leftKeys = new List<ExpressionSyntax>();
-        rightKeys = new List<ExpressionSyntax>();
-        keyTypes = new List<Type>();
+        leftKeys = [];
+        rightKeys = [];
+        keyTypes = [];
 
         var conditions = new List<EqualityNode>();
         
@@ -1138,10 +1134,10 @@ public static class JoinSourcesTableProcessingHelper
                         SyntaxFactory.IdentifierName("Array"),
                         SyntaxFactory.IdentifierName("Sort")
                     ),
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[] {
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName(innerKeysVar)),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName(innerRowsVar))
-                    }))
+                    ]))
                 )
             )
         );
@@ -1279,10 +1275,10 @@ public static class JoinSourcesTableProcessingHelper
                         SyntaxFactory.IdentifierName("Array"),
                         SyntaxFactory.IdentifierName("Sort")
                     ),
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[] {
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName(outerKeysVar)),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName(outerRowsVar))
-                    }))
+                    ]))
                 )
             )
         );
@@ -1412,7 +1408,7 @@ public static class JoinSourcesTableProcessingHelper
                 SyntaxFactory.IdentifierName("Parallel"),
                 SyntaxFactory.IdentifierName("ForEach")
             ),
-            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[] {
+            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
                 SyntaxFactory.Argument(
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
@@ -1420,7 +1416,7 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.IdentifierName("System.Collections.Concurrent.Partitioner"),
                             SyntaxFactory.IdentifierName("Create")
                         ),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[] {
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
                             SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.MemberAccessExpression(
@@ -1429,7 +1425,7 @@ public static class JoinSourcesTableProcessingHelper
                                     SyntaxFactory.IdentifierName("Length")
                                 )
                             )
-                        }))
+                        ]))
                     )
                 ),
                 SyntaxFactory.Argument(
@@ -1596,7 +1592,7 @@ public static class JoinSourcesTableProcessingHelper
                         )
                     )
                 )
-            }))
+            ]))
         );
 
         computingBlock = computingBlock.AddStatements(SyntaxFactory.ExpressionStatement(parallelLoop));

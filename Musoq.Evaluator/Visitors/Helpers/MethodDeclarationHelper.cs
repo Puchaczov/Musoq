@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
-using Musoq.Plugins;
 using Musoq.Schema;
 using System.Threading;
 

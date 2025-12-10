@@ -162,13 +162,11 @@ public static class SyntaxHelper
         return CreateParallelForEachStatement(SyntaxFactory.IdentifierName(source), variable, block);
     }
 
-    // This method encapsulates the creation of the Parallel.ForEach syntax
     private static StatementSyntax CreateParallelForEachStatement(
         ExpressionSyntax collection,
         string variable,
         BlockSyntax block)
     {
-        // Create the parameter list for the lambda
         var parameterList = SyntaxFactory.ParameterList(
             SyntaxFactory.SingletonSeparatedList(
                 SyntaxFactory.Parameter(
@@ -177,13 +175,11 @@ public static class SyntaxHelper
             )
         );
 
-        // Create the lambda expression that will process each item
         var lambda = SyntaxFactory.ParenthesizedLambdaExpression(
             parameterList,
             block
         );
 
-        // Create the Parallel.ForEach invocation
         var parallelForEachInvocation = SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
@@ -203,7 +199,6 @@ public static class SyntaxHelper
             )
         );
 
-        // Create the try-catch statement
         return SyntaxFactory.TryStatement(
             SyntaxFactory.Block(
                 SyntaxFactory.ExpressionStatement(parallelForEachInvocation)
@@ -234,7 +229,7 @@ public static class SyntaxHelper
                         )
                     )
             ),
-            null  // No finally clause
+            null
         );
     }
 
@@ -366,5 +361,23 @@ public static class SyntaxHelper
             orderByExpression,
             SyntaxFactory.Token(SyntaxKind.CloseParenToken),
             block);
+    }
+
+    /// <summary>
+    /// Creates an empty ISchemaColumn array expression: Array.Empty&lt;ISchemaColumn&gt;()
+    /// </summary>
+    public static InvocationExpressionSyntax CreateEmptyColumnArray()
+    {
+        return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("Array"),
+                    SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("Empty"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                    SyntaxFactory.IdentifierName("ISchemaColumn"))))))
+            .NormalizeWhitespace();
     }
 }

@@ -12,6 +12,7 @@ using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Musoq.Schema.Tests.DefensiveProgramming;
 
@@ -165,7 +166,7 @@ public class DefensiveProgrammingTests
     {
         // Act & Assert
         var exception = Assert.Throws<VisitorException>(() => 
-            new ToCSharpRewriteTreeVisitor(new System.Reflection.Assembly[0], new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "", new CompilationOptions()));
+            new ToCSharpRewriteTreeVisitor([], new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "", new CompilationOptions()));
         Assert.Contains("cannot be null or empty", exception.Message);
         Assert.Contains("assemblyName", exception.Message);
     }

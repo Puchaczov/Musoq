@@ -1,43 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Runtime;
-using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
-using Musoq.Evaluator.Utils.Symbols;
+using Musoq.Evaluator.Visitors.CodeGeneration;
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
-using Musoq.Parser.Tokens;
-using Musoq.Plugins;
-using Musoq.Plugins.Attributes;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
-using Musoq.Schema.Helpers;
-using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
 using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
-using Group = Musoq.Plugins.Group;
 using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
-using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
 using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
 using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
-using SchemaMethodFromNode = Musoq.Parser.Nodes.From.SchemaMethodFromNode;
-using TextSpan = Musoq.Parser.TextSpan;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -50,13 +32,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private static readonly MethodInfo ContainsMethod = typeof(Operators).GetMethod(nameof(Operators.Contains));
 
     private readonly Dictionary<string, int> _inMemoryTableIndexes = new();
-    private readonly List<string> _loadedAssemblies = new(20);
 
     private readonly List<SyntaxNode> _members = [];
     private readonly Stack<string> _methodNames = new();
-
-    private readonly List<string> _namespaces = new(16);
-    private readonly IDictionary<string, int[]> _setOperatorFieldIndexes;
     private int _rowClassCounter;
 
     private readonly Dictionary<string, Type> _typesToInstantiate = new();
@@ -83,9 +61,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private bool _isResultParallelizationImpossible;
     private readonly CompilationOptions _compilationOptions;
     
-    private readonly Dictionary<string, int> _cseSlotMap = new();
-    private readonly HashSet<string> _cseComputedInCurrentRow = [];
-    private readonly HashSet<string> _nonDeterministicFunctions;
+    private readonly SetOperationEmitter _setOperationEmitter;
+    private readonly QueryEmitter _queryEmitter;
+    private readonly QueryClauseEmitter _queryClauseEmitter;
+    private readonly CseManager _cseManager;
+    private readonly CompilationContextManager _compilationContext;
+    private readonly DescStatementEmitter _descStatementEmitter;
 
     public ToCSharpRewriteTreeVisitor(
         IEnumerable<Assembly> assemblies,
@@ -100,51 +81,24 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         ValidateStringParameter(nameof(assemblyName), assemblyName, "constructor");
         ValidateConstructorParameter(nameof(compilationOptions), compilationOptions);
 
-        _setOperatorFieldIndexes = setOperatorFieldIndexes;
+        _setOperationEmitter = new SetOperationEmitter(new Dictionary<string, int[]>(setOperatorFieldIndexes));
         InferredColumns = inferredColumns;
         Workspace = RoslynSharedFactory.Workspace;
         Nodes = new Stack<SyntaxNode>();
         _compilationOptions = compilationOptions;
 
         Generator = RoslynSharedFactory.Generator;
-        Compilation = RoslynSharedFactory.CreateCompilation(assemblyName);
-
-        var abstractionDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Microsoft.Extensions.Logging.Abstractions.dll");
+        _queryEmitter = new QueryEmitter(Generator);
+        _queryClauseEmitter = new QueryClauseEmitter(Generator);
+        _descStatementEmitter = new DescStatementEmitter(Generator);
+        var nonDeterministicFunctions = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
+        _cseManager = new CseManager(nonDeterministicFunctions);
         
-        SafeExecute(() =>
-        {
-            AddReference(
-                typeof(object),
-                typeof(CancellationToken),
-                typeof(ISchema),
-                typeof(LibraryBase),
-                typeof(Table),
-                typeof(SyntaxFactory),
-                typeof(ExpandoObject),
-                typeof(SchemaFromNode),
-                typeof(ILogger));
-            AddReference(abstractionDll);
-            AddReference(assemblies.ToArray());
-        }, "initializing references");
+        _compilationContext = new CompilationContextManager(RoslynSharedFactory.CreateCompilation(assemblyName));
+        _compilationContext.InitializeDefaults();
+        _compilationContext.InitializeCoreReferences(assemblies);
 
         AccessToClassPath = $"{Namespace}.{ClassName}";
-
-        AddNamespace("System");
-        AddNamespace(typeof(CancellationToken).Namespace);
-        AddNamespace("Microsoft.Extensions.Logging");
-        AddNamespace("System.Collections.Generic");
-        AddNamespace("System.Threading.Tasks");
-        AddNamespace("System.Linq");
-        AddNamespace("Musoq.Plugins");
-        AddNamespace("Musoq.Schema");
-        AddNamespace("Musoq.Evaluator");
-        AddNamespace("Musoq.Parser.Nodes.From");
-        AddNamespace("Musoq.Parser.Nodes");
-        AddNamespace("Musoq.Evaluator.Tables");
-        AddNamespace("Musoq.Evaluator.Helpers");
-        AddNamespace("System.Dynamic");
-        
-        _nonDeterministicFunctions = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
     }
 
     private string Namespace { get; } =
@@ -158,7 +112,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public SyntaxGenerator Generator { get; }
 
-    public CSharpCompilation Compilation { get; private set; }
+    public CSharpCompilation Compilation => _compilationContext.GetCompilation();
 
     private Stack<SyntaxNode> Nodes { get; }
 
@@ -168,9 +122,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
-    private readonly List<(string VariableName, Type VariableType, string ExpressionId)> _cseVariableDeclarations = [];
-    private readonly Dictionary<string, string> _cseExpressionToVariable = new();
-    private int _cseVariableCounter;
     private bool _isInsideCaseWhen;
     
     public void SetCaseWhenContext(bool isInside)
@@ -180,366 +131,172 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public void InitializeCseForQuery(Node queryNode)
     {
-        _cseSlotMap.Clear();
-        _cseComputedInCurrentRow.Clear();
-        _cseVariableDeclarations.Clear();
-        _cseExpressionToVariable.Clear();
-        _cseVariableCounter = 0;
-
-        if (!_compilationOptions.UseCommonSubexpressionElimination)
-        {
-            return;
-        }
-
-        var cseAnalysisVisitor = new CommonSubexpressionAnalysisVisitor(_nonDeterministicFunctions);
-        var cseAnalysisTraverser = new CommonSubexpressionAnalysisTraverseVisitor(cseAnalysisVisitor);
-        queryNode.Accept(cseAnalysisTraverser);
-        
-        var slotMap = cseAnalysisVisitor.GetCacheSlotMap();
-        foreach (var kvp in slotMap)
-        {
-            _cseSlotMap[kvp.Key] = kvp.Value;
-        }
+        _cseManager.Initialize(queryNode, _compilationOptions.UseCommonSubexpressionElimination);
     }
 
-    public void Visit(Node node)
+    public override void Visit(DescNode node)
     {
+        _descStatementEmitter.EmitDescStatement(
+            node,
+            Statements,
+            _members,
+            _methodNames,
+            AddNamespace);
     }
 
-    public void Visit(DescNode node)
-    {
-        AddNamespace(typeof(EvaluationHelper).Namespace);
-
-        switch (node.Type)
-        {
-            case DescForType.SpecificConstructor:
-                CreateDescForSpecificConstructor(node);
-                break;
-            case DescForType.Constructors:
-                CreateDescForConstructors(node);
-                break;
-            case DescForType.Schema:
-                CreateDescForSchema(node);
-                break;
-            case DescForType.FunctionsForSchema:
-                CreateDescForFunctionsForSchema(node);
-                break;
-            case DescForType.None:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-
-        Statements.Clear();
-    }
-
-    public void Visit(StarNode node)
+    public override void Visit(StarNode node)
     {
         SyntaxBinaryOperationHelper.ProcessMultiplyOperation(Nodes, Generator);
     }
 
-    public void Visit(FSlashNode node)
+    public override void Visit(FSlashNode node)
     {
         SyntaxBinaryOperationHelper.ProcessDivideOperation(Nodes, Generator);
     }
 
-    public void Visit(ModuloNode node)
+    public override void Visit(ModuloNode node)
     {
         SyntaxBinaryOperationHelper.ProcessModuloOperation(Nodes, Generator);
     }
 
-    public void Visit(AddNode node)
+    public override void Visit(AddNode node)
     {
         SyntaxBinaryOperationHelper.ProcessAddOperation(Nodes, Generator);
     }
 
-    public void Visit(HyphenNode node)
+    public override void Visit(HyphenNode node)
     {
         SyntaxBinaryOperationHelper.ProcessSubtractOperation(Nodes, Generator);
     }
 
-    public void Visit(AndNode node)
+    public override void Visit(AndNode node)
     {
         SyntaxBinaryOperationHelper.ProcessLogicalAndOperation(Nodes, Generator);
     }
 
-    public void Visit(OrNode node)
+    public override void Visit(OrNode node)
     {
         SyntaxBinaryOperationHelper.ProcessLogicalOrOperation(Nodes, Generator);
     }
 
-    public void Visit(ShortCircuitingNodeLeft node)
+    public override void Visit(EqualityNode node)
     {
+        ComparisonEmitter.ProcessEqualityComparison(node.Left, node.Right, Nodes, Generator);
     }
 
-    public void Visit(ShortCircuitingNodeRight node)
-    {
-    }
-
-    public void Visit(EqualityNode node)
-    {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        if (IsCharVsStringComparison(node.Left, node.Right, a, b))
-        {
-            var convertedComparison = HandleCharStringComparison(node.Left, node.Right, a, b);
-            Nodes.Push(convertedComparison);
-        }
-        else
-        {
-            Nodes.Push(a);
-            Nodes.Push(b);
-            SyntaxBinaryOperationHelper.ProcessValueEqualsOperation(Nodes, Generator);
-        }
-    }
-
-    private bool IsCharVsStringComparison(Node leftNode, Node rightNode, SyntaxNode leftSyntax, SyntaxNode rightSyntax)
-    {
-        var leftIsChar = IsCharacterAccess(leftNode);
-        var rightIsChar = IsCharacterAccess(rightNode);
-        var leftIsString = leftNode is WordNode;
-        var rightIsString = rightNode is WordNode;
-
-        return (leftIsChar && rightIsString) || (leftIsString && rightIsChar);
-    }
-
-    private bool IsCharacterAccess(Node node)
-    {
-        if (node is AccessObjectArrayNode arrayNode)
-        {
-            return arrayNode.IsColumnAccess && arrayNode.ColumnType == typeof(string);
-        }
-        return false;
-    }
-
-    private SyntaxNode HandleCharStringComparison(Node leftNode, Node rightNode, SyntaxNode leftSyntax, SyntaxNode rightSyntax)
-    {
-        var leftIsChar = IsCharacterAccess(leftNode);
-        var leftIsString = leftNode is WordNode leftWord;
-        
-        if (leftIsChar && rightNode is WordNode rightWord)
-        {
-            var charValue = rightWord.Value.Length > 0 ? rightWord.Value[0] : '\0';
-            var charLiteral = SyntaxFactory.LiteralExpression(
-                SyntaxKind.CharacterLiteralExpression,
-                SyntaxFactory.Literal(charValue));
-            return Generator.ValueEqualsExpression(leftSyntax, charLiteral);
-        }
-
-        if (leftIsString && IsCharacterAccess(rightNode))
-        {
-            var leftWordNode = (WordNode)leftNode;
-            var charValue = leftWordNode.Value.Length > 0 ? leftWordNode.Value[0] : '\0';
-            var charLiteral = SyntaxFactory.LiteralExpression(
-                SyntaxKind.CharacterLiteralExpression,
-                SyntaxFactory.Literal(charValue));
-            return Generator.ValueEqualsExpression(charLiteral, rightSyntax);
-        }
-
-        return Generator.ValueEqualsExpression(leftSyntax, rightSyntax);
-    }
-
-    public void Visit(GreaterOrEqualNode node)
+    public override void Visit(GreaterOrEqualNode node)
     {
         SyntaxBinaryOperationHelper.ProcessGreaterThanOrEqualOperation(Nodes, Generator);
     }
 
-    public void Visit(LessOrEqualNode node)
+    public override void Visit(LessOrEqualNode node)
     {
         SyntaxBinaryOperationHelper.ProcessLessThanOrEqualOperation(Nodes, Generator);
     }
 
-    public void Visit(GreaterNode node)
+    public override void Visit(GreaterNode node)
     {
         SyntaxBinaryOperationHelper.ProcessGreaterThanOperation(Nodes, Generator);
     }
 
-    public void Visit(LessNode node)
+    public override void Visit(LessNode node)
     {
         SyntaxBinaryOperationHelper.ProcessLessThanOperation(Nodes, Generator);
     }
 
-    public void Visit(DiffNode node)
+    public override void Visit(DiffNode node)
     {
         SyntaxBinaryOperationHelper.ProcessValueNotEqualsOperation(Nodes, Generator);
     }
 
-    public void Visit(NotNode node)
+    public override void Visit(NotNode node)
     {
-        var a = Nodes.Pop();
-        Nodes.Push(Generator.LogicalNotExpression(a));
+        SyntaxBinaryOperationHelper.ProcessLogicalNotOperation(Nodes, Generator);
     }
 
-    public void Visit(LikeNode node)
+    public override void Visit(LikeNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        var arg = SyntaxGenerationHelper.CreateArgumentList(
-            (ExpressionSyntax) a,
-            (ExpressionSyntax) b);
-
-        Nodes.Push(arg);
-
-        Visit(new AccessMethodNode(
-            new FunctionToken(nameof(Operators.Like), TextSpan.Empty),
-            new ArgsListNode([node.Left, node.Right]), null, false,
-            LikeMethod));
+        PatternMatchEmitter.ProcessPatternMatch(node.Left, node.Right, nameof(Operators.Like), LikeMethod, Nodes, Visit);
     }
 
-    public void Visit(RLikeNode node)
+    public override void Visit(RLikeNode node)
     {
-        var b = Nodes.Pop();
-        var a = Nodes.Pop();
-
-        var arg = SyntaxGenerationHelper.CreateArgumentList(
-            (ExpressionSyntax) a,
-            (ExpressionSyntax) b);
-
-        Nodes.Push(arg);
-
-        Visit(new AccessMethodNode(
-            new FunctionToken(nameof(Operators.RLike), TextSpan.Empty),
-            new ArgsListNode([node.Left, node.Right]), null, false,
-            RLikeMethod));
+        PatternMatchEmitter.ProcessPatternMatch(node.Left, node.Right, nameof(Operators.RLike), RLikeMethod, Nodes, Visit);
     }
 
-    public void Visit(InNode node)
+    public override void Visit(FieldNode node)
     {
+        ApplyFieldResult(FieldEmitter.ProcessFieldNode(node.ReturnType, Nodes.Pop(), Generator));
     }
 
-    public void Visit(FieldNode node)
+    public override void Visit(FieldOrderedNode node)
     {
-        var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
-
-        AddReference(types);
-        AddNamespace(types);
-
-        var typeIdentifier =
-            SyntaxFactory.IdentifierName(
-                EvaluationHelper.GetCastableType(node.ReturnType));
-
-        if (node.ReturnType is NullNode.NullType)
-        {
-            typeIdentifier = SyntaxFactory.IdentifierName("object");
-        }
-
-        if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
-        {
-            typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
-        }
-
-        var expression = Nodes.Pop();
-
-        if (expression is CastExpressionSyntax castExpression && castExpression.Type.ToString() == typeIdentifier.ToString())
-        {
-            Nodes.Push(expression);
-            return;
-        }
-
-        var castedExpression = Generator.CastExpression(typeIdentifier, expression);
-        Nodes.Push(castedExpression);
+        ApplyFieldResult(FieldEmitter.ProcessFieldOrderedNode(node.ReturnType, Nodes.Pop(), Generator));
+    }
+    
+    private void ApplyFieldResult(FieldEmitter.FieldNodeResult result)
+    {
+        AddReference(result.RequiredTypes);
+        AddNamespace(result.RequiredTypes);
+        Nodes.Push(result.Expression);
     }
 
-    public void Visit(FieldOrderedNode node)
-    {
-        var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
-
-        AddReference(types);
-        AddNamespace(types);
-
-        var typeIdentifier = SyntaxFactory.IdentifierName(
-            EvaluationHelper.GetCastableType(node.ReturnType));
-
-        if (node.ReturnType is NullNode.NullType)
-        {
-            typeIdentifier = SyntaxFactory.IdentifierName("object");
-        }
-
-        if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
-        {
-            typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
-        }
-
-        var castedExpression = Generator.CastExpression(
-            typeIdentifier, Nodes.Pop());
-
-        Nodes.Push(castedExpression);
-    }
-
-    public void Visit(StringNode node)
+    public override void Visit(StringNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertStringNode(node));
     }
 
-    public void Visit(DecimalNode node)
+    public override void Visit(DecimalNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertDecimalNode(node));
     }
 
-    public void Visit(IntegerNode node)
+    public override void Visit(IntegerNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertIntegerNode(node));
     }
 
-    public void Visit(HexIntegerNode node)
+    public override void Visit(HexIntegerNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertHexIntegerNode(node));
     }
 
-    public void Visit(BinaryIntegerNode node)
+    public override void Visit(BinaryIntegerNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertBinaryIntegerNode(node));
     }
 
-    public void Visit(OctalIntegerNode node)
+    public override void Visit(OctalIntegerNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertOctalIntegerNode(node));
     }
 
-    public void Visit(BooleanNode node)
+    public override void Visit(BooleanNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertBooleanNode(node, Generator));
     }
 
-    public void Visit(WordNode node)
+    public override void Visit(WordNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertWordNode(node, Generator));
     }
 
-    public void Visit(NullNode node)
+    public override void Visit(NullNode node)
     {
         Nodes.Push(LiteralNodeSyntaxConverter.ConvertNullNode(node, Generator));
     }
 
-    public void Visit(ContainsNode node)
+    public override void Visit(ContainsNode node)
     {
-        var comparisonValues = (ArgumentListSyntax) Nodes.Pop();
-        var a = Nodes.Pop();
+        var comparisonValues = (ArgumentListSyntax)Nodes.Pop();
+        var valueExpression = Nodes.Pop();
 
-        var expressions = new ExpressionSyntax[comparisonValues.Arguments.Count];
-        for (var index = 0; index < comparisonValues.Arguments.Count; index++)
-        {
-            var argument = comparisonValues.Arguments[index];
-            expressions[index] = argument.Expression;
-        }
-
-        var objExpression = SyntaxHelper.CreateArrayOfObjects(node.ReturnType.Name, expressions);
-
-        var arg = SyntaxGenerationHelper.CreateArgumentList(
-            (ExpressionSyntax) a,
-            objExpression);
-
-        Nodes.Push(arg);
-
-        Visit(new AccessMethodNode(
-            new FunctionToken(nameof(Operators.Contains), TextSpan.Empty),
-            new ArgsListNode([node.Left, node.Right]), null, false,
-            ContainsMethod));
+        var result = ContainsEmitter.ProcessContainsNode(node, valueExpression, comparisonValues, ContainsMethod);
+        Nodes.Push(result.ArgumentList);
+        Visit(result.MethodNode);
     }
 
-    public void Visit(AccessMethodNode node)
+    public override void Visit(AccessMethodNode node)
     {
         var accessMethodExpr = AccessMethodNodeProcessor.ProcessAccessMethodNode(
             node,
@@ -558,270 +315,114 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         Nodes.Push(resultExpr);
     }
 
-    public void Visit(AccessRawIdentifierNode node)
+    public override void Visit(AccessRawIdentifierNode node)
     {
         Nodes.Push(SyntaxFactory.IdentifierName(node.Name));
     }
 
-    public void Visit(IsNullNode node)
+    public override void Visit(IsNullNode node)
     {
-        if (node.Expression.ReturnType.IsTrueValueType())
-        {
-            Nodes.Pop();
-            Nodes.Push(
-                node.IsNegated
-                    ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
-                    : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
-            return;
-        }
-
-        if (node.IsNegated)
-            Nodes.Push(
-                SyntaxFactory.BinaryExpression(
-                    SyntaxKind.NotEqualsExpression,
-                    (ExpressionSyntax) Nodes.Pop(),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
-        else
-            Nodes.Push(
-                SyntaxFactory.BinaryExpression(
-                    SyntaxKind.EqualsExpression,
-                    (ExpressionSyntax) Nodes.Pop(),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+        var expression = (ExpressionSyntax)Nodes.Pop();
+        var result = NullCheckEmitter.ProcessIsNull(node.Expression.ReturnType, node.IsNegated, expression);
+        
+        Nodes.Push(result.Expression);
     }
 
-    public void Visit(AccessRefreshAggregationScoreNode node)
+    public override void Visit(AccessColumnNode node)
     {
+        ApplyAccessColumnResult(AccessColumnEmitter.GenerateColumnAccess(node, _type, Generator));
+    }
+    
+    private void ApplyAccessColumnResult(AccessColumnEmitter.AccessColumnResult result)
+    {
+        AddNamespace(result.RequiredTypes);
+        AddReference(result.RequiredTypes);
+        if (result.ShouldTrackForNullCheck && NullSuspiciousNodes.Count > 0)
+            NullSuspiciousNodes[^1].Push(result.Expression);
+        Nodes.Push(result.Expression);
     }
 
-    public void Visit(AccessColumnNode node)
+    public override void Visit(IdentifierNode node)
     {
-        var variableName = _type switch
-        {
-            MethodAccessType.TransformingQuery => $"{node.Alias}Row",
-            MethodAccessType.ResultQuery or MethodAccessType.CaseWhen => "score",
-            _ => throw new NotSupportedException($"Unrecognized method access type ({_type})")
-        };
-
-        var sNode = Generator.ElementAccessExpression(
-            Generator.IdentifierName(variableName),
-            SyntaxFactory.Argument(
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression,
-                    SyntaxFactory.Literal($"@\"{node.Name}\"", node.Name))));
-
-        var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
-
-        AddNamespace(types);
-        AddReference(types);
-
-        var typeIdentifier =
-            SyntaxFactory.IdentifierName(
-                EvaluationHelper.GetCastableType(node.ReturnType));
-
-        if (node.ReturnType is NullNode.NullType)
-        {
-            typeIdentifier = SyntaxFactory.IdentifierName("object");
-        }
-
-        if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(node.ReturnType))
-        {
-            typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
-        }
-
-        sNode = Generator.CastExpression(typeIdentifier, sNode);
-
-        if (!node.ReturnType.IsTrueValueType() && NullSuspiciousNodes.Count > 0)
-            NullSuspiciousNodes[^1].Push(sNode);
-
-        Nodes.Push(sNode);
+        var tableIndex = CteEmitter.GetCteIndex(node.Name, _inMemoryTableIndexes);
+        Nodes.Push(CteEmitter.CreateCteReference(tableIndex));
     }
 
-    public void Visit(AllColumnsNode node)
-    {
-    }
-
-    public void Visit(IdentifierNode node)
-    {
-        Nodes.Push(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults"))
-            .WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))));
-    }
-
-    public void Visit(AccessObjectArrayNode node)
+    public override void Visit(AccessObjectArrayNode node)
     {
         var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, Nodes);
         AddNamespace(result.RequiredNamespace);
         Nodes.Push(result.Expression);
     }
 
-    public void Visit(AccessObjectKeyNode node)
+    public override void Visit(AccessObjectKeyNode node)
     {
         var result = AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(node, Nodes);
         AddNamespace(result.RequiredNamespace);
         Nodes.Push(result.Expression);
     }
 
-    public void Visit(PropertyValueNode node)
+    public override void Visit(PropertyValueNode node)
     {
-        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) Nodes.Pop());
-
-        Nodes.Push(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                exp,
-                SyntaxFactory.IdentifierName(node.Name)));
+        Nodes.Push(FieldEmitter.CreatePropertyAccess((ExpressionSyntax)Nodes.Pop(), node.Name));
     }
 
-    public void Visit(DotNode node)
+    public override void Visit(ArgsListNode node)
     {
-    }
-
-    public void Visit(AccessCallChainNode node)
-    {
-    }
-
-    public void Visit(ArgsListNode node)
-    {
-        var args = SyntaxFactory.SeparatedList<ArgumentSyntax>();
-
-        for (var i = 0; i < node.Args.Length; i++)
-            args = args.Add(SyntaxFactory.Argument((ExpressionSyntax) Nodes.Pop()));
-
-        var rArgs = SyntaxFactory.SeparatedList<ArgumentSyntax>();
-
-        for (var i = args.Count - 1; i >= 0; i--) rArgs = rArgs.Add(args[i]);
-
-        Nodes.Push(SyntaxFactory.ArgumentList(rArgs));
+        Nodes.Push(StatementEmitter.CreateArgumentListFromStack(Nodes, node.Args.Length));
     }
 
 
-    public void Visit(SelectNode node)
+    public override void Visit(SelectNode node)
     {
-        var className = $"{_queryAlias}Row{_rowClassCounter++}";
-        var rowClass = GenerateRowClass(className, node, _scope);
-        _members.Add(rowClass);
-
-        _selectBlock = SelectNodeProcessor.ProcessSelectNode(node, Nodes, _scope, _type, className);
+        var result = _queryClauseEmitter.ProcessSelect(node, Nodes, _scope, _type, _queryAlias, ref _rowClassCounter);
+        _members.Add(result.RowClass);
+        _selectBlock = result.SelectBlock;
     }
 
-    public void Visit(GroupSelectNode node)
+    public override void Visit(WhereNode node)
     {
+        Nodes.Push(_queryClauseEmitter.ProcessWhere(Nodes.Pop(), _isResultParallelizationImpossible, _type == MethodAccessType.ResultQuery));
     }
 
-    public void Visit(WhereNode node)
+    public override void Visit(GroupByNode node)
     {
-        var ifStatement =
-            Generator.IfStatement(
-                    Generator.LogicalNotExpression(Nodes.Pop()),
-                    [
-                        _isResultParallelizationImpossible || _type != MethodAccessType.ResultQuery
-                            ? SyntaxFactory.ContinueStatement()
-                            : SyntaxFactory.ReturnStatement()
-                    ]
-                )
-                .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-
-        Nodes.Push(ifStatement);
-    }
-
-    public void Visit(GroupByNode node)
-    {
-        var result = GroupByNodeProcessor.ProcessGroupByNode(node, Nodes, _scope);
-        
+        var result = _queryClauseEmitter.ProcessGroupBy(node, Nodes, _scope);
         _groupValues = result.GroupValues;
         _groupKeys = result.GroupKeys;
         _groupHaving = result.GroupHaving;
-        
         Statements.Add(result.GroupFieldsStatement);
-        AddNamespace(typeof(GroupKey).Namespace);
+        AddNamespace(result.RequiredNamespace);
     }
 
-    public void Visit(HavingNode node)
+    public override void Visit(HavingNode node)
     {
-        Nodes.Push(Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
-                [SyntaxFactory.ContinueStatement()])
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+        Nodes.Push(_queryClauseEmitter.ProcessHaving(Nodes.Pop()));
     }
 
-    public void Visit(SkipNode node)
+    public override void Visit(SkipNode node)
     {
-        var identifier = "skipAmount";
-
-        var skip = SyntaxFactory.LocalDeclarationStatement(
-                SyntaxHelper.CreateAssignment(identifier, (ExpressionSyntax) Generator.LiteralExpression(1)))
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-
-        var ifStatement = Generator.IfStatement(
-            Generator.LessThanOrEqualExpression(
-                SyntaxFactory.IdentifierName(identifier),
-                Generator.LiteralExpression(node.Value)),
-            [
-                SyntaxFactory.PostfixUnaryExpression(
-                    SyntaxKind.PostIncrementExpression,
-                    SyntaxFactory.IdentifierName(identifier)),
-                SyntaxFactory.ContinueStatement()
-            ]);
-
-        Statements.Add(skip);
-
-        Nodes.Push(ifStatement);
+        var result = _queryClauseEmitter.ProcessSkip(node.Value);
+        Statements.Add(result.Declaration);
+        Nodes.Push(result.IfStatement);
     }
 
-    public void Visit(TakeNode node)
+    public override void Visit(TakeNode node)
     {
-        const string identifier = "tookAmount";
-
-        var take = SyntaxFactory.LocalDeclarationStatement(
-            SyntaxHelper.CreateAssignment(identifier, (ExpressionSyntax) Generator.LiteralExpression(0)));
-
-        var ifStatement =
-            (StatementSyntax) Generator.IfStatement(
-                Generator.ValueEqualsExpression(
-                    SyntaxFactory.IdentifierName(identifier),
-                    Generator.LiteralExpression(node.Value)),
-                [
-                    SyntaxFactory.BreakStatement()
-                ]);
-
-        var incTookAmount =
-            SyntaxFactory.ExpressionStatement(
-                SyntaxFactory.PostfixUnaryExpression(
-                    SyntaxKind.PostIncrementExpression,
-                    SyntaxFactory.IdentifierName(identifier)));
-
-        Statements.Add(take);
-
-        Nodes.Push(SyntaxFactory.Block(ifStatement, incTookAmount));
+        var result = _queryClauseEmitter.ProcessTake(node.Value);
+        Statements.Add(result.Declaration);
+        Nodes.Push(result.Block);
     }
 
-    public void Visit(JoinInMemoryWithSourceTableFromNode node)
+    public override void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
-        var ifStatement = (StatementSyntax)Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
-                [SyntaxFactory.ContinueStatement()])
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-
-        _emptyBlock = SyntaxFactory.Block();
-
-        var computingBlock = node.JoinType switch
-        {
-            JoinType.Inner => JoinProcessingHelper.ProcessInnerJoin(
-                node, ifStatement, _emptyBlock, Generator, GetRowsSourceOrEmpty, GenerateCancellationExpression),
-            JoinType.OuterLeft => JoinProcessingHelper.ProcessOuterLeftJoin(
-                node, ifStatement, _emptyBlock, Generator, _scope, _queryAlias, GetRowsSourceOrEmpty, GenerateCancellationExpression),
-            JoinType.OuterRight => JoinProcessingHelper.ProcessOuterRightJoin(
-                node, ifStatement, _emptyBlock, Generator, _scope, _queryAlias, GetRowsSourceOrEmpty, GenerateCancellationExpression),
-            _ => throw new ArgumentException($"Unsupported join type: {node.JoinType}")
-        };
-
-        _joinOrApplyBlock = computingBlock;
+        var result = JoinInMemoryWithSourceTableNodeProcessor.Process(
+            node, Nodes.Pop(), Generator, _scope, _queryAlias, GetRowsSourceOrEmpty, GenerateCancellationExpression);
+        _emptyBlock = result.EmptyBlock;
+        _joinOrApplyBlock = result.ComputingBlock;
     }
 
-    public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+    public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
         var getRowsSourceWrapper = GetRowsSourceOrEmpty;
         Func<StatementSyntax[], BlockSyntax> blockWrapper = Block;
@@ -834,920 +435,221 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _joinOrApplyBlock = result.ComputingBlock;
     }
 
-    public void Visit(SchemaFromNode node)
+    public override void Visit(SchemaFromNode node)
     {
-        var originColumns = InferredColumns[node];
+        var result = SchemaNodeEmitter.ProcessSchemaFromNode(
+            node.Id, node.Alias, node.Schema, node.Method, _schemaFromIndex++, InferredColumns[node], (ArgumentListSyntax)Nodes.Pop());
 
-        var tableInfoVariableName = node.Alias.ToInfoTable();
-        var tableInfoObject = SyntaxHelper.CreateAssignment(
-            tableInfoVariableName,
-            SyntaxHelper.CreateArrayOf(
-                nameof(ISchemaColumn),
-                originColumns.Select(column => SyntaxHelper.CreateObjectOf(nameof(Column),
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
-                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression,
-                            SyntaxFactory.Literal(column.ColumnName))),
-                        SyntaxHelper.TypeLiteralArgument(EvaluationHelper.GetCastableType(column.ColumnType)),
-                        SyntaxHelper.IntLiteralArgument(column.ColumnIndex)
-                    ])))).Cast<ExpressionSyntax>().ToArray()));
-
-        var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
-            node.Alias,
-            "provider",
-            nameof(ISchemaProvider.GetSchema),
-            SyntaxFactory.ArgumentList(
-                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                SyntaxFactory.SeparatedList([
-                    SyntaxHelper.StringLiteralArgument(node.Schema)
-                ]),
-                SyntaxFactory.Token(SyntaxKind.CloseParenToken)
-            )
-        );
-
-        var args = new List<ExpressionSyntax>();
-        var argList = (ArgumentListSyntax) Nodes.Pop();
-        args.AddRange(argList.Arguments.Select(arg => arg.Expression));
-
-        var createdSchemaRows = SyntaxHelper.CreateAssignmentByMethodCall(
-            $"{node.Alias}Rows",
-            node.Alias,
-            nameof(ISchema.GetRowSource),
-            SyntaxFactory.ArgumentList(
-                SyntaxFactory.SeparatedList([
-                    SyntaxHelper.StringLiteralArgument(node.Method),
-                    SyntaxFactory.Argument(
-                        CreateRuntimeContext(node, SyntaxFactory.IdentifierName(tableInfoVariableName))),
-                    SyntaxFactory.Argument(
-                        SyntaxHelper.CreateArrayOf(
-                            nameof(Object),
-                            args.ToArray()))
-                ])
-            ));
-
-        Statements.Add(SyntaxFactory.LocalDeclarationStatement(tableInfoObject));
-        Statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchema));
-
+        Statements.Add(result.TableInfoStatement);
+        Statements.Add(result.SchemaStatement);
+        AddRowsSource(node.Alias, result.RowsStatement);
+    }
+    
+    private void AddRowsSource(string alias, LocalDeclarationStatementSyntax rowsStatement)
+    {
         if (_isInsideJoinOrApply)
-        {
-            _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
-        }
+            _getRowsSourceStatement.Add(alias, rowsStatement);
         else
-        {
-            Statements.Add(SyntaxFactory.LocalDeclarationStatement(createdSchemaRows));
-        }
+            Statements.Add(rowsStatement);
     }
 
-    public void Visit(JoinSourcesTableFromNode node)
+    public override void Visit(JoinSourcesTableFromNode node)
     {
-        var ifStatement = Generator.IfStatement(Generator.LogicalNotExpression(Nodes.Pop()),
-                [SyntaxFactory.ContinueStatement()])
-            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
-
-        _emptyBlock = SyntaxFactory.Block();
-
+        _emptyBlock = StatementEmitter.CreateEmptyBlock();
         _joinOrApplyBlock = JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
-            node, 
-            Generator, 
-            _scope, 
-            _queryAlias, 
-            ifStatement, 
-            _emptyBlock, 
-            GetRowsSourceOrEmpty, 
-            Block, 
-            GenerateCancellationExpression,
-            n => {
-                var traverser = new ToCSharpRewriteTreeTraverseVisitor(this, new ScopeWalker(_scope), _compilationOptions);
-                n.Accept(traverser);
-                return (ExpressionSyntax)Nodes.Pop();
-            },
-            _compilationOptions);
+            node, Generator, _scope, _queryAlias, 
+            JoinEmitter.CreateJoinConditionCheck(Nodes.Pop(), Generator), 
+            _emptyBlock, GetRowsSourceOrEmpty, Block, GenerateCancellationExpression,
+            CreateExpressionEvaluator(), _compilationOptions);
     }
-
-    public void Visit(ApplySourcesTableFromNode node)
+    
+    private Func<Node, ExpressionSyntax> CreateExpressionEvaluator()
     {
-        _emptyBlock = SyntaxFactory.Block();
-
-        var computingBlock = SyntaxFactory.Block();
-        switch (node.ApplyType)
-        {
-            case ApplyType.Cross:
-                computingBlock =
-                    computingBlock.AddStatements(
-                        GetRowsSourceOrEmpty(node.First.Alias),
-                        SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
-                            SyntaxFactory.Identifier($"{node.First.Alias}Row"),
-                            SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
-                            Block(
-                                GetRowsSourceOrEmpty(node.Second.Alias),
-                                SyntaxFactory.ForEachStatement(
-                                    SyntaxFactory.IdentifierName("var"),
-                                    SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
-                                    SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
-                                    SyntaxFactory.Block(
-                                        GenerateCancellationExpression(),
-                                        _emptyBlock)))));
-                break;
-            case ApplyType.Outer:
-
-                var fullTransitionTable = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(_queryAlias);
-                var expressions = new List<ExpressionSyntax>();
-
-                foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
-                {
-                    expressions.Add(
-                        SyntaxFactory.ElementAccessExpression(
-                            SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
-                            SyntaxFactory.BracketedArgumentList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Argument(
-                                        (LiteralExpressionSyntax) Generator.LiteralExpression(
-                                            column.ColumnName))))));
-                }
-
-                foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
-                {
-                    expressions.Add(
-                        SyntaxFactory.CastExpression(
-                            SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(column.ColumnType)),
-                            (LiteralExpressionSyntax) Generator.NullLiteralExpression()));
-                }
-
-                var arrayType = SyntaxFactory.ArrayType(
-                    SyntaxFactory.IdentifierName("object"),
-                    new SyntaxList<ArrayRankSpecifierSyntax>(
-                        SyntaxFactory.ArrayRankSpecifier(
-                            SyntaxFactory.SingletonSeparatedList(
-                                (ExpressionSyntax) SyntaxFactory.OmittedArraySizeExpression()))));
-
-                var rewriteSelect =
-                    SyntaxFactory.VariableDeclaration(
-                        SyntaxFactory.IdentifierName("var"),
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier("select"),
-                                null,
-                                SyntaxFactory.EqualsValueClause(
-                                    SyntaxFactory.ArrayCreationExpression(
-                                        arrayType,
-                                        SyntaxFactory.InitializerExpression(
-                                            SyntaxKind.ArrayInitializerExpression,
-                                            SyntaxFactory.SeparatedList(expressions)))))));
-
-
-                var invocation = SyntaxHelper.CreateMethodInvocation(
-                    _scope[MetaAttributes.SelectIntoVariableName],
-                    nameof(Table.Add),
-                    [
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.ObjectCreationExpression(
-                                SyntaxFactory.Token(SyntaxKind.NewKeyword)
-                                    .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                                SyntaxHelper.ObjectsRowTypeSyntax,
-                                SyntaxFactory.ArgumentList(
-                                    SyntaxFactory.SeparatedList(
-                                    [
-                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("select")),
-                                        SyntaxFactory.Argument(
-                                            SyntaxFactory.MemberAccessExpression(
-                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
-                                                SyntaxFactory.IdentifierName(
-                                                    $"{nameof(IObjectResolver.Contexts)}"))),
-                                        SyntaxFactory.Argument(
-                                            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
-                                    ])
-                                ),
-                                SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
-                        )
-                    ]);
-
-                computingBlock =
-                    computingBlock.AddStatements(
-                        GetRowsSourceOrEmpty(node.First.Alias),
-                        SyntaxFactory.ForEachStatement(SyntaxFactory.IdentifierName("var"),
-                            SyntaxFactory.Identifier($"{node.First.Alias}Row"),
-                            SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
-                            Block(
-                                SyntaxFactory.LocalDeclarationStatement(
-                                    SyntaxHelper.CreateAssignment("hasAnyRowMatched",
-                                        (LiteralExpressionSyntax) Generator.FalseLiteralExpression())),
-                                GetRowsSourceOrEmpty(node.Second.Alias),
-                                SyntaxFactory.ForEachStatement(
-                                    SyntaxFactory.IdentifierName("var"),
-                                    SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
-                                    SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
-                                    SyntaxFactory.Block(
-                                        GenerateCancellationExpression(),
-                                        _emptyBlock,
-                                        SyntaxFactory.IfStatement(
-                                            (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
-                                                SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                            SyntaxFactory.Block(
-                                                SyntaxFactory.ExpressionStatement(
-                                                    SyntaxFactory.AssignmentExpression(
-                                                        SyntaxKind.SimpleAssignmentExpression,
-                                                        SyntaxFactory.IdentifierName("hasAnyRowMatched"),
-                                                        (LiteralExpressionSyntax) Generator
-                                                            .TrueLiteralExpression())))))),
-                                SyntaxFactory.IfStatement(
-                                    (PrefixUnaryExpressionSyntax) Generator.LogicalNotExpression(
-                                        SyntaxFactory.IdentifierName("hasAnyRowMatched")),
-                                    SyntaxFactory.Block(
-                                        SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
-                                        SyntaxFactory.ExpressionStatement(invocation))))));
-                break;
-        }
-
-        _joinOrApplyBlock = computingBlock;
+        return n => {
+            n.Accept(new ToCSharpRewriteTreeTraverseVisitor(this, new ScopeWalker(_scope), _compilationOptions));
+            return (ExpressionSyntax)Nodes.Pop();
+        };
     }
 
-    public void Visit(InMemoryTableFromNode node)
+    public override void Visit(ApplySourcesTableFromNode node)
     {
-        var tableArgument = SyntaxFactory.Argument(
-            SyntaxFactory
-                .ElementAccessExpression(
-                    SyntaxFactory.IdentifierName("_tableResults")).WithArgumentList(
-                    SyntaxFactory.BracketedArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.LiteralExpression(
-                                    SyntaxKind.NumericLiteralExpression,
-                                    SyntaxFactory.Literal(
-                                        _inMemoryTableIndexes[
-                                            node.VariableName])))))));
-
-        var literalTrueArgument = SyntaxFactory.Argument(
-            SyntaxFactory.LiteralExpression(
-                SyntaxKind.TrueLiteralExpression));
-
-        _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
-            .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
-                SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                    .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
-                        SyntaxFactory.EqualsValueClause(SyntaxFactory
-                            .InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertTableToSource))))
-                            .WithArgumentList(
-                                SyntaxFactory.ArgumentList(
-                                    SyntaxFactory.SeparatedList([
-                                        tableArgument,
-                                        literalTrueArgument
-                                    ])))))))));
+        var result = ApplySourcesTableNodeProcessor.ProcessApplySourcesTable(
+            node, Generator, _scope, _queryAlias, GetRowsSourceOrEmpty, Block, GenerateCancellationExpression);
+        
+        _emptyBlock = result.EmptyBlock;
+        _joinOrApplyBlock = result.ComputingBlock;
     }
 
-    public void Visit(JoinFromNode node)
+    public override void Visit(InMemoryTableFromNode node)
     {
+        var tableIndex = _inMemoryTableIndexes[node.VariableName];
+        _getRowsSourceStatement.Add(node.Alias, SchemaNodeEmitter.CreateInMemoryTableRowsSource(node.Alias, tableIndex));
     }
 
-    public void Visit(ApplyFromNode node)
+    public override void Visit(ExpressionFromNode node)
     {
+        Nodes.Push(StatementEmitter.CreateEmptyBlock());
     }
 
-    public void Visit(ExpressionFromNode node)
-    {
-        Nodes.Push(SyntaxFactory.Block());
-    }
-
-    public void Visit(AccessMethodFromNode node)
+    public override void Visit(AccessMethodFromNode node)
     {
         AddNamespace(node.ReturnType);
-
-        _getRowsSourceStatement.Add(node.Alias, SyntaxFactory.LocalDeclarationStatement(SyntaxFactory
-            .VariableDeclaration(SyntaxFactory.IdentifierName("var")).WithVariables(
-                SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                    .VariableDeclarator(SyntaxFactory.Identifier(node.Alias.ToRowsSource())).WithInitializer(
-                        SyntaxFactory.EqualsValueClause(SyntaxFactory
-                            .InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertEnumerableToSource))))
-                            .WithArgumentList(
-                                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Argument(
-                                        SyntaxFactory.CastExpression(
-                                            SyntaxFactory.ParseTypeName(
-                                                EvaluationHelper.GetCastableType(node.ReturnType)),
-                                            (ExpressionSyntax) Nodes.Pop())))))))))));
+        var sourceExpression = (ExpressionSyntax)Nodes.Pop();
+        _getRowsSourceStatement.Add(node.Alias, SchemaNodeEmitter.CreateEnumerableRowsSource(node.Alias, node.ReturnType, sourceExpression));
     }
 
-    public void Visit(SchemaMethodFromNode node)
-    {
-    }
-
-    public void Visit(PropertyFromNode node)
+    public override void Visit(PropertyFromNode node)
     {
         AddNamespace(node.ReturnType);
-
-        ExpressionSyntax propertyAccess = SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.CastExpression(
-                SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(node.PropertiesChain[0].PropertyType)),
-                SyntaxFactory.ElementAccessExpression(
-                    SyntaxFactory.IdentifierName($"{node.SourceAlias}Row"),
-                    SyntaxFactory.BracketedArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.LiteralExpression(
-                                    SyntaxKind.StringLiteralExpression,
-                                    SyntaxFactory.Literal(node.PropertiesChain[0].PropertyName))))))));
-
-        for (var i = 1; i < node.PropertiesChain.Length; i++)
-        {
-            propertyAccess = SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                propertyAccess,
-                SyntaxFactory.IdentifierName(node.PropertiesChain[i].PropertyName));
-        }
-
-        var statement = SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(
-                    SyntaxFactory.IdentifierName("var"))
-                .WithVariables(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier(node.Alias.ToRowsSource()))
-                            .WithInitializer(
-                                SyntaxFactory.EqualsValueClause(
-                                    SyntaxFactory.InvocationExpression(
-                                            SyntaxFactory.MemberAccessExpression(
-                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                                                SyntaxFactory.IdentifierName(
-                                                    nameof(EvaluationHelper.ConvertEnumerableToSource))))
-                                        .WithArgumentList(
-                                            SyntaxFactory.ArgumentList(
-                                                SyntaxFactory.SingletonSeparatedList(
-                                                    SyntaxFactory.Argument(
-                                                        SyntaxFactory.CastExpression(
-                                                            SyntaxFactory.ParseTypeName(
-                                                                EvaluationHelper.GetCastableType(node.ReturnType)),
-                                                            propertyAccess))))))))));
-
-        _getRowsSourceStatement.Add(node.Alias, statement);
+        
+        var propertiesChain = node.PropertiesChain
+            .Select(p => (p.PropertyName, p.PropertyType))
+            .ToArray();
+        
+        _getRowsSourceStatement.Add(
+            node.Alias, 
+            SchemaNodeEmitter.CreatePropertyRowsSource(node.Alias, node.SourceAlias, node.ReturnType, propertiesChain));
     }
 
-    public void Visit(AliasedFromNode node)
+    public override void Visit(CreateTransformationTableNode node)
     {
+        var tableName = _scope[MetaAttributes.CreateTableVariableName];
+        Statements.Add(node.ForGrouping 
+            ? TransformationTableEmitter.CreateGroupingTransformationTable(tableName)
+            : TransformationTableEmitter.CreateRegularTransformationTable(node, tableName, AddReference, AddNamespace));
     }
 
-    public void Visit(CreateTransformationTableNode node)
+    public override void Visit(QueryNode node)
     {
-        if (!node.ForGrouping)
-        {
-            var cols = new List<ExpressionSyntax>();
+        var result = QueryNodeProcessor.ProcessQueryNode(
+            node,
+            Nodes,
+            _selectBlock,
+            GenerateCseVariableDeclarations().ToArray(),
+            GetRowsSourceOrEmpty,
+            _scope[MetaAttributes.SourceName],
+            !_isResultParallelizationImpossible,
+            Generator);
 
-            foreach (var field in node.Fields)
-            {
-                var type = field.ReturnType;
-
-                var types = EvaluationHelper.GetNestedTypes(type);
-
-                AddNamespace(types);
-                AddReference(types);
-
-                cols.Add(
-                    SyntaxHelper.CreateObjectOf(
-                        nameof(Column),
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList([
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.LiteralExpression(
-                                        SyntaxKind.StringLiteralExpression,
-                                        SyntaxFactory.Literal(
-                                            $"@\"{field.FieldName.Replace("\"", "'")}\"",
-                                            field.FieldName))),
-                                SyntaxHelper.TypeLiteralArgument(
-                                    EvaluationHelper.GetCastableType(type)),
-                                SyntaxHelper.IntLiteralArgument(field.FieldOrder)
-                            ]))));
-            }
-
-            var createObject = SyntaxHelper.CreateAssignment(
-                _scope[MetaAttributes.CreateTableVariableName],
-                SyntaxHelper.CreateObjectOf(
-                    nameof(Table),
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument((ExpressionSyntax) Generator.LiteralExpression(node.Name)),
-                            SyntaxFactory.Argument(
-                                SyntaxHelper.CreateArrayOf(
-                                    nameof(Column),
-                                    cols.ToArray()))
-                        ]))));
-
-            Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
-        }
-        else
-        {
-            var createObject = SyntaxHelper.CreateAssignment(
-                _scope[MetaAttributes.CreateTableVariableName],
-                SyntaxHelper.CreateObjectOf(
-                    NamingHelper.ListOf<Group>(),
-                    SyntaxFactory.ArgumentList()));
-            Statements.Add(SyntaxFactory.LocalDeclarationStatement(createObject));
-        }
-    }
-
-    public void Visit(RenameTableNode node)
-    {
-    }
-
-    public void Visit(TranslatedSetTreeNode node)
-    {
-    }
-
-    public void Visit(IntoNode node)
-    {
-    }
-
-    public void Visit(QueryScope node)
-    {
-    }
-
-    public void Visit(ShouldBePresentInTheTable node)
-    {
-    }
-
-    public void Visit(TranslatedSetOperatorNode node)
-    {
-    }
-
-    public void Visit(QueryNode node)
-    {
-        var detailedQuery = (DetailedQueryNode) node;
-
-        var orderByFields = detailedQuery.OrderBy is not null
-            ? new (FieldOrderedNode Field, ExpressionSyntax Syntax)[detailedQuery.OrderBy.Fields.Length]
-            : [];
-
-        for (var i = orderByFields.Length - 1; i >= 0; i--)
-        {
-            var orderBy = detailedQuery.OrderBy!;
-            var field = orderBy.Fields[i];
-            var syntax = (ExpressionSyntax) Nodes.Pop();
-            orderByFields[i] = (field, syntax);
-        }
-
-        var skip = node.Skip != null ? Nodes.Pop() as StatementSyntax : null;
-        var take = node.Take != null ? Nodes.Pop() as BlockSyntax : null;
-
-        var select = _selectBlock;
-        var where = node.Where != null ? Nodes.Pop() as StatementSyntax : null;
-
-        var block = (BlockSyntax) Nodes.Pop();
-
-        var cseDeclarations = GenerateCseVariableDeclarations().ToArray();
-        if (cseDeclarations.Length > 0)
-        {
-            block = SyntaxFactory.Block(cseDeclarations.Concat(block.Statements));
-        }
-
-        block = block.AddStatements(GenerateCancellationExpression());
-
-        if (where != null)
-            block = block.AddStatements(where);
-
-        block = block.AddStatements(GenerateStatsUpdateStatements());
-
-        if (skip != null)
-            block = block.AddStatements(skip);
-
-        if (take != null)
-            block = block.AddStatements(take.Statements.ToArray());
-        block = block.AddStatements(select.Statements.ToArray());
-        var fullBlock = SyntaxFactory.Block();
-
-        fullBlock = fullBlock.AddStatements(
-            GetRowsSourceOrEmpty(node.From.Alias),
-            _isResultParallelizationImpossible
-                ? SyntaxHelper.Foreach("score", _scope[MetaAttributes.SourceName], block, orderByFields)
-                : SyntaxHelper.ParallelForeach("score", _scope[MetaAttributes.SourceName], block));
-
-        fullBlock = fullBlock.AddStatements(
-            (StatementSyntax) Generator.ReturnStatement(
-                SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName)));
-
-        Statements.AddRange(fullBlock.Statements);
+        Statements.AddRange(result.Statements);
 
         _getRowsSourceStatement.Clear();
         _isResultParallelizationImpossible = false;
     }
 
-    public void Visit(InternalQueryNode node)
+    public override void Visit(InternalQueryNode node)
     {
         var select = _selectBlock;
         var where = node.Where != null ? Nodes.Pop() as StatementSyntax : null;
-
-        var block = (BlockSyntax) Nodes.Pop();
-
+        var block = (BlockSyntax)Nodes.Pop();
         var cseDeclarations = GenerateCseVariableDeclarations().ToArray();
-        if (cseDeclarations.Length > 0)
-        {
-            block = SyntaxFactory.Block(cseDeclarations.Concat(block.Statements));
-        }
 
         if (node.GroupBy != null)
         {
-            Statements.Add(SyntaxFactory
-                .ParseStatement("var rootGroup = new Group(null, new string[0], new string[0]);")
-                .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn)).NormalizeWhitespace());
-            Statements.Add(SyntaxFactory.ParseStatement("var usedGroups = new HashSet<Group>();")
-                .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn)).NormalizeWhitespace());
-            Statements.Add(SyntaxFactory.ParseStatement("var groups = new Dictionary<GroupKey, Group>();")
-                .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn)).NormalizeWhitespace());
+            var result = InternalQueryNodeProcessor.ProcessGroupByPath(
+                node,
+                Nodes,
+                block,
+                cseDeclarations,
+                where,
+                _groupKeys,
+                _groupValues,
+                _groupHaving,
+                GetRowsSourceOrEmpty,
+                _scope[MetaAttributes.SourceName],
+                _queryEmitter.CreateIndexToColumnMap);
 
-            block = block.AddStatements(GenerateCancellationExpression());
-
-            if (where != null)
-                block = block.AddStatements(where);
-
-            block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(_groupKeys));
-            block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(_groupValues));
-
-            block = block.AddStatements(SyntaxFactory.ParseStatement("var parent = rootGroup;")
-                    .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn)))
-                .NormalizeWhitespace();
-            block = block.AddStatements(SyntaxFactory.ParseStatement("Group group = null;")
-                    .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn)))
-                .NormalizeWhitespace();
-
-            block = block.AddStatements(GroupForStatement());
-
-            if (node.Refresh.Nodes.Length > 0)
-                block = block.AddStatements(((BlockSyntax) Nodes.Pop()).Statements.ToArray());
-
-            if (node.GroupBy.Having != null)
-                block = block.AddStatements((StatementSyntax) _groupHaving);
-
-            var indexToColumnMapCode = new InitializerExpressionSyntax[node.Select.Fields.Length];
-
-            for (int i = 0, j = node.Select.Fields.Length - 1; i < node.Select.Fields.Length; i++, --j)
-                indexToColumnMapCode[i] =
-                    SyntaxFactory.InitializerExpression(
-                        SyntaxKind.ComplexElementInitializerExpression,
-                        SyntaxFactory.SeparatedList<ExpressionSyntax>()
-                            .Add((LiteralExpressionSyntax) Generator.LiteralExpression(j))
-                            .Add((LiteralExpressionSyntax) Generator.LiteralExpression(
-                                node.Select.Fields[i].FieldName.Replace("\"", "'"))));
-
-            const string indexToValueDictVariableName = "indexToValueDict";
-
-            var columnToValueDict = SyntaxHelper.CreateAssignment(
-                indexToValueDictVariableName, SyntaxHelper.CreateObjectOf(
-                    "Dictionary<int, string>",
-                    SyntaxFactory.ArgumentList(),
-                    SyntaxFactory.InitializerExpression(
-                        SyntaxKind.ObjectInitializerExpression,
-                        SyntaxFactory.SeparatedList<ExpressionSyntax>()
-                            .AddRange(indexToColumnMapCode))));
-
-            Statements.Add(SyntaxFactory.LocalDeclarationStatement(columnToValueDict));
-
-            block = block.AddStatements(AddGroupStatement(node.From.Alias.ToGroupingTable()));
-            block = GroupByForeach(block, node.From.Alias, node.From.Alias.ToRowItem(),
-                _scope[MetaAttributes.SourceName]);
-            Statements.AddRange(block.Statements);
+            Statements.AddRange(result.Statements);
         }
         else
         {
-            _emptyBlock = _joinOrApplyBlock.DescendantNodes().OfType<BlockSyntax>()
-                .First(f => f.Statements.Count == 0);
-            _joinOrApplyBlock = _joinOrApplyBlock.ReplaceNode(_emptyBlock, select.Statements);
-            Statements.AddRange(_joinOrApplyBlock.Statements);
+            Statements.AddRange(InternalQueryNodeProcessor.ProcessJoinApplyPath(select, _joinOrApplyBlock));
         }
 
         _getRowsSourceStatement.Clear();
         _isResultParallelizationImpossible = false;
     }
 
-    private StatementSyntax GenerateCancellationExpression()
+    private static StatementSyntax GenerateCancellationExpression()
     {
-        return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("token"),
-                    SyntaxFactory.IdentifierName(
-                        nameof(CancellationToken.ThrowIfCancellationRequested)))));
+        return QueryEmitter.GenerateCancellationCheck();
     }
 
-    public void Visit(RootNode node)
+    public override void Visit(RootNode node)
     {
         var methodCallExpression = $"{_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, QueriesInformation, Logger, token)";
-        var method = MethodDeclarationHelper.CreateRunMethod(methodCallExpression);
+        
+        ClassEmitter.AddRunnableMembers(_members, methodCallExpression);
 
-        var providerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ISchemaProvider), nameof(IRunnable.Provider));
-
-        var positionalEnvironmentVariablesParam = MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
-
-        var queriesInformationParam = MethodDeclarationHelper.CreateQueriesInformationProperty();
-
-        var loggerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ILogger), nameof(IRunnable.Logger));
-
-        _members.Add(method);
-        _members.Add(providerParam);
-        _members.Add(positionalEnvironmentVariablesParam);
-        _members.Add(queriesInformationParam);
-        _members.Add(loggerParam);
-
-        var inMemoryTables = SyntaxFactory
-            .FieldDeclaration(SyntaxFactory
-                .VariableDeclaration(SyntaxFactory.ArrayType(SyntaxFactory.IdentifierName(nameof(Table)))
-                    .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                        SyntaxFactory.ArrayRankSpecifier(
-                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                                SyntaxFactory.OmittedArraySizeExpression()))))).WithVariables(
-                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                        .VariableDeclarator(SyntaxFactory.Identifier("_tableResults")).WithInitializer(
-                            SyntaxFactory.EqualsValueClause(SyntaxFactory.ArrayCreationExpression(SyntaxFactory
-                                .ArrayType(SyntaxFactory.IdentifierName(nameof(Table))).WithRankSpecifiers(
-                                    SyntaxFactory.SingletonList(
-                                        SyntaxFactory.ArrayRankSpecifier(
-                                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                                    SyntaxFactory.Literal(_inMemoryTableIndex))))))))))))
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)));
-
+        var inMemoryTables = ClassEmitter.CreateInMemoryTablesField(_inMemoryTableIndex);
         _members.Insert(0, inMemoryTables);
 
-        var classDeclaration = Generator.ClassDeclaration(ClassName, Array.Empty<string>(), Accessibility.Public,
-            DeclarationModifiers.None,
-            null,
-            [
-                SyntaxFactory.IdentifierName(nameof(BaseOperations)),
-                SyntaxFactory.IdentifierName(nameof(IRunnable))
-            ], _members);
+        var classDeclaration = ClassEmitter.CreateClassDeclaration(Generator, ClassName, _members);
+        var ns = ClassEmitter.CreateNamespaceDeclaration(Namespace, _compilationContext.GetNamespaces(), (ClassDeclarationSyntax)classDeclaration);
+        var compilationUnit = ClassEmitter.CreateCompilationUnit(ns);
+        var formatted = ClassEmitter.FormatCompilationUnit(compilationUnit, Workspace);
 
-        var ns = SyntaxFactory.NamespaceDeclaration(
-            SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(Namespace)),
-            SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
-            SyntaxFactory.List(
-                _namespaces.Select(
-                    n => SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(n)))),
-            SyntaxFactory.List<MemberDeclarationSyntax>([(ClassDeclarationSyntax) classDeclaration]));
-
-        var compilationUnit = SyntaxFactory.CompilationUnit(
-            SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
-            SyntaxFactory.List<UsingDirectiveSyntax>(),
-            SyntaxFactory.List<AttributeListSyntax>(),
-            SyntaxFactory.List<MemberDeclarationSyntax>([ns]));
-
-        var options = Workspace.Options;
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInMethods, true);
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInProperties, true);
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, true);
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, true);
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, true);
-
-        var formatted = Formatter.Format(compilationUnit, Workspace, options);
-
-        Compilation = Compilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(formatted.ToFullString(),
-            new CSharpParseOptions(LanguageVersion.CSharp8), null, Encoding.ASCII));
+        _compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTree(formatted));
     }
 
-    public void Visit(SingleSetNode node)
+    public override void Visit(UnionNode node)
     {
+        ProcessSetOperation("Union", nameof(BaseOperations.Union));
     }
 
-    public void Visit(UnionNode node)
+    public override void Visit(UnionAllNode node)
     {
-        var b = _methodNames.Pop();
-        var a = _methodNames.Pop();
-        var name = $"{a}_Union_{b}";
-        _methodNames.Push(name);
-
-        var aInvocation = SyntaxFactory
-            .InvocationExpression(SyntaxFactory.IdentifierName(a))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("provider")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("queriesInformation")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("logger")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("token"))
-                        ]
-                    )));
-
-        var bInvocation = SyntaxFactory
-            .InvocationExpression(SyntaxFactory.IdentifierName(b))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("provider")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("queriesInformation")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("logger")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("token"))
-                        ]
-                    )));
-
-        _members.Add(GenerateMethod(name, nameof(BaseOperations.Union), _scope[MetaAttributes.SetOperatorName],
-            aInvocation, bInvocation));
+        ProcessSetOperation("UnionAll", nameof(BaseOperations.UnionAll));
     }
 
-    public void Visit(UnionAllNode node)
+    public override void Visit(ExceptNode node)
     {
-        var b = _methodNames.Pop();
-        var a = _methodNames.Pop();
-        var name = $"{a}_UnionAll_{b}";
-        _methodNames.Push(name);
-
-        var aInvocation = SyntaxFactory
-            .InvocationExpression(SyntaxFactory.IdentifierName(a))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("provider")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("queriesInformation")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("logger")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("token"))
-                        ]
-                    )));
-
-        var bInvocation = SyntaxFactory
-            .InvocationExpression(SyntaxFactory.IdentifierName(b))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("provider")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("queriesInformation")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("logger")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("token"))
-                        ]
-                    )));
-
-        _members.Add(GenerateMethod(name, nameof(BaseOperations.UnionAll), _scope[MetaAttributes.SetOperatorName],
-            aInvocation, bInvocation));
+        ProcessSetOperation("Except", nameof(BaseOperations.Except));
     }
 
-    public void Visit(ExceptNode node)
+    public override void Visit(IntersectNode node)
     {
-        var b = _methodNames.Pop();
-        var a = _methodNames.Pop();
-        var name = $"{a}_Except_{b}";
-        _methodNames.Push(name);
-
-        var aInvocation = SyntaxFactory
-            .InvocationExpression(SyntaxFactory.IdentifierName(a))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("provider")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("queriesInformation")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("logger")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("token"))
-                        ]
-                    )));
-
-        var bInvocation = SyntaxFactory
-            .InvocationExpression(SyntaxFactory.IdentifierName(b))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("provider")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("queriesInformation")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("logger")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("token"))
-                        ]
-                    )));
-
-        _members.Add(GenerateMethod(name, nameof(BaseOperations.Except), _scope[MetaAttributes.SetOperatorName],
-            aInvocation, bInvocation));
+        ProcessSetOperation("Intersect", nameof(BaseOperations.Intersect));
     }
 
-    public void Visit(IntersectNode node)
+    private void ProcessSetOperation(string operationSuffix, string baseOperationMethodName)
     {
-        var b = _methodNames.Pop();
-        var a = _methodNames.Pop();
-        var name = $"{a}_Intersect_{b}";
-        _methodNames.Push(name);
+        var result = _setOperationEmitter.ProcessSetOperation(
+            _methodNames,
+            operationSuffix,
+            baseOperationMethodName,
+            _scope[MetaAttributes.SetOperatorName]);
 
-        var aInvocation = SyntaxFactory
-            .InvocationExpression(SyntaxFactory.IdentifierName(a))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("provider")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("queriesInformation")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("logger")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("token"))
-                        ]
-                    )));
-
-        var bInvocation = SyntaxFactory
-            .InvocationExpression(SyntaxFactory.IdentifierName(b))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("provider")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("queriesInformation")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("logger")),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName("token"))
-                        ]
-                    )));
-
-        _members.Add(GenerateMethod(name, nameof(BaseOperations.Intersect), _scope[MetaAttributes.SetOperatorName],
-            aInvocation, bInvocation));
+        _methodNames.Push(result.CombinedMethodName);
+        _members.Add(result.Method);
     }
 
-    public void Visit(RefreshNode node)
+    public override void Visit(RefreshNode node)
     {
-        if (node.Nodes.Length == 0)
-            return;
-
-        var block = SyntaxFactory.Block();
-        for (var i = 0; i < node.Nodes.Length; i++)
-            block = block.AddStatements(
-                SyntaxFactory.ExpressionStatement((ExpressionSyntax) Nodes.Pop()));
-
-        Nodes.Push(block);
+        var block = MultiStatementEmitter.ProcessRefreshNode(node.Nodes.Length, Nodes);
+        if (block != null)
+            Nodes.Push(block);
     }
 
-    public void Visit(PutTrueNode node)
+    public override void Visit(PutTrueNode node)
     {
-        Nodes.Push(Generator.ValueEqualsExpression(Generator.LiteralExpression(1), Generator.LiteralExpression(1)));
+        Nodes.Push(MultiStatementEmitter.CreatePutTrueExpression(Generator));
     }
 
-    public void Visit(MultiStatementNode node)
+    public override void Visit(MultiStatementNode node)
     {
-        Statements.Insert(0, SyntaxFactory.LocalDeclarationStatement(
-            SyntaxHelper.CreateAssignment(
-                "stats",
-                SyntaxHelper.CreateObjectOf(
-                    nameof(AmendableQueryStats),
-                    SyntaxFactory.ArgumentList()))));
+        Statements.Insert(0, MultiStatementEmitter.CreateStatsDeclaration());
 
-        var methodName = $"{_scope[MetaAttributes.MethodName]}_{_setOperatorMethodIdentifier}";
-        if (_scope.IsInsideNamedScope("CTE Inner Expression"))
-            methodName = $"{methodName}_Inner_Cte";
-
+        var methodName = MultiStatementEmitter.GenerateMethodName(_scope, _setOperatorMethodIdentifier);
         _methodNames.Push(methodName);
 
-        var method = MethodDeclarationHelper.CreateStandardPrivateMethod(methodName, SyntaxFactory.Block(Statements));
-
+        var method = MultiStatementEmitter.CreateMethod(methodName, Statements);
         _members.Add(method);
         _typesToInstantiate.Clear();
         Statements.Clear();
     }
 
-    public void Visit(CteExpressionNode node)
+    public override void Visit(CteExpressionNode node)
     {
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(node, _methodNames, Nodes);
         
@@ -1755,35 +657,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _methodNames.Push(result.MethodName);
     }
 
-    public void Visit(CteInnerExpressionNode node)
+    public override void Visit(CteInnerExpressionNode node)
     {
-        if (!_inMemoryTableIndexes.ContainsKey(node.Name))
-            _inMemoryTableIndexes.Add(node.Name, _inMemoryTableIndex++);
-
-        Nodes.Push(SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-            SyntaxKind.SimpleAssignmentExpression,
-            SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("_tableResults")).WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                        SyntaxFactory.Literal(_inMemoryTableIndexes[node.Name])))))),
-            SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(_methodNames.Peek())).WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("provider")),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("positionalEnvironmentVariables")),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queriesInformation")),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger")),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
-                    ]))))));
-    }
-
-    public void Visit(JoinNode node)
-    {
-    }
-
-    public void Visit(ApplyNode node)
-    {
+        CteEmitter.TryRegisterCteIndex(node.Name, _inMemoryTableIndexes, ref _inMemoryTableIndex);
+        var tableIndex = CteEmitter.GetCteIndex(node.Name, _inMemoryTableIndexes);
+        var assignment = CteEmitter.CreateCteInnerExpressionAssignment(node.Name, tableIndex, _methodNames.Peek());
+        Nodes.Push(assignment);
     }
 
     public void SetScope(Scope scope)
@@ -1831,706 +710,53 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private void AddNamespace(string columnTypeNamespace)
     {
-        if (!_namespaces.Contains(columnTypeNamespace))
-            _namespaces.Add(columnTypeNamespace);
+        _compilationContext.TrackNamespace(columnTypeNamespace);
     }
 
     private void AddNamespace(params Type[] types)
     {
-        foreach (var type in types)
-            AddNamespace(type.Namespace);
+        _compilationContext.TrackNamespaces(types);
     }
 
     private void AddReference(params Type[] types)
     {
-        var newReferences = new List<MetadataReference>(types.Length);
-        
-        foreach (var type in types)
-        {
-            if (_loadedAssemblies.Contains(type.Assembly.Location)) continue;
-
-            _loadedAssemblies.Add(type.Assembly.Location);
-            newReferences.Add(MetadataReferenceCache.GetOrCreate(type.Assembly.Location));
-        }
-
-        if (newReferences.Count > 0)
-        {
-            Compilation = Compilation.AddReferences(newReferences);
-        }
+        _compilationContext.TrackTypes(types);
     }
 
     private void AddReference(params string[] assemblyDllsPaths)
     {
-        var newReferences = new List<MetadataReference>(assemblyDllsPaths.Length);
-        
-        foreach (var assemblyDllPath in assemblyDllsPaths)
-        {
-            if (_loadedAssemblies.Contains(assemblyDllPath)) continue;
-
-            _loadedAssemblies.Add(assemblyDllPath);
-            newReferences.Add(MetadataReferenceCache.GetOrCreate(assemblyDllPath));
-        }
-
-        if (newReferences.Count > 0)
-        {
-            Compilation = Compilation.AddReferences(newReferences);
-        }
+        foreach (var path in assemblyDllsPaths)
+            _compilationContext.AddAssemblyReference(path);
     }
 
     private void AddReference(params Assembly[] assemblies)
     {
-        var newReferences = new List<MetadataReference>(assemblies.Length);
-        
-        foreach (var assembly in assemblies)
-        {
-            if (_loadedAssemblies.Contains(assembly.Location)) continue;
-
-            _loadedAssemblies.Add(assembly.Location);
-            newReferences.Add(MetadataReferenceCache.GetOrCreate(assembly.Location));
-        }
-
-        if (newReferences.Count > 0)
-        {
-            Compilation = Compilation.AddReferences(newReferences);
-        }
+        _compilationContext.AddAssemblyReferences(assemblies);
     }
 
-    private StatementSyntax GenerateStatsUpdateStatements()
+    public override void Visit(OrderByNode node)
     {
-        return SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(
-                    SyntaxFactory.IdentifierName("var"))
-                .WithVariables(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier("currentRowStats"))
-                            .WithInitializer(
-                                SyntaxFactory.EqualsValueClause(
-                                    SyntaxFactory.InvocationExpression(
-                                        SyntaxFactory.MemberAccessExpression(
-                                            SyntaxKind.SimpleMemberAccessExpression,
-                                            SyntaxFactory.IdentifierName("stats"),
-                                            SyntaxFactory.IdentifierName(nameof(AmendableQueryStats
-                                                .IncrementRowNumber)))))))));
+        AddNamespace(QueryClauseEmitter.GetOrderByNamespace());
     }
 
-    private BlockSyntax GroupByForeach(BlockSyntax foreachInstructions, string alias, string variableName,
-        string tableVariable)
+    public override void Visit(CaseNode node)
     {
-        return Block(
-            GetRowsSourceOrEmpty(alias),
-            SyntaxFactory.ForEachStatement(
-                SyntaxFactory.IdentifierName("var"),
-                SyntaxFactory.Identifier(variableName),
-                SyntaxFactory.IdentifierName(tableVariable),
-                foreachInstructions).NormalizeWhitespace());
-    }
-
-    private StatementSyntax AddGroupStatement(string scoreTable)
-    {
-        return SyntaxFactory.IfStatement(
-            SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
-                SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName("usedGroups"), SyntaxFactory.IdentifierName("Contains")))
-                    .WithArgumentList(
-                        SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")))))),
-            SyntaxFactory.Block(
-                SyntaxFactory.ExpressionStatement(
-                    SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName(scoreTable),
-                            SyntaxFactory.IdentifierName("Add")))
-                        .WithArgumentList(SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")))))),
-                SyntaxFactory.ExpressionStatement(
-                    SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName("usedGroups"), SyntaxFactory.IdentifierName("Add")))
-                        .WithArgumentList(
-                            SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group"))))))));
-    }
-
-    private StatementSyntax GroupForStatement()
-    {
-        return
-            SyntaxFactory.ForStatement(SyntaxFactory.Block(
-                    SyntaxFactory.ExpressionStatement(
-                        SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.IdentifierName("token"),
-                                SyntaxFactory.IdentifierName(nameof(CancellationToken
-                                    .ThrowIfCancellationRequested))))),
-                    SyntaxFactory.LocalDeclarationStatement(
-                        SyntaxFactory.VariableDeclaration(
-                                SyntaxFactory.IdentifierName("var"))
-                            .WithVariables(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.VariableDeclarator(
-                                            SyntaxFactory.Identifier("key"))
-                                        .WithInitializer(
-                                            SyntaxFactory.EqualsValueClause(
-                                                SyntaxFactory
-                                                    .ElementAccessExpression(SyntaxFactory.IdentifierName("keys"))
-                                                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                                        SyntaxFactory.SingletonSeparatedList(
-                                                            SyntaxFactory.Argument(
-                                                                SyntaxFactory.IdentifierName("i")))))))))),
-                    SyntaxFactory.IfStatement(
-                            SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.IdentifierName("groups"),
-                                SyntaxFactory.IdentifierName("ContainsKey"))).WithArgumentList(
-                                SyntaxFactory.ArgumentList(
-                                    SyntaxFactory.SingletonSeparatedList(
-                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key"))))),
-                            SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(
-                                SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-                                    SyntaxKind.SimpleAssignmentExpression, SyntaxFactory.IdentifierName("group"),
-                                    SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("groups"))
-                                        .WithArgumentList(
-                                            SyntaxFactory.BracketedArgumentList(
-                                                SyntaxFactory.SingletonSeparatedList(
-                                                    SyntaxFactory.Argument(
-                                                        SyntaxFactory.IdentifierName("key"))))))))))
-                        .WithElse(SyntaxFactory.ElseClause(SyntaxFactory.Block(
-                            SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-                                SyntaxKind.SimpleAssignmentExpression,
-                                SyntaxFactory.IdentifierName("group"),
-                                SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName("Group"))
-                                    .WithArgumentList(SyntaxFactory.ArgumentList(
-                                        SyntaxFactory.SeparatedList<ArgumentSyntax>(new SyntaxNodeOrToken[]
-                                        {
-                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("parent")),
-                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                            SyntaxFactory.Argument(SyntaxFactory
-                                                .ElementAccessExpression(
-                                                    SyntaxFactory.IdentifierName("groupFieldsNames"))
-                                                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                                    SyntaxFactory.SingletonSeparatedList(
-                                                        SyntaxFactory.Argument(
-                                                            SyntaxFactory.IdentifierName("i")))))),
-                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                            SyntaxFactory.Argument(SyntaxFactory
-                                                .ElementAccessExpression(SyntaxFactory.IdentifierName("values"))
-                                                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                                    SyntaxFactory.SingletonSeparatedList(
-                                                        SyntaxFactory.Argument(
-                                                            SyntaxFactory.IdentifierName("i"))))))
-                                        }))))),
-                            SyntaxFactory.ExpressionStatement(
-                                SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.IdentifierName("groups"),
-                                        SyntaxFactory.IdentifierName("Add")))
-                                    .WithArgumentList(
-                                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                            new SyntaxNodeOrToken[]
-                                            {
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key")),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group"))
-                                            }))))))),
-                    SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        SyntaxFactory.IdentifierName("parent"), SyntaxFactory.IdentifierName("group")))))
-                .WithDeclaration(SyntaxFactory
-                    .VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
-                    .WithVariables(
-                        SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                            .VariableDeclarator(SyntaxFactory.Identifier("i"))
-                            .WithInitializer(
-                                SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(
-                                    SyntaxKind.NumericLiteralExpression,
-                                    SyntaxFactory.Literal(0)))))))
-                .WithCondition(SyntaxFactory.BinaryExpression(SyntaxKind.LessThanExpression,
-                    SyntaxFactory.IdentifierName("i"),
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName("keys"),
-                        SyntaxFactory.IdentifierName("Length"))))
-                .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                    SyntaxFactory.PrefixUnaryExpression(SyntaxKind.PreIncrementExpression,
-                        SyntaxFactory.IdentifierName("i"))));
-    }
-
-    private MethodDeclarationSyntax GenerateMethod(string methodName, string setOperator, string key,
-        ExpressionSyntax firstTableExpression, ExpressionSyntax secondTableExpression)
-    {
-        var body = SyntaxFactory.Block(
-            SyntaxFactory.SingletonList<StatementSyntax>(
-                SyntaxFactory.ReturnStatement(
-                    SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(setOperator))
-                        .WithArgumentList(
-                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                new SyntaxNodeOrToken[]
-                                {
-                                    SyntaxFactory.Argument(firstTableExpression),
-                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                    SyntaxFactory.Argument(secondTableExpression),
-                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                    SyntaxFactory.Argument(SyntaxFactory
-                                        .ParenthesizedLambdaExpression(
-                                            GenerateLambdaBody("first", "second", key))
-                                        .WithParameterList(SyntaxFactory.ParameterList(
-                                            SyntaxFactory.SeparatedList<ParameterSyntax>(
-                                                new SyntaxNodeOrToken[]
-                                                {
-                                                    SyntaxFactory.Parameter(
-                                                        SyntaxFactory.Identifier("first")),
-                                                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                    SyntaxFactory.Parameter(
-                                                        SyntaxFactory.Identifier("second"))
-                                                }))))
-                                }))))));
-
-        return MethodDeclarationHelper.CreateStandardPrivateMethod(methodName, body);
-    }
-
-    private CSharpSyntaxNode GenerateLambdaBody(string first, string second, string key)
-    {
-        var indexes = _setOperatorFieldIndexes[key];
-        var equality = SyntaxFactory
-            .InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(first)).WithArgumentList(
-                        SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(indexes[0])))))), SyntaxFactory.IdentifierName("Equals")))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Argument(SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(second))
-                    .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                    SyntaxFactory.Literal(indexes[0]))))))))));
-
-
-        var subExpressions = new Stack<ExpressionSyntax>();
-        subExpressions.Push(equality);
-
-        for (var i = 1; i < indexes.Length; i++)
-        {
-            equality = SyntaxFactory
-                .InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(first)).WithArgumentList(
-                            SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                                    SyntaxKind.NumericLiteralExpression,
-                                    SyntaxFactory.Literal(indexes[i])))))), SyntaxFactory.IdentifierName("Equals")))
-                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(SyntaxFactory
-                        .ElementAccessExpression(SyntaxFactory.IdentifierName(second))
-                        .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                        SyntaxFactory.Literal(indexes[i]))))))))));
-
-            subExpressions.Push(
-                SyntaxFactory.BinaryExpression(
-                    SyntaxKind.LogicalAndExpression,
-                    subExpressions.Pop(),
-                    equality));
-        }
-
-        return subExpressions.Pop();
-    }
-
-    public void Visit(OrderByNode node)
-    {
-        AddNamespace("Musoq.Evaluator");
-    }
-
-    public void Visit(CreateTableNode node)
-    {
-    }
-
-    public void Visit(CoupleNode node)
-    {
-    }
-
-    public void Visit(StatementsArrayNode node)
-    {
-    }
-
-    public void Visit(StatementNode node)
-    {
-    }
-
-    public void Visit(CaseNode node)
-    {
-        var result = CaseNodeProcessor.ProcessCaseNode(
+        ApplyCaseNodeResult(CaseNodeProcessor.ProcessCaseNode(
             node, Nodes, _typesToInstantiate, _oldType, _queryAlias, ref _caseWhenMethodIndex,
-            _cseVariableDeclarations);
-        
+            _cseManager.GetDeclarations()));
+    }
+    
+    private void ApplyCaseNodeResult(CaseNodeProcessor.ProcessCaseNodeResult result)
+    {
         foreach (var ns in result.RequiredNamespaces)
-        {
             AddNamespace(ns);
-        }
-        
         _members.Add(result.Method);
         Nodes.Push(result.MethodInvocation);
     }
 
-    public void Visit(WhenNode node)
-    {
-    }
-
-    public void Visit(ThenNode node)
-    {
-    }
-
-    public void Visit(ElseNode node)
-    {
-    }
-
-    public void Visit(FieldLinkNode node)
+    public override void Visit(FieldLinkNode node)
     {
         throw new NotSupportedException();
-    }
-
-    private ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node,
-        ExpressionSyntax originallyInferredColumns)
-    {
-        return SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
-                        SyntaxFactory.Argument(
-                            originallyInferredColumns),
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.ElementAccessExpression(
-                                    SyntaxFactory.IdentifierName(
-                                        "positionalEnvironmentVariables"))
-                                .WithArgumentList(
-                                    SyntaxFactory.BracketedArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument(
-                                                SyntaxFactory.LiteralExpression(
-                                                    SyntaxKind.NumericLiteralExpression,
-                                                    SyntaxFactory.Literal(
-                                                        _schemaFromIndex++))))))
-                        ),
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.ElementAccessExpression(
-                                    SyntaxFactory.IdentifierName("queriesInformation"))
-                                .WithArgumentList(
-                                    SyntaxFactory.BracketedArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument(
-                                                SyntaxFactory.LiteralExpression(
-                                                    SyntaxKind.StringLiteralExpression,
-                                                    SyntaxFactory.Literal(node.Id))))))),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger"))
-                    ])));
-    }
-
-    private void CreateDescForSpecificConstructor(DescNode node)
-    {
-        CreateDescMethod(node,
-            SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificTableDescription))))
-                .WithArgumentList(
-                    SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable"))))), true);
-    }
-
-    private void CreateDescForSchema(DescNode node)
-    {
-        var originallyInferredColumns = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("Array"),
-                    SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier("Empty"))
-                        .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.IdentifierName("ISchemaColumn"))))))
-            .NormalizeWhitespace();
-
-        var invocation = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetSpecificSchemaDescriptions))))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
-                        SyntaxFactory.Argument(CreateRuntimeContext((SchemaFromNode) node.From, originallyInferredColumns))
-                    ])));
-
-        CreateDescMethod(node, invocation, false);
-    }
-
-    private void CreateDescForConstructors(DescNode node)
-    {
-        var originallyInferredColumns = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("Array"),
-                    SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier("Empty"))
-                        .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.IdentifierName("ISchemaColumn"))))))
-            .NormalizeWhitespace();
-
-        var invocation = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetConstructorsForSpecificMethod))))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
-                        SyntaxHelper.StringLiteralArgument(((SchemaFromNode) node.From).Method),
-                        SyntaxFactory.Argument(CreateRuntimeContext((SchemaFromNode) node.From, originallyInferredColumns))
-                    ])));
-
-        CreateDescMethod(node, invocation, false);
-    }
-
-    private void CreateDescForFunctionsForSchema(DescNode node)
-    {
-        var originallyInferredColumns = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("Array"),
-                    SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier("Empty"))
-                        .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.IdentifierName("ISchemaColumn"))))))
-            .NormalizeWhitespace();
-
-        var invocation = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.GetMethodsForSchema))))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
-                        SyntaxFactory.Argument(CreateRuntimeContext((SchemaFromNode) node.From, originallyInferredColumns))
-                    ])));
-
-        CreateDescMethod(node, invocation, false);
-    }
-
-    private void CreateDescMethod(DescNode node, InvocationExpressionSyntax invocationExpression,
-        bool useProvidedTable)
-    {
-        var schemaNode = (SchemaFromNode) node.From;
-        var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
-            "desc",
-            "provider",
-            nameof(ISchemaProvider.GetSchema),
-            SyntaxFactory.ArgumentList(
-                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                SyntaxFactory.SeparatedList([
-                    SyntaxHelper.StringLiteralArgument(schemaNode.Schema)
-                ]),
-                SyntaxFactory.Token(SyntaxKind.CloseParenToken)
-            )
-        );
-
-        if (useProvidedTable)
-        {
-            var args = schemaNode.Parameters.Args.Select(arg =>
-                (ExpressionSyntax) Generator.LiteralExpression(((ConstantValueNode) arg).ObjValue)).ToArray();
-
-            var originallyInferredColumns = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName("Array"),
-                        SyntaxFactory.GenericName(
-                                SyntaxFactory.Identifier("Empty"))
-                            .WithTypeArgumentList(
-                                SyntaxFactory.TypeArgumentList(
-                                    SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                        SyntaxFactory.IdentifierName("ISchemaColumn"))))))
-                .NormalizeWhitespace();
-
-            var getTable = SyntaxHelper.CreateAssignmentByMethodCall(
-                "schemaTable",
-                "desc",
-                nameof(ISchema.GetTableByName),
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                    SyntaxFactory.SeparatedList([
-                        SyntaxHelper.StringLiteralArgument(schemaNode.Method),
-                        SyntaxFactory.Argument(CreateRuntimeContext(schemaNode, originallyInferredColumns)),
-                        SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args))
-                    ]),
-                    SyntaxFactory.Token(SyntaxKind.CloseParenToken)
-                )
-            );
-
-            var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
-
-            Statements.AddRange([
-                SyntaxFactory.LocalDeclarationStatement(createdSchema),
-                SyntaxFactory.LocalDeclarationStatement(getTable),
-                returnStatement
-            ]);
-        }
-        else
-        {
-            var returnStatement = SyntaxFactory.ReturnStatement(invocationExpression);
-
-            Statements.AddRange([
-                SyntaxFactory.LocalDeclarationStatement(createdSchema),
-                returnStatement
-            ]);
-        }
-
-        const string methodName = "GetTableDesc";
-
-        var method = SyntaxFactory.MethodDeclaration(
-            [],
-            SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-            SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            null,
-            SyntaxFactory.Identifier(methodName),
-            null,
-            SyntaxFactory.ParameterList(
-                SyntaxFactory.SeparatedList([
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(
-                            new SyntaxToken()),
-                        SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("provider"), null),
-
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(
-                            new SyntaxToken()),
-                        SyntaxFactory.GenericName(
-                                SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                            .WithTypeArgumentList(
-                                SyntaxFactory.TypeArgumentList(
-                                    SyntaxFactory.SeparatedList<TypeSyntax>(
-                                        new SyntaxNodeOrToken[]
-                                        {
-                                            SyntaxFactory.PredefinedType(
-                                                SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
-                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                            SyntaxFactory.GenericName(
-                                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                                .WithTypeArgumentList(
-                                                    SyntaxFactory.TypeArgumentList(
-                                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                                            new SyntaxNodeOrToken[]
-                                                            {
-                                                                SyntaxFactory.PredefinedType(
-                                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                                SyntaxFactory.PredefinedType(
-                                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                                                            })))
-                                        })))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("positionalEnvironmentVariables"), null),
-
-                    SyntaxFactory.Parameter(
-                            SyntaxFactory.Identifier("queriesInformation"))
-                        .WithType(
-                            SyntaxFactory.GenericName(
-                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                .WithTypeArgumentList(
-                                    SyntaxFactory.TypeArgumentList(
-                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]
-                                            {
-                                                SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.TupleType(
-                                                    SyntaxFactory.SeparatedList<TupleElementSyntax>(
-                                                        new SyntaxNodeOrToken[]
-                                                        {
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.IdentifierName("SchemaFromNode"))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("FromNode")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.GenericName(
-                                                                            SyntaxFactory.Identifier(
-                                                                                "IReadOnlyCollection"))
-                                                                        .WithTypeArgumentList(
-                                                                            SyntaxFactory.TypeArgumentList(
-                                                                                SyntaxFactory
-                                                                                    .SingletonSeparatedList<
-                                                                                        TypeSyntax>(
-                                                                                        SyntaxFactory
-                                                                                            .IdentifierName(
-                                                                                                "ISchemaColumn")))))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("UsedColumns")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.IdentifierName("WhereNode"))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier("WhereNode")),
-                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                            SyntaxFactory.TupleElement(
-                                                                    SyntaxFactory.IdentifierName("bool"))
-                                                                .WithIdentifier(
-                                                                    SyntaxFactory.Identifier(
-                                                                        "HasExternallyProvidedTypes"))
-                                                        }))
-                                            })))),
-                    
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(
-                            new SyntaxToken()),
-                        SyntaxFactory.IdentifierName(nameof(ILogger))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("logger"), null),
-
-                    SyntaxFactory.Parameter(
-                        [],
-                        SyntaxTokenList.Create(
-                            new SyntaxToken()),
-                        SyntaxFactory.IdentifierName(nameof(CancellationToken))
-                            .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("token"), null),
-                ])),
-            [],
-            SyntaxFactory.Block(Statements),
-            null);
-
-        _members.Add(method);
-        _methodNames.Push(methodName);
     }
 
     private StatementSyntax GetRowsSourceOrEmpty(string alias)
@@ -2543,216 +769,17 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {
-        return SyntaxFactory.Block(statements.Where(f => f is not EmptyStatementSyntax));
-    }
-
-    private MemberDeclarationSyntax GenerateRowClass(string className, SelectNode node, Scope scope)
-    {
-        var fields = new List<MemberDeclarationSyntax>();
-        var constructorParams = new List<ParameterSyntax>();
-        var constructorBody = new List<StatementSyntax>();
-        var valuesInit = new List<ExpressionSyntax>();
-
-        var contexts = scope[MetaAttributes.Contexts].Split(',');
-        var contextParams = new List<ParameterSyntax>();
-        var contextExprs = new List<ExpressionSyntax>();
-
-        for (var i = 0; i < node.Fields.Length; i++)
-        {
-            var fieldName = $"Item{i}";
-            var type = node.Fields[i].Expression.ReturnType;
-            
-            var typeSyntax = SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(type));
-
-            fields.Add(SyntaxFactory.FieldDeclaration(
-                SyntaxFactory.VariableDeclaration(typeSyntax)
-                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(fieldName))))
-                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                .WithTrailingTrivia(SyntaxFactory.Comment($"// {node.Fields[i].FieldName.Replace("\n", "\\n").Replace("\r", "\\r")}")));
-
-            var paramName = $"item{i}";
-            constructorParams.Add(SyntaxFactory.Parameter(SyntaxFactory.Identifier(paramName))
-                .WithType(typeSyntax));
-
-            constructorBody.Add(SyntaxFactory.ExpressionStatement(
-                SyntaxFactory.AssignmentExpression(
-                    SyntaxKind.SimpleAssignmentExpression,
-                    SyntaxFactory.IdentifierName(fieldName),
-                    SyntaxFactory.IdentifierName(paramName))));
-
-            valuesInit.Add(SyntaxFactory.IdentifierName(fieldName));
-        }
-
-        fields.Add(SyntaxFactory.PropertyDeclaration(
-            SyntaxHelper.ObjectArrayTypeSyntax,
-            "Contexts")
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
-            .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))))));
-
-        for (var i = 0; i < contexts.Length; i++)
-        {
-            var paramName = $"context{i}";
-            contextParams.Add(SyntaxFactory.Parameter(SyntaxFactory.Identifier(paramName))
-                .WithType(SyntaxHelper.ObjectArrayTypeSyntax));
-            
-            contextExprs.Add(SyntaxFactory.IdentifierName(paramName));
-        }
-        
-        constructorParams.AddRange(contextParams);
-
-        var contextBody = new List<StatementSyntax>();
-        
-        var flattenContextsInvocation = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.FlattenContexts))),
-            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                contextExprs.Select(SyntaxFactory.Argument)
-            )));
-
-        contextBody.Add(SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                SyntaxFactory.IdentifierName("Contexts"),
-                flattenContextsInvocation)));
-
-        constructorBody.AddRange(contextBody);
-        
-        var constructor = SyntaxFactory.ConstructorDeclaration(className)
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(constructorParams)))
-            .WithBody(SyntaxFactory.Block(constructorBody));
-
-        var indexerBody = SyntaxFactory.Block();
-
-        for (var i = 0; i < node.Fields.Length; i++)
-        {
-            indexerBody = indexerBody.AddStatements(
-                SyntaxFactory.IfStatement(
-                    SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, SyntaxFactory.IdentifierName("index"), SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))),
-                    SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName($"Item{i}"))
-                )
-            );
-        }
-
-        indexerBody = indexerBody.AddStatements(
-            SyntaxFactory.ThrowStatement(SyntaxFactory.ObjectCreationExpression(SyntaxHelper.IndexOutOfRangeExceptionTypeSyntax).WithArgumentList(SyntaxFactory.ArgumentList()))
-        );
-
-        var indexer = SyntaxFactory.IndexerDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
-            .WithParameterList(SyntaxFactory.BracketedParameterList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier("index")).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
-            .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(
-                SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                    .WithBody(indexerBody)
-            )));
-
-        var countProp = SyntaxFactory.PropertyDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)), "Count")
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
-            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(node.Fields.Length))))
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        var valuesProp = SyntaxFactory.PropertyDeclaration(
-            SyntaxHelper.ObjectArrayTypeSyntax,
-            "Values")
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
-            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(
-                SyntaxFactory.ArrayCreationExpression(
-                    SyntaxHelper.ObjectArrayTypeSyntax,
-                    SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(valuesInit))
-                )
-            ))
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        return SyntaxFactory.ClassDeclaration(className)
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-            .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
-                SyntaxFactory.SimpleBaseType(SyntaxHelper.RowTypeSyntax))))
-            .WithMembers(SyntaxFactory.List(fields.Concat([constructor, indexer, countProp, valuesProp])));
+        return StatementEmitter.CreateBlock(statements.Where(f => f is not EmptyStatementSyntax));
     }
 
     private SyntaxNode ApplyCseIfNeeded(string expressionId, SyntaxNode expression, Type expressionType)
     {
-        if (_isInsideCaseWhen && _cseExpressionToVariable.TryGetValue(expressionId, out var cseParamName))
-        {
-            return SyntaxFactory.IdentifierName(cseParamName);
-        }
-        
-        if (!_cseSlotMap.TryGetValue(expressionId, out var slotIndex))
-        {
-            return expression;
-        }
-
-        if (!_cseExpressionToVariable.TryGetValue(expressionId, out var variableName))
-        {
-            variableName = $"_cse{_cseVariableCounter++}";
-            _cseExpressionToVariable[expressionId] = variableName;
-            _cseVariableDeclarations.Add((variableName, expressionType, expressionId));
-        }
-
-        var variableIdentifier = SyntaxFactory.IdentifierName(variableName);
-
-        if (!_cseComputedInCurrentRow.Add(expressionId))
-        {
-            return variableIdentifier;
-        }
-
-        return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                variableIdentifier,
-                (ExpressionSyntax)expression));
+        var result = _cseManager.ApplyIfNeeded(expressionId, (ExpressionSyntax)expression, expressionType, _isInsideCaseWhen);
+        return result;
     }
     
     private IEnumerable<StatementSyntax> GenerateCseVariableDeclarations()
     {
-        foreach (var (variableName, variableType, _) in _cseVariableDeclarations)
-        {
-            var typeSyntax = SyntaxFactory.ParseTypeName(GetTypeName(variableType));
-            
-            var declaration = SyntaxFactory.LocalDeclarationStatement(
-                SyntaxFactory.VariableDeclaration(typeSyntax)
-                    .WithVariables(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(variableName)
-                                .WithInitializer(
-                                    SyntaxFactory.EqualsValueClause(
-                                        SyntaxFactory.DefaultExpression(typeSyntax))))));
-            
-            yield return declaration;
-        }
-    }
-
-    private static string GetTypeName(Type type)
-    {
-        if (type == typeof(int)) return "int";
-        if (type == typeof(long)) return "long";
-        if (type == typeof(double)) return "double";
-        if (type == typeof(float)) return "float";
-        if (type == typeof(decimal)) return "decimal";
-        if (type == typeof(string)) return "string";
-        if (type == typeof(bool)) return "bool";
-        if (type == typeof(byte)) return "byte";
-        if (type == typeof(short)) return "short";
-        if (type == typeof(char)) return "char";
-        if (type == typeof(object)) return "object";
-        
-        var underlyingType = Nullable.GetUnderlyingType(type);
-        if (underlyingType != null)
-        {
-            return GetTypeName(underlyingType) + "?";
-        }
-
-        if (!type.IsGenericType) 
-            return type.FullName ?? type.Name;
-        
-        var genericTypeName = type.GetGenericTypeDefinition().FullName!;
-        genericTypeName = genericTypeName[..genericTypeName.IndexOf('`')];
-        var genericArgs = string.Join(", ", type.GetGenericArguments().Select(GetTypeName));
-        return $"{genericTypeName}<{genericArgs}>";
-
+        return _cseManager.GenerateDeclarations();
     }
 }
