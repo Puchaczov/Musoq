@@ -42,6 +42,18 @@ public class RunnableDebugDecorator(
         set => runnable.Logger = value;
     }
 
+    public event QueryPhaseEventHandler PhaseChanged
+    {
+        add => runnable.PhaseChanged += value;
+        remove => runnable.PhaseChanged -= value;
+    }
+
+    public event DataSourceEventHandler DataSourceProgress
+    {
+        add => runnable.DataSourceProgress += value;
+        remove => runnable.DataSourceProgress -= value;
+    }
+
     public Table Run(CancellationToken token)
     {
         var table = runnable.Run(token);

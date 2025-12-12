@@ -293,5 +293,147 @@ namespace Musoq.Evaluator.Visitors.Helpers
         }
 
         #endregion
+        
+        #region Phase Tracking Members
+
+        /// <summary>
+        /// Creates the PhaseChanged event declaration for the IRunnable interface implementation.
+        /// </summary>
+        /// <returns>Event field declaration for PhaseChanged</returns>
+        public static EventFieldDeclarationSyntax CreatePhaseChangedEvent()
+        {
+            return SyntaxFactory.EventFieldDeclaration(
+                SyntaxFactory.VariableDeclaration(
+                    SyntaxFactory.IdentifierName(nameof(QueryPhaseEventHandler)))
+                .WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(
+                            SyntaxFactory.Identifier("PhaseChanged")))))
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
+        }
+
+        /// <summary>
+        /// Creates the OnPhaseChanged helper method that safely invokes the PhaseChanged event.
+        /// </summary>
+        /// <returns>Method declaration for OnPhaseChanged</returns>
+        public static MethodDeclarationSyntax CreateOnPhaseChangedMethod()
+        {
+            // Creates:
+            // private void OnPhaseChanged(string queryId, QueryPhase phase)
+            // {
+            //     PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
+            // }
+            var body = SyntaxFactory.Block(
+                SyntaxFactory.ExpressionStatement(
+                    SyntaxFactory.ConditionalAccessExpression(
+                        SyntaxFactory.IdentifierName("PhaseChanged"),
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberBindingExpression(
+                                SyntaxFactory.IdentifierName("Invoke")))
+                        .WithArgumentList(
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(
+                                [
+                                    SyntaxFactory.Argument(SyntaxFactory.ThisExpression()),
+                                    SyntaxFactory.Argument(
+                                        SyntaxFactory.ObjectCreationExpression(
+                                            SyntaxFactory.IdentifierName(nameof(QueryPhaseEventArgs)))
+                                        .WithArgumentList(
+                                            SyntaxFactory.ArgumentList(
+                                                SyntaxFactory.SeparatedList(
+                                                [
+                                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queryId")),
+                                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("phase"))
+                                                ]))))
+                                ]))))));
+
+            return SyntaxFactory.MethodDeclaration(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
+                SyntaxFactory.Identifier("OnPhaseChanged"))
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+            .WithParameterList(
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList(
+                    [
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("queryId"))
+                            .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))),
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("phase"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(QueryPhase)))
+                    ])))
+            .WithBody(body);
+        }
+
+        #endregion
+
+        #region DataSource Progress Members
+
+        /// <summary>
+        /// Creates the DataSourceProgress event declaration for the IRunnable interface implementation.
+        /// </summary>
+        /// <returns>Event field declaration for DataSourceProgress</returns>
+        public static EventFieldDeclarationSyntax CreateDataSourceProgressEvent()
+        {
+            return SyntaxFactory.EventFieldDeclaration(
+                SyntaxFactory.VariableDeclaration(
+                    SyntaxFactory.IdentifierName(nameof(DataSourceEventHandler)))
+                .WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(
+                            SyntaxFactory.Identifier("DataSourceProgress")))))
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
+        }
+
+        /// <summary>
+        /// Creates the OnDataSourceProgress helper method that safely invokes the DataSourceProgress event.
+        /// This method is passed to RuntimeContext as a callback.
+        /// </summary>
+        /// <returns>Method declaration for OnDataSourceProgress</returns>
+        public static MethodDeclarationSyntax CreateOnDataSourceProgressMethod()
+        {
+            // Creates:
+            // private void OnDataSourceProgress(object sender, DataSourceEventArgs e)
+            // {
+            //     DataSourceProgress?.Invoke(this, e);
+            // }
+            var body = SyntaxFactory.Block(
+                SyntaxFactory.ExpressionStatement(
+                    SyntaxFactory.ConditionalAccessExpression(
+                        SyntaxFactory.IdentifierName("DataSourceProgress"),
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberBindingExpression(
+                                SyntaxFactory.IdentifierName("Invoke")))
+                        .WithArgumentList(
+                            SyntaxFactory.ArgumentList(
+                                SyntaxFactory.SeparatedList(
+                                [
+                                    SyntaxFactory.Argument(SyntaxFactory.ThisExpression()),
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("e"))
+                                ]))))));
+
+            return SyntaxFactory.MethodDeclaration(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
+                SyntaxFactory.Identifier("OnDataSourceProgress"))
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+            .WithParameterList(
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList(
+                    [
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("sender"))
+                            .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))),
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("e"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(DataSourceEventArgs)))
+                    ])))
+            .WithBody(body);
+        }
+
+        #endregion
     }
 }

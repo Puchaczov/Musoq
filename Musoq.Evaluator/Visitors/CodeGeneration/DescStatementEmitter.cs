@@ -363,6 +363,10 @@ public class DescStatementEmitter(SyntaxGenerator generator)
             .WithArgumentList(
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SeparatedList([
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal(node.Id))),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
                         SyntaxFactory.Argument(originallyInferredColumns),
                         SyntaxFactory.Argument(
@@ -385,7 +389,8 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                                                 SyntaxFactory.LiteralExpression(
                                                     SyntaxKind.StringLiteralExpression,
                                                     SyntaxFactory.Literal(node.Id))))))),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger"))
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger")),
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("OnDataSourceProgress"))
                     ])));
     }
 }

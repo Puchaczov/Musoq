@@ -1112,6 +1112,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var table = !isDesc ? schema.GetTableByName(
             node.Method,
             new RuntimeContext(
+                node.QueryId.ToString(),
                 CancellationToken.None,
                 _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
                     .ToArray(),
@@ -1267,6 +1268,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         table = schema.GetTableByName(
             schemaInfo.Method,
             new RuntimeContext(
+                node.InSourcePosition.ToString(),
                 CancellationToken.None,
                 table.Columns,
                 RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode),
@@ -2162,6 +2164,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private ISchemaTable GetTableFromSchema(ISchema schema, SchemaFromNode schemaFrom)
     {
         var runtimeContext = new RuntimeContext(
+            schemaFrom.QueryId.ToString(),
             CancellationToken.None,
             _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
             RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, schemaFrom),
