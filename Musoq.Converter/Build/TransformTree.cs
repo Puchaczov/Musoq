@@ -16,6 +16,11 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         var queryTree = items.RawQueryTree;
 
+        var distinctRewriter = new DistinctToGroupByVisitor();
+        var distinctTraverser = new DistinctToGroupByTraverseVisitor(distinctRewriter);
+        queryTree.Accept(distinctTraverser);
+        queryTree = distinctTraverser.Root;
+
         var extractColumnsVisitor = new ExtractRawColumnsVisitor();
         var extractRawColumnsTraverseVisitor = new ExtractRawColumnsTraverseVisitor(extractColumnsVisitor);
 

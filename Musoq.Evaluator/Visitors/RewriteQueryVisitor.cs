@@ -156,7 +156,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         var fields = FieldProcessingHelper.CreateFields(node.Fields, Nodes);
 
-        Nodes.Push(new SelectNode(fields.ToArray()));
+        Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct));
     }
 
     public void Visit(GroupSelectNode node)

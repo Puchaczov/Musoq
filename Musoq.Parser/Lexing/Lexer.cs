@@ -194,6 +194,8 @@ public class Lexer : LexerBase<Token>
                 return TokenType.Else;
             case EndToken.TokenText:
                 return TokenType.End;
+            case DistinctToken.TokenText:
+                return TokenType.Distinct;
             case WordToken.EmptyTokenText:
                 return TokenType.Word;
         }
@@ -365,6 +367,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KElse = Format(Keyword, ElseToken.TokenText);
         public static readonly string KEnd = Format(Keyword, EndToken.TokenText);
         public static readonly string KAliasedStar = @"\b[a-zA-Z_]\w*\.\*";
+        public static readonly string KDistinct = Format(Keyword, DistinctToken.TokenText);
 
         private static string Format(string keyword, string arg)
         {
@@ -423,6 +426,7 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KEmptyString),
             new(TokenRegexDefinition.KWordSingleQuoted, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KSelect, RegexOptions.IgnoreCase),
+            new(TokenRegexDefinition.KDistinct, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KFrom, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KUnion, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KExcept, RegexOptions.IgnoreCase),
@@ -676,6 +680,8 @@ public class Lexer : LexerBase<Token>
                 return new ElseToken(new TextSpan(Position, tokenText.Length));
             case TokenType.End:
                 return new EndToken(new TextSpan(Position, tokenText.Length));
+            case TokenType.Distinct:
+                return new DistinctToken(new TextSpan(Position, tokenText.Length));
             case TokenType.FieldLink:
                 return new FieldLinkToken(tokenText, new TextSpan(Position, tokenText.Length));
             case TokenType.Comment:

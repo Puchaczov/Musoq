@@ -179,7 +179,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         for (var i = node.Fields.Length - 1; i >= 0; --i)
             fields[i] = (FieldNode) Nodes.Pop();
 
-        Nodes.Push(new SelectNode(fields.ToArray()));
+        Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct));
     }
 
     public virtual void Visit(GroupSelectNode node)
@@ -285,7 +285,9 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 
     public virtual void Visit(AccessObjectKeyNode node)
     {
-        Nodes.Push(new AccessObjectKeyNode(node.Token, node.PropertyInfo));
+        var clonedNode = new AccessObjectKeyNode(node.Token, node.PropertyInfo);
+        clonedNode.DestinationKind = node.DestinationKind;
+        Nodes.Push(clonedNode);
     }
 
     public virtual void Visit(PropertyValueNode node)
