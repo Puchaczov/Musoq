@@ -39,9 +39,21 @@ public static class InternalQueryNodeProcessor
         SyntaxNode groupHaving,
         Func<string, StatementSyntax> getRowsSourceFunc,
         string sourceName,
-        Func<int, Func<int, string>, InitializerExpressionSyntax[]> createIndexToColumnMap)
+        Func<int, Func<int, string>, InitializerExpressionSyntax[]> createIndexToColumnMap,
+        string? queryId = null)
     {
         var statements = new List<StatementSyntax>();
+        
+        if (!string.IsNullOrEmpty(queryId))
+        {
+            statements.Add(QueryEmitter.GeneratePhaseChangeStatement(queryId, QueryPhase.Begin));
+        }
+        
+        if (!string.IsNullOrEmpty(queryId))
+        {
+            statements.Add(QueryEmitter.GeneratePhaseChangeStatement(queryId, QueryPhase.GroupBy));
+        }
+        
         statements.AddRange(QueryEmitter.GenerateGroupInitStatements());
 
         var refreshBlock = node.Refresh.Nodes.Length > 0
@@ -68,6 +80,11 @@ public static class InternalQueryNodeProcessor
         var foreachBlock = GroupByEmitter.CreateGroupByForeach(block, node.From.Alias.ToRowItem(), sourceName);
         var fullBlock = StatementEmitter.CreateBlock(getRowsSourceFunc(node.From.Alias), foreachBlock);
         statements.AddRange(fullBlock.Statements);
+        
+        if (!string.IsNullOrEmpty(queryId))
+        {
+            statements.Add(QueryEmitter.GeneratePhaseChangeStatement(queryId, QueryPhase.End));
+        }
 
         return new GroupByQueryResult { Statements = statements };
     }

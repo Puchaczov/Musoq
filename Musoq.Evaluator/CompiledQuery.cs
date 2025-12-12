@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator;
 
@@ -10,6 +11,18 @@ namespace Musoq.Evaluator;
 public class CompiledQuery(IRunnable runnable)
 {
     private readonly IRunnable _runnable = runnable ?? throw QueryExecutionException.ForNullRunnable();
+
+    public event QueryPhaseEventHandler PhaseChanged
+    {
+        add => _runnable.PhaseChanged += value;
+        remove => _runnable.PhaseChanged -= value;
+    }
+
+    public event DataSourceEventHandler DataSourceProgress
+    {
+        add => _runnable.DataSourceProgress += value;
+        remove => _runnable.DataSourceProgress -= value;
+    }
 
     public Table Run()
     {

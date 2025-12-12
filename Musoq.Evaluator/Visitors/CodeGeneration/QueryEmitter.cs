@@ -20,6 +20,33 @@ namespace Musoq.Evaluator.Visitors.CodeGeneration;
 public class QueryEmitter(SyntaxGenerator generator)
 {
     /// <summary>
+    /// Generates a phase change invocation statement: OnPhaseChanged(queryId, QueryPhase.{phase}).
+    /// </summary>
+    /// <param name="queryId">The unique query identifier.</param>
+    /// <param name="phase">The query phase.</param>
+    /// <returns>An expression statement that invokes OnPhaseChanged.</returns>
+    public static StatementSyntax GeneratePhaseChangeStatement(string queryId, QueryPhase phase)
+    {
+        return SyntaxFactory.ExpressionStatement(
+            SyntaxFactory.InvocationExpression(
+                SyntaxFactory.IdentifierName("OnPhaseChanged"))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal(queryId))),
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName(nameof(QueryPhase)),
+                                SyntaxFactory.IdentifierName(phase.ToString())))
+                    }))));
+    }
+    
+    /// <summary>
     /// Generates a cancellation token check expression.
     /// </summary>
     /// <returns>An expression statement that throws if cancellation is requested</returns>
@@ -189,6 +216,7 @@ public class QueryEmitter(SyntaxGenerator generator)
     /// <param name="skip">Optional SKIP clause statement.</param>
     /// <param name="take">Optional TAKE clause block.</param>
     /// <param name="select">The SELECT block.</param>
+    /// <param name="queryId">The unique query identifier for phase tracking.</param>
     /// <returns>The assembled query execution block.</returns>
     public static BlockSyntax BuildQueryExecutionBlock(
         BlockSyntax block,
@@ -196,7 +224,8 @@ public class QueryEmitter(SyntaxGenerator generator)
         StatementSyntax? where,
         StatementSyntax? skip,
         BlockSyntax? take,
-        BlockSyntax select)
+        BlockSyntax select,
+        string? queryId = null)
     {
         if (cseDeclarations.Length > 0)
         {
@@ -206,7 +235,13 @@ public class QueryEmitter(SyntaxGenerator generator)
         block = block.AddStatements(GenerateCancellationCheck());
 
         if (where != null)
+        {
+            if (!string.IsNullOrEmpty(queryId))
+            {
+                block = block.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.Where));
+            }
             block = block.AddStatements(where);
+        }
 
         block = block.AddStatements(GenerateStatsUpdateStatement());
 
@@ -215,6 +250,11 @@ public class QueryEmitter(SyntaxGenerator generator)
 
         if (take != null)
             block = block.AddStatements(take.Statements.ToArray());
+
+        if (!string.IsNullOrEmpty(queryId))
+        {
+            block = block.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.Select));
+        }
         
         block = block.AddStatements(select.Statements.ToArray());
         
@@ -231,6 +271,7 @@ public class QueryEmitter(SyntaxGenerator generator)
     /// <param name="returnVariableName">The variable name to return.</param>
     /// <param name="useParallel">Whether to use parallel iteration.</param>
     /// <param name="generator">The syntax generator.</param>
+    /// <param name="queryId">The unique query identifier for phase tracking.</param>
     /// <returns>The full query block statements.</returns>
     public static IEnumerable<StatementSyntax> CreateFullQueryBlock(
         StatementSyntax rowsSource,
@@ -239,15 +280,34 @@ public class QueryEmitter(SyntaxGenerator generator)
         (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields,
         string returnVariableName,
         bool useParallel,
-        SyntaxGenerator generator)
+        SyntaxGenerator generator,
+        string? queryId = null)
     {
         var fullBlock = StatementEmitter.CreateEmptyBlock();
+
+        // Add Begin phase tracking if queryId is provided
+        if (!string.IsNullOrEmpty(queryId))
+        {
+            fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.Begin));
+        }
+
+        // Add From phase tracking if queryId is provided (before row source initialization)
+        if (!string.IsNullOrEmpty(queryId))
+        {
+            fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.From));
+        }
 
         var iterationStatement = useParallel
             ? SyntaxHelper.ParallelForeach("score", sourceName, executionBlock)
             : SyntaxHelper.Foreach("score", sourceName, executionBlock, orderByFields);
 
         fullBlock = fullBlock.AddStatements(rowsSource, iterationStatement);
+
+        // Add End phase tracking if queryId is provided
+        if (!string.IsNullOrEmpty(queryId))
+        {
+            fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.End));
+        }
 
         fullBlock = fullBlock.AddStatements(
             (StatementSyntax)generator.ReturnStatement(

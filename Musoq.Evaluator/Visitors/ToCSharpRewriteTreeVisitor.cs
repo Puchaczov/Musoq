@@ -529,7 +529,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             GetRowsSourceOrEmpty,
             _scope[MetaAttributes.SourceName],
             !_isResultParallelizationImpossible,
-            Generator);
+            Generator,
+            _queryAlias);
 
         Statements.AddRange(result.Statements);
 
@@ -557,7 +558,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 _groupHaving,
                 GetRowsSourceOrEmpty,
                 _scope[MetaAttributes.SourceName],
-                _queryEmitter.CreateIndexToColumnMap);
+                _queryEmitter.CreateIndexToColumnMap,
+                _queryAlias);
 
             Statements.AddRange(result.Statements);
         }

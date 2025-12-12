@@ -89,6 +89,10 @@ internal static class SchemaNodeEmitter
             .WithArgumentList(
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SeparatedList([
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal(nodeId))),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
                         SyntaxFactory.Argument(originallyInferredColumns),
                         SyntaxFactory.Argument(
@@ -111,7 +115,8 @@ internal static class SchemaNodeEmitter
                                                 SyntaxFactory.LiteralExpression(
                                                     SyntaxKind.StringLiteralExpression,
                                                     SyntaxFactory.Literal(nodeId))))))),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger"))
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger")),
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("OnDataSourceProgress"))
                     ])));
     }
 

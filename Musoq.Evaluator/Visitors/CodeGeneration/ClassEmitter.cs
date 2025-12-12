@@ -133,11 +133,19 @@ public static class ClassEmitter
         var positionalEnvironmentVariablesParam = MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
         var queriesInformationParam = MethodDeclarationHelper.CreateQueriesInformationProperty();
         var loggerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ILogger), nameof(IRunnable.Logger));
+        var phaseChangedEvent = MethodDeclarationHelper.CreatePhaseChangedEvent();
+        var onPhaseChangedMethod = MethodDeclarationHelper.CreateOnPhaseChangedMethod();
+        var dataSourceProgressEvent = MethodDeclarationHelper.CreateDataSourceProgressEvent();
+        var onDataSourceProgressMethod = MethodDeclarationHelper.CreateOnDataSourceProgressMethod();
 
         members.Add(method);
         members.Add(providerParam);
         members.Add(positionalEnvironmentVariablesParam);
         members.Add(queriesInformationParam);
         members.Add(loggerParam);
+        members.Add(phaseChangedEvent);
+        members.Add(onPhaseChangedMethod);
+        members.Add(dataSourceProgressEvent);
+        members.Add(onDataSourceProgressMethod);
     }
 }

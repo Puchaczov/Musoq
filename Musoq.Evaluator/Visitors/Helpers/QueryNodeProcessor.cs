@@ -35,6 +35,7 @@ public static class QueryNodeProcessor
     /// <param name="sourceName">The source name from scope.</param>
     /// <param name="isResultParallelizationPossible">Whether parallelization is possible.</param>
     /// <param name="generator">The syntax generator.</param>
+    /// <param name="queryId">The unique query identifier for phase tracking.</param>
     /// <returns>The result containing statements to add.</returns>
     public static QueryNodeResult ProcessQueryNode(
         QueryNode node,
@@ -44,7 +45,8 @@ public static class QueryNodeProcessor
         System.Func<string, StatementSyntax> getRowsSourceFunc,
         string sourceName,
         bool isResultParallelizationPossible,
-        SyntaxGenerator generator)
+        SyntaxGenerator generator,
+        string queryId = null)
     {
         var detailedQuery = (DetailedQueryNode)node;
 
@@ -71,7 +73,8 @@ public static class QueryNodeProcessor
             where,
             skip,
             take,
-            selectBlock);
+            selectBlock,
+            queryId);
 
         var fullBlockStatements = QueryEmitter.CreateFullQueryBlock(
             getRowsSourceFunc(node.From.Alias),
@@ -80,7 +83,8 @@ public static class QueryNodeProcessor
             orderByFields,
             detailedQuery.ReturnVariableName,
             isResultParallelizationPossible,
-            generator);
+            generator,
+            queryId);
 
         return new QueryNodeResult
         {
