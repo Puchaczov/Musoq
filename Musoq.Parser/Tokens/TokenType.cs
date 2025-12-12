@@ -83,5 +83,6 @@ public enum TokenType : short
     Else,
     End,
     FieldLink,
-    Comment
+    Comment,
+    Distinct
 }

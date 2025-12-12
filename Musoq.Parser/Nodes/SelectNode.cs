@@ -5,14 +5,18 @@ namespace Musoq.Parser.Nodes;
 
 public class SelectNode : Node
 {
-    public SelectNode(FieldNode[] fields)
+    public SelectNode(FieldNode[] fields, bool isDistinct = false)
     {
         Fields = fields;
+        IsDistinct = isDistinct;
         var fieldsId = fields.Length == 0 ? string.Empty : fields.Select(f => f.Id).Aggregate((a, b) => a + b);
-        Id = $"{nameof(SelectNode)}{fieldsId}";
+        var distinctPrefix = isDistinct ? "Distinct" : "";
+        Id = $"{distinctPrefix}{nameof(SelectNode)}{fieldsId}";
     }
 
     public FieldNode[] Fields { get; }
+    
+    public bool IsDistinct { get; }
 
     public override Type ReturnType { get; }
 
@@ -25,10 +29,11 @@ public class SelectNode : Node
 
     public override string ToString()
     {
+        var distinctKeyword = IsDistinct ? "distinct " : "";
         var fieldsTxt = Fields.Length == 0
             ? string.Empty
             : Fields.Select(FieldToString).Aggregate((a, b) => $"{a}, {b}");
-        return $"select {fieldsTxt} ";
+        return $"select {distinctKeyword}{fieldsTxt} ";
     }
 
     private static string FieldToString(FieldNode node)

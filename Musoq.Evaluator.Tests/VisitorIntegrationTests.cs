@@ -27,8 +27,8 @@ public class VisitorIntegrationTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
         // Don't assume order - check both values are present
         var values = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
-        Assert.IsTrue(values.Contains("Test1"), "Expected Test1 to be in results");
-        Assert.IsTrue(values.Contains("Test2"), "Expected Test2 to be in results");
+        Assert.Contains("Test1", values, "Expected Test1 to be in results");
+        Assert.Contains("Test2", values, "Expected Test2 to be in results");
     }
 
     [TestMethod]
@@ -253,8 +253,8 @@ public class NewVisitorIntegrationTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count);
         var values = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
-        Assert.IsTrue(values.Contains("Test1"), "Expected Test1 to be in results");
-        Assert.IsTrue(values.Contains("Test2"), "Expected Test2 to be in results");
+        Assert.Contains("Test1", values, "Expected Test1 to be in results");
+        Assert.Contains("Test2", values, "Expected Test2 to be in results");
     }
 
     [TestMethod]

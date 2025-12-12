@@ -631,7 +631,6 @@ public class ParallelismOutputRowsTests
     }
 
     [TestMethod]
-    [Ignore("DISTINCT keyword conflicts with column name resolution - known issue")]
     public void Distinct_WithParallelization_ShouldReturnCorrectRows()
     {
         const int distinctValues = 100;
@@ -655,7 +654,6 @@ public class ParallelismOutputRowsTests
     }
 
     [TestMethod]
-    [Ignore("DISTINCT keyword conflicts with column name resolution - known issue")]
     public void Distinct_BothModes_ShouldReturnSameResults()
     {
         const int distinctValues = 100;

@@ -858,4 +858,147 @@ public class ParserTests
 
         Assert.IsNotNull(parser.ComposeAll());
     }
+    
+    [TestMethod]
+    public void SelectDistinct_LexerShouldProduceDistinctToken()
+    {
+        var query = "select distinct Name from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        
+        // Token 1: select
+        var token1 = lexer.Next();
+        Assert.AreEqual(Tokens.TokenType.Select, token1.TokenType, $"Token 1 should be Select, got {token1.TokenType} with value '{token1.Value}'");
+        
+        // Token 2: distinct
+        var token2 = lexer.Next();
+        Assert.AreEqual(Tokens.TokenType.Distinct, token2.TokenType, $"Token 2 should be Distinct, got {token2.TokenType} with value '{token2.Value}'");
+    }
+    
+    [TestMethod]
+    public void SelectDistinct_BasicQuery_ShouldParse()
+    {
+        var query = "select distinct Name from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+        
+        // Verify that IsDistinct is set correctly
+        var statementsArray = result.Expression as Nodes.StatementsArrayNode;
+        Assert.IsNotNull(statementsArray);
+        var singleSet = statementsArray.Statements[0].Node as Nodes.SingleSetNode;
+        Assert.IsNotNull(singleSet);
+        Assert.IsTrue(singleSet.Query.Select.IsDistinct, "IsDistinct should be true");
+    }
+
+    [TestMethod]
+    public void SelectDistinct_MultipleColumns_ShouldParse()
+    {
+        var query = "select distinct Name, Age, City from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void SelectDistinct_WithWhere_ShouldParse()
+    {
+        var query = "select distinct Name from #some.a() where Age > 18";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void SelectDistinct_WithOrderBy_ShouldParse()
+    {
+        var query = "select distinct Name from #some.a() order by Name";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SelectDistinct_WithGroupBy_ShouldParse()
+    {
+        var query = "select distinct Name, Count(*) from #some.a() group by Name";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SelectDistinct_UpperCase_ShouldParse()
+    {
+        var query = "SELECT DISTINCT Name FROM #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SelectDistinct_MixedCase_ShouldParse()
+    {
+        var query = "Select Distinct Name From #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SelectDistinct_WithExpression_ShouldParse()
+    {
+        var query = "select distinct Name, Age + 1 from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SelectDistinct_ReorderedQuery_ShouldParse()
+    {
+        var query = "from #some.a() select distinct Name";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SelectDistinct_WithSkipTake_ShouldParse()
+    {
+        var query = "select distinct Name from #some.a() skip 5 take 10";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
 }

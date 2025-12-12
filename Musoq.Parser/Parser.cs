@@ -473,6 +473,14 @@ public class Parser
     {
         Consume(TokenType.Select);
         ConsumeWhiteSpaces();
+        
+        var isDistinct = false;
+        if (Current.TokenType == TokenType.Distinct)
+        {
+            Consume(TokenType.Distinct);
+            ConsumeWhiteSpaces();
+            isDistinct = true;
+        }
             
         if (Current.TokenType == TokenType.Comma)
         {
@@ -486,7 +494,7 @@ public class Parser
             throw new SyntaxException("Unnecessary comma found at the end of SELECT clause.", _lexer.AlreadyResolvedQueryPart);
         }
 
-        return new SelectNode(fields);
+        return new SelectNode(fields, isDistinct);
     }
 
     private FieldNode[] ComposeFields()
