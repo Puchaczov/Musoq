@@ -120,7 +120,7 @@ public class NullOperatorCharacterizationTests : BasicEntityTestBase
     /// <summary>
     /// Tests arithmetic subtraction with null: null - value
     /// CURRENT BEHAVIOR: Throws InvalidOperationException
-    /// NOTE: Unlike addition which propagates null, subtraction throws an exception
+    /// NOTE: All arithmetic operators with null throw exceptions
     /// </summary>
     [TestMethod]
     public void Arithmetic_Subtraction_NullMinusValue_ThrowsException()
@@ -133,7 +133,7 @@ public class NullOperatorCharacterizationTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        // SURPRISING: Subtraction with null throws exception (unlike addition)
+        // All arithmetic operations with null throw exception
         Assert.Throws<InvalidOperationException>(
             () => vm.Run(TestContext.CancellationToken));
     }
@@ -1003,8 +1003,8 @@ public class NullOperatorCharacterizationTests : BasicEntityTestBase
 
     /// <summary>
     /// Tests complex expression with multiple nulls and arithmetic
-    /// CURRENT BEHAVIOR: Complex arithmetic with null throws InvalidOperationException
-    /// NOTE: This is surprising - simple null arithmetic propagates null but complex fails
+    /// CURRENT BEHAVIOR: Throws InvalidOperationException
+    /// NOTE: All arithmetic operations with null throw exceptions (simple and complex)
     /// </summary>
     [TestMethod]
     public void Mixed_ComplexExpressionWithMultipleNulls_ThrowsException()
@@ -1017,7 +1017,7 @@ public class NullOperatorCharacterizationTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         
-        // SURPRISING: Complex arithmetic with null throws exception
+        // All arithmetic operations with null throw exception
         var exception = Assert.Throws<InvalidOperationException>(
             () => vm.Run(TestContext.CancellationToken));
         
