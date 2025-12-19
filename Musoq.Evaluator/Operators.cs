@@ -38,6 +38,9 @@ public partial class Operators
 
     public bool Contains<T>(T value, T[] values)
     {
+        if (values is null)
+            return false;
+            
         return values.Contains(value);
     }
 
