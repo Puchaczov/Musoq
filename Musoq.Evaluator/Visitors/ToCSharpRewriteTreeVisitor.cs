@@ -59,6 +59,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private MethodAccessType _type;
     private bool _isInsideJoinOrApply;
     private bool _isResultParallelizationImpossible;
+    private bool _isInsideNotNode;
     private readonly CompilationOptions _compilationOptions;
     
     private readonly SetOperationEmitter _setOperationEmitter;
@@ -211,17 +212,68 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(NotNode node)
     {
-        SyntaxBinaryOperationHelper.ProcessLogicalNotOperation(Nodes, Generator);
+        // Set flag to indicate we're inside a NOT node
+        var wasInsideNotNode = _isInsideNotNode;
+        _isInsideNotNode = node.Expression is LikeNode or RLikeNode;
+        
+        // Visit the child expression
+        node.Expression.Accept(this);
+        
+        // Restore previous state
+        _isInsideNotNode = wasInsideNotNode;
+        
+        // Check if the NOT is applied to a LIKE or RLIKE operation
+        // If so, we need to handle null-coalescing after NOT is applied
+        if (node.Expression is LikeNode or RLikeNode)
+        {
+            // The pattern match result (bool?) is on the stack
+            // Apply NOT first, then coalesce: (NOT result) ?? false
+            var patternResult = (ExpressionSyntax)Nodes.Pop();
+            var notExpr = (ExpressionSyntax)Generator.LogicalNotExpression(patternResult);
+            var nullCoalescingExpr = SyntaxFactory.BinaryExpression(
+                SyntaxKind.CoalesceExpression,
+                notExpr,
+                SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+            Nodes.Push(nullCoalescingExpr);
+        }
+        else
+        {
+            SyntaxBinaryOperationHelper.ProcessLogicalNotOperation(Nodes, Generator);
+        }
     }
 
     public override void Visit(LikeNode node)
     {
         PatternMatchEmitter.ProcessPatternMatch(node.Left, node.Right, nameof(Operators.Like), LikeMethod, Nodes, Visit);
+        
+        // Add null-coalescing for LIKE: result ?? false
+        // Skip if LIKE is inside a NOT node (will be handled in Visit(NotNode))
+        if (!_isInsideNotNode)
+        {
+            var methodCallExpr = (ExpressionSyntax)Nodes.Pop();
+            var nullCoalescingExpr = SyntaxFactory.BinaryExpression(
+                SyntaxKind.CoalesceExpression,
+                methodCallExpr,
+                SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+            Nodes.Push(nullCoalescingExpr);
+        }
     }
 
     public override void Visit(RLikeNode node)
     {
         PatternMatchEmitter.ProcessPatternMatch(node.Left, node.Right, nameof(Operators.RLike), RLikeMethod, Nodes, Visit);
+        
+        // Add null-coalescing for RLIKE: result ?? false
+        // Skip if RLIKE is inside a NOT node (will be handled in Visit(NotNode))
+        if (!_isInsideNotNode)
+        {
+            var methodCallExpr = (ExpressionSyntax)Nodes.Pop();
+            var nullCoalescingExpr = SyntaxFactory.BinaryExpression(
+                SyntaxKind.CoalesceExpression,
+                methodCallExpr,
+                SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+            Nodes.Push(nullCoalescingExpr);
+        }
     }
 
     public override void Visit(FieldNode node)

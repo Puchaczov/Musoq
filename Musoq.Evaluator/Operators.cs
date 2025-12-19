@@ -10,8 +10,11 @@ public partial class Operators
     private static readonly ConcurrentDictionary<string, Regex> RLikePatternCache = new();
     private static readonly Regex EscapePattern = CreateEscapeRegex();
 
-    public bool Like(string content, string searchFor)
+    public bool? Like(string content, string searchFor)
     {
+        if (content is null || searchFor is null)
+            return null;
+            
         var regex = LikePatternCache.GetOrAdd(searchFor, pattern =>
         {
             var escaped = EscapePattern.Replace(pattern, match => @"\" + match.Value);
@@ -22,8 +25,11 @@ public partial class Operators
         return regex.IsMatch(content);
     }
 
-    public bool RLike(string content, string pattern)
+    public bool? RLike(string content, string pattern)
     {
+        if (content is null || pattern is null)
+            return null;
+            
         var regex = RLikePatternCache.GetOrAdd(pattern, p => 
             new Regex(p, RegexOptions.Compiled));
         

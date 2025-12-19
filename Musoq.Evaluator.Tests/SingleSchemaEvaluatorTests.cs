@@ -170,6 +170,206 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void LikeOperator_WhenLeftSideIsNull_ShouldReturnFalse()
+    {
+        var query = "select Name, City from #A.Entities() where Name like '%test%'";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity { Name = null, City = "CityA" },
+                    new BasicEntity { Name = "test123", City = "CityB" },
+                    new BasicEntity { Name = null, City = "CityC" },
+                    new BasicEntity { Name = "testValue", City = "CityD" }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual(2, table.Count, "Should only return rows where Name is not null and matches pattern");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test123"), "Missing test123");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "testValue"), "Missing testValue");
+    }
+
+    [TestMethod]
+    public void LikeOperator_WhenRightSideIsNull_ShouldReturnFalse()
+    {
+        var query = "select Name from #A.Entities() where Name like City";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity { Name = "test", City = null },
+                    new BasicEntity { Name = "match", City = "match" },
+                    new BasicEntity { Name = "other", City = null }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(1, table.Count, "Should only return row where both Name and City are not null and match");
+        Assert.AreEqual("match", table[0].Values[0]);
+    }
+
+    [TestMethod]
+    public void LikeOperator_WhenBothSidesAreNull_ShouldReturnFalse()
+    {
+        var query = "select Name from #A.Entities() where Name like City";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity { Name = null, City = null },
+                    new BasicEntity { Name = "test", City = "test" },
+                    new BasicEntity { Name = null, City = null }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(1, table.Count, "Should only return row where both values are not null");
+        Assert.AreEqual("test", table[0].Values[0]);
+    }
+
+    [TestMethod]
+    public void NotLikeOperator_WhenLeftSideIsNull_ShouldExcludeNullRows()
+    {
+        var query = "select Name from #A.Entities() where Name not like '%test%'";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity { Name = null },
+                    new BasicEntity { Name = "test123" },
+                    new BasicEntity { Name = "other" },
+                    new BasicEntity { Name = null }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Columns.Count());
+        // With NULL semantics: NOT (LIKE(null, pattern)) = NOT null = null (treated as false in WHERE)
+        Assert.AreEqual(1, table.Count, "Should only return non-null rows that don't match pattern");
+        Assert.AreEqual("other", table[0].Values[0]);
+    }
+
+    [TestMethod]
+    public void RLikeOperator_WhenLeftSideIsNull_ShouldReturnFalse()
+    {
+        var query = @"select Name from #A.Entities() where Name rlike '^test.*$'";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity { Name = null },
+                    new BasicEntity { Name = "test123" },
+                    new BasicEntity { Name = null },
+                    new BasicEntity { Name = "testValue" }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(2, table.Count, "Should only return rows where Name is not null and matches regex");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test123"), "Missing test123");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "testValue"), "Missing testValue");
+    }
+
+    [TestMethod]
+    public void RLikeOperator_WhenRightSideIsNull_ShouldReturnFalse()
+    {
+        var query = "select Name from #A.Entities() where Name rlike City";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity { Name = "test", City = null },
+                    new BasicEntity { Name = "abc", City = "a.*" },
+                    new BasicEntity { Name = "xyz", City = null }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(1, table.Count, "Should only return row where both Name and City are not null and match");
+        Assert.AreEqual("abc", table[0].Values[0]);
+    }
+
+    [TestMethod]
+    public void RLikeOperator_WhenBothSidesAreNull_ShouldReturnFalse()
+    {
+        var query = "select Name from #A.Entities() where Name rlike City";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity { Name = null, City = null },
+                    new BasicEntity { Name = "test", City = "test" },
+                    new BasicEntity { Name = null, City = null }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(1, table.Count, "Should only return row where both values are not null");
+        Assert.AreEqual("test", table[0].Values[0]);
+    }
+
+    [TestMethod]
+    public void NotRLikeOperator_WhenLeftSideIsNull_ShouldExcludeNullRows()
+    {
+        var query = @"select Name from #A.Entities() where Name not rlike '^test.*$'";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity { Name = null },
+                    new BasicEntity { Name = "test123" },
+                    new BasicEntity { Name = "other" },
+                    new BasicEntity { Name = null }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Columns.Count());
+        // With NULL semantics: NOT (RLIKE(null, pattern)) = NOT null = null (treated as false in WHERE)
+        Assert.AreEqual(1, table.Count, "Should only return non-null rows that don't match regex");
+        Assert.AreEqual("other", table[0].Values[0]);
+    }
+
+    [TestMethod]
     public void FirstLetterOfColumnTest()
     {
         var query = @"select Name from #A.Entities() where Name[0] = 'd'";
