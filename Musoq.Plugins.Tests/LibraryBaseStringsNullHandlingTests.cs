@@ -15,7 +15,7 @@ public class LibraryBaseStringsNullHandlingTests : LibraryBaseBaseTests
         // Act
         var result = Library.Split(null, ",");
         
-        // Assert - should return empty array instead of throwing
+        // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(0, result.Length);
     }
@@ -37,7 +37,7 @@ public class LibraryBaseStringsNullHandlingTests : LibraryBaseBaseTests
         // Act
         var result = Library.ToCharArray(null);
         
-        // Assert - should return empty array instead of throwing
+        // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(0, result.Length);
     }

@@ -32,7 +32,7 @@ public class OperatorsNullHandlingTests
         var result = _operators.Contains(value, array);
 
         // Assert
-        Assert.IsFalse(result, "Contains should return false when array is null");
+        Assert.IsFalse(result);
     }
 
     [TestMethod]
@@ -46,7 +46,7 @@ public class OperatorsNullHandlingTests
         var result = _operators.Contains(value, array);
 
         // Assert
-        Assert.IsFalse(result, "Contains should return false when both value and array are null");
+        Assert.IsFalse(result);
     }
 
     [TestMethod]
@@ -60,7 +60,7 @@ public class OperatorsNullHandlingTests
         var result = _operators.Contains(value, array);
 
         // Assert
-        Assert.IsTrue(result, "Contains should return true when searching for null in array containing null");
+        Assert.IsTrue(result);
     }
 
     [TestMethod]
@@ -74,7 +74,7 @@ public class OperatorsNullHandlingTests
         var result = _operators.Contains(value, array);
 
         // Assert
-        Assert.IsFalse(result, "Contains should return false when searching for null in array without null");
+        Assert.IsFalse(result);
     }
 
     [TestMethod]
@@ -88,7 +88,7 @@ public class OperatorsNullHandlingTests
         var result = _operators.Contains(value, array);
 
         // Assert
-        Assert.IsTrue(result, "Contains should return true when value exists in array");
+        Assert.IsTrue(result);
     }
 
     [TestMethod]
@@ -102,7 +102,7 @@ public class OperatorsNullHandlingTests
         var result = _operators.Contains(value, array);
 
         // Assert
-        Assert.IsFalse(result, "Contains should return false when value does not exist in array");
+        Assert.IsFalse(result);
     }
 
     [TestMethod]
@@ -116,7 +116,7 @@ public class OperatorsNullHandlingTests
         var result = _operators.Contains(value, array);
 
         // Assert
-        Assert.IsFalse(result, "Contains should return false when integer array is null");
+        Assert.IsFalse(result);
     }
 
     [TestMethod]
@@ -130,7 +130,7 @@ public class OperatorsNullHandlingTests
         var result = _operators.Contains(value, array);
 
         // Assert
-        Assert.IsTrue(result, "Contains should return true when searching for null in nullable int array");
+        Assert.IsTrue(result);
     }
 
     #endregion

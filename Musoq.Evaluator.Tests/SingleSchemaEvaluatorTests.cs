@@ -190,9 +190,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual(2, table.Count, "Should only return rows where Name is not null and matches pattern");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test123"), "Missing test123");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "testValue"), "Missing testValue");
+        Assert.AreEqual(2, table.Count);
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test123"));
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "testValue"));
     }
 
     [TestMethod]
@@ -215,7 +215,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(1, table.Count, "Should only return row where both Name and City are not null and match");
+        Assert.AreEqual(1, table.Count);
         Assert.AreEqual("match", table[0].Values[0]);
     }
 
@@ -239,7 +239,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(1, table.Count, "Should only return row where both values are not null");
+        Assert.AreEqual(1, table.Count);
         Assert.AreEqual("test", table[0].Values[0]);
     }
 
@@ -264,11 +264,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        // LIKE returns false for nulls, so NOT LIKE returns true for nulls
-        // This means null rows will pass through along with non-matching values
-        Assert.AreEqual(3, table.Count, "NOT (LIKE null) = NOT false = true, so null rows pass");
-        Assert.IsTrue(table.Count(row => row.Values[0] == null) == 2, "Should have 2 null rows");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"), "Should have 'other'");
+        Assert.AreEqual(3, table.Count);
+        Assert.IsTrue(table.Count(row => row.Values[0] == null) == 2);
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"));
     }
 
     [TestMethod]
@@ -292,9 +290,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(2, table.Count, "Should only return rows where Name is not null and matches regex");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test123"), "Missing test123");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "testValue"), "Missing testValue");
+        Assert.AreEqual(2, table.Count);
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "test123"));
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "testValue"));
     }
 
     [TestMethod]
@@ -317,7 +315,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(1, table.Count, "Should only return row where both Name and City are not null and match");
+        Assert.AreEqual(1, table.Count);
         Assert.AreEqual("abc", table[0].Values[0]);
     }
 
@@ -341,7 +339,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(1, table.Count, "Should only return row where both values are not null");
+        Assert.AreEqual(1, table.Count);
         Assert.AreEqual("test", table[0].Values[0]);
     }
 
@@ -366,11 +364,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        // RLIKE returns false for nulls, so NOT RLIKE returns true for nulls
-        // This means null rows will pass through along with non-matching values
-        Assert.AreEqual(3, table.Count, "NOT (RLIKE null) = NOT false = true, so null rows pass");
-        Assert.IsTrue(table.Count(row => row.Values[0] == null) == 2, "Should have 2 null rows");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"), "Should have 'other'");
+        Assert.AreEqual(3, table.Count);
+        Assert.IsTrue(table.Count(row => row.Values[0] == null) == 2);
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"));
     }
 
     [TestMethod]
