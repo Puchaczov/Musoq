@@ -12,6 +12,9 @@ public partial class Operators
 
     public bool Like(string content, string searchFor)
     {
+        if (content is null || searchFor is null)
+            return false;
+            
         var regex = LikePatternCache.GetOrAdd(searchFor, pattern =>
         {
             var escaped = EscapePattern.Replace(pattern, match => @"\" + match.Value);
@@ -24,6 +27,9 @@ public partial class Operators
 
     public bool RLike(string content, string pattern)
     {
+        if (content is null || pattern is null)
+            return false;
+            
         var regex = RLikePatternCache.GetOrAdd(pattern, p => 
             new Regex(p, RegexOptions.Compiled));
         
@@ -32,6 +38,9 @@ public partial class Operators
 
     public bool Contains<T>(T value, T[] values)
     {
+        if (values is null)
+            return false;
+            
         return values.Contains(value);
     }
 

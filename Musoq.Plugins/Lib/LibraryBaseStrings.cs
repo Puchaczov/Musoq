@@ -691,7 +691,13 @@ public partial class LibraryBase
     /// <returns>Separated values</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
-    public string[] Split(string value, params string[] separators) => value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+    public string[] Split(string? value, params string[] separators)
+    {
+        if (value == null)
+            return [];
+            
+        return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+    }
     
     /// <summary>
     /// Splits the string into an array of characters
@@ -700,7 +706,13 @@ public partial class LibraryBase
     /// <returns>Array of characters</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
-    public char[] ToCharArray(string value) => value.ToCharArray();
+    public char[] ToCharArray(string? value)
+    {
+        if (value == null)
+            return [];
+            
+        return value.ToCharArray();
+    }
 
     /// <summary>
     /// Computes the longest common subsequence between two source and pattern
