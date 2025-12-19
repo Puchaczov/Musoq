@@ -244,7 +244,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void NotLikeOperator_WhenLeftSideIsNull_ShouldExcludeNullRows()
+    public void NotLikeOperator_WhenLeftSideIsNull_ShouldTreatAsNotFalse()
     {
         var query = "select Name from #A.Entities() where Name not like '%test%'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -264,9 +264,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        // With NULL semantics: NOT (LIKE(null, pattern)) = NOT null = null (treated as false in WHERE)
-        Assert.AreEqual(1, table.Count, "Should only return non-null rows that don't match pattern");
-        Assert.AreEqual("other", table[0].Values[0]);
+        // LIKE returns false for nulls, so NOT LIKE returns true for nulls
+        // This means null rows will pass through along with non-matching values
+        Assert.AreEqual(3, table.Count, "NOT (LIKE null) = NOT false = true, so null rows pass");
+        Assert.IsTrue(table.Count(row => row.Values[0] == null) == 2, "Should have 2 null rows");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"), "Should have 'other'");
     }
 
     [TestMethod]
@@ -344,7 +346,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void NotRLikeOperator_WhenLeftSideIsNull_ShouldExcludeNullRows()
+    public void NotRLikeOperator_WhenLeftSideIsNull_ShouldTreatAsNotFalse()
     {
         var query = @"select Name from #A.Entities() where Name not rlike '^test.*$'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -364,9 +366,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Columns.Count());
-        // With NULL semantics: NOT (RLIKE(null, pattern)) = NOT null = null (treated as false in WHERE)
-        Assert.AreEqual(1, table.Count, "Should only return non-null rows that don't match regex");
-        Assert.AreEqual("other", table[0].Values[0]);
+        // RLIKE returns false for nulls, so NOT RLIKE returns true for nulls
+        // This means null rows will pass through along with non-matching values
+        Assert.AreEqual(3, table.Count, "NOT (RLIKE null) = NOT false = true, so null rows pass");
+        Assert.IsTrue(table.Count(row => row.Values[0] == null) == 2, "Should have 2 null rows");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"), "Should have 'other'");
     }
 
     [TestMethod]
