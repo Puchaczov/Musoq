@@ -367,7 +367,7 @@ public class Parser
                 case TokenType.InnerJoin:
                     Consume(TokenType.InnerJoin);
                     from = new JoinFromNode(from,
-                        ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), 
+                        ComposeAndSkip(parser => parser.ComposeFrom(false, false), TokenType.On), 
                         ComposeOperations(),
                         JoinType.Inner);
                     break;
@@ -375,7 +375,7 @@ public class Parser
                     var outerToken = (OuterJoinToken) Current;
                     Consume(TokenType.OuterJoin);
                     from = new JoinFromNode(from,
-                        ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), 
+                        ComposeAndSkip(parser => parser.ComposeFrom(false, false), TokenType.On), 
                         ComposeOperations(),
                         outerToken.Type == OuterJoinType.Left
                             ? JoinType.OuterLeft
@@ -383,11 +383,11 @@ public class Parser
                     break;
                 case TokenType.CrossApply:
                     Consume(TokenType.CrossApply);
-                    from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Cross);
+                    from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false, true)), ApplyType.Cross);
                     break;
                 case TokenType.OuterApply:
                     Consume(TokenType.OuterApply);
-                    from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Outer);
+                    from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false, true)), ApplyType.Outer);
                     break;
             }
         }
@@ -741,7 +741,7 @@ public class Parser
         return new SchemaMethodFromNode(alias, schemaNode.Value, identifier.Name);
     }
 
-    private FromNode ComposeFrom(bool fromKeywordBefore = true)
+    private FromNode ComposeFrom(bool fromKeywordBefore = true, bool isApplyContext = false)
     {
         if (fromKeywordBefore)
             Consume(TokenType.From);
@@ -783,7 +783,13 @@ public class Parser
             var sourceAlias = Current.Value;
             var accessMethod = ComposeAccessMethod(sourceAlias);
             alias = ComposeAlias();
-                    
+            
+            if (!isApplyContext && !sourceAlias.StartsWith('#'))
+            {
+                var schemaName = $"#{sourceAlias}";
+                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+            }
+            
             if (string.IsNullOrWhiteSpace(alias))
                 throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
                     
@@ -797,6 +803,15 @@ public class Parser
         if (Current.TokenType == TokenType.Dot)
         {
             Consume(Current.TokenType);
+            
+            if (Current.TokenType == TokenType.Function)
+            {
+                var accessMethod = ComposeAccessMethod(string.Empty);
+                alias = ComposeAlias();
+                
+                var schemaName = column.Name.StartsWith('#') ? column.Name : $"#{column.Name}";
+                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+            }
 
             var properties = new List<string>();
             var anyParsed = false;
