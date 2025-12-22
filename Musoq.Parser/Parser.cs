@@ -784,17 +784,12 @@ public class Parser
             var accessMethod = ComposeAccessMethod(sourceAlias);
             alias = ComposeAlias();
             
-            // In apply context (cross apply / outer apply), MethodAccess refers to an alias.method() pattern
-            // In non-apply context (FROM clause, JOINs), MethodAccess without # is a schema reference
             if (!isApplyContext && !sourceAlias.StartsWith('#'))
             {
-                // Schema reference without # prefix (e.g., "schema.method()")
-                // Normalize it by prepending # and create a SchemaFromNode
                 var schemaName = $"#{sourceAlias}";
                 return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
             
-            // Apply context or #-prefixed: use AccessMethodFromNode (requires alias)
             if (string.IsNullOrWhiteSpace(alias))
                 throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
                     
@@ -809,14 +804,11 @@ public class Parser
         {
             Consume(Current.TokenType);
             
-            // Check if this is a schema reference without # (e.g., "schema.method()")
-            // A Function token after the dot indicates a method call, which means schema reference
             if (Current.TokenType == TokenType.Function)
             {
                 var accessMethod = ComposeAccessMethod(string.Empty);
                 alias = ComposeAlias();
                 
-                // Normalize the schema name by prepending # if not present
                 var schemaName = column.Name.StartsWith('#') ? column.Name : $"#{column.Name}";
                 return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
