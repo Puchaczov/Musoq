@@ -783,14 +783,19 @@ public class Parser
             var sourceAlias = Current.Value;
             var accessMethod = ComposeAccessMethod(sourceAlias);
             alias = ComposeAlias();
-                    
-            if (string.IsNullOrWhiteSpace(alias))
+            
+            // If the sourceAlias doesn't start with #, it's a schema reference without the # prefix
+            // (e.g., "schema.method()" instead of "#schema.method()")
+            // Normalize it by prepending # and create a SchemaFromNode
+            if (!sourceAlias.StartsWith('#'))
             {
-                // No alias provided - this could be a schema reference without # (e.g., "schema.method()")
-                // Normalize the schema name by prepending # and create a SchemaFromNode
-                var schemaName = sourceAlias.StartsWith('#') ? sourceAlias : $"#{sourceAlias}";
-                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, _fromPosition);
+                var schemaName = $"#{sourceAlias}";
+                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
+            
+            // Original behavior for #-prefixed schemas or other cases
+            if (string.IsNullOrWhiteSpace(alias))
+                throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
                     
             var fromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
 
