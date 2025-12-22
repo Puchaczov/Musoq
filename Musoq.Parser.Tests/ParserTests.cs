@@ -1001,4 +1001,254 @@ public class ParserTests
         
         Assert.IsNotNull(result);
     }
+    
+    // Hash-optional schema syntax tests
+    
+    [TestMethod]
+    public void SchemaWithoutHash_BasicSelect_ShouldParse()
+    {
+        var query = "select 1 from some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_SelectWithColumns_ShouldParse()
+    {
+        var query = "select Name, Age from schema.entities()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_ReorderedQuery_ShouldParse()
+    {
+        var query = "from some.a() select 1";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_WithWhereClause_ShouldParse()
+    {
+        var query = "select Name from some.a() where Name = 'test'";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_WithGroupBy_ShouldParse()
+    {
+        var query = "select Name, Count(Name) from some.a() group by Name";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_WithOrderBy_ShouldParse()
+    {
+        var query = "select Name from some.a() order by Name desc";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_InnerJoin_ShouldParse()
+    {
+        var query = "select a.Name from some.a() a inner join other.b() b on a.Id = b.Id";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_LeftOuterJoin_ShouldParse()
+    {
+        var query = "select a.Name from some.a() a left outer join other.b() b on a.Id = b.Id";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_CrossApply_ShouldParse()
+    {
+        var query = "select a.Name, b.Value from some.first() a cross apply some.second(a.Country) b";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_OuterApply_ShouldParse()
+    {
+        var query = "select a.Name, b.Value from some.first() a outer apply some.second(a.Country) b";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_WithCte_ShouldParse()
+    {
+        var query = "with cte as (select Name from some.a()) select * from cte";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_WithSkipTake_ShouldParse()
+    {
+        var query = "select Name from some.a() skip 10 take 5";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_UnionOperator_ShouldParse()
+    {
+        var query = "select Name from some.a() union (Name) select Name from other.b()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithHash_StillWorks_ShouldParse()
+    {
+        var query = "select 1 from #some.a()";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaMixedSyntax_WithAndWithoutHash_ShouldParse()
+    {
+        var query = "select a.Name from #some.a() a inner join other.b() b on a.Id = b.Id";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_ComplexQuery_ShouldParse()
+    {
+        var query = @"
+            select a.Name, b.Value, Count(a.Name)
+            from schema.entities() a 
+            inner join other.data() b on a.Id = b.Id
+            where a.Active = true
+            group by a.Name, b.Value
+            having Count(a.Name) > 1
+            order by a.Name desc
+            skip 5 take 10";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_WithAlias_ShouldParse()
+    {
+        var query = "select s.Name from some.a() s";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_WithAsAlias_ShouldParse()
+    {
+        var query = "select s.Name from some.a() as s";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_WithMethodParameters_ShouldParse()
+    {
+        var query = "select 1 from some.method('param1', 123)";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void SchemaWithoutHash_CaseInsensitiveKeywords_ShouldParse()
+    {
+        var query = "SELECT Name FROM some.a() WHERE Name = 'test'";
+        
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        
+        Assert.IsNotNull(result);
+    }
 }

@@ -785,7 +785,12 @@ public class Parser
             alias = ComposeAlias();
                     
             if (string.IsNullOrWhiteSpace(alias))
-                throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
+            {
+                // No alias provided - this could be a schema reference without # (e.g., "schema.method()")
+                // Normalize the schema name by prepending # and create a SchemaFromNode
+                var schemaName = sourceAlias.StartsWith('#') ? sourceAlias : $"#{sourceAlias}";
+                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, _fromPosition);
+            }
                     
             var fromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
 
@@ -797,6 +802,18 @@ public class Parser
         if (Current.TokenType == TokenType.Dot)
         {
             Consume(Current.TokenType);
+            
+            // Check if this is a schema reference without # (e.g., "schema.method()")
+            // A Function token after the dot indicates a method call, which means schema reference
+            if (Current.TokenType == TokenType.Function)
+            {
+                var accessMethod = ComposeAccessMethod(string.Empty);
+                alias = ComposeAlias();
+                
+                // Normalize the schema name by prepending # if not present
+                var schemaName = column.Name.StartsWith('#') ? column.Name : $"#{column.Name}";
+                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+            }
 
             var properties = new List<string>();
             var anyParsed = false;
