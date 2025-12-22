@@ -383,11 +383,11 @@ public class Parser
                     break;
                 case TokenType.CrossApply:
                     Consume(TokenType.CrossApply);
-                    from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Cross);
+                    from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false, true)), ApplyType.Cross);
                     break;
                 case TokenType.OuterApply:
                     Consume(TokenType.OuterApply);
-                    from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false)), ApplyType.Outer);
+                    from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false, true)), ApplyType.Outer);
                     break;
             }
         }
@@ -741,7 +741,7 @@ public class Parser
         return new SchemaMethodFromNode(alias, schemaNode.Value, identifier.Name);
     }
 
-    private FromNode ComposeFrom(bool fromKeywordBefore = true)
+    private FromNode ComposeFrom(bool fromKeywordBefore = true, bool isApplyContext = false)
     {
         if (fromKeywordBefore)
             Consume(TokenType.From);
@@ -784,16 +784,17 @@ public class Parser
             var accessMethod = ComposeAccessMethod(sourceAlias);
             alias = ComposeAlias();
             
-            // If the sourceAlias doesn't start with #, it's a schema reference without the # prefix
-            // (e.g., "schema.method()" instead of "#schema.method()")
-            // Normalize it by prepending # and create a SchemaFromNode
-            if (!sourceAlias.StartsWith('#'))
+            // In apply context (cross apply / outer apply), MethodAccess refers to an alias.method() pattern
+            // In non-apply context (FROM clause, JOINs), MethodAccess without # is a schema reference
+            if (!isApplyContext && !sourceAlias.StartsWith('#'))
             {
+                // Schema reference without # prefix (e.g., "schema.method()")
+                // Normalize it by prepending # and create a SchemaFromNode
                 var schemaName = $"#{sourceAlias}";
                 return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
             
-            // Original behavior for #-prefixed schemas or other cases
+            // Apply context or #-prefixed: use AccessMethodFromNode (requires alias)
             if (string.IsNullOrWhiteSpace(alias))
                 throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
                     
