@@ -367,7 +367,7 @@ public class Parser
                 case TokenType.InnerJoin:
                     Consume(TokenType.InnerJoin);
                     from = new JoinFromNode(from,
-                        ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), 
+                        ComposeAndSkip(parser => parser.ComposeFrom(false, false), TokenType.On), 
                         ComposeOperations(),
                         JoinType.Inner);
                     break;
@@ -375,7 +375,7 @@ public class Parser
                     var outerToken = (OuterJoinToken) Current;
                     Consume(TokenType.OuterJoin);
                     from = new JoinFromNode(from,
-                        ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On), 
+                        ComposeAndSkip(parser => parser.ComposeFrom(false, false), TokenType.On), 
                         ComposeOperations(),
                         outerToken.Type == OuterJoinType.Left
                             ? JoinType.OuterLeft
