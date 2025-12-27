@@ -67,196 +67,546 @@ All with the declarative power of SQL instead of imperative loops and conditiona
 
 ## 🛠 What You Can Query
 
-### Everyday Stuff
+### 🔀 Git Repository Queries (`#git`)
+
+#### List Recent Commits
+Query commit history with author information.
+
 ```sql
--- Generate test data
-select 'User' + ToString(Value) as Username, NewId() as UserId 
-from #system.range(1, 100)
-
--- Find duplicate files by name
-select
-  Name,
-  Count(1) as Duplicates
-from #os.files('/downloads', true)
-group by Name having Count(Name) > 1
-
--- Disk space by file type
-select
-  Extension,
-  Sum(Length) / 1024 / 1024 as SizeMB,
-  Count(1) as FileCount
-from #os.files('/project', true)  
-group by Extension
-order by Sum(Length) / 1024 / 1024 desc
-```
-
-### Development Tasks  
-```sql
--- Git contributors last month
-select
-  c.Author,
-  Count(1) as Commits
-from #git.repository('.') r
+select 
+    c.Sha,
+    c.MessageShort,
+    c.Author,
+    c.CommittedWhen
+from #git.repository('./repo') r 
 cross apply r.Commits c
-where c.CommittedWhen > SubtractDateTimeOffsets(GetDate(), FromString('30.00:00:00'))
-group by c.Author
-order by c.Commits desc
+```
 
--- Find TODOs in codebase
-select
-  files.Name,
-  f.LineNumber,
-  f.Line
-from #os.files('./src', true) files
-cross apply #flat.file(files.FullName) f
-where files.Extension in ('.cs', '.js', '.py') and f.Line like '%TODO%'
+#### Query Commits Directly
+Faster access to commits without full repository context.
 
--- Complex C# classes (requires solution analysis)
+```sql
 select
-  c.Name,
-  c.MethodsCount,
-  c.LinesOfCode
-from #csharp.solution('./MyProject.sln') s
-cross apply s.Projects p
-cross apply p.Documents d
+    c.Sha,
+    c.Author,
+    c.Message
+from #git.commits('./repo') c
+where c.Author = 'john.doe'
+```
+
+#### List All Branches
+Query all branches with their tip commit.
+
+```sql
+select
+    b.FriendlyName,
+    b.IsRemote,
+    b.Tip.Sha
+from #git.branches('./repo') b
+```
+
+#### Compare Branches
+Find differences between two branches.
+
+```sql
+select 
+    Difference.Path,
+    Difference.ChangeKind
+from #git.repository('./repo') repository 
+cross apply repository.DifferenceBetween(
+    repository.BranchFrom('main'), 
+    repository.BranchFrom('feature/my-feature')
+) as Difference
+```
+
+#### List Tags with Annotations
+Query all tags in a repository with their metadata.
+
+```sql
+select
+    t.FriendlyName,
+    t.Message,
+    t.IsAnnotated,
+    t.Commit.Sha
+from #git.tags('./repo') t
+```
+
+#### Track File History
+See all changes to a specific file over time.
+
+```sql
+select
+    h.CommitSha,
+    h.Author,
+    h.FilePath,
+    h.ChangeType
+from #git.filehistory('./repo', 'README.md') h
+```
+
+#### Analyze Branch-Specific Commits
+Find commits that are specific to a feature branch.
+
+```sql
+with BranchInfo as (
+    select
+        c.Sha as CommitSha,
+        c.Message as CommitMessage,
+        c.Author as CommitAuthor
+    from #git.repository('./repo') r 
+    cross apply r.SearchForBranches('feature/my-feature') b
+    cross apply b.GetBranchSpecificCommits(r.Self, b.Self, true) c
+)
+select CommitSha, CommitMessage, CommitAuthor from BranchInfo
+```
+
+#### Query Commit Parents
+Analyze commit relationships for merge analysis.
+
+```sql
+select 
+    c.Sha, 
+    p.Sha as ParentSha
+from #git.commits('./repo') c 
+cross apply c.Parents as p
+```
+
+---
+
+### 🔬 C# Code Analysis (`#csharp`)
+
+#### List All Classes in Solution
+Find all classes across a C# solution with their metrics.
+
+```sql
+select 
+    c.Name,
+    c.Namespace,
+    c.MethodsCount,
+    c.PropertiesCount,
+    c.LinesOfCode
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects p 
+cross apply p.Documents d 
 cross apply d.Classes c
-where c.MethodsCount > 20 order by c.LinesOfCode desc
 ```
 
-### Data Processing
+#### Query All Types in a Project
+Quick access to all types (classes, interfaces, enums) in a project.
+
 ```sql
--- Transform CSV data
+select 
+    t.Name,
+    t.IsClass,
+    t.IsInterface,
+    t.IsEnum
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects p 
+cross apply p.Types t
+```
+
+#### Find Methods with High Complexity
+Identify methods that may need refactoring based on cyclomatic complexity.
+
+```sql
 select
-  Category,
-  Sum(ToDecimal(Amount)) as Total
-from #separatedvalues.csv('./sales.csv', true, 0)
-group by Category
+    c.Name as ClassName,
+    m.Name as MethodName,
+    m.CyclomaticComplexity,
+    m.LinesOfCode
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.GetClassesByNames('MyClass') c
+cross apply c.Methods m
+where m.CyclomaticComplexity > 5
+```
 
--- Extract structured data from text using AI
+#### Analyze Method Body Structure
+Check for empty methods, stub implementations, and statement counts.
+
+```sql
 select
-  t.ProductName,
-  t.Price,
-  t.Description  
-from #stdin.text('OpenAI', 'gpt-4o') t
-where ToDecimal(t.Price) > 100
+    m.Name,
+    m.HasBody,
+    m.IsEmpty,
+    m.StatementsCount,
+    m.BodyContainsOnlyTrivia
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects p 
+cross apply p.Documents d 
+cross apply d.Classes c
+cross apply c.Methods m
+where c.Name = 'MyClass'
 ```
 
-## 🌟 Why You Might Love It
+#### Analyze Property Accessors
+Find auto-properties, init-only setters, and property patterns.
 
-- **No context switching**: Stay in SQL instead of jumping between bash/Python/tools
-- **Declarative**: Say what you want, not how to get it
-- **Composable**: Complex queries from simple building blocks  
-- **Familiar**: You probably already know SQL
-- **Fast**: No need to write, debug, and maintain scripts
-- **Powerful**: Joins, aggregations, and complex logic built-in
-
-## 📈 Scales From Simple to Sophisticated
-
-Start with basic utilities:
 ```sql
-select NewId() from #system.dual()
+select
+    p.Name,
+    p.Type,
+    p.IsAutoProperty,
+    p.HasGetter,
+    p.HasSetter,
+    p.HasInitSetter
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects p 
+cross apply p.Documents d 
+cross apply d.Classes c
+cross apply c.Properties p
+where c.Name = 'MyClass'
 ```
 
-Scale up to complex analysis:
+#### Find References to a Class
+Locate all usages of a specific class across the solution.
+
 ```sql
--- Analyze codebase evolution over time
-with MonthlyStats as (
+select 
+    r.Name,
+    rd.StartLine,
+    rd.StartColumn,
+    rd.EndLine,
+    rd.EndColumn
+from #csharp.solution('./MySolution.sln') s
+cross apply s.GetClassesByNames('MyClass') c
+cross apply s.FindReferences(c.Self) rd
+cross apply rd.ReferencedClasses r
+```
+
+#### Query Interface Definitions
+List interfaces with their methods and properties.
+
+```sql
+select
+    i.Name,
+    i.FullName,
+    i.Namespace,
+    i.BaseInterfaces,
+    i.Methods,
+    i.Properties
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects pr 
+cross apply pr.Documents d 
+cross apply d.Interfaces i
+```
+
+#### Analyze Enums
+List enums with their members.
+
+```sql
+select
+    e.Name,
+    e.FullName,
+    e.Namespace,
+    e.Members
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects pr 
+cross apply pr.Documents d 
+cross apply d.Enums e
+```
+
+#### Query Project References
+List all project-to-project references.
+
+```sql
+select
+    p.Name as ProjectName,
+    ref.Name as ReferencedProject
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects p 
+cross apply p.ProjectReferences ref
+```
+
+#### Query Library References
+List all library/assembly references in projects.
+
+```sql
+select
+    p.Name as ProjectName,
+    lib.Name as LibraryName,
+    lib.Version,
+    lib.Location
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects p 
+cross apply p.LibraryReferences lib
+```
+
+#### Query NuGet Packages
+List all NuGet packages with license information.
+
+```sql
+select 
+    p.Name as ProjectName,
+    np.Id as PackageId,
+    np.Version,
+    np.License,
+    np.Authors,
+    np.IsTransitive
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects p 
+cross apply p.GetNugetPackages(false) np
+```
+
+#### Analyze Class Attributes
+Find classes decorated with specific attributes.
+
+```sql
+select
+    c.Name,
+    a.Name as AttributeName,
+    a.ConstructorArguments
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects pr 
+cross apply pr.Documents d 
+cross apply d.Classes c
+cross apply c.Attributes a
+```
+
+#### Query Method Parameters
+Analyze method parameters with their modifiers.
+
+```sql
+select
+    m.Name as MethodName,
+    p.Name as ParamName,
+    p.Type,
+    p.IsOptional,
+    p.IsParams,
+    p.IsRef,
+    p.IsOut
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects pr 
+cross apply pr.Documents d 
+cross apply d.Classes c
+cross apply c.Methods m
+cross apply m.Parameters p
+```
+
+#### Calculate Lack of Cohesion
+Analyze class design metrics.
+
+```sql
+select 
+    c.Name,
+    c.MethodsCount,
+    c.FieldsCount,
+    c.LackOfCohesion,
+    c.InheritanceDepth
+from #csharp.solution('./MySolution.sln') s 
+cross apply s.Projects p 
+cross apply p.Documents d 
+cross apply d.Classes c
+where c.MethodsCount > 2
+```
+
+---
+
+### 🔗 Combined Data Source Queries
+
+#### Analyze Git Repositories from File System
+Discover and analyze multiple Git repositories.
+
+```sql
+with GitRepos as (
     select 
-        ToString(c.CommittedWhen, 'yyyy-MM') as Month,
-        Count(d.Path) as FilesChanged,
-        Sum(p.LinesAdded) as LinesAdded,
-        Sum(p.LinesDeleted) as LinesDeleted
-    from #git.repository('./large-project') r
-    cross apply r.Commits c
-    cross apply r.DifferenceBetween(c, r.CommitFrom(c.Sha + '^')) d  
-    cross apply r.PatchBetween(c, r.CommitFrom(c.Sha + '^')) p
-    group by ToString(c.CommittedWhen, 'yyyy-MM')
+        dir.Parent.Name as RepoName,
+        dir.FullName as GitPath
+    from #os.directories('./projects', true) dir
+    where dir.Name = '.git'
 )
-select
-  Month,
-  FilesChanged,
-  LinesAdded - LinesDeleted as NetLines
-from MonthlyStats
-order by Month desc
-take 12
+select 
+    r.RepoName,
+    Count(c.Sha) as CommitCount
+from GitRepos r 
+cross apply #git.repository(r.GitPath) repo 
+cross apply repo.Commits c
+group by r.RepoName
+order by CommitCount desc
 ```
 
-## 🎬 Real-World Examples
+#### Diff Files with Hash Comparison
+Compare directories using file hashes to detect modifications.
 
-**File Management:**
 ```sql
--- Find files not accessed in 6 months
-select
-  FullName,
-  LastAccessTime from #os.files('/old-project', true)
-where LastAccessTime < SubtractDateTimeOffsets(GetDate(), FromString('180.00:00:00'))
-
--- Compare two directories
-select
-  FullName,
-  Status from
-#os.dirscompare('/backup', '/current')
-where Status != 'The Same'
-```
-
-**Development Workflow:**
-```sql
--- Which files change together most often?
-select f1.Path, f2.Path, Count(1) as CoChanges
-from #git.repository('.') r cross apply r.Commits c
-cross apply r.DifferenceBetween(c, r.CommitFrom(c.Sha + '^')) f1
-cross apply r.DifferenceBetween(c, r.CommitFrom(c.Sha + '^')) f2  
-where f1.Path < f2.Path
-group by f1.Path, f2.Path
-having Count(1) > 5
-order by CoChanges desc
-```
-
-**Data Processing:**
-```sql
--- Extract and count imports from protobuf files
-with Imports as (
-    select Replace(Replace(Line, 'import "', ''), '";', '') as ImportPath
-    from #flat.file('./proto/service.proto') f
-    where Line like 'import "%'  
+with SourceFiles as (
+    select GetRelativePath('./source') as RelPath, Sha256File() as Hash 
+    from #os.files('./source', true)
+), 
+TargetFiles as (
+    select GetRelativePath('./target') as RelPath, Sha256File() as Hash 
+    from #os.files('./target', true)
 )
-select
-  ImportPath,
-  Count(1) as Usage
-from Imports
-group by ImportPath
+select 
+    s.RelPath,
+    (case when s.Hash <> t.Hash then 'modified' else 'same' end) as Status
+from SourceFiles s 
+inner join TargetFiles t on s.RelPath = t.RelPath
 ```
 
-## 🚀 Data Sources
+---
 
-Query everything with the same SQL syntax:
+### 📁 File System Queries (`#os`)
 
-**File System & OS**
-- Files, directories, processes, metadata
-- Archives (ZIP contents without extraction)
-- Text files, CSVs, JSON
+#### List Files with Size Information
+Find all files in a directory with their sizes formatted in human-readable format.
 
-**Development Tools**  
-- Git repositories (commits, diffs, branches)
-- C# codebases (classes, methods, complexity)
-- Docker containers, Kubernetes resources
+```sql
+select 
+    Name, 
+    ToDecimal(Length) / 1024 as SizeInKB
+from #os.files('./directory', true)
+where Extension = '.txt'
+```
 
-**AI & Analysis**
-- OpenAI/GPT integration for text/image analysis
-- Local LLMs via Ollama
-- Extract structure from unstructured data
+#### Calculate SHA256 Hash of Files
+Compute cryptographic hashes for file integrity verification.
 
-**Specialized**
-- Time-series data and schedules
-- CAN bus data for automotive
-- Airtable, databases, APIs
+```sql
+select 
+    Name, 
+    Sha256File() as Hash
+from #os.files('./directory', false)
+where Extension = '.dll'
+```
 
-## ⚡ Getting Started
+#### Compare Two Directories
+Find differences between two directories (added, removed, modified files).
 
-1. **[Install CLI](https://github.com/Puchaczov/Musoq.CLI)** - Quick setup guide
-2. **Try basic queries** - Generate data, list files, check git
-3. **Explore data sources** - See what you can query
-4. **Replace your next script** - Use SQL instead
+```sql
+select 
+    SourceFileRelative,
+    DestinationFileRelative,
+    State
+from #os.dirscompare('./source', './destination')
+where State <> 'TheSame'
+```
+
+---
+
+### 📊 CSV/Separated Values (`#separatedvalues`)
+
+#### Basic CSV Query with Aggregation
+Analyze banking transactions and calculate monthly income/outcome.
+
+```sql
+select 
+    ExtractFromDate(OperationDate, 'month') as Month,
+    SumIncome(ToDecimal(Money)) as Income,
+    SumOutcome(ToDecimal(Money)) as Outcome,
+    SumIncome(ToDecimal(Money)) + SumOutcome(ToDecimal(Money)) as Balance
+from #separatedvalues.comma('./transactions.csv', true, 0)
+group by ExtractFromDate(OperationDate, 'month')
+```
+
+#### Join Two CSV Files
+Join persons with their grades from separate CSV files.
+
+```sql
+select 
+    persons.Name, 
+    persons.Surname, 
+    grades.Subject, 
+    grades.Grade
+from #separatedvalues.comma('./Persons.csv', true, 0) persons 
+inner join #separatedvalues.comma('./Gradebook.csv', true, 0) grades 
+    on persons.Id = grades.PersonId
+```
+
+#### Typed CSV Query
+Read CSV with explicit column types for proper data handling.
+
+```sql
+table Employees {
+   Id 'System.Int32',
+   Name 'System.String',
+   Salary 'System.Decimal'
+};
+couple #separatedvalues.comma with table Employees as SourceOfEmployees;
+select Id, Name, Salary from SourceOfEmployees('./employees.csv', true, 0)
+where Salary > 50000
+```
+
+---
+
+### 🗂️ JSON Queries (`#json`)
+
+#### Query JSON Array
+Extract data from a JSON file using a schema definition.
+
+```sql
+select 
+    Name, 
+    Age, 
+    Length(Books) as BookCount
+from #json.file('./data.json', './data.schema.json')
+where Age > 18
+```
+
+---
+
+### 📦 Archive Queries (`#archives`)
+
+#### List Archive Contents
+Read contents of ZIP or TAR archives and extract text content.
+
+```sql
+select 
+    Key as FileName, 
+    IsDirectory,
+    (case when IsDirectory = false then GetTextContent() else '' end) as Content
+from #archives.file('./archive.zip')
+where Key like '%.txt'
+```
+
+---
+
+### ⏰ Time Queries (`#time`)
+
+#### Generate Date Range
+Create a sequence of dates for reporting or analysis.
+
+```sql
+select 
+    Day, 
+    Month, 
+    Year, 
+    DayOfWeek
+from #time.interval('2024-01-01 00:00:00', '2024-12-31 00:00:00', 'days')
+```
+
+#### Filter Weekend Days
+Find only weekend days (Saturday=6, Sunday=0 in DayOfWeek).
+
+```sql
+select Day, DayOfWeek
+from #time.interval('2024-01-01 00:00:00', '2024-01-31 00:00:00', 'days')
+where DayOfWeek = 0 or DayOfWeek = 6
+```
+
+---
+
+### 🔧 System Utilities (`#system`)
+
+#### Number Range Generation
+Generate a sequence of numbers for various purposes.
+
+```sql
+select Value 
+from #system.range(1, 100)
+where Value % 2 = 0
+```
+
+#### Dual Table for Calculations
+Use dual table for single-row calculations.
+
+```sql
+select 
+    2 + 2 as Sum,
+    10 * 5 as Product,
+    ToDecimal(7) / 3 as Division
+from #system.dual()
+```
+
+---
 
 ## 📚 Resources
 
