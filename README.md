@@ -18,13 +18,13 @@ With Musoq, just write a query.
 # Follow instructions in [CLI repository](https://github.com/Puchaczov/Musoq.CLI)
 
 # Generate some GUIDs
-Musoq run query "select NewId() from #system.range(1, 5)"
+Musoq run "select NewId() from #system.range(1, 5)"
 
 # Find your largest files  
-Musoq run query "select Name, Length from #os.files('/home/user', true) where Length > 1000000 order by Length desc take 10"
+Musoq run "select Name, Length from #os.files('/home/user', true) where Length > 1000000 order by Length desc take 10"
 
 # Check git commits this month
-Musoq run query "select Count(1) from #git.repository('.') r cross apply r.Commits c where c.CommittedWhen > '2024-11-01'"
+Musoq run "select Count(1) from #git.repository('.') r cross apply r.Commits c where c.CommittedWhen > '2024-11-01'"
 ```
 
 ## 💡 Why SQL for Scripting?
