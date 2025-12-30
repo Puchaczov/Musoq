@@ -643,9 +643,6 @@ public class HashOptionalSchemaParserTests
     
     #region Coupling Syntax
     
-    // Note: Coupling syntax still requires the hash prefix (#) for schema names.
-    // The hash-optional syntax only applies to the FROM clause in SELECT statements.
-    
     [TestMethod]
     public void HashOptional_CoupleWithHashSyntax_ShouldParse()
     {
@@ -656,12 +653,31 @@ public class HashOptionalSchemaParserTests
         Assert.IsNotNull(result);
     }
     
+    [TestMethod]
+    public void HashOptional_CoupleWithoutHashSyntax_ShouldParse()
+    {
+        var query = "couple schema.method with table Test as SourceOfTestValues;";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    [DataRow("couple schemaA.methodA with table TestTable as Source;")]
+    [DataRow("couple MySchema.MyMethod with table Data as DataSource;")]
+    [DataRow("couple schema123.method456 with table Numbers as NumSource;")]
+    public void HashOptional_CoupleVariations_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
     #endregion
     
     #region DESC Statement
-    
-    // Note: DESC syntax still requires the hash prefix (#) for schema names.
-    // The hash-optional syntax only applies to the FROM clause in SELECT statements.
     
     [TestMethod]
     [DataRow("desc #schema")]
@@ -676,10 +692,70 @@ public class HashOptionalSchemaParserTests
     }
     
     [TestMethod]
+    [DataRow("desc schema")]
+    [DataRow("desc schema.method")]
+    [DataRow("desc schema.method()")]
+    public void HashOptional_DescStatementWithoutHash_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
     [DataRow("desc functions #schema")]
     [DataRow("desc functions #schema.method")]
     [DataRow("desc functions #schema.method()")]
     public void HashOptional_DescFunctionsWithHash_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    [DataRow("desc functions schema")]
+    [DataRow("desc functions schema.method")]
+    [DataRow("desc functions schema.method()")]
+    public void HashOptional_DescFunctionsWithoutHash_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    [DataRow("desc myschema")]
+    [DataRow("desc MySchema123")]
+    [DataRow("desc schema_with_underscore")]
+    public void HashOptional_DescSchemaVariations_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    [DataRow("desc myschema.mymethod")]
+    [DataRow("desc MySchema.MyMethod")]
+    [DataRow("desc schema123.method456")]
+    public void HashOptional_DescMethodVariations_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    [DataRow("desc myschema.mymethod()")]
+    [DataRow("desc myschema.mymethod('param')")]
+    [DataRow("desc myschema.mymethod(1, 2, 'text')")]
+    public void HashOptional_DescMethodWithArgsVariations_ShouldParse(string query)
     {
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
