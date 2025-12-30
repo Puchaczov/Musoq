@@ -265,7 +265,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.Count(row => row.Values[0] == null) == 2);
+        Assert.AreEqual(2, table.Count(row => row.Values[0] == null));
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"));
     }
 
@@ -365,7 +365,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.Count(row => row.Values[0] == null) == 2);
+        Assert.AreEqual(2, table.Count(row => row.Values[0] == null));
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "other"));
     }
 

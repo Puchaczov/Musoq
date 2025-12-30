@@ -18,17 +18,17 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 
     public RootNode Root => SafeCast<RootNode>(SafePeek(Nodes, "getting root"), "getting root");
 
-    public void Visit(Node node)
+    public override void Visit(Node node)
     {
     }
 
-    public virtual void Visit(DescNode node)
+    public override void Visit(DescNode node)
     {
         var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
         Nodes.Push(new DescNode(fromNode, node.Type));
     }
 
-    public virtual void Visit(StarNode node)
+    public override void Visit(StarNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(StarNode));
         var right = nodes[1];
@@ -36,7 +36,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new StarNode(left, right));
     }
 
-    public virtual void Visit(FSlashNode node)
+    public override void Visit(FSlashNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(FSlashNode));
         var right = nodes[1];
@@ -44,7 +44,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new FSlashNode(left, right));
     }
 
-    public virtual void Visit(ModuloNode node)
+    public override void Visit(ModuloNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(ModuloNode));
         var right = nodes[1];
@@ -52,7 +52,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new ModuloNode(left, right));
     }
 
-    public virtual void Visit(AddNode node)
+    public override void Visit(AddNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AddNode));
         var right = nodes[1];
@@ -60,7 +60,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new AddNode(left, right));
     }
 
-    public virtual void Visit(HyphenNode node)
+    public override void Visit(HyphenNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(HyphenNode));
         var right = nodes[1];
@@ -68,7 +68,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new HyphenNode(left, right));
     }
 
-    public virtual void Visit(AndNode node)
+    public override void Visit(AndNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(AndNode));
         var right = nodes[1];
@@ -76,7 +76,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new AndNode(left, right));
     }
 
-    public virtual void Visit(OrNode node)
+    public override void Visit(OrNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, nameof(Visit) + nameof(OrNode));
         var right = nodes[1];
@@ -84,95 +84,95 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new OrNode(left, right));
     }
 
-    public virtual void Visit(ShortCircuitingNodeLeft node)
+    public override void Visit(ShortCircuitingNodeLeft node)
     {
         Nodes.Push(new ShortCircuitingNodeLeft(Nodes.Pop(), node.UsedFor));
     }
 
-    public virtual void Visit(ShortCircuitingNodeRight node)
+    public override void Visit(ShortCircuitingNodeRight node)
     {
         Nodes.Push(new ShortCircuitingNodeRight(Nodes.Pop(), node.UsedFor));
     }
 
-    public virtual void Visit(EqualityNode node)
+    public override void Visit(EqualityNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new EqualityNode(left, right));
     }
 
-    public virtual void Visit(GreaterOrEqualNode node)
+    public override void Visit(GreaterOrEqualNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new GreaterOrEqualNode(left, right));
     }
 
-    public virtual void Visit(LessOrEqualNode node)
+    public override void Visit(LessOrEqualNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new LessOrEqualNode(left, right));
     }
 
-    public virtual void Visit(GreaterNode node)
+    public override void Visit(GreaterNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new GreaterNode(left, right));
     }
 
-    public virtual void Visit(LessNode node)
+    public override void Visit(LessNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new LessNode(left, right));
     }
 
-    public virtual void Visit(DiffNode node)
+    public override void Visit(DiffNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new DiffNode(left, right));
     }
 
-    public virtual void Visit(NotNode node)
+    public override void Visit(NotNode node)
     {
         Nodes.Push(new NotNode(Nodes.Pop()));
     }
 
-    public virtual void Visit(LikeNode node)
+    public override void Visit(LikeNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new LikeNode(left, right));
     }
 
-    public virtual void Visit(RLikeNode node)
+    public override void Visit(RLikeNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new RLikeNode(left, right));
     }
 
-    public virtual void Visit(InNode node)
+    public override void Visit(InNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new InNode(left, (ArgsListNode)right));
     }
 
-    public virtual void Visit(FieldNode node)
+    public override void Visit(FieldNode node)
     {
         Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));
     }
 
-    public virtual void Visit(FieldOrderedNode node)
+    public override void Visit(FieldOrderedNode node)
     {
         Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, node.FieldName, node.Order));
     }
 
-    public virtual void Visit(SelectNode node)
+    public override void Visit(SelectNode node)
     {
         var fields = new FieldNode[node.Fields.Length];
 
@@ -182,7 +182,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct));
     }
 
-    public virtual void Visit(GroupSelectNode node)
+    public override void Visit(GroupSelectNode node)
     {
         var fields = new FieldNode[node.Fields.Length];
 
@@ -192,110 +192,110 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new GroupSelectNode(fields));
     }
 
-    public virtual void Visit(StringNode node)
+    public override void Visit(StringNode node)
     {
         Nodes.Push(new StringNode(node.Value));
     }
 
-    public virtual void Visit(DecimalNode node)
+    public override void Visit(DecimalNode node)
     {
         Nodes.Push(new DecimalNode(node.Value));
     }
 
-    public virtual void Visit(IntegerNode node)
+    public override void Visit(IntegerNode node)
     {
         Nodes.Push(new IntegerNode(node.ObjValue));
     }
 
-    public virtual void Visit(HexIntegerNode node)
+    public override void Visit(HexIntegerNode node)
     {
         Nodes.Push(new HexIntegerNode(node.ObjValue));
     }
 
-    public virtual void Visit(BinaryIntegerNode node)
+    public override void Visit(BinaryIntegerNode node)
     {
         Nodes.Push(new BinaryIntegerNode(node.ObjValue));
     }
 
-    public virtual void Visit(OctalIntegerNode node)
+    public override void Visit(OctalIntegerNode node)
     {
         Nodes.Push(new OctalIntegerNode(node.ObjValue));
     }
 
-    public void Visit(BooleanNode node)
+    public override void Visit(BooleanNode node)
     {
         Nodes.Push(new BooleanNode(node.Value));
     }
 
-    public virtual void Visit(WordNode node)
+    public override void Visit(WordNode node)
     {
         Nodes.Push(new WordNode(node.Value));
     }
 
-    public virtual void Visit(NullNode node)
+    public override void Visit(NullNode node)
     {
         Nodes.Push(new NullNode());
     }
 
-    public virtual void Visit(ContainsNode node)
+    public override void Visit(ContainsNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new ContainsNode(left, right as ArgsListNode));
     }
 
-    public virtual void Visit(AccessMethodNode node)
+    public override void Visit(AccessMethodNode node)
     {
         Nodes.Push(new AccessMethodNode(node.FunctionToken, (ArgsListNode) Nodes.Pop(), null, node.CanSkipInjectSource, node.Method, node.Alias));
     }
 
-    public virtual void Visit(AccessRawIdentifierNode node)
+    public override void Visit(AccessRawIdentifierNode node)
     {
         Nodes.Push(new AccessRawIdentifierNode(node.Name, node.ReturnType));
     }
 
-    public virtual void Visit(IsNullNode node)
+    public override void Visit(IsNullNode node)
     {
         Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated));
     }
 
-    public virtual void Visit(AccessRefreshAggregationScoreNode node)
+    public override void Visit(AccessRefreshAggregationScoreNode node)
     {
     }
 
-    public virtual void Visit(AccessColumnNode node)
+    public override void Visit(AccessColumnNode node)
     {
         Nodes.Push(new AccessColumnNode(node.Name, node.Alias, node.ReturnType, node.Span));
     }
 
-    public virtual void Visit(AllColumnsNode node)
+    public override void Visit(AllColumnsNode node)
     {
         Nodes.Push(new AllColumnsNode(node.Alias));
     }
 
-    public virtual void Visit(IdentifierNode node)
+    public override void Visit(IdentifierNode node)
     {
         Nodes.Push(new IdentifierNode(node.Name));
     }
 
-    public virtual void Visit(AccessObjectArrayNode node)
+    public override void Visit(AccessObjectArrayNode node)
     {
         Nodes.Push(new AccessObjectArrayNode(node.Token, node.PropertyInfo));
     }
 
-    public virtual void Visit(AccessObjectKeyNode node)
+    public override void Visit(AccessObjectKeyNode node)
     {
         var clonedNode = new AccessObjectKeyNode(node.Token, node.PropertyInfo);
         clonedNode.DestinationKind = node.DestinationKind;
         Nodes.Push(clonedNode);
     }
 
-    public virtual void Visit(PropertyValueNode node)
+    public override void Visit(PropertyValueNode node)
     {
         Nodes.Push(new PropertyValueNode(node.Name, node.PropertyInfo));
     }
 
-    public virtual void Visit(DotNode node)
+    public override void Visit(DotNode node)
     {
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
@@ -303,12 +303,12 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType));
     }
 
-    public virtual void Visit(AccessCallChainNode node)
+    public override void Visit(AccessCallChainNode node)
     {
         Nodes.Push(new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props, node.Alias));
     }
 
-    public virtual void Visit(ArgsListNode node)
+    public override void Visit(ArgsListNode node)
     {
         var args = new Node[node.Args.Length];
 
@@ -318,12 +318,12 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new ArgsListNode(args));
     }
 
-    public virtual void Visit(WhereNode node)
+    public override void Visit(WhereNode node)
     {
         Nodes.Push(new WhereNode(Nodes.Pop()));
     }
 
-    public virtual void Visit(GroupByNode node)
+    public override void Visit(GroupByNode node)
     {
         var having = Nodes.Peek() as HavingNode;
 
@@ -337,22 +337,22 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new GroupByNode(fields, having));
     }
 
-    public virtual void Visit(HavingNode node)
+    public override void Visit(HavingNode node)
     {
         Nodes.Push(new HavingNode(Nodes.Pop()));
     }
 
-    public virtual void Visit(SkipNode node)
+    public override void Visit(SkipNode node)
     {
         Nodes.Push(new SkipNode((IntegerNode) node.Expression));
     }
 
-    public virtual void Visit(TakeNode node)
+    public override void Visit(TakeNode node)
     {
         Nodes.Push(new TakeNode((IntegerNode) node.Expression));
     }
 
-    public virtual void Visit(SchemaFromNode node)
+    public override void Visit(SchemaFromNode node)
     {
         Nodes.Push(
             node is Parser.SchemaFromNode schemaFromNode ?
@@ -360,7 +360,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
                 new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, false));
     }
 
-    public virtual void Visit(JoinSourcesTableFromNode node)
+    public override void Visit(JoinSourcesTableFromNode node)
     {
         var exp = Nodes.Pop();
         var b = (FromNode) Nodes.Pop();
@@ -369,7 +369,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new Parser.JoinSourcesTableFromNode(a, b, exp, node.JoinType));
     }
 
-    public void Visit(ApplySourcesTableFromNode node)
+    public override void Visit(ApplySourcesTableFromNode node)
     {
         var b = (FromNode) Nodes.Pop();
         var a = (FromNode) Nodes.Pop();
@@ -377,12 +377,12 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new Parser.ApplySourcesTableFromNode(a, b, node.ApplyType));
     }
 
-    public virtual void Visit(InMemoryTableFromNode node)
+    public override void Visit(InMemoryTableFromNode node)
     {
         Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, node.Alias));
     }
 
-    public virtual void Visit(JoinFromNode node)
+    public override void Visit(JoinFromNode node)
     {
         var expression = Nodes.Pop();
         var joinedTable = (FromNode) Nodes.Pop();
@@ -391,7 +391,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(joinedFrom);
     }
 
-    public void Visit(ApplyFromNode node)
+    public override void Visit(ApplyFromNode node)
     {
         var appliedTable = (FromNode) Nodes.Pop();
         var source = (FromNode) Nodes.Pop();
@@ -399,33 +399,33 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(appliedFrom);
     }
 
-    public virtual void Visit(ExpressionFromNode node)
+    public override void Visit(ExpressionFromNode node)
     {
         var from = (FromNode) Nodes.Pop();
         Nodes.Push(new Parser.ExpressionFromNode(from));
     }
 
-    public virtual void Visit(AccessMethodFromNode node)
+    public override void Visit(AccessMethodFromNode node)
     {
         Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, (AccessMethodNode)Nodes.Pop(), node.ReturnType));
     }
 
-    public virtual void Visit(PropertyFromNode node)
+    public override void Visit(PropertyFromNode node)
     {
         Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));
     }
 
-    public virtual void Visit(AliasedFromNode node)
+    public override void Visit(AliasedFromNode node)
     {
         Nodes.Push(new Parser.AliasedFromNode(node.Identifier, (ArgsListNode)Nodes.Pop(), node.Alias, node.InSourcePosition));
     }
 
-    public virtual void Visit(SchemaMethodFromNode node)
+    public override void Visit(SchemaMethodFromNode node)
     {
         Nodes.Push(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
     }
 
-    public virtual void Visit(CreateTransformationTableNode node)
+    public override void Visit(CreateTransformationTableNode node)
     {
         var items = new FieldNode[node.Fields.Length];
 
@@ -435,34 +435,34 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, items, node.ForGrouping));
     }
 
-    public virtual void Visit(RenameTableNode node)
+    public override void Visit(RenameTableNode node)
     {
         Nodes.Push(new RenameTableNode(node.TableSourceName, node.TableDestinationName));
     }
 
-    public virtual void Visit(TranslatedSetTreeNode node)
+    public override void Visit(TranslatedSetTreeNode node)
     {
     }
 
-    public virtual void Visit(IntoNode node)
+    public override void Visit(IntoNode node)
     {
         Nodes.Push(new IntoNode(node.Name));
     }
 
-    public virtual void Visit(QueryScope node)
+    public override void Visit(QueryScope node)
     {
     }
 
-    public virtual void Visit(ShouldBePresentInTheTable node)
+    public override void Visit(ShouldBePresentInTheTable node)
     {
         Nodes.Push(new ShouldBePresentInTheTable(node.Table, node.ExpectedResult, node.Keys));
     }
 
-    public virtual void Visit(TranslatedSetOperatorNode node)
+    public override void Visit(TranslatedSetOperatorNode node)
     {
     }
 
-    public virtual void Visit(QueryNode node)
+    public override void Visit(QueryNode node)
     {
         var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
@@ -477,39 +477,39 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
     }
 
-    public virtual void Visit(JoinInMemoryWithSourceTableFromNode node)
+    public override void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
         var exp = Nodes.Pop();
         var from = (FromNode) Nodes.Pop();
         Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
     }
 
-    public virtual void Visit(ApplyInMemoryWithSourceTableFromNode node)
+    public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
         var from = (FromNode) Nodes.Pop();
         Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType));
     }
 
-    public virtual void Visit(InternalQueryNode node)
+    public override void Visit(InternalQueryNode node)
     {
         throw new NotSupportedException();
     }
 
-    public virtual void Visit(RootNode node)
+    public override void Visit(RootNode node)
     {
         Nodes.Push(new RootNode(Nodes.Pop()));
     }
 
-    public virtual void Visit(SingleSetNode node)
+    public override void Visit(SingleSetNode node)
     {
     }
 
-    public virtual void Visit(RefreshNode node)
+    public override void Visit(RefreshNode node)
     {
         Nodes.Push(new RefreshNode(node.Nodes));
     }
 
-    public virtual void Visit(UnionNode node)
+    public override void Visit(UnionNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
@@ -517,7 +517,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
     }
 
-    public virtual void Visit(UnionAllNode node)
+    public override void Visit(UnionAllNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
@@ -526,14 +526,14 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
             node.IsTheLastOne));
     }
 
-    public virtual void Visit(ExceptNode node)
+    public override void Visit(ExceptNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
     }
 
-    public virtual void Visit(IntersectNode node)
+    public override void Visit(IntersectNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
@@ -541,12 +541,12 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
             new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne));
     }
 
-    public virtual void Visit(PutTrueNode node)
+    public override void Visit(PutTrueNode node)
     {
         Nodes.Push(new PutTrueNode());
     }
 
-    public virtual void Visit(MultiStatementNode node)
+    public override void Visit(MultiStatementNode node)
     {
         var items = new Node[node.Nodes.Length];
 
@@ -556,7 +556,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new MultiStatementNode(items, node.ReturnType));
     }
 
-    public virtual void Visit(CteExpressionNode node)
+    public override void Visit(CteExpressionNode node)
     {
         var sets = new CteInnerExpressionNode[node.InnerExpression.Length];
 
@@ -566,22 +566,22 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new CteExpressionNode(sets, Nodes.Pop()));
     }
 
-    public virtual void Visit(CteInnerExpressionNode node)
+    public override void Visit(CteInnerExpressionNode node)
     {
         Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name));
     }
 
-    public virtual void Visit(JoinNode node)
+    public override void Visit(JoinNode node)
     {
         Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode) Nodes.Pop()));
     }
 
-    public void Visit(ApplyNode node)
+    public override void Visit(ApplyNode node)
     {
         Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode) Nodes.Pop()));
     }
 
-    public virtual void Visit(OrderByNode node)
+    public override void Visit(OrderByNode node)
     {
         var fields = new FieldOrderedNode[node.Fields.Length];
 
@@ -591,17 +591,17 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new OrderByNode(fields));
     }
 
-    public virtual void Visit(CreateTableNode node)
+    public override void Visit(CreateTableNode node)
     {
         Nodes.Push(new CreateTableNode(node.Name, node.TableTypePairs));
     }
 
-    public virtual void Visit(CoupleNode node)
+    public override void Visit(CoupleNode node)
     {
         Nodes.Push(new CoupleNode(node.SchemaMethodNode, node.TableName, node.MappedSchemaName));
     }
 
-    public virtual void Visit(StatementsArrayNode node)
+    public override void Visit(StatementsArrayNode node)
     {
         var statements = new StatementNode[node.Statements.Length];
         for(var i = 0; i < node.Statements.Length; ++i)
@@ -612,12 +612,12 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new StatementsArrayNode(statements));
     }
 
-    public virtual void Visit(StatementNode node)
+    public override void Visit(StatementNode node)
     {
         Nodes.Push(new StatementNode(Nodes.Pop()));
     }
 
-    public virtual void Visit(CaseNode node)
+    public override void Visit(CaseNode node)
     {
         var whenThenPairs = new List<(Node When, Node Then)>();
 
@@ -633,22 +633,22 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new CaseNode(whenThenPairs.ToArray(), elseNode, node.ReturnType));
     }
 
-    public virtual void Visit(WhenNode node)
+    public override void Visit(WhenNode node)
     {
         Nodes.Push(new WhenNode(Nodes.Pop()));
     }
 
-    public virtual void Visit(ThenNode node)
+    public override void Visit(ThenNode node)
     {
         Nodes.Push(new ThenNode(Nodes.Pop()));
     }
 
-    public virtual void Visit(ElseNode node)
+    public override void Visit(ElseNode node)
     {
         Nodes.Push(new ElseNode(Nodes.Pop()));
     }
 
-    public virtual void Visit(FieldLinkNode node)
+    public override void Visit(FieldLinkNode node)
     {
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }
