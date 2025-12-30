@@ -102,7 +102,17 @@ public class Parser
         if (Current.TokenType == TokenType.Functions)
         {
             Consume(TokenType.Functions);
-            var schemaName = ComposeWord();
+            
+            if (Current.TokenType == TokenType.MethodAccess)
+            {
+                var sourceAlias = Current.Value;
+                var schemaName = EnsureHashPrefix(sourceAlias);
+                var accessMethod = ComposeAccessMethod(sourceAlias);
+                
+                return new DescNode(new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1), DescForType.FunctionsForSchema);
+            }
+            
+            var schemaNameForFunctions = ComposeSchemaName();
             var schemaToken = Current;
             
             if (Current.TokenType == TokenType.Dot)
@@ -112,6 +122,7 @@ public class Parser
                 if (Current is FunctionToken)
                 {
                     var accessMethod = ComposeAccessMethod(string.Empty);
+                    return new DescNode(new SchemaFromNode(schemaNameForFunctions, accessMethod.Name, accessMethod.Arguments, string.Empty, 1), DescForType.FunctionsForSchema);
                 }
                 else
                 {
@@ -119,10 +130,19 @@ public class Parser
                 }
             }
             
-            return new DescNode(new SchemaFromNode(schemaName.Value, string.Empty, ArgsListNode.Empty, string.Empty, schemaToken.Span.Start), DescForType.FunctionsForSchema);
+            return new DescNode(new SchemaFromNode(schemaNameForFunctions, string.Empty, ArgsListNode.Empty, string.Empty, schemaToken.Span.Start), DescForType.FunctionsForSchema);
         }
 
-        var name = ComposeWord();
+        if (Current.TokenType == TokenType.MethodAccess)
+        {
+            var sourceAlias = Current.Value;
+            var schemaName = EnsureHashPrefix(sourceAlias);
+            var accessMethod = ComposeAccessMethod(sourceAlias);
+            
+            return new DescNode(new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1), DescForType.SpecificConstructor);
+        }
+
+        var name = ComposeSchemaName();
         var startToken = Current;
 
         if(Current.TokenType == TokenType.Dot)
@@ -134,19 +154,45 @@ public class Parser
             {
                 var accessMethod = ComposeAccessMethod(string.Empty);
 
-                fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, string.Empty, 1);
+                fromNode = new SchemaFromNode(name, accessMethod.Name, accessMethod.Arguments, string.Empty, 1);
                 return new DescNode(fromNode, DescForType.SpecificConstructor);
             }
 
             var methodName = new WordNode(ConsumeAndGetToken(TokenType.Property).Value);
 
-            fromNode = new SchemaFromNode(name.Value, methodName.Value, ArgsListNode.Empty, string.Empty, 1);
+            fromNode = new SchemaFromNode(name, methodName.Value, ArgsListNode.Empty, string.Empty, 1);
             return new DescNode(fromNode, DescForType.Constructors);
         }
         else
         {
-            return new DescNode(new SchemaFromNode(name.Value, string.Empty, ArgsListNode.Empty, string.Empty, startToken.Span.Start), DescForType.Schema);
+            return new DescNode(new SchemaFromNode(name, string.Empty, ArgsListNode.Empty, string.Empty, startToken.Span.Start), DescForType.Schema);
         }
+    }
+    
+    /// <summary>
+    /// Composes a schema name from the current token, handling both hash (#schema) and 
+    /// hash-optional (schema) syntax. Always returns the name with the hash prefix.
+    /// </summary>
+    private string ComposeSchemaName()
+    {
+        if (Current.TokenType == TokenType.Word)
+            return ComposeWord().Value;
+        
+        if (Current.TokenType == TokenType.Identifier)
+        {
+            var identifier = ConsumeAndGetToken(TokenType.Identifier).Value;
+            return EnsureHashPrefix(identifier);
+        }
+        
+        throw new SyntaxException($"Expected schema name (Word or Identifier) but received {Current.TokenType}", _lexer.AlreadyResolvedQueryPart);
+    }
+    
+    /// <summary>
+    /// Ensures the schema name has the hash prefix (#).
+    /// </summary>
+    private static string EnsureHashPrefix(string name)
+    {
+        return name.StartsWith('#') ? name : $"#{name}";
     }
 
     private CoupleNode ComposeCouple()
@@ -733,12 +779,22 @@ public class Parser
 
     private SchemaMethodFromNode ComposeSchemaMethod()
     {
-        var schemaNode = ComposeWord();
+        if (Current.TokenType == TokenType.MethodAccess)
+        {
+            var sourceAlias = Current.Value;
+            var schemaName = EnsureHashPrefix(sourceAlias);
+            var accessMethod = ComposeAccessMethod(sourceAlias);
+            var alias = ComposeAlias();
+            
+            return new SchemaMethodFromNode(alias, schemaName, accessMethod.Name);
+        }
+        
+        var schemaNode = ComposeSchemaName();
         ConsumeAsColumn(TokenType.Dot);
         var identifier = (IdentifierNode)ComposeBaseTypes();
-        var alias = ComposeAlias();
+        var composeAlias = ComposeAlias();
 
-        return new SchemaMethodFromNode(alias, schemaNode.Value, identifier.Name);
+        return new SchemaMethodFromNode(composeAlias, schemaNode, identifier.Name);
     }
 
     private FromNode ComposeFrom(bool fromKeywordBefore = true, bool isApplyContext = false)
@@ -786,7 +842,7 @@ public class Parser
             
             if (!isApplyContext && !sourceAlias.StartsWith('#'))
             {
-                var schemaName = $"#{sourceAlias}";
+                var schemaName = EnsureHashPrefix(sourceAlias);
                 return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
             
@@ -809,7 +865,7 @@ public class Parser
                 var accessMethod = ComposeAccessMethod(string.Empty);
                 alias = ComposeAlias();
                 
-                var schemaName = column.Name.StartsWith('#') ? column.Name : $"#{column.Name}";
+                var schemaName = EnsureHashPrefix(column.Name);
                 return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
 
