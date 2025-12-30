@@ -118,12 +118,26 @@ public class DescParserTests
     [TestMethod]
     public void DescWithInvalidSyntax_InvalidSchemaName_ShouldFail()
     {
-        var query = "desc schema"; // Missing # prefix
+        // With hash-optional syntax, "desc schema" is now valid
+        // Test with a truly invalid input instead
+        var query = "desc 123invalid"; // Schema name can't start with number
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
         Assert.Throws<SyntaxException>(() => parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void DescWithoutHash_ShouldSucceed()
+    {
+        var query = "desc schema"; // Hash-optional syntax is now valid
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
     }
 
     [TestMethod]
@@ -366,12 +380,26 @@ public class DescParserTests
     [TestMethod]
     public void DescFunctions_InvalidSchemaName_ShouldFail()
     {
-        var query = "desc functions schema"; // Missing # prefix
+        // With hash-optional syntax, "desc functions schema" is now valid
+        // Test with a truly invalid input instead
+        var query = "desc functions 123invalid"; // Schema name can't start with number
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
         Assert.Throws<SyntaxException>(() => parser.ComposeAll());
+    }
+    
+    [TestMethod]
+    public void DescFunctionsWithoutHash_ShouldSucceed()
+    {
+        var query = "desc functions schema"; // Hash-optional syntax is now valid
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
     }
 
     [TestMethod]
