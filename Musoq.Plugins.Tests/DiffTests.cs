@@ -270,7 +270,7 @@ public class DiffTests : LibraryBaseBaseTests
     {
         var result = Library.DiffSegments("aXb", "aYb").ToList();
 
-        Assert.AreEqual(4, result.Count);
+        Assert.HasCount(4, result);
 
         Assert.AreEqual("a", result[0].Text);
         Assert.AreEqual("Unchanged", result[0].Kind);
@@ -298,7 +298,7 @@ public class DiffTests : LibraryBaseBaseTests
     {
         var result = Library.DiffSegments("abc", "abc").ToList();
 
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("abc", result[0].Text);
         Assert.AreEqual("Unchanged", result[0].Kind);
         Assert.AreEqual(0, result[0].Position);
@@ -310,7 +310,7 @@ public class DiffTests : LibraryBaseBaseTests
     {
         var result = Library.DiffSegments("abc", "xyz").ToList();
 
-        Assert.AreEqual(2, result.Count);
+        Assert.HasCount(2, result);
         
         Assert.AreEqual("abc", result[0].Text);
         Assert.AreEqual("Deleted", result[0].Kind);
@@ -331,7 +331,7 @@ public class DiffTests : LibraryBaseBaseTests
     public void DiffSegments_BothNull_ReturnsEmpty()
     {
         var result = Library.DiffSegments(null, null).ToList();
-        Assert.AreEqual(0, result.Count);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -339,7 +339,7 @@ public class DiffTests : LibraryBaseBaseTests
     {
         var result = Library.DiffSegments(null, "xyz").ToList();
 
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("xyz", result[0].Text);
         Assert.AreEqual("Inserted", result[0].Kind);
         Assert.AreEqual(0, result[0].Position);
@@ -351,7 +351,7 @@ public class DiffTests : LibraryBaseBaseTests
     {
         var result = Library.DiffSegments("abc", null).ToList();
 
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("abc", result[0].Text);
         Assert.AreEqual("Deleted", result[0].Kind);
         Assert.AreEqual(0, result[0].Position);
@@ -362,7 +362,7 @@ public class DiffTests : LibraryBaseBaseTests
     public void DiffSegments_BothEmpty_ReturnsEmpty()
     {
         var result = Library.DiffSegments("", "").ToList();
-        Assert.AreEqual(0, result.Count);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -370,7 +370,7 @@ public class DiffTests : LibraryBaseBaseTests
     {
         var result = Library.DiffSegments("", "xyz").ToList();
 
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("xyz", result[0].Text);
         Assert.AreEqual("Inserted", result[0].Kind);
     }
@@ -380,7 +380,7 @@ public class DiffTests : LibraryBaseBaseTests
     {
         var result = Library.DiffSegments("abc", "").ToList();
 
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("abc", result[0].Text);
         Assert.AreEqual("Deleted", result[0].Kind);
     }
@@ -474,7 +474,7 @@ public class DiffTests : LibraryBaseBaseTests
         var result = Library.DiffSegments("aXbYcZ", "aAbBcC").ToList();
 
         // Should have alternating unchanged and change patterns
-        Assert.IsTrue(result.Count > 0);
+        Assert.IsNotEmpty(result);
         
         // Verify first unchanged
         Assert.AreEqual("a", result[0].Text);

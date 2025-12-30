@@ -17,7 +17,7 @@ public class LibraryBaseStringsNullHandlingTests : LibraryBaseBaseTests
         
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
     
     [TestMethod]
@@ -28,7 +28,7 @@ public class LibraryBaseStringsNullHandlingTests : LibraryBaseBaseTests
         
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
     
     [TestMethod]
@@ -39,7 +39,7 @@ public class LibraryBaseStringsNullHandlingTests : LibraryBaseBaseTests
         
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
     
     [TestMethod]
@@ -50,7 +50,7 @@ public class LibraryBaseStringsNullHandlingTests : LibraryBaseBaseTests
         
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("a", result[0]);
         Assert.AreEqual("b", result[1]);
         Assert.AreEqual("c", result[2]);
@@ -64,7 +64,7 @@ public class LibraryBaseStringsNullHandlingTests : LibraryBaseBaseTests
         
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual('a', result[0]);
         Assert.AreEqual('b', result[1]);
         Assert.AreEqual('c', result[2]);
