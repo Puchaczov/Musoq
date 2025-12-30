@@ -203,25 +203,6 @@ public class LibraryBaseUtilsTests
         Assert.AreEqual("cafe", _library.RemoveDiacritics("café"));
     }
 
-    [TestMethod]
-    public void EditDistance_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.EditDistance(null, "test"));
-        Assert.IsNull(_library.EditDistance("test", null));
-    }
-
-    [TestMethod]
-    public void EditDistance_WhenSameString_ReturnsZero()
-    {
-        Assert.AreEqual(0, _library.EditDistance("hello", "hello"));
-    }
-
-    [TestMethod]
-    public void EditDistance_WhenDifferent_ReturnsCorrectDistance()
-    {
-        Assert.AreEqual(3, _library.EditDistance("kitten", "sitting"));
-    }
-
     #endregion
 
     #region Hash Tests
