@@ -103,7 +103,6 @@ public class Parser
         {
             Consume(TokenType.Functions);
             
-            // Handle MethodAccess token (schema.method without hash) for "desc functions schema.method()"
             if (Current.TokenType == TokenType.MethodAccess)
             {
                 var sourceAlias = Current.Value;
@@ -134,7 +133,6 @@ public class Parser
             return new DescNode(new SchemaFromNode(schemaNameForFunctions, string.Empty, ArgsListNode.Empty, string.Empty, schemaToken.Span.Start), DescForType.FunctionsForSchema);
         }
 
-        // Handle MethodAccess token (schema.method without hash)
         if (Current.TokenType == TokenType.MethodAccess)
         {
             var sourceAlias = Current.Value;
@@ -178,14 +176,10 @@ public class Parser
     private string ComposeSchemaName()
     {
         if (Current.TokenType == TokenType.Word)
-        {
-            // Schema with hash prefix: #schema - already has the hash
             return ComposeWord().Value;
-        }
         
         if (Current.TokenType == TokenType.Identifier)
         {
-            // Schema without hash prefix: schema - needs hash added
             var identifier = ConsumeAndGetToken(TokenType.Identifier).Value;
             return EnsureHashPrefix(identifier);
         }
@@ -785,7 +779,6 @@ public class Parser
 
     private SchemaMethodFromNode ComposeSchemaMethod()
     {
-        // Handle MethodAccess token (schema.method without hash)
         if (Current.TokenType == TokenType.MethodAccess)
         {
             var sourceAlias = Current.Value;
@@ -796,7 +789,6 @@ public class Parser
             return new SchemaMethodFromNode(alias, schemaName, accessMethod.Name);
         }
         
-        // Handle Word token (schema with hash)
         var schemaNode = ComposeSchemaName();
         ConsumeAsColumn(TokenType.Dot);
         var identifier = (IdentifierNode)ComposeBaseTypes();
