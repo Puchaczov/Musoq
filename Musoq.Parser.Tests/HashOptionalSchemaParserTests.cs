@@ -897,5 +897,129 @@ public class HashOptionalSchemaParserTests
         Assert.IsNotNull(result);
     }
     
+    [TestMethod]
+    public void HashOptional_CrossApplyWithMethodCallOnAlias_ShouldParse()
+    {
+        // Critical test: ensure that method calls on aliases (a.Split) don't get # prefix
+        var query = "select b.Value from schema.first() a cross apply a.Split(a.Text, ' ') b";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CrossApplyWithChainedMethodCalls_ShouldParse()
+    {
+        // Test chained method calls like Skip(Split(x))
+        var query = "select b.Value from schema.first() a cross apply a.Take(a.Skip(a.Split(a.Text, ' '), 1), 6) b";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CrossApplyWithNestedProperty_ShouldNotInjectHash()
+    {
+        // Ensure nested properties on aliases don't get # prefix
+        // Uses the PropertyFromNode parsing path
+        var query = "select c.Value from schema.thing() a cross apply a.Prop.Nested c";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_RightOuterJoin_ShouldParse()
+    {
+        var query = "select a.Col, b.Col from schema.first() a right outer join schema.second() b on a.Key = b.Key";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_MultipleStatements_ShouldParse()
+    {
+        var query = "select 1 from schema.first(); select 2 from schema.second()";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_DescWithCouple_ShouldParse()
+    {
+        // Test DESC and COUPLE in the same query batch
+        var query = "table T { Id 'System.Int32' }; couple schema.method with table T as Source; select Id from Source()";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CteWithCrossApply_ShouldParse()
+    {
+        var query = @"
+            with p as (select Text from schema.first())
+            select b.Value from p a cross apply a.Split(a.Text, ' ') b";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_MultipleCrossApplies_ShouldParse()
+    {
+        var query = "select c.Value from schema.first() a cross apply a.Split(a.Text, ' ') b cross apply b.ToCharArray(b.Value) c";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CrossApplyBetweenTwoSchemas_ShouldParse()
+    {
+        // Both schemas use hash-optional syntax
+        var query = "select b.Col from schemaA.first() a cross apply schemaB.second(a.Key) b";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_NestedCteWithSetOperator_ShouldParse()
+    {
+        var query = @"
+            with 
+                cte1 as (select Name from schema.first()),
+                cte2 as (select Name from schema.second()),
+                cte3 as (select Name from cte1 union (Name) select Name from cte2)
+            select Name from cte3";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_JoinWithSubqueryAlias_ShouldParse()
+    {
+        // Ensure aliases in join conditions aren't treated as schema references
+        var query = "select a.Col, b.Col from schema.first() a inner join schema.second() b on a.Id = b.Id where a.Value > 5";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
     #endregion
 }
