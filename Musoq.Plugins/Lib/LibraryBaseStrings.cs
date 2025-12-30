@@ -2291,44 +2291,6 @@ public partial class LibraryBase
 
         return sb.ToString().Normalize(NormalizationForm.FormC);
     }
-
-    /// <summary>
-    /// Calculates the Levenshtein (edit) distance between two strings.
-    /// </summary>
-    /// <param name="source">The source string</param>
-    /// <param name="target">The target string</param>
-    /// <returns>The number of edits required to transform source to target</returns>
-    [BindableMethod]
-    [MethodCategory(MethodCategories.String)]
-    public int? EditDistance(string? source, string? target)
-    {
-        if (source == null || target == null)
-            return null;
-
-        var n = source.Length;
-        var m = target.Length;
-
-        if (n == 0) return m;
-        if (m == 0) return n;
-
-        var d = new int[n + 1, m + 1];
-
-        for (var i = 0; i <= n; i++) d[i, 0] = i;
-        for (var j = 0; j <= m; j++) d[0, j] = j;
-
-        for (var i = 1; i <= n; i++)
-        {
-            for (var j = 1; j <= m; j++)
-            {
-                var cost = source[i - 1] == target[j - 1] ? 0 : 1;
-                d[i, j] = Math.Min(
-                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                    d[i - 1, j - 1] + cost);
-            }
-        }
-
-        return d[n, m];
-    }
     
     [GeneratedRegex(@"\\u([0-9A-Fa-f]{4})")]
     private static partial Regex UnicodeEscapeRegex();

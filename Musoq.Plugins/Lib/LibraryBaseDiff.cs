@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using DiffPlex;
-using DiffPlex.DiffBuilder;
-using DiffPlex.DiffBuilder.Model;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
@@ -39,36 +37,29 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? Diff(string? first, string? second, string? mode = "full")
     {
-        // Both null -> null
         if (first == null && second == null)
             return null;
 
-        // Parse mode
         var parsedMode = ParseDiffMode(mode);
         if (parsedMode == null)
             return null;
 
         var (modeName, threshold) = parsedMode.Value;
 
-        // Handle null cases
         if (first == null)
             return $"[+{second}]";
         if (second == null)
             return $"[-{first}]";
 
-        // Both empty -> empty
         if (first.Length == 0 && second.Length == 0)
             return string.Empty;
 
-        // First empty -> all inserted
         if (first.Length == 0)
             return $"[+{second}]";
 
-        // Second empty -> all deleted
         if (second.Length == 0)
             return $"[-{first}]";
 
-        // Identical strings
         if (first == second)
         {
             if (modeName == "compact")
@@ -76,10 +67,8 @@ public partial class LibraryBase
             return first;
         }
 
-        // Perform character-level diff
         var segments = ComputeCharacterDiff(first, second);
 
-        // Build output string
         return BuildDiffString(segments, modeName, threshold);
     }
 
@@ -101,45 +90,35 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public IEnumerable<DiffSegmentEntity> DiffSegments(string? first, string? second)
     {
-        // Both null -> empty
         if (first == null && second == null)
             return [];
 
-        // First null -> single inserted segment
         if (first == null)
             return [new DiffSegmentEntity(second!, KindInserted, 0, second!.Length)];
 
-        // Second null -> single deleted segment
         if (second == null)
             return [new DiffSegmentEntity(first, KindDeleted, 0, first.Length)];
 
-        // Both empty -> empty
         if (first.Length == 0 && second.Length == 0)
             return [];
 
-        // First empty -> all inserted
         if (first.Length == 0)
             return [new DiffSegmentEntity(second, KindInserted, 0, second.Length)];
 
-        // Second empty -> all deleted
         if (second.Length == 0)
             return [new DiffSegmentEntity(first, KindDeleted, 0, first.Length)];
 
-        // Identical strings -> single unchanged segment
         if (first == second)
             return [new DiffSegmentEntity(first, KindUnchanged, 0, first.Length)];
 
-        // Perform character-level diff
         return ComputeCharacterDiff(first, second);
     }
 
     private static (string modeName, int? threshold)? ParseDiffMode(string? mode)
     {
-        // null mode uses default "full"
         if (mode == null)
             return ("full", null);
 
-        // Empty mode is invalid
         if (mode.Length == 0)
             return null;
 
@@ -171,14 +150,12 @@ public partial class LibraryBase
         var unchangedBuilder = new StringBuilder();
         var unchangedStartSourcePos = 0;
         
-        // Process diff blocks
         var diffBlockIndex = 0;
         var oldIndex = 0;
         var newIndex = 0;
         
         while (oldIndex < first.Length || newIndex < second.Length)
         {
-            // Find next diff block that starts at or after current position
             DiffPlex.Model.DiffBlock? currentBlock = null;
             if (diffBlockIndex < diffResult.DiffBlocks.Count)
             {
@@ -187,7 +164,6 @@ public partial class LibraryBase
             
             if (currentBlock == null)
             {
-                // No more diff blocks - rest is unchanged
                 if (oldIndex < first.Length)
                 {
                     var remainingUnchanged = first.Substring(oldIndex);
@@ -202,7 +178,6 @@ public partial class LibraryBase
                 break;
             }
             
-            // Collect unchanged chars before this block
             while (oldIndex < currentBlock.DeleteStartA)
             {
                 if (unchangedBuilder.Length == 0)
@@ -214,7 +189,6 @@ public partial class LibraryBase
                 targetPos++;
             }
             
-            // Flush unchanged buffer before processing deletions/insertions
             if (unchangedBuilder.Length > 0)
             {
                 segments.Add(new DiffSegmentEntity(
@@ -225,7 +199,6 @@ public partial class LibraryBase
                 unchangedBuilder.Clear();
             }
             
-            // Process deletions from this block
             if (currentBlock.DeleteCountA > 0)
             {
                 var deletedText = first.Substring(currentBlock.DeleteStartA, currentBlock.DeleteCountA);
@@ -238,7 +211,6 @@ public partial class LibraryBase
                 oldIndex += currentBlock.DeleteCountA;
             }
             
-            // Process insertions from this block
             if (currentBlock.InsertCountB > 0)
             {
                 var insertedText = second.Substring(currentBlock.InsertStartB, currentBlock.InsertCountB);
@@ -254,7 +226,6 @@ public partial class LibraryBase
             diffBlockIndex++;
         }
         
-        // Flush any remaining unchanged content
         if (unchangedBuilder.Length > 0)
         {
             segments.Add(new DiffSegmentEntity(
