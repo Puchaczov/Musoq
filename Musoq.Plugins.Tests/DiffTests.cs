@@ -137,7 +137,7 @@ public class DiffTests : LibraryBaseBaseTests
     public void Diff_NullMode_UsesDefaultFull()
     {
         var result = Library.Diff("abc", "xyz", null);
-        Assert.IsNull(result); // Null mode returns null
+        Assert.AreEqual("[-abc][+xyz]", result); // Null mode uses default "full"
     }
 
     [TestMethod]

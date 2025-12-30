@@ -135,7 +135,12 @@ public partial class LibraryBase
 
     private static (string modeName, int? threshold)? ParseDiffMode(string? mode)
     {
-        if (string.IsNullOrEmpty(mode))
+        // null mode uses default "full"
+        if (mode == null)
+            return ("full", null);
+
+        // Empty mode is invalid
+        if (mode.Length == 0)
             return null;
 
         if (mode == "full")
