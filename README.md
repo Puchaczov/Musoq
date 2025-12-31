@@ -56,6 +56,7 @@ where f.GetFileContent() rlike 'TODO.*urgent'
 
 ## 🎯 Perfect For Daily Developer Tasks
 
+- **Huge standard library**: Nearly 1000 standard library methods
 - **Quick utilities**: Generate data, check file sizes, count lines
 - **File system queries**: Find files, compare directories, analyze disk usage  
 - **Git insights**: Who changed what, commit patterns, file history
@@ -168,6 +169,48 @@ select
     p.Sha as ParentSha
 from #git.commits('./repo') c 
 cross apply c.Parents as p
+```
+
+---
+
+### 🏞️ Photo Analysis
+
+#### Generate hashtags using LLM
+Generate descriptions of photos by local offline model, then pass the description to more powerfull model to generate hash tags from the descriptions. Avoiding leaking the photos to external model provider.
+
+```sql
+with PhotosDescription as (
+    select 
+        f.Name as Name, 
+        l.AskImage('this is the photo of my little child I want you to describe. Be conscise, use only single statement.', f.Base64File()) as Description 
+    from #os.files('/some/folder/with/photos', false) f 
+    cross apply #ollama.llm('llama3.2-vision:11b-instruct-q4_K_M') l
+)
+select
+    p.Name,
+    p.Description,
+    l.LlmPerform('this is the description of the photo I want you generate hashtags for. It comes from my child photo album. Return only hashtags separated with comma (#something, #somethingElse). Comma is very important to separate hashtags. Dont forget about it. No description or explanation.', p.Description) as HashTags
+from PhotosDescription p cross apply #openai.gpt('gpt-4o', 4096, 0.0) l
+```
+
+### Structured extraction from unstructured data
+Pass image of receipt, receive shop, product name and price.
+
+```
+--image passed to stdin by command: ./Musoq.exe image encode "D:/Some/Receipt.jpg"
+
+select s.Shop, s.ProductName, s.Price from #stdin.LlmExtractFromImage() s
+```
+
+Same story but this time we are expecting specific types
+```
+table Receipt {
+    Shop 'System.String',
+    ProductName 'System.String',
+    Price 'System.Decimal'
+};
+couple #stdin.LlmExtractFromImage() with table Receipt as SourceOfReceipts;
+select s.Shop, s.ProductName, s.Price from SourceOfReceipts('OpenAi', 'gpt-4o') s
 ```
 
 ---
