@@ -27,7 +27,7 @@ Musoq run "select Name, Length from #os.files('/home/user', true) where Length >
 Musoq run "select Count(1) from #git.repository('.') r cross apply r.Commits c where c.CommittedWhen > '2024-11-01'"
 ```
 
-## 💡 Why SQL for Scripting?
+## Why SQL for Scripting?
 
 **Instead of this bash nightmare:**
 ```bash
@@ -54,7 +54,7 @@ from #os.files('/project', true) f
 where f.GetFileContent() rlike 'TODO.*urgent'
 ```
 
-## 🎯 Perfect For Daily Developer Tasks
+## Perfect For Daily Developer Tasks
 
 - **Huge standard library**: Nearly 1000 standard library methods
 - **Quick utilities**: Generate data, check file sizes, count lines
@@ -66,9 +66,28 @@ where f.GetFileContent() rlike 'TODO.*urgent'
 
 All with the declarative power of SQL instead of imperative loops and conditionals.
 
-## 🛠 What You Can Query
+## What Columns And Methods Are Available
+Just run `desc` on schema or computed table
 
-### 🔀 Git Repository Queries (`#git`)
+```sql
+-- what tables does this schema has?
+desc #schema 
+
+-- what constructors are available from this particular table?
+desc #schema.table
+
+-- what columns does this table has?
+desc #schema.table(param1, param2, ..., paramN)
+```
+
+```sql
+-- what functions are available within that data source?
+desc functions #schema
+```
+
+## What You Can Query
+
+### Git Repository Queries (`#git`)
 
 #### List Recent Commits
 Query commit history with author information.
@@ -173,7 +192,7 @@ cross apply c.Parents as p
 
 ---
 
-### 🏞️ Photo Analysis
+### Photo Analysis
 
 #### Generate hashtags using LLM
 Generate descriptions of photos by local offline model, then pass the description to more powerfull model to generate hash tags from the descriptions. Avoiding leaking the photos to external model provider.
@@ -215,7 +234,7 @@ select s.Shop, s.ProductName, s.Price from SourceOfReceipts('OpenAi', 'gpt-4o') 
 
 ---
 
-### 🔬 C# Code Analysis (`#csharp`)
+### C# Code Analysis (`#csharp`)
 
 #### List All Classes in Solution
 Find all classes across a C# solution with their metrics.
@@ -443,7 +462,7 @@ where c.MethodsCount > 2
 
 ---
 
-### 🔗 Combined Data Source Queries
+### Combined Data Source Queries
 
 #### Analyze Git Repositories from File System
 Discover and analyze multiple Git repositories.
@@ -487,7 +506,7 @@ inner join TargetFiles t on s.RelPath = t.RelPath
 
 ---
 
-### 📁 File System Queries (`#os`)
+### File System Queries (`#os`)
 
 #### List Files with Size Information
 Find all files in a directory with their sizes formatted in human-readable format.
@@ -525,7 +544,7 @@ where State <> 'TheSame'
 
 ---
 
-### 📊 CSV/Separated Values (`#separatedvalues`)
+### CSV/Separated Values (`#separatedvalues`)
 
 #### Basic CSV Query with Aggregation
 Analyze banking transactions and calculate monthly income/outcome.
@@ -570,7 +589,7 @@ where Salary > 50000
 
 ---
 
-### 🗂️ JSON Queries (`#json`)
+### JSON Queries (`#json`)
 
 #### Query JSON Array
 Extract data from a JSON file using a schema definition.
@@ -586,7 +605,7 @@ where Age > 18
 
 ---
 
-### 📦 Archive Queries (`#archives`)
+### Archive Queries (`#archives`)
 
 #### List Archive Contents
 Read contents of ZIP or TAR archives and extract text content.
@@ -602,7 +621,7 @@ where Key like '%.txt'
 
 ---
 
-### ⏰ Time Queries (`#time`)
+### Time Queries (`#time`)
 
 #### Generate Date Range
 Create a sequence of dates for reporting or analysis.
@@ -627,7 +646,7 @@ where DayOfWeek = 0 or DayOfWeek = 6
 
 ---
 
-### 🔧 System Utilities (`#system`)
+### System Utilities (`#system`)
 
 #### Number Range Generation
 Generate a sequence of numbers for various purposes.
@@ -651,13 +670,13 @@ from #system.dual()
 
 ---
 
-## 📚 Resources
+## Resources
 
 - **[Documentation](https://puchaczov.github.io/Musoq/)** - Guide and examples
 - **[Data Sources](https://github.com/Puchaczov/Musoq.DataSources)** - All available plugins
 - **[CLI Tool](https://github.com/Puchaczov/Musoq.CLI)** - Command-line interface
 
-## 🎨 Advanced Features
+## Advanced Features
 
 SQL power including:
 - Common Table Expressions (CTEs)
@@ -667,9 +686,9 @@ SQL power including:
 - Aggregations
 - Custom data type handling through plugins
 
-## 🤔 When to Use Musoq
+## When to Use Musoq
 
-**✅ Perfect for:**
+**Perfect for:**
 - One-off data tasks that would need a script
 - Combining data from multiple sources  
 - Quick analysis and reporting
@@ -677,13 +696,13 @@ SQL power including:
 - Git repository insights
 - Code pattern searches
 
-**❌ Not ideal for:**
+**Not ideal for:**
 - Large-scale data processing (>memory size)
 - Real-time/streaming data
 - Production ETL pipelines  
 - Applications requiring millisecond performance
 
-## 🐛 Philosophy
+## Philosophy
 
 Musoq is designed around one principle: **eliminate developer friction**.
 
