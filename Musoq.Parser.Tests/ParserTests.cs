@@ -6,24 +6,81 @@ using Musoq.Parser.Lexing;
 namespace Musoq.Parser.Tests;
 
 [TestClass]
-public class ParserTests
-{
-    [TestMethod]
-    public void CheckReorderedQueryWithJoin_ShouldConstructQuery()
+    public class ParserTests
     {
+        [TestMethod]
+        public void CheckReorderedQueryWithJoin_ShouldConstructQuery()
+        {
         var query =
             "from #some.a() s1 inner join #some.b() s2 on s1.col = s2.col where s1.col2 = '1' group by s2.col3 select s1.col4, s2.col4 skip 1 take 1";
 
         var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
+            var parser = new Parser(lexer);
 
-        parser.ComposeAll();
-    }
+            parser.ComposeAll();
+        }
 
-    [TestMethod]
-    public void CouplingSyntax_ComposeSchemaMethodWithKeywordAsMethod_ShouldParse()
-    {
-        var query = "couple #some.table with table Test as SourceOfTestValues;";
+        [TestMethod]
+        public void CheckRegularQueryWithShortInnerJoin_ShouldConstructQuery()
+        {
+            var query = "select 1 from #some.a() s1 join #some.b() s2 on s1.col = s2.col";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+
+        [TestMethod]
+        public void CheckRegularQueryWithShortLeftJoin_ShouldConstructQuery()
+        {
+            var query = "select 1 from #some.a() s1 left join #some.b() s2 on s1.col = s2.col";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+
+        [TestMethod]
+        public void CheckRegularQueryWithShortRightJoin_ShouldConstructQuery()
+        {
+            var query = "select 1 from #some.a() s1 right join #some.b() s2 on s1.col = s2.col";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+
+        [TestMethod]
+        public void CheckRegularQueryWithShortInnerJoinUppercase_ShouldConstructQuery()
+        {
+            var query =
+                "SELECT 1 FROM #some.a() S1 JOIN #some.b() S2 ON S1.COL = S2.COL";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+
+        [TestMethod]
+        public void CheckRegularQueryWithShortLeftJoinUppercase_ShouldConstructQuery()
+        {
+            var query =
+                "SELECT 1 FROM #some.a() S1 LEFT JOIN #some.b() S2 ON S1.COL = S2.COL";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+
+        [TestMethod]
+        public void CouplingSyntax_ComposeSchemaMethodWithKeywordAsMethod_ShouldParse()
+        {
+            var query = "couple #some.table with table Test as SourceOfTestValues;";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);

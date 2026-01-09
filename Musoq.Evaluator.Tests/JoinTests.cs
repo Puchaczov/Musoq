@@ -10,6 +10,50 @@ namespace Musoq.Evaluator.Tests;
 public class JoinTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void SimpleJoinShorthandTest()
+    {
+        const string query = "select a.Id, b.Id from #A.entities() a join #B.entities() b on a.Id = b.Id";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [ new BasicEntity("x") { Id = 1 }, new BasicEntity("y") { Id = 2 } ] },
+            { "#B", [ new BasicEntity("x") { Id = 2 }, new BasicEntity("z") { Id = 3 } ] }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(2, table.Columns.Count());
+
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+
+        Assert.AreEqual(2, table[0][0]);
+        Assert.AreEqual(2, table[0][1]);
+    }
+
+    [TestMethod]
+    public void SimpleJoinShorthandUppercaseTest()
+    {
+        const string query = "SELECT A.Id, B.Id FROM #A.entities() A JOIN #B.entities() B ON A.Id = B.Id";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [ new BasicEntity("x") { Id = 1 }, new BasicEntity("y") { Id = 2 } ] },
+            { "#B", [ new BasicEntity("x") { Id = 2 }, new BasicEntity("z") { Id = 3 } ] }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual(2, table[0][0]);
+        Assert.AreEqual(2, table[0][1]);
+    }
+
+    [TestMethod]
     public void WhenSomeColumnsAreUsedAndNotEveryUsedTableHasUsedOwnColumns_MustNotThrow()
     {
         const string query = @"
@@ -863,6 +907,57 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
 
         Assert.AreEqual(1, table[0][0]);
         Assert.IsNull(table[0][1]);
+    }
+
+    [TestMethod]
+    public void SimpleLeftJoinShorthandTest()
+    {
+        const string query = "select a.Id, b.Id from #A.entities() a left join #B.entities() b on a.Id = b.Id";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [ new BasicEntity("xX") { Id = 1 }, new BasicEntity("yY") { Id = 2 } ] },
+            { "#B", [ new BasicEntity("xX") { Id = 2 } ] }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual(2, table.Columns.Count());
+
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(1).ColumnType);
+
+        Assert.AreEqual(1, table[0][0]);
+        Assert.IsNull(table[0][1]);
+
+        Assert.AreEqual(2, table[1][0]);
+        Assert.AreEqual(2, table[1][1]);
+    }
+
+    [TestMethod]
+    public void SimpleLeftJoinShorthandUppercaseTest()
+    {
+        const string query = "SELECT A.Id, B.Id FROM #A.entities() A LEFT JOIN #B.entities() B ON A.Id = B.Id";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [ new BasicEntity("xX") { Id = 1 }, new BasicEntity("yY") { Id = 2 } ] },
+            { "#B", [ new BasicEntity("xX") { Id = 2 } ] }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual(2, table.Columns.Count());
+
+        Assert.AreEqual(1, table[0][0]);
+        Assert.IsNull(table[0][1]);
+
+        Assert.AreEqual(2, table[1][0]);
+        Assert.AreEqual(2, table[1][1]);
     }
 
     [TestMethod]
