@@ -335,7 +335,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KSkip = Format(Keyword, SkipToken.TokenText);
         public static readonly string KTake = Format(Keyword, TakeToken.TokenText);
         public static readonly string KWith = Format(Keyword, WithToken.TokenText);
-        public static readonly string KInnerJoin = @"(?<=[\s]{1,}|^)inner[\s]{1,}join(?=[\s]{1,}|$)";
+        public static readonly string KInnerJoin = @"(?<=[\s]{1,}|^)(?:inner[\s]{1,})?join(?=[\s]{1,}|$)";
 
         public static readonly string KOuterJoin =
             @"(?<=[\s]{1,}|^)(left|right)(?:\s+outer)?[\s]{1,}join(?=[\s]{1,}|$)";
