@@ -335,7 +335,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KSkip = Format(Keyword, SkipToken.TokenText);
         public static readonly string KTake = Format(Keyword, TakeToken.TokenText);
         public static readonly string KWith = Format(Keyword, WithToken.TokenText);
-        // Bare "join" is treated as an inner join; lookarounds ensure token boundaries without requiring extra spacing.
+        // Bare "join" is treated as an inner join; the \\s+ keeps a required gap after INNER so we don't match \"innerjoin\".
         public static readonly string KInnerJoin = @"(?<=\s|^)(?:inner\s+)?join(?=\s|$)";
 
         // Allows shortened outer join forms such as "left join" and "right join".
