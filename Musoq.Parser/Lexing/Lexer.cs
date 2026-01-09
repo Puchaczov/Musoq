@@ -349,7 +349,7 @@ public class Lexer : LexerBase<Token>
             @"(?<=\s|^)outer\s+apply(?=\s|$)";
 
         public static readonly string KOn = Format(Keyword, OnToken.TokenText);
-        public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
+        public static readonly string KOrderBy = @"(?<=\s|^)order\s+by(?=\s|$)";
         public static readonly string KAsc = Format(Keyword, AscToken.TokenText);
         public static readonly string KDesc = Format(Keyword, DescToken.TokenText);
         public static readonly string KFunctions = Format(Keyword, FunctionsToken.TokenText);
