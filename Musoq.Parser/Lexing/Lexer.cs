@@ -335,7 +335,7 @@ public class Lexer : LexerBase<Token>
         public static readonly string KSkip = Format(Keyword, SkipToken.TokenText);
         public static readonly string KTake = Format(Keyword, TakeToken.TokenText);
         public static readonly string KWith = Format(Keyword, WithToken.TokenText);
-        // Bare "join" is treated as an inner join; the \\s+ keeps a required gap after INNER so we don't match \"innerjoin\".
+        // Bare "join" is treated as an inner join; the \s+ keeps a required gap after INNER so we don't match \"innerjoin\".
         public static readonly string KInnerJoin = @"(?<=\s|^)(?:inner\s+)?join(?=\s|$)";
 
         // Allows shortened outer join forms such as "left join" and "right join".
@@ -343,10 +343,10 @@ public class Lexer : LexerBase<Token>
             @"(?<=\s|^)(left|right)\s+(?:outer\s+)?join(?=\s|$)";
 
         public static readonly string KCrossApply =
-            @"(?<=[\s]{1,}|^)cross[\s]{1,}apply(?=[\s]{1,}|$)";
+            @"(?<=\s|^)cross\s+apply(?=\s|$)";
 
         public static readonly string KOuterApply =
-            @"(?<=[\s]{1,}|^)outer[\s]{1,}apply(?=[\s]{1,}|$)";
+            @"(?<=\s|^)outer\s+apply(?=\s|$)";
 
         public static readonly string KOn = Format(Keyword, OnToken.TokenText);
         public static readonly string KOrderBy = @"(?<=[\s]{1,}|^)order[\s]{1,}by(?=[\s]{1,}|$)";
