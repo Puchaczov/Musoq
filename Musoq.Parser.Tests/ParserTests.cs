@@ -43,6 +43,17 @@ namespace Musoq.Parser.Tests;
         }
 
         [TestMethod]
+        public void CheckRegularQueryWithShortRightJoin_ShouldConstructQuery()
+        {
+            var query = "select 1 from #some.a() s1 right join #some.b() s2 on s1.col = s2.col";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+
+        [TestMethod]
         public void CouplingSyntax_ComposeSchemaMethodWithKeywordAsMethod_ShouldParse()
         {
             var query = "couple #some.table with table Test as SourceOfTestValues;";
