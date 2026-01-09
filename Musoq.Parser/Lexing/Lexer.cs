@@ -335,12 +335,12 @@ public class Lexer : LexerBase<Token>
         public static readonly string KSkip = Format(Keyword, SkipToken.TokenText);
         public static readonly string KTake = Format(Keyword, TakeToken.TokenText);
         public static readonly string KWith = Format(Keyword, WithToken.TokenText);
-        // Bare "join" is treated as an inner join; spacing rules stay consistent with other multi-word tokens.
-        public static readonly string KInnerJoin = @"(?<=[\s]{1,}|^)(?:inner[\s]{1,})?join(?=[\s]{1,}|$)";
+        // Bare "join" is treated as an inner join; word boundaries avoid relying on exact whitespace.
+        public static readonly string KInnerJoin = @"\b(?:inner\s+)?join\b";
 
         // Allows shortened outer join forms such as "left join" and "right join".
         public static readonly string KOuterJoin =
-            @"(?<=[\s]{1,}|^)(left|right)(?:[\s]{1,}outer)?[\s]{1,}join(?=[\s]{1,}|$)";
+            @"\b(left|right)(?:\s+outer)?\s+join\b";
 
         public static readonly string KCrossApply =
             @"(?<=[\s]{1,}|^)cross[\s]{1,}apply(?=[\s]{1,}|$)";

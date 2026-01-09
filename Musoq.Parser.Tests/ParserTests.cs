@@ -54,6 +54,30 @@ namespace Musoq.Parser.Tests;
         }
 
         [TestMethod]
+        public void CheckRegularQueryWithShortInnerJoinUppercase_ShouldConstructQuery()
+        {
+            var query =
+                "SELECT 1 FROM #some.a() S1 JOIN #some.b() S2 ON S1.COL = S2.COL";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+
+        [TestMethod]
+        public void CheckRegularQueryWithShortLeftJoinUppercase_ShouldConstructQuery()
+        {
+            var query =
+                "SELECT 1 FROM #some.a() S1 LEFT JOIN #some.b() S2 ON S1.COL = S2.COL";
+
+            var lexer = new Lexer(query, true);
+            var parser = new Parser(lexer);
+
+            parser.ComposeAll();
+        }
+
+        [TestMethod]
         public void CouplingSyntax_ComposeSchemaMethodWithKeywordAsMethod_ShouldParse()
         {
             var query = "couple #some.table with table Test as SourceOfTestValues;";
