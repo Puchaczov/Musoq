@@ -12,6 +12,8 @@ namespace Musoq.Evaluator.Tests.Schema.Generic;
 
 public class GenericEntityTestBase
 {
+    protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
+    
     static GenericEntityTestBase()
     {
         Culture.ApplyWithDefaultCulture();
@@ -122,7 +124,8 @@ public class GenericEntityTestBase
             {
                 {"#schema", schema}
             }),
-            LoggerResolver);
+            LoggerResolver,
+            TestCompilationOptions);
     }
 
     private static IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()

@@ -8,6 +8,8 @@ namespace Musoq.Evaluator.Tests.Schema.Unknown;
 
 public class UnknownQueryTestsBase
 {
+    protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
+    
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
     
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -18,7 +20,8 @@ public class UnknownQueryTestsBase
             script, 
             Guid.NewGuid().ToString(),
             new UnknownSchemaProvider(values),
-            LoggerResolver);
+            LoggerResolver,
+            TestCompilationOptions);
     }
 
     static UnknownQueryTestsBase()

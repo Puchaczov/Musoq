@@ -15,6 +15,10 @@ namespace Musoq.Evaluator.Tests.Schema.Basic;
 
 public class BasicEntityTestBase
 {
+    protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
+    
+    protected static readonly CompilationOptions ValidationEnabledCompilationOptions = new(usePrimitiveTypeValidation: true);
+    
     static BasicEntityTestBase()
     {
         Culture.ApplyWithDefaultCulture();
@@ -44,7 +48,8 @@ public class BasicEntityTestBase
             script, 
             Guid.NewGuid().ToString(), 
             new BasicSchemaProvider<T>(sources),
-            LoggerResolver);
+            LoggerResolver,
+            TestCompilationOptions);
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine<T>(
@@ -70,7 +75,8 @@ public class BasicEntityTestBase
             script, 
             Guid.NewGuid().ToString(), 
             schemaProvider,
-            LoggerResolver);
+            LoggerResolver,
+            TestCompilationOptions);
     }
 
     private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()

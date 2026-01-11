@@ -97,9 +97,9 @@ public class BuildItems : Dictionary<string, object>
         set => this["USED_WHERE_NODES"] = value;
     }
 
-    public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, BuildMetadataAndInferTypesVisitor> CreateBuildMetadataAndInferTypesVisitor
+    public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, BuildMetadataAndInferTypesVisitor> CreateBuildMetadataAndInferTypesVisitor
     {
-        get => (Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, BuildMetadataAndInferTypesVisitor>) this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"];
+        get => (Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, BuildMetadataAndInferTypesVisitor>) this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"];
         set => this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"] = value;
     }
     

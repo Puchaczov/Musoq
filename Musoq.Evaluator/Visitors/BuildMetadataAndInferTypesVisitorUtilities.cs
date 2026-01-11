@@ -13,24 +13,24 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
     /// <summary>
     /// Finds the closest common parent type between two types in the inheritance hierarchy.
     /// </summary>
-    public static Type FindClosestCommonParent(Type type1, Type type2)
+    public static Type FindClosestCommonParent(Type first, Type second)
     {
         var type1Ancestors = new HashSet<Type>();
 
-        while (type1 != null)
+        while (first != null)
         {
-            type1Ancestors.Add(type1);
-            type1 = type1.BaseType;
+            type1Ancestors.Add(first);
+            first = first.BaseType;
         }
 
-        while (type2 != null)
+        while (second != null)
         {
-            if (type1Ancestors.Contains(type2))
+            if (type1Ancestors.Contains(second))
             {
-                return type2;
+                return second;
             }
 
-            type2 = type2.BaseType;
+            second = second.BaseType;
         }
 
         return typeof(object);
@@ -112,6 +112,27 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
         if (type == null) return false;
         
         return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime) || type == typeof(DateTimeOffset);
+    }
+
+    /// <summary>
+    /// Checks if a type is a valid query expression type.
+    /// Valid types are primitive types (numeric, bool, char), string, decimal, DateTime, DateTimeOffset, Guid, TimeSpan, and null.
+    /// Nullable versions of these types are also valid.
+    /// Arrays and complex types (classes, structs) are not valid.
+    /// </summary>
+    public static bool IsValidQueryExpressionType(Type type)
+    {
+        if (type == null) return false;
+        
+        if (type.FullName == typeof(NullNode.NullType).FullName) return true;
+        
+        if (type.IsArray) return false;
+        
+        var typeToCheck = StripNullable(type);
+        
+        return IsPrimitiveType(typeToCheck) || 
+               typeToCheck == typeof(Guid) || 
+               typeToCheck == typeof(TimeSpan);
     }
 
     /// <summary>

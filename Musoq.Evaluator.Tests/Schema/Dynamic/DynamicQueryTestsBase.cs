@@ -11,6 +11,8 @@ namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
 public class DynamicQueryTestsBase
 {
+    protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
+    
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
     
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -26,7 +28,8 @@ public class DynamicQueryTestsBase
             {
                 { "dynamic", (schema, values) }
             }),
-            LoggerResolver);
+            LoggerResolver,
+            TestCompilationOptions);
     }
     
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -41,7 +44,8 @@ public class DynamicQueryTestsBase
             script, 
             Guid.NewGuid().ToString(),
             new DynamicSchemaProvider(schemas),
-            LoggerResolver);
+            LoggerResolver,
+            TestCompilationOptions);
     }
     
     protected static ExpandoObject CreateExpandoObject(ExpandoObject complex)

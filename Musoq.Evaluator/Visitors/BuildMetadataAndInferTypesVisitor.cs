@@ -38,33 +38,30 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private readonly ISchemaProvider _provider;
     private readonly IReadOnlyDictionary<string, string[]> _columns;
     private readonly ILogger<BuildMetadataAndInferTypesVisitor> _logger;
+    private readonly CompilationOptions _compilationOptions;
 
-    /// <summary>
-    /// Public constructor for external use (e.g., from Musoq.Converter).
-    /// </summary>
     public BuildMetadataAndInferTypesVisitor(
         ISchemaProvider _provider, 
         IReadOnlyDictionary<string, string[]> _columns, 
-        ILogger<BuildMetadataAndInferTypesVisitor> _logger)
-        : this(_provider, _columns, _logger, null)
+        ILogger<BuildMetadataAndInferTypesVisitor> _logger,
+        CompilationOptions compilationOptions = null)
+        : this(_provider, _columns, _logger, null, compilationOptions)
     {
     }
 
-    /// <summary>
-    /// Internal constructor that allows dependency injection of ILibraryMethodResolver.
-    /// Used for testing and advanced scenarios.
-    /// </summary>
     internal BuildMetadataAndInferTypesVisitor(
         ISchemaProvider provider, 
         IReadOnlyDictionary<string, string[]> columns, 
         ILogger<BuildMetadataAndInferTypesVisitor> logger,
-        ILibraryMethodResolver methodResolver)
+        ILibraryMethodResolver methodResolver,
+        CompilationOptions compilationOptions = null)
     {
         _provider = provider;
         _columns = columns;
         _logger = logger;
         _methodResolver = methodResolver ?? new LibraryMethodResolver();
         _nodeFactory = new TypeConversionNodeFactory(_methodResolver);
+        _compilationOptions = compilationOptions ?? new CompilationOptions();
     }
     
     private static readonly WhereNode AllTrueWhereNode =
@@ -73,9 +70,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private readonly ILibraryMethodResolver _methodResolver;
     private readonly TypeConversionNodeFactory _nodeFactory;
 
-    /// <summary>
-    /// Gets the name of this visitor for error reporting.
-    /// </summary>
     protected override string VisitorName => nameof(BuildMetadataAndInferTypesVisitor);
 
     private readonly List<AccessMethodNode> _refreshMethods = [];
@@ -186,86 +180,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(Node node)
     {
-    }
-
-    /// <summary>
-    /// Helper method to handle binary operators that use SafePopMultiple for error handling.
-    /// </summary>
-    private void VisitBinaryOperatorWithSafePop<T>(Func<Node, Node, T> nodeFactory, string operationName) where T : Node
-    {
-        var nodes = SafePopMultiple(Nodes, 2, operationName);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(nodeFactory(left, right));
-    }
-
-    /// <summary>
-    /// Helper method to handle binary operators that use direct Pop operations.
-    /// </summary>
-    private void VisitBinaryOperatorWithDirectPop<T>(Func<Node, Node, T> nodeFactory) where T : Node
-    {
-        var right = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (right)");
-        var left = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (left)");
-        Nodes.Push(nodeFactory(left, right));
-    }
-
-    /// <summary>
-    /// Visits a binary operator node and applies appropriate type conversions.
-    /// Handles three conversion strategies:
-    /// 1. Runtime operators for object types (delegates to runtime conversion methods)
-    /// 2. DateTime string literal conversion (converts string literals to DateTime when comparing with DateTime _columns)
-    /// 3. Numeric string/object conversion (converts strings to numbers when used with numeric literals)
-    /// </summary>
-    /// <typeparam name="T">Type of binary operator node to create.</typeparam>
-    /// <param name="nodeFactory">Factory function to create the binary operator node.</param>
-    /// <param name="isRelationalComparison">True for comparison operators (&gt;, &lt;, &gt;=, &lt;=).</param>
-    /// <param name="isArithmeticOperation">True for arithmetic operators (+, -, *, /, %).</param>
-    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, bool isRelationalComparison = false, bool isArithmeticOperation = false) where T : Node
-    {
-        var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
-        var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
-        
-        var leftIsObject = TypeConversionNodeFactory.IsObjectType(left.ReturnType);
-        var rightIsObject = TypeConversionNodeFactory.IsObjectType(right.ReturnType);
-        
-        if (leftIsObject || rightIsObject)
-        {
-            var operatorMethodName = _nodeFactory.GetRuntimeOperatorMethodName(nodeFactory);
-            if (operatorMethodName != null)
-            {
-                var wrappedNode = _nodeFactory.CreateRuntimeOperatorCall(operatorMethodName, left, right);
-                Nodes.Push(wrappedNode);
-                return;
-            }
-        }
-        
-        var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
-        var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
-        
-        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison, isArithmeticOperation);
-        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison, isArithmeticOperation);
-        
-        Nodes.Push(nodeFactory(transformedLeft, transformedRight));
-    }
-
-    private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)
-    {
-        if (candidateNode is not WordNode stringNode || !TypeConversionNodeFactory.IsDateTimeType(otherNode.ReturnType))
-            return candidateNode;
-
-        return _nodeFactory.CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
-    }
-
-    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison, bool isArithmeticOperation)
-    {
-        var shouldTransform = (isRelationalComparison || isArithmeticOperation) 
-            ? isArithmeticOperation ? TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType) : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
-            : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType);
-
-        if (!shouldTransform || !TypeConversionNodeFactory.IsNumericLiteralNode(otherNode, out var targetType))
-            return candidateNode;
-
-        return _nodeFactory.CreateNumericConversionNode(candidateNode, targetType, TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), isRelationalComparison, isArithmeticOperation);
     }
 
     public override void Visit(DescNode node)
@@ -584,7 +498,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span);
             Nodes.Push(accessColumn);
         }
-        catch (Exception ex) when (!(ex is VisitorException))
+        catch (Exception ex) when (ex is not VisitorException)
         {
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
@@ -1456,7 +1370,37 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             _currentScope.ScopeSymbolTable.MoveSymbol(string.Empty, from.Alias);
 
         Methods.Push(from.Alias);
-        Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
+        
+        var queryNode = new QueryNode(select, from, where, groupBy, orderBy, skip, take);
+        
+        // Validate primitive types in all query clauses
+        ValidateSelectFieldsArePrimitive(queryNode.Select.Fields, "SELECT");
+        
+        if (where != null)
+            ValidateExpressionIsPrimitive(where.Expression, "WHERE");
+        
+        if (groupBy != null)
+        {
+            foreach (var field in groupBy.Fields)
+                ValidateExpressionIsPrimitive(field.Expression, "GROUP BY");
+            
+            if (groupBy.Having != null)
+                ValidateExpressionIsPrimitive(groupBy.Having.Expression, "HAVING");
+        }
+        
+        if (orderBy != null)
+        {
+            foreach (var field in orderBy.Fields)
+                ValidateExpressionIsPrimitive(field.Expression, "ORDER BY");
+        }
+        
+        if (skip != null)
+            ValidateExpressionIsPrimitive(skip.Expression, "SKIP");
+        
+        if (take != null)
+            ValidateExpressionIsPrimitive(take.Expression, "TAKE");
+        
+        Nodes.Push(queryNode);
 
         _schemaFromArgs.Clear();
         _aliasToSchemaFromNodeMap.Clear();
@@ -1558,6 +1502,20 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _currentScope.Parent.ScopeSymbolTable.AddSymbol(node.Name,
             new TableSymbol(node.Name, new TransitionSchema(node.Name, table), table, false));
         _currentScope.Parent.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Name);
+
+        if (_compilationOptions.UsePrimitiveTypeValidation)
+        {
+            foreach (var fieldInfo in collector.CollectedFieldNames)
+            {
+                if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(fieldInfo.ColumnType))
+                {
+                    throw new InvalidQueryExpressionTypeException(
+                        new FieldNode(new IntegerNode("0", "s"), fieldInfo.ColumnIndex, fieldInfo.ColumnName), 
+                        fieldInfo.ColumnType, 
+                        $"CTE '{node.Name}'");
+                }
+            }
+        }
 
         Nodes.Push(new CteInnerExpressionNode(set, node.Name));
     }
@@ -1673,9 +1631,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         FinalizeMethodVisit(method, accessMethod);
     }
 
-    /// <summary>
-    /// Extracts and validates arguments from the node stack.
-    /// </summary>
     private ArgsListNode GetAndValidateArgs(AccessMethodNode node)
     {
         var nodeFromStack = SafePop(Nodes, nameof(GetAndValidateArgs));
@@ -1684,18 +1639,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return args;
     }
 
-    /// <summary>
-    /// Contains context information needed for method resolution.
-    /// </summary>
     private record struct MethodResolutionContext(
         string Alias,
         TableSymbol TableSymbol,
         (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
         Type EntityType);
 
-    /// <summary>
-    /// Resolves the method context including schema, table, and entity information.
-    /// </summary>
     private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
     {
         if (_usedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
@@ -1747,9 +1696,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.Name, args.Args);
     }
 
-    /// <summary>
-    /// Processes generic methods by reducing dimensions or constructing generic types if needed.
-    /// </summary>
     private MethodInfo ProcessGenericMethodIfNeeded(MethodInfo method, ArgsListNode args, Type entityType)
     {
         var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
@@ -1770,9 +1716,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return method;
     }
 
-    /// <summary>
-    /// Creates the appropriate access method based on whether it's an aggregation method or not.
-    /// </summary>
     private AccessMethodNode CreateAccessMethod(
         AccessMethodNode node, 
         ArgsListNode args, 
@@ -1791,9 +1734,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return func(node.FunctionToken, args, new ArgsListNode([]), method, context.Alias, canSkipInjectSource);
     }
 
-    /// <summary>
-    /// Processes aggregate methods by creating both the method and its corresponding "Set" method.
-    /// </summary>
     private AccessMethodNode ProcessAggregateMethod(
         AccessMethodNode node, 
         ArgsListNode args, 
@@ -1831,9 +1771,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return func(node.FunctionToken, new ArgsListNode(newArgs.ToArray()), null, method, context.Alias, false);
     }
 
-    /// <summary>
-    /// Creates generic versions of aggregation methods when needed.
-    /// </summary>
     private (MethodInfo Method, MethodInfo SetMethod) MakeGenericAggregationMethods(
         MethodInfo method, 
         MethodInfo setMethod, 
@@ -1862,9 +1799,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 setMethod.MakeGenericMethod(genericArgumentsConcreteTypes));
     }
 
-    /// <summary>
-    /// Finalizes the method visit by adding required assemblies and pushing the result.
-    /// </summary>
     private void FinalizeMethodVisit(MethodInfo method, AccessMethodNode accessMethod)
     {
         if (method.DeclaringType == null)
@@ -2192,10 +2126,38 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return new SetOperatorMustHaveKeyColumnsException(setOperator);
     }
 
+    private void ValidateSelectFieldsArePrimitive(FieldNode[] fields, string context)
+    {
+        if (!_compilationOptions.UsePrimitiveTypeValidation) return;
+        
+        foreach (var field in fields)
+        {
+            var returnType = field.Expression.ReturnType;
+            if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(returnType))
+            {
+                throw new InvalidQueryExpressionTypeException(field, returnType, context);
+            }
+        }
+    }
+    
+    private void ValidateExpressionIsPrimitive(Node expression, string context)
+    {
+        if (!_compilationOptions.UsePrimitiveTypeValidation) return;
+        
+        var returnType = expression.ReturnType;
+        if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(returnType))
+        {
+            throw new InvalidQueryExpressionTypeException(expression.ToString(), returnType, context);
+        }
+    }
+
     private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, QueryNode right, string cachedSetOperatorKey)
     {
         var leftFields = left.Select.Fields;
         var rightFields = right.Select.Fields;
+
+        ValidateSelectFieldsArePrimitive(leftFields, "SET operator (left side)");
+        ValidateSelectFieldsArePrimitive(rightFields, "SET operator (right side)");
 
         if (leftFields.Length != rightFields.Length)
         {
@@ -2217,6 +2179,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         var leftFields = left.Select.Fields;
         var rightFields = _cachedSetFields[cachedSetOperatorKey];
+
+        ValidateSelectFieldsArePrimitive(leftFields, "SET operator");
 
         if (leftFields.Length != rightFields.Length)
         {
@@ -2587,5 +2551,68 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
         
         return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
+    }
+
+    private void VisitBinaryOperatorWithSafePop<T>(Func<Node, Node, T> nodeFactory, string operationName) where T : Node
+    {
+        var nodes = SafePopMultiple(Nodes, 2, operationName);
+        var right = nodes[1];
+        var left = nodes[0];
+        Nodes.Push(nodeFactory(left, right));
+    }
+
+    private void VisitBinaryOperatorWithDirectPop<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    {
+        var right = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (right)");
+        var left = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (left)");
+        Nodes.Push(nodeFactory(left, right));
+    }
+    
+    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, bool isRelationalComparison = false, bool isArithmeticOperation = false) where T : Node
+    {
+        var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
+        var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
+        
+        var leftIsObject = TypeConversionNodeFactory.IsObjectType(left.ReturnType);
+        var rightIsObject = TypeConversionNodeFactory.IsObjectType(right.ReturnType);
+        
+        if (leftIsObject || rightIsObject)
+        {
+            var operatorMethodName = _nodeFactory.GetRuntimeOperatorMethodName(nodeFactory);
+            if (operatorMethodName != null)
+            {
+                var wrappedNode = _nodeFactory.CreateRuntimeOperatorCall(operatorMethodName, left, right);
+                Nodes.Push(wrappedNode);
+                return;
+            }
+        }
+        
+        var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
+        var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
+        
+        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison, isArithmeticOperation);
+        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison, isArithmeticOperation);
+        
+        Nodes.Push(nodeFactory(transformedLeft, transformedRight));
+    }
+
+    private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)
+    {
+        if (candidateNode is not WordNode stringNode || !TypeConversionNodeFactory.IsDateTimeType(otherNode.ReturnType))
+            return candidateNode;
+
+        return _nodeFactory.CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
+    }
+
+    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison, bool isArithmeticOperation)
+    {
+        var shouldTransform = (isRelationalComparison || isArithmeticOperation) 
+            ? isArithmeticOperation ? TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType) : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
+            : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType);
+
+        if (!shouldTransform || !TypeConversionNodeFactory.IsNumericLiteralNode(otherNode, out var targetType))
+            return candidateNode;
+
+        return _nodeFactory.CreateNumericConversionNode(candidateNode, targetType, TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), isRelationalComparison, isArithmeticOperation);
     }
 }

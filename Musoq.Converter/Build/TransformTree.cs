@@ -27,8 +27,8 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
         queryTree.Accept(extractRawColumnsTraverseVisitor);
 
         var metadata = 
-            items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(items.SchemaProvider, extractColumnsVisitor.Columns) ?? 
-            new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns, loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>());
+            items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(items.SchemaProvider, extractColumnsVisitor.Columns, items.CompilationOptions) ?? 
+            new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns, loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(), items.CompilationOptions);
         var metadataTraverser = new BuildMetadataAndInferTypesTraverseVisitor(metadata);
 
         queryTree.Accept(metadataTraverser);

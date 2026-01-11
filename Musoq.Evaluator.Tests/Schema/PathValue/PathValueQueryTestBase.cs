@@ -9,6 +9,8 @@ namespace Musoq.Evaluator.Tests.Schema.PathValue;
 
 public class PathValueQueryTestBase
 {
+    protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
+    
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
     protected CompiledQuery CreateAndRunVirtualMachine(string script, IEnumerable<PathValueEntity> entities)
@@ -17,7 +19,8 @@ public class PathValueQueryTestBase
             script,
             Guid.NewGuid().ToString(),
             new PathValueSchemaProvider(entities),
-            LoggerResolver);
+            LoggerResolver,
+            TestCompilationOptions);
     }
 
     protected Table RunQuery(string script, IEnumerable<PathValueEntity> entities)

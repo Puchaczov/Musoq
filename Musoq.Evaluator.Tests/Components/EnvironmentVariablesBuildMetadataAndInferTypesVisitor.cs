@@ -13,8 +13,9 @@ public class EnvironmentVariablesBuildMetadataAndInferTypesVisitor(
     ISchemaProvider provider,
     IReadOnlyDictionary<string, string[]> columns,
     IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources,
-    ILogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor> logger)
-    : BuildMetadataAndInferTypesVisitor(provider, columns, logger)
+    ILogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor> logger,
+    CompilationOptions compilationOptions = null)
+    : BuildMetadataAndInferTypesVisitor(provider, columns, logger, compilationOptions)
 {
     public List<Type> PassedSchemaArguments { get; private set; } = [];
     
