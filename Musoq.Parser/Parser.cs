@@ -28,6 +28,7 @@ public class Parser
     private Token _replacedToken;
     private Token _previousToken;
     private int _fromPosition;
+    private readonly Stack<HashSet<string>> _fromAliasesStack = new();
 
     private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precedenceDictionary =
         new()
@@ -176,7 +177,7 @@ public class Parser
     private string ComposeSchemaName()
     {
         if (Current.TokenType == TokenType.Word)
-            return ComposeWord().Value;
+            return EnsureHashPrefix(ComposeWord().Value);
         
         if (Current.TokenType == TokenType.Identifier)
         {
@@ -376,30 +377,76 @@ public class Parser
     {
         _fromPosition += 1;
         var selectNode = ComposeSelectNode();
-        var fromNode = ComposeFrom();
+        PushFromAliasesScope();
+        try
+        {
+            var fromNode = ComposeFrom();
 
-        fromNode = ComposeJoinOrApply(fromNode);
+            fromNode = ComposeJoinOrApply(fromNode);
 
-        var whereNode = ComposeWhere(false);
-        var groupBy = ComposeGroupByNode();
-        var orderBy = ComposeOrderBy();
-        var skip = ComposeSkip();
-        var take = ComposeTake();
-        return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+            var whereNode = ComposeWhere(false);
+            var groupBy = ComposeGroupByNode();
+            var orderBy = ComposeOrderBy();
+            var skip = ComposeSkip();
+            var take = ComposeTake();
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+        }
+        finally
+        {
+            PopFromAliasesScope();
+        }
     }
 
     private QueryNode ComposeReorderedQuery()
     {
         _fromPosition += 1;
-        var fromNode = ComposeFrom();
-        fromNode = ComposeJoinOrApply(fromNode);
-        var whereNode = ComposeWhere(false);
-        var groupBy = ComposeGroupByNode();
-        var selectNode = ComposeSelectNode();
-        var orderBy = ComposeOrderBy();
-        var skip = ComposeSkip();
-        var take = ComposeTake();
-        return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+        PushFromAliasesScope();
+        try
+        {
+            var fromNode = ComposeFrom();
+            fromNode = ComposeJoinOrApply(fromNode);
+            var whereNode = ComposeWhere(false);
+            var groupBy = ComposeGroupByNode();
+            var selectNode = ComposeSelectNode();
+            var orderBy = ComposeOrderBy();
+            var skip = ComposeSkip();
+            var take = ComposeTake();
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+        }
+        finally
+        {
+            PopFromAliasesScope();
+        }
+    }
+
+    private void PushFromAliasesScope()
+    {
+        _fromAliasesStack.Push(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+    }
+
+    private void PopFromAliasesScope()
+    {
+        if (_fromAliasesStack.Count > 0)
+            _fromAliasesStack.Pop();
+    }
+
+    private void RegisterFromAlias(string alias)
+    {
+        if (string.IsNullOrWhiteSpace(alias))
+            return;
+
+        if (_fromAliasesStack.Count == 0)
+            return;
+
+        _fromAliasesStack.Peek().Add(alias);
+    }
+
+    private bool IsKnownFromAlias(string alias)
+    {
+        if (string.IsNullOrWhiteSpace(alias) || _fromAliasesStack.Count == 0)
+            return false;
+
+        return _fromAliasesStack.Peek().Contains(alias);
     }
 
     private FromNode ComposeJoinOrApply(FromNode from)
@@ -815,7 +862,8 @@ public class Parser
 
                 alias = ComposeAlias();
 
-                fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var schemaName = EnsureHashPrefix(name.Value);
+                fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
             else
             {
@@ -823,6 +871,7 @@ public class Parser
                 fromNode = new ReferentialFromNode(name.Value, alias);
             }
 
+            RegisterFromAlias(alias);
             return fromNode;
         }
 
@@ -831,6 +880,7 @@ public class Parser
             var method = ComposeAccessMethod(string.Empty);
             alias = ComposeAlias();
 
+            RegisterFromAlias(alias);
             return new AliasedFromNode(method.Name, method.Arguments, alias, _fromPosition);
         }
 
@@ -840,16 +890,21 @@ public class Parser
             var accessMethod = ComposeAccessMethod(sourceAlias);
             alias = ComposeAlias();
             
-            if (!isApplyContext && !sourceAlias.StartsWith('#'))
+            var canTreatAsSchema = !sourceAlias.StartsWith('#') && (!isApplyContext || !IsKnownFromAlias(sourceAlias));
+            if (canTreatAsSchema)
             {
                 var schemaName = EnsureHashPrefix(sourceAlias);
-                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var schemaFromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                RegisterFromAlias(alias);
+                return schemaFromNode;
             }
             
             if (string.IsNullOrWhiteSpace(alias))
                 throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
                     
             var fromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
+
+            RegisterFromAlias(alias);
 
             return fromNode;
         }
@@ -866,7 +921,9 @@ public class Parser
                 alias = ComposeAlias();
                 
                 var schemaName = EnsureHashPrefix(column.Name);
-                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var schemaFromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                RegisterFromAlias(alias);
+                return schemaFromNode;
             }
 
             var properties = new List<string>();
@@ -898,14 +955,18 @@ public class Parser
                 if (string.IsNullOrWhiteSpace(alias))
                     throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
                 
-                return new PropertyFromNode(alias, column.Name, properties.ToArray());
+                var propertyFromNode = new PropertyFromNode(alias, column.Name, properties.ToArray());
+                RegisterFromAlias(alias);
+                return propertyFromNode;
             }
                 
             throw new NotSupportedException($"Unrecognized token {Current.TokenType} when parsing From clause.");
         }
             
         alias = ComposeAlias();
-        return new InMemoryTableFromNode(column.Name, alias);
+        var inMemoryFromNode = new InMemoryTableFromNode(column.Name, alias);
+        RegisterFromAlias(alias);
+        return inMemoryFromNode;
     }
 
     private void ConsumeWhiteSpaces()

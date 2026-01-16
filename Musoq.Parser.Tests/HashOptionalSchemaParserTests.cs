@@ -1223,6 +1223,86 @@ public class HashOptionalSchemaParserTests
     }
     
     [TestMethod]
+    public void HashOptional_CrossApply_FromHashOptional_ApplyHashOptional_ShouldParse()
+    {
+        var query = "select a.Col, b.Value from schema.first() a cross apply schema.second(a.Key) b";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CrossApply_FromHashOptional_ApplyHash_ShouldParse()
+    {
+        var query = "select a.Col, b.Value from schema.first() a cross apply #schema.second(a.Key) b";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CrossApply_FromHash_ApplyHashOptional_ShouldParse()
+    {
+        var query = "select a.Col, b.Value from #schema.first() a cross apply schema.second(a.Key) b";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_MultipleCrossApplies_AllHashOptional_ShouldParse()
+    {
+        var query = "select c.Value from schema.first() a cross apply schema.second(a.Key) b cross apply schema.third(b.Id) c";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CrossApply_MixedHashSyntax_ShouldParse()
+    {
+        var query = "select c.Value from schema.first() a cross apply #schema.second(a.Key) b cross apply schema.third(b.Id) c";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CrossApply_WithWhereClause_ShouldParse()
+    {
+        var query = "select a.Col, b.Value from schema.first() a cross apply schema.second(a.Key) b where b.Value > 10";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CrossApply_WithGroupBy_ShouldParse()
+    {
+        var query = "select a.Col, Count(b.Value) from schema.first() a cross apply schema.second(a.Key) b group by a.Col";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
+    public void HashOptional_CrossApply_WithOrderBy_ShouldParse()
+    {
+        var query = "select a.Col, b.Value from schema.first() a cross apply schema.second(a.Key) b order by b.Value desc";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+    
+    [TestMethod]
     public void HashOptional_ThreeWayJoin_ShouldParse()
     {
         var query = @"
