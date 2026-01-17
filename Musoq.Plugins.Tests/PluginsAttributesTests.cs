@@ -16,10 +16,10 @@ public class PluginsAttributesTests
     public void BindableClassAttribute_IsAttribute()
     {
         // Arrange & Act
-        var attr = new BindableClassAttribute();
+        var hasAttribute = Attribute.IsDefined(typeof(AttributeTargetsFixture), typeof(BindableClassAttribute));
 
         // Assert
-        Assert.IsInstanceOfType(attr, typeof(Attribute));
+        Assert.IsTrue(hasAttribute);
     }
 
     #endregion
@@ -71,11 +71,14 @@ public class PluginsAttributesTests
     [TestMethod]
     public void AggregateSetDoNotResolveAttribute_IsAttribute()
     {
-        // Arrange & Act
-        var attr = new AggregateSetDoNotResolveAttribute();
+        // Arrange
+        var method = typeof(AttributeTargetsFixture).GetMethod(nameof(AttributeTargetsFixture.SampleMethod));
+
+        // Act
+        var hasAttribute = Attribute.IsDefined(method!, typeof(AggregateSetDoNotResolveAttribute));
 
         // Assert
-        Assert.IsInstanceOfType(attr, typeof(Attribute));
+        Assert.IsTrue(hasAttribute);
     }
 
     #endregion
@@ -85,11 +88,14 @@ public class PluginsAttributesTests
     [TestMethod]
     public void BindablePropertyAsTableAttribute_IsAttribute()
     {
-        // Arrange & Act
-        var attr = new BindablePropertyAsTableAttribute();
+        // Arrange
+        var property = typeof(AttributeTargetsFixture).GetProperty(nameof(AttributeTargetsFixture.TableProperty));
+
+        // Act
+        var hasAttribute = Attribute.IsDefined(property!, typeof(BindablePropertyAsTableAttribute));
 
         // Assert
-        Assert.IsInstanceOfType(attr, typeof(Attribute));
+        Assert.IsTrue(hasAttribute);
     }
 
     #endregion
@@ -102,18 +108,25 @@ public class PluginsAttributesTests
         // Arrange & Act
         var attr = new BindableMethodAttribute();
 
-        // Assert - IsInternal is internal, but we verify attribute was created
-        Assert.IsNotNull(attr);
+        // Assert
+        var isInternalProperty = typeof(BindableMethodAttribute)
+            .GetProperty("IsInternal", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        Assert.IsNotNull(isInternalProperty);
+        var isInternalValue = (bool?)isInternalProperty.GetValue(attr);
+        Assert.IsFalse(isInternalValue);
     }
 
     [TestMethod]
     public void BindableMethodAttribute_IsAttribute()
     {
-        // Arrange & Act
-        var attr = new BindableMethodAttribute();
+        // Arrange
+        var method = typeof(AttributeTargetsFixture).GetMethod(nameof(AttributeTargetsFixture.SampleMethod));
+
+        // Act
+        var hasAttribute = Attribute.IsDefined(method!, typeof(BindableMethodAttribute));
 
         // Assert
-        Assert.IsInstanceOfType(attr, typeof(Attribute));
+        Assert.IsTrue(hasAttribute);
     }
 
     #endregion
@@ -238,13 +251,11 @@ public class PluginsAttributesTests
     public void DynamicObjectPropertyTypeHintAttribute_AllowsMultiple()
     {
         // Arrange
-        var attrUsage = typeof(DynamicObjectPropertyTypeHintAttribute)
-            .GetCustomAttributes(typeof(AttributeUsageAttribute), false);
+        var attributes = (DynamicObjectPropertyTypeHintAttribute[])Attribute
+            .GetCustomAttributes(typeof(AttributeTargetsFixture.WithMultipleHints), typeof(DynamicObjectPropertyTypeHintAttribute), false);
 
         // Assert
-        Assert.HasCount(1, attrUsage);
-        var usage = (AttributeUsageAttribute)attrUsage[0];
-        Assert.IsTrue(usage.AllowMultiple);
+        Assert.HasCount(2, attributes);
     }
 
     #endregion
@@ -366,11 +377,14 @@ public class PluginsAttributesTests
     [TestMethod]
     public void NonDeterministicAttribute_IsAttribute()
     {
-        // Arrange & Act
-        var attr = new NonDeterministicAttribute();
+        // Arrange
+        var method = typeof(AttributeTargetsFixture).GetMethod(nameof(AttributeTargetsFixture.SampleMethod));
+
+        // Act
+        var hasAttribute = Attribute.IsDefined(method!, typeof(NonDeterministicAttribute));
 
         // Assert
-        Assert.IsInstanceOfType(attr, typeof(Attribute));
+        Assert.IsTrue(hasAttribute);
     }
 
     [TestMethod]
@@ -453,14 +467,45 @@ public class PluginsAttributesTests
     public void QueryStats_RowNumber_CanBeRead()
     {
         // Arrange
-        var stats = new QueryStats();
+        var stats = new TestQueryStats();
 
-        // Act - The setter is protected, so we just test the getter
-        var rowNumber = stats.RowNumber;
+        // Act
+        stats.SetRowNumber(5);
 
         // Assert
-        Assert.IsGreaterThanOrEqualTo(0, rowNumber);
+        Assert.AreEqual(5, stats.RowNumber);
     }
 
     #endregion
+
+    private sealed class AttributeTargetsFixture
+    {
+        [BindablePropertyAsTable]
+        public string TableProperty { get; } = "table";
+
+        [BindableMethod]
+        [AggregationMethod]
+        [AggregationGetMethod]
+        [AggregationSetMethod]
+        [AggregateSetDoNotResolve]
+        [NonDeterministic]
+        [MethodCategory("TestCategory")]
+        public void SampleMethod()
+        {
+        }
+
+        [DynamicObjectPropertyTypeHint("First", typeof(string))]
+        [DynamicObjectPropertyTypeHint("Second", typeof(int))]
+        public sealed class WithMultipleHints
+        {
+        }
+    }
+
+    private sealed class TestQueryStats : QueryStats
+    {
+        public void SetRowNumber(int value)
+        {
+            RowNumber = value;
+        }
+    }
 }

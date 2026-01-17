@@ -213,7 +213,7 @@ public class ToFloatMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToFloat_WhenUIntProvided_ShouldReturnFloat()
     {
-        var result = Library.ToFloat((uint)4000000);
+        var result = Library.ToFloat(4000000U);
 
         Assert.AreEqual(4000000.0f, result);
     }
@@ -261,7 +261,7 @@ public class ToFloatMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToFloat_WhenULongProvided_ShouldReturnFloat()
     {
-        var result = Library.ToFloat((ulong)123456);
+        var result = Library.ToFloat(123456UL);
 
         Assert.AreEqual(123456.0f, result);
     }

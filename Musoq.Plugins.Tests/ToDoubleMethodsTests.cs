@@ -249,7 +249,7 @@ public class ToDoubleMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDouble_WhenUIntProvided_ShouldReturnDouble()
     {
-        var result = Library.ToDouble(4000000000);
+        var result = Library.ToDouble(4000000000U);
 
         Assert.AreEqual(4000000000.0, result);
     }
@@ -297,7 +297,7 @@ public class ToDoubleMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDouble_WhenULongProvided_ShouldReturnDouble()
     {
-        var result = Library.ToDouble((ulong)123456789012);
+        var result = Library.ToDouble(123456789012UL);
 
         Assert.AreEqual(123456789012.0, result);
     }

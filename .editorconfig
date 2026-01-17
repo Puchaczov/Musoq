@@ -1,0 +1,82 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.cs]
+# Enforce StyleCop rules as errors
+
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = error
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = error
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = error
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = error
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = error
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = error
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = error
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpecialRules.severity = error
+
+# Focus error-level enforcement on correctness-impacting rules.
+dotnet_diagnostic.SA1629.severity = none
+dotnet_diagnostic.SA1101.severity = none
+dotnet_diagnostic.SA1503.severity = warning
+dotnet_diagnostic.SA1519.severity = warning
+dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.SA1518.severity = warning
+dotnet_diagnostic.SA1122.severity = warning
+dotnet_diagnostic.SA1124.severity = warning
+dotnet_diagnostic.SA1128.severity = warning
+dotnet_diagnostic.SA1111.severity = warning
+dotnet_diagnostic.SA1116.severity = warning
+dotnet_diagnostic.SA1117.severity = warning
+dotnet_diagnostic.SA1118.severity = warning
+dotnet_diagnostic.SA1413.severity = warning
+dotnet_diagnostic.SA1500.severity = warning
+dotnet_diagnostic.SA1005.severity = warning
+dotnet_diagnostic.SA1009.severity = warning
+dotnet_diagnostic.SA1507.severity = warning
+dotnet_diagnostic.SA1515.severity = warning
+dotnet_diagnostic.SA1202.severity = warning
+dotnet_diagnostic.SA1516.severity = warning
+dotnet_diagnostic.SA1309.severity = warning
+dotnet_diagnostic.SA1509.severity = warning
+dotnet_diagnostic.SA1003.severity = warning
+dotnet_diagnostic.SA1407.severity = warning
+dotnet_diagnostic.SA1127.severity = warning
+dotnet_diagnostic.SA1131.severity = warning
+dotnet_diagnostic.SA1201.severity = warning
+dotnet_diagnostic.SA1204.severity = warning
+dotnet_diagnostic.SA1306.severity = warning
+dotnet_diagnostic.SA1316.severity = warning
+dotnet_diagnostic.SA1401.severity = warning
+dotnet_diagnostic.SA1404.severity = warning
+dotnet_diagnostic.SA1414.severity = warning
+dotnet_diagnostic.SA1513.severity = warning
+dotnet_diagnostic.SA1614.severity = warning
+dotnet_diagnostic.SA1616.severity = warning
+dotnet_diagnostic.SA1617.severity = warning
+dotnet_diagnostic.SA1622.severity = warning
+dotnet_diagnostic.SA1623.severity = warning
+dotnet_diagnostic.SA1625.severity = warning
+dotnet_diagnostic.SA1627.severity = warning
+dotnet_diagnostic.SA1642.severity = warning
+dotnet_diagnostic.SA1648.severity = warning
+dotnet_diagnostic.SA1001.severity = warning
+dotnet_diagnostic.SA1139.severity = warning
+dotnet_diagnostic.SA1512.severity = warning
+dotnet_diagnostic.SA1649.severity = warning
+dotnet_diagnostic.SA1113.severity = warning
+dotnet_diagnostic.SA1129.severity = warning
+dotnet_diagnostic.SA1142.severity = warning
+dotnet_diagnostic.SA1214.severity = warning
+dotnet_diagnostic.SA1312.severity = warning
+dotnet_diagnostic.SA1313.severity = warning
+dotnet_diagnostic.SA1028.severity = warning
+dotnet_diagnostic.SA1134.severity = warning
+dotnet_diagnostic.SA1137.severity = warning
+dotnet_diagnostic.SA1300.severity = warning
+dotnet_diagnostic.SA1402.severity = warning

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -88,20 +89,12 @@ public class MathTests : LibraryBaseBaseTests
         Assert.AreEqual(255L, Library.FromHex("ff"));
         Assert.AreEqual(10L, Library.FromHex("A"));
         Assert.AreEqual(16L, Library.FromHex("10"));
-
-
         Assert.AreEqual(255L, Library.FromHex("0xFF"));
         Assert.AreEqual(255L, Library.FromHex("0xff"));
         Assert.AreEqual(255L, Library.FromHex("0XFF"));
-
-
         Assert.AreEqual(-1L, Library.FromHex("FFFFFFFFFFFFFFFF"));
-
-
         Assert.AreEqual(0L, Library.FromHex("0"));
         Assert.AreEqual(0L, Library.FromHex("0x0"));
-
-
         Assert.IsNull(Library.FromHex(null));
         Assert.IsNull(Library.FromHex(""));
         Assert.IsNull(Library.FromHex("   "));
@@ -115,17 +108,11 @@ public class MathTests : LibraryBaseBaseTests
         Assert.AreEqual(5L, Library.FromBin("101"));
         Assert.AreEqual(10L, Library.FromBin("1010"));
         Assert.AreEqual(15L, Library.FromBin("1111"));
-
-
         Assert.AreEqual(5L, Library.FromBin("0b101"));
         Assert.AreEqual(5L, Library.FromBin("0B101"));
-
-
         Assert.AreEqual(0L, Library.FromBin("0"));
         Assert.AreEqual(0L, Library.FromBin("0b0"));
         Assert.AreEqual(1L, Library.FromBin("1"));
-
-
         Assert.IsNull(Library.FromBin(null));
         Assert.IsNull(Library.FromBin(""));
         Assert.IsNull(Library.FromBin("   "));
@@ -140,23 +127,16 @@ public class MathTests : LibraryBaseBaseTests
         Assert.AreEqual(64L, Library.FromOct("100"));
         Assert.AreEqual(7L, Library.FromOct("7"));
         Assert.AreEqual(511L, Library.FromOct("777"));
-
-
         Assert.AreEqual(8L, Library.FromOct("0o10"));
         Assert.AreEqual(8L, Library.FromOct("0O10"));
-
-
         Assert.AreEqual(0L, Library.FromOct("0"));
         Assert.AreEqual(0L, Library.FromOct("0o0"));
-
-
         Assert.IsNull(Library.FromOct(null));
         Assert.IsNull(Library.FromOct(""));
         Assert.IsNull(Library.FromOct("   "));
         Assert.IsNull(Library.FromOct("8"));
         Assert.IsNull(Library.FromOct("0o8"));
     }
-
     #region Hex String Conversion Tests
 
     [TestMethod]
@@ -174,13 +154,9 @@ public class MathTests : LibraryBaseBaseTests
         var result1 = Library.FromHexToBytes("48 65 6C 6C 6F");
         Assert.IsNotNull(result1);
         Assert.AreEqual("Hello", Encoding.UTF8.GetString(result1));
-
-
         var result2 = Library.FromHexToBytes("48-65-6C-6C-6F");
         Assert.IsNotNull(result2);
         Assert.AreEqual("Hello", Encoding.UTF8.GetString(result2));
-
-
         var result3 = Library.FromHexToBytes("48:65:6C:6C:6F");
         Assert.IsNotNull(result3);
         Assert.AreEqual("Hello", Encoding.UTF8.GetString(result3));
@@ -819,7 +795,7 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void PercentRank_WhenValueNull_ReturnsNull()
     {
-        string[] window = ["a", "b", "c"];
+        IEnumerable<string> window = ["a", "b", "c"];
         Assert.IsNull(Library.PercentRank(window, null));
     }
 

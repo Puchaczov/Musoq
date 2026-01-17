@@ -216,7 +216,7 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToString_WhenUIntProvided_ShouldReturnString()
     {
-        var result = Library.ToString((uint)12345);
+        var result = Library.ToString(12345U);
 
         Assert.AreEqual("12345", result);
     }
@@ -225,14 +225,13 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
     public void ToString_WhenNullUIntProvided_ShouldReturnNull()
     {
         var result = Library.ToString((uint?)null);
-
         Assert.IsNull(result);
     }
 
     [TestMethod]
     public void ToString_WhenUIntWithFormatProvided_ShouldFormat()
     {
-        var result = Library.ToString((uint)255, "X");
+        var result = Library.ToString(255U, "X");
 
         Assert.AreEqual("FF", result);
     }
@@ -288,7 +287,7 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToString_WhenULongProvided_ShouldReturnString()
     {
-        var result = Library.ToString((ulong)123456789012);
+        var result = Library.ToString(123456789012UL);
 
         Assert.AreEqual("123456789012", result);
     }
@@ -297,14 +296,13 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
     public void ToString_WhenNullULongProvided_ShouldReturnNull()
     {
         var result = Library.ToString((ulong?)null);
-
         Assert.IsNull(result);
     }
 
     [TestMethod]
     public void ToString_WhenULongWithFormatProvided_ShouldFormat()
     {
-        var result = Library.ToString((ulong)255, "X");
+        var result = Library.ToString(255UL, "X");
 
         Assert.AreEqual("FF", result);
     }

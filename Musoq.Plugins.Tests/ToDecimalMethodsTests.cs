@@ -243,7 +243,7 @@ public class ToDecimalMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDecimal_WhenULongProvided_ShouldReturnDecimal()
     {
-        var result = Library.ToDecimal((ulong)123456789012);
+        var result = Library.ToDecimal(123456789012UL);
 
         Assert.AreEqual(123456789012m, result);
     }
