@@ -69,7 +69,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        // Results may not be in order, so check the collection
+        
         var results = table.Select(row => row.Values[0]).Cast<string>().ToList();
         CollectionAssert.Contains(results, "Small");
         CollectionAssert.Contains(results, "Medium");

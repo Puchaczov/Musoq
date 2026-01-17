@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -567,7 +567,7 @@ public class GenericTests : LibraryBaseBaseTests
     [TestMethod]
     public void NullIf_WithIntegers_WhenEqual_ReturnsDefault()
     {
-        // For value types, default is 0 not null
+        
         Assert.AreEqual(0, Library.NullIf(5, 5));
     }
 
@@ -630,7 +630,7 @@ public class GenericTests : LibraryBaseBaseTests
     [TestMethod]
     public void DefaultIfNull_WithInteger_WhenNull_ReturnsNull()
     {
-        // default(int?) is null, not 0
+        
         Assert.IsNull(Library.DefaultIfNull<int?>(null));
     }
 

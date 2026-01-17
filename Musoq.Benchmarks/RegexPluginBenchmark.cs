@@ -31,7 +31,7 @@ namespace Musoq.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            // Create test data - strings to search in
+            
             var testData = Enumerable.Range(0, 1000).Select(i => new TestEntity
             {
                 Id = i,
@@ -43,28 +43,28 @@ namespace Musoq.Benchmarks
 
             var schemaProvider = new TestSchemaProvider(testData);
 
-            // Baseline: Simple equality filter (no regex)
+            
             _baselineQuery = InstanceCreator.CompileForExecution(
                 @"select Name from #test.entities() where Name = 'User500'",
                 Guid.NewGuid().ToString(),
                 schemaProvider,
                 _loggerResolver);
 
-            // Match function: Regex pattern matching
+            
             _matchQuery = InstanceCreator.CompileForExecution(
                 @"select Name from #test.entities() where Match('\d{3}', Description)",
                 Guid.NewGuid().ToString(),
                 schemaProvider,
                 _loggerResolver);
 
-            // RegexReplace function: Pattern replacement
+            
             _regexReplaceQuery = InstanceCreator.CompileForExecution(
                 @"select RegexReplace(Description, 'ABC-\d{4}', 'CODE-XXXX') from #test.entities()",
                 Guid.NewGuid().ToString(),
                 schemaProvider,
                 _loggerResolver);
 
-            // RegexMatches function: Find all matches
+            
             _regexMatchesQuery = InstanceCreator.CompileForExecution(
                 @"select RegexMatches('\d+', Description) from #test.entities()",
                 Guid.NewGuid().ToString(),

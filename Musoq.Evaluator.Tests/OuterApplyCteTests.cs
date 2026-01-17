@@ -239,10 +239,10 @@ select [a.Name], [b.Value] from p";
         Assert.AreEqual("b.Value", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         
-// Verify total count first
+
         Assert.AreEqual(9, table.Count, "Result should contain exactly 9 name-skill pairs");
 
-// Verify each name-skill combination exists
+
         Assert.IsTrue(table.Any(row => 
             (string)row.Values[0] == "Name1" && 
             (string)row.Values[1] == "Skill1"

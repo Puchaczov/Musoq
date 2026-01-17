@@ -52,7 +52,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     [TestMethod]
     public void WhenByteMethodCallAndULongUsed_ShouldHaveColumnOfThatType()
     {
-        //var p = (int)1 + 1UL;
+        
         TestMethodTemplate<ulong>("DoNothing(1ub) + 1ul", 2);
     }
 

@@ -218,7 +218,7 @@ public class LibraryBaseUtilsTests
     {
         var hash = _library.Sha384("hello");
         Assert.IsNotNull(hash);
-        Assert.AreEqual(96, hash.Length); // SHA-384 = 384 bits = 96 hex chars
+        Assert.AreEqual(96, hash.Length); 
     }
 
     [TestMethod]
@@ -232,7 +232,7 @@ public class LibraryBaseUtilsTests
     {
         var crc = _library.Crc32("hello");
         Assert.IsNotNull(crc);
-        Assert.AreEqual(8, crc.Length); // CRC32 = 32 bits = 8 hex chars
+        Assert.AreEqual(8, crc.Length); 
     }
 
     [TestMethod]
@@ -247,7 +247,7 @@ public class LibraryBaseUtilsTests
     {
         var hash = _library.HmacSha256("message", "secret");
         Assert.IsNotNull(hash);
-        Assert.AreEqual(64, hash.Length); // SHA-256 = 256 bits = 64 hex chars
+        Assert.AreEqual(64, hash.Length); 
     }
 
     [TestMethod]
@@ -255,7 +255,7 @@ public class LibraryBaseUtilsTests
     {
         var hash = _library.HmacSha512("message", "secret");
         Assert.IsNotNull(hash);
-        Assert.AreEqual(128, hash.Length); // SHA-512 = 512 bits = 128 hex chars
+        Assert.AreEqual(128, hash.Length); 
     }
 
     [TestMethod]
@@ -267,7 +267,7 @@ public class LibraryBaseUtilsTests
     [TestMethod]
     public void Sha384_ByteArray_WhenValid_ReturnsCorrectHash()
     {
-        var hash = _library.Sha384(new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f }); // "Hello"
+        var hash = _library.Sha384(new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f }); 
         Assert.IsNotNull(hash);
         Assert.AreEqual(96, hash.Length);
     }
@@ -281,7 +281,7 @@ public class LibraryBaseUtilsTests
     [TestMethod]
     public void Crc32_ByteArray_WhenValid_ReturnsChecksum()
     {
-        var crc = _library.Crc32(new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f }); // "Hello"
+        var crc = _library.Crc32(new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f }); 
         Assert.IsNotNull(crc);
         Assert.AreEqual(8, crc.Length);
     }
@@ -299,7 +299,7 @@ public class LibraryBaseUtilsTests
     [TestMethod]
     public void JwtDecode_WhenValidJwt_ReturnsPayload()
     {
-        // Example JWT with payload: {"sub":"1234567890","name":"John Doe","iat":1516239022}
+        
         var jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         var payload = _library.JwtDecode(jwt);
         Assert.IsNotNull(payload);
@@ -420,7 +420,7 @@ public class LibraryBaseUtilsTests
     {
         Assert.AreEqual("500 B", _library.ToHumanReadableSize(500));
         Assert.AreEqual("1 KB", _library.ToHumanReadableSize(1024));
-        // Use culture-independent check for decimal values
+        
         var result = _library.ToHumanReadableSize(1536);
         Assert.IsNotNull(result);
         Assert.IsTrue(result.StartsWith("1") && result.EndsWith("KB"));
@@ -685,7 +685,7 @@ public class LibraryBaseUtilsTests
     [TestMethod]
     public void EscapeRegex_WhenSpecialChars_EscapesThem()
     {
-        // .NET Regex.Escape escapes opening bracket but not closing bracket
+        
         Assert.AreEqual(@"\[test]", _library.EscapeRegex("[test]"));
         Assert.AreEqual(@"a\.b", _library.EscapeRegex("a.b"));
     }

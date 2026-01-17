@@ -53,7 +53,7 @@ public static class GroupByNodeProcessor
 
         var syntaxList = new ExpressionSyntax[node.Fields.Length];
 
-        // Pop field expressions from stack in reverse order
+        
         for (int i = 0, j = node.Fields.Length - 1; i < node.Fields.Length; i++, j--)
             args[j] = nodes.Pop();
 
@@ -142,7 +142,7 @@ public static class GroupByNodeProcessor
         var fieldNames = new StringBuilder();
         fieldNames.Append("var groupFieldsNames = new string[][]{");
 
-        // Process all fields except the last
+        
         for (var i = 0; i < groupFields.Names.Length - 1; i++)
         {
             var fieldName = $"new string[]{{{groupFields.Names.Where((f, idx) => idx <= i).Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
@@ -150,7 +150,7 @@ public static class GroupByNodeProcessor
             fieldNames.Append(',');
         }
 
-        // Process the last field
+        
         var lastFieldName = $"new string[]{{{groupFields.Names.Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
         fieldNames.Append(lastFieldName);
         fieldNames.Append("};");

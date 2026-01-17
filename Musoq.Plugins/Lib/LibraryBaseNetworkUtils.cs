@@ -27,22 +27,22 @@ public partial class LibraryBase
             return null;
 
         var bytes = ip.GetAddressBytes();
-        if (bytes.Length != 4) // Only IPv4
+        if (bytes.Length != 4) 
             return false;
 
-        // 10.0.0.0/8
+        
         if (bytes[0] == 10)
             return true;
 
-        // 172.16.0.0/12
+        
         if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
             return true;
 
-        // 192.168.0.0/16
+        
         if (bytes[0] == 192 && bytes[1] == 168)
             return true;
 
-        // 127.0.0.0/8 (localhost)
+        
         if (bytes[0] == 127)
             return true;
 
@@ -311,7 +311,7 @@ public partial class LibraryBase
                 sb.Append('-');
         }
 
-        // Remove consecutive dashes
+        
         var result = RemoveConsecutiveDashesRegex().Replace(sb.ToString(), "-").Trim('-');
         return result;
     }

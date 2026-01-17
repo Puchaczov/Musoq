@@ -156,9 +156,9 @@ public class InTests : BasicEntityTestBase
                 "#A",
                 [
                     new BasicEntity("A", 100),
-                    new BasicEntity("B", 250),  // Not in list
+                    new BasicEntity("B", 250),  
                     new BasicEntity("C", 500),
-                    new BasicEntity("D", 750),  // Not in list
+                    new BasicEntity("D", 750),  
                     new BasicEntity("E", 1000)
                 ]
             }

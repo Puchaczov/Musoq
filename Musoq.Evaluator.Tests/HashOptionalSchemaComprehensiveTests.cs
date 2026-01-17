@@ -865,7 +865,7 @@ public class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
                 new BasicEntity { Name = "A", City = "Warsaw", Population = 100 },
                 new BasicEntity { Name = "B", City = "Warsaw", Population = 150 },
                 new BasicEntity { Name = "C", City = "Berlin", Population = 200 },
-                new BasicEntity { Name = "D", City = "Berlin", Population = 30 } // Filtered out
+                new BasicEntity { Name = "D", City = "Berlin", Population = 30 } 
             ]}
         };
 
@@ -1102,7 +1102,7 @@ public class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
     [TestMethod]
     public void HashOptional_CoupleStatementMixedWithHashSyntax_ShouldWork()
     {
-        // Mix hash-optional COUPLE with hash FROM clause
+        
         const string query = "table DummyTable {" +
                              "   Name 'System.String'" +
                              "};" +

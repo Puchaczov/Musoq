@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Musoq.Parser.Tokens;
@@ -88,7 +88,7 @@ public class AccessMethodNode : Node
                 returnType = types[i];
             else
             {   
-                // This will always terminate when returnType == typeof(object)
+                
                 while (returnType is not null && !returnType.IsAssignableFrom(types[i]))
                     returnType = returnType.BaseType;
             }

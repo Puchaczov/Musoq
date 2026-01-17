@@ -29,11 +29,11 @@ namespace Musoq.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            // Setup data for Low Selectivity.
-            // Table A: 0..N
-            // Table B: 0..N
-            // Query: a.Population > b.Population + offset
-            // Matches: Only top 5% of A will match bottom 5% of B (shifted by offset).
+            
+            
+            
+            
+            
             
             var offset = (int)(RowsCount * 0.95);
 

@@ -47,7 +47,7 @@ public static class FieldProcessingHelper
         {
             var field = reorderedList[i];
             
-            // Basic null safety while preserving original behavior
+            
             if (field == null)
                 throw new ArgumentException($"Field at index {i} cannot be null");
 
@@ -56,7 +56,7 @@ public static class FieldProcessingHelper
                 continue;
             }
 
-            // Only validate expression is not null, but allow empty field names to preserve original behavior
+            
             if (field.Expression == null)
                 throw new ArgumentException($"Field expression at index {i} cannot be null", nameof(oldFields));
 

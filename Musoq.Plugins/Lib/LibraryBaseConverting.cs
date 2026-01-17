@@ -198,7 +198,7 @@ public partial class LibraryBase
 
         var cleanValue = value.Trim();
         
-        // Remove 0x or 0X prefix if present
+        
         if (cleanValue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             cleanValue = cleanValue.Substring(2);
 
@@ -226,7 +226,7 @@ public partial class LibraryBase
 
         var cleanValue = value.Trim();
         
-        // Remove 0b or 0B prefix if present
+        
         if (cleanValue.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
             cleanValue = cleanValue.Substring(2);
 
@@ -254,7 +254,7 @@ public partial class LibraryBase
 
         var cleanValue = value.Trim();
         
-        // Remove 0o or 0O prefix if present
+        
         if (cleanValue.StartsWith("0o", StringComparison.OrdinalIgnoreCase))
             cleanValue = cleanValue.Substring(2);
 

@@ -112,21 +112,21 @@ public class CaseInsensitiveEndToEndTests
     [TestMethod]
     public void MethodsManager_ShouldHandleOverloadedMethodsCaseInsensitive()
     {
-        // This test verifies that case-insensitive resolution works with method overloading
-        // We'll use the existing methods which may have different parameter signatures
+        
+        
         
         var methodsManager = new MethodsManager();
         var testLibrary = new TestLibrary();
         
         methodsManager.RegisterLibraries(testLibrary);
 
-        // Test single parameter method
+        
         var success1 = methodsManager.TryGetMethod("toupper", new[] { typeof(string) }, null, out var method1);
         Assert.IsTrue(success1);
         Assert.AreEqual("ToUpper", method1.Name);
         Assert.HasCount(1, method1.GetParameters());
 
-        // Test two parameter method  
+        
         var success2 = methodsManager.TryGetMethod("format_string", new[] { typeof(string), typeof(string) }, null, out var method2);
         Assert.IsTrue(success2);
         Assert.AreEqual("Format_String", method2.Name);
@@ -141,7 +141,7 @@ public class CaseInsensitiveEndToEndTests
         
         methodsManager.RegisterLibraries(testLibrary);
 
-        // Test completely non-existent method
+        
         var success = methodsManager.TryGetMethod("nonexistentmethod", new[] { typeof(string) }, null, out var method);
         
         Assert.IsFalse(success);

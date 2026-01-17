@@ -118,9 +118,9 @@ public class DescParserTests
     [TestMethod]
     public void DescWithInvalidSyntax_InvalidSchemaName_ShouldFail()
     {
-        // With hash-optional syntax, "desc schema" is now valid
-        // Test with a truly invalid input instead
-        var query = "desc 123invalid"; // Schema name can't start with number
+        
+        
+        var query = "desc 123invalid"; 
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -131,7 +131,7 @@ public class DescParserTests
     [TestMethod]
     public void DescWithoutHash_ShouldSucceed()
     {
-        var query = "desc schema"; // Hash-optional syntax is now valid
+        var query = "desc schema"; 
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -258,8 +258,8 @@ public class DescParserTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         
-        // Function calls in arguments might not be supported for DESC
-        // This test verifies behavior - it should either parse or fail gracefully
+        
+        
         try
         {
             parser.ComposeAll();
@@ -380,9 +380,9 @@ public class DescParserTests
     [TestMethod]
     public void DescFunctions_InvalidSchemaName_ShouldFail()
     {
-        // With hash-optional syntax, "desc functions schema" is now valid
-        // Test with a truly invalid input instead
-        var query = "desc functions 123invalid"; // Schema name can't start with number
+        
+        
+        var query = "desc functions 123invalid"; 
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -393,7 +393,7 @@ public class DescParserTests
     [TestMethod]
     public void DescFunctionsWithoutHash_ShouldSucceed()
     {
-        var query = "desc functions schema"; // Hash-optional syntax is now valid
+        var query = "desc functions schema"; 
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);

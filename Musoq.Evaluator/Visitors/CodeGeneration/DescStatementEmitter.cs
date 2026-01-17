@@ -245,13 +245,13 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                     SyntaxFactory.Identifier("provider"),
                     null),
 
-                // IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables
+                
                 CreatePositionalEnvVarsParameter(),
 
-                // IReadOnlyDictionary<string, (SchemaFromNode, IReadOnlyCollection<ISchemaColumn>, WhereNode, bool)> queriesInformation
+                
                 CreateQueriesInformationParameter(),
 
-                // ILogger logger
+                
                 SyntaxFactory.Parameter(
                     [],
                     SyntaxTokenList.Create(new SyntaxToken()),
@@ -260,7 +260,7 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                     SyntaxFactory.Identifier("logger"),
                     null),
 
-                // CancellationToken token
+                
                 SyntaxFactory.Parameter(
                     [],
                     SyntaxTokenList.Create(new SyntaxToken()),
@@ -355,7 +355,7 @@ public class DescStatementEmitter(SyntaxGenerator generator)
 
     private static ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node, ExpressionSyntax originallyInferredColumns)
     {
-        // For DESC statements, schemaFromIndex is always 0 since there's a single schema access
+        
         const int schemaFromIndex = 0;
         
         return SyntaxFactory.ObjectCreationExpression(

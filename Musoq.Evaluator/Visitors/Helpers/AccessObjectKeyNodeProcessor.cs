@@ -36,7 +36,7 @@ public static class AccessObjectKeyNodeProcessor
 
         var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) nodes.Pop());
 
-        // Generate safe dictionary/key access using SafeArrayAccess.GetIndexedElement
+        
         var memberAccess = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             exp, 

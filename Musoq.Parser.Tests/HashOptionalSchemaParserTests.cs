@@ -900,7 +900,7 @@ public class HashOptionalSchemaParserTests
     [TestMethod]
     public void HashOptional_CrossApplyWithMethodCallOnAlias_ShouldParse()
     {
-        // Critical test: ensure that method calls on aliases (a.Split) don't get # prefix
+        
         var query = "select b.Value from schema.first() a cross apply a.Split(a.Text, ' ') b";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -911,7 +911,7 @@ public class HashOptionalSchemaParserTests
     [TestMethod]
     public void HashOptional_CrossApplyWithChainedMethodCalls_ShouldParse()
     {
-        // Test chained method calls like Skip(Split(x))
+        
         var query = "select b.Value from schema.first() a cross apply a.Take(a.Skip(a.Split(a.Text, ' '), 1), 6) b";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -922,8 +922,8 @@ public class HashOptionalSchemaParserTests
     [TestMethod]
     public void HashOptional_CrossApplyWithNestedProperty_ShouldNotInjectHash()
     {
-        // Ensure nested properties on aliases don't get # prefix
-        // Uses the PropertyFromNode parsing path
+        
+        
         var query = "select c.Value from schema.thing() a cross apply a.Prop.Nested c";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -954,7 +954,7 @@ public class HashOptionalSchemaParserTests
     [TestMethod]
     public void HashOptional_DescWithCouple_ShouldParse()
     {
-        // Test DESC and COUPLE in the same query batch
+        
         var query = "table T { Id 'System.Int32' }; couple schema.method with table T as Source; select Id from Source()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -987,7 +987,7 @@ public class HashOptionalSchemaParserTests
     [TestMethod]
     public void HashOptional_CrossApplyBetweenTwoSchemas_ShouldParse()
     {
-        // Both schemas use hash-optional syntax
+        
         var query = "select b.Col from schemaA.first() a cross apply schemaB.second(a.Key) b";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -1013,7 +1013,7 @@ public class HashOptionalSchemaParserTests
     [TestMethod]
     public void HashOptional_JoinWithSubqueryAlias_ShouldParse()
     {
-        // Ensure aliases in join conditions aren't treated as schema references
+        
         var query = "select a.Col, b.Col from schema.first() a inner join schema.second() b on a.Id = b.Id where a.Value > 5";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -1174,7 +1174,7 @@ public class HashOptionalSchemaParserTests
     [TestMethod]
     public void HashOptional_FieldLinkSyntax_ShouldParse()
     {
-        // Field link syntax with ::1, ::2 references
+        
         var query = "select ::1, Count(::1), ::2 from schema.method() group by Col1, Col2";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);

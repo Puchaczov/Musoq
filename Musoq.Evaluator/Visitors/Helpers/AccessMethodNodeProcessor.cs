@@ -55,28 +55,28 @@ public static class AccessMethodNodeProcessor
         var method = node.Method;
         var variableName = $"{node.Alias}{method.ReflectedType!.Name}Lib";
 
-        // Handle library instantiation
+        
         HandleLibraryInstantiation(node, statements, typesToInstantiate, variableName, addNamespaceAction);
 
-        // Add symbol to scope
+        
         scope.ScopeSymbolTable.AddSymbolIfNotExist(
             method.ReflectedType.Name,
             new TypeSymbol(method.ReflectedType));
 
-        // Process method parameters and build arguments
+        
         var args = ProcessMethodParameters(node, scope, type, isInsideJoinOrApply);
 
-        // Add user-provided arguments from the stack
+        
         var tmpArgs = (ArgumentListSyntax)nodes.Pop();
         foreach (var item in tmpArgs.Arguments)
         {
             args.Add(item);
         }
 
-        // Generate method invocation expression
+        
         var accessMethodExpr = GenerateMethodInvocation(node, generator, variableName, args);
 
-        // Handle null suspicion tracking
+        
         if (!node.ReturnType.IsTrueValueType() && nullSuspiciousNodes.Count > 0)
         {
             nullSuspiciousNodes[^1].Push(accessMethodExpr);
@@ -151,7 +151,7 @@ public static class AccessMethodNodeProcessor
                     break;
 
                 case InjectGroupAccessName _:
-                    // No action needed for this attribute type
+                    
                     break;
 
                 case InjectQueryStatsAttribute _:
@@ -248,7 +248,7 @@ public static class AccessMethodNodeProcessor
         switch (type)
         {
             case MethodAccessType.ResultQuery:
-                // Do not inject in result query
+                
                 break;
             default:
                 args.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")));

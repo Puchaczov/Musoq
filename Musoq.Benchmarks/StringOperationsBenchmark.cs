@@ -29,23 +29,23 @@ public class StringOperationsBenchmark : BenchmarkBase
         var contentPath = Path.Combine(AppContext.BaseDirectory, "Data", "profiles.csv");
         _data = DataHelpers.ReadProfiles(contentPath).Take(10000).ToList();
         
-        // Baseline: simple equality filter
+        
         _queryWithEqualityBaseline = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where Gender = 'Male'");
         
-        // Contains operation
+        
         _queryWithContains = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where Contains(Email, 'gmail')");
         
-        // StartsWith operation
+        
         _queryWithStartsWith = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where StartsWith(FirstName, 'A')");
         
-        // EndsWith operation
+        
         _queryWithEndsWith = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where EndsWith(Email, '.com')");
         
-        // Multiple string operations in same query
+        
         _queryWithMultipleStringOps = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where Contains(Email, 'mail') and StartsWith(FirstName, 'J')");
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
@@ -250,7 +250,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(AccessObjectArrayNode node)
     {
-        // Preserve column access information if present
+        
         if (node.IsColumnAccess)
         {
             Nodes.Push(new AccessObjectArrayNode(node.Token, node.ColumnType, node.TableAlias));

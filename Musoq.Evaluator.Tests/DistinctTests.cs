@@ -113,7 +113,7 @@ public class DistinctTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Expected unique combinations: (cracow, Poland), (warsaw, Poland), (cracow, Germany)
+        
         Assert.AreEqual(3, table.Count);
     }
 
@@ -172,9 +172,9 @@ public class DistinctTests : BasicEntityTestBase
                 "#A", [
                     new BasicEntity("cracow", "jan", 150m) { Population = 200 },
                     new BasicEntity("cracow", "jan", 150m) { Population = 300 },
-                    new BasicEntity("warsaw", "jan", 150m) { Population = 50 }, // filtered out
+                    new BasicEntity("warsaw", "jan", 150m) { Population = 50 }, 
                     new BasicEntity("warsaw", "jan", 150m) { Population = 400 },
-                    new BasicEntity("lodz", "jan", 150m) { Population = 80 } // filtered out
+                    new BasicEntity("lodz", "jan", 150m) { Population = 80 } 
                 ]
             }
         };
@@ -233,14 +233,14 @@ public class DistinctTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // All variations of "abba" should be treated as one after ToUpperInvariant
+        
         Assert.AreEqual(2, table.Count);
     }
 
     [TestMethod]
     public void SelectDistinct_WithGroupBy_GroupByTakesPrecedence()
     {
-        // When both DISTINCT and GROUP BY are present, GROUP BY already ensures uniqueness
+        
         var query = "select distinct Name, Count(Name) from #A.Entities() group by Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {

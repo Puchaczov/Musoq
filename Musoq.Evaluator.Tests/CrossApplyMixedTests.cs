@@ -204,7 +204,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         
         Assert.AreEqual(8, table.Count, "Table should have 8 entries");
 
-        // IT Department with John Doe
+        
         Assert.IsTrue(table.Any(entry => 
            (string)entry[0] == "IT" && 
            (int)entry[1] == 500000 && 
@@ -237,7 +237,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
            (string)entry[4] == "JavaScript"), 
            "Should have IT entry for Jane Smith with JavaScript");
 
-        // HR Department with John Doe
+        
         Assert.IsTrue(table.Any(entry => 
            (string)entry[0] == "HR" && 
            (int)entry[1] == 300000 && 

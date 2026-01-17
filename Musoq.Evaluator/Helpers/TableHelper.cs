@@ -1,4 +1,4 @@
-﻿using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Tables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,11 @@ public static class TableHelper
     public static Table OrderBy(this Table table, Func<List<Row>, List<Row>> orderByFunc)
     {
         Table newTable = new Table(table.Name, table.Columns.ToArray());
-        var orderedList = orderByFunc(table.Rows);
+        
+        
+        
+        var rows = table.ToList();
+        var orderedList = orderByFunc(rows);
 
         foreach (var row in orderedList)
             newTable.Add(row);

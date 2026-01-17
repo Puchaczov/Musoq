@@ -444,7 +444,7 @@ table.Count(row =>
         
         var table = vm.Run(TestContext.CancellationToken);
         
-        // Verify column structure - this remains ordered as SQL column order matters
+        
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(double?), table.Columns.ElementAt(0).ColumnType);
@@ -478,10 +478,10 @@ table.Count(row =>
 
         var firstColumnFrequencies = new Dictionary<double, int>
         {
-            {1.0, 1},  // Value 1 appears once
-            {2.0, 3},  // Value 2 appears three times
-            {3.0, 3},  // Value 3 appears three times
-            {4.0, 3},  // Values 4,5,6 each appear three times
+            {1.0, 1},  
+            {2.0, 3},  
+            {3.0, 3},  
+            {4.0, 3},  
             {5.0, 3},
             {6.0, 3}
         };

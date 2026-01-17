@@ -196,7 +196,7 @@ internal static class SchemaNodeEmitter
         Type returnType,
         (string PropertyName, Type PropertyType)[] propertiesChain)
     {
-        // Build the initial property access (cast row element access)
+        
         ExpressionSyntax propertyAccess = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.CastExpression(
                 SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(propertiesChain[0].PropertyType)),
@@ -209,7 +209,7 @@ internal static class SchemaNodeEmitter
                                     SyntaxKind.StringLiteralExpression,
                                     SyntaxFactory.Literal(propertiesChain[0].PropertyName))))))));
 
-        // Chain additional property accesses
+        
         for (var i = 1; i < propertiesChain.Length; i++)
         {
             propertyAccess = SyntaxFactory.MemberAccessExpression(

@@ -152,7 +152,7 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
         var expressions = new List<ExpressionSyntax>();
         var j = 0;
 
-        // Process columns from all tables except the last one
+        
         for (var i = 0; i < fullTransitionTable.CompoundTables.Length - 1; i++)
         {
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[i]))
@@ -169,7 +169,7 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
             }
         }
 
-        // Process columns from the last table with null values
+        
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[^1]))
         {
             expressions.Add(

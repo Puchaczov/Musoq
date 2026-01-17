@@ -33,7 +33,7 @@ namespace Musoq.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            // Create test data
+            
             var testData = Enumerable.Range(0, RowsCount).Select(i => new TableTestEntity
             {
                 Id = i,
@@ -44,7 +44,7 @@ namespace Musoq.Benchmarks
 
             var schemaProvider = new TableTestSchemaProvider(testData);
 
-            // Sequential query - uses regular foreach
+            
             _sequentialQuery = InstanceCreator.CompileForExecution(
                 @"select Id, Name, Value, Category, HeavyComputation(Value) from #test.entities() where Value > 100",
                 Guid.NewGuid().ToString(),
@@ -52,7 +52,7 @@ namespace Musoq.Benchmarks
                 _loggerResolver,
                 new CompilationOptions(parallelizationMode: ParallelizationMode.None));
 
-            // Parallel query - uses Parallel.ForEach
+            
             _parallelQuery = InstanceCreator.CompileForExecution(
                 @"select Id, Name, Value, Category, HeavyComputation(Value) from #test.entities() where Value > 100",
                 Guid.NewGuid().ToString(),

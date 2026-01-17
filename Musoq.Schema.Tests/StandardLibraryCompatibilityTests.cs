@@ -25,7 +25,7 @@ public class StandardLibraryCompatibilityTests
     [TestMethod]
     public void StandardLibrary_CaseInsensitiveResolutionWorks()
     {
-        // Test specific known methods to ensure case-insensitive resolution works
+        
         var testCases = new[]
         {
             ("Trim", new[] { typeof(string) }),
@@ -37,21 +37,21 @@ public class StandardLibraryCompatibilityTests
 
         foreach (var (methodName, paramTypes) in testCases)
         {
-            // Exact case should work
+            
             var exactSuccess = _methodsManager.TryGetMethod(methodName, paramTypes, null, out var exactMethod);
             Assert.IsTrue(exactSuccess, $"Exact case should resolve: {methodName}");
             
-            // Lowercase should work and return method with original name
+            
             var lowerSuccess = _methodsManager.TryGetMethod(methodName.ToLowerInvariant(), paramTypes, null, out var lowerMethod);
             Assert.IsTrue(lowerSuccess, $"Lowercase should resolve: {methodName}");
             Assert.AreEqual(methodName, lowerMethod.Name, $"Should preserve original name for: {methodName}");
             
-            // Uppercase should work and return method with original name
+            
             var upperSuccess = _methodsManager.TryGetMethod(methodName.ToUpperInvariant(), paramTypes, null, out var upperMethod);
             Assert.IsTrue(upperSuccess, $"Uppercase should resolve: {methodName}");
             Assert.AreEqual(methodName, upperMethod.Name, $"Should preserve original name for: {methodName}");
             
-            // Underscore variant should work and return method with original name
+            
             var underscoreSuccess = _methodsManager.TryGetMethod(InsertUnderscores(methodName), paramTypes, null, out var underscoreMethod);
             Assert.IsTrue(underscoreSuccess, $"Underscore variant should resolve: {methodName}");
             Assert.AreEqual(methodName, underscoreMethod.Name, $"Should preserve original name for: {methodName}");
@@ -61,7 +61,7 @@ public class StandardLibraryCompatibilityTests
     [TestMethod]
     public void StandardLibrary_ExactMatchShouldTakePrecedence()
     {
-        // Test some common methods that exist in standard library
+        
         var commonMethods = new[]
         {
             ("Abs", new[] { typeof(decimal?) }),
@@ -73,11 +73,11 @@ public class StandardLibraryCompatibilityTests
 
         foreach (var (methodName, paramTypes) in commonMethods)
         {
-            // Exact match should work
+            
             var exactSuccess = _methodsManager.TryGetMethod(methodName, paramTypes, null, out var exactMethod);
             Assert.IsTrue(exactSuccess, $"Exact match should work for {methodName}");
             
-            // Case insensitive should resolve to same method
+            
             var lowerSuccess = _methodsManager.TryGetMethod(methodName.ToLowerInvariant(), paramTypes, null, out var lowerMethod);
             Assert.IsTrue(lowerSuccess, $"Lowercase should work for {methodName}");
             
@@ -89,7 +89,7 @@ public class StandardLibraryCompatibilityTests
     [TestMethod]
     public void StandardLibrary_OverloadedMethodsShouldResolveCorrectly()
     {
-        // Test overloaded methods like Abs which has multiple versions (only decimal, long, int exist)
+        
         var absTests = new[]
         {
             (new[] { typeof(decimal?) }, "decimal?"),
@@ -99,23 +99,23 @@ public class StandardLibraryCompatibilityTests
 
         foreach (var (paramTypes, expectedType) in absTests)
         {
-            // Test exact case
+            
             var exactSuccess = _methodsManager.TryGetMethod("Abs", paramTypes, null, out var exactMethod);
             Assert.IsTrue(exactSuccess, $"Exact 'Abs' should resolve for {expectedType}");
             
-            // Test lowercase
+            
             var lowerSuccess = _methodsManager.TryGetMethod("abs", paramTypes, null, out var lowerMethod);
             Assert.IsTrue(lowerSuccess, $"Lowercase 'abs' should resolve for {expectedType}");
             
-            // Test uppercase
+            
             var upperSuccess = _methodsManager.TryGetMethod("ABS", paramTypes, null, out var upperMethod);
             Assert.IsTrue(upperSuccess, $"Uppercase 'ABS' should resolve for {expectedType}");
             
-            // All should resolve to same method
+            
             Assert.AreEqual(exactMethod, lowerMethod, $"Case variations should resolve to same method for {expectedType}");
             Assert.AreEqual(exactMethod, upperMethod, $"Case variations should resolve to same method for {expectedType}");
             
-            // Method name should be preserved
+            
             Assert.AreEqual("Abs", lowerMethod.Name);
             Assert.AreEqual("Abs", upperMethod.Name);
         }
@@ -124,7 +124,7 @@ public class StandardLibraryCompatibilityTests
     [TestMethod]
     public void StandardLibrary_NoNamingConflicts()
     {
-        // Get all method names and their normalized versions
+        
         var standardMethods = typeof(LibraryBase)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.GetCustomAttribute<BindableMethodAttribute>() != null)
@@ -136,7 +136,7 @@ public class StandardLibraryCompatibilityTests
             var methodName = methodGroup.Key;
             var normalizedName = methodName.ToLowerInvariant().Replace("_", "");
             
-            // Check if any other method groups would normalize to the same name
+            
             var conflictingMethods = standardMethods
                 .Where(g => g.Key != methodName)
                 .Where(g => g.Key.ToLowerInvariant().Replace("_", "") == normalizedName)
@@ -151,17 +151,17 @@ public class StandardLibraryCompatibilityTests
     [TestMethod]
     public void StandardLibrary_PerformanceIsAcceptable()
     {
-        // Test that case-insensitive resolution doesn't significantly impact performance
+        
         var testMethod = "trim";
         var paramTypes = new[] { typeof(string) };
         
-        // Warm up
+        
         for (int i = 0; i < 100; i++)
         {
             _methodsManager.TryGetMethod(testMethod, paramTypes, null, out _);
         }
         
-        // Measure performance
+        
         var start = DateTime.UtcNow;
         const int iterations = 10000;
         
@@ -175,7 +175,7 @@ public class StandardLibraryCompatibilityTests
         var elapsed = DateTime.UtcNow - start;
         var msPerResolution = elapsed.TotalMilliseconds / iterations;
         
-        // Should be very fast - less than 0.1ms per resolution
+        
         Assert.IsLessThan(0.1,
 msPerResolution, $"Case-insensitive method resolution is too slow: {msPerResolution:F4}ms per resolution");
     }
@@ -183,12 +183,12 @@ msPerResolution, $"Case-insensitive method resolution is too slow: {msPerResolut
     [TestMethod]
     public void StandardLibrary_AllMethodsPreserveOriginalName()
     {
-        // Verify that case-insensitive resolution always returns the original method name
+        
         var standardMethods = typeof(LibraryBase)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.GetCustomAttribute<BindableMethodAttribute>() != null)
-            .Where(m => !HasInjectedParameters(m)) // Skip methods with injected parameters
-            .Take(10) // Test subset for speed
+            .Where(m => !HasInjectedParameters(m)) 
+            .Take(10) 
             .ToArray();
 
         foreach (var method in standardMethods)
@@ -207,21 +207,21 @@ msPerResolution, $"Case-insensitive method resolution is too slow: {msPerResolut
     [TestMethod]
     public void StandardLibrary_EdgeCasesHandleCorrectly()
     {
-        // Test various edge cases with the standard library
         
-        // Non-existent method should fail
+        
+        
         var success1 = _methodsManager.TryGetMethod("nonexistentmethod", new Type[0], null, out _);
         Assert.IsFalse(success1, "Non-existent method should not resolve");
         
-        // Wrong parameter types should fail
+        
         var success2 = _methodsManager.TryGetMethod("abs", new[] { typeof(string) }, null, out _);
         Assert.IsFalse(success2, "Wrong parameter types should not resolve");
         
-        // Null method name should throw
+        
         Assert.Throws<ArgumentNullException>(() => 
             _methodsManager.TryGetMethod(null, new Type[0], null, out _));
             
-        // Empty string should throw (our implementation validates input)
+        
         Assert.Throws<ArgumentException>(() => 
             _methodsManager.TryGetMethod("", new Type[0], null, out _));
     }

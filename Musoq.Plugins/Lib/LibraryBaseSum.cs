@@ -208,12 +208,12 @@ public partial class LibraryBase
         var parentGroup = GetParentGroup(group, parent);
         if (!number.HasValue)
         {
-            parentGroup.GetOrCreateValue<float>(name);
+            parentGroup.GetOrCreateValue<decimal>(name);
             return;
         }
 
-        var value = parentGroup.GetOrCreateValue<float>(name);
-        parentGroup.SetValue(name, value + number);
+        var value = parentGroup.GetOrCreateValue<decimal>(name);
+        parentGroup.SetValue(name, value + ToDecimal(number.Value));
     }
 
     /// <summary>

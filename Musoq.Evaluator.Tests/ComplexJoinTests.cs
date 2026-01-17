@@ -27,10 +27,10 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void HashJoin_ComplexEqui_Numeric_ShouldMatch()
         {
-            // a.Id = b.Id + 1
-            // A: 1, 2, 3
-            // B: 0, 1, 2
-            // Matches: (1,0), (2,1), (3,2)
+            
+            
+            
+            
             
             var query = @"
 select 
@@ -62,7 +62,7 @@ inner join #B.entities() b on a.Id = b.Id + 1";
 
             Assert.AreEqual(3, table.Count);
             
-            // Sort for deterministic assertions
+            
             var rows = table.OrderBy(r => (int)r[0]).ToList();
             
             Assert.AreEqual(1, rows[0][0]);
@@ -78,9 +78,9 @@ inner join #B.entities() b on a.Id = b.Id + 1";
         [TestMethod]
         public void HashJoin_ComplexEqui_String_ShouldMatch()
         {
-            // a.Name = b.Name + '_Suffix'
-            // A: "Item1_Suffix", "Item2_Suffix"
-            // B: "Item1", "Item2"
+            
+            
+            
             
             var query = @"
 select 
@@ -124,13 +124,13 @@ inner join #B.entities() b on a.Name = b.Name + '_Suffix'";
         [TestMethod]
         public void SortMergeJoin_ComplexInequality_Numeric_ShouldMatch()
         {
-            // a.Population > b.Population + 100
-            // A: 200, 300
-            // B: 50, 150
-            // 200 > 50 + 100 (150) -> Match
-            // 200 > 150 + 100 (250) -> No Match
-            // 300 > 50 + 100 (150) -> Match
-            // 300 > 150 + 100 (250) -> Match
+            
+            
+            
+            
+            
+            
+            
             
             var query = @"
 select 
@@ -162,15 +162,15 @@ inner join #B.entities() b on a.Population > b.Population + 100";
             
             var rows = table.OrderBy(r => (decimal)r[0]).ThenBy(r => (decimal)r[1]).ToList();
             
-            // 200, 50
+            
             Assert.AreEqual(200m, rows[0][0]);
             Assert.AreEqual(50m, rows[0][1]);
             
-            // 300, 50
+            
             Assert.AreEqual(300m, rows[1][0]);
             Assert.AreEqual(50m, rows[1][1]);
             
-            // 300, 150
+            
             Assert.AreEqual(300m, rows[2][0]);
             Assert.AreEqual(150m, rows[2][1]);
         }
@@ -178,11 +178,11 @@ inner join #B.entities() b on a.Population > b.Population + 100";
         [TestMethod]
         public void SortMergeJoin_ComplexInequality_DateTime_ShouldMatch()
         {
-            // a.Time > b.Time.AddDays(1)
-            // A: 2023-01-05
-            // B: 2023-01-01, 2023-01-03
-            // 2023-01-05 > 2023-01-01 + 1 (2023-01-02) -> Match
-            // 2023-01-05 > 2023-01-03 + 1 (2023-01-04) -> Match
+            
+            
+            
+            
+            
             
             var query = @"
 select 
@@ -223,10 +223,10 @@ inner join #B.entities() b on a.Time > b.AddDays(b.Time, 1)";
         [TestMethod]
         public void HashJoin_MixedComplexAndSimple_ShouldMatch()
         {
-            // a.Id = b.Id + 1 AND a.Name = b.Name
-            // A: (2, "X"), (3, "Y")
-            // B: (1, "X"), (2, "Z")
-            // Match: (2, "X") == (1+1, "X") -> Match
+            
+            
+            
+            
             
             var query = @"
 select 
@@ -262,10 +262,10 @@ inner join #B.entities() b on a.Id = b.Id + 1 AND a.Name = b.Name";
         [TestMethod]
         public void HashJoin_LeftModified_ShouldMatch()
         {
-            // a.Id + 1 = b.Id
-            // A: 1, 2
-            // B: 2, 3
-            // Matches: (1+1=2), (2+1=3)
+            
+            
+            
+            
             
             var query = @"
 select 
@@ -307,10 +307,10 @@ inner join #B.entities() b on a.Id + 1 = b.Id";
         [TestMethod]
         public void HashJoin_BothModified_ShouldMatch()
         {
-            // a.Id + 1 = b.Id - 1
-            // A: 1, 2
-            // B: 3, 4
-            // Matches: (1+1 = 3-1 -> 2=2), (2+1 = 4-1 -> 3=3)
+            
+            
+            
+            
             
             var query = @"
 select 
@@ -352,10 +352,10 @@ inner join #B.entities() b on a.Id + 1 = b.Id - 1";
         [TestMethod]
         public void SortMergeJoin_LeftModified_ShouldMatch()
         {
-            // a.Population - 50 > b.Population
-            // A: 200
-            // B: 100
-            // 200 - 50 > 100 (150 > 100) -> Match
+            
+            
+            
+            
             
             var query = @"
 select 
@@ -390,10 +390,10 @@ inner join #B.entities() b on a.Population - 50 > b.Population";
         [TestMethod]
         public void SortMergeJoin_BothModified_ShouldMatch()
         {
-            // a.Population / 2 > b.Population * 2
-            // A: 500
-            // B: 100
-            // 500 / 2 > 100 * 2 (250 > 200) -> Match
+            
+            
+            
+            
             
             var query = @"
 select 

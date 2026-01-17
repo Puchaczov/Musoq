@@ -165,28 +165,28 @@ public class JoinProcessingHelperTests
 
     private JoinInMemoryWithSourceTableFromNode CreateMockJoinNode()
     {
-        // Create a mock object with minimal properties to avoid constructor complexity
-        // This is sufficient for testing the validation logic
-        return null; // The helper method validates null inputs first
+        
+        
+        return null; 
     }
 
     private JoinInMemoryWithSourceTableFromNode CreateTestJoinNode()
     {
-        // Create minimal test objects
+        
         var sourceAlias = "source";
         var inMemoryAlias = "memory";
-        var expression = new IntegerNode("1"); // Simple expression for testing
+        var expression = new IntegerNode("1"); 
         
-        // Create a minimal source table node
+        
         var sourceTable = new TestFromNode(sourceAlias);
         
-        // Create the join node with minimal required parameters
+        
         return new JoinInMemoryWithSourceTableFromNode(
             inMemoryAlias, 
             sourceTable, 
             expression, 
             JoinType.Inner,
-            typeof(object)); // Provide a return type
+            typeof(object)); 
     }
 
     // Helper class to create a minimal FromNode for testing
@@ -200,7 +200,7 @@ public class JoinProcessingHelperTests
 
         public override void Accept(IExpressionVisitor visitor)
         {
-            // Empty implementation for testing
+            
         }
 
         public override string ToString()

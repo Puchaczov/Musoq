@@ -99,7 +99,7 @@ public class CompressionTests : LibraryBaseBaseTests
         Assert.IsNotNull(base64Compressed);
         Assert.IsFalse(string.IsNullOrEmpty(base64Compressed));
         
-        // Verify it's valid base64
+        
         var bytes = Convert.FromBase64String(base64Compressed);
         Assert.IsNotEmpty(bytes);
     }

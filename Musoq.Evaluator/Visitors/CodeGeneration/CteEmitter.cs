@@ -21,7 +21,7 @@ public static class CteEmitter
         int tableIndex,
         string methodName)
     {
-        // Generates: _tableResults[tableIndex] = methodName(provider, positionalEnvironmentVariables, queriesInformation, logger, token);
+        
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,

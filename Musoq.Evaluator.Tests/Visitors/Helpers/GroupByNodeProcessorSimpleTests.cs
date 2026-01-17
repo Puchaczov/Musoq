@@ -43,7 +43,7 @@ public class GroupByNodeProcessorSimpleTests
         
         Assert.IsNotNull(typeof(GroupByNodeProcessor));
         Assert.IsTrue(typeof(GroupByNodeProcessor).IsClass);
-        Assert.IsTrue(typeof(GroupByNodeProcessor).IsAbstract && typeof(GroupByNodeProcessor).IsSealed); // Static class check
+        Assert.IsTrue(typeof(GroupByNodeProcessor).IsAbstract && typeof(GroupByNodeProcessor).IsSealed); 
     }
 
     [TestMethod]

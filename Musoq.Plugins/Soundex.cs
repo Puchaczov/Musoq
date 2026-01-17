@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -30,7 +30,7 @@ internal sealed partial class Soundex
         var soundexCode = new StringBuilder();
         var previousWasHorW = false;
 
-        // Upper case all letters in word and remove any punctuation
+        
         word = PunctuationRegex().Replace(
             word == null ? string.Empty : word.ToUpper(),
             string.Empty);
@@ -38,25 +38,25 @@ internal sealed partial class Soundex
         if (string.IsNullOrEmpty(word))
             return string.Empty.PadRight(maxSoundexCodeLength, '0');
 
-        // Retain the first letter
+        
         soundexCode.Append(word.First());
 
         for (var i = 1; i < word.Length; i++)
         {
             var numberCharForCurrentLetter = GetCharNumberForLetter(word[i]);
 
-            // Skip this number if it matches the number for the first character
+            
             if (i == 1 &&
                 numberCharForCurrentLetter == GetCharNumberForLetter(soundexCode[0]))
                 continue;
 
-            // Skip this number if the previous letter was a 'H' or a 'W' 
-            // and this number matches the number assigned before that
+            
+            
             if (soundexCode.Length > 2 && previousWasHorW &&
                 numberCharForCurrentLetter == soundexCode[^2])
                 continue;
 
-            // Skip this number if it was the last added
+            
             if (soundexCode.Length > 0 &&
                 numberCharForCurrentLetter == soundexCode[^1])
                 continue;
@@ -82,7 +82,7 @@ internal sealed partial class Soundex
         if ("MN".Contains(letter)) return '5';
         if ('R' == letter) return '6';
 
-        return '0'; // i.e. letter is [AEIOUWYH]
+        return '0'; 
     }
     
     [GeneratedRegex(@"[^\w\s]")]

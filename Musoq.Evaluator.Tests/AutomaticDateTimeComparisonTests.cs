@@ -102,7 +102,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingDateTimeWithAllOperators_ShouldAutomaticallyConvert()
     {
-        var dateTimeType = DateTimeTypes[0]; // DateTime
+        var dateTimeType = DateTimeTypes[0]; 
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
         
         foreach (var op in operators)
@@ -114,7 +114,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingDateTimeOffsetWithAllOperators_ShouldAutomaticallyConvert()
     {
-        var dateTimeType = DateTimeTypes[2]; // DateTimeOffset
+        var dateTimeType = DateTimeTypes[2]; 
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
         
         foreach (var op in operators)
@@ -126,7 +126,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingTimeSpanWithAllOperators_ShouldAutomaticallyConvert()
     {
-        var dateTimeType = DateTimeTypes[4]; // TimeSpan
+        var dateTimeType = DateTimeTypes[4]; 
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
         
         foreach (var op in operators)
@@ -138,7 +138,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingNullableDateTimeWithAllOperators_ShouldAutomaticallyConvert()
     {
-        var dateTimeType = DateTimeTypes[1]; // Nullable DateTime
+        var dateTimeType = DateTimeTypes[1]; 
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
         
         foreach (var op in operators)
@@ -150,7 +150,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingNullableDateTimeOffsetWithAllOperators_ShouldAutomaticallyConvert()
     {
-        var dateTimeType = DateTimeTypes[3]; // Nullable DateTimeOffset
+        var dateTimeType = DateTimeTypes[3]; 
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
         
         foreach (var op in operators)
@@ -162,7 +162,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingNullableTimeSpanWithAllOperators_ShouldAutomaticallyConvert()
     {
-        var dateTimeType = DateTimeTypes[5]; // Nullable TimeSpan
+        var dateTimeType = DateTimeTypes[5]; 
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
         
         foreach (var op in operators)
@@ -188,7 +188,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingWithEqualityOperator_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTime'," +
                              "  Name 'System.String'" +
@@ -203,7 +203,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingWithNotEqualOperator_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTime'," +
                              "  Name 'System.String'" +
@@ -214,7 +214,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
+        Assert.AreEqual(2, table.Count); 
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Equal Event", results);
         Assert.Contains("Later Event", results);
@@ -223,7 +223,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingWithGreaterThanOperator_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTime'," +
                              "  Name 'System.String'" +
@@ -234,7 +234,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
+        Assert.AreEqual(2, table.Count); 
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Equal Event", results);
         Assert.Contains("Later Event", results);
@@ -243,7 +243,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingWithLessThanOperator_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTime'," +
                              "  Name 'System.String'" +
@@ -254,7 +254,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count); // Should match both "Earlier Event" and "Equal Event"
+        Assert.AreEqual(2, table.Count); 
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Earlier Event", results);
         Assert.Contains("Equal Event", results);
@@ -263,7 +263,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingWithGreaterOrEqualOperator_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTime'," +
                              "  Name 'System.String'" +
@@ -274,7 +274,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
+        Assert.AreEqual(2, table.Count); 
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Equal Event", results);
         Assert.Contains("Later Event", results);
@@ -283,7 +283,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingWithLessOrEqualOperator_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTime'," +
                              "  Name 'System.String'" +
@@ -294,7 +294,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count); // Should match both "Earlier Event" and "Equal Event"
+        Assert.AreEqual(2, table.Count); 
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Earlier Event", results);
         Assert.Contains("Equal Event", results);
@@ -307,7 +307,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingDateTimeOffsetWithSpecificOperator_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[2]; // DateTimeOffset
+        var testData = DateTimeTypes[2]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTimeOffset'," +
                              "  Name 'System.String'" +
@@ -322,7 +322,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingTimeSpanWithSpecificOperator_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[4]; // TimeSpan
+        var testData = DateTimeTypes[4]; 
         const string query = "table Events {" +
                              "  Duration 'System.TimeSpan'," +
                              "  Name 'System.String'" +
@@ -333,7 +333,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, "Duration"));
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count); // Should match both "Equal Event" and "Later Event"
+        Assert.AreEqual(2, table.Count); 
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
         Assert.Contains("Equal Event", results);
         Assert.Contains("Later Event", results);
@@ -346,7 +346,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingReversedStringDateTimeWithBasicOperators_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         TestReversedComparison(testData, "EventDate");
     }
 
@@ -427,7 +427,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingDateTimeComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTime'," +
                              "  Name 'System.String'" +
@@ -460,7 +460,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingDateTimeOffsetComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[2]; // DateTimeOffset
+        var testData = DateTimeTypes[2]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTimeOffset'," +
                              "  Name 'System.String'" +
@@ -479,14 +479,14 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var recentCount = table.Count(row => row.Values[1] as string == "Recent");
         var oldCount = table.Count(row => row.Values[1] as string == "Old");
         
-        Assert.AreEqual(2, recentCount); // Equal Event and Later Event
-        Assert.AreEqual(1, oldCount);    // Earlier Event
+        Assert.AreEqual(2, recentCount); 
+        Assert.AreEqual(1, oldCount);    
     }
 
     [TestMethod]
     public void WhenUsingTimeSpanComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[4]; // TimeSpan
+        var testData = DateTimeTypes[4]; 
         const string query = "table Events {" +
                              "  Duration 'System.TimeSpan'," +
                              "  Name 'System.String'" +
@@ -519,7 +519,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingNullableDateTimeComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[1]; // Nullable DateTime
+        var testData = DateTimeTypes[1]; 
         const string query = "table Events {" +
                              "  EventDate 'System.Nullable`1[System.DateTime]'," +
                              "  Name 'System.String'" +
@@ -538,14 +538,14 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var earlyCount = table.Count(row => row.Values[1] as string == "Early");
         var lateCount = table.Count(row => row.Values[1] as string == "Late");
         
-        Assert.AreEqual(2, earlyCount); // Earlier Event and Equal Event
-        Assert.AreEqual(1, lateCount);  // Later Event
+        Assert.AreEqual(2, earlyCount); 
+        Assert.AreEqual(1, lateCount);  
     }
 
     [TestMethod]
     public void WhenUsingAllOperatorsInCaseWhen_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
         
         foreach (var op in operators)
@@ -582,7 +582,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingReversedComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTime'," +
                              "  Name 'System.String'" +
@@ -650,7 +650,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingNestedCaseWhenWithDateTimeComparison_ShouldAutomaticallyConvert()
     {
-        var testData = DateTimeTypes[0]; // DateTime
+        var testData = DateTimeTypes[0]; 
         const string query = "table Events {" +
                              "  EventDate 'System.DateTime'," +
                              "  Name 'System.String'" +
@@ -677,7 +677,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         Assert.AreEqual("PastOrPresent", results[1].Category);
         
         Assert.AreEqual("Later Event", results[2].Name);
-        Assert.AreEqual("VeryFuture", results[2].Category); // 2023-06-15 > 2023-05-01
+        Assert.AreEqual("VeryFuture", results[2].Category); 
     }
 
     #endregion

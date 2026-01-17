@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.Managers;
@@ -112,7 +112,7 @@ public class BasicMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_WrongParameterTypes_ShouldReturnFalse()
     {
-        var types = new[] { typeof(DateTime) }; // Method expects int
+        var types = new[] { typeof(DateTime) }; 
 
         var success = _methodsMetadata.TryGetMethod("SingleParameter", types, _entityType, out var method);
 

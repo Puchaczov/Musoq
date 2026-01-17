@@ -178,7 +178,7 @@ namespace Musoq.Plugins.Tests
         public void ToInt64_FromFloat_ShouldReturnLong()
         {
             var result = Library.ToInt64((float?)123456.7f);
-            Assert.AreEqual(123456L, result); // Truncated by cast
+            Assert.AreEqual(123456L, result); 
         }
 
         [TestMethod]
@@ -192,7 +192,7 @@ namespace Musoq.Plugins.Tests
         public void ToInt64_FromDouble_ShouldReturnLong()
         {
             var result = Library.ToInt64((double?)987654321.9);
-            Assert.AreEqual(987654321L, result); // Truncated by cast
+            Assert.AreEqual(987654321L, result); 
         }
 
         [TestMethod]
@@ -206,7 +206,7 @@ namespace Musoq.Plugins.Tests
         public void ToInt64_FromDecimal_ShouldReturnLong()
         {
             var result = Library.ToInt64((decimal?)123456789.8m);
-            Assert.AreEqual(123456790L, result); // Rounded by Convert.ToInt64
+            Assert.AreEqual(123456790L, result); 
         }
 
         [TestMethod]

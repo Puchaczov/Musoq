@@ -16,7 +16,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
     [TestMethod]
     public void HashOptional_SimpleSelect_ShouldWork()
     {
-        // Query uses "A.Entities()" without # - parser normalizes to "#A"
+        
         var query = "select Name from A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -174,7 +174,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
     [TestMethod]
     public void HashOptional_MixedSyntax_WithAndWithoutHash_ShouldWork()
     {
-        // Mix of hash and non-hash syntax in the same query
+        
         var query = "select a.Name from #A.Entities() a inner join B.Entities() b on a.Name = b.Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -192,7 +192,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
     [TestMethod]
     public void HashSyntax_StillWorks_ShouldWork()
     {
-        // Verify existing hash syntax still works
+        
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {

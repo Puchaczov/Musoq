@@ -58,7 +58,7 @@ public class OptimizationsToggleBenchmark
         var testData = CreateTestData(RowsCount);
         var schemaProvider = new OptBenchSchemaProvider(testData);
 
-        // Simple query with duplicate expressions
+        
         const string simpleQuery = @"
             SELECT ExpensiveCompute(Value), ExpensiveCompute(Value) + 10
             FROM #test.entities() 
@@ -78,7 +78,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        // Complex query with multiple duplicate expressions
+        
         const string complexQuery = @"
             SELECT 
                 ExpensiveCompute(Value) as Computed,
@@ -105,7 +105,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        // CASE WHEN with duplicates
+        
         const string caseWhenQuery = @"
             SELECT 
                 ExpensiveCompute(Value) as Computed,
@@ -131,7 +131,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        // Aggregate query with duplicates
+        
         const string aggregateQuery = @"
             SELECT 
                 Category,
@@ -156,7 +156,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        // Mixed column and method query - columns used directly and passed to methods
+        
         const string mixedColumnMethodQuery = @"
             SELECT 
                 Value,
@@ -185,7 +185,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        // Heavy mixed query - intensive use of both columns and method calls
+        
         const string heavyMixedQuery = @"
             SELECT 
                 Id,
@@ -325,7 +325,7 @@ public class OptimizationsToggleBenchmark
 
     private static List<OptBenchEntity> CreateTestData(int count)
     {
-        var random = new Random(42); // Fixed seed for reproducibility
+        var random = new Random(42); 
         var categories = new[] { "A", "B", "C", "D", "E" };
         
         return Enumerable.Range(0, count)
@@ -484,7 +484,7 @@ public class OptBenchLibrary : LibraryBase
     [BindableMethod]
     public decimal ExpensiveCompute(int value)
     {
-        // Simulate some work - intentionally CPU-intensive
+        
         decimal result = value;
         for (int i = 0; i < 100; i++)
         {
@@ -501,7 +501,7 @@ public class OptBenchLibrary : LibraryBase
     {
         if (input == null) return null;
         
-        // Simulate some work
+        
         var result = input;
         for (int i = 0; i < 50; i++)
         {

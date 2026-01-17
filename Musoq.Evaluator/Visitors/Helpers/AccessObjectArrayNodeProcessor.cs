@@ -66,7 +66,7 @@ public static class AccessObjectArrayNodeProcessor
     /// </summary>
     private static ExpressionSyntax ProcessColumnBasedAccess(AccessObjectArrayNode node)
     {
-        // Generate safe column access using SafeArrayAccess helper
+        
         var columnAccess = SyntaxFactory.CastExpression(
             GetCSharpType(node.ColumnType),
             SyntaxFactory.ParenthesizedExpression(
@@ -77,7 +77,7 @@ public static class AccessObjectArrayNodeProcessor
                                 SyntaxKind.StringLiteralExpression,
                                 SyntaxFactory.Literal(node.ObjectName))))))));
 
-        // Generate safe access based on column type
+        
         if (node.ColumnType == typeof(string))
         {
             return CreateStringCharacterAccess(columnAccess, node.Token.Index);
@@ -96,12 +96,12 @@ public static class AccessObjectArrayNodeProcessor
     /// </summary>
     private static ExpressionSyntax ProcessPropertyBasedAccess(AccessObjectArrayNode node, Stack<SyntaxNode> nodes)
     {
-        // Only pop if we have an expression on the stack
+        
         if (nodes.Count > 0 && nodes.Peek() is ExpressionSyntax)
         {
             var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) nodes.Pop());
 
-            // For property-based access, use direct element access to avoid type parameter issues
+            
             return SyntaxFactory.ElementAccessExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -114,7 +114,7 @@ public static class AccessObjectArrayNodeProcessor
                             SyntaxFactory.Literal(node.Token.Index))))));
         }
         
-        // This should not happen for valid queries, but fallback to avoid crashes
+        
         throw new InvalidOperationException($"Cannot generate code for array access {node} - no parent expression available");
     }
 
@@ -164,8 +164,8 @@ public static class AccessObjectArrayNodeProcessor
     /// </summary>
     private static ExpressionSyntax CreateDirectElementAccess(ExpressionSyntax columnAccess, int index)
     {
-        // For other indexable types, use direct element access with bounds checking
-        // This avoids the need for explicit type parameters that may not be available in generated assembly
+        
+        
         return SyntaxFactory.ElementAccessExpression(
             SyntaxFactory.ParenthesizedExpression(columnAccess))
             .WithArgumentList(SyntaxFactory.BracketedArgumentList(
@@ -201,7 +201,7 @@ public static class AccessObjectArrayNodeProcessor
         if (type == typeof(object))
             return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
         
-        // For complex types, use the type name
+        
         return SyntaxFactory.IdentifierName(type.Name);
     }
 }

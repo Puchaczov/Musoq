@@ -5,25 +5,34 @@ using System.Text;
 namespace Musoq.Evaluator.Tables;
 
 [DebuggerDisplay("{ToString()}")]
-public class GroupKey
+public class GroupKey(params object[] values)
 {
-    public readonly object[] Values;
-
-    public GroupKey(params object[] values)
-    {
-        Values = values;
-    }
+    public readonly object[] Values = values;
 
     public bool Equals(GroupKey other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
 
-        var equals = true;
+        if (Values.Length != other.Values.Length)
+            return false;
 
-        for (var i = 0; i < Values.Length && equals; i++) equals &= Values[i].Equals(other.Values[i]);
+        for (var i = 0; i < Values.Length; i++)
+        {
+            var thisValue = Values[i];
+            var otherValue = other.Values[i];
 
-        return equals;
+            if (thisValue == null && otherValue == null)
+                continue;
+
+            if (thisValue == null || otherValue == null)
+                return false;
+
+            if (!thisValue.Equals(otherValue))
+                return false;
+        }
+
+        return true;
     }
 
     public override string ToString()
@@ -37,7 +46,7 @@ public class GroupKey
             key.Append($"{value},");
         }
 
-        value = Values[Values.Length - 1] == null ? "null" : Values[Values.Length - 1].ToString();
+        value = Values[^1] == null ? "null" : Values[^1].ToString();
         key.Append(value);
 
         return key.ToString();
@@ -91,7 +100,7 @@ public class GroupKey
                 continue;
             }
 
-            if (f == null && s != null)
+            if (f == null)
             {
                 areEqual = false;
                 continue;

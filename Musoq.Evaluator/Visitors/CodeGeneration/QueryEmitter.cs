@@ -285,13 +285,13 @@ public class QueryEmitter(SyntaxGenerator generator)
     {
         var fullBlock = StatementEmitter.CreateEmptyBlock();
 
-        // Add Begin phase tracking if queryId is provided
+        
         if (!string.IsNullOrEmpty(queryId))
         {
             fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.Begin));
         }
 
-        // Add From phase tracking if queryId is provided (before row source initialization)
+        
         if (!string.IsNullOrEmpty(queryId))
         {
             fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.From));
@@ -303,7 +303,7 @@ public class QueryEmitter(SyntaxGenerator generator)
 
         fullBlock = fullBlock.AddStatements(rowsSource, iterationStatement);
 
-        // Add End phase tracking if queryId is provided
+        
         if (!string.IsNullOrEmpty(queryId))
         {
             fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.End));
